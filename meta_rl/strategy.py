@@ -1,4 +1,5 @@
 """meta_rl/strategy.py — Strategy type for Meta-RL (ATOM-META-RL-008)"""
+from __future__ import annotations
 
 import uuid
 from typing import Any
