@@ -1,0 +1,118 @@
+name: CI - Security and Quality
+
+# Phase 3+4: secret-scan, security-scan (bandit + docker),
+# code-quality (ruff + mypy, soft), test (pytest+cov),
+# blackrock-tests (six required tests per agent).
+#
+# Hard-fail jobs (block merge): secret-scan, security-scan, test, blackrock-tests
+# Soft-fail job: code-quality (P2 warnings, not blocking).
+
+on:
+  pull_request:
+    branches: [ master, develop ]
+  push:
+    branches: [ master, develop ]
+  workflow_call:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  secret-scan:
+    name: Secret Scan (detect-secrets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install detect-secrets
+        run: pip install detect-secrets==1.5.0
+      - name: detect-secrets (with baseline, exclude tests/ and docs/)
+        run: |
+          set +e
+          detect-secrets scan \
+            --baseline .secrets.baseline \
+            --exclude-files 'tests/' --exclude-files 'docs/' \
+            > /tmp/secrets.out 2>&1
+          rc=$?
+          set -e
+          cat /tmp/secrets.out
+          # detect-secrets returns non-zero only on internal errors.
+          # Hard-fail only if NEW findings appear in the JSON output.
+          if grep -qE '"filename":' /tmp/secrets.out; then
+            count=$(grep -cE '"filename":' /tmp/secrets.out)
+            echo 'detected-secrets-found='$count
+            exit 1
+          fi
+      - name: Upload secret scan log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: secret-scan-log, path: /tmp/secrets.out, retention-days: 7 }
+
+  security-scan:
+    name: Security (Bandit + Docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/workflows/python-setup.yml
+        with: { install-dev: 'false' }
+      - name: Install bandit
+        run: pip install bandit==1.8.0
+      - name: Bandit (medium severity)
+        run: |
+          bandit -r agents core web meta_rl scripts \
+            --severity-level medium --confidence-level medium \
+            -f screen
+      - name: Docker security validation
+        run: python scripts/validate_docker_security.py
+
+  code-quality:
+    name: Code Quality (Ruff + mypy)
+    runs-on: ubuntu-latest
+    continue-on-error: true   # soft check (P2 - not blocking)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/workflows/python-setup.yml
+        with: { install-dev: 'true' }
+      - name: Ruff lint (github format)
+        run: ruff check . --output-format=github
+      - name: Ruff format check
+        run: ruff format --check .
+      - name: mypy (scoped)
+        run: |
+          mypy agents/ scripts/ core/ orchestration/ \
+            --ignore-missing-imports --no-error-summary || true
+
+  test:
+    name: Tests + Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/workflows/python-setup.yml
+        with: { install-dev: 'true' }
+      - name: Pytest (with coverage)
+        run: |
+          pytest tests/ \
+            --cov=agents --cov=core --cov=data_room --cov=observability \
+            --cov-report=xml --cov-report=term-missing \
+            -v --tb=short
+      - name: Upload coverage.xml
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: coverage-report, path: coverage.xml, retention-days: 14 }
+
+  blackrock-tests:
+    name: BlackRock Six Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Validate six required tests per agent
+        run: python scripts/validate_blackrock_tests.py
+
