@@ -1,0 +1,31 @@
+[submodule "AsurDev"]
+	path = AsurDev
+	url = https://github.com/mahaasur13-sys/AsurDev.git
+	branch = master
+	active = true
+
+[submodule "home-cluster-iac"]
+	path = home-cluster-iac
+	url = https://github.com/mahaasur13-sys/home-cluster-iac.git
+	branch = master
+	active = true
+
+[submodule "roma-execution-bridge"]
+	path = roma-execution-bridge
+	url = https://github.com/mahaasur13-sys/roma-execution-bridge.git
+	branch = master
+
+[submodule "AstroFinSentinelV5"]
+	path = AstroFinSentinelV5
+	url = https://github.com/mahaasur13-sys/AstroFinSentinelV5.git
+	branch = main
+
+[submodule "astrofin-sentinel-v5"]
+	path = astrofin-sentinel-v5
+	url = https://github.com/mahaasur13-sys/astrofin-sentinel-v5.git
+	branch = main
+
+[submodule "atom-federation-os"]
+	path = atom-federation-os
+	url = https://github.com/mahaasur13-sys/atom-federation-os.git
+	branch = master
