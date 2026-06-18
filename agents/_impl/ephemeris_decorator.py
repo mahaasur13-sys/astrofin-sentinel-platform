@@ -1,6 +1,8 @@
 """
 require_ephemeris decorator and ephemeris utilities.
 """
+from __future__ import annotations
+
 
 import functools
 from collections.abc import Callable

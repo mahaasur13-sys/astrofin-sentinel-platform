@@ -9,6 +9,8 @@ Architecture (2026 Hybrid Signal):
   - Sentiment: 10%
   - Technical: 10% (filter only)
 """
+from __future__ import annotations
+
 
 # Core Astro Agents
 from agents._impl.bear_researcher import BearResearcherAgent, run_bear_researcher
