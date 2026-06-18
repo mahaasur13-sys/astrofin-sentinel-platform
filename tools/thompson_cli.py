@@ -12,6 +12,7 @@ Usage:
     python tools/thompson_cli.py daily-brief --list          # list all briefs
     python tools/thompson_cli.py daily-brief --ideas         # generate ATOM ideas
 """
+from __future__ import annotations
 
 import argparse
 import sys

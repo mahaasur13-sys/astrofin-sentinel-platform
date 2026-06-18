@@ -3,6 +3,7 @@
 
 Optional authentication via METRICS_AUTH_ENABLED / METRICS_API_KEY.
 """
+from __future__ import annotations
 
 import argparse
 import os
