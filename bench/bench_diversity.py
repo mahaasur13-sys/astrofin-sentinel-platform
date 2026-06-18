@@ -1,4 +1,5 @@
 """Benchmark diversity_filter at n=1000 candidates x n=1000 pool."""
+from __future__ import annotations
 import sys, time
 sys.path.insert(0, "/home/workspace")
 

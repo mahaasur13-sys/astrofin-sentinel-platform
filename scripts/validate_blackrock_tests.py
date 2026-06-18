@@ -1,3 +1,4 @@
+from __future__ import annotations
 # scripts/validate_blackrock_tests.py
 # Phase 4 - BlackRock six required tests per agent.
 

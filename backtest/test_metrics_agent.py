@@ -6,6 +6,7 @@ Tests:
   C3: record() round-trip save → load preserves all fields
   C4: record_run() with BacktestRun directly returns session_id
 """
+from __future__ import annotations
 
 import tempfile
 from datetime import datetime, timezone

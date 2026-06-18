@@ -1,4 +1,5 @@
 """data/market_adapter.py — ATOM-STEP-6: Market Data Adapter with live sources, cache, and metrics."""
+from __future__ import annotations
 
 import logging
 import os

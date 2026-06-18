@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Validate docker-compose.yml for P0 security requirements."""
+from __future__ import annotations
 
 import sys
 from pathlib import Path

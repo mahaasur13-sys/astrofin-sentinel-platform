@@ -1,4 +1,5 @@
 """strategies/generator.py — ATOM-STEP-11: Strategy Generator (Genetic Programming)"""
+from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field

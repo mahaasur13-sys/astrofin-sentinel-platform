@@ -1,4 +1,5 @@
 """scripts/run_backtest.py — ATOM-STEP-8: Backtest Runner"""
+from __future__ import annotations
 
 import random
 import sys
