@@ -3,6 +3,7 @@ tests/test_kepler_differential.py — ATOM-STEP-3: Differential Testing (Swiss E
 ==========================================================================================
 Differential tests: pure Keplerian (core/kepler.py) vs Swiss Ephemeris DE405.
 """
+from __future__ import annotations
 
 import math
 import sys

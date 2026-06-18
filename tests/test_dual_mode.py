@@ -1,4 +1,5 @@
 """tests/test_dual_mode.py - ATOM-R-027: Dual-Mode Backward Compatibility Tests"""
+from __future__ import annotations
 
 import asyncio
 import sys

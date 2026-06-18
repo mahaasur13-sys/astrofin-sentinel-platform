@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 import httpx
 from unittest.mock import AsyncMock, patch

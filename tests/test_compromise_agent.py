@@ -8,6 +8,8 @@ This is a runtime harness, not a normal pytest test: we need to stub
 project code is loaded. Once a proper conftest at tests/conftest.py
 stubs the chain, this file can be reduced to a normal test module.
 """
+from __future__ import annotations
+
 import asyncio
 import logging
 import sys

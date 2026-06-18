@@ -1,4 +1,5 @@
 """test_validator.py — ATOM-VALIDATE-001: Unit tests for AgentYamlValidator"""
+from __future__ import annotations
 
 import shutil
 import tempfile

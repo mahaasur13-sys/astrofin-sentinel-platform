@@ -11,6 +11,7 @@ Tests:
 Запуск:
     pytest tests/test_karl_synthesis_lag.py -v
 """
+from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 

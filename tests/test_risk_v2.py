@@ -7,6 +7,7 @@ Tests:
   4. Sanity checks reject bad orders
   5. Mode gating works
 """
+from __future__ import annotations
 
 import math
 import os

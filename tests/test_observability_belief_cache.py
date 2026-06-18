@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from tools.metrics_server import CACHE_HITS, CACHE_MISSES
 
 
