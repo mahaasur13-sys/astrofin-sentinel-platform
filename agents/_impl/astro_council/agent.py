@@ -8,7 +8,9 @@ from __future__ import annotations
 
 
 import logging
-from core.base_agent import AgentResponse, BaseAgent, SignalDirection
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError
+from agents.metrics import track_agent_metrics
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +42,21 @@ class AstroCouncilAgent(BaseAgent[AgentResponse]):
             "TimeWindowAgent": TimeWindowAgent(),
         }
 
+    @track_agent_metrics
     async def run(self, state: dict) -> dict:
-        response = await self.aggregate(state)
-        return {"astro_council_signal": response.to_dict()}
+        """Public entry point. Wraps aggregate() with the latency histogram
+        and defensive error handling so a single agent can never crash
+        the orchestrator."""
+        try:
+            response = await self.aggregate(state)
+            return {"astro_council_signal": response.to_dict()}
+        except EphemerisUnavailableError as e:
+            degraded = self._degraded(EPHEMERIS_UNAVAILABLE, str(e))
+            return {"astro_council_signal": degraded.to_dict()}
+        except Exception as e:  # noqa: BLE001 — last-resort guard
+            logger.exception("agent_run_unhandled", extra={"agent": self.name})
+            degraded = self._degraded(UNKNOWN, repr(e))
+            return {"astro_council_signal": degraded.to_dict()}
 
     async def aggregate(self, state: dict) -> AgentResponse:
         responses = {}
