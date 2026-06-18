@@ -3,6 +3,8 @@
 All repositories work with PostgreSQL when available,
 fall back gracefully to SQLite when not.
 """
+from __future__ import annotations
+
 
 import json
 import logging

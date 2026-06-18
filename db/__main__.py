@@ -7,6 +7,8 @@ Usage:
     python -m db.init --migrate    # migrate from SQLite
     python -m db.init --reset      # reset schema (DROP + CREATE)
 """
+from __future__ import annotations
+
 
 import argparse
 import sys
