@@ -19,6 +19,7 @@ Usage:
     python knowledge/daily_brief/idea_tracker.py --import IDEAS_JSON  # импорт из JSON
 """
 
+from __future__ import annotations
 import argparse
 import json
 import uuid

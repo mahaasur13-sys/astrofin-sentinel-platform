@@ -15,6 +15,7 @@ Usage:
     python -m knowledge.daily_digest run --date 2026-03-29
 """
 
+from __future__ import annotations
 import argparse
 import sys
 from datetime import datetime

@@ -9,6 +9,7 @@ Usage:
     python knowledge/daily_brief/daily_brief.py --parse FILE   # Parse specific file
 """
 
+from __future__ import annotations
 import argparse
 import re
 from datetime import datetime, timedelta

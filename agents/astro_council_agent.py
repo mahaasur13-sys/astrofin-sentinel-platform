@@ -7,6 +7,7 @@ AstroFin Sentinel v5 — AstroCouncil Agent
 Финальный сигнал = взвешенная комбинация всех голосов.
 """
 
+from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime

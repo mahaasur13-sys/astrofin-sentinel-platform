@@ -1,5 +1,6 @@
 """orchestration/karl_cli.py — ATOM-017: Industrial KARL CLI + Rich UI + Metrics"""
 
+from __future__ import annotations
 import asyncio
 import sys
 import threading

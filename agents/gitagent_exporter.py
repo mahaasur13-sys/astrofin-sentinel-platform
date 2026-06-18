@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """agents/gitagent_exporter.py — Export all agents to GitAgent format (fixed YAML)"""
 
+from __future__ import annotations
 from pathlib import Path
 from typing import Union
 import yaml

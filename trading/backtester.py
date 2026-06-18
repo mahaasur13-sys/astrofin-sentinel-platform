@@ -1,5 +1,6 @@
 """trading/backtester.py — ATOM-STEP-8: Backtesting Engine"""
 
+from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 

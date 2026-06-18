@@ -1,5 +1,6 @@
 """web/callbacks.py — All callbacks (ATOM-META-RL-004)"""
 
+from __future__ import annotations
 import logging
 import traceback
 

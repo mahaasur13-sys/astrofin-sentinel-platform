@@ -1,5 +1,6 @@
 """web/components/dashboard.py — Dashboard overview (ATOM-META-RL-004)"""
 
+from __future__ import annotations
 from datetime import datetime
 
 import dash_bootstrap_components as dbc

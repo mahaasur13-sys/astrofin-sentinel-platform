@@ -4,6 +4,7 @@ Unified knowledge retrieval interface for all agents.
 FAISS-backed semantic search with Ollama embeddings.
 """
 
+from __future__ import annotations
 import json
 import urllib.request
 from pathlib import Path

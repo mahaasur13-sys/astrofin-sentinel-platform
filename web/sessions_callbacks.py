@@ -1,5 +1,6 @@
 """web/sessions_callbacks.py — Sessions tab callbacks (ATOM-META-RL-004)"""
 
+from __future__ import annotations
 import logging
 
 import dash_bootstrap_components as dbc

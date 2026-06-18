@@ -4,6 +4,7 @@ web/data_room.py
 Data Room API endpoints.
 """
 
+from __future__ import annotations
 import json
 from pathlib import Path
 

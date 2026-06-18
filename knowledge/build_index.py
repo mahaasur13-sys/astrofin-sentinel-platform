@@ -8,6 +8,7 @@ Usage:
     python build_index.py --stats
 """
 
+from __future__ import annotations
 import argparse
 import hashlib
 import json

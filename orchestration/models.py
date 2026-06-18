@@ -3,6 +3,7 @@ Pydantic models for input validation.
 FIXED (audit 15.05.2026): Validates all inputs BEFORE they reach the orchestrator.
 """
 
+from __future__ import annotations
 from enum import Enum
 
 from pydantic import BaseModel, Field, validator

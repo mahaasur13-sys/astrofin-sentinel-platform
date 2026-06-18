@@ -1,5 +1,6 @@
 """orchestration/sentinel_v5_mas.py - ATOM-R-025: MASFactory Integration"""
 
+from __future__ import annotations
 import asyncio
 import logging
 import uuid
