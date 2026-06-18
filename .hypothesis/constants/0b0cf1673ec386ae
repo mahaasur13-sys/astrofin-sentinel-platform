@@ -1,0 +1,4 @@
+# file: /home/workspace/db/models.py
+# hypothesis_version: 6.151.10
+
+[0.0, 1.0, 50.0, 100, 'ASTRO', 'AVOID', 'AgentSignal', 'BUY', 'CASCADE', 'ELECTION', 'EXTREME', 'FUNDAMENTAL', 'HIGH', 'HOLD', 'KARLDecisionRecord', 'KARLTrajectory', 'KARLTrajectoryStep', 'LONG', 'LOW', 'MACRO', 'NATURAL', 'NEUTRAL', 'NORMAL', 'OPTIONS', 'QUANT', 'SELL', 'SENTIMENT', 'SET NULL', 'SHORT', 'STRONG_BUY', 'STRONG_SELL', 'Session', 'TECHNICAL', 'agent_belief_history', 'agent_beliefs', 'agent_selection_log', 'agent_signals', 'all, delete-orphan', 'astro_positions', 'audit_log', 'backtest_runs', 'cancelled', 'completed', 'decisions', 'failed', 'karl_trajectories', 'kpi_metrics', 'pending', 'rag_embeddings', 'reward_calibration', 'running', 'session', 'sessions', 'sessions.session_id', 'signals', 'steps', 'trajectory']

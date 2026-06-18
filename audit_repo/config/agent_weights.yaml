@@ -1,0 +1,43 @@
+# AstroFin Sentinel v5 — Agent Weights Configuration
+# R-02: Adaptive weights (single source of truth)
+
+# ─── Category Weights (used in SynthesisAgent._vote) ───────────────────────────
+# These map to the category groups in _group_by_category()
+# Sum MUST = 1.0
+
+category_weights:
+  astro:        0.25   # AstroCouncil, ElectoralAgent, BradleyAgent, TimeWindowAgent
+  fundamental:  0.15   # FundamentalAgent, InsiderAgent
+  macro:        0.15   # MacroAgent
+  quant:        0.20   # QuantAgent, MLPredictorAgent
+  options:      0.15   # OptionsFlowAgent
+  sentiment:    0.10   # SentimentAgent, BullResearcher, BearResearcher
+  technical:    0.10   # TechnicalAgent, MarketAnalyst, GannAgent, ElliotAgent
+
+# ─── Agent Weights (informational — for display in metadata) ──────────────────
+# These represent each agent's weight within the system
+# Sum SHOULD = 1.0 (advisory, not used in voting)
+
+agent_weights:
+  FundamentalAgent:   0.15
+  QuantAgent:         0.20
+  MacroAgent:         0.15
+  OptionsFlowAgent:  0.15
+  SentimentAgent:     0.10
+  TechnicalAgent:    0.10
+  BullResearcher:     0.075
+  BearResearcher:     0.075
+
+# ─── Conflict Resolution ────────────────────────────────────────────────────────
+# When Astro conflicts with Fundamental+Quant, reduce Astro weight by this %
+conflict_resolution:
+  astro_vs_fundamental_quant:
+    astro_reduction: 0.30   # reduce Astro weight by 30%
+    fundamental_boost: 0.18 # increase Fundamental by 18%
+    quant_boost: 0.12       # increase Quant by 12%
+
+# ─── Confidence Guards ─────────────────────────────────────────────────────────
+guards:
+  max_confidence: 92    # EC-01: never exceed this (hubris cap)
+  min_confidence: 30    # below this → force NEUTRAL
+  volatility_drop: 15   # V-06: confidence penalty when volatility is high

@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/risk_agent.py
+# hypothesis_version: 6.151.10
+
+[0.01, 0.015, 0.02, 0.03, 0.05, 0.08, 0.1, 0.15, 0.2, 0.25, 0.3, 0.5, 0.55, 0.7, 0.75, 0.97, 1.0, 1.5, 100, 50000, '1d', 'BTCUSDT', 'RiskAgent', 'atr', 'avg_loss_pct', 'avg_win_pct', 'current_price', 'data', 'risk_score', 'risk_signal', 'stop_loss', 'symbol', 'trading', 'volatility', 'win_rate_estimate']

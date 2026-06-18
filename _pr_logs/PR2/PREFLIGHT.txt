@@ -1,0 +1,35 @@
+=== PR2 PREFLIGHT — 2026-06-17 ===
+
+## py_compile (14 agents)
+  OK  agents/_impl/technical_agent.py
+  OK  agents/_impl/synthesis_agent.py
+  OK  agents/_impl/options_flow_agent.py
+  OK  agents/_impl/sentiment_agent.py
+  OK  agents/_impl/macro_agent.py
+  OK  agents/_impl/bear_researcher.py
+  OK  agents/_impl/bull_researcher.py
+  OK  agents/_impl/market_analyst.py
+  OK  agents/_impl/elliot_agent.py
+  OK  agents/_impl/ml_predictor_agent.py
+  OK  agents/_impl/electoral_agent.py
+  OK  agents/_impl/fundamental_agent.py
+  OK  agents/_impl/quant_agent.py
+  OK  agents/_impl/bradley_agent.py
+
+## ruff check (PR2 scope)
+agents/_impl/macro_agent.py:15:17: F401 [*] `numpy` imported but unused
+agents/_impl/market_analyst.py:114:121: E501 Line too long (124 > 120)
+agents/_impl/synthesis_agent.py:16:73: F401 [*] `agents._impl.ephemeris_decorator.require_ephemeris` imported but unused
+agents/_impl/synthesis_agent.py:298:13: F841 Local variable `amre_fallback` is assigned to but never used
+Found 4 errors.
+[*] 2 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
+
+## PR1 smoke test
+T1 OK | empty signals → NEUTRAL, no compromise
+T2 OK | consensus LONG → abstains, reports dominant=BradleyAgent LONG@80
+T3 OK | Astro LONG@85 vs Quant SHORT@70 → NEUTRAL@77, compromise active
+T4 OK | consensus LONG → abstains, reports dominant=AstroCouncil LONG@85
+T5 OK | raised exception → degraded UNKNOWN, NEUTRAL
+T6 OK | single signal → no compromise (single_signal)
+T7 OK | run_compromise_agent returns compromise_signal dict
+=== PR1: ALL 7 CASES PASS ===

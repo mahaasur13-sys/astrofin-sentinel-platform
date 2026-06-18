@@ -1,0 +1,4 @@
+# file: /home/workspace/core/base_agent.py
+# hypothesis_version: 6.151.10
+
+[0.0, 100, 'AVOID', 'AgentResponse', 'DATA_ROOM_ERROR', 'DATA_ROOM_TIMEOUT', 'LONG', 'NEUTRAL', 'RAG_UNAVAILABLE', 'SHORT', 'T', 'TIMEOUT', 'UNKNOWN', 'agent', 'agent_name', 'confidence', 'content', 'degradation_reason', 'degraded', 'metadata', 'reason', 'reasoning', 'session_id', 'signal', 'sources', 'timestamp', 'utf-8', 'value', '• RAG источники:']

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "9b904e2f1241",
+    "content": "Markets move in 5-wave impulse patterns followed by 3-wave corrective patterns.\n\n### Impulse Waves (5 waves)\n- Wave 1: Initial move up\n- Wave 2: Retraces Wave 1 (38-78%)\n- Wave 3: Strongest wave, never shortest\n- Wave 4: Retraces Wave 3 (38-78%), does not overlap Wave 1\n- Wave 5: Final push\n\n### Corrective Waves (3 waves)\n- Wave A: First decline\n- Wave B: Counter-trend rally\n- Wave C: Final decline",
+    "source": "technical/ellott_wave.md",
+    "title": "Core Principle",
+    "domain": "technical"
+  },
+  {
+    "id": "7e30b688be43",
+    "content": "| Wave | Target |\n|------|--------|\n| Wave 2 | 38.2%, 50%, 61.8%, 78.6% of Wave 1 |\n| Wave 3 | 161.8%, 261.8% of Wave 1 |\n| Wave 4 | 23.6%, 38.2% of Wave 3 |\n| Wave 5 | 61.8%, 100%, 161.8% of Wave 4 |",
+    "source": "technical/ellott_wave.md",
+    "title": "Fibonacci Ratios",
+    "domain": "technical"
+  },
+  {
+    "id": "507f953ef3ca",
+    "content": "- Enter on Wave 2 or Wave 4 pullbacks\n- Stop below Wave 1 start (for longs)\n- Target Wave 3 extension or Wave 5",
+    "source": "technical/ellott_wave.md",
+    "title": "Trading Application",
+    "domain": "technical"
+  },
+  {
+    "id": "f84d6db7a838",
+    "content": "RSI = 100 - (100 / (1 + RS)), where RS = avg gain / avg loss over 14 periods.\n\n| RSI Value | Interpretation |\n|-----------|---------------|\n| > 70 | Overbought — potential reversal or continuation |\n| < 30 | Oversold — potential reversal or continuation |\n| 50 | Neutral balance |\n\n**Trading rules:**\n- RSI > 70 + price divergence → bearish reversal signal\n- RSI < 30 + price divergence → bullish reversal signal\n- RSI crossing 50 from below → short-term bullish\n- RSI crossing 50 from above → short-term bearish",
+    "source": "technical/indicators.md",
+    "title": "RSI (Relative Strength Index)",
+    "domain": "technical"
+  },
+  {
+    "id": "76b85a4a8b49",
+    "content": "MACD Line = EMA(12) - EMA(26)\nSignal Line = EMA(9) of MACD Line\nHistogram = MACD Line - Signal Line\n\n**Signals:**\n- MACD crosses above Signal → bullish\n- MACD crosses below Signal → bearish\n- MACD above zero → short-term uptrend\n- MACD below zero → short-term downtrend",
+    "source": "technical/indicators.md",
+    "title": "MACD (Moving Average Convergence Divergence)",
+    "domain": "technical"
+  },
+  {
+    "id": "b475189727ac",
+    "content": "Middle = 20-period SMA\nUpper = Middle + 2× standard deviation\nLower = Middle - 2× standard deviation\n\n**Rules:**\n- Price touching upper band → overbought\n- Price touching lower band → oversold\n- Squeeze (bands narrow) → breakout coming\n- Bands expanding → volatility increasing",
+    "source": "technical/indicators.md",
+    "title": "Bollinger Bands",
+    "domain": "technical"
+  }
+]

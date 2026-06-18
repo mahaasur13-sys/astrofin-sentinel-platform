@@ -1,0 +1,4 @@
+# file: /home/workspace/db/init.py
+# hypothesis_version: 6.151.10
+
+[1.0, '--', '001_initial.sql', ';', 'already exists', 'backend', 'error', 'postgres_available', 'postgresql', 'schema', 'sqlite', 'tables_created', 'unknown']

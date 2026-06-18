@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/astro_council/agent.py
+# hypothesis_version: 6.151.10
+
+[0.0, 0.1, 0.2, 0.4, 10.0, 95.0, 100.0, ' | ', 'AstroCouncil', 'BradleyAgent', 'CycleAgent', 'ElectoralAgent', 'GannAgent', 'TimeWindowAgent', 'astro', 'astro_council_signal']

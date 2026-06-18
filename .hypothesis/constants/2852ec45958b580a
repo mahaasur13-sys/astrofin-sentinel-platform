@@ -1,0 +1,4 @@
+# file: /home/workspace/meta_rl/metrics.py
+# hypothesis_version: 6.151.10
+
+[0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 120, 300, 600, 1800, 3600, 'Agent async duration', 'Cache hits', 'Cache misses', 'Failed HTTP requests', 'HTTP request latency', 'Indexed RAG chunks', 'Messages published', 'Ollama API latency', 'Ollama errors', 'Publish latency', 'RAG query cache hits', 'Real backtest runs', 'Total HTTP requests', 'Total backtest runs', 'agent_name', 'agent_type', 'direction', 'endpoint', 'method', 'param', 'pool', 'signal', 'topic']

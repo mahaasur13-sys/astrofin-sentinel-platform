@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/_template_agent.py
+# hypothesis_version: 6.151.10
+
+[0.0, 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.5, 1.0, 5.0, 'BTCUSDT', 'TemplateAgent', 'agent', 'agent_run_unhandled', 'data_quality', 'quant', 'run_template_agent', 'signal', 'symbol']

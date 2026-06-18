@@ -1,0 +1,4 @@
+# file: /home/workspace/tools/metrics_server.py
+# hypothesis_version: 6.151.10
+
+[0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 401, 9091, '--host', '--port', '/health', '/metrics', '0.0.0.0', 'Authorization', 'Bearer ', 'Cache hits', 'Cache misses', 'METRICS_API_KEY', 'METRICS_AUTH_ENABLED', 'OK', 'RAG query cache hits', 'Unauthorized', '__main__', 'agent', 'astrofin_cache_hits', 'false', 'pool', 'text/plain', 'true']

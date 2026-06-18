@@ -1,0 +1,4 @@
+# file: /home/workspace/trading/execution/order_book.py
+# hypothesis_version: 6.151.10
+
+[0.0, 0.01, 0.1, 0.5, 1.0, 5.0, 60.0, 100.0, 10000.0, 100, 500, 1000, 10000, 50000, '__main__', 'buy', 'impact_cost', 'market_impact_bps', 'participation_rate', 'price_after', 'price_before', 'sell', 'slippage_bps', 'spread_cost_bps']

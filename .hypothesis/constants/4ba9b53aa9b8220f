@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/macro_agent.py
+# hypothesis_version: 6.151.10
+
+[-1.0, -0.2, 0.0, 0.15, 0.2, 0.3, 0.4, 0.5, 1.0, 1.5, 15.0, 25.0, 40.0, 70.0, 75.0, 80.0, 90.0, 95.0, 105.0, ' | ', 'MacroAgent', 'agent', 'agreement', 'attack', 'ceasefire', 'conflict', 'cooperation', 'crisis', 'dxy', 'embargo', 'instability', 'invasion', 'macro', 'macro_agent_signal', 'news_headlines', 'page_content', 'peace', 'resolution', 'sanction', 'stability', 'summit', 'tension', 'trade deal', 'turmoil', 'vix', 'war']

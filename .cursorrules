@@ -1,0 +1,12 @@
+# AstroFin Sentinel V5 — Cursor configuration
+# Hermes Agent (Ollama) and any AI assistant must follow these rules.
+# Always read AGENTS.md for detailed project context and constraints.
+
+## Mandatory startup
+- Before any code change, read AGENTS.md (especially "AI Agent Rules" section).
+- Use the project's venv: `source venv/bin/activate`.
+
+## Hermes Agent specific
+- You are a local Hermes Agent running on Ollama (llama3:8b). You operate on this codebase.
+- Follow all rules from AGENTS.md strictly.
+- When in doubt, run `python tools/healthcheck.py` and report the result.

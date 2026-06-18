@@ -1,0 +1,4 @@
+# file: /home/workspace/meta_rl/types.py
+# hypothesis_version: 6.155.3
+
+[-1.0, 0.0, 1.0, 'EvaluationResult', 'adjusted_drawdown', 'avg_confidence', 'equity_curve', 'execution_cost', 'max_drawdown', 'metadata', 'pnl', 'risk_adjusted_pnl', 'score', 'sharpe', 'total_return_pct', 'trades', 'win_rate']

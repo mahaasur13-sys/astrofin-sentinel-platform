@@ -1,0 +1,4 @@
+# file: /home/workspace/trading/execution/twap.py
+# hypothesis_version: 6.151.10
+
+[0.0, 0.0005, 0.01, 0.1, 0.3, 1.0, 2.0, 50.0, 100, 500, 1000, 10000, 50000, 'ABORTED', 'BTC/USDT', 'FILLED', 'TWAP', '__main__', 'buy', 'normal']

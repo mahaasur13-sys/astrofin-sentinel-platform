@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/ephemeris_decorator.py
+# hypothesis_version: 6.151.10
+
+['HAS_SWISS_EPHEMERIS', 'P', 'T', 'require_ephemeris']

@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/fundamental_agent.py
+# hypothesis_version: 6.151.10
+
+[0.12, 0.25, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.9, 1.0, 1.1, 2.0, 3.5, 10.0, 50.0, 100, 200, 999, 50000, 'BTCUSDT', 'Extreme volatility', 'FundamentalAgent', 'High volatility', 'Large cap', 'Mid cap', 'Normal volatility', 'Small cap', 'Top-10 cap, stable', 'USDT', 'ath', 'ath_distance_pct', 'atl', 'current_price', 'earnings', 'fundamental', 'fundamental_signal', 'growth', 'market_cap', 'market_cap_rank', 'market_data', 'mvrv_ratio', 'name', 'onchain', 'price_change_24h', 'prices', 'score', 'summary', 'symbol', 'total_volume', 'usd', 'valuation', 'volatility_30d', 'volume_24h']

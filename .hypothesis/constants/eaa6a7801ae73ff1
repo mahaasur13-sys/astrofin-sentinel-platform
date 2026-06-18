@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/time_window_agent.py
+# hypothesis_version: 6.151.10
+
+[0.02, 0.35, 0.5, 0.55, 0.6, 0.65, '1D: Friday rebound', '1d', '4H no clear setup', '4h', 'Amrita', 'BTCUSDT', 'Labha', 'Marana', 'Mrityu', 'Parivesha', 'SWING', 'Shubha', 'TimeWindowAgent', 'Vyatipata', 'astro_window', 'astrology', 'astrology/muhurta.md', 'bearish', 'bullish', 'data', 'direction', 'insufficient 1D data', 'insufficient 1W data', 'insufficient 4H data', 'name', 'neutral', 'score', 'slight_bearish', 'slight_bullish', 'summary', 'symbol', 'time_window_signal', 'timeframe_requested', 'window_1d', 'window_1w', 'window_4h']

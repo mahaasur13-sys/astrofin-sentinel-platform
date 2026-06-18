@@ -1,0 +1,48 @@
+name: Python Setup (Composite)
+
+description: 'Reusable composite action: setup Python 3.12 with pip caching'
+
+# Usage:
+#   steps:
+#     - uses: actions/checkout@v4
+#     - uses: ./.github/workflows/python-setup.yml
+#       with:
+#         python-version: '3.12'
+#         install-dev: 'true'
+
+inputs:
+  python-version:
+    description: 'Python version to install'
+    required: false
+    default: '3.12'
+  install-dev:
+    description: 'Install dev dependencies (pytest, ruff, mypy, etc.)'
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: pip-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles('requirements.txt', 'requirements-dev.txt', 'pyproject.toml') }}
+        restore-keys: |
+          pip-${{ runner.os }}-${{ inputs.python-version }}-
+
+    - name: Install runtime dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then
+          pip install -r requirements.txt
+        fi
+        if [ "${{ inputs.install-dev }}" = "true" ] && [ -f requirements-dev.txt ]; then
+          pip install -r requirements-dev.txt
+        fi

@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/options_flow_agent.py
+# hypothesis_version: 6.151.10
+
+[0.0, 0.15, 0.5, 0.6, 0.65, 1.0, 1.5, -500000000, 100, 50000, 500000000, 'BTCUSDT', 'OptionsFlowAgent', 'activity', 'agent', 'agent_run_unhandled', 'bearish', 'bullish', 'current_price', 'factors', 'gex', 'low', 'net_call_volume', 'net_put_volume', 'neutral', 'options', 'options/flow.md', 'options/gex.md', 'probability', 'put_call_ratio', 'signal', 'squeeze', 'summary', 'symbol', 'unusual_activity']

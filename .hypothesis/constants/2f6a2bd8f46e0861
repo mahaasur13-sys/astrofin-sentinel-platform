@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/__init__.py
+# hypothesis_version: 6.151.10
+
+['BearResearcherAgent', 'BradleyAgent', 'BullResearcherAgent', 'CycleAgent', 'ElectoralAgent', 'ElliotAgent', 'FundamentalAgent', 'GannAgent', 'HAS_SWISS_EPHEMERIS', 'InsiderAgent', 'MLPredictorAgent', 'MacroAgent', 'MarketAnalystAgent', 'OptionsFlowAgent', 'QuantAgent', 'RiskAgent', 'SentimentAgent', 'SynthesisAgent', 'TechnicalAgent', 'TimeWindowAgent', 'require_ephemeris', 'run_bear_researcher', 'run_bradley_agent', 'run_bull_researcher', 'run_cycle_agent', 'run_electoral_agent', 'run_elliot_agent', 'run_gann_agent', 'run_insider_agent', 'run_macro_agent', 'run_market_analyst', 'run_quant_agent', 'run_risk_agent', 'run_sentiment_agent', 'run_technical_agent']

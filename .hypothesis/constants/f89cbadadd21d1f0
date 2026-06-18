@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/technical_agent.py
+# hypothesis_version: 6.151.10
+
+[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.3, 50.0, 100, 330, 360, 50000, ', ', '1d', 'BTCUSDT', 'BUY', 'Binance API', 'NEUTRAL', 'SELL', 'STRONG_BUY', 'STRONG_SELL', 'Technical', 'Technical analysis', 'astro_influence', 'bollinger', 'current_price', 'data', 'datetime', 'decreasing', 'decreasing (bearish)', 'histogram', 'increasing', 'increasing (bullish)', 'lower', 'macd', 'mars', 'mars_venus_moon', 'middle', 'moon', 'neutral', 'overbought', 'oversold', 'position', 'price', 'rsi', 'score', 'signal', 'source', 'stable', 'symbol', 'technical', 'technical_score', 'technical_signal', 'unknown', 'upper', 'venus', 'volume', 'volume_trend', 'yoga']

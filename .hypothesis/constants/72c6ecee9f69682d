@@ -1,0 +1,4 @@
+# file: /home/workspace/web/wsgi.py
+# hypothesis_version: 6.151.10
+
+[0.05, 0.2, 400, 500, 8000, '/api/ab/compare', '/api/live/enable', '/health', '0.0.0.0', 'ERROR', 'OK', 'POST', 'TIE', '__main__', 'confirmed', 'effect_size', 'error', 'live', 'live_enabled', 'mode', 'ok', 'p_value', 'sid_a', 'sid_b', 'status', 'winner']

@@ -1,0 +1,4 @@
+# file: /home/workspace/core/auth.py
+# hypothesis_version: 6.151.10
+
+[401, 403, 'API_KEY', 'Forbidden', 'Invalid API key', 'REQUIRE_AUTH', 'Unauthorized', 'X-API-Key', 'error', 'true']

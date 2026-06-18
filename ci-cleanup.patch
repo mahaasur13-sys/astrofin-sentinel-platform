@@ -1,0 +1,106 @@
+From 539293c7cf2eb281a9708f740ebc4f561189ad3a Mon Sep 17 00:00:00 2001
+From: asurdev <mahaasur13@gmail.com>
+Date: Wed, 17 Jun 2026 17:35:07 +0000
+Subject: [PATCH] ci: add real .github/workflows/ci.yml (fix typo'd path from
+ previous commit)
+
+---
+ .github/workflows/ci.yml        | 13 -------
+ file '.github/workflows/ci.yml' | 60 ---------------------------------
+ 2 files changed, 73 deletions(-)
+ delete mode 100644 file '.github/workflows/ci.yml'
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 299dac8..c852051 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -1,7 +1,3 @@
+-
+-exit 0
+-
+-$ cd ~/AstroFinSentinelV5 && cat > .github/workflows/ci.yml << 'EOF'
+ name: CI
+ 
+ on:
+@@ -35,12 +31,3 @@ jobs:
+       - uses: astral-sh/setup-uv@v3
+       - run: uv sync
+       - run: uv run pytest tests/ -v --tb=short
+-EOF
+-python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))" && echo "✅ YAML valid" && git add .github/workflows/ci.yml && git status --short && git commit -m "ci: add real .github/workflows/ci.yml (fix typo'd path from previous commit)" 2>&1 | tail -3
+-
+-✅ YAML valid
+-A  .github/workflows/ci.yml
+-D  "file '.github/workflows/ci.yml'"
+- 2 files changed, 33 insertions(+), 60 deletions(-)
+- create mode 100644 .github/workflows/ci.yml
+- delete mode 100644 file '.github/workflows/ci.yml'
+diff --git a/file '.github/workflows/ci.yml' b/file '.github/workflows/ci.yml'
+deleted file mode 100644
+index 5e4c6e2..0000000
+--- a/file '.github/workflows/ci.yml'	
++++ /dev/null
+@@ -1,60 +0,0 @@
+-$ cd ~/AstroFinSentinelV5 && cat .github/workflows/ci.yml
+-
+-name: CI
+-
+-on:
+-  push:
+-    branches: [ main, develop, "chore/*", "feature/*" ]
+-  pull_request:
+-    branches: [ main ]
+-
+-jobs:
+-  lint:
+-    runs-on: ubuntu-latest
+-    steps:
+-      - uses: actions/checkout@v4
+-      - uses: astral-sh/setup-uv@v3
+-      - run: uv sync
+-      - run: uv run ruff check .
+-      - run: uv run ruff format --check .
+-
+-  type-check:
+-    runs-on: ubuntu-latest
+-    steps:
+-      - uses: actions/checkout@v4
+-      - uses: astral-sh/setup-uv@v3
+-      - run: uv sync
+-      - run: uv run mypy core/ libs/ agents/ scripts/
+-
+-  test:
+-    runs-on: ubuntu-latest
+-    steps:
+-      - uses: actions/checkout@v4
+-      - uses: astral-sh/setup-uv@v3
+-      - run: uv sync
+-      - run: uv run pytest tests/ -v --tb=short
+-
+-  dead-code:
+-    runs-on: ubuntu-latest
+-    steps:
+-      - uses: actions/checkout@v4
+-      - uses: astral-sh/setup-uv@v3
+-      - run: uv sync
+-      - run: uv run vulture . --min-confidence=80 --exclude "tests/,venv/,build/,dist/" --ignore-decorators "@track_agent_metrics,@require_ephemeris"
+-
+-  pattern-check:
+-    runs-on: ubuntu-latest
+-    steps:
+-      - uses: actions/checkout@v4
+-      - name: Check Pattern A (A10 + A11)
+-        run: |
+-          python scripts/validate_agent.py --all
+-
+-  architecture-lint:
+-    runs-on: ubuntu-latest
+-    steps:
+-      - uses: actions/checkout@v4
+-      - name: Check imports structure
+-        run: |
+-          # Проверка, что агенты не импортируют друг друга напрямую (кроме core/libs)
+-          ! grep -r "from agents\." agents/_impl/ --include="*.py" || (echo "Agents should not import from other agents" && exit 1)
+-- 
+2.39.5
+
