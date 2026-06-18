@@ -1,6 +1,6 @@
 """amre/astro_reward.py - ATOM-021: Astro-enhanced Reward Function"""
 
-"""Astronomically-informed reward for KARL trading decisions."""
+from __future__ import annotations
 
 from typing import Any
 
