@@ -1,4 +1,6 @@
 """amre/__init__.py - ATOM-KARL AMRE Control Loop"""
+from __future__ import annotations
+
 
 from .audit import (
     AuditLog,

@@ -3,6 +3,8 @@
 Каждый тик исторических данных проходит через:
 state → decision → reward_evaluation → buffer.add
 """
+from __future__ import annotations
+
 
 from collections.abc import Callable, Generator
 from dataclasses import dataclass

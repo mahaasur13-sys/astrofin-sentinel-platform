@@ -3,6 +3,8 @@
 - Bayesian calibration (Platt scaling)
 - Regime-aware reward with drawdown penalty
 """
+from __future__ import annotations
+
 
 import math
 from dataclasses import dataclass

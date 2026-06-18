@@ -1,4 +1,6 @@
 """amre/similarity.py — Trajectory similarity + Q* estimation"""
+from __future__ import annotations
+
 
 import math
 

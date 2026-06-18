@@ -2,6 +2,8 @@
 Встраивает AMRE-контур (uncertainty, grounding, decision record)
 в SynthesisAgent и sentinel_v5.
 """
+from __future__ import annotations
+
 
 import hashlib
 from dataclasses import dataclass

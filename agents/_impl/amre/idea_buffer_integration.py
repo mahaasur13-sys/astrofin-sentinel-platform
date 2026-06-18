@@ -13,6 +13,8 @@ Usage:
         get_buffer_entries_for_idea,
     )
 """
+from __future__ import annotations
+
 
 from core.idea_model import Idea, IdeaStatus
 
