@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # ATOM-R-041 Unified Data Contract
 #
 # Single source of truth for Idea structure. All modules that touch

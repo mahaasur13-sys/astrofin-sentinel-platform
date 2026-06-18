@@ -26,6 +26,7 @@ Usage:
   if regime == "EXTREME":
       signal = SignalDirection.AVOID
 """
+from __future__ import annotations
 
 import logging
 from dataclasses import dataclass

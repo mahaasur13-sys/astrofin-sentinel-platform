@@ -2,6 +2,7 @@
 Доменные системы гороскопа по Munkasey
 Michael P. Munkasey's "An Astrological House Formulary"
 """
+from __future__ import annotations
 
 import math
 from dataclasses import dataclass

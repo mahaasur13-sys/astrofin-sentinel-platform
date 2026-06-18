@@ -8,6 +8,7 @@ aspects with configurable orbs.
 Receives PlanetPosition dicts from core.ephemeris and returns structured
 AspectReport objects.
 """
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum

@@ -4,6 +4,7 @@ Handles planetary positions, houses, and aspect calculation.
 
 Merged from AstroFin-Sentinel (better calculations) + sentinel-v4.
 """
+from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime

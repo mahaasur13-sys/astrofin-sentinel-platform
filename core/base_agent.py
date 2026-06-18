@@ -2,6 +2,7 @@
 AstroFin Sentinel v5 — Base Agent
 RAG-first agent implementation with knowledge retrieval.
 """
+from __future__ import annotations
 
 import logging
 import uuid

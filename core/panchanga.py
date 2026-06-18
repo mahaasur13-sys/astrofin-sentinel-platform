@@ -1,6 +1,7 @@
 """core/panchanga.py — Vedic Panchanga Calculations
 Muhurta, Nakshatra, Tithi, Yoga, Karana, Choghadiya
 """
+from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 

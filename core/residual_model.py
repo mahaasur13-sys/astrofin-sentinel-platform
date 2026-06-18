@@ -1,6 +1,7 @@
 """
 core/residual_model.py - ATOM-STEP-4: Residual Correction Model
 """
+from __future__ import annotations
 
 import sys
 from dataclasses import dataclass

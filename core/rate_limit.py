@@ -1,4 +1,5 @@
 """Rate limiting configuration with optional Redis backend."""
+from __future__ import annotations
 
 import os
 from flask_limiter import Limiter

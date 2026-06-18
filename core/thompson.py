@@ -2,6 +2,7 @@
 AstroFin Sentinel v5 — Thompson Sampling Agent Selector
 FIXED: thread-safe singleton, guaranteed minimum agents, structured logging
 """
+from __future__ import annotations
 
 import logging
 import random
