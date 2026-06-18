@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # mas_factory/visualizer.py - ATOM-R-029: Topology Visualization
 import json
 from pathlib import Path

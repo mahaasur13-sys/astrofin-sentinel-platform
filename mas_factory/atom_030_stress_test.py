@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """ATOM-R-030: MAS Factory Full Stress Test
+from __future__ import annotations
+
 Tests: SwitchNodes, Meta-Questioning, Visualizer on real data.
 """
 

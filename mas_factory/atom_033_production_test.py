@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """ATOM-R-033: Production Optimization Test"""
 
+from __future__ import annotations
+
 import sys
 import time
 

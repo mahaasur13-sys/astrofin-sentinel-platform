@@ -1,5 +1,7 @@
 """mas_factory/topology.py - ATOM-R-028: Dynamic SwitchNode + Topology Updater"""
 
+from __future__ import annotations
+
 import hashlib
 import json
 from dataclasses import asdict, dataclass, field

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from mas_factory.registry import get_agent_runner  # F821 fix
 
 """mas_factory/engine.py — ATOM-R-033: Production Optimized MAS Factory Engine

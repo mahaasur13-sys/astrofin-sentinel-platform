@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """ATOM-R-032: Final MAS Factory E2E Test"""
 
+from __future__ import annotations
+
 import asyncio
 import sys
 import time

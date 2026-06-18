@@ -1,5 +1,7 @@
 """mas_factory/architect.py - MASFactoryArchitect: builds topology from intention"""
 
+from __future__ import annotations
+
 import hashlib
 import json
 from dataclasses import dataclass

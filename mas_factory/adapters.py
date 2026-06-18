@@ -1,5 +1,7 @@
 """mas_factory/adapters.py - Context adapters between agents"""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any
 
