@@ -49,4 +49,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
 
 # Production: gunicorn with wsgi.py shim. Dev override: python -m web.app
 ENTRYPOINT ["gunicorn"]
-CMD ["-w", "2", "-b", "0.0.0.0:8050", "--timeout", "60", "--access-logfile", "-", "web.wsgi:app"]
+CMD ["-w", "2", "-b", "0.0.0.0:8050", "--timeout", "60", "--access-logfile", "-", "web.app:server"]
