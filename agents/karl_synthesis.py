@@ -43,6 +43,7 @@ from agents._impl.amre.reward import (
 )
 from agents._impl.synthesis_agent import SynthesisAgent
 from agents.base_agent import AgentResponse
+from core.base_agent import BaseAgent
 
 # ATOM-019: PostgreSQL integration
 try:
@@ -67,7 +68,7 @@ from agents._impl.amre.trajectory import MarketState, market_state_hash
 # ─── KARL Synthesis Agent ────────────────────────────────────────────────────────
 
 
-class KARLSynthesisAgent:
+class KARLSynthesisAgent(BaseAgent[AgentResponse]):
     """
     SynthesisAgent + Full AMRE/KARL Control Loop.
 
@@ -85,7 +86,9 @@ class KARLSynthesisAgent:
         enable_self_question: bool = False,
         enable_backtest: bool = True,
         backtest_horizon: int = 5,
+        name: str = "karl_synthesis",
     ):
+        super().__init__(name=name, domain="synthesis", weight=1.0)
         self.base_agent = SynthesisAgent()
         self.sync_interval = sync_interval  # Recalibrate every N decisions
         self.enable_self_question = enable_self_question
