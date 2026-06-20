@@ -297,4 +297,77 @@
 
 ---
 
+## 11. S2 Completion Report — 2026-06-20
+
+S2 (Cross-repo contract unification) завершён. Ниже — зафиксированные
+артефакты, миграции и итоговые метрики.
+
+### 11.1 Что создано
+
+| Артефакт | Расположение | Описание |
+|---|---|---|
+| Пакет `acos-contracts` v0.1.0 | `/home/workspace/acos-contracts/` | 10 модулей, `pyproject.toml` (PEP 621), editable install |
+| ADR-0002 | `docs/adr/ADR-0002-common-contracts.md` | Решение о выделении `acos-contracts` как единого источника истины |
+
+**Модули `acos_contracts/` (v0.1.0):**
+
+| Модуль | Содержимое | Назначение |
+|---|---|---|
+| `interfaces` | `AgentResponseProtocol`, `SignalDirectionProtocol`, `BaseAgentProtocol` | Покрытие God Node #1–#3 |
+| `contracts` | `TraceRecorderContract`, `StorageBackendContract` | Persistence / trace контракты |
+| `deterministic` | `DeterministicClock`, `DeterministicUUIDFactory` | Покрытие God Node #6 |
+| `deterministic_factory` | factory-функции | Конструкторы для вышестоящих |
+| `events` | `EventType`, `Decision`, `ExecutionResult` | DTO для разрыва Surprising Connection #3 |
+| `feature_pipeline` | `WindowEngineProtocol` | Разрыв Surprising Connection #1 |
+| `state` | `StateStoreProtocol` | Разрыв Surprising Connection #2 |
+| `trading` | `RiskEngineProtocol`, `StrategyEvaluatorProtocol`, `MarketStateProtocol` | Покрытие God Node #5, #8, #9, #10 |
+| `errors` | `AcosContractError` и иерархия | Общий словарь ошибок |
+| root `acos_contracts` | re-exports | Удобный namespace для частых символов |
+
+### 11.2 Мигрированные репозитории
+
+| Репозиторий | Коммит S2 | Дельта |
+|---|---|---|
+| `astrofin-sentinel-platform` (`/home/workspace/`) | `a664f74` | `common.*` → `acos_contracts.*`; старые пути в `common/` оставлены как re-export шимы |
+| `AsurDev` (`/home/workspace/AsurDev/`) | `7f50ea6` | Локальные дубликаты `EventType` / `Decision` / `ExecutionResult` заменены на реэкспорты; более богатые реализации оставлены локально |
+| `acos-contracts` | `860ab03` | v0.1.0 baseline — сам пакет |
+
+**Не требовали миграции (прямых кросс-импортов нет):**
+
+- `home-cluster-iac` — чистый потребитель контрактов, не импортировал старые пути.
+- `roma-execution-bridge` — аналогично; Surprising Connection #4 устранена на уровне контракта, без правок в самом репо.
+
+### 11.3 Итоговые метрики S2
+
+| Метрика | До S2 | После S2 |
+|---|---|---|
+| God Nodes, покрытые протоколами | 6 / 10 (только S1) | **10 / 10** |
+| Surprising Connections (кросс-репо INFERRED) | 5 | **0** (устранены на уровне контрактов) |
+| Прямые кросс-репозиторные импорты | 5 | **0** |
+| Репозиториев с дубликатами `EventType` | 2 | **0** |
+| Репозиториев, зависящих от `acos-contracts` | 0 | **2** (`astrofin-sentinel-platform`, `AsurDev`) |
+
+### 11.4 Статус публикации
+
+Пакет `acos-contracts` опубликован **локально** через `pip install -e
+/home/workspace/acos-contracts/` (editable install). Это позволяет любому
+проекту в `/home/workspace/` подключить контракты одной командой и
+получать изменения без пересборки пакета — достаточно `git pull` в
+каталоге `acos-contracts/`.
+
+Публикация в PyPI **не выполняется** для версий v0.x: все потребители —
+внутренние проекты экосистемы `astrofin-sentinel-platform`. Переход на
+PyPI будет рассматриваться при достижении v1.0.0 (стабилизация API).
+
+### 11.5 Что осталось на S3+
+
+- Доменная реорганизация (§3.4) — физическое разделение пакетов
+  по доменам `trading_agents`, `risk_management`, `execution`,
+  `data_storage`, `core_determinism`, `astrology`, `observability`.
+- Подключение `import-linter` (§3.5) как CI-gate.
+- Переоценка центральности God Nodes через повторный Graphify-аудит
+  после S3: целевое снижение −30…40 %.
+
+---
+
 *Документ будет обновляться после каждого спринта. История решений — в ADR.*
