@@ -338,7 +338,7 @@ class AspectsEngine:
         return {
             "total": len(aspects),
             "by_type": by_type,
-            "applying": sum(1 for a in aspects if a.applying),
+            "applying": sum(1 for a in aspects if a.applies),
             "orbs_sum": round(sum(a.orb for a in aspects), 2),
         }
 
