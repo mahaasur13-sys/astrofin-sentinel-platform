@@ -73,10 +73,16 @@ class DeterministicContext:
         self,
         clock: "DeterministicClock | None" = None,
         rng: "DeterministicRNG | None" = None,
+        seed: int | None = None,
     ) -> None:
         self.clock = clock or DeterministicClockImpl()
-        self.rng = rng or DeterministicRNG(seed=os.urandom(8))
-        self.seed = os.urandom(8)
+        if rng is None:
+            derived_seed = 0 if seed is None else int(seed)
+            self.rng = DeterministicRNG(seed=derived_seed)
+        else:
+            self.rng = rng
+        self.seed = 0 if seed is None else int(seed)
+        self.started_at_ns = time.monotonic_ns()
 
     @classmethod
     def with_seed(
@@ -87,9 +93,14 @@ class DeterministicContext:
         rng: "DeterministicRNG | None" = None,
         clock: "DeterministicClock | None" = None,
     ) -> "DeterministicContext":
+        derived_seed = (
+            seed if isinstance(seed, int)
+            else DeterministicRNG.from_seed(seed).seed
+        )
         return cls(
-            clock=DeterministicClockImpl(frozen_at=frozen_at),
-            rng=DeterministicRNG.from_seed(seed),
+            clock=clock or DeterministicClockImpl(frozen_at=frozen_at),
+            rng=rng or DeterministicRNG.from_seed(seed),
+            seed=derived_seed,
         )
 
     @classmethod
