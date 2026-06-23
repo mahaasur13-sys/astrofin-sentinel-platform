@@ -20,15 +20,20 @@ Design goals:
     weight, relation, context, source_file, source_location).
 
 Usage:
-  python3 select_top_inferred.py                    # defaults: 500 edges, max 100/relation
-  python3 select_top_inferred.py --max 500 --max-per-relation 100 --seed 42
+  python3 select_top_inferred.py                    # defaults: 500 edges, max 100/relation, hard cap 200/relation
+  python3 select_top_inferred.py --max 500 --max-per-relation 100 --hard-cap-per-relation 200 --seed 42
+
+The hard cap exists because at large --max (e.g. 5000) a few large relation
+buckets (calls/imports/uses/inherits) would otherwise dominate the entire
+selection, collapsing diversity. The cap is enforced across anchor + min-floor
++ remainder + topup so every relation stays bounded.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import random
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 REPO_ROOT = Path("/home/workspace")
@@ -92,11 +97,21 @@ def main() -> None:
                     help="Cap per relation bucket (default: 100).")
     ap.add_argument("--min-per-relation", type=int, default=10,
                     help="Floor per relation bucket when enough edges exist (default: 10).")
+    ap.add_argument("--hard-cap-per-relation", type=int, default=200,
+                    help="Absolute ceiling per relation across ALL passes (default: 200). "
+                         "Defends against large --max (e.g. 5000) collapsing diversity "
+                         "when a few buckets (calls/imports/uses/inherits) dominate.")
     ap.add_argument("--cross-file-priority", action="store_true", default=True,
                     help="Prefer cross-file edges inside each bucket (default: on).")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     args = ap.parse_args()
+
+    # Clamp the per-relation soft knobs so they never exceed the hard cap.
+    if args.max_per_relation > args.hard_cap_per_relation:
+        args.max_per_relation = args.hard_cap_per_relation
+    if args.min_per_relation > args.hard_cap_per_relation:
+        args.min_per_relation = args.hard_cap_per_relation
 
     if not GRAPH_JSON.exists():
         raise SystemExit(f"missing {GRAPH_JSON}")
@@ -132,7 +147,7 @@ def main() -> None:
     for rel, items in sorted(buckets.items(), key=lambda kv: -len(kv[1])):
         if not items:
             continue
-        take = min(args.min_per_relation, len(items))
+        take = min(args.min_per_relation, args.hard_cap_per_relation, len(items))
         selected.extend(items[:take])
 
     # Pass 2: fill remaining slots up to --max-per-relation with rest of buckets,
@@ -141,6 +156,8 @@ def main() -> None:
     if remaining_slots > 0:
         # Build a per-bucket "remainder" list excluding what we already took.
         already_taken_keys = {(e.get("source"), e.get("target")) for e in selected}
+        # Track per-bucket count already in `selected` so we never exceed the hard cap.
+        per_rel_count: dict[str, int] = Counter(e.get("relation", "unknown") for e in selected)
         for rel, items in buckets.items():
             remainder = [e for e in items if (e.get("source"), e.get("target")) not in already_taken_keys]
             if not remainder:
@@ -149,18 +166,27 @@ def main() -> None:
                 remainder.sort(
                     key=lambda L: (not is_cross_file(L, nodes_by_id), -_w(L), -_conf(L))
                 )
-            cap = min(args.max_per_relation - args.min_per_relation, len(remainder))
+            # Hard cap is absolute across ALL passes; soft cap is per-pass.
+            headroom = args.hard_cap_per_relation - per_rel_count.get(rel, 0)
+            if headroom <= 0:
+                continue
+            soft_cap = min(args.max_per_relation - args.min_per_relation, len(remainder))
+            cap = min(headroom, soft_cap)
             if cap <= 0:
                 continue
             pick = remainder[:cap]
             selected.extend(pick)
+            per_rel_count[rel] += len(pick)
+            already_taken_keys.update((p.get("source"), p.get("target")) for p in pick)
             remaining_slots -= len(pick)
             if remaining_slots <= 0:
                 break
 
-    # Pass 3: if we still have slack, top up from largest buckets ignoring cap.
+    # Pass 3: if we still have slack, top up from largest buckets ignoring cap
+    # BUT still respecting the hard absolute ceiling per relation.
     if remaining_slots > 0:
         already_taken_keys = {(e.get("source"), e.get("target")) for e in selected}
+        per_rel_count = Counter(e.get("relation", "unknown") for e in selected)
         flat = []
         for items in buckets.values():
             flat.extend(items)
@@ -169,8 +195,12 @@ def main() -> None:
             key = (link.get("source"), link.get("target"))
             if key in already_taken_keys:
                 continue
+            rel = link.get("relation") or "unknown"
+            if per_rel_count.get(rel, 0) >= args.hard_cap_per_relation:
+                continue
             selected.append(link)
             already_taken_keys.add(key)
+            per_rel_count[rel] += 1
             remaining_slots -= 1
             if remaining_slots <= 0:
                 break
@@ -209,7 +239,6 @@ def main() -> None:
             f.write(json.dumps(edge, ensure_ascii=False) + "\n")
 
     # Print summary so the caller sees diversity.
-    from collections import Counter
     rel_counter = Counter(e["relation"] for e in out_edges)
     cross = sum(
         1 for e in out_edges
