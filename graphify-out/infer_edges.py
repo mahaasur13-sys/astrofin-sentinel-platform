@@ -75,6 +75,8 @@ RELATION_WEIGHTS = {
     "re_exports": 0.70,
 }
 DEFAULT_RELATION_WEIGHT = 0.50  # unknown / future relation types
+DEFAULT_RELATION_WEIGHTS_PATH = REPO_ROOT / "config" / "relation_weights.json"
+ACTIVE_WEIGHT_VARIANT = "v1_baseline"  # overridden by --relation-weights
 
 _CATEGORY_PRIORITY = {"trash": 4, "archived": 3, "submodule": 2, "core": 1}
 _SUBMODULE_PREFIXES = (
@@ -270,6 +272,18 @@ def main():
     ap.add_argument("-o", "--out", default="", help="Output file path")
     ap.add_argument("--fmt", choices=["jsonl", "json"], default="jsonl")
     ap.add_argument("--as-of", default="", help="ISO date for decay calc (default: now)")
+    ap.add_argument(
+        "--relation-weights",
+        default=str(DEFAULT_RELATION_WEIGHTS_PATH),
+        help="Path to JSON file with relation-weight variants. "
+             "Each key is a variant name, each value is a {relation: weight} dict. "
+             f"Default: {DEFAULT_RELATION_WEIGHTS_PATH}",
+    )
+    ap.add_argument(
+        "--relation-variant",
+        default=ACTIVE_WEIGHT_VARIANT,
+        help="Which variant to activate from the JSON file (default: v1_baseline).",
+    )
     args = ap.parse_args()
 
     if not GRAPH_JSON.exists():
@@ -280,6 +294,41 @@ def main():
     overrides = load_overrides()
     as_of = (datetime.fromisoformat(args.as_of) if args.as_of
              else datetime.now(timezone.utc))
+
+    # Apply CLI-selected relation-weight variant.
+    if args.relation_weights and Path(args.relation_weights).exists():
+        try:
+            variants = json.loads(Path(args.relation_weights).read_text(encoding="utf-8"))
+            chosen = (variants.get("variants", {}) or {}).get(
+                args.relation_variant, variants.get(args.relation_variant, {})
+            )
+            if chosen and isinstance(chosen, dict):
+                # Mutate in place so the rest of main() sees the active set.
+                RELATION_WEIGHTS.clear()
+                RELATION_WEIGHTS.update({k: float(v) for k, v in chosen.items()})
+                print(
+                    f"[relation-weights] variant={args.relation_variant} "
+                    f"src={args.relation_weights} keys={len(RELATION_WEIGHTS)}",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    f"[relation-weights] WARN variant '{args.relation_variant}' "
+                    f"not found in {args.relation_weights}; using built-in defaults",
+                    file=sys.stderr,
+                )
+        except Exception as e:
+            print(
+                f"[relation-weights] WARN failed to load {args.relation_weights}: {e}; "
+                f"using built-in defaults",
+                file=sys.stderr,
+            )
+    else:
+        print(
+            f"[relation-weights] no file at {args.relation_weights}; "
+            f"using built-in defaults (variant={args.relation_variant})",
+            file=sys.stderr,
+        )
 
     enriched = []
     tier_counts = {"T1": 0, "T2": 0, "T3": 0}
@@ -372,6 +421,8 @@ def main():
     summary = {
         "as_of": as_of.isoformat(),
         "policy": "ADR-0004",
+        "relation_variant": args.relation_variant,
+        "relation_weights_path": str(args.relation_weights),
         "tier_counts": tier_counts,
         "category_counts": cat_counts,
         "override_hits": override_hits,

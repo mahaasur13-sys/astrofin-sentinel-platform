@@ -1,0 +1,102 @@
+[
+  {
+    "variant": "v1_baseline",
+    "total": 166,
+    "top_rel_by_score": [
+      "defines",
+      "calls",
+      "re_exports"
+    ],
+    "mean_per_rel": {
+      "calls": 0.682,
+      "contains": 0.0048,
+      "re_exports": 0.6689,
+      "defines": 0.816,
+      "uses": 0.0019,
+      "rationale_for": 0.004,
+      "references": 0.0033,
+      "method": 0.0045,
+      "imports": 0.3083,
+      "inherits": 0.0048,
+      "imports_from": 0.0048
+    },
+    "mean_score_overall": 0.2175,
+    "mean_score_override": 1.0,
+    "mean_score_valid": 0.8625
+  },
+  {
+    "variant": "v2_boost_inherits",
+    "total": 166,
+    "top_rel_by_score": [
+      "defines",
+      "calls",
+      "re_exports"
+    ],
+    "mean_per_rel": {
+      "calls": 0.682,
+      "contains": 0.0048,
+      "re_exports": 0.6689,
+      "defines": 0.816,
+      "uses": 0.0019,
+      "rationale_for": 0.004,
+      "references": 0.0033,
+      "method": 0.0045,
+      "imports": 0.3083,
+      "inherits": 0.005,
+      "imports_from": 0.0048
+    },
+    "mean_score_overall": 0.2175,
+    "mean_score_override": 1.0,
+    "mean_score_valid": 0.8625
+  },
+  {
+    "variant": "v3_penalize_uses",
+    "total": 166,
+    "top_rel_by_score": [
+      "defines",
+      "calls",
+      "re_exports"
+    ],
+    "mean_per_rel": {
+      "calls": 0.682,
+      "contains": 0.0048,
+      "re_exports": 0.6689,
+      "defines": 0.816,
+      "uses": 0.0013,
+      "rationale_for": 0.004,
+      "references": 0.0033,
+      "method": 0.0045,
+      "imports": 0.3083,
+      "inherits": 0.0048,
+      "imports_from": 0.0048
+    },
+    "mean_score_overall": 0.2175,
+    "mean_score_override": 1.0,
+    "mean_score_valid": 0.8625
+  },
+  {
+    "variant": "v4_boost_method",
+    "total": 166,
+    "top_rel_by_score": [
+      "defines",
+      "calls",
+      "re_exports"
+    ],
+    "mean_per_rel": {
+      "calls": 0.682,
+      "contains": 0.0048,
+      "re_exports": 0.6689,
+      "defines": 0.816,
+      "uses": 0.0019,
+      "rationale_for": 0.004,
+      "references": 0.0033,
+      "method": 0.005,
+      "imports": 0.3083,
+      "inherits": 0.0048,
+      "imports_from": 0.0048
+    },
+    "mean_score_overall": 0.2176,
+    "mean_score_override": 1.0,
+    "mean_score_valid": 0.8625
+  }
+]
