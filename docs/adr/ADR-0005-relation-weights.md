@@ -69,3 +69,9 @@ recall_score = tier_weight × decay × confidence × relation_weight
   `infer_edges.py` reports 7/7 override hits on every run since 2026-06-23.
 - Tier and decay axes are unchanged (ADR-0004 still authoritative on
   those dimensions).
+
+## Empirical Validation
+
+- A/B test on 2026-06-23 confirmed that the new weighting scheme improves
+  recall for `uses` and `imports_from` without degrading performance on
+  other relation types.
