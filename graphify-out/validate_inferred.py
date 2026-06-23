@@ -137,7 +137,8 @@ def main() -> None:
     lines: list[str] = []
     lines.append("# VALIDATION_REPORT.md")
     lines.append("")
-    lines.append("Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.json` (snapshot 2026-06-17).")
+    total = sum(len(edges) for edges in buckets.values())
+    lines.append(f"Stratified validation of N={total} INFERRED edges from `graphify-out/graph.json` (snapshot 2026-06-17).")
     lines.append("")
     lines.append("**Verdict legend:**")
     lines.append("- `valid` — link is real and current")

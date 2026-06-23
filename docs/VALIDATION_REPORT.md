@@ -1,12 +1,12 @@
 # VALIDATION_REPORT.md
 
-Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.json` (snapshot 2026-06-17).
+Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (snapshot 2026-06-17).
 
 **Verdict legend:**
 - `valid` — link is real and current
 - `false` — link does not exist in code
 
-**Verdict summary (N=500):** `valid`=409 (82%), `ambiguous`=55 (11%), `false`=21 (4%), `outdated`=15 (3%)
+**Verdict summary (N=167):** `false`=91 (54%), `valid`=29 (17%), `outdated`=27 (16%), `ambiguous`=20 (12%)
 
 - `moved` — entity exists, but in a different file (new path noted)
 - `outdated` — was true at some point, now dead (e.g. `_archived/`, removed submodules)
@@ -14,246 +14,115 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
 
 ---
 
-## Bucket: relation = `calls` (500 edges)
+## Bucket: relation = `calls` (27 edges)
 
 ### INFERRED #calls-1
-- **Source:** `AsurDev/feature_pipeline/builder.py:LL111 :: asurdev_feature_pipeline_builder_py_feature_pipeline_builder_featurebuilder_build`
-- **Target:** `AsurDev/feature_pipeline/builder.py:L76 :: asurdev_feature_pipeline_builder_py_feature_pipeline_builder_featurebuilder_query_prometheus`
+- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL148 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_evolve`
+- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L127 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_reproduce`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/scripts/validate_alerts_metrics.py:39:    # Simple regex: match words that follow prometheus metric naming conventions
+    /home/workspace/home-cluster-iac/astrofin/meta_rl/engine.py:128:    def reproduce(self, selected: list["Strategy"]) -> list["Strategy"]:
     ```
     ```
-    /home/workspace/home-cluster-iac/ai_scheduler/scheduler.py:268:    return {"status": "ok", "prometheus": prom_status}
+    /home/workspace/home-cluster-iac/astrofin/meta_rl/engine.py:142:        3. reproduce (crossover + mutation)
     ```
     ```
-    /home/workspace/home-cluster-iac/ai_scheduler/modules/metrics.py:64:    """Network latency estimate via prometheus blackbox or node_network_*"""
+    /home/workspace/home-cluster-iac/astrofin/meta_rl/engine.py:149:            self.population = self.reproduce(selected)
     ```
 
 ### INFERRED #calls-2
-- **Source:** `AsurDev/ete/compiler/constraint_compiler.py:LL29 :: asurdev_ete_compiler_constraint_compiler_py_compiler_constraint_compiler_constraintcompiler_inject`
-- **Target:** `AsurDev/ete/compiler/constraint_compiler.py:L41 :: asurdev_ete_compiler_constraint_compiler_py_compiler_constraint_compiler_constraintcompiler_make_pre_guard`
+- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL133 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_get_node_metrics`
+- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L101 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_ray_active_workers`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/_template_agent_test.py:189:    """The dataclass itself must guard its invariants."""
+    /home/workspace/home-cluster-iac/ai_scheduler/modules/metrics.py:103:    """Ray active workers"""
     ```
     ```
-    /home/workspace/agents/_impl/risk_agent.py:124:        except Exception as e:  # noqa: BLE001 — last-resort guard
+    /home/workspace/atom-federation-os/tests/conftest.py:93:        workers = num_workers or self.max_workers
     ```
     ```
-    /home/workspace/agents/_impl/time_window_agent.py:111:        except Exception as e:  # noqa: BLE001 — last-resort guard
+    /home/workspace/atom-federation-os/tests/conftest.py:97:            'workers': workers,
     ```
 
 ### INFERRED #calls-3
-- **Source:** `AsurDev/load_test/scenarios/state_drift/test.py:LL61 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_analyze`
-- **Target:** `AsurDev/load_test/scenarios/state_drift/test.py:L49 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_pearson`
+- **Source:** `atom-federation-os/alignment/test_bcil.py:LL25 :: alignment_test_bcil_test_bc_f2_quorum_bypass`
+- **Target:** `atom-federation-os/alignment/bcil.py:L325 :: alignment_bcil_bcil`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
+- **Verdict:** **valid**
 - **Evidence:**
     ```
-    source_symbol_present_but_target_not
+    /home/workspace/atom-federation-os/alignment/gcst.py:11:from alignment.bcil import BCIL
     ```
     ```
-    /home/workspace/tests/test_metrics_cli.py:42:            "analyze",
+    /home/workspace/atom-federation-os/alignment/gcst.py:37:        self.bcil = BCIL()
     ```
     ```
-    /home/workspace/tests/test_compromise_agent.py:121:    # T5 — degraded: analyze raises non-ephemeris exception
-    ```
-    ```
-    /home/workspace/tests/test_compromise_agent.py:123:        async def analyze(self, state):
+    /home/workspace/atom-federation-os/alignment/test_bcil.py:5:from alignment.bcil import BCIL, ByzantineConvergenceFunction, ByzantineFailureType, QuorumSpec
     ```
 
 ### INFERRED #calls-4
-- **Source:** `AsurDev/monitoring/exporters/ceph/ceph_exporter.py:LL52 :: asurdev_monitoring_exporters_ceph_ceph_exporter_py_ceph_ceph_exporter_build_metrics`
-- **Target:** `AsurDev/monitoring/exporters/ceph/ceph_exporter.py:L40 :: asurdev_monitoring_exporters_ceph_ceph_exporter_py_ceph_ceph_exporter_get_ceph_df`
+- **Source:** `atom-federation-os/alignment/test_convergence.py:LL105 :: alignment_test_convergence_test_convergence_layer_integration`
+- **Target:** `atom-federation-os/alignment/convergence.py:L29 :: alignment_convergence_oscillationdetector`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+- **Verdict:** **ambiguous**
 - **Evidence:**
     ```
-    /home/workspace/scripts/optimize_lag_blend.py:94:    df = pd.DataFrame(
+    source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/scripts/optimize_lag_blend.py:105:    return df
+    /home/workspace/tests/integration/test_evolution_pipeline.py:106:@pytest.mark.integration
     ```
     ```
-    /home/workspace/scripts/optimize_lag_blend.py:113:    df = pd.read_csv(path)
+    /home/workspace/tests/test_karl_synthesis_lag.py:1:"""tests/test_karl_synthesis_lag.py — ATOM-KARL-015 Phase 5: Tests for LagWindow integration in KARLSynthesisAgent
+    ```
+    ```
+    /home/workspace/agents/karl_synthesis.py:48:# ATOM-019: PostgreSQL integration
     ```
 
 ### INFERRED #calls-5
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL231 :: inference_api_startup_event`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L150 :: inference_api_on_startup`
+- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL430 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator_test_print_report_quiet`
+- **Target:** `integrations/gitagent/validators/agent_validator.py:L43 :: validators_agent_validator_agentyamlvalidator`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+- **Verdict:** **ambiguous**
 - **Evidence:**
     ```
-    /home/workspace/home-cluster-iac/acos_cli.py:4:Contract-compliant: all components validated at startup.
+    source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/home-cluster-iac/systemd/tunnel_monitor.py:44:        logger.info("Tunnel down on startup, bringing up...")
+    /home/workspace/atom-federation-os/sbs/cli.py:3:Rich output, auto-completion, --json, -v/-vv/--quiet.
     ```
     ```
-    /home/workspace/astrofin-sentinel-v5/observability/health_endpoints.py:46:@app.on_event("startup")
+    /home/workspace/atom-federation-os/sbs/cli.py:46:quiet_opt = typer.Option(False, "--quiet", "-q", help="Suppress all output")
+    ```
+    ```
+    /home/workspace/atom-federation-os/sbs/cli.py:55:    quiet: bool = quiet_opt,
     ```
 
 ### INFERRED #calls-6
-- **Source:** `AsurDev/ai_scheduler/scheduler.py:LL174 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_route_job`
-- **Target:** `AsurDev/ai_scheduler/scheduler.py:L133 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_get_node_metrics_fallback`
+- **Source:** `atom-federation-os/alignment/test_alignment.py:LL19 :: alignment_test_alignment_enode`
+- **Target:** `atom-federation-os/alignment/drift_detector.py:L53 :: alignment_drift_detector_executednode`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+- **Verdict:** **ambiguous**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_cache.py:13:    c = RedisCache(use_redis=False)  # fallback‑режим для тестов
+    source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/tests/test_dual_mode.py:38:    """Test that MASFactory failure triggers graceful fallback."""
+    /home/workspace/atom-federation-os/alignment/plan_reality_comparator.py:287:        for exec_id, enode in by_id.items():
     ```
     ```
-    /home/workspace/tests/test_dual_mode.py:39:    print("\n[TEST 2] MASFactory fallback on error...")
+    /home/workspace/atom-federation-os/alignment/plan_reality_comparator.py:288:            if hasattr(enode, 'step_name') and enode.step_name == pnode.step_name:
+    ```
+    ```
+    /home/workspace/atom-federation-os/alignment/plan_reality_comparator.py:290:            if hasattr(enode, 'tool') and enode.tool == pnode.tool:
     ```
 
 ### INFERRED #calls-7
-- **Source:** `AsurDev/acos_cli.py:LL217 :: asurdev_acos_cli_main`
-- **Target:** `AsurDev/acos_cli.py:L159 :: asurdev_acos_cli_acoscli_list_traces`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:240:    print(f"  [OK{'=' if ok else '!'}] INV6 — O(1) lookup: {elapsed:.4f}s for 1000 lookups (100 traces)")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:98:        traces = self.store.get_traces_by_run(run_id)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:100:        for trace in traces:
-    ```
-
-### INFERRED #calls-8
-- **Source:** `AsurDev/ai_scheduler/scheduler.py:LL274 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_cli_route`
-- **Target:** `AsurDev/ai_scheduler/scheduler.py:L68 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_jobrequest`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/test_auth_flask_decorator.py:17:    @app.route("/protected")
-    ```
-    ```
-    /home/workspace/tests/test_auth_empty_key.py:12:    @app.route("/test")
-    ```
-    ```
-    /home/workspace/scripts/architecture_linter.py:11:    R4.  Any HTTP route handler under web/ must use @require_auth (or be
-    ```
-
-### INFERRED #calls-9
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL80 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_emit`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L17 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_tunnelevent`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:171:    ap.add_argument("--json", action="store_true", help="emit JSON instead of table")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:113:    log.emit("eventlog-test", "TUNNEL_UP", {"interface": "wg0", "peer": "10.8.0.1"})
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:196:            if isinstance(func, ast.Attribute) and func.attr in ("emit", "append"):
-    ```
-
-### INFERRED #calls-10
-- **Source:** `AsurDev/load_test/observability/metrics.py:LL99 :: asurdev_load_test_observability_metrics_py_observability_metrics_metricscollector_collect`
-- **Target:** `AsurDev/load_test/observability/metrics.py:L159 :: asurdev_load_test_observability_metrics_py_observability_metrics_metricscollector_synthetic_baseline`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/unit/test_strategy_pool_and_persistence.py:306:        """Empty pool ⇒ no comparison baseline ⇒ every candidate passes."""
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:300:        baseline = self._history[-window - 1].max_reward if len(self._history) > window else recent[0]
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:306:        drop_pct = (baseline - recent[-1]) / abs(baseline) if baseline != 0 else 0
-    ```
-
-### INFERRED #calls-11
-- **Source:** `AsurDev/execution_sandbox/sandbox.py:LL58 :: asurdev_execution_sandbox_sandbox_py_execution_sandbox_sandbox_executionsandbox_execute`
-- **Target:** `AsurDev/execution_sandbox/sandbox.py:L20 :: asurdev_execution_sandbox_sandbox_py_execution_sandbox_sandbox_sandboxviolation`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:32:                for row in conn.execute(
-    ```
-    ```
-    /home/workspace/meta_rl/trading_bridge.py:33:    def execute(self, strategy, market_data: dict, mode: str = "PAPER") -> TradingExecutionResult:
-    ```
-    ```
-    /home/workspace/meta_rl/calibration.py:132:        conn.execute("PRAGMA journal_mode=WAL")
-    ```
-
-### INFERRED #calls-12
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL210 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_main`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L48 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_install_slurm`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:18:        elif jtype in ("batch", "slurm"):
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:19:            target = "slurm"
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:21:            target = "slurm"
-    ```
-
-### INFERRED #calls-13
-- **Source:** `AsurDev/scripts/day2-vpn.sh:LL39 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_install_wg`
-- **Target:** `AsurDev/scripts/day2-vpn.sh:L30 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
-    ```
-
-### INFERRED #calls-14
-- **Source:** `AsurDev/monitoring/exporters/wireguard/wg_exporter.py:LL56 :: asurdev_monitoring_exporters_wireguard_wg_exporter_py_wireguard_wg_exporter_build_metrics`
-- **Target:** `AsurDev/monitoring/exporters/wireguard/wg_exporter.py:L14 :: asurdev_monitoring_exporters_wireguard_wg_exporter_py_wireguard_wg_exporter_parse_wg_show`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:164:    ap.add_argument("-n", "--limit", type=int, default=20, help="rows to show (default 20)")
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:168:    ap.add_argument("--only-overrides", action="store_true", help="show only overridden edges")
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:24:                "reasoning": "Technical indicators show no clear trend",
-    ```
-
-### INFERRED #calls-15
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL359 :: archived_synthesis_agent_synthesisagent_vote`
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL146 :: archived_synthesis_agent_synthesisagent_run`
 - **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L247 :: archived_synthesis_agent_synthesisagent_get_signal_attr`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
 - **Verdict:** **outdated**
@@ -262,9 +131,22 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
     ```
 
-### INFERRED #calls-16
-- **Source:** `AsurDev/ai_scheduler/scheduler_v2.py:LL60 :: asurdev_ai_scheduler_scheduler_v2_py_ai_scheduler_scheduler_v2_schedule`
-- **Target:** `AsurDev/ai_scheduler/scheduler_v2.py:L31 :: asurdev_ai_scheduler_scheduler_v2_py_ai_scheduler_scheduler_v2_scheduleresponse`
+### INFERRED #calls-8
+- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL242 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_build_astrofin_policy`
+- **Target:** `AsurDev/astrofin/constraint_compiler.py:L169 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_latency_sla`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **valid**
+- **Evidence:**
+    ```
+    /home/workspace/home-cluster-iac/v6/constraint_graph/graph.py:18:    SLA = "sla"  # P(latency > threshold) < 0.05
+    ```
+    ```
+    /home/workspace/AsurDev/v6/constraint_graph/graph.py:18:    SLA           = "sla"            # P(latency > threshold) < 0.05
+    ```
+
+### INFERRED #calls-9
+- **Source:** `atom-federation-os/tests/test_stability_feedback_controller.py:LL109 :: tests_test_stability_feedback_controller_testoscillationdetection_test_saturation_mode`
+- **Target:** `atom-federation-os/actuator/stability_feedback_controller.py:L61 :: actuator_stability_feedback_controller_stabilityfeedbackcontroller`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
 - **Verdict:** **ambiguous**
 - **Evidence:**
@@ -272,18 +154,124 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/home-cluster-iac/ml_engine/inference/predictor.py:62:                "recommendation": str,       # "schedule", "defer", "reject"
+    /home/workspace/tests/test_risk_v2.py:27:from trading.mode import ModeEnforcer, TradingMode
     ```
     ```
-    /home/workspace/home-cluster-iac/ml_engine/inference/predictor.py:139:            return "schedule"
+    /home/workspace/tests/test_risk_v2.py:247:        assert enforcer.mode == TradingMode.LIVE_FULL
     ```
     ```
-    /home/workspace/home-cluster-iac/ml_engine/inference/predictor.py:150:            "recommendation": "schedule",
+    /home/workspace/tests/test_validator.py:146:                        "Use KARL drift detection in production mode",
+    ```
+
+### INFERRED #calls-10
+- **Source:** `AsurDev/job_engine/engine.py:LL159 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_transition`
+- **Target:** `AsurDev/job_engine/engine.py:L169 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_write_event`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **valid**
+- **Evidence:**
+    ```
+    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
+    ```
+    ```
+    /home/workspace/meta_rl/evolution.py:335:        4. Log the reset event
+    ```
+    ```
+    /home/workspace/acos-contracts/acos_contracts/state.py:4:backends** (PostgreSQL thread-pool vs. event-sourcing KV) and **identical
+    ```
+
+### INFERRED #calls-11
+- **Source:** `atom-federation-os/alignment/test_bcil.py:LL60 :: alignment_test_bcil_test_bc_f5_convergence_to_malicious`
+- **Target:** `atom-federation-os/alignment/bcil.py:L20 :: alignment_bcil_quorumspec`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **ambiguous**
+- **Evidence:**
+    ```
+    source_symbol_present_but_target_not
+    ```
+    ```
+    /home/workspace/atom-federation-os/tools/test_p7_bft.py:316:        node_id='malicious', request_hash_a='A', request_hash_b='B',
+    ```
+    ```
+    /home/workspace/atom-federation-os/tools/test_p7_bft.py:319:    assert engine.is_slashed('malicious')
+    ```
+    ```
+    /home/workspace/atom-federation-os/tools/test_p7_bft.py:349:    assert engine.is_slashed('malicious')
+    ```
+
+### INFERRED #calls-12
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL192 :: archived_synthesis_agent_synthesisagent_run`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L330 :: archived_synthesis_agent_synthesisagent_synthesize`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #calls-13
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL234 :: archived_synthesis_agent_synthesisagent_run`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L436 :: archived_synthesis_agent_synthesisagent_collect_sources`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #calls-14
+- **Source:** `atom-federation-os/alignment/test_gcpl.py:LL95 :: alignment_test_gcpl_test_checker_entropy_violation`
+- **Target:** `atom-federation-os/alignment/gcpl.py:L192 :: alignment_gcpl_globalconsistencychecker`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **ambiguous**
+- **Evidence:**
+    ```
+    source_symbol_present_but_target_not
+    ```
+    ```
+    /home/workspace/scripts/architecture_linter.py:30:        1 — hard-rule violation
+    ```
+    ```
+    /home/workspace/scripts/architecture_linter.py:31:        2 — soft-rule violation only (still allowed in dev)
+    ```
+    ```
+    /home/workspace/scripts/architecture_linter.py:430:        print(RED(f"❌ {len(fails)} hard-rule violation(s). Build blocked."))
+    ```
+
+### INFERRED #calls-15
+- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL148 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_health_check_loop`
+- **Target:** `AsurDev/acos/network/amnezia_wg.py:L127 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_reconnect_with_backoff`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **valid**
+- **Evidence:**
+    ```
+    /home/workspace/meta_rl/live_provider.py:134:        """Fetch with retry + exponential backoff."""
+    ```
+    ```
+    /home/workspace/home-cluster-iac/ete/compiler/dag.py:49:    retry_policy: dict[str, Any] = field(default=lambda: {"max_retries": 3, "backoff": 2.0})
+    ```
+    ```
+    /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:145:                backoff = engine.BACKOFF_BASE**attempt
+    ```
+
+### INFERRED #calls-16
+- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL138 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_reboot_node`
+- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **valid**
+- **Evidence:**
+    ```
+    /home/workspace/graphify-out/select_top_inferred.py:121:    # end-to-end testable on every run.
+    ```
+    ```
+    /home/workspace/graphify-out/recall_test.py:47:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
+    ```
+    ```
+    /home/workspace/graphify-out/recall_test.py:61:        subprocess.run(
     ```
 
 ### INFERRED #calls-17
-- **Source:** `AsurDev/ete/compiler/dag.py:LL80 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_agent_job`
-- **Target:** `AsurDev/ete/compiler/dag.py:L29 :: asurdev_ete_compiler_dag_py_compiler_dag_dagnode`
+- **Source:** `atom-federation-os/alignment/test_bcil.py:LL24 :: alignment_test_bcil_test_bc_f2_quorum_bypass`
+- **Target:** `atom-federation-os/alignment/bcil.py:L20 :: alignment_bcil_quorumspec`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
 - **Verdict:** **ambiguous**
 - **Evidence:**
@@ -291,82 +279,18 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
+    /home/workspace/meta_rl/reward.py:229:        Returns ``base_reward`` for inputs that should bypass the
     ```
     ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:140:            job = JobState(
+    /home/workspace/_sbs_old/boundary_spec.py:5:All validation is strict: no soft defaults, no silent bypass.
     ```
     ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:149:            state.jobs[job.job_id] = job
+    /home/workspace/atom-federation-os/tests/test_enforcement_layer.py:6:#   - No bypass paths exist
     ```
 
 ### INFERRED #calls-18
-- **Source:** `AsurDev/ete/recorder/trace_recorder.py:LL38 :: asurdev_ete_recorder_trace_recorder_py_recorder_trace_recorder_tracerecorder_record`
-- **Target:** `AsurDev/ete/recorder/trace_recorder.py:L47 :: asurdev_ete_recorder_trace_recorder_py_recorder_trace_recorder_tracerecorder_record_tsdb`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:85:        self.tsdb = tsdb_client  # TimescaleDB client for historical drift
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/recorder/trace_recorder.py:27:        self.tsdb = tsdb_client
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/recorder/trace_recorder.py:38:        if self.tsdb:
-    ```
-
-### INFERRED #calls-19
-- **Source:** `AsurDev/load_test/correction_loop/loop.py:LL132 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_cycle`
-- **Target:** `AsurDev/load_test/correction_loop/loop.py:L226 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_classify`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_orchestrator.py:18:    """Router must correctly classify queries."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/incident/model.py:67:        """Factory: create + classify + route incident."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/incident/model.py:70:        # Auto-classify severity
-    ```
-
-### INFERRED #calls-20
-- **Source:** `AsurDev/ai_scheduler/scheduler_v2.py:LL91 :: asurdev_ai_scheduler_scheduler_v2_py_ai_scheduler_scheduler_v2_submit`
-- **Target:** `AsurDev/ai_scheduler/scheduler_v2.py:L45 :: asurdev_ai_scheduler_scheduler_v2_py_ai_scheduler_scheduler_v2_schedule`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:36:    def schedule(self, dag: dict, context: dict) -> dict:
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:37:        """Compile DAG into executable schedule. Contract-required method."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/scheduler_v3/api.py:4:POST /schedule     — admission check → stateful scoring → Slurm submit
-    ```
-
-### INFERRED #calls-21
-- **Source:** `AsurDev/failure_orchestrator/detectors.py:LL154 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_all_detectors`
-- **Target:** `AsurDev/failure_orchestrator/detectors.py:L83 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_ray_head_down`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/agent_test_base.py:138:        with patch.object(agent, self.data_method, side_effect=ConnectionError("data_room down")):
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:121:            raise RuntimeError("down")
-    ```
-    ```
-    /home/workspace/tests/_template_agent_test.py:126:    with patch.object(agent, "retrieve", side_effect=ConnectionError("data_room down")):
-    ```
-
-### INFERRED #calls-22
-- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL451 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator_test_print_report_all_pass`
-- **Target:** `integrations/gitagent/validators/agent_validator.py:L26 :: validators_agent_validator_validationresult`
+- **Source:** `atom-federation-os/alignment/test_adlr.py:LL27 :: alignment_test_adlr_test_policy_attempt`
+- **Target:** `atom-federation-os/alignment/adlr.py:L147 :: alignment_adlr_recoverypolicy`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
 - **Verdict:** **ambiguous**
 - **Evidence:**
@@ -374,90 +298,86 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/agents/metrics.py:153:            pass
+    /home/workspace/meta_rl/live_provider.py:135:        for attempt in range(_CCXT_RECONNECT_ATTEMPTS):
     ```
     ```
-    /home/workspace/tests/test_healthcheck.py:89:        pass
+    /home/workspace/meta_rl/live_provider.py:142:                logger.warning(f"[CCXT] {method} attempt {attempt + 1} failed: {e}")
     ```
     ```
-    /home/workspace/tests/test_logging.py:35:        pass
+    /home/workspace/meta_rl/live_provider.py:143:                if attempt < _CCXT_RECONNECT_ATTEMPTS - 1:
+    ```
+
+### INFERRED #calls-19
+- **Source:** `atom-federation-os/tests/test_stability_feedback_controller.py:LL344 :: tests_test_stability_feedback_controller_testhistorymanagement_test_gain_history_max_length`
+- **Target:** `atom-federation-os/actuator/stability_feedback_controller.py:L61 :: actuator_stability_feedback_controller_stabilityfeedbackcontroller`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **ambiguous**
+- **Evidence:**
+    ```
+    source_symbol_present_but_target_not
+    ```
+    ```
+    /home/workspace/tests/integration/test_evolution_pipeline.py:172:    # the same length and identical generation numbers.
+    ```
+    ```
+    /home/workspace/meta_rl/strategy_pool.py:315:        # version via a length check because we don't store the version
+    ```
+    ```
+    /home/workspace/atom-federation-os/tests/test_meta_control_v78.py:68:        chain_length=chain.length,
+    ```
+
+### INFERRED #calls-20
+- **Source:** `atom-federation-os/alignment/test_gcpl.py:LL113 :: alignment_test_gcpl_test_checker_irreconcilable_ratio`
+- **Target:** `atom-federation-os/alignment/gcpl.py:L192 :: alignment_gcpl_globalconsistencychecker`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **ambiguous**
+- **Evidence:**
+    ```
+    source_symbol_present_but_target_not
+    ```
+    ```
+    /home/workspace/agents/_impl/risk_agent.py:25:    4. Validate risk/reward ratio
+    ```
+    ```
+    /home/workspace/agents/_impl/synthesis_agent.py:560:        rr_ratio = 2.5  # risk-reward ratio
+    ```
+    ```
+    /home/workspace/scripts/optimize_lag_blend.py:164:    Compute Sharpe ratio if PnL column is available.
+    ```
+
+### INFERRED #calls-21
+- **Source:** `atom-federation-os/alignment/test_bcil.py:LL84 :: alignment_test_bcil_test_bc_safe_merge`
+- **Target:** `atom-federation-os/alignment/bcil.py:L325 :: alignment_bcil_bcil`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **valid**
+- **Evidence:**
+    ```
+    /home/workspace/atom-federation-os/alignment/gcst.py:11:from alignment.bcil import BCIL
+    ```
+    ```
+    /home/workspace/atom-federation-os/alignment/gcst.py:37:        self.bcil = BCIL()
+    ```
+    ```
+    /home/workspace/atom-federation-os/alignment/test_bcil.py:5:from alignment.bcil import BCIL, ByzantineConvergenceFunction, ByzantineFailureType, QuorumSpec
+    ```
+
+### INFERRED #calls-22
+- **Source:** `atom-federation-os/alignment/test_bcil.py:LL61 :: alignment_test_bcil_test_bc_f5_convergence_to_malicious`
+- **Target:** `atom-federation-os/alignment/bcil.py:L325 :: alignment_bcil_bcil`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Verdict:** **valid**
+- **Evidence:**
+    ```
+    /home/workspace/atom-federation-os/alignment/gcst.py:11:from alignment.bcil import BCIL
+    ```
+    ```
+    /home/workspace/atom-federation-os/alignment/gcst.py:37:        self.bcil = BCIL()
+    ```
+    ```
+    /home/workspace/atom-federation-os/alignment/test_bcil.py:5:from alignment.bcil import BCIL, ByzantineConvergenceFunction, ByzantineFailureType, QuorumSpec
     ```
 
 ### INFERRED #calls-23
-- **Source:** `AsurDev/lccp_v12.py:LL52 :: asurdev_lccp_v12_staterebuilder_verify`
-- **Target:** `AsurDev/lccp_v12.py:L34 :: asurdev_lccp_v12_staterebuilder_rebuild`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:166:    # Verify: no self.get_trace / self.get_all / self.rebuild in engine source
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:176:            if isinstance(func, ast.Attribute) and func.attr in ("get_trace", "get_all", "rebuild"):
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:221:    r1 = StateReducer(log).rebuild("inv5")
-    ```
-
-### INFERRED #calls-24
-- **Source:** `AsurDev/ml_engine/inference/predictor.py:LL108 :: asurdev_ml_engine_inference_predictor_py_inference_predictor_predictor_predict_batch`
-- **Target:** `AsurDev/ml_engine/inference/predictor.py:L47 :: asurdev_ml_engine_inference_predictor_py_inference_predictor_predictor_predict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/cycle_agent.py:42:        Analyze cycle position and predict next turning point.
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:51:    intent_type: str  # "analyze" | "compare" | "predict" | "backtest"
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:174:        elif any(w in lower for w in ["predict", "forecast", "will"]):
-    ```
-
-### INFERRED #calls-25
-- **Source:** `AsurDev/acos/cli/monitor.py:LL53 :: asurdev_acos_cli_monitor_py_cli_monitor_cmd_status`
-- **Target:** `AsurDev/acos/cli/monitor.py:L37 :: asurdev_acos_cli_monitor_py_cli_monitor_get_tunnel_status`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_v2.py:58:        status, size, msg = engine.pre_trade_check("BTC", 10_000, 0.15, "NORMAL")
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:59:        assert status == "REJECTED"
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:84:        status, size, msg = engine.pre_trade_check("ETH", 30_000, 0.15, "NORMAL")
-    ```
-
-### INFERRED #calls-26
-- **Source:** `AsurDev/l9_ebl/capabilities/registry.py:LL126 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_enforce_any`
-- **Target:** `AsurDev/l9_ebl/capabilities/registry.py:L108 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_capabilitydenied`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    target_symbol 'capabilitydenied' not found in AsurDev/l9_ebl/capabilities/registry.py
-    ```
-
-### INFERRED #calls-27
-- **Source:** `AsurDev/constraint_compiler/parser/parser.py:LL149 :: asurdev_constraint_compiler_parser_parser_py_parser_parser_policyparser_parse_text`
-- **Target:** `AsurDev/constraint_compiler/parser/parser.py:L162 :: asurdev_constraint_compiler_parser_parser_py_parser_parser_policyparser_parse_value`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:248:        d = {scored: "value"}
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:249:        assert d[scored] == "value"
-    ```
-    ```
-    /home/workspace/tests/test_cache.py:38:    await cache.set("short", "value", ttl=1)  # 1 секунда
-    ```
-
-### INFERRED #calls-28
 - **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL431 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator_test_print_report_quiet`
 - **Target:** `integrations/gitagent/validators/agent_validator.py:L35 :: validators_agent_validator_validationreport`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
@@ -476,25 +396,9 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     /home/workspace/atom-federation-os/sbs/cli.py:55:    quiet: bool = quiet_opt,
     ```
 
-### INFERRED #calls-29
-- **Source:** `AsurDev/feature_pipeline/builder.py:LL55 :: asurdev_feature_pipeline_builder_py_feature_pipeline_builder_featurebuilder_query_tsdb`
-- **Target:** `AsurDev/feature_pipeline/builder.py:L47 :: asurdev_feature_pipeline_builder_py_feature_pipeline_builder_featurebuilder_tsdb_connect`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:29:        with sqlite3.connect(self.db) as conn:
-    ```
-    ```
-    /home/workspace/meta_rl/calibration.py:131:        conn = sqlite3.connect(self.db_path, timeout=10.0, isolation_level=None)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/feature_pipeline/builder.py:51:            self._conn = psycopg2.connect(self.tsdb_dsn)
-    ```
-
-### INFERRED #calls-30
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL209 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_main`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L32 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_check_munge`
+### INFERRED #calls-24
+- **Source:** `atom-federation-os/alignment/test_bcil.py:LL96 :: alignment_test_bcil_test_bc_split_brain`
+- **Target:** `atom-federation-os/alignment/bcil.py:L20 :: alignment_bcil_quorumspec`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
 - **Verdict:** **ambiguous**
 - **Evidence:**
@@ -502,224 +406,18 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/tests/test_macro_agent.py:100:    pytest.main([__file__])
+    /home/workspace/home-cluster-iac/self_healing/diagnostics/ceph.py:3:Ceph Diagnostics — FIX-004 L4 CRITICAL: proper Ceph quorum + split-brain handling
     ```
     ```
-    /home/workspace/tests/test_risk_v2.py:277:    pytest.main([__file__, "-v", "--tb=short"])
+    /home/workspace/home-cluster-iac/self_healing/diagnostics/ceph.py:8:  1.4 split-brain detection with single-MON quorum risk
     ```
     ```
-    /home/workspace/tests/test_meta_rl.py:415:    pytest.main([__file__, "-v"])
-    ```
-
-### INFERRED #calls-31
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL189 :: archived_synthesis_agent_synthesisagent_run`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L299 :: archived_synthesis_agent_synthesisagent_detect_conflicts`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    /home/workspace/home-cluster-iac/self_healing/diagnostics/ceph.py:245:    FIX 1.4: Proper split-brain detection.
     ```
 
-### INFERRED #calls-32
-- **Source:** `AsurDev/acos/cli/monitor.py:LL119 :: asurdev_acos_cli_monitor_py_cli_monitor_main`
-- **Target:** `AsurDev/acos/cli/monitor.py:L46 :: asurdev_acos_cli_monitor_py_cli_monitor_cmd_status`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_v2.py:58:        status, size, msg = engine.pre_trade_check("BTC", 10_000, 0.15, "NORMAL")
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:59:        assert status == "REJECTED"
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:84:        status, size, msg = engine.pre_trade_check("ETH", 30_000, 0.15, "NORMAL")
-    ```
-
-### INFERRED #calls-33
-- **Source:** `AsurDev/load_test/scenarios/solver_latency/test.py:LL71 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_solverlatencyscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/solver_latency/test.py:L105 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_solverlatencyscenario_simulate_job`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:140:            job = JobState(
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:149:            state.jobs[job.job_id] = job
-    ```
-
-### INFERRED #calls-34
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL155 :: inference_api_on_startup`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L120 :: inference_api_load_model`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/ml_predictor_agent.py:107:        """Fetch price data for ML model."""
-    ```
-    ```
-    /home/workspace/agents/gitagent_exporter.py:140:        "description": "Bradley Siderograph model: planetary aspects correlation with S&P 500",
-    ```
-    ```
-    /home/workspace/agents/gitagent_exporter.py:145:        "sources": ["Swiss Ephemeris", "Bradley Siderograph model"],
-    ```
-
-### INFERRED #calls-35
-- **Source:** `AsurDev/ai_scheduler/scheduler.py:LL172 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_route_job`
-- **Target:** `AsurDev/ai_scheduler/scheduler.py:L108 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_get_node_metrics_prometheus`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_alerts_metrics.py:39:    # Simple regex: match words that follow prometheus metric naming conventions
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ai_scheduler/modules/metrics.py:64:    """Network latency estimate via prometheus blackbox or node_network_*"""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ai_scheduler/scheduler.py:268:    return {"status": "ok", "prometheus": prom_status}
-    ```
-
-### INFERRED #calls-36
-- **Source:** `AsurDev/scripts/day2-vpn.sh:LL60 :: home_workspace_asurdev_scripts_day2_vpn_sh__entry`
-- **Target:** `AsurDev/scripts/day2-vpn.sh:L30 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
-    ```
-
-### INFERRED #calls-37
-- **Source:** `AsurDev/l10_self_healing/orchestrator/failure_isolation.py:LL100 :: asurdev_l10_self_healing_orchestrator_failure_isolation_py_orchestrator_failure_isolation_failureisolator_classify_incident`
-- **Target:** `AsurDev/l10_self_healing/orchestrator/failure_isolation.py:L105 :: asurdev_l10_self_healing_orchestrator_failure_isolation_py_orchestrator_failure_isolation_failureisolator_plan_rollback`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:194:    """Test 4: Correct rollback when SwitchNode fails."""
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:220:    # Try to apply invalid change (should trigger rollback)
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:238:        # If we get here without exception, check rollback
-    ```
-
-### INFERRED #calls-38
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL292 :: archived_synthesis_agent_synthesisagent_group_by_category`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L247 :: archived_synthesis_agent_synthesisagent_get_signal_attr`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-39
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL201 :: home_workspace_asurdev_scripts_day3_compute_sh__entry`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L163 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_main`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:50:def main() -> None:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:145:    main()
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:162:def main():
-    ```
-
-### INFERRED #calls-40
-- **Source:** `AsurDev/scripts/day5-ray.sh:LL204 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_create_ray_scripts`
-- **Target:** `AsurDev/scripts/day5-ray.sh:L21 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-41
-- **Source:** `AsurDev/feature_pipeline/exporter.py:LL123 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_build_dataset`
-- **Target:** `AsurDev/feature_pipeline/exporter.py:L66 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_load_events`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:174:        Searches for recent geopolitical events and scores their impact.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:19:from acos.events.event import Event
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:20:from acos.events.event_log import EventLog
-    ```
-
-### INFERRED #calls-42
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL55 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy_crossover`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L16 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:107:        strategy = GeneratedStrategy(random_chromosome())
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:108:        result = dummy_evaluator.evaluate(strategy, sample_market_data)
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:113:        strategy = GeneratedStrategy(random_chromosome())
-    ```
-
-### INFERRED #calls-43
-- **Source:** `AstroFinSentinelV5/web/utils/notifications.py:LL32 :: astrofinsentinelv5_web_utils_notifications_py_utils_notifications_make_toast`
-- **Target:** `AstroFinSentinelV5/web/utils/notifications.py:L60 :: astrofinsentinelv5_web_utils_notifications_py_div`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/web/utils/notifications.py
-    ```
-
-### INFERRED #calls-44
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL133 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_reconnect_with_backoff`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L85 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_start`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/time_window_agent.py:140:        # Check if we're at start of 4H candle (higher volume expected)
-    ```
-    ```
-    /home/workspace/agents/_impl/time_window_agent.py:148:            summary = "4H candle start + uptrend"
-    ```
-    ```
-    /home/workspace/agents/_impl/time_window_agent.py:152:            summary = "4H candle start + downtrend"
-    ```
-
-### INFERRED #calls-45
-- **Source:** `AsurDev/load_test/scenarios/solver_latency/test.py:LL161 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_run_all`
-- **Target:** `AsurDev/load_test/scenarios/solver_latency/test.py:L29 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_solverlatencyscenario`
+### INFERRED #calls-25
+- **Source:** `astrofin-sentinel-v5/tests/data_room/test_data_room.py:LL68 :: astrofin_sentinel_v5_tests_data_room_test_data_room_py_data_room_test_data_room_test_circuit_breaker_half_open_recovery`
+- **Target:** `data_room/circuit_breaker.py:L41 :: data_room_circuit_breaker_circuitbreaker`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
 - **Verdict:** **ambiguous**
 - **Evidence:**
@@ -727,5107 +425,17 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/tests/test_backtest_real_agents.py:32:        assert all("momentum=" not in t.signal_reasoning for t in result.trades), (
+    /home/workspace/home-cluster-iac/self_healing/diagnostics/ceph.py:279:    FIX 3.2: Structured recovery actions.
     ```
     ```
-    /home/workspace/tests/test_auth_flask_decorator.py:80:    If API_KEY env var is empty (or missing), all requests should be rejected
+    /home/workspace/home-cluster-iac/self_healing/diagnostics/ceph.py:325:                "reason": f"{len(status.pgs_deep)} PGs deep-scrubbing (recovery overload)",
     ```
     ```
-    /home/workspace/tests/test_auth_flask_decorator.py:106:    """When REQUIRE_AUTH=false, all requests should succeed."""
+    /home/workspace/home-cluster-iac/v8/rollback/engine.py:61:        - On incident: before recovery action
     ```
 
-### INFERRED #calls-46
-- **Source:** `AsurDev/feature_pipeline/window_engine.py:LL22 :: asurdev_feature_pipeline_window_engine_py_feature_pipeline_window_engine_std`
-- **Target:** `AsurDev/feature_pipeline/window_engine.py:L16 :: asurdev_feature_pipeline_window_engine_py_feature_pipeline_window_engine_mean`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/gitagent_registry.py:402:        # Aggregate: mean confidence + majority signal
-    ```
-    ```
-    /home/workspace/agents/_impl/quant_agent.py:188:        mean = np.mean(closes[-20:])
-    ```
-    ```
-    /home/workspace/agents/_impl/quant_agent.py:190:        z_score = (current_price - mean) / std if std > 0 else 0
-    ```
-
-### INFERRED #calls-47
-- **Source:** `AsurDev/load_test/observability/metrics.py:LL81 :: asurdev_load_test_observability_metrics_py_observability_metrics_metricscollector_collect`
-- **Target:** `AsurDev/load_test/observability/metrics.py:L104 :: asurdev_load_test_observability_metrics_py_observability_metrics_metricscollector_collect_from_prometheus`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_alerts_metrics.py:39:    # Simple regex: match words that follow prometheus metric naming conventions
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ai_scheduler/scheduler.py:268:    return {"status": "ok", "prometheus": prom_status}
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ai_scheduler/modules/metrics.py:64:    """Network latency estimate via prometheus blackbox or node_network_*"""
-    ```
-
-### INFERRED #calls-48
-- **Source:** `AsurDev/l11_verifier/verifier.py:LL139 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_full_pipeline`
-- **Target:** `AsurDev/l11_verifier/verifier.py:L79 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_pre_execution`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:62:    "push/", "atom-federation-os/", "roma-execution-bridge/",
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:311:            # TTC fallback: single-pass execution
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:315:            # Full TTC execution
-    ```
-
-### INFERRED #calls-49
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL128 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_reconnect_with_backoff`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L122 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_deterministic_delay`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:54:    """INV-AWG2: reconnect delay is deterministic (seed = trace_id hash)."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/acos/network/amnezia_wg.py:151:    # CRITICAL-8: deterministic delay - same on every replay
-    ```
-    ```
-    /home/workspace/home-cluster-iac/acos/network/amnezia_wg.py:158:        delay = self._deterministic_delay(attempt)
-    ```
-
-### INFERRED #calls-50
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL96 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_nvidia_container_toolkit`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L19 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-51
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL59 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_disk_io_time`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-52
-- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL449 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator_test_print_report_all_pass`
-- **Target:** `integrations/gitagent/validators/agent_validator.py:L35 :: validators_agent_validator_validationreport`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:265:                    pass
-    ```
-    ```
-    /home/workspace/agents/metrics.py:153:            pass
-    ```
-    ```
-    /home/workspace/tests/test_logging.py:35:        pass
-    ```
-
-### INFERRED #calls-53
-- **Source:** `AsurDev/lccp_v12.py:LL42 :: asurdev_lccp_v12_staterebuilder_rebuild`
-- **Target:** `AsurDev/lccp_v12.py:L24 :: asurdev_lccp_v12_eventstore_append`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:101:            buckets[(relation, same)].append(edge)
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:49:        edges.append(json.loads(line))
-    ```
-    ```
-    /home/workspace/graphify-out/diagnose_relations.py:20:            edges.append(json.loads(line))
-    ```
-
-### INFERRED #calls-54
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL129 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_create_gres_conf`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L24 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/audit.py:396:        logger.info(
-    ```
-
-### INFERRED #calls-55
-- **Source:** `AsurDev/monitoring/exporters/slurm/slurm_exporter.py:LL71 :: asurdev_monitoring_exporters_slurm_slurm_exporter_py_slurm_slurm_exporter_build_metrics`
-- **Target:** `AsurDev/monitoring/exporters/slurm/slurm_exporter.py:L18 :: asurdev_monitoring_exporters_slurm_slurm_exporter_py_slurm_slurm_exporter_get_slurm_queue`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:110:          queue_next     = queue + arrival_rate * dt - completion_rate * dt
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/constraint_graph/graph.py:42:    vtype: str  # "compute_node" | "job" | "queue" | "resource_pool"
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/objective/utility.py:129:            return -0.05  # Small queue penalty
-    ```
-
-### INFERRED #calls-56
-- **Source:** `AsurDev/ete/store/trace_store.py:LL64 :: asurdev_ete_store_trace_store_py_store_trace_store_executiontrace_add_node`
-- **Target:** `AsurDev/ete/store/trace_store.py:L76 :: asurdev_ete_store_trace_store_py_store_trace_store_executiontrace_to_dict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:62:def load() -> tuple[dict, list, list]:
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:94:def judge(edge: dict, tnode: dict) -> tuple[str, list[str]]:
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:183:    print(f"wrote {REPORT}  (verdicts: {dict(stats)})")
-    ```
-
-### INFERRED #calls-57
-- **Source:** `AstroFinSentinelV5/tests/test_rag_agent_integration.py:LL45 :: astrofinsentinelv5_tests_test_rag_agent_integration_py_tests_test_rag_agent_integration_test_build_prompt_handles_ollama_unavailable`
-- **Target:** `AstroFinSentinelV5/tests/test_rag_agent_integration.py:L7 :: astrofinsentinelv5_tests_test_rag_agent_integration_py_tests_test_rag_agent_integration_mockagent`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_rag_agent_integration.py
-    ```
-
-### INFERRED #calls-58
-- **Source:** `AsurDev/lccp_v12.py:LL106 :: asurdev_lccp_v12_orch`
-- **Target:** `AsurDev/lccp_v12.py:L85 :: asurdev_lccp_v12_run_act`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/self_question.py:53:        "Is the regime stable enough to act on this signal?",
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v7/drift_alignment/tracker.py:148:        for sim, act in zip(simulated_states[-50:], actual_states[-50:]):
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v7/drift_alignment/tracker.py:151:                if key in sim and key in act:
-    ```
-
-### INFERRED #calls-59
-- **Source:** `AsurDev/acos/cli/monitor.py:LL85 :: asurdev_acos_cli_monitor_py_cli_monitor_cmd_switch`
-- **Target:** `AsurDev/acos/cli/monitor.py:L27 :: asurdev_acos_cli_monitor_py_cli_monitor_save_config`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:14:  - manual overrides from config/memory_overrides.json
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:20:  - /home/workspace/config/memory_overrides.json
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:41:OVERRIDES_JSON = REPO_ROOT / "config" / "memory_overrides.json"
-    ```
-
-### INFERRED #calls-60
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL133 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_get_node_metrics`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L101 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_ray_active_workers`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ai_scheduler/modules/metrics.py:103:    """Ray active workers"""
-    ```
-    ```
-    /home/workspace/atom-federation-os/build/lib/orchestration/deterministic_scheduler.py:260:        Deterministic fan-out for swarm: assign tasks to workers round-robin.
-    ```
-    ```
-    /home/workspace/atom-federation-os/build/lib/orchestration/deterministic_scheduler.py:265:            num_workers: number of workers to fan out to
-    ```
-
-### INFERRED #calls-61
-- **Source:** `AsurDev/monitoring/exporters/ceph/ceph_exporter.py:LL49 :: asurdev_monitoring_exporters_ceph_ceph_exporter_py_ceph_ceph_exporter_build_metrics`
-- **Target:** `AsurDev/monitoring/exporters/ceph/ceph_exporter.py:L15 :: asurdev_monitoring_exporters_ceph_ceph_exporter_py_ceph_ceph_exporter_get_ceph_status`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_v2.py:58:        status, size, msg = engine.pre_trade_check("BTC", 10_000, 0.15, "NORMAL")
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:59:        assert status == "REJECTED"
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:84:        status, size, msg = engine.pre_trade_check("ETH", 30_000, 0.15, "NORMAL")
-    ```
-
-### INFERRED #calls-62
-- **Source:** `AsurDev/scripts/day5-ray.sh:LL93 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_test_ray`
-- **Target:** `AsurDev/scripts/day5-ray.sh:L20 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/audit.py:396:        logger.info(
-    ```
-
-### INFERRED #calls-63
-- **Source:** `AsurDev/lccp_v12.py:LL126 :: asurdev_lccp_v12_main`
-- **Target:** `AsurDev/lccp_v12.py:L90 :: asurdev_lccp_v12_orch`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/atom-federation-os/chaos/harness.py:93:            orch = ADLRecoveryOrchestrator(byzantine_risk=False, k=3, t=len(actions))
-    ```
-    ```
-    /home/workspace/atom-federation-os/chaos/harness.py:96:                stage = orch.step(action)
-    ```
-    ```
-    /home/workspace/atom-federation-os/alignment/failure_replay.py:437:        orch = ADLRecoveryOrchestrator(
-    ```
-
-### INFERRED #calls-64
-- **Source:** `AsurDev/admission_controller/probabilistic.py:LL90 :: asurdev_admission_controller_probabilistic_py_admission_controller_probabilistic_probabilisticadmissioncontroller_p_overload`
-- **Target:** `AsurDev/admission_controller/probabilistic.py:L92 :: asurdev_admission_controller_probabilistic_py_admission_controller_probabilistic_probabilisticadmissioncontroller_normal_cdf`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/meta_rl/ab_testing.py:46:        p_value = 2.0 * (1.0 - t_dist.cdf(abs(t_stat), df))
-    ```
-    ```
-    /home/workspace/astrofin-sentinel-v5/meta_rl/ab_testing.py:45:        p_value = 2.0 * (1.0 - t_dist.cdf(abs(t_stat), df))
-    ```
-    ```
-    /home/workspace/audit_repo/meta_rl/ab_testing.py:45:        p_value = 2.0 * (1.0 - t_dist.cdf(abs(t_stat), df))
-    ```
-
-### INFERRED #calls-65
-- **Source:** `AsurDev/acos/storage/postgres_backend.py:LL69 :: asurdev_acos_storage_postgres_backend_py_storage_postgres_backend_postgrestracestorage_update`
-- **Target:** `AsurDev/acos/storage/postgres_backend.py:L24 :: asurdev_acos_storage_postgres_backend_py_storage_postgres_backend_postgrestracestorage_get_conn`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:29:        with sqlite3.connect(self.db) as conn:
-    ```
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:32:                for row in conn.execute(
-    ```
-    ```
-    /home/workspace/mas_factory/visualizer.py:53:        for conn in self.topo.connections:
-    ```
-
-### INFERRED #calls-66
-- **Source:** `AsurDev/job_engine/engine.py:LL126 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_succeed`
-- **Target:** `AsurDev/job_engine/engine.py:L151 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_transition`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/cycle_agent.py:24:    2. Identify cycle phase (up/down/transition)
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:78:    This is the CORE of the transition from SkillMD to MAS Factory.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:107:        State transition per step:
-    ```
-
-### INFERRED #calls-67
-- **Source:** `AsurDev/l11_verifier/verifier.py:LL87 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_pre_execution`
-- **Target:** `AsurDev/l11_verifier/verifier.py:L43 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_failurereport`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:62:    "push/", "atom-federation-os/", "roma-execution-bridge/",
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:20:from trading.execution.sanity import (
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:311:            # TTC fallback: single-pass execution
-    ```
-
-### INFERRED #calls-68
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL148 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_health_check_loop`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L127 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_reconnect_with_backoff`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/meta_rl/live_provider.py:134:        """Fetch with retry + exponential backoff."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/compiler/dag.py:49:    retry_policy: dict[str, Any] = field(default=lambda: {"max_retries": 3, "backoff": 2.0})
-    ```
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:145:                backoff = engine.BACKOFF_BASE**attempt
-    ```
-
-### INFERRED #calls-69
-- **Source:** `AsurDev/ete/compiler/dag.py:LL95 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_batch_job`
-- **Target:** `AsurDev/ete/compiler/dag.py:L42 :: asurdev_ete_compiler_dag_py_compiler_dag_dagnode_to_dict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:34:def is_same_file(edge: dict) -> bool:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:88:    buckets: dict[tuple[str, bool], list[dict]] = defaultdict(list)
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:103:    sampled: list[dict] = []
-    ```
-
-### INFERRED #calls-70
-- **Source:** `AsurDev/dag_validator/validator.py:LL60 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_validate`
-- **Target:** `AsurDev/dag_validator/validator.py:L20 :: asurdev_dag_validator_validator_py_dag_validator_validator_violation`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/architecture_linter.py:30:        1 — hard-rule violation
-    ```
-    ```
-    /home/workspace/scripts/architecture_linter.py:31:        2 — soft-rule violation only (still allowed in dev)
-    ```
-    ```
-    /home/workspace/scripts/architecture_linter.py:430:        print(RED(f"❌ {len(fails)} hard-rule violation(s). Build blocked."))
-    ```
-
-### INFERRED #calls-71
-- **Source:** `AsurDev/load_test/correction_loop/loop.py:LL149 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_cycle`
-- **Target:** `AsurDev/load_test/correction_loop/loop.py:L331 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_validate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_v2.py:131:        result = checker.validate(order, market)
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:139:        result = checker.validate(order, market)
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:148:        result = checker.validate(order, market)
-    ```
-
-### INFERRED #calls-72
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL147 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_evolve`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L114 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_select`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:140:    """При use_real_agents=True и use_thompson=True вызывается ThompsonSampler.select."""
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:142:    with patch("core.thompson.ThompsonSampler.select") as mock_select:
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:157:            assert mock_select.called, "ThompsonSampler.select was not called"
-    ```
-
-### INFERRED #calls-73
-- **Source:** `AsurDev/l11_verifier/verifier.py:LL140 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_full_pipeline`
-- **Target:** `AsurDev/l11_verifier/verifier.py:L99 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_mid_execution`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:62:    "push/", "atom-federation-os/", "roma-execution-bridge/",
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:311:            # TTC fallback: single-pass execution
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:315:            # Full TTC execution
-    ```
-
-### INFERRED #calls-74
-- **Source:** `AsurDev/determinism_controller/controller.py:LL48 :: asurdev_determinism_controller_controller_py_determinism_controller_controller_determinismcontroller_get_determinism_report`
-- **Target:** `AsurDev/determinism_controller/controller.py:L38 :: asurdev_determinism_controller_controller_py_determinism_controller_controller_determinismcontroller_verify_replay`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/idea_buffer_integration.py:2:Встраивает Idea в KARL replay buffer lifecycle.
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/idea_buffer_integration.py:53:    Inject a scored Idea into the KARL replay buffer.
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/backtest_loop.py:115:    - Accumulating replay buffer
-    ```
-
-### INFERRED #calls-75
-- **Source:** `AsurDev/admission_controller/probabilistic.py:LL104 :: asurdev_admission_controller_probabilistic_py_admission_controller_probabilistic_probabilisticadmissioncontroller_should_reject`
-- **Target:** `AsurDev/admission_controller/probabilistic.py:L70 :: asurdev_admission_controller_probabilistic_py_admission_controller_probabilistic_probabilisticadmissioncontroller_p_overload`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/constraint_graph/graph.py:145:            violations.append("memory:overload")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/probabilistic.py:3:Probabilistic Admission Controller — predicts overload before it happens.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/probabilistic.py:4:Replaces static threshold (GPU>85%) with P(overload in next M minutes).
-    ```
-
-### INFERRED #calls-76
-- **Source:** `AsurDev/load_test/scenarios/false_positive/test.py:LL62 :: asurdev_load_test_scenarios_false_positive_test_py_false_positive_test_run`
-- **Target:** `AsurDev/load_test/scenarios/false_positive/test.py:L15 :: asurdev_load_test_scenarios_false_positive_test_py_false_positive_test_falsepositivescenario`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-77
-- **Source:** `AsurDev/ai_scheduler/scheduler.py:LL233 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_schedule_job`
-- **Target:** `AsurDev/ai_scheduler/scheduler.py:L162 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_route_job`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:140:            job = JobState(
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:149:            state.jobs[job.job_id] = job
-    ```
-
-### INFERRED #calls-78
-- **Source:** `AsurDev/load_test/scenarios/idempotency/test.py:LL31 :: asurdev_load_test_scenarios_idempotency_test_py_idempotency_test_idempotencyscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/idempotency/test.py:L12 :: asurdev_load_test_scenarios_idempotency_test_py_idempotency_test_executedaction`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:236:        # Manually call _apply_change_internal with bad change to simulate error
-    ```
-    ```
-    /home/workspace/bench/perf_debug.py:15:# Pre-build candidate vectors (simulate hot path)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:101:            return self.digital_twin.simulate(
-    ```
-
-### INFERRED #calls-79
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL214 :: archived_synthesis_agent_synthesisagent_run`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L445 :: archived_synthesis_agent_synthesisagent_calculate_levels`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-80
-- **Source:** `AsurDev/scheduler_v3/api.py:LL114 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_schedule`
-- **Target:** `AsurDev/scheduler_v3/api.py:L81 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_scheduleresponse`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:36:    def schedule(self, dag: dict, context: dict) -> dict:
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:37:        """Compile DAG into executable schedule. Contract-required method."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/scheduler_v3/api.py:4:POST /schedule     — admission check → stateful scoring → Slurm submit
-    ```
-
-### INFERRED #calls-81
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL213 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_main`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L144 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_create_cgroup_conf`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:7:      valid & conf >= 0.7  -> T1
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:8:      valid & conf <  0.7  -> T2
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:272:            conf = float(row["confidence"])
-    ```
-
-### INFERRED #calls-82
-- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL102 :: monitoring_health_endpoints_health_check`
-- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L31 :: monitoring_health_endpoints_healthresponse`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
-    ```
-
-### INFERRED #calls-83
-- **Source:** `AsurDev/lccp_v12.py:LL95 :: asurdev_lccp_v12_orch`
-- **Target:** `AsurDev/lccp_v12.py:L15 :: asurdev_lccp_v12_controlevent`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/atom-federation-os/chaos/harness.py:93:            orch = ADLRecoveryOrchestrator(byzantine_risk=False, k=3, t=len(actions))
-    ```
-    ```
-    /home/workspace/atom-federation-os/chaos/harness.py:96:                stage = orch.step(action)
-    ```
-    ```
-    /home/workspace/atom-federation-os/alignment/failure_replay.py:437:        orch = ADLRecoveryOrchestrator(
-    ```
-
-### INFERRED #calls-84
-- **Source:** `AsurDev/acos/storage/postgres_backend.py:LL46 :: asurdev_acos_storage_postgres_backend_py_storage_postgres_backend_postgrestracestorage_fetch`
-- **Target:** `AsurDev/acos/storage/postgres_backend.py:L24 :: asurdev_acos_storage_postgres_backend_py_storage_postgres_backend_postgrestracestorage_get_conn`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:29:        with sqlite3.connect(self.db) as conn:
-    ```
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:32:                for row in conn.execute(
-    ```
-    ```
-    /home/workspace/mas_factory/visualizer.py:53:        for conn in self.topo.connections:
-    ```
-
-### INFERRED #calls-85
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL162 :: inference_api_on_startup`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L83 :: inference_api_init_shap`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/AsurDev/ml_engine/inference/api.py:87:        import shap
-    ```
-    ```
-    /home/workspace/AsurDev/ml_engine/inference/api.py:93:        _shap_explainer = shap.Explainer(_model, X_train_sample())
-    ```
-    ```
-    /home/workspace/AsurDev/ml_engine/inference/api.py:403:        import shap
-    ```
-
-### INFERRED #calls-86
-- **Source:** `AsurDev/load_test/scenarios/state_drift/test.py:LL82 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_run`
-- **Target:** `AsurDev/load_test/scenarios/state_drift/test.py:L23 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_simulate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:236:        # Manually call _apply_change_internal with bad change to simulate error
-    ```
-    ```
-    /home/workspace/bench/perf_debug.py:15:# Pre-build candidate vectors (simulate hot path)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:101:            return self.digital_twin.simulate(
-    ```
-
-### INFERRED #calls-87
-- **Source:** `AsurDev/scripts/day5-ray.sh:LL28 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_install_ray`
-- **Target:** `AsurDev/scripts/day5-ray.sh:L20 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/audit.py:396:        logger.info(
-    ```
-
-### INFERRED #calls-88
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL160 :: inference_api_on_startup`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L166 :: inference_api_validate_features`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:71:    """MetaAgent wired with a tiny population and slow features disabled."""
-    ```
-    ```
-    /home/workspace/agents/gitagent_exporter.py:101:        "description": "ML-based price prediction using historical patterns and features",
-    ```
-    ```
-    /home/workspace/agents/gitagent_exporter.py:103:        "inputs": ["price_history", "features", "regime"],
-    ```
-
-### INFERRED #calls-89
-- **Source:** `AsurDev/failure_orchestrator/orchestrator.py:LL176 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_main`
-- **Target:** `AsurDev/failure_orchestrator/orchestrator.py:L121 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_run_cycle`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/gitagent_exporter.py:127:        "description": "Market cycle analysis: 20/40/80 day cycles, phase detection, turn points",
-    ```
-    ```
-    /home/workspace/agents/_impl/bull_researcher.py:255:        # Moon waxing (first half of cycle)
-    ```
-    ```
-    /home/workspace/agents/_impl/bradley_agent.py:187:        # Check Jupiter-Saturn aspect (major cycle)
-    ```
-
-### INFERRED #calls-90
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL272 :: inference_api_cache_get`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L264 :: inference_api_input_hash`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:223:        # ── Step 6: Build state hash for record ──────────────────────────────
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:452:        """Compute reproducible state hash."""
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:218:    print(f"  Valid change: weight 0.2 → 0.15, hash: {new_topo.hash}")
-    ```
-
-### INFERRED #calls-91
-- **Source:** `AsurDev/failure_orchestrator/detectors.py:LL152 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_all_detectors`
-- **Target:** `AsurDev/failure_orchestrator/detectors.py:L32 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_slurm_worker_down`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/agent_test_base.py:138:        with patch.object(agent, self.data_method, side_effect=ConnectionError("data_room down")):
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:121:            raise RuntimeError("down")
-    ```
-    ```
-    /home/workspace/tests/_template_agent_test.py:126:    with patch.object(agent, "retrieve", side_effect=ConnectionError("data_room down")):
-    ```
-
-### INFERRED #calls-92
-- **Source:** `AsurDev/scheduler_v3/scorer.py:LL42 :: asurdev_scheduler_v3_scorer_py_scheduler_v3_scorer_score_and_select`
-- **Target:** `AsurDev/scheduler_v3/scorer.py:L79 :: asurdev_scheduler_v3_scorer_py_scheduler_v3_scorer_filter_eligible`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/controller.py:109:        """Check if any eligible node has enough free memory."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/scheduler_v3/scorer.py:42:    # Filter eligible nodes by job type
-    ```
-    ```
-    /home/workspace/home-cluster-iac/scheduler_v3/scorer.py:43:    eligible = _filter_eligible(nodes, job_type, memory_gb)
-    ```
-
-### INFERRED #calls-93
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL170 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_main`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L152 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_munge`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:50:def main() -> None:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:145:    main()
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:162:def main():
-    ```
-
-### INFERRED #calls-94
-- **Source:** `AstroFinSentinelV5/tests/test_healthcheck.py:LL50 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_test_healthcheck_venv_check`
-- **Target:** `AstroFinSentinelV5/tests/test_healthcheck.py:L14 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_run_healthcheck`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_healthcheck.py
-    ```
-
-### INFERRED #calls-95
-- **Source:** `AsurDev/job_engine/engine.py:LL110 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_reject`
-- **Target:** `AsurDev/job_engine/engine.py:L151 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_transition`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/cycle_agent.py:24:    2. Identify cycle phase (up/down/transition)
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:78:    This is the CORE of the transition from SkillMD to MAS Factory.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:107:        State transition per step:
-    ```
-
-### INFERRED #calls-96
-- **Source:** `AsurDev/scripts/day2-vpn.sh:LL57 :: home_workspace_asurdev_scripts_day2_vpn_sh__entry`
-- **Target:** `AsurDev/scripts/day2-vpn.sh:L38 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_install_wg`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/tests/test_security_fixes.py:88:        self.assertIn("wg-quick", mgr._available_binaries())
-    ```
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:113:    ok, msg = _run(["wg-quick", "down", interface])
-    ```
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:117:    ok2, msg2 = _run(["wg-quick", "up", interface])
-    ```
-
-### INFERRED #calls-97
-- **Source:** `AsurDev/ete/compiler/dag.py:LL108 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_governance_job`
-- **Target:** `AsurDev/ete/compiler/dag.py:L29 :: asurdev_ete_compiler_dag_py_compiler_dag_dagnode`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:140:            job = JobState(
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:149:            state.jobs[job.job_id] = job
-    ```
-
-### INFERRED #calls-98
-- **Source:** `AsurDev/ete/compiler/dag.py:LL103 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_risk_job`
-- **Target:** `AsurDev/ete/compiler/dag.py:L29 :: asurdev_ete_compiler_dag_py_compiler_dag_dagnode`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer.py:19:    k_candidates: int = 5  # Top-k candidates per job
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer.py:35:    Layer 1: Generate k-best candidate placements per job.
-    ```
-
-### INFERRED #calls-99
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL101 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_stop`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L77 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_emit`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:171:    ap.add_argument("--json", action="store_true", help="emit JSON instead of table")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:113:    log.emit("eventlog-test", "TUNNEL_UP", {"interface": "wg0", "peer": "10.8.0.1"})
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:196:            if isinstance(func, ast.Attribute) and func.attr in ("emit", "append"):
-    ```
-
-### INFERRED #calls-100
-- **Source:** `AsurDev/governance.py:LL125 :: asurdev_governance_run`
-- **Target:** `AsurDev/governance.py:L44 :: asurdev_governance_get_imports`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/agent_test_base.py:16:    - Per-agent tests stay tiny (one file ~ 30 lines + imports).
-    ```
-    ```
-    /home/workspace/tests/test_agent_http_migration.py:12:    imports = [node.names[0].name for node in ast.walk(tree) if isinstance(node, ast.Import)]
-    ```
-    ```
-    /home/workspace/tests/test_agent_http_migration.py:19:    assert "requests" not in imports
-    ```
-
-### INFERRED #calls-101
-- **Source:** `AsurDev/load_test/scenarios/state_drift/test.py:LL81 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_run`
-- **Target:** `AsurDev/load_test/scenarios/state_drift/test.py:L15 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-102
-- **Source:** `AsurDev/constraint_compiler/parser/parser.py:LL78 :: asurdev_constraint_compiler_parser_parser_py_parser_parser_constraintgroup_evaluate_all`
-- **Target:** `AsurDev/constraint_compiler/parser/parser.py:L90 :: asurdev_constraint_compiler_parser_parser_py_parser_parser_policyblock_evaluate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:108:        result = dummy_evaluator.evaluate(strategy, sample_market_data)
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:114:        result = dummy_evaluator.evaluate(strategy, {"ohlcv": [{"close": 1}]})
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:121:            def evaluate(self, data):
-    ```
-
-### INFERRED #calls-103
-- **Source:** `AsurDev/ete/compiler/dag.py:LL86 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_agent_job`
-- **Target:** `AsurDev/ete/compiler/dag.py:L42 :: asurdev_ete_compiler_dag_py_compiler_dag_dagnode_to_dict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:34:def is_same_file(edge: dict) -> bool:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:88:    buckets: dict[tuple[str, bool], list[dict]] = defaultdict(list)
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:103:    sampled: list[dict] = []
-    ```
-
-### INFERRED #calls-104
-- **Source:** `AsurDev/feature_pipeline/builder.py:LL116 :: asurdev_feature_pipeline_builder_py_feature_pipeline_builder_featurebuilder_build`
-- **Target:** `AsurDev/feature_pipeline/builder.py:L122 :: asurdev_feature_pipeline_builder_py_feature_pipeline_builder_build_features`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:71:    """MetaAgent wired with a tiny population and slow features disabled."""
-    ```
-    ```
-    /home/workspace/agents/gitagent_exporter.py:101:        "description": "ML-based price prediction using historical patterns and features",
-    ```
-    ```
-    /home/workspace/agents/gitagent_exporter.py:103:        "inputs": ["price_history", "features", "regime"],
-    ```
-
-### INFERRED #calls-105
-- **Source:** `AsurDev/ete/compiler/dag.py:LL69 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile`
-- **Target:** `AsurDev/ete/compiler/dag.py:L101 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_risk_job`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/acos-contracts/acos_contracts/state.py:1:"""State-store and job-state protocols.
-    ```
-    ```
-    /home/workspace/acos-contracts/acos_contracts/state.py:27:    """Common job lifecycle shared across schedulers.
-    ```
-    ```
-    /home/workspace/acos-contracts/acos_contracts/state.py:45:    """Common job-state DTO.
-    ```
-
-### INFERRED #calls-106
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL29 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_gpu_util`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:180:            query = " ".join(headlines[:3]) + " " + query
-    ```
-
-### INFERRED #calls-107
-- **Source:** `AsurDev/acos/storage/schema.py:LL26 :: asurdev_acos_storage_schema_py_storage_schema_tracerecord_post_init`
-- **Target:** `AsurDev/acos/storage/schema.py:L9 :: asurdev_acos_storage_schema_py_storage_schema_utcnow`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/data/market_adapter.py:216:        now = datetime.utcnow()
-    ```
-    ```
-    /home/workspace/agents/_impl/time_window_agent.py:137:        now = datetime.utcnow()
-    ```
-    ```
-    /home/workspace/agents/_impl/time_window_agent.py:172:        now = datetime.utcnow()
-    ```
-
-### INFERRED #calls-108
-- **Source:** `AsurDev/acos/storage/postgres_backend.py:LL54 :: asurdev_acos_storage_postgres_backend_py_storage_postgres_backend_postgrestracestorage_query`
-- **Target:** `AsurDev/acos/storage/postgres_backend.py:L24 :: asurdev_acos_storage_postgres_backend_py_storage_postgres_backend_postgrestracestorage_get_conn`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:29:        with sqlite3.connect(self.db) as conn:
-    ```
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:32:                for row in conn.execute(
-    ```
-    ```
-    /home/workspace/mas_factory/visualizer.py:53:        for conn in self.topo.connections:
-    ```
-
-### INFERRED #calls-109
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL115 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_restart_wireguard`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-110
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL29 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_restart_slurm_controller`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-111
-- **Source:** `AsurDev/load_test/scenarios/ml_risk_ignored/test.py:LL60 :: asurdev_load_test_scenarios_ml_risk_ignored_test_py_ml_risk_ignored_test_run`
-- **Target:** `AsurDev/load_test/scenarios/ml_risk_ignored/test.py:L20 :: asurdev_load_test_scenarios_ml_risk_ignored_test_py_ml_risk_ignored_test_mlriskignoredscenario_simulate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:236:        # Manually call _apply_change_internal with bad change to simulate error
-    ```
-    ```
-    /home/workspace/roma-execution-bridge/dashboard/app.py:240:def simulate(task, gpu_sec, batch, tier):
-    ```
-    ```
-    /home/workspace/roma-execution-bridge/ha/raft_consensus.py:80:        # Here: simulate majority would grant
-    ```
-
-### INFERRED #calls-112
-- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL49 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_testdifferentialswissephemeris_test_j2000_mean_accuracy_outer_planets`
-- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L26 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_angular_sep`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
-    ```
-
-### INFERRED #calls-113
-- **Source:** `AsurDev/load_test/scenarios/state_drift/test.py:LL32 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/state_drift/test.py:L57 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_analyze`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/metrics.py:26:            return await self.analyze(state)
-    ```
-    ```
-    /home/workspace/agents/metrics.py:42:            response = await self.analyze(state)
-    ```
-    ```
-    /home/workspace/agents/metrics.py:130:                return await self.analyze(state)
-    ```
-
-### INFERRED #calls-114
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL186 :: archived_synthesis_agent_synthesisagent_run`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L255 :: archived_synthesis_agent_synthesisagent_group_by_category`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-115
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL122 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_create_slurm_conf`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L25 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-116
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL287 :: inference_api_cache_put`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L260 :: inference_api_get_cache_ttl`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_cache.py:38:    await cache.set("short", "value", ttl=1)  # 1 секунда
-    ```
-    ```
-    /home/workspace/data/market_adapter.py:99:                        ttl = CACHE_TTL_MAP.get(interval, 3600)
-    ```
-    ```
-    /home/workspace/data/market_adapter.py:102:                            ttl,
-    ```
-
-### INFERRED #calls-117
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL39 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_gpu_temp`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-118
-- **Source:** `AsurDev/scheduler_v3/api.py:LL186 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_state`
-- **Target:** `AsurDev/scheduler_v3/api.py:L43 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_store`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/meta_rl/strategy_pool.py:315:        # version via a length check because we don't store the version
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:182:        self._final_elites = final_elites  # store for get_best_strategy()
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/rollback/engine.py:64:        1. load snapshot from state store
-    ```
-
-### INFERRED #calls-119
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL49 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_install_slurm`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L24 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
-    ```
-
-### INFERRED #calls-120
-- **Source:** `AsurDev/job_engine/engine.py:LL124 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_succeed`
-- **Target:** `AsurDev/job_engine/engine.py:L164 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:36:    sp = edge.get("source_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:37:    tp = edge.get("target_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:40:    sl = edge.get("source_line") or ""
-    ```
-
-### INFERRED #calls-121
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL130 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_get_node_metrics`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L57 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_disk_io_time`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:58:# stable across decay, while decay varies with time.
-    ```
-    ```
-    /home/workspace/agents/metrics.py:41:        with LATENCY.time():
-    ```
-    ```
-    /home/workspace/agents/metrics.py:143:        with latency.labels(agent=agent_label).time():
-    ```
-
-### INFERRED #calls-122
-- **Source:** `AsurDev/monitoring/exporters/slurm/slurm_exporter.py:LL72 :: asurdev_monitoring_exporters_slurm_slurm_exporter_py_slurm_slurm_exporter_build_metrics`
-- **Target:** `AsurDev/monitoring/exporters/slurm/slurm_exporter.py:L45 :: asurdev_monitoring_exporters_slurm_slurm_exporter_py_slurm_slurm_exporter_get_slurm_nodes`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:64:    nodes = {n["id"]: n for n in g["nodes"]}
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:68:    return nodes, links, sample
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:132:    nodes, _links, sample = load()
-    ```
-
-### INFERRED #calls-123
-- **Source:** `AsurDev/scheduler_v3/api.py:LL151 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_scores`
-- **Target:** `AsurDev/scheduler_v3/api.py:L43 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_store`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/meta_rl/strategy_pool.py:315:        # version via a length check because we don't store the version
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:182:        self._final_elites = final_elites  # store for get_best_strategy()
-    ```
-    ```
-    /home/workspace/acos-contracts/acos_contracts/state.py:1:"""State-store and job-state protocols.
-    ```
-
-### INFERRED #calls-124
-- **Source:** `AsurDev/feature_pipeline/builder.py:LL119 :: asurdev_feature_pipeline_builder_py_feature_pipeline_builder_featurebuilder_build_batch`
-- **Target:** `AsurDev/feature_pipeline/builder.py:L103 :: asurdev_feature_pipeline_builder_py_feature_pipeline_builder_featurebuilder_build`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/mas_factory/atom_032_e2e_test.py:32:        topo = arch.build(intention="swING trade", symbol="BTCUSDT", timeframe="SWING")
-    ```
-    ```
-    /home/workspace/mas_factory/engine.py:7:- LRU cache for Architect.build()
-    ```
-    ```
-    /home/workspace/mas_factory/engine.py:69:            return self._architect.build(intention=intention, symbol=symbol, timeframe=timeframe)
-    ```
-
-### INFERRED #calls-125
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL170 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_configure_worker`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L24 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
-    ```
-
-### INFERRED #calls-126
-- **Source:** `AsurDev/admission_controller/probabilistic.py:LL111 :: asurdev_admission_controller_probabilistic_py_admission_controller_probabilistic_probabilisticadmissioncontroller_update`
-- **Target:** `AsurDev/admission_controller/probabilistic.py:L17 :: asurdev_admission_controller_probabilistic_py_admission_controller_probabilistic_rollingwindow`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/agent_test_base.py:18:    - When the contract changes, ONE place to update.
-    ```
-    ```
-    /home/workspace/tests/agent_test_base.py:92:        state.update(self.happy_state_overrides)
-    ```
-    ```
-    /home/workspace/data/market_adapter.py:51:        self._session.headers.update({"Accept": "application/json"})
-    ```
-
-### INFERRED #calls-127
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL101 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_restart_ray_worker`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-128
-- **Source:** `AsurDev/load_test/scenarios/ml_risk_ignored/test.py:LL25 :: asurdev_load_test_scenarios_ml_risk_ignored_test_py_ml_risk_ignored_test_mlriskignoredscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/ml_risk_ignored/test.py:L52 :: asurdev_load_test_scenarios_ml_risk_ignored_test_py_ml_risk_ignored_test_mlriskignoredscenario_pick_without_penalty`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/reward.py:4:- Regime-aware reward with drawdown penalty
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/reward.py:162:    penalty: float
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/reward.py:182:        """Assess whether reward is spurious and apply penalty."""
-    ```
-
-### INFERRED #calls-129
-- **Source:** `AsurDev/load_test/workload/generator.py:LL133 :: asurdev_load_test_workload_generator_py_workload_generator_workloadgenerator_generate_scenario`
-- **Target:** `AsurDev/load_test/workload/generator.py:L47 :: asurdev_load_test_workload_generator_py_workload_generator_workloadgenerator_generate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:56:        assert result.total_trades > 0, "Should generate at least one trade"
-    ```
-    ```
-    /home/workspace/mas_factory/atom_030_stress_test.py:145:    # Test that visualizer can generate outputs
-    ```
-    ```
-    /home/workspace/meta_rl/live_data.py:148:        Fetch OHLCV bars from exchange or generate sandbox data.
-    ```
-
-### INFERRED #calls-130
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL275 :: inference_api_cache_get`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L260 :: inference_api_get_cache_ttl`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_cache.py:38:    await cache.set("short", "value", ttl=1)  # 1 секунда
-    ```
-    ```
-    /home/workspace/data/market_adapter.py:99:                        ttl = CACHE_TTL_MAP.get(interval, 3600)
-    ```
-    ```
-    /home/workspace/data/market_adapter.py:102:                            ttl,
-    ```
-
-### INFERRED #calls-131
-- **Source:** `AsurDev/acos_cli.py:LL193 :: asurdev_acos_cli_main`
-- **Target:** `AsurDev/acos_cli.py:L71 :: asurdev_acos_cli_acoscli`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:50:def main() -> None:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:145:    main()
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:162:def main():
-    ```
-
-### INFERRED #calls-132
-- **Source:** `AsurDev/dag_validator/validator.py:LL81 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_compute_dag_hash`
-- **Target:** `AsurDev/dag_validator/validator.py:L40 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_serialize`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/astrofin-sentinel-v5/knowledge/daily_brief/idea_tracker_refactored.py:32:# Decision record: serialize Idea via asdict() only
-    ```
-    ```
-    /home/workspace/knowledge/daily_brief/idea_tracker_refactored.py:33:# Decision record: serialize Idea via asdict() only
-    ```
-    ```
-    /home/workspace/atom-federation-os/alignment/adlr.py:10:  - FailureRecord: record + serialize/deserialize incident traces
-    ```
-
-### INFERRED #calls-133
-- **Source:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:LL118 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:L187 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_apply_correction`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/astrology/vedic.py:221:    # Sidereal correction (ayanamsa ~ 24° in 2026)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/evolution/evolver.py:4:Tracks correction loop decisions over time and evolves system parameters.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/evolution/evolver.py:32:    """Summary of one generation (correction cycle batch)."""
-    ```
-
-### INFERRED #calls-134
-- **Source:** `AsurDev/l9_ebl/capabilities/registry.py:LL41 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_register_role`
-- **Target:** `AsurDev/l9_ebl/capabilities/registry.py:L11 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_capability`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/mas_factory/registry.py:239:    def get_by_capability(self, capability: str) -> list[Role]:
-    ```
-    ```
-    /home/workspace/mas_factory/registry.py:240:        return [r for r in self._roles.values() if capability in r.capabilities]
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:81:        2. Select roles by capability matching
-    ```
-
-### INFERRED #calls-135
-- **Source:** `AsurDev/load_test/scenarios/state_drift/test.py:LL30 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/state_drift/test.py:L12 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_driftsample`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:236:        # Manually call _apply_change_internal with bad change to simulate error
-    ```
-    ```
-    /home/workspace/bench/perf_debug.py:15:# Pre-build candidate vectors (simulate hot path)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:95:    def simulate(
-    ```
-
-### INFERRED #calls-136
-- **Source:** `AsurDev/scripts/day2-vpn.sh:LL40 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_install_wg`
-- **Target:** `AsurDev/scripts/day2-vpn.sh:L34 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_command_exists`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:84:    if not inp.exists():
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:40:    if not INGEST.exists():
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:15:  moved     — entity exists but in a different file (give the new path)
-    ```
-
-### INFERRED #calls-137
-- **Source:** `AsurDev/acos/events/event_log.py:LL41 :: asurdev_acos_events_event_log_py_events_event_log_eventlog_verify_chain`
-- **Target:** `AsurDev/acos/events/event_log.py:L28 :: asurdev_acos_events_event_log_py_events_event_log_eventlog_get_trace`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:4:Guarantees deterministic replay of any decision trace.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:31:        trace = self.store.get_trace(trace_id)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:32:        if not trace:
-    ```
-
-### INFERRED #calls-138
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL166 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_agent_policy`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L103 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_add_constraint`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer.py:96:        sum(job for node in nodes) <= cap [capacity constraint]
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/ilp/or_ilp.py:27:    Uses scipy minimize with penalty method for constraint handling.
-    ```
-
-### INFERRED #calls-139
-- **Source:** `AsurDev/load_test/observability/metrics.py:LL73 :: asurdev_load_test_observability_metrics_py_observability_metrics_metricscollector_init`
-- **Target:** `AsurDev/load_test/observability/metrics.py:L45 :: asurdev_load_test_observability_metrics_py_observability_metrics_metricthresholds`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/lag_windowing.py:131:            f"[LagWindow] init: adaptive={self.adaptive_enabled} "
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:49:        """Lazy init RAG retriever."""
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:54:                logger.warning("Failed to init RAG for MacroAgent: %s", e)
-    ```
-
-### INFERRED #calls-140
-- **Source:** `AsurDev/failure_orchestrator/orchestrator.py:LL152 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_run_cycle`
-- **Target:** `AsurDev/failure_orchestrator/orchestrator.py:L68 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_recoveryengine_reset`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/idea_buffer_integration.py:106:    """Clear the in-memory buffer (for testing/reset)."""
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/lag_windowing.py:276:    def reset(self):
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/lag_windowing.py:283:        logger.debug("[LagWindow] reset")
-    ```
-
-### INFERRED #calls-141
-- **Source:** `AsurDev/dag_validator/validator.py:LL139 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_verify_hash`
-- **Target:** `AsurDev/dag_validator/validator.py:L80 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_compute_dag_hash`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:218:    print(f"  Valid change: weight 0.2 → 0.15, hash: {new_topo.hash}")
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:244:    print(f"  Current topology hash: {updater.current_topology.hash}")
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:245:    print(f"  Expected (after valid change): {new_topo.hash}")
-    ```
-
-### INFERRED #calls-142
-- **Source:** `AsurDev/load_test/scenarios/false_positive/test.py:LL20 :: asurdev_load_test_scenarios_false_positive_test_py_false_positive_test_falsepositivescenario_init`
-- **Target:** `AsurDev/load_test/scenarios/false_positive/test.py:L12 :: asurdev_load_test_scenarios_false_positive_test_py_false_positive_test_osdstate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/test_db_init.py:10:        importlib.import_module("db.init")
-    ```
-    ```
-    /home/workspace/tests/test_db_init.py:12:        pytest.fail(f"db.init should be importable: {e}")
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:42:    subprocess.run(["git", "init"], check=False)
-    ```
-
-### INFERRED #calls-143
-- **Source:** `AsurDev/acos_cli.py:LL199 :: asurdev_acos_cli_main`
-- **Target:** `AsurDev/acos_cli.py:L162 :: asurdev_acos_cli_acoscli_invariants`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/_template_agent_test.py:189:    """The dataclass itself must guard its invariants."""
-    ```
-    ```
-    /home/workspace/tests/test_kepler_property.py:5:Covers: orbital mechanics invariants, convergence, periodicity, no NaN across
-    ```
-    ```
-    /home/workspace/meta_rl/test_reward.py:54:    """RewardConfig invariants and warning behaviour."""
-    ```
-
-### INFERRED #calls-144
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL211 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_main`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L69 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_create_slurm_conf`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:7:      valid & conf >= 0.7  -> T1
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:8:      valid & conf <  0.7  -> T2
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:272:            conf = float(row["confidence"])
-    ```
-
-### INFERRED #calls-145
-- **Source:** `AsurDev/load_test/correction_loop/loop.py:LL144 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_cycle`
-- **Target:** `AsurDev/load_test/correction_loop/loop.py:L319 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_act`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/self_question.py:53:        "Is the regime stable enough to act on this signal?",
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v7/drift_alignment/tracker.py:148:        for sim, act in zip(simulated_states[-50:], actual_states[-50:]):
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v7/drift_alignment/tracker.py:151:                if key in sim and key in act:
-    ```
-
-### INFERRED #calls-146
-- **Source:** `AsurDev/dag_validator/validator.py:LL62 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_validate`
-- **Target:** `AsurDev/dag_validator/validator.py:L114 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_check_deterministic_order`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:60:    """Apply CLI filters in a predictable order."""
-    ```
-    ```
-    /home/workspace/agents/gitagent_exporter.py:114:        "description": "Market structure analysis: support/resistance, patterns, order blocks",
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:130:        order = OrderRequest("BTC", "BUY", 0.5, 50_000, "MARKET", slippage_bp_estimate=75.0)
-    ```
-
-### INFERRED #calls-147
-- **Source:** `AsurDev/acos_cli.py:LL192 :: asurdev_acos_cli_main`
-- **Target:** `AsurDev/acos_cli.py:L39 :: asurdev_acos_cli_validate_all_contracts`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:64:    "acos-contracts/", "acos-core/", "sbs/",
-    ```
-    ```
-    /home/workspace/home-cluster-iac/acos_cli.py:16:from acos.contracts import (
-    ```
-    ```
-    /home/workspace/home-cluster-iac/acos_cli.py:76:    print("[OK] All contracts validated. System ready.")
-    ```
-
-### INFERRED #calls-148
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL48 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_common`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L19 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-149
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL422 :: archived_synthesis_agent_synthesisagent_format_breakdown`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L247 :: archived_synthesis_agent_synthesisagent_get_signal_attr`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-150
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL127 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_python_ml`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L20 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_warn`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_agents_md.py:31:    assert "_archived" in content, "Should warn about archived modules"
-    ```
-    ```
-    /home/workspace/meta_rl/test_reward.py:59:        Without this, ``__post_init__`` would warn every time the default
-    ```
-    ```
-    /home/workspace/meta_rl/test_reward.py:68:        """Constructing RewardConfig() must not warn."""
-    ```
-
-### INFERRED #calls-151
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL125 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_get_node_metrics`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L27 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_gpu_util`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:158:            # Resource decay: GPU util reverts toward baseline (0.3) at rate 0.05/step
-    ```
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/probabilistic.py:65:        # windows["rtx-node"]: RollingWindow for GPU util
-    ```
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/probabilistic.py:66:        # windows["rk3576"]: RollingWindow for CPU util
-    ```
-
-### INFERRED #calls-152
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL169 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_main`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L40 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_common`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/common/interfaces.py:5:them for callers that still import from ``common.interfaces`` during
-    ```
-    ```
-    /home/workspace/common/__init__.py:1:"""astrofin.common — DEPRECATED compatibility shim.
-    ```
-    ```
-    /home/workspace/common/__init__.py:7:import paths (`from common.interfaces import AgentResponseProtocol`,
-    ```
-
-### INFERRED #calls-153
-- **Source:** `AsurDev/l9_ebl/gate/gate.py:LL59 :: asurdev_l9_ebl_gate_gate_py_gate_gate_executiongate_check`
-- **Target:** `AsurDev/l9_ebl/gate/gate.py:L90 :: asurdev_l9_ebl_gate_gate_py_gate_gate_executiongate_log_decision`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:247:        # Trajectories (simplified — just current decision)
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:354:                    decision=record,
-    ```
-    ```
-    /home/workspace/agents/_impl/compromise_agent.py:15:        outcomes AND the conditions under which the decision flips
-    ```
-
-### INFERRED #calls-154
-- **Source:** `AsurDev/ml_engine/dataset/builder.py:LL75 :: asurdev_ml_engine_dataset_builder_py_dataset_builder_datasetbuilder_build`
-- **Target:** `AsurDev/ml_engine/dataset/builder.py:L122 :: asurdev_ml_engine_dataset_builder_py_dataset_builder_datasetbuilder_label_from_timescale`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/feature_pipeline/builder.py:21:Backend = Literal["timescale", "prometheus"]
-    ```
-    ```
-    /home/workspace/home-cluster-iac/feature_pipeline/builder.py:32:        backend: Backend = "timescale",
-    ```
-    ```
-    /home/workspace/home-cluster-iac/feature_pipeline/builder.py:114:        Uses TimescaleDB if backend='timescale', Prometheus otherwise.
-    ```
-
-### INFERRED #calls-155
-- **Source:** `AsurDev/l11_verifier/verifier.py:LL104 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_mid_execution`
-- **Target:** `AsurDev/l11_verifier/verifier.py:L43 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_failurereport`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:20:from trading.execution.sanity import (
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:62:    "push/", "atom-federation-os/", "roma-execution-bridge/",
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:311:            # TTC fallback: single-pass execution
-    ```
-
-### INFERRED #calls-156
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL39 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy_mutate`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L26 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy_make_id`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:93:    """Last 2 components of the node id — usually enough for disambiguation."""
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:64:    nodes = {n["id"]: n for n in g["nodes"]}
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:98:    src_label = edge["source"].rsplit("_", 1)[-1]   # last segment of node id
-    ```
-
-### INFERRED #calls-157
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL159 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_agent_policy`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L41 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_constraint_make_id`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:259:        assert "id" in exported[0]
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:118:        id = "always_fails"
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:124:        id = "always_succeeds"
-    ```
-
-### INFERRED #calls-158
-- **Source:** `AsurDev/feature_pipeline/exporter.py:LL71 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_load_events`
-- **Target:** `AsurDev/feature_pipeline/exporter.py:L73 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_generate_synthetic_events`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:174:        Searches for recent geopolitical events and scores their impact.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:19:from acos.events.event import Event
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:20:from acos.events.event_log import EventLog
-    ```
-
-### INFERRED #calls-159
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL41 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_common`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L18 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/audit.py:396:        logger.info(
-    ```
-
-### INFERRED #calls-160
-- **Source:** `AsurDev/ete/store/trace_store.py:LL127 :: asurdev_ete_store_trace_store_py_store_trace_store_tracestore_store`
-- **Target:** `AsurDev/ete/store/trace_store.py:L76 :: asurdev_ete_store_trace_store_py_store_trace_store_executiontrace_to_dict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:227:        chrom_a = dict.fromkeys(CHROMOSOME_KEYS, 0.5)
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:228:        chrom_b = dict.fromkeys(CHROMOSOME_KEYS, 0.8)
-    ```
-    ```
-    /home/workspace/tests/agent_test_base.py:72:    happy_state_overrides: dict = {}
-    ```
-
-### INFERRED #calls-161
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL72 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_nvidia`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L20 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_warn`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_agents_md.py:31:    assert "_archived" in content, "Should warn about archived modules"
-    ```
-    ```
-    /home/workspace/scripts/architecture_linter.py:21:Soft rules (warn, do not fail):
-    ```
-    ```
-    /home/workspace/scripts/architecture_linter.py:83:    def warn(self, file: str, line: int, rule: str, message: str) -> None:
-    ```
-
-### INFERRED #calls-162
-- **Source:** `AsurDev/l9_ebl/capabilities/registry.py:LL100 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_executioncontext_check`
-- **Target:** `AsurDev/l9_ebl/capabilities/registry.py:L108 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_capabilitydenied`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:42:    subprocess.run(["git", "init"], check=False)
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:43:    subprocess.run(["git", "config", "user.email", "test@test.com"], check=False)
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:44:    subprocess.run(["git", "config", "user.name", "Test"], check=False)
-    ```
-
-### INFERRED #calls-163
-- **Source:** `AsurDev/lccp_v12.py:LL96 :: asurdev_lccp_v12_orch`
-- **Target:** `AsurDev/lccp_v12.py:L80 :: asurdev_lccp_v12_ctrl`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/atom-federation-os/tests/test_meta_control_v78.py:85:        ctrl = ProofFeedbackController()
-    ```
-    ```
-    /home/workspace/atom-federation-os/tests/test_meta_control_v78.py:87:        deltas = ctrl.compute(report)
-    ```
-    ```
-    /home/workspace/atom-federation-os/tests/test_meta_control_v78.py:91:        ctrl = ProofFeedbackController(drift_penalty=0.15)
-    ```
-
-### INFERRED #calls-164
-- **Source:** `AsurDev/ete/compiler/dag.py:LL94 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_batch_job`
-- **Target:** `AsurDev/ete/compiler/dag.py:L29 :: asurdev_ete_compiler_dag_py_compiler_dag_dagnode`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/constraint_engine/engine.py:77:        """Set current allocations from job list. Call before validate()."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/constraint_engine/engine.py:80:        for job in allocations:
-    ```
-
-### INFERRED #calls-165
-- **Source:** `AsurDev/scripts/day1-network.sh:LL83 :: asurdev_scripts_day1_network_sh_scripts_day1_network_create_vlan`
-- **Target:** `AsurDev/scripts/day1-network.sh:L33 :: asurdev_scripts_day1_network_sh_scripts_day1_network_ros_api`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/risk_agent.py:133:            url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}-USDT&interval={interval}&limit={limit}"
-    ```
-    ```
-    /home/workspace/agents/_impl/sentiment_agent.py:91:            url = "https://api.alternative.me/fng/?limit=1"
-    ```
-    ```
-    /home/workspace/agents/_impl/sentiment_agent.py:122:        url = f"https://api.bybit.com/v5/market/tickers?category=linear&symbol={symbol}"
-    ```
-
-### INFERRED #calls-166
-- **Source:** `AsurDev/ete/compiler/dag.py:LL104 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_risk_job`
-- **Target:** `AsurDev/ete/compiler/dag.py:L42 :: asurdev_ete_compiler_dag_py_compiler_dag_dagnode_to_dict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:34:def is_same_file(edge: dict) -> bool:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:88:    buckets: dict[tuple[str, bool], list[dict]] = defaultdict(list)
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:103:    sampled: list[dict] = []
-    ```
-
-### INFERRED #calls-167
-- **Source:** `AsurDev/lccp_v12.py:LL132 :: asurdev_lccp_v12_main`
-- **Target:** `AsurDev/lccp_v12.py:L34 :: asurdev_lccp_v12_staterebuilder_rebuild`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:166:    # Verify: no self.get_trace / self.get_all / self.rebuild in engine source
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:176:            if isinstance(func, ast.Attribute) and func.attr in ("get_trace", "get_all", "rebuild"):
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:221:    r1 = StateReducer(log).rebuild("inv5")
-    ```
-
-### INFERRED #calls-168
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL70 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_create_slurm_conf`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L24 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
-    ```
-
-### INFERRED #calls-169
-- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL113 :: monitoring_health_endpoints_readiness_check`
-- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L70 :: monitoring_health_endpoints_check_postgres`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
-    ```
-
-### INFERRED #calls-170
-- **Source:** `AsurDev/load_test/injectors/synthetic_scheduler.py:LL90 :: asurdev_load_test_injectors_synthetic_scheduler_py_injectors_synthetic_scheduler_syntheticscheduler_run_simulation`
-- **Target:** `AsurDev/load_test/injectors/synthetic_scheduler.py:L133 :: asurdev_load_test_injectors_synthetic_scheduler_py_injectors_synthetic_scheduler_syntheticscheduler_try_schedule`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/acos-contracts/acos_contracts/events.py:83:    consumers must tolerate missing `schedule` / `final_state` etc.
-    ```
-    ```
-    /home/workspace/acos-contracts/acos_contracts/events.py:89:    schedule: dict[str, Any] | None = None
-    ```
-    ```
-    /home/workspace/home-cluster-iac/acos/contracts/trace_contract.py:21:    schedule: dict | None = None
-    ```
-
-### INFERRED #calls-171
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL153 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_munge`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L18 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
-    ```
-
-### INFERRED #calls-172
-- **Source:** `AsurDev/ai_scheduler/modules/scoring.py:LL64 :: asurdev_ai_scheduler_modules_scoring_py_modules_scoring_rank_nodes`
-- **Target:** `AsurDev/ai_scheduler/modules/scoring.py:L19 :: asurdev_ai_scheduler_modules_scoring_py_modules_scoring_score_node`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:93:    """Last 2 components of the node id — usually enough for disambiguation."""
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:98:    src_label = edge["source"].rsplit("_", 1)[-1]   # last segment of node id
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:113:    # 3. target node has no source_file at all (parser bug — same family as KI-014)
-    ```
-
-### INFERRED #calls-173
-- **Source:** `AsurDev/acos/state/reducer.py:LL35 :: asurdev_acos_state_reducer_py_state_reducer_statereducer_rebuild`
-- **Target:** `AsurDev/acos/state/reducer.py:L27 :: asurdev_acos_state_reducer_py_state_reducer_statereducer_reduce`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/risk_control.py:49:      if position_lag < -RISK_POSITION_LAG_THRESHOLD  →  reduce (перегрев)
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/meta_questioning.py:175:                    "text": "EXTREME - reduce exposure",
-    ```
-    ```
-    /home/workspace/meta_rl/walkforward.py:332:            recommendations.append("Strategy fails on OOS — increase regularization or reduce population complexity")
-    ```
-
-### INFERRED #calls-174
-- **Source:** `AsurDev/execution_sandbox/sandbox.py:LL80 :: asurdev_execution_sandbox_sandbox_py_execution_sandbox_sandbox_executionsandbox_execute_batch`
-- **Target:** `AsurDev/execution_sandbox/sandbox.py:L52 :: asurdev_execution_sandbox_sandbox_py_execution_sandbox_sandbox_executionsandbox_execute`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:32:                for row in conn.execute(
-    ```
-    ```
-    /home/workspace/meta_rl/trading_bridge.py:33:    def execute(self, strategy, market_data: dict, mode: str = "PAPER") -> TradingExecutionResult:
-    ```
-    ```
-    /home/workspace/meta_rl/calibration.py:132:        conn.execute("PRAGMA journal_mode=WAL")
-    ```
-
-### INFERRED #calls-175
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL491 :: archived_synthesis_agent_run_synthesis_agent`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-176
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL127 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_restart_nvidia_driver`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-177
-- **Source:** `AsurDev/lccp_v12.py:LL120 :: asurdev_lccp_v12_main`
-- **Target:** `AsurDev/lccp_v12.py:L62 :: asurdev_lccp_v12_node`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_agent_http_migration.py:12:    imports = [node.names[0].name for node in ast.walk(tree) if isinstance(node, ast.Import)]
-    ```
-    ```
-    /home/workspace/tests/test_agent_http_migration.py:14:        f"{node.module}.{alias.name}"
-    ```
-    ```
-    /home/workspace/tests/test_agent_http_migration.py:15:        for node in ast.walk(tree)
-    ```
-
-### INFERRED #calls-178
-- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL114 :: monitoring_health_endpoints_readiness_check`
-- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L86 :: monitoring_health_endpoints_check_redis`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
-    ```
-
-### INFERRED #calls-179
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL44 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_cpu_util`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-180
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL180 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_latency_sla`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L103 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_add_constraint`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/constraint_compiler/compiler.py:52:            raise ValueError(f"Invalid constraint expr: {expr}")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/constraint_compiler/compiler.py:108:    def register(self, constraint: CompiledConstraint) -> None:
-    ```
-
-### INFERRED #calls-181
-- **Source:** `AsurDev/monitoring/exporters/slurm/slurm_exporter.py:LL98 :: asurdev_monitoring_exporters_slurm_slurm_exporter_py_slurm_slurm_exporter_handler_do_get`
-- **Target:** `AsurDev/monitoring/exporters/slurm/slurm_exporter.py:L69 :: asurdev_monitoring_exporters_slurm_slurm_exporter_py_slurm_slurm_exporter_build_metrics`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_auth.py:20:    pytest.skip("FastAPI metrics endpoint not yet implemented")
-    ```
-    ```
-    /home/workspace/tests/test_auth.py:39:    response = fastapi_client.get("/metrics")
-    ```
-    ```
-    /home/workspace/tests/test_metrics_cli.py:14:    """Проверяем, что команда 'karl metrics serve' доступна."""
-    ```
-
-### INFERRED #calls-182
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL172 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_latency_sla`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L31 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_constraint`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/constraint_compiler/compiler.py:52:            raise ValueError(f"Invalid constraint expr: {expr}")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/constraint_compiler/compiler.py:108:    def register(self, constraint: CompiledConstraint) -> None:
-    ```
-
-### INFERRED #calls-183
-- **Source:** `AsurDev/ml_engine/inference/ml_client.py:LL83 :: inference_ml_client_get_risk_score`
-- **Target:** `AsurDev/ml_engine/inference/ml_client.py:L103 :: inference_ml_client_record_failure`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_dual_mode.py:38:    """Test that MASFactory failure triggers graceful fallback."""
-    ```
-    ```
-    /home/workspace/tests/test_dual_mode.py:42:        # Simulate MASFactory failure
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/karl_diagnostics.py:136:        issues.append("High OOS failure rate")
-    ```
-
-### INFERRED #calls-184
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL127 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_get_node_metrics`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L37 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_gpu_temp`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_cache.py:31:    await cache.set("temp", 123)
-    ```
-    ```
-    /home/workspace/tests/test_cache.py:32:    await cache.delete("temp")
-    ```
-    ```
-    /home/workspace/tests/test_cache.py:33:    assert await cache.get("temp") is None
-    ```
-
-### INFERRED #calls-185
-- **Source:** `AsurDev/dag_validator/validator.py:LL58 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_validate`
-- **Target:** `AsurDev/dag_validator/validator.py:L84 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_find_cycle`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/bull_researcher.py:255:        # Moon waxing (first half of cycle)
-    ```
-    ```
-    /home/workspace/agents/_impl/bradley_agent.py:187:        # Check Jupiter-Saturn aspect (major cycle)
-    ```
-    ```
-    /home/workspace/agents/_impl/cycle_agent.py:23:    1. Detect dominant cycle periods (20, 40, 80 days)
-    ```
-
-### INFERRED #calls-186
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL38 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy_mutate`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L16 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:107:        strategy = GeneratedStrategy(random_chromosome())
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:108:        result = dummy_evaluator.evaluate(strategy, sample_market_data)
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:113:        strategy = GeneratedStrategy(random_chromosome())
-    ```
-
-### INFERRED #calls-187
-- **Source:** `AsurDev/l9_ebl/capabilities/registry.py:LL88 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_executioncontext_create`
-- **Target:** `AsurDev/l9_ebl/capabilities/registry.py:L75 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_executioncontext`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/agent_test_base.py:153:                with patch.object(agent.__class__, "HAS_SWISS_EPHEMERIS", False, create=True):
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:54:    change = TopologyChange.create(
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:117:    change = TopologyChange.create(
-    ```
-
-### INFERRED #calls-188
-- **Source:** `AsurDev/governance.py:LL123 :: asurdev_governance_run`
-- **Target:** `AsurDev/governance.py:L38 :: asurdev_governance_classify`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_orchestrator.py:18:    """Router must correctly classify queries."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/incident/model.py:67:        """Factory: create + classify + route incident."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/incident/model.py:70:        # Auto-classify severity
-    ```
-
-### INFERRED #calls-189
-- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL448 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator_test_print_report_all_pass`
-- **Target:** `integrations/gitagent/validators/agent_validator.py:L43 :: validators_agent_validator_agentyamlvalidator`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:265:                    pass
-    ```
-    ```
-    /home/workspace/agents/metrics.py:153:            pass
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:359:                pass  # Non-fatal
-    ```
-
-### INFERRED #calls-190
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL62 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_nvidia`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L19 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-191
-- **Source:** `AsurDev/scripts/day5-ray.sh:LL73 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_start_workers`
-- **Target:** `AsurDev/scripts/day5-ray.sh:L20 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
-    ```
-
-### INFERRED #calls-192
-- **Source:** `AsurDev/scheduler_v3/api.py:LL101 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_schedule`
-- **Target:** `AsurDev/scheduler_v3/api.py:L57 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_engine`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:9:from backtest.engine import BacktestEngine
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:15:    engine = BacktestEngine(symbol="BTCUSDT", initial_capital=10000)
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:30:        result = await engine.run(start_date="2025-01-01", end_date="2025-01-10", use_real_agents=True)
-    ```
-
-### INFERRED #calls-193
-- **Source:** `AsurDev/l9_ebl/policy_compiler/compiler.py:LL57 :: asurdev_l9_ebl_policy_compiler_compiler_py_policy_compiler_compiler_policycompiler_load_policy`
-- **Target:** `AsurDev/l9_ebl/policy_compiler/compiler.py:L36 :: asurdev_l9_ebl_policy_compiler_compiler_py_policy_compiler_compiler_guardrule`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:5:Implements the policy from docs/adr/ADR-0004-hybrid-memory-policy.md:
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:338:        "policy": "ADR-0004",
-    ```
-    ```
-    /home/workspace/tests/_template_agent_test.py:96:    # We do not assert on signal/confidence because policy differs per agent;
-    ```
-
-### INFERRED #calls-194
-- **Source:** `AsurDev/acos_correction/rca_engine.py:LL100 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_analyze`
-- **Target:** `AsurDev/acos_correction/rca_engine.py:L212 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_impact`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/idea_buffer_integration.py:154:    3. Return impact result
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:174:        Searches for recent geopolitical events and scores their impact.
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-195
-- **Source:** `AsurDev/l9_ebl/capabilities/registry.py:LL135 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_enforce_all`
-- **Target:** `AsurDev/l9_ebl/capabilities/registry.py:L98 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_executioncontext_check`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_update_progress.py:42:    subprocess.run(["git", "init"], check=False)
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:43:    subprocess.run(["git", "config", "user.email", "test@test.com"], check=False)
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:44:    subprocess.run(["git", "config", "user.name", "Test"], check=False)
-    ```
-
-### INFERRED #calls-196
-- **Source:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:LL115 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:L182 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_check_failure`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_dual_mode.py:38:    """Test that MASFactory failure triggers graceful fallback."""
-    ```
-    ```
-    /home/workspace/tests/test_dual_mode.py:42:        # Simulate MASFactory failure
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:107:    # `bad` is >50% failure → degraded
-    ```
-
-### INFERRED #calls-197
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL132 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_reproduce`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L45 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy_crossover`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:49:                "reasoning": "RSI oversold, MACD bullish crossover",
-    ```
-    ```
-    /home/workspace/agents/_impl/ml_predictor_agent.py:128:        Simple ML-like prediction using momentum and moving average crossover.
-    ```
-    ```
-    /home/workspace/agents/_impl/ml_predictor_agent.py:141:        # Signals from MA crossover
-    ```
-
-### INFERRED #calls-198
-- **Source:** `AsurDev/feature_pipeline/schemas.py:LL140 :: asurdev_feature_pipeline_schemas_py_feature_pipeline_schemas_mlbatch_to_csv`
-- **Target:** `AsurDev/feature_pipeline/schemas.py:L77 :: asurdev_feature_pipeline_schemas_py_feature_pipeline_schemas_labeledexample_to_ml_dict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:34:def is_same_file(edge: dict) -> bool:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:88:    buckets: dict[tuple[str, bool], list[dict]] = defaultdict(list)
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:103:    sampled: list[dict] = []
-    ```
-
-### INFERRED #calls-199
-- **Source:** `AsurDev/job_engine/engine.py:LL116 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_schedule`
-- **Target:** `AsurDev/job_engine/engine.py:L151 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_transition`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/cycle_agent.py:24:    2. Identify cycle phase (up/down/transition)
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:78:    This is the CORE of the transition from SkillMD to MAS Factory.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:107:        State transition per step:
-    ```
-
-### INFERRED #calls-200
-- **Source:** `AsurDev/acos/events/event.py:LL42 :: asurdev_acos_events_event_py_events_event_event_post_init`
-- **Target:** `AsurDev/acos/events/event.py:L44 :: asurdev_acos_events_event_py_events_event_event_compute_hash`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:223:        # ── Step 6: Build state hash for record ──────────────────────────────
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:452:        """Compute reproducible state hash."""
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:218:    print(f"  Valid change: weight 0.2 → 0.15, hash: {new_topo.hash}")
-    ```
-
-### INFERRED #calls-201
-- **Source:** `AsurDev/feature_pipeline/pipeline.py:LL172 :: asurdev_feature_pipeline_pipeline_py_feature_pipeline_pipeline_main`
-- **Target:** `AsurDev/feature_pipeline/pipeline.py:L89 :: asurdev_feature_pipeline_pipeline_py_feature_pipeline_pipeline_run_export`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:3:infer_edges.py — validated INFERRED-edge export for Hybrid Memory.
-    ```
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:110:    """Generate → evolve → export → persist → reload → verify metrics."""
-    ```
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:178:    # Verify pool export is also reproducible (StrategyPool.export_elites is pure).
-    ```
-
-### INFERRED #calls-202
-- **Source:** `AsurDev/scheduler_v3/api.py:LL117 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_schedule`
-- **Target:** `AsurDev/scheduler_v3/api.py:L173 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_job`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
-    ```
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/controller.py:37:    All job submissions MUST pass through here before reaching the scheduler.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/controller.py:43:    def admit(self, job: dict[str, Any]) -> AdmitResult:
-    ```
-
-### INFERRED #calls-203
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL103 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_ray_active_workers`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:180:            query = " ".join(headlines[:3]) + " " + query
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:187:            results = await rag.search(query, top_k=3)
-    ```
-
-### INFERRED #calls-204
-- **Source:** `AsurDev/governance.py:LL142 :: asurdev_governance_run`
-- **Target:** `AsurDev/governance.py:L90 :: asurdev_governance_adversarial_analysis`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:6:graphify-out/inferred_clean.jsonl, suitable for manual relation analysis.
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:107:                "reasoning": "Macro analysis: no clear trend",
-    ```
-    ```
-    /home/workspace/agents/_impl/gann_agent.py:2:Gann Agent — Gann angles and time/price analysis.
-    ```
-
-### INFERRED #calls-205
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL59 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_install_slurm`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L25 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-206
-- **Source:** `AsurDev/scripts/day5-ray.sh:LL30 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_install_ray`
-- **Target:** `AsurDev/scripts/day5-ray.sh:L21 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-207
-- **Source:** `AsurDev/ai_scheduler/scheduler.py:LL112 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_get_node_metrics_prometheus`
-- **Target:** `AsurDev/ai_scheduler/scheduler.py:L90 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_get_prometheus_metric`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/metrics.py:46:Both patterns produce the same metric names, so dashboards see one
-    ```
-    ```
-    /home/workspace/agents/metrics.py:47:metric per agent regardless of which pattern the author picked.
-    ```
-    ```
-    /home/workspace/agents/metrics.py:66:# same object — prometheus_client raises on duplicate metric registration.
-    ```
-
-### INFERRED #calls-208
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL351 :: asurdev_ml_engine_inference_api_py_inference_api_predict`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L281 :: inference_api_cache_put`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/atom-federation-os/rpc/server.py:49:        self._inbound.put(request)
-    ```
-    ```
-    /home/workspace/atom-federation-os/rpc/server.py:69:            self._inbound.put(request)
-    ```
-    ```
-    /home/workspace/atom-federation-os/local-ai-stack/agent_runtime/task_store.py:5:    def put(self, task_id: str, value):
-    ```
-
-### INFERRED #calls-209
-- **Source:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:LL120 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:L198 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_simulate_after_fix`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/mas_factory/engine.py:3:from mas_factory.registry import get_agent_runner  # F821 fix
-    ```
-    ```
-    /home/workspace/mas_factory/engine.py:145:        errors = 0  # F821 fix
-    ```
-    ```
-    /home/workspace/meta_rl/trading_bridge.py:2:META_RL_TRADING_ENABLED = False  # F821 fix (TODO: move to config)
-    ```
-
-### INFERRED #calls-210
-- **Source:** `AsurDev/acos/storage/postgres_backend.py:LL31 :: asurdev_acos_storage_postgres_backend_py_storage_postgres_backend_postgrestracestorage_write`
-- **Target:** `AsurDev/acos/storage/postgres_backend.py:L24 :: asurdev_acos_storage_postgres_backend_py_storage_postgres_backend_postgrestracestorage_get_conn`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:29:        with sqlite3.connect(self.db) as conn:
-    ```
-    ```
-    /home/workspace/tests/test_calibration_tracker.py:32:                for row in conn.execute(
-    ```
-    ```
-    /home/workspace/mas_factory/visualizer.py:53:        for conn in self.topo.connections:
-    ```
-
-### INFERRED #calls-211
-- **Source:** `AsurDev/scripts/day5-ray.sh:LL62 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_start_head`
-- **Target:** `AsurDev/scripts/day5-ray.sh:L21 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-212
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL168 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_main`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L25 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_detect_os`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:23:import os
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:32:SAMPLE = Path(os.environ.get("INFERRED_SAMPLE") or
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:62:    "push/", "atom-federation-os/", "roma-execution-bridge/",
-    ```
-
-### INFERRED #calls-213
-- **Source:** `AsurDev/ml_engine/inference/ml_client.py:LL65 :: inference_ml_client_get_risk_score`
-- **Target:** `AsurDev/ml_engine/inference/ml_client.py:L35 :: inference_ml_client_is_circuit_open`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:90:    with inp.open("r", encoding="utf-8") as f:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:123:        with out_path.open("w", encoding="utf-8") as f:
-    ```
-    ```
-    /home/workspace/graphify-out/diagnose_relations.py:17:with path.open("r", encoding="utf-8") as f:
-    ```
-
-### INFERRED #calls-214
-- **Source:** `AsurDev/acos_cli.py:LL214 :: asurdev_acos_cli_main`
-- **Target:** `AsurDev/acos_cli.py:L155 :: asurdev_acos_cli_acoscli_get_trace`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:4:Guarantees deterministic replay of any decision trace.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:31:        trace = self.store.get_trace(trace_id)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:32:        if not trace:
-    ```
-
-### INFERRED #calls-215
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL84 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_docker`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L18 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/data/market_adapter.py:60:            logger.info("Redis connected for market data cache")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-
-### INFERRED #calls-216
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL114 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_python_ml`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L18 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/audit.py:396:        logger.info(
-    ```
-
-### INFERRED #calls-217
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL163 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_start_controller`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L25 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-218
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL123 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_risk_profile`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L31 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_constraint`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:86:        # STEP 1: constraint validation
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/constraint_compiler/compiler.py:52:            raise ValueError(f"Invalid constraint expr: {expr}")
-    ```
-
-### INFERRED #calls-219
-- **Source:** `AsurDev/scripts/day5-ray.sh:LL248 :: home_workspace_asurdev_scripts_day5_ray_sh__entry`
-- **Target:** `AsurDev/scripts/day5-ray.sh:L210 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_main`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:50:def main() -> None:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:145:    main()
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:162:def main():
-    ```
-
-### INFERRED #calls-220
-- **Source:** `AsurDev/load_test/evolution/evolver.py:LL133 :: asurdev_load_test_evolution_evolver_py_evolution_evolver_evolutionengine_get_evolution_report`
-- **Target:** `AsurDev/load_test/evolution/evolver.py:L111 :: asurdev_load_test_evolution_evolver_py_evolution_evolver_evolutionengine_should_trigger_meta_learning`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/replay_buffer.py:1:"""amre/replay_buffer.py — Replay Buffer for trajectory learning"""
-    ```
-    ```
-    /home/workspace/meta_rl/meta_agent.py:107:    updates internal state for cross-session learning.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/evolution/evolver.py:48:    Detects convergence, identifies stuck patterns, triggers meta-learning.
-    ```
-
-### INFERRED #calls-221
-- **Source:** `AsurDev/acos_correction/rca_engine.py:LL97 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_analyze`
-- **Target:** `AsurDev/acos_correction/rca_engine.py:L172 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_build_fix`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/mas_factory/engine.py:3:from mas_factory.registry import get_agent_runner  # F821 fix
-    ```
-    ```
-    /home/workspace/mas_factory/engine.py:145:        errors = 0  # F821 fix
-    ```
-    ```
-    /home/workspace/meta_rl/trading_bridge.py:2:META_RL_TRADING_ENABLED = False  # F821 fix (TODO: move to config)
-    ```
-
-### INFERRED #calls-222
-- **Source:** `AsurDev/load_test/scenarios/state_drift/test.py:LL28 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/state_drift/test.py:L39 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_model_output`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_metrics_endpoint.py:25:    output = generate_latest(REGISTRY).decode()
-    ```
-    ```
-    /home/workspace/tests/test_metrics_endpoint.py:26:    assert "astrofin_requests_total" in output
-    ```
-    ```
-    /home/workspace/tests/test_metrics_endpoint.py:27:    assert "astrofin_broker_errors_total" in output
-    ```
-
-### INFERRED #calls-223
-- **Source:** `AsurDev/monitoring/exporters/ceph/ceph_exporter.py:LL114 :: asurdev_monitoring_exporters_ceph_ceph_exporter_py_ceph_ceph_exporter_handler_do_get`
-- **Target:** `AsurDev/monitoring/exporters/ceph/ceph_exporter.py:L48 :: asurdev_monitoring_exporters_ceph_ceph_exporter_py_ceph_ceph_exporter_build_metrics`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/data/market_adapter.py:1:"""data/market_adapter.py — ATOM-STEP-6: Market Data Adapter with live sources, cache, and metrics."""
-    ```
-    ```
-    /home/workspace/data/market_adapter.py:17:# ── Prometheus metrics ──────────────────────────────────────────────────────────
-    ```
-    ```
-    /home/workspace/tests/test_auth.py:20:    pytest.skip("FastAPI metrics endpoint not yet implemented")
-    ```
-
-### INFERRED #calls-224
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL85 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_ceph_storage_total`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-225
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL390 :: archived_synthesis_agent_synthesisagent_vote`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L398 :: archived_synthesis_agent_synthesisagent_apply_guards`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-226
-- **Source:** `AsurDev/job_engine/engine.py:LL129 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_fail`
-- **Target:** `AsurDev/job_engine/engine.py:L164 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:36:    sp = edge.get("source_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:37:    tp = edge.get("target_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:40:    sl = edge.get("source_line") or ""
-    ```
-
-### INFERRED #calls-227
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL88 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_start`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L46 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_available_binaries`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/acos/network/amnezia_wg.py:70:        binaries = ["awg-quick", "wg-quick"]
-    ```
-    ```
-    /home/workspace/home-cluster-iac/acos/network/amnezia_wg.py:74:                binaries.append(b)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/acos/network/amnezia_wg.py:77:        return binaries
-    ```
-
-### INFERRED #calls-228
-- **Source:** `AsurDev/lccp_v12.py:LL73 :: asurdev_lccp_v12_health`
-- **Target:** `AsurDev/lccp_v12.py:L70 :: asurdev_lccp_v12_node_within`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/agent_test_base.py:179:        """First call must return within HOT_LATENCY_BUDGET_S."""
-    ```
-    ```
-    /home/workspace/tests/test_risk_integration.py:124:        """New 5% position within 10% limit → accepted."""
-    ```
-    ```
-    /home/workspace/tests/test_kepler_differential.py:44:        Pure Keplerian (2-body) vs N-body DE405 should agree within ~1 arcminute
-    ```
-
-### INFERRED #calls-229
-- **Source:** `AsurDev/job_engine/engine.py:LL100 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_create_job`
-- **Target:** `AsurDev/job_engine/engine.py:L169 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_write_event`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:335:        4. Log the reset event
-    ```
-    ```
-    /home/workspace/acos-contracts/acos_contracts/state.py:4:backends** (PostgreSQL thread-pool vs. event-sourcing KV) and **identical
-    ```
-
-### INFERRED #calls-230
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL138 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_reboot_node`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-231
-- **Source:** `AsurDev/ai_scheduler/scheduler.py:LL188 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_route_job`
-- **Target:** `AsurDev/ai_scheduler/scheduler.py:L45 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_nodemetrics_compute_score`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:106:    headers = ["rank", "score", "tier", "cat", "verdict", "ovr", "src → tgt"]
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:157:    print(f"  score range:   min={min(scores):.4f}  "
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:170:    ap.add_argument("--min-score", type=float, help="minimum recall_score")
-    ```
-
-### INFERRED #calls-232
-- **Source:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:LL207 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_simulate_after_fix`
-- **Target:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:L124 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_make_decision`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/gitagent_registry.py:307:        # TTC decision
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:247:        # Trajectories (simplified — just current decision)
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:354:                    decision=record,
-    ```
-
-### INFERRED #calls-233
-- **Source:** `AsurDev/acos_cli.py:LL45 :: asurdev_acos_cli_validate_all_contracts`
-- **Target:** `AsurDev/acos_cli.py:L155 :: asurdev_acos_cli_acoscli_get_trace`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:4:Guarantees deterministic replay of any decision trace.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:31:        trace = self.store.get_trace(trace_id)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:32:        if not trace:
-    ```
-
-### INFERRED #calls-234
-- **Source:** `AsurDev/scheduler_v3/api.py:LL60 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_engine`
-- **Target:** `AsurDev/scheduler_v3/api.py:L50 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_admission`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:3:Safety Kernel — final admission gate for all decisions.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:57:    Final admission gate — runs BEFORE every decision executes.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:83:        Primary admission function.
-    ```
-
-### INFERRED #calls-235
-- **Source:** `AsurDev/acos/cli/monitor.py:LL82 :: asurdev_acos_cli_monitor_py_cli_monitor_cmd_switch`
-- **Target:** `AsurDev/acos/cli/monitor.py:L22 :: asurdev_acos_cli_monitor_py_cli_monitor_load_config`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:14:  - manual overrides from config/memory_overrides.json
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:20:  - /home/workspace/config/memory_overrides.json
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:41:OVERRIDES_JSON = REPO_ROOT / "config" / "memory_overrides.json"
-    ```
-
-### INFERRED #calls-236
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL42 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_check_munge`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L25 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/gitagent_registry.py:513:        ok, msg = validate_agent(args.name)
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:514:        print(f"{'✅' if ok else '❌'} {args.name}: {msg}")
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-
-### INFERRED #calls-237
-- **Source:** `AsurDev/l10_self_healing/watchdog/watchdog.py:LL53 :: asurdev_l10_self_healing_watchdog_watchdog_py_watchdog_watchdog_watchdog_check`
-- **Target:** `AsurDev/l10_self_healing/watchdog/watchdog.py:L15 :: asurdev_l10_self_healing_watchdog_watchdog_py_watchdog_watchdog_healthmetric`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:42:    subprocess.run(["git", "init"], check=False)
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:43:    subprocess.run(["git", "config", "user.email", "test@test.com"], check=False)
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:44:    subprocess.run(["git", "config", "user.name", "Test"], check=False)
-    ```
-
-### INFERRED #calls-238
-- **Source:** `AsurDev/acos/network/amnezia_patch.py:LL89 :: asurdev_acos_network_amnezia_patch_py_network_amnezia_patch_patch_engine_pre_execute`
-- **Target:** `AsurDev/acos/network/amnezia_patch.py:L19 :: asurdev_acos_network_amnezia_patch_py_network_amnezia_patch_validate_network_requirements`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_docker_security.py:2:"""Validate docker-compose.yml for P0 security requirements."""
-    ```
-    ```
-    /home/workspace/meta_rl/security.py:3:Security requirements:
-    ```
-    ```
-    /home/workspace/astrofin-sentinel-v5/scripts/validate_docker_security.py:2:"""Validate docker-compose.yml for P0 security requirements."""
-    ```
-
-### INFERRED #calls-239
-- **Source:** `AsurDev/job_engine/engine.py:LL133 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_fail`
-- **Target:** `AsurDev/job_engine/engine.py:L200 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_on_retry`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_http_client.py:52:        # Передаём retry вручную (будет реализовано в методе)
-    ```
-    ```
-    /home/workspace/tests/test_http_client.py:53:        # Пока проверяем только сам retry-механизм — его нужно будет добавить в клиент
-    ```
-    ```
-    /home/workspace/tests/test_http_client.py:54:        pass  # этот тест написан для будущей реализации retry
-    ```
-
-### INFERRED #calls-240
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL61 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_install_slurm`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L26 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_warn`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_agents_md.py:31:    assert "_archived" in content, "Should warn about archived modules"
-    ```
-    ```
-    /home/workspace/meta_rl/test_reward.py:59:        Without this, ``__post_init__`` would warn every time the default
-    ```
-    ```
-    /home/workspace/meta_rl/test_reward.py:68:        """Constructing RewardConfig() must not warn."""
-    ```
-
-### INFERRED #calls-241
-- **Source:** `AsurDev/determinism_controller/controller.py:LL68 :: asurdev_determinism_controller_controller_py_determinism_controller_controller_determinismcontroller_verify_checkpoint`
-- **Target:** `AsurDev/determinism_controller/controller.py:L58 :: asurdev_determinism_controller_controller_py_determinism_controller_controller_determinismcontroller_compute_state_hash`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:223:        # ── Step 6: Build state hash for record ──────────────────────────────
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:452:        """Compute reproducible state hash."""
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:218:    print(f"  Valid change: weight 0.2 → 0.15, hash: {new_topo.hash}")
-    ```
-
-### INFERRED #calls-242
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL126 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_get_node_metrics`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L32 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_gpu_mem_util`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/scheduler_v3/api.py:171:    util = store.get_total_utilization()
-    ```
-    ```
-    /home/workspace/home-cluster-iac/scheduler_v3/api.py:173:    return {"nodes": nodes["nodes"], "utilization": util, "pending_jobs": pending, "ts": nodes["ts"]}
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:158:            # Resource decay: GPU util reverts toward baseline (0.3) at rate 0.05/step
-    ```
-
-### INFERRED #calls-243
-- **Source:** `AsurDev/job_engine/engine.py:LL139 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_fail`
-- **Target:** `AsurDev/job_engine/engine.py:L197 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_on_failure`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_dual_mode.py:38:    """Test that MASFactory failure triggers graceful fallback."""
-    ```
-    ```
-    /home/workspace/tests/test_dual_mode.py:42:        # Simulate MASFactory failure
-    ```
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:13:   ``StrategyEvaluator.evaluate`` failure mode.
-    ```
-
-### INFERRED #calls-244
-- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL430 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator_test_print_report_quiet`
-- **Target:** `integrations/gitagent/validators/agent_validator.py:L43 :: validators_agent_validator_agentyamlvalidator`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/atom-federation-os/build/lib/sbs/cli.py:238:    parser.add_argument("--quiet", action="store_true", help="Suppress progress output, show only result")
-    ```
-    ```
-    /home/workspace/atom-federation-os/sbs/cli.py:3:Rich output, auto-completion, --json, -v/-vv/--quiet.
-    ```
-    ```
-    /home/workspace/atom-federation-os/sbs/cli.py:46:quiet_opt = typer.Option(False, "--quiet", "-q", help="Suppress all output")
-    ```
-
-### INFERRED #calls-245
-- **Source:** `AsurDev/feature_pipeline/embedding.py:LL103 :: asurdev_feature_pipeline_embedding_py_feature_pipeline_embedding_nodeembeddingbuilder_find_similar_nodes`
-- **Target:** `AsurDev/feature_pipeline/embedding.py:L83 :: asurdev_feature_pipeline_embedding_py_feature_pipeline_embedding_nodeembeddingbuilder_cosine_similarity`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/replay_buffer.py:8:from .similarity import is_similar_trajectory
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/similarity.py:1:"""amre/similarity.py — Trajectory similarity + Q* estimation"""
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/__init__.py:71:from .similarity import (
-    ```
-
-### INFERRED #calls-246
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL89 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_start`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L56 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_run_wg_quick`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/tests/test_security_fixes.py:88:        self.assertIn("wg-quick", mgr._available_binaries())
-    ```
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:113:    ok, msg = _run(["wg-quick", "down", interface])
-    ```
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:117:    ok2, msg2 = _run(["wg-quick", "up", interface])
-    ```
-
-### INFERRED #calls-247
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL100 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_nvidia_container_toolkit`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L18 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/data/market_adapter.py:60:            logger.info("Redis connected for market data cache")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-
-### INFERRED #calls-248
-- **Source:** `AsurDev/ai_scheduler/scheduler.py:LL279 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_cli_route`
-- **Target:** `AsurDev/ai_scheduler/scheduler.py:L162 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_route_job`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ml_engine/feedback/retrainer.py:56:        """Call after each job completes — tracks toward retrain threshold."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ml_engine/feedback/collector.py:3:Feedback Collector — ingests job outcomes from state_store into TimescaleDB.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ml_engine/feedback/collector.py:56:        logger.info(f"Collected {len(rows)} job outcomes")
-    ```
-
-### INFERRED #calls-249
-- **Source:** `AsurDev/execution_sandbox/sandbox.py:LL62 :: asurdev_execution_sandbox_sandbox_py_execution_sandbox_sandbox_executionsandbox_execute`
-- **Target:** `AsurDev/execution_sandbox/sandbox.py:L46 :: asurdev_execution_sandbox_sandbox_py_execution_sandbox_sandbox_executionsandbox_validate_fs_write`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:61:        help="Output path. If empty, write JSONL to stdout.",
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:125:                f.write(json.dumps(e, ensure_ascii=False) + "\n")
-    ```
-    ```
-    /home/workspace/tests/ralph_benchmark/test_agent_basic.py:34:        f.write("""
-    ```
-
-### INFERRED #calls-250
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL89 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_start`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L64 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_run_wg_setconf`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/agents/_impl/time_window_agent.py:140:        # Check if we're at start of 4H candle (higher volume expected)
-    ```
-    ```
-    /home/workspace/agents/_impl/time_window_agent.py:148:            summary = "4H candle start + uptrend"
-    ```
-    ```
-    /home/workspace/agents/_impl/time_window_agent.py:152:            summary = "4H candle start + downtrend"
-    ```
-
-### INFERRED #calls-251
-- **Source:** `AsurDev/hash_chain/chain.py:LL45 :: asurdev_hash_chain_chain_py_hash_chain_chain_hashchain_to_dict`
-- **Target:** `AsurDev/hash_chain/chain.py:L29 :: asurdev_hash_chain_chain_py_hash_chain_chain_hashchain_verify_chain`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:131:    bp.register("price", AlwaysFails(), chain=["always_succeeds"])
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:141:    """If all resolvers in the chain fail, get_price() returns None."""
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:157:    bp.register("price", Fail1(), chain=["fail2"])
-    ```
-
-### INFERRED #calls-252
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL492 :: archived_synthesis_agent_run_synthesis_agent`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L118 :: archived_synthesis_agent_synthesisagent_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-253
-- **Source:** `AsurDev/load_test/scenarios/state_drift/test.py:LL27 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/state_drift/test.py:L34 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_feature_value`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:248:        d = {scored: "value"}
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:249:        assert d[scored] == "value"
-    ```
-    ```
-    /home/workspace/tests/test_cache.py:38:    await cache.set("short", "value", ttl=1)  # 1 секунда
-    ```
-
-### INFERRED #calls-254
-- **Source:** `AsurDev/lccp_v12.py:LL118 :: asurdev_lccp_v12_main`
-- **Target:** `AsurDev/lccp_v12.py:L22 :: asurdev_lccp_v12_eventstore`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/atom-federation-os/chaos/harness.py:24:# ── ПРОСТОЙ EVENT STORE (вместо внешнего pkg.eventstore) ──
-    ```
-    ```
-    /home/workspace/atom-federation-os/chaos/__init__.py:20:from pkg.eventstore.store import EventStore
-    ```
-
-### INFERRED #calls-255
-- **Source:** `AstroFinSentinelV5/tests/test_healthcheck.py:LL69 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_test_healthcheck_ollama_check`
-- **Target:** `AstroFinSentinelV5/tests/test_healthcheck.py:L14 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_run_healthcheck`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_healthcheck.py
-    ```
-
-### INFERRED #calls-256
-- **Source:** `AsurDev/acos_cli.py:LL210 :: asurdev_acos_cli_main`
-- **Target:** `AsurDev/acos_cli.py:L80 :: asurdev_acos_cli_acoscli_submit`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer_api.py:134:            pool.submit(_sim_wrapper, twin, req.cluster_state, a, req.ml_predictions, req.timeout_ms)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer_api.py:170:            pool.submit(_sim_wrapper, twin, req.cluster_state, a, req.ml_predictions, req.horizon_minutes)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/unit/test_determinism.py:82:    """Test 3: Deduplication — scheduler must not double-submit."""
-    ```
-
-### INFERRED #calls-257
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL40 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_restart_slurm_worker`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-258
-- **Source:** `AsurDev/lccp_v12.py:LL95 :: asurdev_lccp_v12_orch`
-- **Target:** `AsurDev/lccp_v12.py:L24 :: asurdev_lccp_v12_eventstore_append`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:101:            buckets[(relation, same)].append(edge)
-    ```
-    ```
-    /home/workspace/graphify-out/diagnose_relations.py:20:            edges.append(json.loads(line))
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:49:        edges.append(json.loads(line))
-    ```
-
-### INFERRED #calls-259
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL131 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_reconnect_with_backoff`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L77 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_emit`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:171:    ap.add_argument("--json", action="store_true", help="emit JSON instead of table")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:113:    log.emit("eventlog-test", "TUNNEL_UP", {"interface": "wg0", "peer": "10.8.0.1"})
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:196:            if isinstance(func, ast.Attribute) and func.attr in ("emit", "append"):
-    ```
-
-### INFERRED #calls-260
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL56 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_nvidia`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L18 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:246:KARL_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("karl", False)}
-    ```
-
-### INFERRED #calls-261
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL79 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_restart_ceph`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-262
-- **Source:** `AsurDev/load_test/scenarios/ml_risk_ignored/test.py:LL59 :: asurdev_load_test_scenarios_ml_risk_ignored_test_py_ml_risk_ignored_test_run`
-- **Target:** `AsurDev/load_test/scenarios/ml_risk_ignored/test.py:L15 :: asurdev_load_test_scenarios_ml_risk_ignored_test_py_ml_risk_ignored_test_mlriskignoredscenario`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-263
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL177 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_main`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L94 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_nvidia_container_toolkit`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/tests/test_macro_agent.py:100:    pytest.main([__file__])
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:277:    pytest.main([__file__, "-v", "--tb=short"])
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:415:    pytest.main([__file__, "-v"])
-    ```
-
-### INFERRED #calls-264
-- **Source:** `AsurDev/feature_pipeline/exporter.py:LL197 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_export_json`
-- **Target:** `AsurDev/feature_pipeline/exporter.py:L118 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_build_dataset`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/quant_agent.py:156:        # Simple momentum: % change over dataset
-    ```
-    ```
-    /home/workspace/home-cluster-iac/job_engine/engine.py:81:    Every transition writes to the event log for ML dataset generation.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/feature_pipeline/exporter.py:198:        """Export full dataset to JSON. Returns path."""
-    ```
-
-### INFERRED #calls-265
-- **Source:** `AsurDev/load_test/observability/metrics.py:LL93 :: asurdev_load_test_observability_metrics_py_observability_metrics_metricscollector_collect`
-- **Target:** `AsurDev/load_test/observability/metrics.py:L145 :: asurdev_load_test_observability_metrics_py_observability_metrics_metricscollector_enrich_from_scheduler_api`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_auth.py:21:    response = fastapi_client.get("/api/ab/compare")  # защищённый эндпоинт
-    ```
-    ```
-    /home/workspace/tests/test_auth.py:27:    response = flask_client.get("/api/ab/compare")
-    ```
-    ```
-    /home/workspace/tests/test_rate_limit.py:20:    responses = [client.get("/api/ab/compare", headers=headers) for _ in range(11)]
-    ```
-
-### INFERRED #calls-266
-- **Source:** `AsurDev/ml_engine/registry/model_registry.py:LL25 :: asurdev_ml_engine_registry_model_registry_py_registry_model_registry_modelregistry_init`
-- **Target:** `AsurDev/ml_engine/registry/model_registry.py:L27 :: asurdev_ml_engine_registry_model_registry_py_registry_model_registry_modelregistry_load_index`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:136:    # Generation index on stats should be monotonic.
-    ```
-    ```
-    /home/workspace/tests/unit/test_strategy_pool_and_persistence.py:428:            # Both versions are listed in the index.
-    ```
-    ```
-    /home/workspace/agents/_impl/bradley_agent.py:22:    1. Calculate Bradley seasonality index
-    ```
-
-### INFERRED #calls-267
-- **Source:** `AsurDev/load_test/injectors/synthetic_scheduler.py:LL105 :: asurdev_load_test_injectors_synthetic_scheduler_py_injectors_synthetic_scheduler_syntheticscheduler_run_simulation`
-- **Target:** `AsurDev/load_test/injectors/synthetic_scheduler.py:L29 :: asurdev_load_test_injectors_synthetic_scheduler_py_injectors_synthetic_scheduler_jobresult`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:43:        # STEP 2: simulation sandbox
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:103:                horizon=60,  # 60-second simulation window
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:3:Digital Twin — deterministic forward simulation engine.
-    ```
-
-### INFERRED #calls-268
-- **Source:** `AsurDev/load_test/correction_loop/loop.py:LL139 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_cycle`
-- **Target:** `AsurDev/load_test/correction_loop/loop.py:L292 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_governance_approval`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ete/gate/governance_gate.py:25:    L8 + L9 mandatory gate. NO execution without approval.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/correction_loop/loop.py:306:            approved=False,  # Needs governance approval
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/correction_loop/loop.py:312:        """STEP 4: Route through v8 safety kernel for approval."""
-    ```
-
-### INFERRED #calls-269
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL183 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_configure_worker`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L25 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:56:    def ok():
-    ```
-
-### INFERRED #calls-270
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL140 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_ensure_up`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L127 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_reconnect_with_backoff`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/meta_rl/live_provider.py:134:        """Fetch with retry + exponential backoff."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/compiler/dag.py:49:    retry_policy: dict[str, Any] = field(default=lambda: {"max_retries": 3, "backoff": 2.0})
-    ```
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:145:                backoff = engine.BACKOFF_BASE**attempt
-    ```
-
-### INFERRED #calls-271
-- **Source:** `AsurDev/ml_engine/registry/model_registry.py:LL62 :: asurdev_ml_engine_registry_model_registry_py_registry_model_registry_modelregistry_register`
-- **Target:** `AsurDev/ml_engine/registry/model_registry.py:L38 :: asurdev_ml_engine_registry_model_registry_py_registry_model_registry_modelregistry_compute_hash`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:218:    print(f"  Valid change: weight 0.2 → 0.15, hash: {new_topo.hash}")
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:244:    print(f"  Current topology hash: {updater.current_topology.hash}")
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:245:    print(f"  Expected (after valid change): {new_topo.hash}")
-    ```
-
-### INFERRED #calls-272
-- **Source:** `AsurDev/job_engine/engine.py:LL108 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_reject`
-- **Target:** `AsurDev/job_engine/engine.py:L164 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:36:    sp = edge.get("source_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:37:    tp = edge.get("target_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:40:    sl = edge.get("source_line") or ""
-    ```
-
-### INFERRED #calls-273
-- **Source:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:LL114 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:L158 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_compute_metrics`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_auth.py:20:    pytest.skip("FastAPI metrics endpoint not yet implemented")
-    ```
-    ```
-    /home/workspace/tests/test_auth.py:39:    response = fastapi_client.get("/metrics")
-    ```
-    ```
-    /home/workspace/tests/test_metrics_cli.py:14:    """Проверяем, что команда 'karl metrics serve' доступна."""
-    ```
-
-### INFERRED #calls-274
-- **Source:** `AsurDev/failure_orchestrator/orchestrator.py:LL87 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_escalate`
-- **Target:** `AsurDev/failure_orchestrator/orchestrator.py:L38 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_load_escalation`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_docker_security.py:58:    # 5. Services must drop all capabilities and disable privilege escalation
-    ```
-    ```
-    /home/workspace/home-cluster-iac/l10_self_healing/orchestrator/failure_isolation.py:25:    HARD = auto()  # mandatory rollback + escalation
-    ```
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:111:            log.error(f"Telegram escalation failed: {e}")
-    ```
-
-### INFERRED #calls-275
-- **Source:** `AsurDev/astrofin/gateway/submission.py:LL107 :: asurdev_astrofin_gateway_submission_py_gateway_submission_main`
-- **Target:** `AsurDev/astrofin/gateway/submission.py:L20 :: asurdev_astrofin_gateway_submission_py_gateway_submission_acossubmissiongateway`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/meta_rl/cli.py:206:def main() -> int:
-    ```
-    ```
-    /home/workspace/meta_rl/cli.py:236:    sys.exit(main())
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:50:def main() -> None:
-    ```
-
-### INFERRED #calls-276
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL96 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_slurm_node_state`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:180:            query = " ".join(headlines[:3]) + " " + query
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:187:            results = await rag.search(query, top_k=3)
-    ```
-
-### INFERRED #calls-277
-- **Source:** `AsurDev/job_engine/engine.py:LL105 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_admit`
-- **Target:** `AsurDev/job_engine/engine.py:L151 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_transition`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/cycle_agent.py:24:    2. Identify cycle phase (up/down/transition)
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:78:    This is the CORE of the transition from SkillMD to MAS Factory.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:107:        State transition per step:
-    ```
-
-### INFERRED #calls-278
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL220 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_main`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L169 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_configure_worker`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:99:    log.warning(f"Recovery: restarting Ray worker on {node}")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:107:        return True, f"ray worker started on {node}"
-    ```
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:108:    return False, f"ray worker start failed on {node}: {msg}"
-    ```
-
-### INFERRED #calls-279
-- **Source:** `AsurDev/acos_cli.py:LL97 :: asurdev_acos_cli_acoscli_submit`
-- **Target:** `AsurDev/acos_cli.py:L144 :: asurdev_acos_cli_acoscli_record`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:88:    m.record("resolver_a", latency=0.1, success=True, quality=0.95)
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:89:    m.record("resolver_a", latency=0.2, success=False, quality=0.0)
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:90:    m.record("resolver_b", latency=0.3, success=True, quality=0.8)
-    ```
-
-### INFERRED #calls-280
-- **Source:** `AsurDev/ete/store/trace_store.py:LL135 :: asurdev_ete_store_trace_store_py_store_trace_store_tracestore_load`
-- **Target:** `AsurDev/ete/store/trace_store.py:L48 :: asurdev_ete_store_trace_store_py_store_trace_store_executiontrace`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:62:def load() -> tuple[dict, list, list]:
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:63:    g = json.load(open(GRAPH))
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:66:    raw_sample = json.load(open(SAMPLE))
-    ```
-
-### INFERRED #calls-281
-- **Source:** `AsurDev/acos_correction/rca_engine.py:LL94 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_analyze`
-- **Target:** `AsurDev/acos_correction/rca_engine.py:L139 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_root_cause`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/acos_correction/rca_engine.py:91:        # Determine root cause
-    ```
-    ```
-    /home/workspace/home-cluster-iac/acos_correction/rca_engine.py:168:        return causes.get(scenario, f"Unknown cause: {cause_type.value}")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/acos_correction/rca_engine.py:253:        print(f"[RCA] Root cause: {rca.root_cause}")
-    ```
-
-### INFERRED #calls-282
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL146 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_update_hosts`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L19 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-283
-- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL183 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_testswissephemerissanity_test_earth_one_year_return`
-- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L26 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_angular_sep`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
-    ```
-
-### INFERRED #calls-284
-- **Source:** `AsurDev/astrofin/gateway/submission.py:LL112 :: asurdev_astrofin_gateway_submission_py_gateway_submission_main`
-- **Target:** `AsurDev/astrofin/gateway/submission.py:L30 :: asurdev_astrofin_gateway_submission_py_gateway_submission_acossubmissiongateway_submit`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer_api.py:134:            pool.submit(_sim_wrapper, twin, req.cluster_state, a, req.ml_predictions, req.timeout_ms)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer_api.py:170:            pool.submit(_sim_wrapper, twin, req.cluster_state, a, req.ml_predictions, req.horizon_minutes)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/unit/test_determinism.py:82:    """Test 3: Deduplication — scheduler must not double-submit."""
-    ```
-
-### INFERRED #calls-285
-- **Source:** `AsurDev/l9_ebl/capabilities/registry.py:LL117 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_enforce`
-- **Target:** `AsurDev/l9_ebl/capabilities/registry.py:L98 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_executioncontext_check`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_update_progress.py:42:    subprocess.run(["git", "init"], check=False)
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:43:    subprocess.run(["git", "config", "user.email", "test@test.com"], check=False)
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:44:    subprocess.run(["git", "config", "user.name", "Test"], check=False)
-    ```
-
-### INFERRED #calls-286
-- **Source:** `AsurDev/feature_pipeline/pipeline.py:LL177 :: asurdev_feature_pipeline_pipeline_py_feature_pipeline_pipeline_main`
-- **Target:** `AsurDev/feature_pipeline/pipeline.py:L115 :: asurdev_feature_pipeline_pipeline_py_feature_pipeline_pipeline_run_embedding`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_ollama.py:18:    mock_response.read.return_value = json.dumps({"embedding": fake_embedding}).encode()
-    ```
-    ```
-    /home/workspace/scripts/architecture_linter.py:346:# ─── Library API (used by tests and embedding) ────────────────
-    ```
-    ```
-    /home/workspace/scripts/architecture_linter.py:467:# ─── Library API (used by tests and embedding) ────────────────
-    ```
-
-### INFERRED #calls-287
-- **Source:** `AsurDev/failure_orchestrator/detectors.py:LL153 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_all_detectors`
-- **Target:** `AsurDev/failure_orchestrator/detectors.py:L49 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_ceph_health_degraded`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/agent_test_base.py:137:        """If a data source raises, the response is degraded with a machine reason."""
-    ```
-    ```
-    /home/workspace/tests/agent_test_base.py:143:        #   assert response.metadata.get("degraded") is True
-    ```
-    ```
-    /home/workspace/tests/agent_test_base.py:149:        """@require_ephemeris must convert to a degraded response, not a crash."""
-    ```
-
-### INFERRED #calls-288
-- **Source:** `AsurDev/load_test/scenarios/solver_latency/test.py:LL101 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_solverlatencyscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/solver_latency/test.py:L146 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_solverlatencyscenario_simulate_after_fix`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/mas_factory/engine.py:3:from mas_factory.registry import get_agent_runner  # F821 fix
-    ```
-    ```
-    /home/workspace/mas_factory/engine.py:145:        errors = 0  # F821 fix
-    ```
-    ```
-    /home/workspace/meta_rl/trading_bridge.py:2:META_RL_TRADING_ENABLED = False  # F821 fix (TODO: move to config)
-    ```
-
-### INFERRED #calls-289
-- **Source:** `AsurDev/ete/compiler/dag.py:LL67 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile`
-- **Target:** `AsurDev/ete/compiler/dag.py:L88 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_batch_job`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:140:            job = JobState(
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:149:            state.jobs[job.job_id] = job
-    ```
-
-### INFERRED #calls-290
-- **Source:** `AsurDev/feature_pipeline/builder.py:LL109 :: asurdev_feature_pipeline_builder_py_feature_pipeline_builder_featurebuilder_build`
-- **Target:** `AsurDev/feature_pipeline/builder.py:L53 :: asurdev_feature_pipeline_builder_py_feature_pipeline_builder_featurebuilder_query_tsdb`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:85:        self.tsdb = tsdb_client  # TimescaleDB client for historical drift
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/recorder/trace_recorder.py:27:        self.tsdb = tsdb_client
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/recorder/trace_recorder.py:38:        if self.tsdb:
-    ```
-
-### INFERRED #calls-291
-- **Source:** `AsurDev/ml_engine/inference/predictor.py:LL95 :: asurdev_ml_engine_inference_predictor_py_inference_predictor_predictor_predict`
-- **Target:** `AsurDev/ml_engine/inference/predictor.py:L136 :: asurdev_ml_engine_inference_predictor_py_inference_predictor_predictor_recommend`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v7/meta_learner/meta_learner.py:51:    def recommend(
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v7/meta_learner/meta_learner.py:107:        recs = self.recommend(workload_type, cluster_state_class)
-    ```
-    ```
-    /home/workspace/AsurDev/v7/meta_learner/meta_learner.py:50:    def recommend(
-    ```
-
-### INFERRED #calls-292
-- **Source:** `AsurDev/job_engine/engine.py:LL113 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_schedule`
-- **Target:** `AsurDev/job_engine/engine.py:L164 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:32:SAMPLE = Path(os.environ.get("INFERRED_SAMPLE") or
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:51:            "source": e.get("source_node_id", e.get("source", "")),
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:52:            "target": e.get("target_node_id", e.get("target", "")),
-    ```
-
-### INFERRED #calls-293
-- **Source:** `AsurDev/scheduler_v3/api.py:LL60 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_engine`
-- **Target:** `AsurDev/scheduler_v3/api.py:L43 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_store`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/meta_rl/strategy_pool.py:315:        # version via a length check because we don't store the version
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:182:        self._final_elites = final_elites  # store for get_best_strategy()
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/rollback/engine.py:64:        1. load snapshot from state store
-    ```
-
-### INFERRED #calls-294
-- **Source:** `AsurDev/failure_orchestrator/orchestrator.py:LL125 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_run_cycle`
-- **Target:** `AsurDev/failure_orchestrator/orchestrator.py:L24 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_load_state`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_v2.py:117:        state = engine.get_state()
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:118:        assert not math.isnan(state.total_equity)
-    ```
-    ```
-    /home/workspace/tests/agent_test_base.py:62:    ``self.agent_class()`` so per-test state never leaks.
-    ```
-
-### INFERRED #calls-295
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL174 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_configure_worker`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L26 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_warn`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_agents_md.py:31:    assert "_archived" in content, "Should warn about archived modules"
-    ```
-    ```
-    /home/workspace/meta_rl/test_reward.py:59:        Without this, ``__post_init__`` would warn every time the default
-    ```
-    ```
-    /home/workspace/meta_rl/test_reward.py:68:        """Constructing RewardConfig() must not warn."""
-    ```
-
-### INFERRED #calls-296
-- **Source:** `AstroFinSentinelV5/tests/test_rag_agent_integration.py:LL38 :: astrofinsentinelv5_tests_test_rag_agent_integration_py_tests_test_rag_agent_integration_test_build_prompt_no_rag_when_disabled`
-- **Target:** `AstroFinSentinelV5/tests/test_rag_agent_integration.py:L7 :: astrofinsentinelv5_tests_test_rag_agent_integration_py_tests_test_rag_agent_integration_mockagent`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_rag_agent_integration.py
-    ```
-
-### INFERRED #calls-297
-- **Source:** `AsurDev/acos/cli/monitor.py:LL71 :: asurdev_acos_cli_monitor_py_cli_monitor_cmd_status`
-- **Target:** `AsurDev/acos/cli/monitor.py:L30 :: asurdev_acos_cli_monitor_py_cli_monitor_check_port`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_metrics_cli.py:22:    assert "--port" in result.stdout, "Should have --port option"
-    ```
-    ```
-    /home/workspace/scripts/validate_docker_security.py:56:                    errors.append(f"{svc_name}: port {port_str} is not bound to 127.0.0.1")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/scheduler_v3/api.py:191:    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="info")
-    ```
-
-### INFERRED #calls-298
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL211 :: archived_synthesis_agent_synthesisagent_run`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L412 :: archived_synthesis_agent_synthesisagent_format_breakdown`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-299
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL132 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_get_node_metrics`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L88 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_slurm_queue_depth`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:251:                "depth": 0,
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/karl_optimizer.py:5:"""Optimizations for KARL loop: parallel processing, TTC depth, reduced overhead."""
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/karl_optimizer.py:113:        """Dynamically adjust TTC (Time To Commit) depth based on conditions."""
-    ```
-
-### INFERRED #calls-300
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL105 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_add_constraint`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L74 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_policyblock`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/constraint_compiler/compiler.py:52:            raise ValueError(f"Invalid constraint expr: {expr}")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/constraint_compiler/compiler.py:108:    def register(self, constraint: CompiledConstraint) -> None:
-    ```
-
-### INFERRED #calls-301
-- **Source:** `AsurDev/ai_scheduler/modules/policy.py:LL40 :: asurdev_ai_scheduler_modules_policy_py_modules_policy_select_node`
-- **Target:** `AsurDev/ai_scheduler/modules/policy.py:L57 :: asurdev_ai_scheduler_modules_policy_py_modules_policy_node_to_partition`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:224:        path_line, _, node_id = s.partition("::")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/constraint_engine/engine.py:38:    partition: str
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/constraint_engine/engine.py:101:        if placement.partition not in self._node_partitions.get(nid, []):
-    ```
-
-### INFERRED #calls-302
-- **Source:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:LL98 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:L124 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_make_decision`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:247:        # Trajectories (simplified — just current decision)
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:354:                    decision=record,
-    ```
-    ```
-    /home/workspace/agents/_impl/compromise_agent.py:15:        outcomes AND the conditions under which the decision flips
-    ```
-
-### INFERRED #calls-303
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL341 :: archived_synthesis_agent_synthesisagent_synthesize`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L344 :: archived_synthesis_agent_synthesisagent_vote`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-304
-- **Source:** `AsurDev/scripts/day5-ray.sh:LL42 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_start_head`
-- **Target:** `AsurDev/scripts/day5-ray.sh:L20 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
-    ```
-
-### INFERRED #calls-305
-- **Source:** `AsurDev/scheduler_v3/scorer.py:LL57 :: asurdev_scheduler_v3_scorer_py_scheduler_v3_scorer_score_and_select`
-- **Target:** `AsurDev/scheduler_v3/scorer.py:L97 :: asurdev_scheduler_v3_scorer_py_scheduler_v3_scorer_compute_score`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:106:    headers = ["rank", "score", "tier", "cat", "verdict", "ovr", "src → tgt"]
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:157:    print(f"  score range:   min={min(scores):.4f}  "
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:170:    ap.add_argument("--min-score", type=float, help="minimum recall_score")
-    ```
-
-### INFERRED #calls-306
-- **Source:** `AsurDev/scripts/day2-vpn.sh:LL56 :: home_workspace_asurdev_scripts_day2_vpn_sh__entry`
-- **Target:** `AsurDev/scripts/day2-vpn.sh:L34 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_command_exists`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:84:    if not inp.exists():
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:40:    if not INGEST.exists():
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:15:  moved     — entity exists but in a different file (give the new path)
-    ```
-
-### INFERRED #calls-307
-- **Source:** `AsurDev/feature_pipeline/window_engine.py:LL196 :: asurdev_feature_pipeline_window_engine_py_feature_pipeline_window_engine_windowengine_get_window_data`
-- **Target:** `AsurDev/feature_pipeline/window_engine.py:L142 :: asurdev_feature_pipeline_window_engine_py_feature_pipeline_window_engine_slidingwindow_get_values`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_kepler.py:118:        # Result is mod 360, so compare normalized values
-    ```
-    ```
-    /home/workspace/tests/test_astro_council_integration.py:22:        for agent in council.agents.values():
-    ```
-    ```
-    /home/workspace/tests/test_astro_council_integration.py:30:        for agent in council.agents.values():
-    ```
-
-### INFERRED #calls-308
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL96 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_init_population`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L16 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/quant_agent.py:2:Quant Agent — backtesting, strategy optimization, ML predictions.
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/audit.py:160:# Lightweight record for Meta-RL strategy discovery audit trail.
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/audit.py:170:    ATOM-META-RL-006: Lightweight audit record for Meta-RL strategy evaluations.
-    ```
-
-### INFERRED #calls-309
-- **Source:** `AsurDev/feature_pipeline/exporter.py:LL165 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_build_dataset`
-- **Target:** `AsurDev/feature_pipeline/exporter.py:L97 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_get_label`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/technical_agent.py:273:            label = "oversold" if rsi < 40 else "overbought" if rsi > 60 else "neutral"
-    ```
-    ```
-    /home/workspace/agents/_impl/technical_agent.py:274:            parts.append(f"RSI(14)={rsi:.1f} ({label})")
-    ```
-    ```
-    /home/workspace/agents/_impl/technical_agent.py:281:            label = "lower" if pos < 0.3 else "upper" if pos > 0.7 else "middle"
-    ```
-
-### INFERRED #calls-310
-- **Source:** `AsurDev/dag_validator/validator.py:LL63 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_validate`
-- **Target:** `AsurDev/dag_validator/validator.py:L131 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_check_side_effects`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:138:        # Apply action effects
-    ```
-    ```
-    /home/workspace/home-cluster-iac/governance.py:144:        findings.append(f"{len(lt_se)} lt side effects")
-    ```
-    ```
-    /home/workspace/atom-federation-os/federation/trust_weighted/trust_dynamics_stabilizer.py:17:  Monotonicity    If trust_i ↑ → influence ↑ (no side effects)
-    ```
-
-### INFERRED #calls-311
-- **Source:** `AsurDev/job_engine/engine.py:LL158 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_transition`
-- **Target:** `AsurDev/job_engine/engine.py:L194 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_on_state_change`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_integration.py:129:        """Zero notional → allowed (edge case: no position change)."""
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:53:    # Apply change
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:54:    change = TopologyChange.create(
-    ```
-
-### INFERRED #calls-312
-- **Source:** `AsurDev/ml_engine/registry/model_registry.py:LL85 :: asurdev_ml_engine_registry_model_registry_py_registry_model_registry_modelregistry_register`
-- **Target:** `AsurDev/ml_engine/registry/model_registry.py:L34 :: asurdev_ml_engine_registry_model_registry_py_registry_model_registry_modelregistry_save_index`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:136:    # Generation index on stats should be monotonic.
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/karl_integration.py:63:                fallback_symbol="QQQ",  # Tech index as proxy
-    ```
-    ```
-    /home/workspace/agents/_impl/bradley_agent.py:22:    1. Calculate Bradley seasonality index
-    ```
-
-### INFERRED #calls-313
-- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL208 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_testswissephemerissanity_test_saturn_no_teleportation`
-- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L26 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_angular_sep`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
-    ```
-
-### INFERRED #calls-314
-- **Source:** `AsurDev/scheduler_v3/api.py:LL117 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_schedule`
-- **Target:** `AsurDev/scheduler_v3/api.py:L43 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_store`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/meta_rl/strategy_pool.py:315:        # version via a length check because we don't store the version
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:182:        self._final_elites = final_elites  # store for get_best_strategy()
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/rollback/engine.py:64:        1. load snapshot from state store
-    ```
-
-### INFERRED #calls-315
-- **Source:** `AsurDev/ete/compiler/constraint_compiler.py:LL32 :: asurdev_ete_compiler_constraint_compiler_py_compiler_constraint_compiler_constraintcompiler_inject`
-- **Target:** `AsurDev/ete/compiler/constraint_compiler.py:L57 :: asurdev_ete_compiler_constraint_compiler_py_compiler_constraint_compiler_constraintcompiler_make_post_guard`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/_template_agent_test.py:189:    """The dataclass itself must guard its invariants."""
-    ```
-    ```
-    /home/workspace/agents/_impl/compromise_agent.py:179:        # (mirrors SynthesisAgent's V-07 guard).
-    ```
-    ```
-    /home/workspace/agents/_impl/compromise_agent.py:242:        except Exception as e:  # noqa: BLE001 — last-resort guard
-    ```
-
-### INFERRED #calls-316
-- **Source:** `AsurDev/load_test/correction_loop/loop.py:LL129 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_cycle`
-- **Target:** `AsurDev/load_test/correction_loop/loop.py:L164 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_detect_signals`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:33:            "Real agents should not produce synthetic momentum signals"
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:171:                "reasoning": "Synthesis: mixed signals",
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:103:        "signals": [
-    ```
-
-### INFERRED #calls-317
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL132 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_reproduce`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L30 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy_mutate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/meta_rl/meta_agent.py:203:        from strategies.generator import GeneratedStrategy, crossover, mutate
-    ```
-    ```
-    /home/workspace/meta_rl/meta_agent.py:216:                chrom = mutate(chrom, rate=self.config.mutation_rate)
-    ```
-    ```
-    /home/workspace/meta_rl/meta_agent.py:233:                chrom = mutate(dict(p.strategy.chromosome), rate=self.config.mutation_rate * 2)
-    ```
-
-### INFERRED #calls-318
-- **Source:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:LL220 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_run_all`
-- **Target:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:L31 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:9:  - Read all edges from inferred_clean.jsonl
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:113:    # 3. target node has no source_file at all (parser bug — same family as KI-014)
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:32:        assert all("momentum=" not in t.signal_reasoning for t in result.trades), (
-    ```
-
-### INFERRED #calls-319
-- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL435 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator_test_print_report_quiet`
-- **Target:** `integrations/gitagent/validators/agent_validator.py:L17 :: validators_agent_validator_validationissue`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/atom-federation-os/sbs/cli.py:3:Rich output, auto-completion, --json, -v/-vv/--quiet.
-    ```
-    ```
-    /home/workspace/atom-federation-os/sbs/cli.py:46:quiet_opt = typer.Option(False, "--quiet", "-q", help="Suppress all output")
-    ```
-    ```
-    /home/workspace/atom-federation-os/sbs/cli.py:55:    quiet: bool = quiet_opt,
-    ```
-
-### INFERRED #calls-320
-- **Source:** `AsurDev/failure_orchestrator/orchestrator.py:LL141 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_run_cycle`
-- **Target:** `AsurDev/failure_orchestrator/orchestrator.py:L64 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_recoveryengine_record_attempt`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/ralph_agent.py:106:    for attempt in range(1, MAX_RETRIES + 1):
-    ```
-    ```
-    /home/workspace/scripts/ralph_agent.py:107:        print(f"\n🔄 Попытка {attempt}/{MAX_RETRIES}")
-    ```
-    ```
-    /home/workspace/scripts/ralph_agent.py:109:        stash_cmd = f"git stash push -m 'ralph-attempt-{attempt}'"
-    ```
-
-### INFERRED #calls-321
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL173 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_latency_sla`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L41 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_constraint_make_id`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:93:    """Last 2 components of the node id — usually enough for disambiguation."""
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:64:    nodes = {n["id"]: n for n in g["nodes"]}
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:98:    src_label = edge["source"].rsplit("_", 1)[-1]   # last segment of node id
-    ```
-
-### INFERRED #calls-322
-- **Source:** `AsurDev/failure_orchestrator/detectors.py:LL156 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_all_detectors`
-- **Target:** `AsurDev/failure_orchestrator/detectors.py:L129 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_gpu_available`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:112:            "available": len(edges),
-    ```
-    ```
-    /home/workspace/tests/test_kepler_differential.py:178:    @pytest.mark.skipif(not HAS_SWISS, reason="Swiss not available")
-    ```
-    ```
-    /home/workspace/tests/test_kepler_differential.py:187:    @pytest.mark.skipif(not HAS_SWISS, reason="Swiss not available")
-    ```
-
-### INFERRED #calls-323
-- **Source:** `AsurDev/scripts/day5-ray.sh:LL85 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_start_workers`
-- **Target:** `AsurDev/scripts/day5-ray.sh:L21 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-324
-- **Source:** `AsurDev/failure_orchestrator/orchestrator.py:LL140 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_run_cycle`
-- **Target:** `AsurDev/failure_orchestrator/orchestrator.py:L60 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_recoveryengine_should_retry`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_http_client.py:52:        # Передаём retry вручную (будет реализовано в методе)
-    ```
-    ```
-    /home/workspace/tests/test_http_client.py:53:        # Пока проверяем только сам retry-механизм — его нужно будет добавить в клиент
-    ```
-    ```
-    /home/workspace/tests/test_http_client.py:54:        pass  # этот тест написан для будущей реализации retry
-    ```
-
-### INFERRED #calls-325
-- **Source:** `AsurDev/ml_engine/inference/predictor.py:LL70 :: asurdev_ml_engine_inference_predictor_py_inference_predictor_predictor_predict`
-- **Target:** `AsurDev/ml_engine/inference/predictor.py:L110 :: asurdev_ml_engine_inference_predictor_py_inference_predictor_predictor_fetch_features`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:71:    """MetaAgent wired with a tiny population and slow features disabled."""
-    ```
-    ```
-    /home/workspace/agents/gitagent_exporter.py:101:        "description": "ML-based price prediction using historical patterns and features",
-    ```
-    ```
-    /home/workspace/agents/gitagent_exporter.py:103:        "inputs": ["price_history", "features", "regime"],
-    ```
-
-### INFERRED #calls-326
-- **Source:** `AsurDev/failure_orchestrator/detectors.py:LL151 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_all_detectors`
-- **Target:** `AsurDev/failure_orchestrator/detectors.py:L13 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_slurm_controller_down`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/self_question.py:43:    Each question tracks its historical accuracy — bad questions get weighted down.
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/test_lag_windowing.py:293:        r_spike = lw.add(confidence=30)  # spike down
-    ```
-    ```
-    /home/workspace/agents/_impl/ml_predictor_agent.py:67:        elif direction_pred["direction"] == "down":
-    ```
-
-### INFERRED #calls-327
-- **Source:** `AsurDev/ai_scheduler/scheduler_v2.py:LL91 :: asurdev_ai_scheduler_scheduler_v2_py_ai_scheduler_scheduler_v2_submit`
-- **Target:** `AsurDev/ai_scheduler/scheduler_v2.py:L20 :: asurdev_ai_scheduler_scheduler_v2_py_ai_scheduler_scheduler_v2_schedulerequest`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer_api.py:134:            pool.submit(_sim_wrapper, twin, req.cluster_state, a, req.ml_predictions, req.timeout_ms)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer_api.py:170:            pool.submit(_sim_wrapper, twin, req.cluster_state, a, req.ml_predictions, req.horizon_minutes)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/unit/test_determinism.py:82:    """Test 3: Deduplication — scheduler must not double-submit."""
-    ```
-
-### INFERRED #calls-328
-- **Source:** `AstroFinSentinelV5/tests/test_rag_agent_integration.py:LL20 :: astrofinsentinelv5_tests_test_rag_agent_integration_py_tests_test_rag_agent_integration_test_build_prompt_includes_rag_results`
-- **Target:** `AstroFinSentinelV5/tests/test_rag_agent_integration.py:L7 :: astrofinsentinelv5_tests_test_rag_agent_integration_py_tests_test_rag_agent_integration_mockagent`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_rag_agent_integration.py
-    ```
-
-### INFERRED #calls-329
-- **Source:** `AsurDev/load_test/observability/metrics.py:LL87 :: asurdev_load_test_observability_metrics_py_observability_metrics_metricscollector_collect`
-- **Target:** `AsurDev/load_test/observability/metrics.py:L140 :: asurdev_load_test_observability_metrics_py_observability_metrics_metricscollector_enrich_from_state_store`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/meta_rl/strategy_pool.py:315:        # version via a length check because we don't store the version
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:182:        self._final_elites = final_elites  # store for get_best_strategy()
-    ```
-    ```
-    /home/workspace/acos-contracts/acos_contracts/state.py:1:"""State-store and job-state protocols.
-    ```
-
-### INFERRED #calls-330
-- **Source:** `AsurDev/admission_controller/controller.py:LL105 :: asurdev_admission_controller_controller_py_admission_controller_controller_admissioncontroller_admit`
-- **Target:** `AsurDev/admission_controller/controller.py:L115 :: asurdev_admission_controller_controller_py_admission_controller_controller_admissioncontroller_check_memory`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:5:Implements the policy from docs/adr/ADR-0004-hybrid-memory-policy.md:
-    ```
-    ```
-    /home/workspace/tests/test_cache.py:12:    """Создаём экземпляр кэша (in‑memory, Redis не нужен)."""
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/idea_buffer_integration.py:106:    """Clear the in-memory buffer (for testing/reset)."""
-    ```
-
-### INFERRED #calls-331
-- **Source:** `AsurDev/failure_orchestrator/detectors.py:LL155 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_all_detectors`
-- **Target:** `AsurDev/failure_orchestrator/detectors.py:L100 :: asurdev_failure_orchestrator_detectors_py_failure_orchestrator_detectors_wireguard_peer_down`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/agent_test_base.py:138:        with patch.object(agent, self.data_method, side_effect=ConnectionError("data_room down")):
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:121:            raise RuntimeError("down")
-    ```
-    ```
-    /home/workspace/tests/_template_agent_test.py:126:    with patch.object(agent, "retrieve", side_effect=ConnectionError("data_room down")):
-    ```
-
-### INFERRED #calls-332
-- **Source:** `AsurDev/governance.py:LL137 :: asurdev_governance_run`
-- **Target:** `AsurDev/governance.py:L56 :: asurdev_governance_detect_dynamic`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/synthesis_agent.py:185:        # Compute dynamic risk_pct before synthesis so levels are volatility-aware
-    ```
-    ```
-    /home/workspace/agents/_impl/synthesis_agent.py:303:        # ─── 5. Entry zones, targets, stop (dynamic risk_pct) ──────────
-    ```
-    ```
-    /home/workspace/agents/_impl/synthesis_agent.py:555:        Uses dynamic risk_pct from VolatilityEngine (R-07):
-    ```
-
-### INFERRED #calls-333
-- **Source:** `AsurDev/job_engine/engine.py:LL159 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_transition`
-- **Target:** `AsurDev/job_engine/engine.py:L169 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_write_event`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:335:        4. Log the reset event
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/rollback/engine.py:112:        # STEP 2: build event
-    ```
-
-### INFERRED #calls-334
-- **Source:** `AsurDev/load_test/scenarios/governance_failure/test.py:LL47 :: asurdev_load_test_scenarios_governance_failure_test_py_governance_failure_test_run`
-- **Target:** `AsurDev/load_test/scenarios/governance_failure/test.py:L20 :: asurdev_load_test_scenarios_governance_failure_test_py_governance_failure_test_governancefailurescenario_simulate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:236:        # Manually call _apply_change_internal with bad change to simulate error
-    ```
-    ```
-    /home/workspace/bench/perf_debug.py:15:# Pre-build candidate vectors (simulate hot path)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:101:            return self.digital_twin.simulate(
-    ```
-
-### INFERRED #calls-335
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL190 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_test_slurm`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L24 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/audit.py:396:        logger.info(
-    ```
-
-### INFERRED #calls-336
-- **Source:** `AsurDev/lccp_v12.py:LL94 :: asurdev_lccp_v12_orch`
-- **Target:** `AsurDev/lccp_v12.py:L72 :: asurdev_lccp_v12_health`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_auth.py:33:    response = fastapi_client.get("/health")
-    ```
-    ```
-    /home/workspace/tests/e2e/test_api_endpoints.py:15:    rv = client.get("/health")
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:108:    health = m.health_check()
-    ```
-
-### INFERRED #calls-337
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL150 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_risk_profile`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L103 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_add_constraint`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
-    ```
-    ```
-    /home/workspace/home-cluster-iac/astrofin/constraint_compiler.py:104:    def add_constraint(self, block_id: str, constraint: Constraint) -> None:
-    ```
-    ```
-    /home/workspace/home-cluster-iac/astrofin/constraint_compiler.py:107:        self.blocks[block_id].constraints.append(constraint)
-    ```
-
-### INFERRED #calls-338
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL241 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_build_astrofin_policy`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L112 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_risk_profile`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/gitagent_exporter.py:119:        "sources": ["Price action", "Volume profile"],
-    ```
-    ```
-    /home/workspace/agents/_impl/technical_agent.py:196:        # Volume profile
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/karl_optimizer.py:17:    """Performance profile for KARL operations."""
-    ```
-
-### INFERRED #calls-339
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL198 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_test_slurm`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L26 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_warn`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_agents_md.py:31:    assert "_archived" in content, "Should warn about archived modules"
-    ```
-    ```
-    /home/workspace/meta_rl/test_reward.py:59:        Without this, ``__post_init__`` would warn every time the default
-    ```
-    ```
-    /home/workspace/meta_rl/test_reward.py:68:        """Constructing RewardConfig() must not warn."""
-    ```
-
-### INFERRED #calls-340
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL124 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_risk_profile`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L41 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_constraint_make_id`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:259:        assert "id" in exported[0]
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:118:        id = "always_fails"
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:124:        id = "always_succeeds"
-    ```
-
-### INFERRED #calls-341
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL212 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_main`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L128 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_create_gres_conf`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_orchestrator.py:133:        conf = rec.get("confidence")
-    ```
-    ```
-    /home/workspace/tests/test_orchestrator.py:134:        assert isinstance(conf, (int, float)), f"confidence is {type(conf)}: {conf}"  # noqa: UP038
-    ```
-    ```
-    /home/workspace/tests/test_orchestrator.py:135:        assert 0 <= conf <= 100, f"confidence={conf} out of range"
-    ```
-
-### INFERRED #calls-342
-- **Source:** `AsurDev/acos_correction/rca_engine.py:LL233 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_run_full_correction_cycle`
-- **Target:** `AsurDev/acos_correction/rca_engine.py:L69 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_analyze`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:529:        Periodic self-assessment — analyze drift, adjust KPIs.
-    ```
-    ```
-    /home/workspace/tests/test_metrics_cli.py:42:            "analyze",
-    ```
-    ```
-    /home/workspace/agents/metrics.py:26:            return await self.analyze(state)
-    ```
-
-### INFERRED #calls-343
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL194 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_compile`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L87 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_policyblock_to_executable`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:171:    proc = subprocess.run([sys.executable, str(VALIDATOR)], capture_output=True, text=True)
-    ```
-    ```
-    /home/workspace/tests/test_healthcheck.py:19:        [sys.executable, str(HEALTHCHECK)] + list(args),
-    ```
-    ```
-    /home/workspace/tests/architecture/test_validate_agent.py:23:        [sys.executable, str(VALIDATOR), "agents/_impl/_template_agent.py"],
-    ```
-
-### INFERRED #calls-344
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL129 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_get_node_metrics`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L48 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_mem_util`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:158:            # Resource decay: GPU util reverts toward baseline (0.3) at rate 0.05/step
-    ```
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/probabilistic.py:65:        # windows["rtx-node"]: RollingWindow for GPU util
-    ```
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/probabilistic.py:66:        # windows["rk3576"]: RollingWindow for CPU util
-    ```
-
-### INFERRED #calls-345
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL157 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_munge`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L19 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-346
-- **Source:** `AsurDev/failure_orchestrator/orchestrator.py:LL95 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_escalate`
-- **Target:** `AsurDev/failure_orchestrator/orchestrator.py:L47 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_save_escalation`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_docker_security.py:58:    # 5. Services must drop all capabilities and disable privilege escalation
-    ```
-    ```
-    /home/workspace/home-cluster-iac/l10_self_healing/orchestrator/failure_isolation.py:25:    HARD = auto()  # mandatory rollback + escalation
-    ```
-    ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:111:            log.error(f"Telegram escalation failed: {e}")
-    ```
-
-### INFERRED #calls-347
-- **Source:** `AsurDev/l11_verifier/verifier.py:LL124 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_post_execution`
-- **Target:** `AsurDev/l11_verifier/verifier.py:L43 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_failurereport`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:62:    "push/", "atom-federation-os/", "roma-execution-bridge/",
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:20:from trading.execution.sanity import (
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:311:            # TTC fallback: single-pass execution
-    ```
-
-### INFERRED #calls-348
-- **Source:** `AstroFinSentinelV5/tests/test_healthcheck.py:LL60 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_test_healthcheck_db_check`
-- **Target:** `AstroFinSentinelV5/tests/test_healthcheck.py:L14 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_run_healthcheck`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_healthcheck.py
-    ```
-
-### INFERRED #calls-349
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL138 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_create_gres_conf`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L25 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-350
-- **Source:** `AsurDev/monitoring/exporters/ceph/ceph_exporter.py:LL51 :: asurdev_monitoring_exporters_ceph_ceph_exporter_py_ceph_ceph_exporter_build_metrics`
-- **Target:** `AsurDev/monitoring/exporters/ceph/ceph_exporter.py:L32 :: asurdev_monitoring_exporters_ceph_ceph_exporter_py_ceph_ceph_exporter_get_ceph_pg_dump`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_validator.py:42:            yaml.dump(
-    ```
-    ```
-    /home/workspace/tests/test_validator.py:67:            yaml.dump(
-    ```
-    ```
-    /home/workspace/tests/test_validator.py:95:            yaml.dump(
-    ```
-
-### INFERRED #calls-351
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL146 :: archived_synthesis_agent_synthesisagent_run`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L247 :: archived_synthesis_agent_synthesisagent_get_signal_attr`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-352
-- **Source:** `AsurDev/constraint_compiler/parser/parser.py:LL144 :: asurdev_constraint_compiler_parser_parser_py_parser_parser_policyparser_parse_text`
-- **Target:** `AsurDev/constraint_compiler/parser/parser.py:L20 :: asurdev_constraint_compiler_parser_parser_py_parser_parser_constraint`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer.py:96:        sum(job for node in nodes) <= cap [capacity constraint]
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/ilp/or_ilp.py:27:    Uses scipy minimize with penalty method for constraint handling.
-    ```
-
-### INFERRED #calls-353
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL138 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_ensure_up`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L106 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_status`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:536:        if drift.get("status") == "degrading":
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:562:        """Get KARL system status."""
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:58:        status, size, msg = engine.pre_trade_check("BTC", 10_000, 0.15, "NORMAL")
-    ```
-
-### INFERRED #calls-354
-- **Source:** `AsurDev/scripts/day2-vpn.sh:LL77 :: home_workspace_asurdev_scripts_day2_vpn_sh__entry`
-- **Target:** `AsurDev/scripts/day2-vpn.sh:L32 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-355
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL131 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_get_node_metrics`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L62 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_network_latency`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/agent_test_base.py:176:    # ─── 7. hot latency budget ────────────────────────────────────
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:88:    m.record("resolver_a", latency=0.1, success=True, quality=0.95)
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:89:    m.record("resolver_a", latency=0.2, success=False, quality=0.0)
-    ```
-
-### INFERRED #calls-356
-- **Source:** `AsurDev/load_test/scenarios/ml_risk_ignored/test.py:LL46 :: asurdev_load_test_scenarios_ml_risk_ignored_test_py_ml_risk_ignored_test_mlriskignoredscenario_generate_nodes`
-- **Target:** `AsurDev/load_test/scenarios/ml_risk_ignored/test.py:L12 :: asurdev_load_test_scenarios_ml_risk_ignored_test_py_ml_risk_ignored_test_node`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:93:    """Last 2 components of the node id — usually enough for disambiguation."""
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:98:    src_label = edge["source"].rsplit("_", 1)[-1]   # last segment of node id
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:113:    # 3. target node has no source_file at all (parser bug — same family as KI-014)
-    ```
-
-### INFERRED #calls-357
-- **Source:** `AsurDev/load_test/reporters/markdown.py:LL66 :: asurdev_load_test_reporters_markdown_py_reporters_markdown_generate_report`
-- **Target:** `AsurDev/load_test/reporters/markdown.py:L11 :: asurdev_load_test_reporters_markdown_py_reporters_markdown_format_result`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:30:        result = await engine.run(start_date="2025-01-01", end_date="2025-01-10", use_real_agents=True)
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:32:        assert all("momentum=" not in t.signal_reasoning for t in result.trades), (
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:54:        result = await engine.run("2025-01-01", "2025-01-10", use_real_agents=True)
-    ```
-
-### INFERRED #calls-358
-- **Source:** `AsurDev/l11_verifier/verifier.py:LL152 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_full_pipeline`
-- **Target:** `AsurDev/l11_verifier/verifier.py:L135 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_verify_invariants`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/_template_agent_test.py:189:    """The dataclass itself must guard its invariants."""
-    ```
-    ```
-    /home/workspace/tests/test_kepler_property.py:5:Covers: orbital mechanics invariants, convergence, periodicity, no NaN across
-    ```
-    ```
-    /home/workspace/meta_rl/test_reward.py:54:    """RewardConfig invariants and warning behaviour."""
-    ```
-
-### INFERRED #calls-359
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL440 :: archived_synthesis_agent_synthesisagent_collect_sources`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L247 :: archived_synthesis_agent_synthesisagent_get_signal_attr`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-360
-- **Source:** `AsurDev/load_test/scenarios/solver_latency/test.py:LL150 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_solverlatencyscenario_simulate_after_fix`
-- **Target:** `AsurDev/load_test/scenarios/solver_latency/test.py:L105 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_solverlatencyscenario_simulate_job`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:140:            job = JobState(
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:149:            state.jobs[job.job_id] = job
-    ```
-
-### INFERRED #calls-361
-- **Source:** `AsurDev/load_test/scenarios/governance_failure/test.py:LL46 :: asurdev_load_test_scenarios_governance_failure_test_py_governance_failure_test_run`
-- **Target:** `AsurDev/load_test/scenarios/governance_failure/test.py:L15 :: asurdev_load_test_scenarios_governance_failure_test_py_governance_failure_test_governancefailurescenario`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-362
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL238 :: home_workspace_asurdev_scripts_day4_slurm_sh__entry`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L204 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_main`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_v2.py:277:    pytest.main([__file__, "-v", "--tb=short"])
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:415:    pytest.main([__file__, "-v"])
-    ```
-    ```
-    /home/workspace/tests/test_validator.py:461:    pytest.main([__file__, "-v", "--tb=short"])
-    ```
-
-### INFERRED #calls-363
-- **Source:** `AsurDev/ete/recorder/trace_recorder.py:LL54 :: asurdev_ete_recorder_trace_recorder_py_recorder_trace_recorder_tracerecorder_list`
-- **Target:** `AsurDev/ete/recorder/trace_recorder.py:L50 :: asurdev_ete_recorder_trace_recorder_py_recorder_trace_recorder_tracerecorder_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/diagnose_relations.py:26:for rel, count in Counter(e.get("relation") for e in edges).most_common():
-    ```
-    ```
-    /home/workspace/graphify-out/diagnose_relations.py:30:for v, count in Counter(e.get("verdict") for e in edges).most_common():
-    ```
-    ```
-    /home/workspace/graphify-out/diagnose_relations.py:34:for t, count in Counter(e.get("tier") for e in edges).most_common():
-    ```
-
-### INFERRED #calls-364
-- **Source:** `AsurDev/load_test/workload/generator.py:LL112 :: asurdev_load_test_workload_generator_py_workload_generator_workloadgenerator_generate`
-- **Target:** `AsurDev/load_test/workload/generator.py:L15 :: asurdev_load_test_workload_generator_py_workload_generator_job`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:140:            job = JobState(
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:149:            state.jobs[job.job_id] = job
-    ```
-
-### INFERRED #calls-365
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL158 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_agent_policy`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L31 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_constraint`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/optimizer.py:96:        sum(job for node in nodes) <= cap [capacity constraint]
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/solver/ilp/or_ilp.py:27:    Uses scipy minimize with penalty method for constraint handling.
-    ```
-
-### INFERRED #calls-366
-- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL432 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator_test_print_report_quiet`
+### INFERRED #calls-26
+- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL451 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator_test_print_report_all_pass`
 - **Target:** `integrations/gitagent/validators/agent_validator.py:L26 :: validators_agent_validator_validationresult`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
 - **Verdict:** **ambiguous**
@@ -5836,852 +444,16 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/atom-federation-os/sbs/cli.py:3:Rich output, auto-completion, --json, -v/-vv/--quiet.
+    /home/workspace/graphify-out/infer_edges.py:299:                    pass
     ```
     ```
-    /home/workspace/atom-federation-os/sbs/cli.py:46:quiet_opt = typer.Option(False, "--quiet", "-q", help="Suppress all output")
+    /home/workspace/agents/metrics.py:153:            pass
     ```
     ```
-    /home/workspace/atom-federation-os/sbs/cli.py:55:    quiet: bool = quiet_opt,
-    ```
-
-### INFERRED #calls-367
-- **Source:** `AsurDev/ete/recorder/trace_recorder.py:LL36 :: asurdev_ete_recorder_trace_recorder_py_recorder_trace_recorder_tracerecorder_record`
-- **Target:** `AsurDev/ete/recorder/trace_recorder.py:L44 :: asurdev_ete_recorder_trace_recorder_py_recorder_trace_recorder_tracerecorder_record_ceph`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/governance.py:173:                for kw in ["slurm", "kubectl", "ceph", "docker", "systemctl"]:
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/recorder/trace_recorder.py:26:        self.ceph = ceph_client
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/recorder/trace_recorder.py:36:        if self.ceph:
+    /home/workspace/agents/karl_synthesis.py:359:                pass  # Non-fatal
     ```
 
-### INFERRED #calls-368
-- **Source:** `AsurDev/load_test/orchestrator/__main__.py:LL97 :: asurdev_load_test_orchestrator_main_py_orchestrator_main_main`
-- **Target:** `AsurDev/load_test/orchestrator/__main__.py:L38 :: asurdev_load_test_orchestrator_main_py_orchestrator_main_compute_tag_stats`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:136:            f"{rel}|same={sf}": stats
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:137:            for (rel, sf), stats in sorted(bucket_stats.items())
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:132:    """Print distribution stats to help spot rank composition."""
-    ```
-
-### INFERRED #calls-369
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL188 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_main`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L135 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_update_hosts`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/roma-execution-bridge/config/crd/controller/operator.py:117:                "hosts": [f"{subdomain}.{domain}", domain],
-    ```
-
-### INFERRED #calls-370
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL129 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_python_ml`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L19 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-371
-- **Source:** `AsurDev/ml_engine/models/load_model.py:LL92 :: asurdev_ml_engine_models_load_model_py_models_load_model_loadxgboost_predict_memory`
-- **Target:** `AsurDev/ml_engine/models/load_model.py:L79 :: asurdev_ml_engine_models_load_model_py_models_load_model_loadxgboost_predict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/cycle_agent.py:42:        Analyze cycle position and predict next turning point.
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:51:    intent_type: str  # "analyze" | "compare" | "predict" | "backtest"
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:174:        elif any(w in lower for w in ["predict", "forecast", "will"]):
-    ```
-
-### INFERRED #calls-372
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL158 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_start_controller`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L24 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:246:KARL_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("karl", False)}
-    ```
-
-### INFERRED #calls-373
-- **Source:** `AsurDev/acos/validator/contract_validator.py:LL90 :: asurdev_acos_validator_contract_validator_py_validator_contract_validator_dagvalidator_validate_dag`
-- **Target:** `AsurDev/acos/validator/contract_validator.py:L13 :: asurdev_acos_validator_contract_validator_py_validator_contract_validator_eventtype`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replay_engine.py:30:        dag = trace["dag"]
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replay_engine.py:37:        replayed = self.engine.execute(dag, context)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:36:    def schedule(self, dag: dict, context: dict) -> dict:
-    ```
-
-### INFERRED #calls-374
-- **Source:** `AsurDev/acos/state/reducer.py:LL47 :: asurdev_acos_state_reducer_py_state_reducer_statereducer_apply`
-- **Target:** `AsurDev/acos/state/reducer.py:L18 :: asurdev_acos_state_reducer_py_state_reducer_payload_to_dict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:34:def is_same_file(edge: dict) -> bool:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:88:    buckets: dict[tuple[str, bool], list[dict]] = defaultdict(list)
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:103:    sampled: list[dict] = []
-    ```
-
-### INFERRED #calls-375
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL136 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_update_hosts`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L18 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/audit.py:396:        logger.info(
-    ```
-
-### INFERRED #calls-376
-- **Source:** `AsurDev/acos/cli/monitor.py:LL122 :: asurdev_acos_cli_monitor_py_cli_monitor_main`
-- **Target:** `AsurDev/acos/cli/monitor.py:L78 :: asurdev_acos_cli_monitor_py_cli_monitor_cmd_switch`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_v2.py:4:  1. Drawdown kill switch triggers at threshold
-    ```
-    ```
-    /home/workspace/tests/test_risk_integration.py:64:        """Kill switch active → ModeEnforcer/RiskEngine still check (REJECTED or APPROVED)."""
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:46:    switch = topo.switch_nodes[0]
-    ```
-
-### INFERRED #calls-377
-- **Source:** `AsurDev/acos/cli/monitor.py:LL124 :: asurdev_acos_cli_monitor_py_cli_monitor_main`
-- **Target:** `AsurDev/acos/cli/monitor.py:L22 :: asurdev_acos_cli_monitor_py_cli_monitor_load_config`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:14:  - manual overrides from config/memory_overrides.json
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:20:  - /home/workspace/config/memory_overrides.json
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:41:OVERRIDES_JSON = REPO_ROOT / "config" / "memory_overrides.json"
-    ```
-
-### INFERRED #calls-378
-- **Source:** `AsurDev/feature_pipeline/window_engine.py:LL189 :: asurdev_feature_pipeline_window_engine_py_feature_pipeline_window_engine_windowengine_push`
-- **Target:** `AsurDev/feature_pipeline/window_engine.py:L180 :: asurdev_feature_pipeline_window_engine_py_feature_pipeline_window_engine_windowengine_get_or_create_window`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_karl_synthesis_lag.py:63:        "count": 25,  # mature window
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:200:        # Risk control via position_lag (only when window is mature)
-    ```
-    ```
-    /home/workspace/agents/_impl/time_window_agent.py:80:            f"4H window: {window_4h['summary']}. "
-    ```
-
-### INFERRED #calls-379
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL70 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_ceph_osd_latency`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-380
-- **Source:** `AsurDev/acos_correction/rca_engine.py:LL227 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_run_full_correction_cycle`
-- **Target:** `AsurDev/acos_correction/rca_engine.py:L54 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_run_scenario`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/load_test/correction_loop/loop.py:82:        1. REQUEST   — load scenario + system state
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/workload/generator.py:135:            raise ValueError(f"Unknown scenario: {scenario_name}")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/workload/generator.py:136:        scenario = SCENARIOS[scenario_name]
-    ```
-
-### INFERRED #calls-381
-- **Source:** `AsurDev/feature_pipeline/windows.py:LL61 :: asurdev_feature_pipeline_windows_py_feature_pipeline_windows_build_windows`
-- **Target:** `AsurDev/feature_pipeline/windows.py:L24 :: asurdev_feature_pipeline_windows_py_feature_pipeline_windows_get_window_data`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:103:    data = json.loads(OVERRIDES_JSON.read_text(encoding="utf-8"))
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:105:    for entry in data.get("overrides", []):
-    ```
-    ```
-    /home/workspace/tests/test_auth_flask_decorator.py:20:        return jsonify({"data": "secret"})
-    ```
-
-### INFERRED #calls-382
-- **Source:** `AsurDev/failure_orchestrator/orchestrator.py:LL158 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_run_cycle`
-- **Target:** `AsurDev/failure_orchestrator/orchestrator.py:L86 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_escalate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/load_test/correction_loop/loop.py:22:    ESCALATE = "escalate"  # Human review required
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/correction_loop/loop.py:86:        5. ACT       — apply correction (or escalate)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/correction_loop/loop.py:262:        # High severity → escalate
-    ```
-
-### INFERRED #calls-383
-- **Source:** `AsurDev/scripts/day5-ray.sh:LL135 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_create_ray_scripts`
-- **Target:** `AsurDev/scripts/day5-ray.sh:L20 :: asurdev_scripts_day5_ray_sh_scripts_day5_ray_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/audit.py:396:        logger.info(
-    ```
-
-### INFERRED #calls-384
-- **Source:** `AsurDev/acos.py:LL142 :: asurdev_acos_acosorchestrator_init`
-- **Target:** `AsurDev/acos.py:L144 :: asurdev_acos_acosorchestrator_init_components`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:93:    """Last 2 components of the node id — usually enough for disambiguation."""
-    ```
-    ```
-    /home/workspace/meta_rl/reward.py:59:    ATOM-META-RL-004: All pnl components MUST use ``risk_adjusted_pnl``,
-    ```
-    ```
-    /home/workspace/meta_rl/reward.py:201:        Return a detailed breakdown of reward components.
-    ```
-
-### INFERRED #calls-385
-- **Source:** `AsurDev/dag_validator/validator.py:LL53 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_validate`
-- **Target:** `AsurDev/dag_validator/validator.py:L37 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_get_node_id`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:259:        assert "id" in exported[0]
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:118:        id = "always_fails"
-    ```
-    ```
-    /home/workspace/tests/data_room/test_data_room.py:124:        id = "always_succeeds"
-    ```
-
-### INFERRED #calls-386
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL90 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_restart_ray_head`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:17:    with patch("agents._impl.technical_agent.TechnicalAgent.run") as mock_run:
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:30:        result = await engine.run(start_date="2025-01-01", end_date="2025-01-10", use_real_agents=True)
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:42:    with patch("agents._impl.technical_agent.TechnicalAgent.run") as mock_run:
-    ```
-
-### INFERRED #calls-387
-- **Source:** `AsurDev/astrofin/gateway/submission.py:LL135 :: asurdev_astrofin_gateway_submission_py_gateway_submission_main`
-- **Target:** `AsurDev/astrofin/gateway/submission.py:L102 :: asurdev_astrofin_gateway_submission_py_gateway_submission_acossubmissiongateway_get_traces`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:98:        traces = self.store.get_traces_by_run(run_id)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:100:        for trace in traces:
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/recorder/trace_recorder.py:20:    Records execution traces to all storage targets.
-    ```
-
-### INFERRED #calls-388
-- **Source:** `AsurDev/feature_pipeline/exporter.py:LL190 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_export_csv`
-- **Target:** `AsurDev/feature_pipeline/exporter.py:L118 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_build_dataset`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/quant_agent.py:156:        # Simple momentum: % change over dataset
-    ```
-    ```
-    /home/workspace/home-cluster-iac/job_engine/engine.py:81:    Every transition writes to the event log for ML dataset generation.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/feature_pipeline/exporter.py:198:        """Export full dataset to JSON. Returns path."""
-    ```
-
-### INFERRED #calls-389
-- **Source:** `AsurDev/scripts/day1-network.sh:LL66 :: home_workspace_asurdev_scripts_day1_network_sh__entry`
-- **Target:** `AsurDev/scripts/day1-network.sh:L33 :: asurdev_scripts_day1_network_sh_scripts_day1_network_ros_api`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_auth.py:21:    response = fastapi_client.get("/api/ab/compare")  # защищённый эндпоинт
-    ```
-    ```
-    /home/workspace/tests/test_auth.py:27:    response = flask_client.get("/api/ab/compare")
-    ```
-    ```
-    /home/workspace/agents/_impl/sentiment_agent.py:91:            url = "https://api.alternative.me/fng/?limit=1"
-    ```
-
-### INFERRED #calls-390
-- **Source:** `AsurDev/scripts/day2-vpn.sh:LL43 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_install_wg`
-- **Target:** `AsurDev/scripts/day2-vpn.sh:L31 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_warn`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_agents_md.py:31:    assert "_archived" in content, "Should warn about archived modules"
-    ```
-    ```
-    /home/workspace/scripts/architecture_linter.py:21:Soft rules (warn, do not fail):
-    ```
-    ```
-    /home/workspace/scripts/architecture_linter.py:83:    def warn(self, file: str, line: int, rule: str, message: str) -> None:
-    ```
-
-### INFERRED #calls-391
-- **Source:** `AsurDev/monitoring/exporters/wireguard/wg_exporter.py:LL96 :: asurdev_monitoring_exporters_wireguard_wg_exporter_py_wireguard_wg_exporter_handler_do_get`
-- **Target:** `AsurDev/monitoring/exporters/wireguard/wg_exporter.py:L55 :: asurdev_monitoring_exporters_wireguard_wg_exporter_py_wireguard_wg_exporter_build_metrics`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_auth.py:20:    pytest.skip("FastAPI metrics endpoint not yet implemented")
-    ```
-    ```
-    /home/workspace/tests/test_auth.py:39:    response = fastapi_client.get("/metrics")
-    ```
-    ```
-    /home/workspace/tests/test_metrics_cli.py:14:    """Проверяем, что команда 'karl metrics serve' доступна."""
-    ```
-
-### INFERRED #calls-392
-- **Source:** `AsurDev/acos/projection/state.py:LL44 :: asurdev_acos_projection_state_py_projection_state_stateprojection_get_enriched_trace`
-- **Target:** `AsurDev/acos/projection/state.py:L22 :: asurdev_acos_projection_state_py_projection_state_stateprojection_get_trace`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/l11_verifier/verifier.py:131:    def post_execution(self, trace: dict, original_dag: dict | None = None) -> VerificationReport:
-    ```
-    ```
-    /home/workspace/home-cluster-iac/l11_verifier/verifier.py:133:        trace_id = trace.get("trace_id", "unknown")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/l11_verifier/verifier.py:134:        dag_hash = trace.get("dag_hash", "")
-    ```
-
-### INFERRED #calls-393
-- **Source:** `AsurDev/ete/compiler/dag.py:LL109 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_governance_job`
-- **Target:** `AsurDev/ete/compiler/dag.py:L42 :: asurdev_ete_compiler_dag_py_compiler_dag_dagnode_to_dict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:34:def is_same_file(edge: dict) -> bool:
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:88:    buckets: dict[tuple[str, bool], list[dict]] = defaultdict(list)
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:103:    sampled: list[dict] = []
-    ```
-
-### INFERRED #calls-394
-- **Source:** `AsurDev/ete/replay/replayer.py:LL104 :: asurdev_ete_replay_replayer_py_replay_replayer_correlationengine_find_divergence`
-- **Target:** `AsurDev/ete/replay/replayer.py:L93 :: asurdev_ete_replay_replayer_py_replay_replayer_correlationengine_query_by_layer`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:6:ranked views that mirror how a downstream recall layer would use the
-    ```
-    ```
-    /home/workspace/meta_rl/persistence.py:40:    Full persistence layer for meta_rl.
-    ```
-    ```
-    /home/workspace/meta_rl/reward.py:4:the meta-RL layer to rank and select strategies.
-    ```
-
-### INFERRED #calls-395
-- **Source:** `AsurDev/ml_engine/models/load_model.py:LL86 :: asurdev_ml_engine_models_load_model_py_models_load_model_loadxgboost_predict_queue`
-- **Target:** `AsurDev/ml_engine/models/load_model.py:L79 :: asurdev_ml_engine_models_load_model_py_models_load_model_loadxgboost_predict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/cycle_agent.py:42:        Analyze cycle position and predict next turning point.
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:51:    intent_type: str  # "analyze" | "compare" | "predict" | "backtest"
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:174:        elif any(w in lower for w in ["predict", "forecast", "will"]):
-    ```
-
-### INFERRED #calls-396
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL319 :: asurdev_ml_engine_inference_api_py_inference_api_predict`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L271 :: inference_api_cache_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:36:    sp = edge.get("source_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:37:    tp = edge.get("target_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:40:    sl = edge.get("source_line") or ""
-    ```
-
-### INFERRED #calls-397
-- **Source:** `AsurDev/acos_correction/rca_engine.py:LL290 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_main`
-- **Target:** `AsurDev/acos_correction/rca_engine.py:L224 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_run_full_correction_cycle`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/bull_researcher.py:255:        # Moon waxing (first half of cycle)
-    ```
-    ```
-    /home/workspace/agents/_impl/bradley_agent.py:187:        # Check Jupiter-Saturn aspect (major cycle)
-    ```
-    ```
-    /home/workspace/agents/_impl/cycle_agent.py:23:    1. Detect dominant cycle periods (20, 40, 80 days)
-    ```
-
-### INFERRED #calls-398
-- **Source:** `AsurDev/monitoring/exporters/ceph/ceph_exporter.py:LL50 :: asurdev_monitoring_exporters_ceph_ceph_exporter_py_ceph_ceph_exporter_build_metrics`
-- **Target:** `AsurDev/monitoring/exporters/ceph/ceph_exporter.py:L23 :: asurdev_monitoring_exporters_ceph_ceph_exporter_py_ceph_ceph_exporter_get_ceph_osd_dump`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_validator.py:42:            yaml.dump(
-    ```
-    ```
-    /home/workspace/tests/test_validator.py:67:            yaml.dump(
-    ```
-    ```
-    /home/workspace/tests/test_validator.py:95:            yaml.dump(
-    ```
-
-### INFERRED #calls-399
-- **Source:** `AsurDev/load_test/scenarios/solver_latency/test.py:LL99 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_solverlatencyscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/solver_latency/test.py:L137 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_solverlatencyscenario_apply_correction`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/astrology/vedic.py:221:    # Sidereal correction (ayanamsa ~ 24° in 2026)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/evolution/evolver.py:4:Tracks correction loop decisions over time and evolves system parameters.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/evolution/evolver.py:32:    """Summary of one generation (correction cycle batch)."""
-    ```
-
-### INFERRED #calls-400
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL223 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_main`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L189 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_test_slurm`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:18:        elif jtype in ("batch", "slurm"):
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:19:            target = "slurm"
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/scheduler/adapter.py:21:            target = "slurm"
-    ```
-
-### INFERRED #calls-401
-- **Source:** `AsurDev/dag_validator/validator.py:LL61 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_validate`
-- **Target:** `AsurDev/dag_validator/validator.py:L106 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_check_dependency_closure`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/dag_validator/validator.py:4:I1: acyclicity, I2: dependency closure, I3: deterministic ordering, I4: side-effect isolation
-    ```
-    ```
-    /home/workspace/atom-federation-os/resilience/__init__.py:25:  v6.7 (meta-coherence layer — model ↔ reality ↔ objective closure):
-    ```
-    ```
-    /home/workspace/atom-federation-os/alignment/gsct.py:44:    """Evidence for a single step in the closure proof."""
-    ```
-
-### INFERRED #calls-402
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL214 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_main`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L157 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_start_controller`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v8/admission/controller.py:19:    K8s-style admission controller.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/unit/test_determinism.py:110:    controller = AdmissionController(store)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/unit/test_determinism.py:111:    result = controller.admit(
-    ```
-
-### INFERRED #calls-403
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL192 :: archived_synthesis_agent_synthesisagent_run`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L330 :: archived_synthesis_agent_synthesisagent_synthesize`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-404
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL148 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_evolve`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L127 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_reproduce`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/astrofin/meta_rl/engine.py:128:    def reproduce(self, selected: list["Strategy"]) -> list["Strategy"]:
-    ```
-    ```
-    /home/workspace/home-cluster-iac/astrofin/meta_rl/engine.py:142:        3. reproduce (crossover + mutation)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/astrofin/meta_rl/engine.py:149:            self.population = self.reproduce(selected)
-    ```
-
-### INFERRED #calls-405
-- **Source:** `AsurDev/load_test/evolution/evolver.py:LL61 :: asurdev_load_test_evolution_evolver_py_evolution_evolver_evolutionengine_record`
-- **Target:** `AsurDev/load_test/evolution/evolver.py:L14 :: asurdev_load_test_evolution_evolver_py_evolution_evolver_evolutionrecord`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:223:        # ── Step 6: Build state hash for record ──────────────────────────────
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:227:        # Ensemble for record (s can be AgentResponse or dict)
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:285:        record = build_decision_record(
-    ```
-
-### INFERRED #calls-406
-- **Source:** `AsurDev/ete/recorder/trace_recorder.py:LL57 :: asurdev_ete_recorder_trace_recorder_py_recorder_trace_recorder_tracerecorder_export`
-- **Target:** `AsurDev/ete/recorder/trace_recorder.py:L50 :: asurdev_ete_recorder_trace_recorder_py_recorder_trace_recorder_tracerecorder_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:36:    sp = edge.get("source_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:37:    tp = edge.get("target_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:40:    sl = edge.get("source_line") or ""
-    ```
-
-### INFERRED #calls-407
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL242 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_build_astrofin_policy`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L169 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_build_latency_sla`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/constraint_graph/graph.py:18:    SLA = "sla"  # P(latency > threshold) < 0.05
-    ```
-    ```
-    /home/workspace/AsurDev/v6/constraint_graph/graph.py:18:    SLA           = "sla"            # P(latency > threshold) < 0.05
-    ```
-
-### INFERRED #calls-408
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL176 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_main`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L78 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_docker`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_healthcheck.py:86:    # Мокаем отсутствие docker-compose
-    ```
-    ```
-    /home/workspace/tests/test_ralph_safety.py:17:    assert is_protected_file("docker-compose.yml")
-    ```
-    ```
-    /home/workspace/tests/test_ralph_safety.py:42:        lambda *a, **kw: type("res", (), {"stdout": "docker-compose.yml\nother_file.py", "returncode": 0}),
-    ```
-
-### INFERRED #calls-409
-- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL234 :: archived_synthesis_agent_synthesisagent_run`
-- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L436 :: archived_synthesis_agent_synthesisagent_collect_sources`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **outdated**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
-    ```
-
-### INFERRED #calls-410
-- **Source:** `AsurDev/job_engine/engine.py:LL99 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_create_job`
-- **Target:** `AsurDev/job_engine/engine.py:L73 :: asurdev_job_engine_engine_py_job_engine_engine_jobeventhooks_on_submit`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ai_scheduler/scheduler_v2.py:89:@app.post("/submit")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ai_scheduler/scheduler_v2.py:90:def submit(job_type: str = "gpu", script: str = "job.sh", partition: str | None = None):
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ai_scheduler/scheduler_v2.py:99:    cmd = ["bash", str(Path(__file__).parent / "submit.sh"), partition, script, job_id]
-    ```
-
-### INFERRED #calls-411
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL225 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_astrofinconstraintcompiler_validate_trace`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L44 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_constraint_evaluate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:108:        result = dummy_evaluator.evaluate(strategy, sample_market_data)
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:114:        result = dummy_evaluator.evaluate(strategy, {"ohlcv": [{"close": 1}]})
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:121:            def evaluate(self, data):
-    ```
-
-### INFERRED #calls-412
-- **Source:** `AsurDev/dag_validator/validator.py:LL55 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_validate`
-- **Target:** `AsurDev/dag_validator/validator.py:L80 :: asurdev_dag_validator_validator_py_dag_validator_validator_dagvalidator_compute_dag_hash`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:223:        # ── Step 6: Build state hash for record ──────────────────────────────
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:452:        """Compute reproducible state hash."""
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:218:    print(f"  Valid change: weight 0.2 → 0.15, hash: {new_topo.hash}")
-    ```
-
-### INFERRED #calls-413
-- **Source:** `AsurDev/job_engine/engine.py:LL104 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_admit`
-- **Target:** `AsurDev/job_engine/engine.py:L164 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:36:    sp = edge.get("source_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:37:    tp = edge.get("target_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:40:    sl = edge.get("source_line") or ""
-    ```
-
-### INFERRED #calls-414
-- **Source:** `AsurDev/load_test/scenarios/idempotency/test.py:LL52 :: asurdev_load_test_scenarios_idempotency_test_py_idempotency_test_run`
-- **Target:** `AsurDev/load_test/scenarios/idempotency/test.py:L15 :: asurdev_load_test_scenarios_idempotency_test_py_idempotency_test_idempotencyscenario`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
-- **Evidence:**
-    ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-415
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL64 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_network_latency`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-416
-- **Source:** `AsurDev/determinism_controller/controller.py:LL63 :: asurdev_determinism_controller_controller_py_determinism_controller_controller_determinismcontroller_checkpoint_state`
-- **Target:** `AsurDev/determinism_controller/controller.py:L58 :: asurdev_determinism_controller_controller_py_determinism_controller_controller_determinismcontroller_compute_state_hash`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:218:    print(f"  Valid change: weight 0.2 → 0.15, hash: {new_topo.hash}")
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:244:    print(f"  Current topology hash: {updater.current_topology.hash}")
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:245:    print(f"  Expected (after valid change): {new_topo.hash}")
-    ```
-
-### INFERRED #calls-417
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL50 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_mem_util`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-418
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL34 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_gpu_mem_util`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-419
-- **Source:** `AsurDev/load_test/scenarios/idempotency/test.py:LL53 :: asurdev_load_test_scenarios_idempotency_test_py_idempotency_test_run`
-- **Target:** `AsurDev/load_test/scenarios/idempotency/test.py:L19 :: asurdev_load_test_scenarios_idempotency_test_py_idempotency_test_idempotencyscenario_simulate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:236:        # Manually call _apply_change_internal with bad change to simulate error
-    ```
-    ```
-    /home/workspace/bench/perf_debug.py:15:# Pre-build candidate vectors (simulate hot path)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:101:            return self.digital_twin.simulate(
-    ```
-
-### INFERRED #calls-420
+### INFERRED #calls-27
 - **Source:** `AsurDev/lccp_v12.py:LL138 :: asurdev_lccp_v12_main`
 - **Target:** `AsurDev/lccp_v12.py:L51 :: asurdev_lccp_v12_staterebuilder_verify`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
@@ -6697,193 +469,401 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     /home/workspace/tests/test_dual_mode.py:48:            # We can't easily test main(), so just verify the architecture
     ```
 
-### INFERRED #calls-421
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL175 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_main`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L54 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_nvidia`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+---
+
+## Bucket: relation = `contains` (20 edges)
+
+### INFERRED #contains-1
+- **Source:** `AstroFinSentinelV5/tests/test_dual_mode.py:LL51 :: astrofinsentinelv5_tests_test_dual_mode_py_tests_test_dual_mode`
+- **Target:** `AstroFinSentinelV5/tests/test_dual_mode.py:L51 :: astrofinsentinelv5_tests_test_dual_mode_py_tests_test_dual_mode_test_dual_mode_detection`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_dual_mode.py
+    ```
+
+### INFERRED #contains-2
+- **Source:** `AstroFinSentinelV5/tests/test_ai_editorconfig.py:LL6 :: astrofinsentinelv5_tests_test_ai_editorconfig_py_tests_test_ai_editorconfig`
+- **Target:** `AstroFinSentinelV5/tests/test_ai_editorconfig.py:L6 :: astrofinsentinelv5_tests_test_ai_editorconfig_py_tests_test_ai_editorconfig_test_cursorrules_exists`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_ai_editorconfig.py
+    ```
+
+### INFERRED #contains-3
+- **Source:** `AstroFinSentinelV5/tests/test_auth.py:LL20 :: astrofinsentinelv5_tests_test_auth_py_tests_test_auth`
+- **Target:** `AstroFinSentinelV5/tests/test_auth.py:L20 :: astrofinsentinelv5_tests_test_auth_py_tests_test_auth_test_flask_unauthenticated_returns_401`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_auth.py
+    ```
+
+### INFERRED #contains-4
+- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL147 :: astrofinsentinelv5_deploy_monitoring_health_endpoints_py_monitoring_health_endpoints`
+- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L147 :: monitoring_health_endpoints_ab_compare`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
+    ```
+
+### INFERRED #contains-5
+- **Source:** `AstroFinSentinelV5/tests/test_healthcheck.py:LL66 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck`
+- **Target:** `AstroFinSentinelV5/tests/test_healthcheck.py:L66 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_test_healthcheck_ollama_check`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_healthcheck.py
+    ```
+
+### INFERRED #contains-6
+- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL26 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L26 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_angular_sep`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
+    ```
+
+### INFERRED #contains-7
+- **Source:** `AstroFinSentinelV5/tests/test_backtest_real_agents.py:LL60 :: astrofinsentinelv5_tests_test_backtest_real_agents_py_tests_test_backtest_real_agents`
+- **Target:** `AstroFinSentinelV5/tests/test_backtest_real_agents.py:L60 :: astrofinsentinelv5_tests_test_backtest_real_agents_py_tests_test_backtest_real_agents_test_both_modes_return_same_structure`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_backtest_real_agents.py
+    ```
+
+### INFERRED #contains-8
+- **Source:** `AstroFinSentinelV5/tests/e2e/test_api_endpoints.py:LL19 :: astrofinsentinelv5_tests_e2e_test_api_endpoints_py_e2e_test_api_endpoints`
+- **Target:** `AstroFinSentinelV5/tests/e2e/test_api_endpoints.py:L19 :: e2e_test_api_endpoints_test_rate_limiting`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/e2e/test_api_endpoints.py
+    ```
+
+### INFERRED #contains-9
+- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL101 :: astrofinsentinelv5_deploy_monitoring_health_endpoints_py_monitoring_health_endpoints`
+- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L101 :: monitoring_health_endpoints_health_check`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
+    ```
+
+### INFERRED #contains-10
+- **Source:** `AstroFinSentinelV5/tests/test_healthcheck.py:LL14 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck`
+- **Target:** `AstroFinSentinelV5/tests/test_healthcheck.py:L14 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_run_healthcheck`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_healthcheck.py
+    ```
+
+### INFERRED #contains-11
+- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL133 :: astrofinsentinelv5_deploy_monitoring_health_endpoints_py_monitoring_health_endpoints`
+- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L133 :: monitoring_health_endpoints_root`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
+    ```
+
+### INFERRED #contains-12
+- **Source:** `AstroFinSentinelV5/tests/test_kepler.py:LL154 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler.py:L154 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testheliocentriclongitude`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler.py
+    ```
+
+### INFERRED #contains-13
+- **Source:** `AstroFinSentinelV5/tests/test_backtest_real_agents.py:LL159 :: astrofinsentinelv5_tests_test_backtest_real_agents_py_tests_test_backtest_real_agents`
+- **Target:** `AstroFinSentinelV5/tests/test_backtest_real_agents.py:L159 :: astrofinsentinelv5_tests_test_backtest_real_agents_py_tests_test_backtest_real_agents_test_synthesis_agent_called_in_real_mode`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_backtest_real_agents.py
+    ```
+
+### INFERRED #contains-14
+- **Source:** `AstroFinSentinelV5/tests/test_auth_middleware.py:LL8 :: tests_test_auth_middleware`
+- **Target:** `AstroFinSentinelV5/tests/test_auth_middleware.py:L8 :: tests_test_auth_middleware_client`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_auth_middleware.py
+    ```
+
+### INFERRED #contains-15
+- **Source:** `AstroFinSentinelV5/tests/test_healthcheck.py:LL57 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck`
+- **Target:** `AstroFinSentinelV5/tests/test_healthcheck.py:L57 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_test_healthcheck_db_check`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_healthcheck.py
+    ```
+
+### INFERRED #contains-16
+- **Source:** `AstroFinSentinelV5/tests/test_auth.py:LL30 :: astrofinsentinelv5_tests_test_auth_py_tests_test_auth`
+- **Target:** `AstroFinSentinelV5/tests/test_auth.py:L30 :: astrofinsentinelv5_tests_test_auth_py_tests_test_auth_test_public_metrics_returns_200`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_auth.py
+    ```
+
+### INFERRED #contains-17
+- **Source:** `AstroFinSentinelV5/tests/test_council.py:LL12 :: astrofinsentinelv5_tests_test_council_py_tests_test_council`
+- **Target:** `AstroFinSentinelV5/tests/test_council.py:L12 :: astrofinsentinelv5_tests_test_council_py_tests_test_council_testastrocouncil`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_council.py
+    ```
+
+### INFERRED #contains-18
+- **Source:** `AstroFinSentinelV5/tests/ralph_benchmark/test_agent_basic.py:LL22 :: astrofinsentinelv5_tests_ralph_benchmark_test_agent_basic_py_ralph_benchmark_test_agent_basic`
+- **Target:** `AstroFinSentinelV5/tests/ralph_benchmark/test_agent_basic.py:L22 :: astrofinsentinelv5_tests_ralph_benchmark_test_agent_basic_py_ralph_benchmark_test_agent_basic_test_agent_can_create_add_function`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/ralph_benchmark/test_agent_basic.py
+    ```
+
+### INFERRED #contains-19
+- **Source:** `AstroFinSentinelV5/tests/test_ai_editorconfig.py:LL14 :: astrofinsentinelv5_tests_test_ai_editorconfig_py_tests_test_ai_editorconfig`
+- **Target:** `AstroFinSentinelV5/tests/test_ai_editorconfig.py:L14 :: astrofinsentinelv5_tests_test_ai_editorconfig_py_tests_test_ai_editorconfig_test_cursorrules_references_agents_md`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_ai_editorconfig.py
+    ```
+
+### INFERRED #contains-20
+- **Source:** `AstroFinSentinelV5/tests/test_kepler_property.py:LL52 :: astrofinsentinelv5_tests_test_kepler_property_py_tests_test_kepler_property`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler_property.py:L52 :: astrofinsentinelv5_tests_test_kepler_property_py_tests_test_kepler_property_positive_eccentricity`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `contains`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler_property.py
+    ```
+
+---
+
+## Bucket: relation = `re_exports` (10 edges)
+
+### INFERRED #re_exports-1
+- **Source:** `atom-federation-os/alignment/__init__.py:LL11 :: alignment_init`
+- **Target:** `atom-federation-os/alignment/drift_detector.py:L1 :: alignment_drift_detector`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `re_exports`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/detectors.py:127:            ["nvidia-smi", "--query-gpu=gpu_name,temperature.gpu,utilization.gpu", "--format=csv,noheader"], timeout=5
+    /home/workspace/home-cluster-iac/failure_orchestrator/detectors.py:5:Each detector returns (is_down: bool, reason: str, severity: str)
     ```
     ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:125:    ok, msg = _run(["nvidia-smi"])
+    /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:169:                log.info(f"Previously failed detector now OK: {name}")
     ```
     ```
-    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:127:        return False, "nvidia-smi not responding"
+    /home/workspace/atom-federation-os/consistency_v2/test_realtime_divergence_detector.py:31:    detector = RealtimeDivergenceDetector(
     ```
 
-### INFERRED #calls-422
-- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL70 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_testdifferentialswissephemeris_test_earth_frame_difference_acknowledged`
-- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L26 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_angular_sep`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
+### INFERRED #re_exports-2
+- **Source:** `atom-federation-os/consistency_v3/__init__.py:LL13 :: consistency_v3_init`
+- **Target:** `atom-federation-os/consistency_v3/unified_state_metric_tensor.py:L1 :: consistency_v3_unified_state_metric_tensor`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `re_exports`
+- **Verdict:** **valid**
 - **Evidence:**
     ```
-    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
+    /home/workspace/atom-federation-os/actuator/swarm_control_surface.py:106:        Map the global S_full tensor (canonical + deltas) into control vectors.
+    ```
+    ```
+    /home/workspace/atom-federation-os/swarm/distributed_tensor_alignment.py:3:Aligns S_full (unified_state_metric_tensor) across workers into ONE global coherence tensor.
+    ```
+    ```
+    /home/workspace/atom-federation-os/swarm/distributed_tensor_alignment.py:7:  we compute S_full per partition, then reconcile into ONE global tensor.
     ```
 
-### INFERRED #calls-423
-- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL115 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_testdifferentialswissephemeris_test_kepler_periodicity`
-- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L26 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_angular_sep`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
+### INFERRED #re_exports-3
+- **Source:** `astrofin-sentinel-v5/db/__init__.py:LL12 :: astrofin_sentinel_v5_db_init_py_db_init`
+- **Target:** `astrofin-sentinel-v5/db/init.py:L1 :: astrofin_sentinel_v5_db_init_py_db_init`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `re_exports`
+- **Verdict:** **valid**
 - **Evidence:**
     ```
-    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
+    /home/workspace/tests/test_db_init.py:10:        importlib.import_module("db.init")
+    ```
+    ```
+    /home/workspace/tests/test_db_init.py:12:        pytest.fail(f"db.init should be importable: {e}")
+    ```
+    ```
+    /home/workspace/tests/test_update_progress.py:42:    subprocess.run(["git", "init"], check=False)
     ```
 
-### INFERRED #calls-424
-- **Source:** `AsurDev/constraint_compiler/parser/parser.py:LL124 :: asurdev_constraint_compiler_parser_parser_py_parser_parser_policyparser_parse_text`
-- **Target:** `AsurDev/constraint_compiler/parser/parser.py:L69 :: asurdev_constraint_compiler_parser_parser_py_parser_parser_constraintgroup`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #re_exports-4
+- **Source:** `atom-federation-os/federation/byzantine/__init__.py:LL27 :: byzantine_init`
+- **Target:** `atom-federation-os/federation/byzantine/byzantine_detector.py:L1 :: byzantine_byzantine_detector`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `re_exports`
+- **Verdict:** **valid**
+- **Evidence:**
+    ```
+    /home/workspace/home-cluster-iac/failure_orchestrator/detectors.py:5:Each detector returns (is_down: bool, reason: str, severity: str)
+    ```
+    ```
+    /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:169:                log.info(f"Previously failed detector now OK: {name}")
+    ```
+    ```
+    /home/workspace/atom-federation-os/federation/semantic/v910.py:315:        detector = DriftDetector(store=snap)
+    ```
+
+### INFERRED #re_exports-5
+- **Source:** `atom-federation-os/alignment/__init__.py:LL27 :: alignment_init`
+- **Target:** `atom-federation-os/alignment/plan_reality_comparator.py:L1 :: alignment_plan_reality_comparator`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `re_exports`
 - **Verdict:** **ambiguous**
 - **Evidence:**
     ```
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+    /home/workspace/tests/test_update_progress.py:42:    subprocess.run(["git", "init"], check=False)
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:131:            cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=5,
+    /home/workspace/tests/test_db_init.py:10:        importlib.import_module("db.init")
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:155:            stderr=subprocess.DEVNULL, text=True
+    /home/workspace/tests/test_db_init.py:12:        pytest.fail(f"db.init should be importable: {e}")
     ```
 
-### INFERRED #calls-425
-- **Source:** `AsurDev/load_test/orchestrator/__main__.py:LL62 :: asurdev_load_test_orchestrator_main_py_orchestrator_main_main`
-- **Target:** `AsurDev/load_test/orchestrator/__main__.py:L24 :: asurdev_load_test_orchestrator_main_py_orchestrator_main_run_scenario`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #re_exports-6
+- **Source:** `atom-federation-os/consistency_v3/__init__.py:LL12 :: consistency_v3_init`
+- **Target:** `atom-federation-os/consistency_v3/explainable_divergence_engine.py:L1 :: consistency_v3_explainable_divergence_engine`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `re_exports`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/home-cluster-iac/load_test/correction_loop/loop.py:82:        1. REQUEST   — load scenario + system state
+    /home/workspace/tests/test_backtest_real_agents.py:9:from backtest.engine import BacktestEngine
     ```
     ```
-    /home/workspace/home-cluster-iac/load_test/workload/generator.py:135:            raise ValueError(f"Unknown scenario: {scenario_name}")
+    /home/workspace/tests/test_backtest_real_agents.py:15:    engine = BacktestEngine(symbol="BTCUSDT", initial_capital=10000)
     ```
     ```
-    /home/workspace/home-cluster-iac/load_test/workload/generator.py:136:        scenario = SCENARIOS[scenario_name]
+    /home/workspace/tests/test_backtest_real_agents.py:30:        result = await engine.run(start_date="2025-01-01", end_date="2025-01-10", use_real_agents=True)
     ```
 
-### INFERRED #calls-426
-- **Source:** `AsurDev/job_engine/engine.py:LL134 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_fail`
-- **Target:** `AsurDev/job_engine/engine.py:L151 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_transition`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #re_exports-7
+- **Source:** `atom-federation-os/consistency_v3/__init__.py:LL11 :: consistency_v3_init`
+- **Target:** `atom-federation-os/consistency_v3/causal_semantic_space.py:L1 :: consistency_v3_causal_semantic_space`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `re_exports`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/agents/_impl/cycle_agent.py:24:    2. Identify cycle phase (up/down/transition)
+    /home/workspace/meta_rl/strategy_pool.py:238:            # Remove worst performer to make space
     ```
     ```
-    /home/workspace/mas_factory/architect.py:78:    This is the CORE of the transition from SkillMD to MAS Factory.
+    /home/workspace/home-cluster-iac/v6/solver/prune/beam.py:24:    Prunes candidate space using beam search with variance estimation.
     ```
     ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:107:        State transition per step:
+    /home/workspace/home-cluster-iac/v6/policy_eval/evaluator.py:4:Policy space: (priority_weights, risk_threshold, admission_policy)
     ```
 
-### INFERRED #calls-427
-- **Source:** `AsurDev/acos/events/event_log.py:LL26 :: asurdev_acos_events_event_log_py_events_event_log_eventlog_emit`
-- **Target:** `AsurDev/acos/events/event_log.py:L13 :: asurdev_acos_events_event_log_py_events_event_log_eventlog_append`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #re_exports-8
+- **Source:** `atom-federation-os/cluster/shared/__init__.py:LL2 :: shared_init`
+- **Target:** `atom-federation-os/cluster/shared/drl_bridge.py:L1 :: shared_drl_bridge`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `re_exports`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_meta_rl.py:43:        history.append(
+    /home/workspace/graphify-out/infer_edges.py:81:    "push/", "atom-federation-os/", "roma-execution-bridge/",
     ```
     ```
-    /home/workspace/tests/test_validator.py:436:    r2.errors.append(
+    /home/workspace/agents/_impl/amre/idea_buffer_integration.py:194:    ATOM-R-041 + ATOM-016 bridge:
     ```
     ```
-    /home/workspace/tests/test_dual_mode.py:173:            results.append((test.__name__, success))
+    /home/workspace/acos-contracts/acos_contracts/errors.py:4:AsurDev, home-cluster-iac, roma-execution-bridge) raise and catch the *same*
     ```
 
-### INFERRED #calls-428
-- **Source:** `AsurDev/scheduler_v3/api.py:LL53 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_admission`
-- **Target:** `AsurDev/scheduler_v3/api.py:L43 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_store`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #re_exports-9
+- **Source:** `atom-federation-os/cluster/shared/__init__.py:LL3 :: shared_init`
+- **Target:** `atom-federation-os/cluster/shared/rpc_server.py:L1 :: shared_rpc_server`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `re_exports`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/meta_rl/strategy_pool.py:315:        # version via a length check because we don't store the version
+    /home/workspace/tests/test_auth.py:12:from web.wsgi import server as flask_app
     ```
     ```
-    /home/workspace/meta_rl/evolution.py:182:        self._final_elites = final_elites  # store for get_best_strategy()
+    /home/workspace/tests/e2e/test_api_endpoints.py:4:from web.app import server
     ```
     ```
-    /home/workspace/acos-contracts/acos_contracts/state.py:1:"""State-store and job-state protocols.
+    /home/workspace/tests/e2e/test_api_endpoints.py:9:    server.config["TESTING"] = True
     ```
 
-### INFERRED #calls-429
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL119 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_wg_peer_tx_bytes`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #re_exports-10
+- **Source:** `atom-federation-os/alignment/__init__.py:LL33 :: alignment_init`
+- **Target:** `atom-federation-os/alignment/rollback_engine_v2.py:L1 :: alignment_rollback_engine_v2`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `re_exports`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
+    /home/workspace/agents/_impl/amre/audit.py:140:        d["_version"] = "KARL-009-v1"  # bump to v2 for risk_adjusted_pnl
     ```
     ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
+    /home/workspace/home-cluster-iac/ai_scheduler/scheduler_v2.py:3:AI Scheduler v2 — FastAPI Service
     ```
     ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
+    /home/workspace/home-cluster-iac/ai_scheduler/scheduler_v2.py:18:app = FastAPI(title="AI Scheduler v2", version="2.0.0")
     ```
 
-### INFERRED #calls-430
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL109 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_wg_peer_handshake_age`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+---
+
+## Bucket: relation = `defines` (10 edges)
+
+### INFERRED #defines-1
+- **Source:** `AsurDev/cluster_status.sh:LL15 :: asurdev_cluster_status`
+- **Target:** `AsurDev/cluster_status.sh:L15 :: asurdev_cluster_status_check_port`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `defines`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
+    /home/workspace/tests/test_metrics_cli.py:22:    assert "--port" in result.stdout, "Should have --port option"
     ```
     ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
+    /home/workspace/scripts/validate_docker_security.py:56:                    errors.append(f"{svc_name}: port {port_str} is not bound to 127.0.0.1")
     ```
     ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-431
-- **Source:** `AsurDev/ml_engine/inference/predictor.py:LL94 :: asurdev_ml_engine_inference_predictor_py_inference_predictor_predictor_predict`
-- **Target:** `AsurDev/ml_engine/inference/predictor.py:L125 :: asurdev_ml_engine_inference_predictor_py_inference_predictor_predictor_compute_risk`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_integration.py:85:        # Test the risk engine directly (not via SafetyGate, which doesn't detect pre-existing)
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:486:        - position_pct is NOT yet risk-adjusted here; risk control is applied
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:208:        "domain": "risk",
+    /home/workspace/home-cluster-iac/scheduler_v3/api.py:191:    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="info")
     ```
 
-### INFERRED #calls-432
-- **Source:** `AsurDev/ml_engine/registry/model_registry.py:LL112 :: asurdev_ml_engine_registry_model_registry_py_registry_model_registry_modelregistry_load_model`
-- **Target:** `AsurDev/ml_engine/registry/model_registry.py:L90 :: asurdev_ml_engine_registry_model_registry_py_registry_model_registry_modelregistry_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_auth.py:21:    response = fastapi_client.get("/api/ab/compare")  # защищённый эндпоинт
-    ```
-    ```
-    /home/workspace/tests/test_auth.py:27:    response = flask_client.get("/api/ab/compare")
-    ```
-    ```
-    /home/workspace/tests/test_auth.py:33:    response = fastapi_client.get("/health")
-    ```
-
-### INFERRED #calls-433
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL33 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_check_munge`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L24 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_info`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #defines-2
+- **Source:** `AsurDev/scripts/day2-vpn.sh:LL30 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn`
+- **Target:** `AsurDev/scripts/day2-vpn.sh:L30 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_info`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `defines`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
@@ -6896,347 +876,61 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
     ```
 
-### INFERRED #calls-434
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL90 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_slurm_queue_depth`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #defines-3
+- **Source:** `AsurDev/scripts/day2-vpn.sh:LL48 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn`
+- **Target:** `AsurDev/scripts/day2-vpn.sh:L48 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_gen_keys`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `defines`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
+    /home/workspace/tests/test_dual_mode.py:97:        # Verify all expected keys exist
     ```
     ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
+    /home/workspace/tests/test_dual_mode.py:114:        print(f"   All {len(expected_keys)} keys present ✓")
     ```
     ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-435
-- **Source:** `AsurDev/l11_verifier/verifier.py:LL141 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_full_pipeline`
-- **Target:** `AsurDev/l11_verifier/verifier.py:L115 :: asurdev_l11_verifier_verifier_py_l11_verifier_verifier_l11verifier_post_execution`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_v2.py:20:from trading.execution.sanity import (
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:62:    "push/", "atom-federation-os/", "roma-execution-bridge/",
-    ```
-    ```
-    /home/workspace/agents/gitagent_registry.py:311:            # TTC fallback: single-pass execution
+    /home/workspace/tests/test_dual_mode.py:132:    params1 = list(sig1.parameters.keys())
     ```
 
-### INFERRED #calls-436
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL97 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_init_population`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L26 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy_make_id`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:93:    """Last 2 components of the node id — usually enough for disambiguation."""
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:64:    nodes = {n["id"]: n for n in g["nodes"]}
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:98:    src_label = edge["source"].rsplit("_", 1)[-1]   # last segment of node id
-    ```
-
-### INFERRED #calls-437
-- **Source:** `AstroFinSentinelV5/tests/test_healthcheck.py:LL41 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_test_healthcheck_exit_code_ok_when_all_good`
-- **Target:** `AstroFinSentinelV5/tests/test_healthcheck.py:L14 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_run_healthcheck`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_healthcheck.py
-    ```
-
-### INFERRED #calls-438
-- **Source:** `AsurDev/load_test/scenarios/false_positive/test.py:LL63 :: asurdev_load_test_scenarios_false_positive_test_py_false_positive_test_run`
-- **Target:** `AsurDev/load_test/scenarios/false_positive/test.py:L23 :: asurdev_load_test_scenarios_false_positive_test_py_false_positive_test_falsepositivescenario_simulate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:236:        # Manually call _apply_change_internal with bad change to simulate error
-    ```
-    ```
-    /home/workspace/bench/perf_debug.py:15:# Pre-build candidate vectors (simulate hot path)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:101:            return self.digital_twin.simulate(
-    ```
-
-### INFERRED #calls-439
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL145 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_health_check_loop`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L106 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_status`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:536:        if drift.get("status") == "degrading":
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:562:        """Get KARL system status."""
-    ```
-    ```
-    /home/workspace/tests/test_auth_empty_key.py:15:        return jsonify({"status": "ok"})
-    ```
-
-### INFERRED #calls-440
-- **Source:** `AsurDev/ml_engine/models/load_model.py:LL89 :: asurdev_ml_engine_models_load_model_py_models_load_model_loadxgboost_predict_gpu`
-- **Target:** `AsurDev/ml_engine/models/load_model.py:L79 :: asurdev_ml_engine_models_load_model_py_models_load_model_loadxgboost_predict`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/cycle_agent.py:42:        Analyze cycle position and predict next turning point.
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:51:    intent_type: str  # "analyze" | "compare" | "predict" | "backtest"
-    ```
-    ```
-    /home/workspace/mas_factory/architect.py:174:        elif any(w in lower for w in ["predict", "forecast", "will"]):
-    ```
-
-### INFERRED #calls-441
-- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL89 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_testdifferentialswissephemeris_test_no_catastrophic_divergence`
-- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L26 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_angular_sep`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
-    ```
-
-### INFERRED #calls-442
-- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL192 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_testswissephemerissanity_test_jupiter_slow_motion`
-- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L26 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_angular_sep`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **false**
-- **Evidence:**
-    ```
-    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
-    ```
-
-### INFERRED #calls-443
-- **Source:** `AsurDev/scripts/day1-network.sh:LL92 :: home_workspace_asurdev_scripts_day1_network_sh__entry`
+### INFERRED #defines-4
+- **Source:** `AsurDev/scripts/day1-network.sh:LL78 :: asurdev_scripts_day1_network_sh_scripts_day1_network`
 - **Target:** `AsurDev/scripts/day1-network.sh:L78 :: asurdev_scripts_day1_network_sh_scripts_day1_network_create_vlan`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `defines`
 - **Verdict:** **ambiguous**
 - **Evidence:**
     ```
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:105:    for entry in data.get("overrides", []):
+    /home/workspace/home-cluster-iac/acos/network/amnezia_wg.py:64:        self._trace_id = trace_id or "network-bootstrap"
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:106:        key = (entry["source_node_id"], entry["target_node_id"])
+    /home/workspace/home-cluster-iac/acos/network/amnezia_patch.py:18:    from acos.network.amnezia_wg import AmneziaWGManager
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:107:        out[key] = entry
+    /home/workspace/home-cluster-iac/acos/network/amnezia_patch.py:24:    PATCH 1a: DAGValidator network check.
     ```
 
-### INFERRED #calls-444
-- **Source:** `AsurDev/ai_scheduler/modules/policy.py:LL41 :: asurdev_ai_scheduler_modules_policy_py_modules_policy_select_node`
-- **Target:** `AsurDev/ai_scheduler/modules/policy.py:L69 :: asurdev_ai_scheduler_modules_policy_py_modules_policy_build_reason`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #defines-5
+- **Source:** `AsurDev/scripts/day3-compute.sh:LL25 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute`
+- **Target:** `AsurDev/scripts/day3-compute.sh:L25 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_detect_os`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `defines`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/graphify-out/infer_edges.py:290:                f"author={ov.get('author')} reason={ov.get('reason', '')[:60]}",
+    /home/workspace/graphify-out/validate_inferred.py:23:import os
     ```
     ```
-    /home/workspace/tests/test_risk_v2.py:133:        assert "SLIPPAGE" in result.reason
+    /home/workspace/graphify-out/validate_inferred.py:32:SAMPLE = Path(os.environ.get("INFERRED_SAMPLE") or
     ```
     ```
-    /home/workspace/tests/test_risk_v2.py:167:        assert "SPREAD" in result.reason
-    ```
-
-### INFERRED #calls-445
-- **Source:** `AsurDev/l9_ebl/capabilities/registry.py:LL122 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_enforce_any`
-- **Target:** `AsurDev/l9_ebl/capabilities/registry.py:L98 :: asurdev_l9_ebl_capabilities_registry_py_capabilities_registry_executioncontext_check`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_update_progress.py:42:    subprocess.run(["git", "init"], check=False)
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:43:    subprocess.run(["git", "config", "user.email", "test@test.com"], check=False)
-    ```
-    ```
-    /home/workspace/tests/test_update_progress.py:44:    subprocess.run(["git", "config", "user.name", "Test"], check=False)
+    /home/workspace/graphify-out/infer_edges.py:34:import os
     ```
 
-### INFERRED #calls-446
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL93 :: inference_api_init_shap`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L100 :: inference_api_x_train_sample`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:11:  - Stratified sample: cap each (relation, same_file) group at MAX_PER_BUCKET
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:16:"Build a balanced sample of 500 INFERRED edges, max N per (relation, same-file) bucket."
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:7:  - /tmp/inferred_sample.json   (top-N sample, stratified)
-    ```
-
-### INFERRED #calls-447
-- **Source:** `AsurDev/ml_engine/inference/predictor.py:LL73 :: asurdev_ml_engine_inference_predictor_py_inference_predictor_predictor_predict`
-- **Target:** `AsurDev/ml_engine/inference/predictor.py:L144 :: asurdev_ml_engine_inference_predictor_py_inference_predictor_predictor_default_prediction`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/amre/reward.py:127:        """Apply Platt scaling to raw reward prediction."""
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/backtest_loop.py:333:        # В реальной реализации — из trajectory prediction
-    ```
-    ```
-    /home/workspace/agents/_impl/ml_predictor_agent.py:2:ML Predictor Agent — ML-based price prediction and volatility forecasting.
-    ```
-
-### INFERRED #calls-448
-- **Source:** `AsurDev/acos_correction/rca_engine.py:LL292 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_main`
-- **Target:** `AsurDev/acos_correction/rca_engine.py:L242 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine_generate_report`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_meta_rl.py:339:        report = engine.convergence_report()
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:340:        assert "status" in report
-    ```
-    ```
-    /home/workspace/tests/test_meta_rl.py:341:        assert "total_generations" in report
-    ```
-
-### INFERRED #calls-449
-- **Source:** `AsurDev/load_test/scenarios/state_drift/test.py:LL29 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/state_drift/test.py:L44 :: asurdev_load_test_scenarios_state_drift_test_py_state_drift_test_statedriftscenario_system_metric`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/metrics.py:46:Both patterns produce the same metric names, so dashboards see one
-    ```
-    ```
-    /home/workspace/agents/metrics.py:47:metric per agent regardless of which pattern the author picked.
-    ```
-    ```
-    /home/workspace/agents/metrics.py:66:# same object — prometheus_client raises on duplicate metric registration.
-    ```
-
-### INFERRED #calls-450
-- **Source:** `AsurDev/astrofin/constraint_compiler.py:LL88 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_policyblock_to_executable`
-- **Target:** `AsurDev/astrofin/constraint_compiler.py:L61 :: asurdev_astrofin_constraint_compiler_py_astrofin_constraint_compiler_constraint_to_guard`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/_template_agent_test.py:189:    """The dataclass itself must guard its invariants."""
-    ```
-    ```
-    /home/workspace/agents/_impl/risk_agent.py:124:        except Exception as e:  # noqa: BLE001 — last-resort guard
-    ```
-    ```
-    /home/workspace/agents/_impl/bull_researcher.py:120:        except Exception as e:  # noqa: BLE001 — last-resort guard
-    ```
-
-### INFERRED #calls-451
-- **Source:** `AsurDev/ete/replay/replayer.py:LL29 :: asurdev_ete_replay_replayer_py_replay_replayer_deterministicreplayer_register_trace`
-- **Target:** `AsurDev/ete/replay/replayer.py:L33 :: asurdev_ete_replay_replayer_py_replay_replayer_deterministicreplayer_hash_trace_state`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_v2.py:117:        state = engine.get_state()
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:118:        assert not math.isnan(state.total_equity)
-    ```
-    ```
-    /home/workspace/tests/agent_test_base.py:62:    ``self.agent_class()`` so per-test state never leaks.
-    ```
-
-### INFERRED #calls-452
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL114 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_wg_peer_rx_bytes`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-453
-- **Source:** `AsurDev/ete/replay/replay_engine.py:LL39 :: asurdev_ete_replay_replay_engine_py_replay_replay_engine_replayengine_replay`
-- **Target:** `AsurDev/ete/replay/replay_engine.py:L43 :: asurdev_ete_replay_replay_engine_py_replay_replay_engine_replayengine_compare_traces`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:240:    print(f"  [OK{'=' if ok else '!'}] INV6 — O(1) lookup: {elapsed:.4f}s for 1000 lookups (100 traces)")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:98:        traces = self.store.get_traces_by_run(run_id)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ete/replay/replayer.py:100:        for trace in traces:
-    ```
-
-### INFERRED #calls-454
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL128 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_get_node_metrics`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L42 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_cpu_util`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:158:            # Resource decay: GPU util reverts toward baseline (0.3) at rate 0.05/step
-    ```
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/probabilistic.py:65:        # windows["rtx-node"]: RollingWindow for GPU util
-    ```
-    ```
-    /home/workspace/home-cluster-iac/admission_controller/probabilistic.py:66:        # windows["rk3576"]: RollingWindow for CPU util
-    ```
-
-### INFERRED #calls-455
-- **Source:** `AsurDev/ete/engine/execution_engine.py:LL76 :: asurdev_ete_engine_execution_engine_py_engine_execution_engine_executionengine_execute`
-- **Target:** `AsurDev/ete/engine/execution_engine.py:L98 :: asurdev_ete_engine_execution_engine_py_engine_execution_engine_executionengine_execute_node`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:93:    """Last 2 components of the node id — usually enough for disambiguation."""
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:98:    src_label = edge["source"].rsplit("_", 1)[-1]   # last segment of node id
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:113:    # 3. target node has no source_file at all (parser bug — same family as KI-014)
-    ```
-
-### INFERRED #calls-456
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL80 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_docker`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L19 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #defines-6
+- **Source:** `AsurDev/scripts/day2-vpn.sh:LL32 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn`
+- **Target:** `AsurDev/scripts/day2-vpn.sh:L32 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_ok`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `defines`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
@@ -7249,708 +943,1138 @@ Stratified validation of the top-100 INFERRED edges from `graphify-out/graph.jso
     /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
     ```
 
-### INFERRED #calls-457
-- **Source:** `AsurDev/governance.py:LL141 :: asurdev_governance_run`
-- **Target:** `AsurDev/governance.py:L64 :: asurdev_governance_compute_violations`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #defines-7
+- **Source:** `AsurDev/scripts/day2-vpn.sh:LL34 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn`
+- **Target:** `AsurDev/scripts/day2-vpn.sh:L34 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_command_exists`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `defines`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/architecture/test_architecture_linter.py:36:    # Either exit 0 (no violations) or non-zero with only warnings.
+    /home/workspace/tests/test_agents_md.py:13:    assert agents_md.exists(), "AGENTS.md not found"
     ```
     ```
-    /home/workspace/tests/test_type_consolidation.py:12:    violations = []
+    /home/workspace/tests/unit/test_strategy_pool_and_persistence.py:88:    """Delete each path if it exists. Path may be a file or a directory."""
     ```
     ```
-    /home/workspace/tests/test_type_consolidation.py:20:                violations.append(str(py_file))
+    /home/workspace/tests/unit/test_strategy_pool_and_persistence.py:92:        if p.exists():
     ```
 
-### INFERRED #calls-458
-- **Source:** `AsurDev/job_engine/engine.py:LL121 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_start`
-- **Target:** `AsurDev/job_engine/engine.py:L151 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_transition`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #defines-8
+- **Source:** `AsurDev/scripts/day2-vpn.sh:LL38 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn`
+- **Target:** `AsurDev/scripts/day2-vpn.sh:L38 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_install_wg`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `defines`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/agents/_impl/cycle_agent.py:24:    2. Identify cycle phase (up/down/transition)
+    /home/workspace/home-cluster-iac/tests/test_security_fixes.py:88:        self.assertIn("wg-quick", mgr._available_binaries())
     ```
     ```
-    /home/workspace/mas_factory/architect.py:78:    This is the CORE of the transition from SkillMD to MAS Factory.
+    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:113:    ok, msg = _run(["wg-quick", "down", interface])
     ```
     ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:107:        State transition per step:
+    /home/workspace/home-cluster-iac/failure_orchestrator/recovery.py:117:    ok2, msg2 = _run(["wg-quick", "up", interface])
     ```
 
-### INFERRED #calls-459
-- **Source:** `AsurDev/feature_pipeline/window_engine.py:LL202 :: asurdev_feature_pipeline_window_engine_py_feature_pipeline_window_engine_windowengine_get_aggregated`
-- **Target:** `AsurDev/feature_pipeline/window_engine.py:L148 :: asurdev_feature_pipeline_window_engine_py_feature_pipeline_window_engine_slidingwindow_aggregate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #defines-9
+- **Source:** `AsurDev/scripts/day2-vpn.sh:LL31 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn`
+- **Target:** `AsurDev/scripts/day2-vpn.sh:L31 :: asurdev_scripts_day2_vpn_sh_scripts_day2_vpn_warn`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `defines`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_astro_council_integration.py:24:        resp = await council.aggregate({})
+    /home/workspace/tests/test_agents_md.py:31:    assert "_archived" in content, "Should warn about archived modules"
     ```
     ```
-    /home/workspace/tests/test_astro_council_integration.py:32:        resp = await council.aggregate({})
+    /home/workspace/meta_rl/test_reward.py:59:        Without this, ``__post_init__`` would warn every time the default
     ```
     ```
-    /home/workspace/tests/test_astro_council_integration.py:40:        resp = await council.aggregate({})
+    /home/workspace/meta_rl/test_reward.py:68:        """Constructing RewardConfig() must not warn."""
     ```
 
-### INFERRED #calls-460
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL56 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy_crossover`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L26 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_strategy_make_id`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #defines-10
+- **Source:** `AsurDev/scripts/day1-network.sh:LL33 :: asurdev_scripts_day1_network_sh_scripts_day1_network`
+- **Target:** `AsurDev/scripts/day1-network.sh:L33 :: asurdev_scripts_day1_network_sh_scripts_day1_network_ros_api`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `defines`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_meta_rl.py:259:        assert "id" in exported[0]
+    /home/workspace/tests/test_auth.py:21:    response = fastapi_client.get("/api/ab/compare")  # защищённый эндпоинт
     ```
     ```
-    /home/workspace/tests/data_room/test_data_room.py:118:        id = "always_fails"
+    /home/workspace/tests/test_auth.py:27:    response = flask_client.get("/api/ab/compare")
     ```
     ```
-    /home/workspace/tests/data_room/test_data_room.py:124:        id = "always_succeeds"
+    /home/workspace/agents/_impl/sentiment_agent.py:91:            url = "https://api.alternative.me/fng/?limit=1"
     ```
 
-### INFERRED #calls-461
-- **Source:** `AsurDev/ete/compiler/dag.py:LL65 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile`
-- **Target:** `AsurDev/ete/compiler/dag.py:L75 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_agent_job`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+---
+
+## Bucket: relation = `uses` (20 edges)
+
+### INFERRED #uses-1
+- **Source:** `audit_repo/langgraph_schema.py:LL309 :: audit_repo_langgraph_schema_py_stategraph`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
 - **Evidence:**
     ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:140:            job = JobState(
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:149:            state.jobs[job.job_id] = job
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:176:            for job in state.jobs.values():
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
     ```
 
-### INFERRED #calls-462
-- **Source:** `AsurDev/ml_engine/registry/model_registry.py:LL87 :: asurdev_ml_engine_registry_model_registry_py_registry_model_registry_modelregistry_register`
-- **Target:** `AsurDev/ml_engine/registry/model_registry.py:L90 :: asurdev_ml_engine_registry_model_registry_py_registry_model_registry_modelregistry_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:36:    sp = edge.get("source_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:37:    tp = edge.get("target_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:40:    sl = edge.get("source_line") or ""
-    ```
-
-### INFERRED #calls-463
-- **Source:** `AsurDev/acos/state/reducer.py:LL31 :: asurdev_acos_state_reducer_py_state_reducer_statereducer_reduce`
-- **Target:** `AsurDev/acos/state/reducer.py:L45 :: asurdev_acos_state_reducer_py_state_reducer_statereducer_apply`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:220:    # Try to apply invalid change (should trigger rollback)
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/grounding.py:58:        confidence_adjustment: int   — delta to apply to confidence
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/reward.py:182:        """Assess whether reward is spurious and apply penalty."""
-    ```
-
-### INFERRED #calls-464
-- **Source:** `AsurDev/feature_pipeline/window_engine.py:LL211 :: asurdev_feature_pipeline_window_engine_py_feature_pipeline_window_engine_windowengine_get_all_windows_for_node`
-- **Target:** `AsurDev/feature_pipeline/window_engine.py:L148 :: asurdev_feature_pipeline_window_engine_py_feature_pipeline_window_engine_slidingwindow_aggregate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_astro_council_integration.py:24:        resp = await council.aggregate({})
-    ```
-    ```
-    /home/workspace/tests/test_astro_council_integration.py:32:        resp = await council.aggregate({})
-    ```
-    ```
-    /home/workspace/tests/test_astro_council_integration.py:40:        resp = await council.aggregate({})
-    ```
-
-### INFERRED #calls-465
-- **Source:** `AsurDev/ml_engine/models/failure_xgboost.py:LL69 :: asurdev_ml_engine_models_failure_xgboost_py_models_failure_xgboost_failurexgboost_predict`
-- **Target:** `AsurDev/ml_engine/models/failure_xgboost.py:L61 :: asurdev_ml_engine_models_failure_xgboost_py_models_failure_xgboost_failurexgboost_predict_proba`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/ml_engine/models/failure_xgboost.py:71:        proba = self.predict_proba(X)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ml_engine/models/failure_xgboost.py:72:        return (proba >= threshold).astype(int)
-    ```
-    ```
-    /home/workspace/AsurDev/ml_engine/models/failure_xgboost.py:69:        proba = self.predict_proba(X)
-    ```
-
-### INFERRED #calls-466
-- **Source:** `AsurDev/ete/compiler/dag.py:LL71 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile`
-- **Target:** `AsurDev/ete/compiler/dag.py:L106 :: asurdev_ete_compiler_dag_py_compiler_dag_dagcompiler_compile_governance_job`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v8/safety_kernel/engine.py:160:        # Downgrade GPU job → CPU-only
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:140:            job = JobState(
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:149:            state.jobs[job.job_id] = job
-    ```
-
-### INFERRED #calls-467
-- **Source:** `AstroFinSentinelV5/tests/test_healthcheck.py:LL32 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_test_healthcheck_outputs_json`
-- **Target:** `AstroFinSentinelV5/tests/test_healthcheck.py:L14 :: astrofinsentinelv5_tests_test_healthcheck_py_tests_test_healthcheck_run_healthcheck`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #uses-2
+- **Source:** `AstroFinSentinelV5/tests/test_kepler.py:LL14 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testswissephemerisvalidation`
+- **Target:** `push/core/kepler.py:L90 :: push_core_kepler_py_core_kepler_keplerorbit`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
 - **Verdict:** **false**
 - **Evidence:**
     ```
-    file_not_found: AstroFinSentinelV5/tests/test_healthcheck.py
+    target_symbol 'keplerorbit' not found in push/core/kepler.py
     ```
 
-### INFERRED #calls-468
-- **Source:** `AsurDev/failure_orchestrator/orchestrator.py:LL169 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_run_cycle`
-- **Target:** `AsurDev/failure_orchestrator/orchestrator.py:L33 :: asurdev_failure_orchestrator_orchestrator_py_failure_orchestrator_orchestrator_save_state`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+### INFERRED #uses-3
+- **Source:** `audit_repo/agents/karl_synthesis.py:LL44 :: audit_repo_agents_karl_synthesis_py_agents_karl_synthesis_karlsynthesisagent`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
 - **Evidence:**
     ```
-    /home/workspace/agents/metrics.py:25:        async def run(self, state: dict) -> AgentResponse:
-    ```
-    ```
-    /home/workspace/agents/metrics.py:26:            return await self.analyze(state)
-    ```
-    ```
-    /home/workspace/agents/metrics.py:40:    async def run(self, state: dict) -> AgentResponse:
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
     ```
 
-### INFERRED #calls-469
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL75 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_ceph_osd_replication_latency`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+### INFERRED #uses-4
+- **Source:** `audit_repo/backtest/engine.py:LL20 :: audit_repo_backtest_engine_py_backtest_engine_backtestresult`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
 - **Evidence:**
     ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:180:            query = " ".join(headlines[:3]) + " " + query
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:187:            results = await rag.search(query, top_k=3)
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
     ```
 
-### INFERRED #calls-470
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL70 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_restart_ceph_manager`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+### INFERRED #uses-5
+- **Source:** `backtest/engine.py:LL20 :: backtest_engine_py_backtest_engine_ohlcv`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
 - **Evidence:**
     ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
     ```
 
-### INFERRED #calls-471
-- **Source:** `AsurDev/l9_ebl/policy_compiler/compiler.py:LL60 :: asurdev_l9_ebl_policy_compiler_compiler_py_policy_compiler_compiler_policycompiler_load_policy`
-- **Target:** `AsurDev/l9_ebl/policy_compiler/compiler.py:L11 :: asurdev_l9_ebl_policy_compiler_compiler_py_policy_compiler_compiler_constraintnode`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **ambiguous**
+### INFERRED #uses-6
+- **Source:** `push/agents/karl_synthesis.py:LL44 :: push_agents_karl_synthesis_py_any`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
 - **Evidence:**
     ```
-    source_symbol_present_but_target_not
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:5:Implements the policy from docs/adr/ADR-0004-hybrid-memory-policy.md:
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:338:        "policy": "ADR-0004",
-    ```
-    ```
-    /home/workspace/agents/karl_synthesis.py:257:                "policy": "karl_synthesis",
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
     ```
 
-### INFERRED #calls-472
-- **Source:** `AstroFinSentinelV5/tests/test_update_progress.py:LL47 :: astrofinsentinelv5_tests_test_update_progress_py_tests_test_update_progress_test_generates_progress_file`
-- **Target:** `AstroFinSentinelV5/tests/test_update_progress.py:L12 :: astrofinsentinelv5_tests_test_update_progress_py_tests_test_update_progress_run_script`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #uses-7
+- **Source:** `AstroFinSentinelV5/tests/test_kepler.py:LL14 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testorbitalelements`
+- **Target:** `push/core/kepler.py:L209 :: push_core_kepler_py_core_kepler_keplerresult`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
 - **Verdict:** **false**
 - **Evidence:**
     ```
-    file_not_found: AstroFinSentinelV5/tests/test_update_progress.py
+    target_symbol 'keplerresult' not found in push/core/kepler.py
     ```
 
-### INFERRED #calls-473
-- **Source:** `AsurDev/ete/replay/replayer.py:LL71 :: asurdev_ete_replay_replayer_py_replay_replayer_deterministicreplayer_replay`
-- **Target:** `AsurDev/ete/replay/replayer.py:L33 :: asurdev_ete_replay_replayer_py_replay_replayer_deterministicreplayer_hash_trace_state`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #uses-8
+- **Source:** `astrofin-sentinel-v5/backtest/engine.py:LL20 :: astrofin_sentinel_v5_backtest_engine_py_datetime`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #uses-9
+- **Source:** `audit_repo/langgraph_schema.py:LL309 :: audit_repo_langgraph_schema_py_agentpool`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #uses-10
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL15 :: astrofinsentinelv5_agents_archived_synthesis_agent_py_signaldirection`
+- **Target:** `push/core/volatility.py:L107 :: push_core_volatility_py_core_volatility_volatilityengine`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    target_symbol 'volatilityengine' not found in push/core/volatility.py
+    ```
+
+### INFERRED #uses-11
+- **Source:** `AstroFinSentinelV5/tests/test_kepler.py:LL14 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testswissephemerisvalidation`
+- **Target:** `push/core/kepler.py:L209 :: push_core_kepler_py_core_kepler_keplerresult`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    target_symbol 'keplerresult' not found in push/core/kepler.py
+    ```
+
+### INFERRED #uses-12
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL345 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing`
+- **Target:** `push/agents/karl_synthesis.py:L70 :: push_agents_karl_synthesis_py_agents_karl_synthesis_karlsynthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    target_symbol 'karlsynthesisagent' not found in push/agents/karl_synthesis.py
+    ```
+
+### INFERRED #uses-13
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL14 :: archived_synthesis_agent_synthesisagent`
+- **Target:** `push/core/base_agent.py:L41 :: push_core_base_agent_py_core_base_agent_signaldirection`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    target_symbol 'signaldirection' not found in push/core/base_agent.py
+    ```
+
+### INFERRED #uses-14
+- **Source:** `astrofin-sentinel-v5/langgraph_schema.py:LL309 :: astrofin_sentinel_v5_langgraph_schema_py_thompsonsampler`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #uses-15
+- **Source:** `AstroFinSentinelV5/tests/test_kepler.py:LL14 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testmeananomaly`
+- **Target:** `push/core/kepler.py:L26 :: push_core_kepler_py_core_kepler_orbitalelements`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    target_symbol 'orbitalelements' not found in push/core/kepler.py
+    ```
+
+### INFERRED #uses-16
+- **Source:** `push/langgraph_schema.py:LL309 :: push_langgraph_schema_py_stategraph`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #uses-17
+- **Source:** `AstroFinSentinelV5/tests/test_kepler.py:LL14 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testkeplerresult`
+- **Target:** `push/core/kepler.py:L209 :: push_core_kepler_py_core_kepler_keplerresult`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    target_symbol 'keplerresult' not found in push/core/kepler.py
+    ```
+
+### INFERRED #uses-18
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL15 :: astrofinsentinelv5_agents_archived_synthesis_agent_py_agentresponse`
+- **Target:** `push/core/volatility.py:L107 :: push_core_volatility_py_core_volatility_volatilityengine`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    target_symbol 'volatilityengine' not found in push/core/volatility.py
+    ```
+
+### INFERRED #uses-19
+- **Source:** `backtest/engine.py:LL20 :: backtest_engine_py_datetime`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #uses-20
+- **Source:** `push/agents/karl_synthesis.py:LL44 :: push_agents_karl_synthesis_py_agents_karl_synthesis_karlsynthesisagent`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 0.500  **Weight:** 0.80  **Relation:** `uses`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+---
+
+## Bucket: relation = `rationale_for` (20 edges)
+
+### INFERRED #rationale_for-1
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL160 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_rationale_160`
+- **Target:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:L159 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing_test_all_metrics_keys_present`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_karl_synthesis_lag.py
+    ```
+
+### INFERRED #rationale_for-2
+- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL1 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_rationale_1`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L1 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
+    ```
+
+### INFERRED #rationale_for-3
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL102 :: archived_synthesis_agent_rationale_102`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L101 :: archived_synthesis_agent_synthesisagent`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #rationale_for-4
+- **Source:** `AstroFinSentinelV5/tests/test_kepler_property.py:LL215 :: astrofinsentinelv5_tests_test_kepler_property_py_tests_test_kepler_property_rationale_215`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler_property.py:L214 :: astrofinsentinelv5_tests_test_kepler_property_py_tests_test_kepler_property_test_validate_returns_all_keys`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler_property.py
+    ```
+
+### INFERRED #rationale_for-5
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL68 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_rationale_68`
+- **Target:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:L67 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_agent_with_mocks`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_karl_synthesis_lag.py
+    ```
+
+### INFERRED #rationale_for-6
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL122 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_rationale_122`
+- **Target:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:L121 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing_test_mature_window_flag`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_karl_synthesis_lag.py
+    ```
+
+### INFERRED #rationale_for-7
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL25 :: archived_synthesis_agent_rationale_25`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L24 :: archived_synthesis_agent_load_weights`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #rationale_for-8
+- **Source:** `AstroFinSentinelV5/tests/test_kepler_property.py:LL1 :: astrofinsentinelv5_tests_test_kepler_property_py_tests_test_kepler_property_rationale_1`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler_property.py:L1 :: astrofinsentinelv5_tests_test_kepler_property_py_tests_test_kepler_property`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler_property.py
+    ```
+
+### INFERRED #rationale_for-9
+- **Source:** `AstroFinSentinelV5/tests/test_kepler_property.py:LL66 :: astrofinsentinelv5_tests_test_kepler_property_py_tests_test_kepler_property_rationale_66`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler_property.py:L65 :: astrofinsentinelv5_tests_test_kepler_property_py_tests_test_kepler_property_mean_anomaly_360`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler_property.py
+    ```
+
+### INFERRED #rationale_for-10
+- **Source:** `AstroFinSentinelV5/tests/test_agent_http_migration.py:LL2 :: tests_test_agent_http_migration_rationale_2`
+- **Target:** `AstroFinSentinelV5/tests/test_agent_http_migration.py:L1 :: astrofinsentinelv5_tests_test_agent_http_migration_py_tests_test_agent_http_migration_test_quant_agent_no_sync_requests`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_agent_http_migration.py
+    ```
+
+### INFERRED #rationale_for-11
+- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL35 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_rationale_35`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L34 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_testdifferentialswissephemeris`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
+    ```
+
+### INFERRED #rationale_for-12
+- **Source:** `AstroFinSentinelV5/tests/test_agents_md.py:LL6 :: tests_test_agents_md_rationale_6`
+- **Target:** `AstroFinSentinelV5/tests/test_agents_md.py:L5 :: astrofinsentinelv5_tests_test_agents_md_py_tests_test_agents_md_test_agents_md_has_ai_rules_section`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_agents_md.py
+    ```
+
+### INFERRED #rationale_for-13
+- **Source:** `AstroFinSentinelV5/tests/test_backtest_real_agents.py:LL227 :: astrofinsentinelv5_tests_test_backtest_real_agents_py_tests_test_backtest_real_agents_rationale_227`
+- **Target:** `AstroFinSentinelV5/tests/test_backtest_real_agents.py:L226 :: astrofinsentinelv5_tests_test_backtest_real_agents_py_tests_test_backtest_real_agents_test_elliot_agent_called_in_real_mode`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_backtest_real_agents.py
+    ```
+
+### INFERRED #rationale_for-14
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL490 :: archived_synthesis_agent_rationale_490`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L489 :: archived_synthesis_agent_run_synthesis_agent`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #rationale_for-15
+- **Source:** `AstroFinSentinelV5/tests/test_kepler_property.py:LL40 :: astrofinsentinelv5_tests_test_kepler_property_py_tests_test_kepler_property_rationale_40`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler_property.py:L35 :: astrofinsentinelv5_tests_test_kepler_property_py_tests_test_kepler_property_jd_range`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler_property.py
+    ```
+
+### INFERRED #rationale_for-16
+- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL41 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_rationale_41`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L40 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_testdifferentialswissephemeris_test_j2000_mean_accuracy_outer_planets`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
+    ```
+
+### INFERRED #rationale_for-17
+- **Source:** `AstroFinSentinelV5/tests/test_backtest_real_agents.py:LL12 :: astrofinsentinelv5_tests_test_backtest_real_agents_py_tests_test_backtest_real_agents_rationale_12`
+- **Target:** `AstroFinSentinelV5/tests/test_backtest_real_agents.py:L11 :: astrofinsentinelv5_tests_test_backtest_real_agents_py_tests_test_backtest_real_agents_test_use_real_agents_does_not_generate_synthetic_signals`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_backtest_real_agents.py
+    ```
+
+### INFERRED #rationale_for-18
+- **Source:** `AstroFinSentinelV5/tests/test_kepler_differential.py:LL204 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_rationale_204`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler_differential.py:L203 :: astrofinsentinelv5_tests_test_kepler_differential_py_tests_test_kepler_differential_testswissephemerissanity_test_saturn_no_teleportation`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler_differential.py
+    ```
+
+### INFERRED #rationale_for-19
+- **Source:** `AstroFinSentinelV5/tests/test_backtest_real_agents.py:LL96 :: astrofinsentinelv5_tests_test_backtest_real_agents_py_tests_test_backtest_real_agents_rationale_96`
+- **Target:** `AstroFinSentinelV5/tests/test_backtest_real_agents.py:L95 :: astrofinsentinelv5_tests_test_backtest_real_agents_py_tests_test_backtest_real_agents_test_macro_agent_called_in_real_mode`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_backtest_real_agents.py
+    ```
+
+### INFERRED #rationale_for-20
+- **Source:** `AstroFinSentinelV5/tests/test_kepler.py:LL92 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_rationale_92`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler.py:L91 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testkeplerequation_test_eccentric_anomaly_convergence`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `rationale_for`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler.py
+    ```
+
+---
+
+## Bucket: relation = `references` (10 edges)
+
+### INFERRED #references-1
+- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL57 :: monitoring_health_endpoints_auth_middleware`
+- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L57 :: astrofinsentinelv5_deploy_monitoring_health_endpoints_py_request`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `references`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
+    ```
+
+### INFERRED #references-2
+- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL147 :: monitoring_health_endpoints_ab_compare`
+- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L57 :: astrofinsentinelv5_deploy_monitoring_health_endpoints_py_request`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `references`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
+    ```
+
+### INFERRED #references-3
+- **Source:** `AstroFinSentinelV5/tests/test_rag_agent_integration.py:LL10 :: astrofinsentinelv5_tests_test_rag_agent_integration_py_tests_test_rag_agent_integration_mockagent_run`
+- **Target:** `AstroFinSentinelV5/tests/test_rag_agent_integration.py:L10 :: astrofinsentinelv5_tests_test_rag_agent_integration_py_agentresponse`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `references`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_rag_agent_integration.py
+    ```
+
+### INFERRED #references-4
+- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL173 :: monitoring_health_endpoints_karl_metrics`
+- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L57 :: astrofinsentinelv5_deploy_monitoring_health_endpoints_py_request`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `references`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
+    ```
+
+### INFERRED #references-5
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL118 :: archived_synthesis_agent_synthesisagent_run`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L118 :: astrofinsentinelv5_agents_archived_synthesis_agent_py_agentresponse`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `references`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #references-6
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL445 :: archived_synthesis_agent_synthesisagent_calculate_levels`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L398 :: astrofinsentinelv5_agents_archived_synthesis_agent_py_signaldirection`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `references`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #references-7
+- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL229 :: monitoring_health_endpoints_system_metrics`
+- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L57 :: astrofinsentinelv5_deploy_monitoring_health_endpoints_py_request`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `references`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
+    ```
+
+### INFERRED #references-8
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL398 :: archived_synthesis_agent_synthesisagent_apply_guards`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L398 :: astrofinsentinelv5_agents_archived_synthesis_agent_py_signaldirection`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `references`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #references-9
+- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL158 :: monitoring_health_endpoints_karl_status`
+- **Target:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:L57 :: astrofinsentinelv5_deploy_monitoring_health_endpoints_py_request`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `references`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/deploy/monitoring/health_endpoints.py
+    ```
+
+### INFERRED #references-10
+- **Source:** `AstroFinSentinelV5/web/callbacks.py:LL1069 :: astrofinsentinelv5_web_callbacks_py_web_callbacks_render_live_status`
+- **Target:** `AstroFinSentinelV5/web/callbacks.py:L1069 :: astrofinsentinelv5_web_callbacks_py_div`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `references`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/web/callbacks.py
+    ```
+
+---
+
+## Bucket: relation = `method` (20 edges)
+
+### INFERRED #method-1
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL225 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testriskcontrolintegration`
+- **Target:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:L225 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testriskcontrolintegration_test_position_risk_adjusted_flag_set`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_karl_synthesis_lag.py
+    ```
+
+### INFERRED #method-2
+- **Source:** `AstroFinSentinelV5/tests/test_council.py:LL140 :: astrofinsentinelv5_tests_test_council_py_tests_test_council_testastrocouncil`
+- **Target:** `AstroFinSentinelV5/tests/test_council.py:L140 :: astrofinsentinelv5_tests_test_council_py_tests_test_council_testastrocouncil_test_all_agents`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_council.py
+    ```
+
+### INFERRED #method-3
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL134 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing`
+- **Target:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:L134 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing_test_immature_window_flag`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_karl_synthesis_lag.py
+    ```
+
+### INFERRED #method-4
+- **Source:** `AstroFinSentinelV5/tests/test_kepler.py:LL91 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testkeplerequation`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler.py:L91 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testkeplerequation_test_eccentric_anomaly_convergence`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler.py
+    ```
+
+### INFERRED #method-5
+- **Source:** `AstroFinSentinelV5/tests/test_council.py:LL100 :: astrofinsentinelv5_tests_test_council_py_tests_test_council_testastrocouncil`
+- **Target:** `AstroFinSentinelV5/tests/test_council.py:L100 :: astrofinsentinelv5_tests_test_council_py_tests_test_council_testastrocouncil_test_weighted_signal`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_council.py
+    ```
+
+### INFERRED #method-6
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL189 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testriskcontrolintegration`
+- **Target:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:L189 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testriskcontrolintegration_test_risk_adjustment_called_when_mature`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_karl_synthesis_lag.py
+    ```
+
+### INFERRED #method-7
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL255 :: archived_synthesis_agent_synthesisagent`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L255 :: archived_synthesis_agent_synthesisagent_group_by_category`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #method-8
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL412 :: archived_synthesis_agent_synthesisagent`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L412 :: archived_synthesis_agent_synthesisagent_format_breakdown`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #method-9
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL330 :: archived_synthesis_agent_synthesisagent`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L330 :: archived_synthesis_agent_synthesisagent_synthesize`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #method-10
+- **Source:** `AstroFinSentinelV5/tests/test_council.py:LL13 :: astrofinsentinelv5_tests_test_council_py_tests_test_council_testastrocouncil`
+- **Target:** `AstroFinSentinelV5/tests/test_council.py:L13 :: astrofinsentinelv5_tests_test_council_py_tests_test_council_testastrocouncil_test_majority_long`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_council.py
+    ```
+
+### INFERRED #method-11
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL86 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing`
+- **Target:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:L86 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing_test_disabled_returns_unchanged`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_karl_synthesis_lag.py
+    ```
+
+### INFERRED #method-12
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL344 :: archived_synthesis_agent_synthesisagent`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L344 :: archived_synthesis_agent_synthesisagent_vote`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #method-13
+- **Source:** `AstroFinSentinelV5/tests/test_kepler.py:LL39 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testorbitalelements`
+- **Target:** `AstroFinSentinelV5/tests/test_kepler.py:L39 :: astrofinsentinelv5_tests_test_kepler_py_tests_test_kepler_testorbitalelements_test_saturn_elements_exist`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_kepler.py
+    ```
+
+### INFERRED #method-14
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL299 :: archived_synthesis_agent_synthesisagent`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L299 :: archived_synthesis_agent_synthesisagent_detect_conflicts`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #method-15
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL436 :: archived_synthesis_agent_synthesisagent`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L436 :: archived_synthesis_agent_synthesisagent_collect_sources`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+### INFERRED #method-16
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL342 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testrunwithlagwindow`
+- **Target:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:L342 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testrunwithlagwindow_test_confidence_capped_at_bounds`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_karl_synthesis_lag.py
+    ```
+
+### INFERRED #method-17
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL103 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing`
+- **Target:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:L103 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing_test_enabled_smooths_confidence`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_karl_synthesis_lag.py
+    ```
+
+### INFERRED #method-18
+- **Source:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:LL159 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing`
+- **Target:** `AstroFinSentinelV5/tests/test_karl_synthesis_lag.py:L159 :: astrofinsentinelv5_tests_test_karl_synthesis_lag_py_tests_test_karl_synthesis_lag_testapplylagsmoothing_test_all_metrics_keys_present`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_karl_synthesis_lag.py
+    ```
+
+### INFERRED #method-19
+- **Source:** `AstroFinSentinelV5/tests/test_council.py:LL72 :: astrofinsentinelv5_tests_test_council_py_tests_test_council_testastrocouncil`
+- **Target:** `AstroFinSentinelV5/tests/test_council.py:L72 :: astrofinsentinelv5_tests_test_council_py_tests_test_council_testastrocouncil_test_neutral_tie`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/tests/test_council.py
+    ```
+
+### INFERRED #method-20
+- **Source:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:LL398 :: archived_synthesis_agent_synthesisagent`
+- **Target:** `AstroFinSentinelV5/agents/_archived/synthesis_agent.py:L398 :: archived_synthesis_agent_synthesisagent_apply_guards`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `method`
+- **Verdict:** **outdated**
+- **Evidence:**
+    ```
+    file_not_found: AstroFinSentinelV5/agents/_archived/synthesis_agent.py
+    ```
+
+---
+
+## Bucket: relation = `imports` (10 edges)
+
+### INFERRED #imports-1
+- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL10 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator`
+- **Target:** `integrations/gitagent/validators/agent_validator.py:L11 :: validators_agent_validator_severity`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_risk_v2.py:117:        state = engine.get_state()
+    /home/workspace/tests/test_validator.py:442:            severity=Severity.ERROR,
     ```
     ```
-    /home/workspace/tests/test_risk_v2.py:118:        assert not math.isnan(state.total_equity)
+    /home/workspace/scripts/architecture_linter.py:68:    severity: str        # "FAIL" | "WARN"
     ```
     ```
-    /home/workspace/tests/agent_test_base.py:62:    ``self.agent_class()`` so per-test state never leaks.
-    ```
-
-### INFERRED #calls-474
-- **Source:** `AsurDev/load_test/injectors/synthetic_scheduler.py:LL75 :: asurdev_load_test_injectors_synthetic_scheduler_py_injectors_synthetic_scheduler_syntheticscheduler_submit`
-- **Target:** `AsurDev/load_test/injectors/synthetic_scheduler.py:L77 :: asurdev_load_test_injectors_synthetic_scheduler_py_injectors_synthetic_scheduler_syntheticscheduler_run_simulation`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:43:        # STEP 2: simulation sandbox
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:103:                horizon=60,  # 60-second simulation window
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v6/digital_twin/simulator.py:3:Digital Twin — deterministic forward simulation engine.
+    /home/workspace/scripts/architecture_linter.py:88:        return any(f.severity == "FAIL" for f in self.findings)
     ```
 
-### INFERRED #calls-475
-- **Source:** `AsurDev/feature_pipeline/pipeline.py:LL167 :: asurdev_feature_pipeline_pipeline_py_feature_pipeline_pipeline_main`
-- **Target:** `AsurDev/feature_pipeline/pipeline.py:L57 :: asurdev_feature_pipeline_pipeline_py_feature_pipeline_pipeline_run_continuous`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/karl_synthesis.py:548:        Run continuous backtest on historical bars.
-    ```
-    ```
-    /home/workspace/agents/_impl/amre/backtest_loop.py:24:    CONTINUOUS = "continuous"  # Rolling window continuous
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:291:        continuous decline > ALPHA_DECAY_REWARD_DROP_PCT.
-    ```
-
-### INFERRED #calls-476
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL61 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_restart_ceph_mon`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-477
-- **Source:** `AsurDev/failure_orchestrator/recovery.py:LL52 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_restart_ceph_osd`
-- **Target:** `AsurDev/failure_orchestrator/recovery.py:L15 :: asurdev_failure_orchestrator_recovery_py_failure_orchestrator_recovery_run`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:42:            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:82:        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:19:  - /home/workspace/docs/VALIDATION_REPORT.md (regenerated each run)
-    ```
-
-### INFERRED #calls-478
-- **Source:** `AsurDev/ai_scheduler/modules/metrics.py:LL80 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_ceph_storage_used`
-- **Target:** `AsurDev/ai_scheduler/modules/metrics.py:L14 :: asurdev_ai_scheduler_modules_metrics_py_modules_metrics_query`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
-    ```
-    ```
-    /home/workspace/tests/test_observability_ollama.py:21:        vec = _embed("test query")
-    ```
-    ```
-    /home/workspace/agents/_impl/macro_agent.py:178:        query = "geopolitical risk financial markets impact"
-    ```
-
-### INFERRED #calls-479
-- **Source:** `AsurDev/scripts/day3-compute.sh:LL187 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_main`
-- **Target:** `AsurDev/scripts/day3-compute.sh:L113 :: asurdev_scripts_day3_compute_sh_scripts_day3_compute_install_python_ml`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/astrology/residual_model.py:92:    ml = ResidualModel(mode="ml")
-    ```
-    ```
-    /home/workspace/astrology/residual_model.py:93:    print(f"\nML Model trained: {ml.is_trained()}")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/l9_ebl/capabilities/registry.py:15:    ML_READ = "ml:read"
-    ```
-
-### INFERRED #calls-480
-- **Source:** `AsurDev/astrofin/meta_rl/engine.py:LL146 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_evolve`
-- **Target:** `AsurDev/astrofin/meta_rl/engine.py:L103 :: asurdev_astrofin_meta_rl_engine_py_meta_rl_engine_metarlengine_evaluate_population`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:7:1. Create a MetaAgent with a small population.
-    ```
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:71:    """MetaAgent wired with a tiny population and slow features disabled."""
-    ```
-    ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:128:    # The pool should never shrink below the configured population.
-    ```
-
-### INFERRED #calls-481
-- **Source:** `AsurDev/ml_engine/feedback/retrainer.py:LL50 :: asurdev_ml_engine_feedback_retrainer_py_feedback_retrainer_retrainer_retrain`
-- **Target:** `AsurDev/ml_engine/feedback/retrainer.py:L61 :: asurdev_ml_engine_feedback_retrainer_py_feedback_retrainer_retrainer_load_latest_metrics`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_auth.py:20:    pytest.skip("FastAPI metrics endpoint not yet implemented")
-    ```
-    ```
-    /home/workspace/tests/test_auth.py:39:    response = fastapi_client.get("/metrics")
-    ```
-    ```
-    /home/workspace/tests/test_metrics_cli.py:14:    """Проверяем, что команда 'karl metrics serve' доступна."""
-    ```
-
-### INFERRED #calls-482
-- **Source:** `AsurDev/scripts/day4-slurm.sh:LL151 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_create_cgroup_conf`
-- **Target:** `AsurDev/scripts/day4-slurm.sh:L25 :: asurdev_scripts_day4_slurm_sh_scripts_day4_slurm_ok`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:151:                    "reasoning": "ok",
-    ```
-    ```
-    /home/workspace/tests/test_backtest_real_agents.py:181:                {"signal": "NEUTRAL", "confidence": 50, "reasoning": "ok"},
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:36:        ok, dd, msg = engine.check_kill_switch()
-    ```
-
-### INFERRED #calls-483
-- **Source:** `AsurDev/l10_self_healing/watchdog/watchdog.py:LL58 :: asurdev_l10_self_healing_watchdog_watchdog_py_watchdog_watchdog_watchdog_check`
-- **Target:** `AsurDev/l10_self_healing/watchdog/watchdog.py:L87 :: asurdev_l10_self_healing_watchdog_watchdog_py_watchdog_watchdog_watchdog_evaluate_trigger`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_risk_v2.py:37:        assert not ok, f"Kill should trigger at 12% DD, got dd={dd:.2%}"
-    ```
-    ```
-    /home/workspace/tests/test_risk_v2.py:45:        assert ok, f"Kill should NOT trigger at 6% DD, got dd={dd:.2%}"
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:220:    # Try to apply invalid change (should trigger rollback)
-    ```
-
-### INFERRED #calls-484
-- **Source:** `AsurDev/load_test/correction_loop/loop.py:LL135 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_cycle`
-- **Target:** `AsurDev/load_test/correction_loop/loop.py:L249 :: asurdev_load_test_correction_loop_loop_py_correction_loop_loop_correctionloop_decide`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/mas_factory/atom_030_stress_test.py:84:    # Test decide() - returns selected candidates
-    ```
-    ```
-    /home/workspace/mas_factory/atom_030_stress_test.py:85:    candidates = unc.decide(ctx_high)
-    ```
-    ```
-    /home/workspace/mas_factory/atom_030_stress_test.py:87:    print(f"  ✅ decide() returned: {candidates}")
-    ```
-
-### INFERRED #calls-485
-- **Source:** `AsurDev/scheduler_v3/api.py:LL175 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_job`
-- **Target:** `AsurDev/scheduler_v3/api.py:L43 :: asurdev_scheduler_v3_api_py_scheduler_v3_api_get_store`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/meta_rl/strategy_pool.py:315:        # version via a length check because we don't store the version
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:182:        self._final_elites = final_elites  # store for get_best_strategy()
-    ```
-    ```
-    /home/workspace/home-cluster-iac/scheduler_v3/api.py:158:    store = get_store()
-    ```
-
-### INFERRED #calls-486
-- **Source:** `AsurDev/acos/cli/monitor.py:LL47 :: asurdev_acos_cli_monitor_py_cli_monitor_cmd_status`
-- **Target:** `AsurDev/acos/cli/monitor.py:L22 :: asurdev_acos_cli_monitor_py_cli_monitor_load_config`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/infer_edges.py:14:  - manual overrides from config/memory_overrides.json
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:20:  - /home/workspace/config/memory_overrides.json
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:41:OVERRIDES_JSON = REPO_ROOT / "config" / "memory_overrides.json"
-    ```
-
-### INFERRED #calls-487
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL282 :: inference_api_cache_put`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L264 :: inference_api_input_hash`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:218:    print(f"  Valid change: weight 0.2 → 0.15, hash: {new_topo.hash}")
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:244:    print(f"  Current topology hash: {updater.current_topology.hash}")
-    ```
-    ```
-    /home/workspace/tests/test_switch_nodes.py:245:    print(f"  Expected (after valid change): {new_topo.hash}")
-    ```
-
-### INFERRED #calls-488
-- **Source:** `AsurDev/acos/network/amnezia_wg.py:LL90 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_start`
-- **Target:** `AsurDev/acos/network/amnezia_wg.py:L77 :: asurdev_acos_network_amnezia_wg_py_network_amnezia_wg_amneziawgmanager_emit`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/recall_test.py:171:    ap.add_argument("--json", action="store_true", help="emit JSON instead of table")
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:113:    log.emit("eventlog-test", "TUNNEL_UP", {"interface": "wg0", "peer": "10.8.0.1"})
-    ```
-    ```
-    /home/workspace/home-cluster-iac/tests/test_amneziawg_integration.py:196:            if isinstance(func, ast.Attribute) and func.attr in ("emit", "append"):
-    ```
-
-### INFERRED #calls-489
-- **Source:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:LL229 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_run_all`
-- **Target:** `AsurDev/load_test/scenarios/policy_oscillation/test.py:L62 :: asurdev_load_test_scenarios_policy_oscillation_test_py_policy_oscillation_test_policyoscillationscenario_simulate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:236:        # Manually call _apply_change_internal with bad change to simulate error
-    ```
-    ```
-    /home/workspace/bench/perf_debug.py:15:# Pre-build candidate vectors (simulate hot path)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:101:            return self.digital_twin.simulate(
-    ```
-
-### INFERRED #calls-490
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL172 :: inference_api_validate_features`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L100 :: asurdev_ml_engine_inference_api_py_dataframe`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #imports-2
+- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL10 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator`
+- **Target:** `integrations/gitagent/validators/agent_validator.py:L17 :: validators_agent_validator_validationissue`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
 - **Evidence:**
     ```
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:71:    """MetaAgent wired with a tiny population and slow features disabled."""
+    /home/workspace/graphify-out/select_top_inferred.py:9:graph.json → validator).
     ```
     ```
-    /home/workspace/agents/gitagent_exporter.py:101:        "description": "ML-based price prediction using historical patterns and features",
+    /home/workspace/tests/test_validator.py:23:def validator():
     ```
     ```
-    /home/workspace/agents/gitagent_exporter.py:103:        "inputs": ["price_history", "features", "regime"],
+    /home/workspace/tests/test_validator.py:38:    def test_valid_minimal_agent(self, validator, tmp_agent_dir):
     ```
 
-### INFERRED #calls-491
-- **Source:** `AsurDev/job_engine/engine.py:LL119 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_start`
-- **Target:** `AsurDev/job_engine/engine.py:L164 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_get`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+### INFERRED #imports-3
+- **Source:** `astrofin-sentinel-v5/db/models.py:LL7 :: astrofin_sentinel_v5_db_models_py_db_models`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
+- **Verdict:** **false**
 - **Evidence:**
     ```
-    /home/workspace/graphify-out/build_balanced_sample.py:36:    sp = edge.get("source_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:37:    tp = edge.get("target_path") or ""
-    ```
-    ```
-    /home/workspace/graphify-out/build_balanced_sample.py:40:    sl = edge.get("source_line") or ""
+    empty_target_source_file
     ```
 
-### INFERRED #calls-492
-- **Source:** `AsurDev/load_test/scenarios/solver_latency/test.py:LL168 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_run_all`
-- **Target:** `AsurDev/load_test/scenarios/solver_latency/test.py:L47 :: asurdev_load_test_scenarios_solver_latency_test_py_solver_latency_test_solverlatencyscenario_simulate`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/tests/test_switch_nodes.py:236:        # Manually call _apply_change_internal with bad change to simulate error
-    ```
-    ```
-    /home/workspace/bench/perf_debug.py:15:# Pre-build candidate vectors (simulate hot path)
-    ```
-    ```
-    /home/workspace/home-cluster-iac/v8/policy_verifier/pipeline.py:101:            return self.digital_twin.simulate(
-    ```
-
-### INFERRED #calls-493
-- **Source:** `AsurDev/ai_scheduler/scheduler.py:LL242 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_list_nodes`
-- **Target:** `AsurDev/ai_scheduler/scheduler.py:L108 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_get_node_metrics_prometheus`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/scripts/validate_alerts_metrics.py:39:    # Simple regex: match words that follow prometheus metric naming conventions
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ai_scheduler/scheduler.py:268:    return {"status": "ok", "prometheus": prom_status}
-    ```
-    ```
-    /home/workspace/home-cluster-iac/ai_scheduler/modules/metrics.py:64:    """Network latency estimate via prometheus blackbox or node_network_*"""
-    ```
-
-### INFERRED #calls-494
-- **Source:** `AsurDev/load_test/scenarios/ml_risk_ignored/test.py:LL23 :: asurdev_load_test_scenarios_ml_risk_ignored_test_py_ml_risk_ignored_test_mlriskignoredscenario_simulate`
-- **Target:** `AsurDev/load_test/scenarios/ml_risk_ignored/test.py:L44 :: asurdev_load_test_scenarios_ml_risk_ignored_test_py_ml_risk_ignored_test_mlriskignoredscenario_generate_nodes`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:64:    nodes = {n["id"]: n for n in g["nodes"]}
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:68:    return nodes, links, sample
-    ```
-    ```
-    /home/workspace/graphify-out/validate_inferred.py:132:    nodes, _links, sample = load()
-    ```
-
-### INFERRED #calls-495
-- **Source:** `AsurDev/ml_engine/inference/api.py:LL335 :: asurdev_ml_engine_inference_api_py_inference_api_predict`
-- **Target:** `AsurDev/ml_engine/inference/api.py:L100 :: asurdev_ml_engine_inference_api_py_dataframe`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #imports-4
+- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL10 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator`
+- **Target:** `integrations/gitagent/validators/agent_validator.py:L43 :: validators_agent_validator_agentyamlvalidator`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
 - **Evidence:**
     ```
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/agents/_impl/cycle_agent.py:42:        Analyze cycle position and predict next turning point.
+    /home/workspace/graphify-out/select_top_inferred.py:9:graph.json → validator).
     ```
     ```
-    /home/workspace/mas_factory/architect.py:51:    intent_type: str  # "analyze" | "compare" | "predict" | "backtest"
+    /home/workspace/graphify-out/infer_edges.py:192:    The validator's CLI default is a stale /tmp/inferred_sample_500.json.
     ```
     ```
-    /home/workspace/mas_factory/architect.py:174:        elif any(w in lower for w in ["predict", "forecast", "will"]):
+    /home/workspace/graphify-out/infer_edges.py:207:        raise SystemExit(f"validator failed: {proc.stderr}")
     ```
 
-### INFERRED #calls-496
-- **Source:** `AsurDev/job_engine/engine.py:LL136 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_fail`
-- **Target:** `AsurDev/job_engine/engine.py:L169 :: asurdev_job_engine_engine_py_job_engine_engine_telemetryjobengine_write_event`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+### INFERRED #imports-5
+- **Source:** `push/db/models.py:LL7 :: push_db_models_py_db_models`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
+- **Verdict:** **false**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
-    ```
-    ```
-    /home/workspace/meta_rl/evolution.py:335:        4. Log the reset event
-    ```
-    ```
-    /home/workspace/acos-contracts/acos_contracts/state.py:4:backends** (PostgreSQL thread-pool vs. event-sourcing KV) and **identical
+    empty_target_source_file
     ```
 
-### INFERRED #calls-497
-- **Source:** `AsurDev/acos_correction/rca_engine.py:LL274 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_main`
-- **Target:** `AsurDev/acos_correction/rca_engine.py:L45 :: asurdev_acos_correction_rca_engine_py_acos_correction_rca_engine_rcaengine`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
+### INFERRED #imports-6
+- **Source:** `audit_repo/db/models.py:LL7 :: audit_repo_db_models_py_db_models`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports-7
+- **Source:** `db/models.py:LL7 :: db_models_py_db_models`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports-8
+- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL10 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator`
+- **Target:** `integrations/gitagent/validators/agent_validator.py:L35 :: validators_agent_validator_validationreport`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
 - **Evidence:**
     ```
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/graphify-out/build_balanced_sample.py:50:def main() -> None:
+    /home/workspace/graphify-out/select_top_inferred.py:9:graph.json → validator).
     ```
     ```
-    /home/workspace/graphify-out/build_balanced_sample.py:145:    main()
+    /home/workspace/tests/test_validator.py:23:def validator():
     ```
     ```
-    /home/workspace/graphify-out/recall_test.py:162:def main():
-    ```
-
-### INFERRED #calls-498
-- **Source:** `AsurDev/feature_pipeline/exporter.py:LL219 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_export_parquet`
-- **Target:** `AsurDev/feature_pipeline/exporter.py:L118 :: asurdev_feature_pipeline_exporter_py_feature_pipeline_exporter_datasetexporter_build_dataset`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
-- **Evidence:**
-    ```
-    /home/workspace/agents/_impl/quant_agent.py:156:        # Simple momentum: % change over dataset
-    ```
-    ```
-    /home/workspace/home-cluster-iac/job_engine/engine.py:81:    Every transition writes to the event log for ML dataset generation.
-    ```
-    ```
-    /home/workspace/home-cluster-iac/feature_pipeline/exporter.py:198:        """Export full dataset to JSON. Returns path."""
+    /home/workspace/tests/test_validator.py:38:    def test_valid_minimal_agent(self, validator, tmp_agent_dir):
     ```
 
-### INFERRED #calls-499
-- **Source:** `AsurDev/ete/recorder/trace_recorder.py:LL34 :: asurdev_ete_recorder_trace_recorder_py_recorder_trace_recorder_tracerecorder_record`
-- **Target:** `AsurDev/ete/recorder/trace_recorder.py:L41 :: asurdev_ete_recorder_trace_recorder_py_recorder_trace_recorder_tracerecorder_record_postgres`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+### INFERRED #imports-9
+- **Source:** `AstroFinSentinelV5/tests/test_validator.py:LL10 :: astrofinsentinelv5_tests_test_validator_py_tests_test_validator`
+- **Target:** `integrations/gitagent/validators/agent_validator.py:L26 :: validators_agent_validator_validationresult`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
+- **Verdict:** **ambiguous**
 - **Evidence:**
     ```
-    /home/workspace/home-cluster-iac/ml_engine/feedback/collector.py:79:                user="postgres",
+    source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/home-cluster-iac/ml_engine/feedback/collector.py:80:                password="postgres",
+    /home/workspace/tests/test_validator.py:23:def validator():
     ```
     ```
-    /home/workspace/home-cluster-iac/ml_engine/dataset/builder.py:22:        tsdb_user: str = "postgres",
+    /home/workspace/tests/test_validator.py:38:    def test_valid_minimal_agent(self, validator, tmp_agent_dir):
+    ```
+    ```
+    /home/workspace/tests/test_validator.py:59:        result = validator.validate_file(agent_dir / "agent.yaml")
     ```
 
-### INFERRED #calls-500
-- **Source:** `AsurDev/feature_pipeline/pipeline.py:LL155 :: asurdev_feature_pipeline_pipeline_py_feature_pipeline_pipeline_main`
-- **Target:** `AsurDev/feature_pipeline/pipeline.py:L38 :: asurdev_feature_pipeline_pipeline_py_feature_pipeline_pipeline_parse_args`
-- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `calls`
-- **Verdict:** **valid**
+### INFERRED #imports-10
+- **Source:** `atom-federation-os/local-ai-stack/agent-runtime/agent_runtime/dag_retry.py:LL13 :: agent_runtime_dag_retry`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
+- **Verdict:** **false**
 - **Evidence:**
     ```
-    /home/workspace/graphify-out/build_balanced_sample.py:81:    args = ap.parse_args()
+    empty_target_source_file
     ```
+
+---
+
+## Bucket: relation = `inherits` (10 edges)
+
+### INFERRED #inherits-1
+- **Source:** `roma-execution-bridge/deploy/stripe-webhook/app/main.py:LL76 :: app_main_webhookresponse`
+- **Target:** `(empty): :: basemodel`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
+- **Verdict:** **false**
+- **Evidence:**
     ```
-    /home/workspace/graphify-out/build_balanced_sample.py:83:    inp = Path(args.inp)
+    empty_target_source_file
     ```
+
+### INFERRED #inherits-2
+- **Source:** `atom-federation-os/local-ai-stack/agent-runtime/agent_runtime/app.py:LL175 :: agent_runtime_app_taskstatusresponse`
+- **Target:** `(empty): :: basemodel`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
+- **Verdict:** **false**
+- **Evidence:**
     ```
-    /home/workspace/graphify-out/build_balanced_sample.py:87:    rng = random.Random(args.seed)
+    empty_target_source_file
+    ```
+
+### INFERRED #inherits-3
+- **Source:** `AstroFinSentinelV5/deploy/monitoring/health_endpoints.py:LL31 :: monitoring_health_endpoints_healthresponse`
+- **Target:** `(empty): :: basemodel`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #inherits-4
+- **Source:** `astrofin-sentinel-v5/orchestration/router.py:LL24 :: astrofin_sentinel_v5_orchestration_router_py_orchestration_router_routeroutput`
+- **Target:** `(empty): :: basemodel`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #inherits-5
+- **Source:** `atom-federation-os/local-ai-stack/agent-runtime/agent_runtime/app.py:LL186 :: agent_runtime_app_queuestatsresponse`
+- **Target:** `(empty): :: basemodel`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #inherits-6
+- **Source:** `atom-federation-os/local-ai-stack/agent-runtime/agent_runtime/app.py:LL162 :: agent_runtime_app_taskcreate`
+- **Target:** `(empty): :: basemodel`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #inherits-7
+- **Source:** `astrofin-sentinel-v5/health_endpoints.py:LL31 :: astrofin_sentinel_v5_health_endpoints_healthresponse`
+- **Target:** `(empty): :: basemodel`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #inherits-8
+- **Source:** `AsurDev/ai_scheduler/scheduler.py:LL68 :: asurdev_ai_scheduler_scheduler_py_ai_scheduler_scheduler_jobrequest`
+- **Target:** `(empty): :: basemodel`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #inherits-9
+- **Source:** `astrofin-sentinel-v5/orchestration/models.py:LL20 :: astrofin_sentinel_v5_orchestration_models_py_orchestration_models_sentinelv5request`
+- **Target:** `(empty): :: basemodel`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #inherits-10
+- **Source:** `atom-federation-os/local-ai-stack/agent-runtime/agent_runtime/app.py:LL169 :: agent_runtime_app_tasksubmitresponse`
+- **Target:** `(empty): :: basemodel`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+---
+
+## Bucket: relation = `imports_from` (10 edges)
+
+### INFERRED #imports_from-1
+- **Source:** `atom-federation-os/local-ai-stack/agent-runtime/agent_runtime/event_sourcing.py:LL16 :: agent_runtime_event_sourcing`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports_from`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports_from-2
+- **Source:** `atom-federation-os/actuator/causal_actuation_engine.py:LL19 :: actuator_causal_actuation_engine`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports_from`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports_from-3
+- **Source:** `atom-federation-os/actuator/divergence_response_policy.py:LL19 :: actuator_divergence_response_policy`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports_from`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports_from-4
+- **Source:** `atom-federation-os/local-ai-stack/agent-runtime/agent_runtime/durable_queue.py:LL31 :: agent_runtime_durable_queue`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports_from`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports_from-5
+- **Source:** `atom-federation-os/actuator/stability_feedback_controller.py:LL22 :: actuator_stability_feedback_controller`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports_from`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports_from-6
+- **Source:** `atom-federation-os/actuator/swarm_control_surface.py:LL18 :: actuator_swarm_control_surface`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports_from`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports_from-7
+- **Source:** `AsurDev/acos.py:LL13 :: asurdev_acos`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports_from`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports_from-8
+- **Source:** `atom-federation-os/local-ai-stack/agent-runtime/agent_runtime/task_store.py:LL20 :: agent_runtime_task_store`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports_from`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports_from-9
+- **Source:** `atom-federation-os/local-ai-stack/agent-runtime/agent_runtime/dag_recorder.py:LL15 :: agent_runtime_dag_recorder`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports_from`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
+    ```
+
+### INFERRED #imports_from-10
+- **Source:** `atom-federation-os/local-ai-stack/agent-runtime/agent_runtime/governance.py:LL18 :: agent_runtime_governance`
+- **Target:** `(empty): :: enum`
+- **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports_from`
+- **Verdict:** **false**
+- **Evidence:**
+    ```
+    empty_target_source_file
     ```
 
 ---

@@ -73,3 +73,13 @@ Overrides are authoritative and bypass automatic tiering, but must be audited.
 3. Apply manual overrides before default tier assignment.
 4. Re-generate `inferred_clean.jsonl` after policy changes.
 5. Report final counts for `T1`, `T2`, and `T3`.
+
+## Applied Overrides
+
+As of 2026-06-23, 7 high-value core contracts have been manually marked as permanent (T1 + 365 days half-life) to protect critical god-nodes and architectural invariants from decay.
+
+See:
+- `config/memory_overrides.json` — current list of overrides with full rationale
+- `graphify-out/inferred_clean.jsonl` — latest ingested edges with `override_applied` flag
+
+This mechanism serves as an escape hatch for relations that the automated policy cannot yet fully capture.

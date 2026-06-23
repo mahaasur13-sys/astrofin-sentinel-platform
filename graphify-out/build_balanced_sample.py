@@ -78,7 +78,28 @@ def main() -> None:
         default=0,
         help="Optional hard cap on total edges (0 = no cap).",
     )
+    ap.add_argument(
+        "--anchor-pairs",
+        action="store_true",
+        default=False,
+        help="Reserve (source_node_id, target_node_id) pairs listed in "
+             "config/memory_overrides.json in the output regardless of "
+             "--max-per-bucket cap. Preserves ADR-0004 contract.",
+    )
     args = ap.parse_args()
+
+    # Anchor pairs: always include override-anchored edges (ADR-0004).
+    anchored: set = set()
+    if args.anchor_pairs:
+        from pathlib import Path as _P
+        ov_path = _P("/home/workspace/config/memory_overrides.json")
+        if ov_path.exists():
+            ov = json.loads(ov_path.read_text(encoding="utf-8"))
+            anchored = {
+                (e["source_node_id"], e["target_node_id"])
+                for e in ov.get("overrides", [])
+            }
+            print(f"[anchor] reserved {len(anchored)} override pairs")
 
     inp = Path(args.inp)
     if not inp.exists():
@@ -102,9 +123,16 @@ def main() -> None:
 
     sampled: list[dict] = []
     bucket_stats: dict[tuple[str, bool], dict] = {}
+    anchored_kept: list[dict] = []
 
     for key, edges in buckets.items():
         rng.shuffle(edges)
+        if anchored:
+            kept_here = [e for e in edges
+                          if (e.get("source_node_id"), e.get("target_node_id")) in anchored]
+            skipped_here = [e for e in edges if e not in kept_here]
+            edges = skipped_here
+            anchored_kept.extend(kept_here)
         cap = min(args.max_per_bucket, len(edges))
         pick = edges[:cap]
         sampled.extend(pick)
@@ -113,6 +141,7 @@ def main() -> None:
             "sampled": len(pick),
         }
 
+    sampled = anchored_kept + sampled
     rng.shuffle(sampled)
     if args.max_total and len(sampled) > args.max_total:
         sampled = sampled[: args.max_total]

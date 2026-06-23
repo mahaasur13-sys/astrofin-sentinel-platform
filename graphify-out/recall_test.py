@@ -36,17 +36,38 @@ INGEST = REPO_ROOT / "graphify-out" / "inferred_clean.jsonl"
 
 
 def load_edges():
-    """Load the enriched edges written by infer_edges.py."""
+    """Load the enriched edges written by infer_edges.py.
+
+    If the ingest file lacks enriched fields (recall_score, tier, ...),
+    invoke infer_edges.py to regenerate it. This keeps the script
+    runnable as a one-shot ranking tool without manual orchestration.
+    """
     if not INGEST.exists():
         raise SystemExit(
             f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
         )
     edges = []
+    needs_enrichment = False
     for line in INGEST.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line:
             continue
         edges.append(json.loads(line))
+        if "recall_score" not in edges[-1] or "tier" not in edges[-1]:
+            needs_enrichment = True
+    if needs_enrichment:
+        import subprocess
+        out_path = INGEST.with_suffix(".enriched.jsonl")
+        subprocess.run(
+            [sys.executable, str(REPO_ROOT / "graphify-out" / "infer_edges.py"),
+             "-o", str(out_path)],
+            check=True,
+        )
+        edges = []
+        for line in out_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line:
+                edges.append(json.loads(line))
     return edges
 
 

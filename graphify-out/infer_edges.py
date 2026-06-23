@@ -31,6 +31,7 @@ import json
 import math
 import subprocess
 import sys
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -56,6 +57,24 @@ T3_FORCED_DECAY = 0.05  # T3 always sits at floor regardless of source age
 TIER_WEIGHT = {"T1": 1.0, "T2": 0.6, "T3": 0.1}
 # Tier weight is separate from recall_score because it must remain
 # stable across decay, while decay varies with time.
+
+# ADR-0005: relation-level weights. These reflect *semantic strength* of each
+# relation type, independent of tier or decay. Hard dependencies (calls, imports,
+# inherits) weigh more than transitive ones (references, re_exports).
+RELATION_WEIGHTS = {
+    "calls": 1.00,
+    "contains": 0.95,
+    "method": 0.90,
+    "imports_from": 0.95,
+    "inherits": 0.95,
+    "imports": 0.90,
+    "defines": 0.85,
+    "rationale_for": 0.80,
+    "uses": 0.75,
+    "references": 0.65,
+    "re_exports": 0.70,
+}
+DEFAULT_RELATION_WEIGHT = 0.50  # unknown / future relation types
 
 _CATEGORY_PRIORITY = {"trash": 4, "archived": 3, "submodule": 2, "core": 1}
 _SUBMODULE_PREFIXES = (
@@ -167,8 +186,23 @@ def load_graph():
         return json.load(f)
 
 
-def run_validator():
-    proc = subprocess.run([sys.executable, str(VALIDATOR)], capture_output=True, text=True)
+def run_validator(sample_path: str = "/tmp/inferred_sample.json"):
+    """Re-run validate_inferred.py against a known-good sample.
+
+    The validator's CLI default is a stale /tmp/inferred_sample_500.json.
+    We force it onto the fresh sample we just produced (see select_top_inferred.py
+    and build_balanced_sample.py). This breaks the historical feedback loop
+    where validate_inferred.py kept reading an old 500/'calls'-only sample and
+    overwrote the diverse selection.
+    """
+    if not Path(sample_path).exists():
+        raise SystemExit(f"run_validator: sample not found at {sample_path}")
+    env = os.environ.copy()
+    env["INFERRED_SAMPLE"] = str(sample_path)
+    proc = subprocess.run(
+        [sys.executable, str(VALIDATOR)],
+        capture_output=True, text=True, env=env,
+    )
     if proc.returncode != 0:
         raise SystemExit(f"validator failed: {proc.stderr}")
     return proc.stdout.strip()
@@ -241,7 +275,7 @@ def main():
     if not GRAPH_JSON.exists():
         raise SystemExit(f"missing {GRAPH_JSON}")
 
-    run_validator()
+    run_validator("/tmp/inferred_sample.json")
     kept = parse_report()
     overrides = load_overrides()
     as_of = (datetime.fromisoformat(args.as_of) if args.as_of
@@ -266,6 +300,8 @@ def main():
 
     for row in kept:
         (src_path, src_line, src_node), (tgt_path, tgt_line, tgt_node) = split_source_target(row)
+        if src_node == tgt_node:
+            continue
         try:
             conf = float(row["confidence"])
         except Exception:
@@ -306,7 +342,8 @@ def main():
         seen_pairs.add(pair_key)
 
         tier_weight = TIER_WEIGHT[tier]
-        recall_score = round(tier_weight * decay * conf, 4)
+        rel_weight = RELATION_WEIGHTS.get(row["relation"], DEFAULT_RELATION_WEIGHT)
+        recall_score = round(tier_weight * decay * conf * rel_weight, 4)
 
         enriched.append({
             "source_node_id": src_node,
@@ -325,6 +362,7 @@ def main():
             "delta_days": delta,
             "decay_factor": round(decay, 4),
             "tier_weight": tier_weight,
+            "relation_weight": rel_weight,
             "recall_score": recall_score,
             "override_applied": key in overrides,
         })
