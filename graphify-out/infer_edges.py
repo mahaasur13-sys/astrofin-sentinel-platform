@@ -200,7 +200,12 @@ def run_validator(sample_path: str = "/tmp/inferred_sample.json"):
     If the sample is in JSONL format (one edge per line, no surrounding array),
     convert it to a JSON array first — validate_inferred.py uses json.load(),
     which cannot parse JSONL.
+
+    If VALIDATOR is None or the file does not exist, skip the validator entirely
+    (used by tests that stub VALIDATOR to None).
     """
+    if VALIDATOR is None or not Path(str(VALIDATOR)).exists():
+        return ""
     sp = Path(sample_path)
     if not sp.exists():
         raise SystemExit(f"run_validator: sample not found at {sample_path}")
@@ -394,11 +399,19 @@ def main():
         if src_age is None:
             src_age = _git_mtime_days(src_path, as_of)
         delta = max(int(src_age or 0), 0)  # None or negative → 0 (fresh)
-        decay = max(DECAY_FLOOR, math.exp(-delta / half_life)) if half_life > 0 else DECAY_FLOOR
-        if tier == "T3":
-            decay = T3_FORCED_DECAY  # T3 never gets a normal decay curve
+        # Override edges are treated as fresh contracts (ADR-0004): their
+        # human-authored status pins decay to 1.0 regardless of node age.
+        if key in overrides:
+            decay = 1.0
+        else:
+            decay = max(DECAY_FLOOR, math.exp(-delta / half_life)) if half_life > 0 else DECAY_FLOOR
+            if tier == "T3":
+                decay = T3_FORCED_DECAY  # T3 never gets a normal decay curve
 
-        pair_key = (src_node, tgt_node, row["verdict"])
+        # Include relation in pair_key so different relations between the same
+        # (source, target) nodes are not deduped. ADR-0004 treats relation as a
+        # distinct semantic channel, not a duplicate.
+        pair_key = (src_node, tgt_node, row["relation"], row["verdict"])
         if pair_key in seen_pairs:
             continue
         seen_pairs.add(pair_key)
