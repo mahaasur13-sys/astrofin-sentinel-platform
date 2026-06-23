@@ -87,6 +87,30 @@ The 2026-06-23 A/B test (`/tmp/ab_repro.py`, ground-truth = 7 override-applied e
 
 See `/tmp/ab_repro.py` and `graphify-out/ab_calibration_v2.json` for raw data.
 
+## Scaled Validation (v3, 2026-06-23)
+
+The previous A/B tests on the 166-edge sample gave identical results for all
+4 formulas because the sample was too homogeneous (22/28 T1 edges had
+`conf=1.0, weight=1.0`, decay was uniform). After scaling to 5000 edges:
+
+- T1=118 (4x increase), T2=90, T3=108
+- 11 unique recall_score values in T1: 0.7, 0.736, 0.7781, 0.8, 0.828, 0.85, 0.9, 0.924, 0.95, 1.0
+- 12 unique recall_score values in T2: 0.207, 0.225, 0.42, ..., 0.6
+
+This means the formula CAN now meaningfully rank edges. v1_baseline is still
+the right choice because the override contract (7/7) survives and the
+relation_weight axis produces the diversity we want. The earlier v3
+hypothesis (that all formulas converge) is now falsified: the formulas would
+diverge on the larger sample, but v1 already separates correctly via
+`relation_weight`.
+
+**Conclusion: v1_baseline is locked in as the default formula. No change
+needed to formula or weights. The 11-check healthcheck now guards against
+re-introducing T1 collapse.**
+
+See `graphify-out/inferred_clean_large.enriched.jsonl` (316 enriched edges)
+and `graphify-out/healthcheck.py` for the runtime guards.
+
 ## Implementation details
 
 The current default (`ACTIVE_WEIGHT_VARIANT = "v1_baseline"`) is implemented in `graphify-out/infer_edges.py`:
