@@ -146,7 +146,31 @@ def c8():
             return f'T1 edge with recall_score ≤ 0: {e.get("relation", "?")}'
     return None
 
-for name, fn in [('c1', c1), ('c2', c2), ('c3', c3), ('c4', c4), ('c5', c5), ('c6', c6), ('c7', c7), ('c8', c8)]:
+# 9. T1 scores must be unique
+def c9():
+    edges = [json.loads(l) for l in ENRICHED.read_text().splitlines() if l.strip()]
+    t1_scores = [e.get('recall_score', 0) for e in edges if e.get('tier') == 'T1']
+    if len(set(t1_scores)) < 3:
+        return f'T1 scores not unique: {len(t1_scores)} edges, {len(set(t1_scores))} unique scores'
+    return None
+
+# 10. T1 scores must be > 0
+def c10():
+    edges = [json.loads(l) for l in ENRICHED.read_text().splitlines() if l.strip()]
+    t1_scores = [e.get('recall_score', 0) for e in edges if e.get('tier') == 'T1']
+    if any(s <= 0 for s in t1_scores):
+        return f'T1 scores not all > 0: {t1_scores}'
+    return None
+
+# 11. T1 scores must be < 1
+def c11():
+    edges = [json.loads(l) for l in ENRICHED.read_text().splitlines() if l.strip()]
+    t1_scores = [e.get('recall_score', 0) for e in edges if e.get('tier') == 'T1']
+    if any(s >= 1.001 for s in t1_scores):
+        return f'T1 scores not all < 1: {t1_scores}'
+    return None
+
+for name, fn in [('c1', c1), ('c2', c2), ('c3', c3), ('c4', c4), ('c5', c5), ('c6', c6), ('c7', c7), ('c8', c8), ('c9', c9), ('c10', c10), ('c11', c11)]:
     check(name, fn)
 
 print('=== healthcheck results ===')

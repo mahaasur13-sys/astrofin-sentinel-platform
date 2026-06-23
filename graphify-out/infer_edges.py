@@ -196,9 +196,22 @@ def run_validator(sample_path: str = "/tmp/inferred_sample.json"):
     and build_balanced_sample.py). This breaks the historical feedback loop
     where validate_inferred.py kept reading an old 500/'calls'-only sample and
     overwrote the diverse selection.
+
+    If the sample is in JSONL format (one edge per line, no surrounding array),
+    convert it to a JSON array first — validate_inferred.py uses json.load(),
+    which cannot parse JSONL.
     """
-    if not Path(sample_path).exists():
+    sp = Path(sample_path)
+    if not sp.exists():
         raise SystemExit(f"run_validator: sample not found at {sample_path}")
+
+    # Auto-detect JSONL vs JSON: JSONL has no top-level '[' on the first line.
+    head = sp.read_text(encoding="utf-8")[:1]
+    if head != "[":
+        # Treat as JSONL, convert to JSON array in-place.
+        edges = [json.loads(line) for line in sp.read_text(encoding="utf-8").splitlines() if line.strip()]
+        sp.write_text(json.dumps(edges, ensure_ascii=False), encoding="utf-8")
+
     env = os.environ.copy()
     env["INFERRED_SAMPLE"] = str(sample_path)
     proc = subprocess.run(

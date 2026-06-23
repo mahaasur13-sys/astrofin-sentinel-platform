@@ -8,3 +8,6 @@ __pycache__/
 build/
 dist/
 *.bak
+graphify-out/inferred_clean.*
+graphify-out/cache/
+ab_*
