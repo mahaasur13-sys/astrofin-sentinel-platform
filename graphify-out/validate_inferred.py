@@ -37,11 +37,34 @@ REPORT = WORKSPACE / "docs" / "VALIDATION_REPORT.md"
 EXCLUDE_DIRS = ("Trash/", "node_modules/", "graphify-out/cache/")
 
 
+def _adapt_sample(sample: list) -> list:
+    """Map inferred_clean.jsonl schema → validator schema.
+
+    inferred_clean: source_node_id, target_node_id, source_path, source_line,
+                    target_path, confidence, weight, relation, ...
+    validator:      source, target, source_file, source_location, target_file,
+                    confidence_score, weight, relation, ...
+    """
+    return [
+        {
+            **e,
+            "source": e.get("source_node_id", e.get("source", "")),
+            "target": e.get("target_node_id", e.get("target", "")),
+            "source_file": e.get("source_path", e.get("source_file", "")),
+            "source_location": e.get("source_line", e.get("source_location", 0)),
+            "target_file": e.get("target_path", ""),
+            "confidence_score": e.get("confidence", e.get("confidence_score", 0.0)),
+        }
+        for e in sample
+    ]
+
+
 def load() -> tuple[dict, list, list]:
     g = json.load(open(GRAPH))
     nodes = {n["id"]: n for n in g["nodes"]}
     links = g["links"]
-    sample = json.load(open(SAMPLE))
+    raw_sample = json.load(open(SAMPLE))
+    sample = _adapt_sample(raw_sample) if raw_sample and "source_node_id" in raw_sample[0] else raw_sample
     return nodes, links, sample
 
 
