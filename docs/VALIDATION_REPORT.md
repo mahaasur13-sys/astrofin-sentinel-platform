@@ -80,7 +80,7 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_karl_synthesis_lag.py:1:"""tests/test_karl_synthesis_lag.py — ATOM-KARL-015 Phase 5: Tests for LagWindow integration in KARLSynthesisAgent
     ```
     ```
-    /home/workspace/agents/karl_synthesis.py:48:# ATOM-019: PostgreSQL integration
+    /home/workspace/tests/unit/test_strategy_pool_and_persistence.py:6:``tests/integration/test_evolution_pipeline.py``:
     ```
 
 ### INFERRED #calls-5
@@ -93,13 +93,13 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/atom-federation-os/build/lib/sbs/cli.py:238:    parser.add_argument("--quiet", action="store_true", help="Suppress progress output, show only result")
-    ```
-    ```
     /home/workspace/atom-federation-os/sbs/cli.py:3:Rich output, auto-completion, --json, -v/-vv/--quiet.
     ```
     ```
     /home/workspace/atom-federation-os/sbs/cli.py:46:quiet_opt = typer.Option(False, "--quiet", "-q", help="Suppress all output")
+    ```
+    ```
+    /home/workspace/atom-federation-os/sbs/cli.py:55:    quiet: bool = quiet_opt,
     ```
 
 ### INFERRED #calls-6
@@ -160,7 +160,7 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_risk_v2.py:247:        assert enforcer.mode == TradingMode.LIVE_FULL
     ```
     ```
-    /home/workspace/tests/test_validator.py:146:                        "Use KARL drift detection in production mode",
+    /home/workspace/astrology/residual_model.py:36:    def __init__(self, mode: str = "physics"):
     ```
 
 ### INFERRED #calls-10
@@ -247,10 +247,10 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/meta_rl/live_provider.py:134:        """Fetch with retry + exponential backoff."""
     ```
     ```
-    /home/workspace/home-cluster-iac/ete/compiler/dag.py:49:    retry_policy: dict[str, Any] = field(default=lambda: {"max_retries": 3, "backoff": 2.0})
-    ```
-    ```
     /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:145:                backoff = engine.BACKOFF_BASE**attempt
+    ```
+    ```
+    /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:148:                    f"Failure detected [{name}]: {reason} → attempt {attempt}/{engine.MAX_RETRIES} (backoff={backoff}s)"
     ```
 
 ### INFERRED #calls-16
@@ -266,7 +266,7 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/graphify-out/healthcheck.py:110:    r = subprocess.run(['python3', 'graphify-out/recall_test.py', '-n', '5'],
     ```
     ```
-    /home/workspace/tests/test_backtest_mode_comparison.py:22:    result = subprocess.run(
+    /home/workspace/graphify-out/select_top_inferred.py:121:    # end-to-end testable on every run.
     ```
 
 ### INFERRED #calls-17
@@ -285,7 +285,7 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/_sbs_old/boundary_spec.py:5:All validation is strict: no soft defaults, no silent bypass.
     ```
     ```
-    /home/workspace/atom-federation-os/tests/test_enforcement_layer.py:6:#   - No bypass paths exist
+    /home/workspace/atom-federation-os/scripts/execution_algebra_validator.py:68:    status: str = ""  # gateway / mutagen / deprecated_ok / bypass
     ```
 
 ### INFERRED #calls-18
@@ -298,13 +298,13 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/scripts/ralph_agent.py:106:    for attempt in range(1, MAX_RETRIES + 1):
+    /home/workspace/meta_rl/live_provider.py:135:        for attempt in range(_CCXT_RECONNECT_ATTEMPTS):
     ```
     ```
-    /home/workspace/scripts/ralph_agent.py:107:        print(f"\n🔄 Попытка {attempt}/{MAX_RETRIES}")
+    /home/workspace/meta_rl/live_provider.py:142:                logger.warning(f"[CCXT] {method} attempt {attempt + 1} failed: {e}")
     ```
     ```
-    /home/workspace/scripts/ralph_agent.py:109:        stash_cmd = f"git stash push -m 'ralph-attempt-{attempt}'"
+    /home/workspace/meta_rl/live_provider.py:143:                if attempt < _CCXT_RECONNECT_ATTEMPTS - 1:
     ```
 
 ### INFERRED #calls-19
@@ -323,7 +323,7 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/meta_rl/strategy_pool.py:315:        # version via a length check because we don't store the version
     ```
     ```
-    /home/workspace/atom-federation-os/tests/test_meta_control_v78.py:68:        chain_length=chain.length,
+    /home/workspace/atom-federation-os/build/lib/formal_model/execution_equivalence/ledger_normalizer.py:158:            "reason": f"length mismatch: EG={len(norm_eg)} vs FEG={len(norm_feg)}",
     ```
 
 ### INFERRED #calls-20
@@ -425,13 +425,13 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
+    /home/workspace/home-cluster-iac/acos_correction/rca_engine.py:214:                    "file": "failure_orchestrator/recovery.py",
+    ```
+    ```
     /home/workspace/home-cluster-iac/v8/rollback/engine.py:61:        - On incident: before recovery action
     ```
     ```
     /home/workspace/home-cluster-iac/load_test/workload/types.py:104:    """Frequent failure injection to test rollback and recovery."""
-    ```
-    ```
-    /home/workspace/home-cluster-iac/load_test/scenarios/false_positive/test.py:4:False Positive Recovery — transient failure triggers unnecessary recovery
     ```
 
 ### INFERRED #calls-26
@@ -447,10 +447,10 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/graphify-out/healthcheck.py:12:Exit code 0 if all pass, 1 if any fail.
     ```
     ```
+    /home/workspace/graphify-out/infer_edges.py:348:                    pass
+    ```
+    ```
     /home/workspace/tests/test_logging.py:35:        pass
-    ```
-    ```
-    /home/workspace/tests/test_healthcheck.py:89:        pass
     ```
 
 ### INFERRED #calls-27
@@ -690,7 +690,7 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:169:                log.info(f"Previously failed detector now OK: {name}")
     ```
     ```
-    /home/workspace/atom-federation-os/federation/semantic/v910.py:315:        detector = DriftDetector(store=snap)
+    /home/workspace/atom-federation-os/tests/test_temporal_proof_v77.py:249:        detector = ProofDriftDetector(severity_threshold=0.6)
     ```
 
 ### INFERRED #re_exports-2
@@ -703,10 +703,10 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/atom-federation-os/actuator/swarm_control_surface.py:106:        Map the global S_full tensor (canonical + deltas) into control vectors.
     ```
     ```
-    /home/workspace/atom-federation-os/swarm/swarm_divergence_field.py:69:      v7.3: per-axis field divergence with global coherence tensor
+    /home/workspace/atom-federation-os/swarm/distributed_tensor_alignment.py:3:Aligns S_full (unified_state_metric_tensor) across workers into ONE global coherence tensor.
     ```
     ```
-    /home/workspace/atom-federation-os/swarm/swarm_divergence_field.py:73:      distributed_tensor_alignment.py into ONE global coherence tensor.
+    /home/workspace/atom-federation-os/swarm/distributed_tensor_alignment.py:7:  we compute S_full per partition, then reconcile into ONE global tensor.
     ```
 
 ### INFERRED #re_exports-3
@@ -716,13 +716,13 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_db_init.py:10:        importlib.import_module("db.init")
+    /home/workspace/agents/_impl/amre/lag_windowing.py:131:            f"[LagWindow] init: adaptive={self.adaptive_enabled} "
     ```
     ```
-    /home/workspace/tests/test_db_init.py:12:        pytest.fail(f"db.init should be importable: {e}")
+    /home/workspace/agents/_impl/macro_agent.py:49:        """Lazy init RAG retriever."""
     ```
     ```
-    /home/workspace/tests/test_update_progress.py:42:    subprocess.run(["git", "init"], check=False)
+    /home/workspace/agents/_impl/macro_agent.py:54:                logger.warning("Failed to init RAG for MacroAgent: %s", e)
     ```
 
 ### INFERRED #re_exports-4
@@ -738,7 +738,7 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/home-cluster-iac/failure_orchestrator/orchestrator.py:169:                log.info(f"Previously failed detector now OK: {name}")
     ```
     ```
-    /home/workspace/atom-federation-os/tests/test_temporal_proof_v77.py:249:        detector = ProofDriftDetector(severity_threshold=0.6)
+    /home/workspace/atom-federation-os/federation/semantic/v910.py:315:        detector = DriftDetector(store=snap)
     ```
 
 ### INFERRED #re_exports-5
@@ -767,13 +767,13 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_backtest_real_agents.py:9:from backtest.engine import BacktestEngine
+    /home/workspace/tests/test_risk_integration.py:36:    engine = RiskEngineV2(config)
     ```
     ```
-    /home/workspace/tests/test_backtest_real_agents.py:15:    engine = BacktestEngine(symbol="BTCUSDT", initial_capital=10000)
+    /home/workspace/tests/test_risk_integration.py:37:    engine._equity_history = [100_000.0]
     ```
     ```
-    /home/workspace/tests/test_backtest_real_agents.py:30:        result = await engine.run(start_date="2025-01-01", end_date="2025-01-10", use_real_agents=True)
+    /home/workspace/tests/test_risk_integration.py:38:    return engine
     ```
 
 ### INFERRED #re_exports-7
@@ -783,13 +783,13 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/meta_rl/strategy_pool.py:238:            # Remove worst performer to make space
-    ```
-    ```
     /home/workspace/home-cluster-iac/v6/solver/prune/beam.py:24:    Prunes candidate space using beam search with variance estimation.
     ```
     ```
     /home/workspace/home-cluster-iac/v6/policy_eval/evaluator.py:4:Policy space: (priority_weights, risk_threshold, admission_policy)
+    ```
+    ```
+    /home/workspace/meta_rl/strategy_pool.py:238:            # Remove worst performer to make space
     ```
 
 ### INFERRED #re_exports-8
@@ -799,10 +799,10 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/agents/_impl/amre/idea_buffer_integration.py:194:    ATOM-R-041 + ATOM-016 bridge:
-    ```
-    ```
     /home/workspace/graphify-out/infer_edges.py:83:    "push/", "atom-federation-os/", "roma-execution-bridge/",
+    ```
+    ```
+    /home/workspace/agents/_impl/amre/idea_buffer_integration.py:194:    ATOM-R-041 + ATOM-016 bridge:
     ```
     ```
     /home/workspace/home-cluster-iac/admission_controller/probabilistic.py:6:v4.1 → v5 bridge component.
@@ -834,10 +834,10 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/agents/_impl/amre/audit.py:140:        d["_version"] = "KARL-009-v1"  # bump to v2 for risk_adjusted_pnl
     ```
     ```
-    /home/workspace/home-cluster-iac/ai_scheduler/scheduler.py:3:AI Scheduler — Data-Driven Policy Engine v2
+    /home/workspace/home-cluster-iac/ai_scheduler/scheduler_v2.py:3:AI Scheduler v2 — FastAPI Service
     ```
     ```
-    /home/workspace/home-cluster-iac/ai_scheduler/scheduler.py:25:app = FastAPI(title="AI Scheduler v2 — Data-Driven")
+    /home/workspace/home-cluster-iac/ai_scheduler/scheduler_v2.py:18:app = FastAPI(title="AI Scheduler v2", version="2.0.0")
     ```
 
 ---
@@ -873,7 +873,7 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/agents/karl_synthesis.py:235:        # Collect ensemble info from signals
     ```
     ```
-    /home/workspace/agents/_impl/amre/audit.py:396:        logger.info(
+    /home/workspace/agents/gitagent_registry.py:243:TTC_AGENTS = {name for name, info in AGENT_AGENTS.items() if info.get("ttc", False)}
     ```
 
 ### INFERRED #defines-3
@@ -886,10 +886,10 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/graphify-out/infer_edges.py:311:                    f"src={args.relation_weights} keys={len(RELATION_WEIGHTS)}",
     ```
     ```
-    /home/workspace/agents/karl_synthesis.py:492:        # LagWindow.add() returns a dict with keys:
+    /home/workspace/tests/test_dual_mode.py:97:        # Verify all expected keys exist
     ```
     ```
-    /home/workspace/agents/gitagent_registry.py:268:        agents = list(AGENT_AGENTS.keys())
+    /home/workspace/tests/test_dual_mode.py:114:        print(f"   All {len(expected_keys)} keys present ✓")
     ```
 
 ### INFERRED #defines-4
@@ -918,13 +918,13 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/AsurDev/acos/cli/monitor.py:7:import os, sys, json, subprocess, time, socket
+    /home/workspace/graphify-out/validate_inferred.py:23:import os
     ```
     ```
-    /home/workspace/AsurDev/acos/cli/monitor.py:10:CONFIG_DIR = Path(os.getenv("ACOS_CONFIG_DIR", "/etc/acos"))
+    /home/workspace/graphify-out/validate_inferred.py:32:SAMPLE = Path(os.environ.get("INFERRED_SAMPLE") or
     ```
     ```
-    /home/workspace/AsurDev/acos/storage/postgres_backend.py:2:import os
+    /home/workspace/graphify-out/infer_edges.py:34:import os
     ```
 
 ### INFERRED #defines-6
@@ -950,13 +950,13 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_agents_md.py:13:    assert agents_md.exists(), "AGENTS.md not found"
+    /home/workspace/graphify-out/healthcheck.py:6:  2. inferred_clean.jsonl exists and has 7+ relation types
     ```
     ```
-    /home/workspace/tests/test_metrics_endpoint.py:13:    assert (ROOT / "tools" / "metrics_server.py").exists(), "tools/metrics_server.py not found"
+    /home/workspace/graphify-out/healthcheck.py:7:  3. inferred_clean.enriched.jsonl exists and has 7+ relation types
     ```
     ```
-    /home/workspace/tests/test_update_progress.py:33:    assert SCRIPT.exists(), "tools/update_progress.sh not found"
+    /home/workspace/graphify-out/healthcheck.py:52:# 2. inferred_clean.jsonl exists
     ```
 
 ### INFERRED #defines-8
@@ -998,10 +998,10 @@ Stratified validation of N=167 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/agents/_impl/sentiment_agent.py:91:            url = "https://api.alternative.me/fng/?limit=1"
+    /home/workspace/tests/test_auth.py:21:    response = fastapi_client.get("/api/ab/compare")  # защищённый эндпоинт
     ```
     ```
-    /home/workspace/agents/_impl/sentiment_agent.py:122:        url = f"https://api.bybit.com/v5/market/tickers?category=linear&symbol={symbol}"
+    /home/workspace/tests/test_auth.py:27:    response = flask_client.get("/api/ab/compare")
     ```
     ```
     /home/workspace/agents/_impl/risk_agent.py:133:            url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}-USDT&interval={interval}&limit={limit}"

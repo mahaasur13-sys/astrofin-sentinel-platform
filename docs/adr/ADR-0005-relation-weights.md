@@ -72,6 +72,29 @@ recall_score = tier_weight × decay × confidence × relation_weight
 
 ## Empirical Validation
 
-- A/B test on 2026-06-23 confirmed that the new weighting scheme improves
-  recall for `uses` and `imports_from` without degrading performance on
-  other relation types.
+The 2026-06-23 A/B test (`/tmp/ab_repro.py`, ground-truth = 7 override-applied edges) confirmed that **all 4 candidate formulas give the same GT-in-top-7 result (7/7)** on the current `inferred_clean.jsonl` sample. This is **not a sign that the formula choice is irrelevant** — it is a sign that **the sample is dominated by T1/T2 high-confidence edges** where any formula in the family produces the same top.
+
+| Variant | Formula | GT@7 | Top-7 spread | Diversity |
+|---------|---------|------|--------------|-----------|
+| `v1_baseline` (current) | `tier * decay * conf * rel` | 7/7 | 0.0 (all T1=1.0) | 4 relations in T1 |
+| `v2_no_tier` | `rel * decay * conf` | 4/7 | 0.0 | breaks override |
+| `v3_smooth_tier` | `tier^0.5 * decay * conf * rel` | 7/7 | 0.0 | 4 relations in T1 |
+| `v4_relation_primary` | `rel * decay * conf * 0.4 + 0.6 * tier` | 7/7 | 0.0 | 4 relations in T1 |
+
+**Conclusion:** v1_baseline is kept as default. v2 breaks the override contract. v3 and v4 are mathematically equivalent to v1 on the current sample — they would only diverge if confidence or decay varied across T1 edges, which they don't (all T1=1.0/1.0). The diversity we want (4 different `recall_score` values: 1.0, 0.9, 0.85, 0.7 across `calls`/`imports`/`defines`/`re_exports`) **already comes from `relation_weight`**, not from changing the formula.
+
+**Future work:** when the sample grows beyond 166 edges or when confidence becomes non-uniform, the formula choice will matter and we should re-run this A/B.
+
+See `/tmp/ab_repro.py` and `graphify-out/ab_calibration_v2.json` for raw data.
+
+## Implementation details
+
+The current default (`ACTIVE_WEIGHT_VARIANT = "v1_baseline"`) is implemented in `graphify-out/infer_edges.py`:
+
+```python
+recall_score = tier_weight * decay * conf * rel_weight
+```
+
+`--relation-weights <variant>` CLI flag selects an alternative variant from `config/relation_weights.json`. Override edges (ADR-0004) are unaffected by either axis — they receive `tier = T1, half_life = 365d, decay ≈ 1.0` directly from `config/memory_overrides.json`.
+
+The healthcheck (`graphify-out/healthcheck.py`) now runs 8 checks, including `c7` (T1 average score > 0.05 — guards against accidentally returning 0.0 for T1) and `c8` (no T1 edge with `recall_score ≤ 0`).

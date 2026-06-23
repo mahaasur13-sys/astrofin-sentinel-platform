@@ -126,7 +126,27 @@ def c6():
     print(f'recall_score in [0, 1.01], tiers in {sorted(tiers)}')
     return None
 
-for name, fn in [('c1', c1), ('c2', c2), ('c3', c3), ('c4', c4), ('c5', c5), ('c6', c6)]:
+# 7. Spread in T1 must be > 0.05 (current formula multiplies tier_weight by conf*decay*rel_weight; without spread, T1 collapses)
+def c7():
+    edges = [json.loads(l) for l in ENRICHED.read_text().splitlines() if l.strip()]
+    t1_scores = [e.get('recall_score', 0) for e in edges if e.get('tier') == 'T1']
+    if not t1_scores:
+        return 'no T1 edges'
+    avg = sum(t1_scores) / len(t1_scores)
+    if avg <= 0.05:
+        return f'T1 avg recall_score {avg:.4f} ≤ 0.05'
+    return None
+
+# 8. T1 edges must have positive recall_score
+def c8():
+    edges = [json.loads(l) for l in ENRICHED.read_text().splitlines() if l.strip()]
+    t1_edges = [e for e in edges if e.get('tier') == 'T1']
+    for e in t1_edges:
+        if e.get('recall_score', 0) <= 0:
+            return f'T1 edge with recall_score ≤ 0: {e.get("relation", "?")}'
+    return None
+
+for name, fn in [('c1', c1), ('c2', c2), ('c3', c3), ('c4', c4), ('c5', c5), ('c6', c6), ('c7', c7), ('c8', c8)]:
     check(name, fn)
 
 print('=== healthcheck results ===')
