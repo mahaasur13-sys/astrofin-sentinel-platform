@@ -79,8 +79,8 @@ class MarketAdapter:
         cache_key = f"ohlcv:{symbol}:{interval}:{limit}"
 
         # Check cache first
-        if self._cache:
-            cached = self._cache.get(cache_key)
+        if self._redis:
+            cached = self._redis.get(cache_key)
             if cached:
                 MARKET_DATA_CACHE_HITS.inc()
                 logger.debug("Cache hit for %s", cache_key)
@@ -95,9 +95,9 @@ class MarketAdapter:
                 data = self._fetch_from_source(src, symbol, interval, limit)
                 if data:
                     # Cache the result
-                    if self._cache:
+                    if self._redis:
                         ttl = CACHE_TTL_MAP.get(interval, 3600)
-                        self._cache.setex(
+                        self._redis.setex(
                             cache_key,
                             ttl,
                             [
