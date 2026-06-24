@@ -99,7 +99,19 @@ def apply_filters(edges, args):
         out = [e for e in out if e["recall_score"] >= args.min_score]
 
     out = _mark_self_like(out)
-    out.sort(key=lambda e: (-e["recall_score"], e["source_path"], e["target_path"], e["source_node_id"], e["target_node_id"]))
+    # ADR-0007: override is a contract (ADR-0004), not a hint. Override edges
+    # must rank strictly above non-override edges whenever recall_score ties.
+    # Final tie-break stays on (source_path, target_path, source_node_id,
+    # target_node_id) so non-tied output is deterministic and identical to the
+    # previous ranking modulo override promotion.
+    out.sort(key=lambda e: (
+        -int(e.get("override_applied", False)),
+        -e["recall_score"],
+        e["source_path"],
+        e["target_path"],
+        e["source_node_id"],
+        e["target_node_id"],
+    ))
     return out
 
 
@@ -120,7 +132,14 @@ def _short_node(node_id: str, maxlen: int = 40) -> str:
 
 def render_table(edges, args):
     """Render a compact ASCII table to stdout."""
-    rows = sorted(edges, key=lambda e: e["recall_score"], reverse=True)
+    rows = sorted(edges, key=lambda e: (
+        -int(e.get("override_applied", False)),
+        -e["recall_score"],
+        e["source_path"],
+        e["target_path"],
+        e["source_node_id"],
+        e["target_node_id"],
+    ))
     if args.limit:
         rows = rows[: args.limit]
 
