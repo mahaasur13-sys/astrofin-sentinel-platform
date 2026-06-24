@@ -58,6 +58,31 @@ TIER_WEIGHT = {"T1": 1.0, "T2": 0.6, "T3": 0.1}
 # Tier weight is separate from recall_score because it must remain
 # stable across decay, while decay varies with time.
 
+# --- start of formula block (ADR-0006 A/B calibration) ---
+TIER_WEIGHT_V3_SMOOTH = {"T1": 1.0, "T2": 0.6, "T3": 0.1}  # плавный sqrt в формуле
+
+
+def compute_recall_score(tier: str, decay: float, confidence: float,
+                         relation_weight: float, formula: str = "v1_baseline") -> float:
+    """Recall score по одной из 4 формул (ADR-0006 A/B calibration).
+
+    v1_baseline         : tier * decay * conf * rel_w
+    v2_no_tier          :       decay * conf * rel_w
+    v3_smooth_tier      : sqrt(tier) * decay * conf * rel_w
+    v4_relation_primary : 0.4 * rel_w * decay * conf + 0.6 * tier
+    """
+    tier_w = TIER_WEIGHT.get(tier, 0.1)
+    if formula == "v1_baseline":
+        return tier_w * decay * confidence * relation_weight
+    if formula == "v2_no_tier":
+        return decay * confidence * relation_weight
+    if formula == "v3_smooth_tier":
+        return math.sqrt(tier_w) * decay * confidence * relation_weight
+    if formula == "v4_relation_primary":
+        return 0.4 * relation_weight * decay * confidence + 0.6 * tier_w
+    raise ValueError(f"Unknown --score-formula: {formula}")
+# --- end of formula block ---
+
 # ADR-0005: relation-level weights. These reflect *semantic strength* of each
 # relation type, independent of tier or decay. Hard dependencies (calls, imports,
 # inherits) weigh more than transitive ones (references, re_exports).
@@ -302,6 +327,12 @@ def main():
         default=ACTIVE_WEIGHT_VARIANT,
         help="Which variant to activate from the JSON file (default: v1_baseline).",
     )
+    ap.add_argument(
+        "--score-formula",
+        choices=["v1_baseline", "v2_no_tier", "v3_smooth_tier", "v4_relation_primary"],
+        default="v1_baseline",
+        help="Recall-score formula (ADR-0006 A/B calibration).",
+    )
     args = ap.parse_args()
 
     if not GRAPH_JSON.exists():
@@ -418,7 +449,9 @@ def main():
 
         tier_weight = TIER_WEIGHT[tier]
         rel_weight = RELATION_WEIGHTS.get(row["relation"], DEFAULT_RELATION_WEIGHT)
-        recall_score = round(tier_weight * decay * conf * rel_weight, 4)
+        recall_score = round(
+            compute_recall_score(tier, decay, conf, rel_weight, args.score_formula), 4
+        )
 
         enriched.append({
             "source_node_id": src_node,
