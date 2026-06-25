@@ -175,6 +175,26 @@
   3. Re-run the validation after each graph snapshot — gate PR merges on `false + outdated < 25 %`.
 - **Mitigation:** Use `graphify-out/validate_inferred.py` and `graphify-out/infer_edges.py` as the only supported ingestion path. The policy is formalized in `docs/adr/ADR-0003-hybrid-memory-policy.md`.
 
+## KI-017 — SynthesisAgent is not covered by tests (13 of 21 agents lack any test)
+
+- **Severity:** 🟡 P2
+- **Component:** `agents/_impl/synthesis_agent.py` (plus 12 other agents: bradley_agent, cycle_agent, electoral_agent, elliot_agent, fundamental_agent, gann_agent, insider_agent, ml_predictor_agent, quant_agent, risk_agent, technical_agent, time_window_agent)
+- **Symptom:** No test file exists for `synthesis_agent.py`; 13 of 21 agents in `agents/_impl/` lack any test coverage. Coverage of remaining 8: bear_researcher, bull_researcher, compromise_agent, macro_agent, market_analyst, options_flow_agent, sentiment_agent have dedicated tests.
+- **Evidence:** `ls astrofin-sentinel-v5/tests/test_*.py` (2026-06-25 audit)
+- **Impact:** CI `validate-agents` job requires `scripts/validate_agent.py` but pytest collect can fail with `1 error during collection` because of unrelated import issues; new agents can be added without any regression net.
+- **Target:** Q3 2026 — add test files for all 13 uncovered agents following the `tests/test_<agent>_async.py` pattern (see `tests/test_macro_agent.py`, `tests/agent_test_base.py`).
+- **Mitigation:** None yet — first test (SynthesisAgent) is being added in this commit.
+
+## KI-018 — Prometheus Gauge 'astrofin_strategies_active' raises ValueError on second import (root meta_rl/metrics.py vs. observability/evolution_metrics.py)
+
+- **Severity:** 🟡 P2 (resolved)
+- **Component:** `meta_rl/metrics.py` (root), `astrofin-sentinel-v5/observability/evolution_metrics.py`
+- **Symptom:** Importing `astrofin_strategies_active` gauge twice raises `ValueError: Duplicated timeseries in CollectorRegistry`. Both files define the same gauge with the same name; whichever is imported second wins by being rejected. This breaks pytest collect whenever a test file transitively imports both paths.
+- **Root cause:** Two parallel Prometheus registrations exist for the same metric name across the workspace root `meta_rl/` (legacy shim) and the canonical `observability/evolution_metrics.py`. The shim in `astrofin-sentinel-v5/meta_rl/metrics.py` correctly re-exports, but the root `meta_rl/metrics.py` does not — it re-creates the gauge with `Gauge(...)` calls.
+- **Evidence:** reproduced manually in 2026-06-25 session via `python -c "import sys; sys.path.insert(0, '/home/workspace/astrofin-sentinel-v5'); import meta_rl.metrics"` → `ValueError`.
+- **Target:** Q3 2026 — make `meta_rl/metrics.py` a thin re-export shim (mirror the submodule's pattern) so root and submodule paths converge.
+- **Mitigation:** A `_safe()` helper was added to the root `meta_rl/metrics.py` in the same commit that adds KI-017's first test. It makes all 11 metric registrations idempotent: `REGISTRY._names_to_collectors` is checked first; the metric is returned as-is if it already exists, only re-created when not.
+
 ---
 
 ## Reconciliation with target architecture
