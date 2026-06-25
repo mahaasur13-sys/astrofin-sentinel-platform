@@ -105,19 +105,76 @@ DEFAULT_RELATION_WEIGHTS_PATH = REPO_ROOT / "config" / "relation_weights.json"
 ACTIVE_WEIGHT_VARIANT = "v1_baseline"  # overridden by --relation-weights
 
 _CATEGORY_PRIORITY = {"trash": 4, "archived": 3, "submodule": 2, "core": 1}
+# Submodule prefixes are matched case-insensitively (paths lower-cased in
+# _submodule_of). Order matters: first match wins in startswith(), so put
+# longer/more-specific prefixes before their parents if both ever coexist.
+# Derived from real top-level dirs in graph.json (diagnostics 2026-06-23).
 _SUBMODULE_PREFIXES = (
-    "push/", "atom-federation-os/", "roma-execution-bridge/",
-    "local-ai-stack/", "audit_repo/", "agent-runtime/",
-    "acos-contracts/", "acos-core/", "sbs/",
+    # Match is case-insensitive (paths lower-cased in _submodule_of), but
+    # iteration is in declaration order: first match wins in startswith().
+    # Order rules:
+    #   1. Live (current) lowercase paths BEFORE their legacy capitalized twins
+    #      so "asurdev/foo.py" resolves to asurdev, not legacy_asurdev.
+    #   2. Specific (longer) prefixes BEFORE their parents — not currently
+    #      needed but cheap insurance.
+    #   3. "legacy_" canonical names mark paths that physically exist only
+    #      inside _archived/ or are virtual (in graph.json but not on disk).
+    "astrofin-sentinel-v5/",     # live lower-case → astrofin-sentinel-v5
+    "AstroFinSentinelV5/",       # legacy CamelCase → archived/ only; canonical = legacy_astrofin_v5
+    "asurdev/",                  # live lower-case → asurdev
+    "AsurDev/",                  # legacy capitalized; canonical = legacy_asurdev
+    "asurdev_legacy/",           # legacy AsurDev shim directory; canonical = asurdev_legacy
+    "home-cluster-iac/",
+    "atom-federation-os/",
+    "roma-execution-bridge/",
+    "local-ai-stack/",
+    "audit_repo/",
+    "agent-runtime/",
+    "acos-contracts/",
+    "acos-core/",
+    "sbs/",
+    "push/",
+    "tests/",
+    "knowledge/",
+    "pop-os-setup/",
+    "_sbs_old/",
 )
+# Canonical display names for each submodule prefix. Keys must match prefixes
+# in _SUBMODULE_PREFIXES exactly (after rstrip("/")). The two are kept
+# together here so future renames touch one place only.
+_SUBMODULE_NAMES = {
+    "AstroFinSentinelV5":   "legacy_astrofin_v5",
+    "astrofin-sentinel-v5": "astrofin-sentinel-v5",
+    "home-cluster-iac":     "home-cluster-iac",
+    "atom-federation-os":   "atom-federation-os",
+    "roma-execution-bridge":"roma-execution-bridge",
+    "local-ai-stack":       "local-ai-stack",
+    "audit_repo":           "audit_repo",
+    "agent-runtime":        "agent-runtime",
+    "acos-contracts":       "acos-contracts",
+    "acos-core":            "acos-core",
+    "sbs":                  "sbs",
+    "push":                 "push",
+    "tests":                "tests",
+    "knowledge":            "knowledge",
+    "AsurDev":              "AsurDev",
+    "asurdev_legacy":       "asurdev_legacy",
+    "pop-os-setup":         "pop-os-setup",
+    "_sbs_old":             "_sbs_old",
+}
 # Canonical prefix -> submodule display name. Derived from _SUBMODULE_PREFIXES
 # so the two stay in lockstep. Used by _submodule_of() to attach
 # submodule_source/submodule_target to each inferred edge without re-walking
 # the filesystem (ADR-0004 + locality enrichment).
-_SUBMODULE_NAMES = {p.rstrip("/"): p.rstrip("/") for p in _SUBMODULE_PREFIXES}
 _CORE_PREFIXES = (
+    # AstroFin V5 core (excludes asurdev — moved to submodules)
     "core/", "agents/", "orchestration/", "meta_rl/", "ragservice/",
-    "astra/", "astrology/", "domain/", "atom-core/", "AsurDev/",
+    "astra/", "astrology/", "domain/", "atom-core/",
+    # AstroFin V5 trading/infra (added for locality coverage)
+    "trading/", "web/", "tools/", "db/", "data_room/", "strategies/",
+    "backtest/", "mas_factory/", "deploy/", "integrations/", "scripts/",
+    # atom-federation-os core
+    "alignment/",
 )
 
 
@@ -150,10 +207,25 @@ def categorize(src_path: str, tgt_path: str) -> tuple[str, int]:
 
 
 def _submodule_of(path: str) -> str | None:
+    """Map a source_file path to its canonical submodule name (or None).
+
+    Submodule prefixes are matched case-insensitively: we lowercase the path
+    and compare against pre-lowercased prefixes so legacy capitalized names
+    (AstroFinSentinelV5/, AsurDev/) collapse onto their canonical siblings.
+    Root-level filenames (no "/") are never submodules.
+    """
     p = path.lower()
+    if "/" not in p:
+        return None
     for prefix in _SUBMODULE_PREFIXES:
-        if p.startswith(prefix):
-            return _SUBMODULE_NAMES[prefix.rstrip("/")]
+        lp = prefix.lower()
+        if p.startswith(lp):
+            # Look up the canonical name using the original-case prefix,
+            # falling back to the lower-cased one if not registered.
+            return _SUBMODULE_NAMES.get(
+                prefix.rstrip("/"),
+                _SUBMODULE_NAMES.get(lp.rstrip("/"), lp.rstrip("/")),
+            )
     return None
 
 
