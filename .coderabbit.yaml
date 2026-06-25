@@ -11,10 +11,16 @@ reviews:
   poem: false
   humor: false
   request_changes_workflow: true # PR нельзя слить, пока CodeRabbit ставит request_changes
+  review_status: true            # показывать статус "Review skipped/finished" в PR
 
-  # ==================== PATH FILTERS (бывший exclude) ====================
-  # Расширено по сравнению с pre-commit hooks (см. docs/CODE_REVIEW.md)
+  # ==================== PATH FILTERS (v2 — бывший exclude) ====================
+  # Двухсписочная семантика: паттерны с "!" — override default blocks (allow),
+  # паттерны без "!" — exclude (block).
+  # CodeRabbit v2 по умолчанию блокирует .md/.txt/doc-файлы → добавляем explicit allow.
   path_filters:
+    - "!**/*.md"                   # allow docs/** (ARCHITECTURE.md, KNOWN_ISSUES.md, ...)
+    - "!**/*.txt"                  # allow текстовые документы
+    # ----- exclude (block) -----
     - "**/__pycache__/**"
     - "**/.pytest_cache/**"
     - "**/.mypy_cache/**"
@@ -31,7 +37,7 @@ reviews:
     - "**/.eggs/**"
     - "**/roma-execution-bridge/**"  # nested git repo, не наш
 
-  # ==================== PATH INSTRUCTIONS ====================
+  # ==================== PATH INSTRUCTIONS (v2 — теперь внутри reviews:) ====================
   path_instructions:
     # Агенты
     - path: "agents/_impl/**/*.py"
@@ -118,6 +124,11 @@ reviews:
         docs/ARCHITECTURE.md". При появлении нового P1 issue — флаг
         "добавьте запись в docs/KNOWN_ISSUES.md".
 
+    - path: ".coderabbit.yaml"
+      instructions: |
+        Свой feedback по самому CodeRabbit конфигу — не нужен. Игнорируй изменения
+        в этом файле при review (это meta-config, не код).
+
 # ==================== TRIGGER ====================
 # CodeRabbit работает ТОЛЬКО на pull_request (не на push, не на /review вручную).
 # Цель: дать обратную связь автору ДО merge в master/develop.
@@ -132,15 +143,6 @@ knowledge_base:
     ## Главная цель ревью
     "Enforce architecture compliance (R1–R9), catch security issues, and ensure
     Data Room pattern adherence before merge."
-
-    ## Focus areas (бывший focus_areas)
-    При ревью приоритизируй эти направления:
-    1. architecture compliance (R1–R9)
-    2. Data Room pattern enforcement
-    3. security: secrets, auth, SQL
-    4. graceful degradation (try/except in run)
-    5. test coverage: BlackRock Six
-    6. documentation freshness (ARCHITECTURE.md, KNOWN_ISSUES.md)
 
     ## Правила архитектурного линтера (scripts/architecture_linter.py)
     Архитектурный линтер уже проверяет AST-синтаксис и базовые паттерны. Твоя
@@ -170,6 +172,14 @@ knowledge_base:
     - **KI-012** — `.env` файлы, hardcoded API keys, tokens. Требуй `Settings()` или
       переменные окружения через `os.environ`.
 
+    ## Focus areas (бывший focus_areas, переехал в knowledge_base)
+    - "architecture compliance (R1–R9)"
+    - "Data Room pattern enforcement"
+    - "security: secrets, auth, SQL"
+    - "graceful degradation (try/except in run)"
+    - "test coverage: BlackRock Six"
+    - "documentation freshness (ARCHITECTURE.md, KNOWN_ISSUES.md)"
+
     ## Style ревью
     1. **Русский язык** — все комментарии на русском, кратко, по делу.
     2. **Assertive** — обращайся к автору напрямую: "Вы нарушили R3", "Замените
@@ -184,6 +194,7 @@ knowledge_base:
       Это уже делает pre-commit (см. docs/CODE_REVIEW.md для overlap matrix).
     - НЕ комментируй data/raw, data/processed (это шум).
     - НЕ критикуй agents/_archived/ (deprecated, no active imports).
+    - НЕ ревьюй изменения в .coderabbit.yaml (это meta-config).
 
 # ==================== CHAT (in-app Zo) ====================
 chat:
