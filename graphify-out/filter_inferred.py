@@ -11,10 +11,13 @@ The script is deterministic and side-effect-free outside the output file.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
-WORKSPACE = Path("/home/workspace")
+# Resolve workspace from $WORKSPACE or $HOME/workspace, fall back to CWD.
+# Avoids a hard-coded absolute path that breaks portability.
+WORKSPACE = Path(os.environ.get("WORKSPACE") or os.environ.get("ASTROFIN_WORKSPACE") or (Path.home() / "workspace").resolve())
 INPUT = WORKSPACE / "graphify-out" / "inferred_clean.jsonl"
 OUTPUT = WORKSPACE / "graphify-out" / "inferred_clean_filtered.jsonl"
 
@@ -26,21 +29,41 @@ SKIP_SOURCE_PATH_SUFFIXES = (".md", ".markdown")
 
 
 def keep(edge: dict) -> bool:
-    src = edge.get("source_path") or edge.get("source_file") or ""
-    if not src:
+    """Decide whether an inferred edge should be kept.
+
+    An edge is dropped if EITHER ``source_path`` or ``source_file``:
+      - is missing/empty,
+      - contains ``_archived/`` substring,
+      - ends with ``.md`` or ``.markdown``.
+
+    These represent parser artifacts (markdown docs parsed as containers
+    of every repo symbol, or dead/superseded code) rather than real code links.
+    """
+    sources = (edge.get("source_path") or "", edge.get("source_file") or "")
+    if not any(sources):
         return False
-    if any(s in src for s in SKIP_SOURCE_PATH_SUBSTRINGS):
-        return False
-    if src.endswith(SKIP_SOURCE_PATH_SUFFIXES):
-        return False
+    for src in sources:
+        if not src:
+            continue
+        if any(sub in src for sub in SKIP_SOURCE_PATH_SUBSTRINGS):
+            return False
+        if src.endswith(SKIP_SOURCE_PATH_SUFFIXES):
+            return False
     return True
 
 
 def main() -> None:
+    """Stream the inferred edges, filter via :func:`keep`, write the survivors.
+
+    Reads JSONL from :data:`INPUT`, writes JSONL to :data:`OUTPUT`, and prints
+    ``read`` / ``written`` / ``dropped`` counters plus the output path. The
+    drop percentage is guarded against zero-division on an empty input.
+    """
     edges = [json.loads(line) for line in INPUT.open() if line.strip()]
     before = len(edges)
     kept = [e for e in edges if keep(e)]
     after = len(kept)
+    drop_pct = (100.0 * (before - after) / before) if before > 0 else 0.0
 
     with OUTPUT.open("w") as f:
         for e in kept:
@@ -48,7 +71,7 @@ def main() -> None:
 
     print(f"read    : {before}")
     print(f"written : {after}")
-    print(f"dropped : {before - after} ({100*(before-after)/before:.1f}%)")
+    print(f"dropped : {before - after} ({drop_pct:.1f}%)")
     print(f"output  : {OUTPUT}")
 
 
