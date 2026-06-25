@@ -12,6 +12,7 @@ Recall_score — взвешенная оценка ребра в графе ко
 ## Стенд
 
 - **Выборка:** 166 рёбер (`inferred_clean.jsonl`), ground_truth = 14 pos / 10 neg
+- **Полный датасет:** 1984 enriched-ребра в `inferred_clean.jsonl` (см. коммит `561fcb5`); 166 — стратифицированная подвыборка, собранная `graphify-out/build_balanced_sample.py` и сохранённая в `graphify-out/inferred_sample_balanced.jsonl`.
 - **Edge cases:** 7 cross-file god-node контрактов (ADR-0004) с `override=True`
 - **Метрики:** gt@10 / gt@20, override@10 / @20, spread@10 / @20 (разброс top-K по типам relation)
 
