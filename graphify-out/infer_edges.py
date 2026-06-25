@@ -62,6 +62,23 @@ TIER_WEIGHT = {"T1": 1.0, "T2": 0.6, "T3": 0.1}
 # --- start of formula block (ADR-0006 A/B calibration) ---
 TIER_WEIGHT_V3_SMOOTH = {"T1": 1.0, "T2": 0.6, "T3": 0.1}  # плавный sqrt в формуле
 
+# Cache os.path.exists() lookups so we don't re-stat the same path
+# thousands of times. Many enriched edges share paths (e.g. all
+# 'enum' inherits targets share target_path=''). Keys are absolute
+# or repo-root-relative strings, values are booleans.
+_PATH_EXISTS_CACHE: dict[str, bool] = {}
+
+
+def _exists(path: str) -> bool:
+    if not path:
+        return False
+    if path in _PATH_EXISTS_CACHE:
+        return _PATH_EXISTS_CACHE[path]
+    resolved = path if path.startswith("/") else str(REPO_ROOT / path)
+    val = os.path.exists(resolved)
+    _PATH_EXISTS_CACHE[path] = val
+    return val
+
 
 def compute_recall_score(tier: str, decay: float, confidence: float,
                          relation_weight: float, formula: str = "v1_baseline") -> float:
@@ -581,6 +598,8 @@ def main():
                 and _submodule_of(tgt_path) is not None
                 and _submodule_of(src_path) != _submodule_of(tgt_path)
             ),
+            "source_path_exists": _exists(src_path),
+            "target_path_exists": _exists(tgt_path),
         })
         tier_counts[tier] += 1
         cat_counts[cat] = cat_counts.get(cat, 0) + 1
