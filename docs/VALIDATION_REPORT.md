@@ -124,7 +124,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_data_room_api.py:22:        resp = c.get("/data-room/conflicts")
     ```
     ```
-    /home/workspace/audit_repo/tests/test_data_room_api.py:17:    """При запросе /data-room/conflicts должен возвращаться JSON."""
+    /home/workspace/scripts/architecture_linter.py:171:        return  # the data room itself is the only allowed caller
     ```
 
 ### INFERRED #imports-7
@@ -159,10 +159,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/integrations/gitagent/tests/test_mcp_adapter.py:15:    """Test suite for MCPAdapter."""
     ```
     ```
-    /home/workspace/atom-federation-os/chaos/test_chaos.py:2:pytest chaos test suite — v6.3 adversarial validation.
-    ```
-    ```
     /home/workspace/atom-federation-os/coherence/invariant.py:18:  - Offline: verified by test suite (S-CI verifier)
+    ```
+    ```
+    /home/workspace/atom-federation-os/chaos/test_chaos.py:2:pytest chaos test suite — v6.3 adversarial validation.
     ```
 
 ### INFERRED #imports-9
@@ -270,13 +270,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5_mas.py:89:    logger.info("executor.running_topology")
+    /home/workspace/audit_repo/trading/execution/vwap.py:141:        executor = VWAPExecutor(broker=broker)
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5_mas.py:90:    executor = TopologyExecutor(topology, state)
+    /home/workspace/audit_repo/trading/execution/vwap.py:143:        report = executor.execute("BTC/USDT", "buy", qty=1.0, config=config)
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5_mas.py:91:    results = await executor.run()
+    /home/workspace/audit_repo/trading/execution/vwap.py:339:    executor = VWAPExecutor()
     ```
 
 ### INFERRED #imports-15
@@ -416,10 +416,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/graphify-out/ad_hoc_ov_check.py:3:Builds a synthetic enriched-edge list that mirrors the production tie scenario
     ```
     ```
-    /home/workspace/AsurDev/acos_correction/rca_engine.py:5:Performs Root Cause Analysis for each failure scenario,
+    /home/workspace/AsurDev/v7/adversarial_sim/stress_tester.py:27:    # Predefined scenario templates
     ```
     ```
-    /home/workspace/AsurDev/acos_correction/rca_engine.py:30:    scenario: str
+    /home/workspace/AsurDev/v7/adversarial_sim/stress_tester.py:50:    def apply_to_state(self, state: dict, scenario: AdversarialScenario) -> dict:
     ```
 
 ### INFERRED #imports-23
@@ -597,13 +597,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5_mas.py:89:    logger.info("executor.running_topology")
+    /home/workspace/audit_repo/trading/execution/vwap.py:141:        executor = VWAPExecutor(broker=broker)
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5_mas.py:90:    executor = TopologyExecutor(topology, state)
+    /home/workspace/audit_repo/trading/execution/vwap.py:143:        report = executor.execute("BTC/USDT", "buy", qty=1.0, config=config)
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5_mas.py:91:    results = await executor.run()
+    /home/workspace/audit_repo/trading/execution/vwap.py:339:    executor = VWAPExecutor()
     ```
 
 ### INFERRED #imports-33
@@ -1009,10 +1009,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/AsurDev/v7/policy_governor/governor.py:47:    EMA-based policy stabilizer.
     ```
     ```
-    /home/workspace/atom-federation-os/build/lib/resilience/meta_coherence_controller.py:118:        self.stabilizer = GlobalObjectiveStabilizer(
+    /home/workspace/atom-federation-os/resilience/meta_coherence_controller.py:118:        self.stabilizer = GlobalObjectiveStabilizer(
     ```
     ```
-    /home/workspace/atom-federation-os/build/lib/resilience/meta_coherence_controller.py:244:        stabilizer_snap = self.stabilizer.compute_J(
+    /home/workspace/atom-federation-os/resilience/meta_coherence_controller.py:244:        stabilizer_snap = self.stabilizer.compute_J(
     ```
 
 ### INFERRED #imports-55
@@ -1044,13 +1044,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5_mas.py:89:    logger.info("executor.running_topology")
+    /home/workspace/audit_repo/trading/execution/vwap.py:141:        executor = VWAPExecutor(broker=broker)
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5_mas.py:90:    executor = TopologyExecutor(topology, state)
+    /home/workspace/audit_repo/trading/execution/vwap.py:143:        report = executor.execute("BTC/USDT", "buy", qty=1.0, config=config)
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5_mas.py:91:    results = await executor.run()
+    /home/workspace/audit_repo/trading/execution/vwap.py:339:    executor = VWAPExecutor()
     ```
 
 ### INFERRED #imports-57
@@ -1085,10 +1085,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/integrations/gitagent/tests/test_mcp_adapter.py:15:    """Test suite for MCPAdapter."""
     ```
     ```
-    /home/workspace/atom-federation-os/chaos/test_chaos.py:2:pytest chaos test suite — v6.3 adversarial validation.
-    ```
-    ```
     /home/workspace/atom-federation-os/coherence/invariant.py:18:  - Offline: verified by test suite (S-CI verifier)
+    ```
+    ```
+    /home/workspace/atom-federation-os/chaos/test_chaos.py:2:pytest chaos test suite — v6.3 adversarial validation.
     ```
 
 ### INFERRED #imports-59
@@ -1136,13 +1136,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/ralph_benchmark/test_agent_basic.py:44:    result = subprocess.run(
-    ```
-    ```
-    /home/workspace/tests/ralph_benchmark/test_agent_basic.py:54:    pytest_result = subprocess.run(
-    ```
-    ```
     /home/workspace/tests/test_dual_mode.py:33:    return asyncio.run(run_test())
+    ```
+    ```
+    /home/workspace/tests/test_dual_mode.py:52:    return asyncio.run(run_test())
+    ```
+    ```
+    /home/workspace/tests/test_dual_mode.py:118:    return asyncio.run(run_test())
     ```
 
 ### INFERRED #imports-62
@@ -1819,10 +1819,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/AsurDev/failure_orchestrator/orchestrator.py:165:                log.info(f"Previously failed detector now OK: {name}")
-    ```
-    ```
     /home/workspace/AsurDev/failure_orchestrator/detectors.py:5:Each detector returns (is_down: bool, reason: str, severity: str)
+    ```
+    ```
+    /home/workspace/AsurDev/failure_orchestrator/orchestrator.py:165:                log.info(f"Previously failed detector now OK: {name}")
     ```
     ```
     /home/workspace/atom-federation-os/tests/test_temporal_proof_v77.py:249:        detector = ProofDriftDetector(severity_threshold=0.6)
@@ -1931,13 +1931,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
+    /home/workspace/audit_repo/meta_rl/reward.py:53:    ATOM-META-RL-004 invariant:
+    ```
+    ```
     /home/workspace/_sbs_old/system_contract.py:38:    Each key is an invariant name; value must always be True in production.
     ```
     ```
     /home/workspace/_sbs_old/system_contract.py:64:        Verify a single invariant value against the contract.
-    ```
-    ```
-    /home/workspace/_sbs_old/system_contract.py:115:        """Return all defined invariant names."""
     ```
 
 ### INFERRED #imports_from-29
@@ -2011,13 +2011,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/AsurDev/monitoring/exporters/slurm/slurm_exporter.py:4:Exports: queue depth, node state, GPU allocation, job states
+    /home/workspace/AsurDev/feature_pipeline/features.py:110:        description="Current Slurm queue depth",
     ```
     ```
-    /home/workspace/AsurDev/monitoring/exporters/slurm/slurm_exporter.py:71:    queue = get_slurm_queue()
+    /home/workspace/AsurDev/feature_pipeline/schemas.py:113:    queue_volatility: float   # std of queue size over 24h
     ```
     ```
-    /home/workspace/AsurDev/monitoring/exporters/slurm/slurm_exporter.py:75:        "# HELP slurm_queue_total Total jobs in Slurm queue",
+    /home/workspace/AsurDev/admission_controller/controller.py:4:Prevents oversaturation: GPU >85%, queue >40, low-priority throttling.
     ```
 
 ### INFERRED #imports_from-34
@@ -2033,7 +2033,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/architecture/test_infer_edges.py:84:         "reason": "core contract"},
     ```
     ```
-    /home/workspace/tests/agent_test_base.py:18:    - When the contract changes, ONE place to update.
+    /home/workspace/tests/_template_agent_test.py:97:    # the contract is "do not raise".
     ```
 
 ### INFERRED #imports_from-35
@@ -2139,13 +2139,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/roma-execution-bridge/plugins/plugin_api.py:85:    def fingerprint(self) -> str: return self._hash
-    ```
-    ```
     /home/workspace/roma-execution-bridge/plugins/plugin_runtime.py:107:        payload = {"batch_size": 8, "epochs": 10}; metadata = {}; fingerprint = "abc123"
     ```
     ```
     /home/workspace/roma-execution-bridge/plugins/plugin_runtime.py:119:                               'payload': {'model': 'llama3-8b'}, 'metadata': {}, 'fingerprint': 'x'})()
+    ```
+    ```
+    /home/workspace/roma-execution-bridge/plugins/plugin_api.py:85:    def fingerprint(self) -> str: return self._hash
     ```
 
 ### INFERRED #imports_from-42
@@ -2155,13 +2155,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
+    /home/workspace/AsurDev/acos.py:71:  ├── Policy verifier pipeline
+    ```
+    ```
     /home/workspace/AsurDev/l11_verifier/verifier.py:156:    verifier = L11Verifier()
     ```
     ```
     /home/workspace/AsurDev/l11_verifier/verifier.py:158:    pre = verifier.pre_execution(dag, {"seed": 42})
-    ```
-    ```
-    /home/workspace/AsurDev/l11_verifier/verifier.py:160:    print(f"Invariants: {verifier.verify_invariants()}")
     ```
 
 ### INFERRED #imports_from-43
@@ -2270,10 +2270,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/data_room/test_data_room.py:114:    """If primary resolver raises, blueprint tries the secondary."""
     ```
     ```
-    /home/workspace/audit_repo/tests/data_room/test_data_room.py:114:    """If primary resolver raises, blueprint tries the secondary."""
-    ```
-    ```
     /home/workspace/audit_repo/observability/metrics.py:74:        "Data Room resolver calls",
+    ```
+    ```
+    /home/workspace/audit_repo/observability/metrics.py:75:        labelnames=("resolver", "status"),
     ```
 
 ### INFERRED #imports_from-50
@@ -2360,13 +2360,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
+    /home/workspace/audit_repo/backtest/metrics_agent.py:133:    """SQLite-backed metrics store for all backtest runs."""
+    ```
+    ```
     /home/workspace/audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
     ```
     ```
     /home/workspace/audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
-    ```
-    ```
-    /home/workspace/audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
     ```
 
 ### INFERRED #imports_from-56
@@ -2440,13 +2440,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/roma-execution-bridge/auth/api_gateway.py:72:        """Decorator: apply gateway to handler."""
+    /home/workspace/AsurDev/ai_scheduler/modules/metrics.py:131:        "network_latency": network_latency(node, "gateway"),
     ```
     ```
-    /home/workspace/roma-execution-bridge/saas/gateway/middleware.py:4:from saas.gateway.tenant_middleware import TenantMiddleware
+    /home/workspace/AsurDev/astrofin/gateway/submission.py:5:Every trade/agent/job MUST pass through this gateway.
     ```
     ```
-    /home/workspace/roma-execution-bridge/saas/gateway/middleware.py:5:from saas.gateway.auth_middleware import AuthMiddleware
+    /home/workspace/AsurDev/astrofin/gateway/submission.py:107:    gateway = ACOSSubmissionGateway()
     ```
 
 ### INFERRED #imports_from-61
@@ -2523,10 +2523,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/AsurDev/admission_controller/__init__.py:1:from .controller import AdmissionController, AdmitDecision, AdmitResult
     ```
     ```
+    /home/workspace/AsurDev/failure_orchestrator/detectors.py:14:    """Check if Slurm controller is responsive."""
+    ```
+    ```
     /home/workspace/AsurDev/admission_controller/probabilistic.py:129:    controller = ProbabilisticAdmissionController(windows)
-    ```
-    ```
-    /home/workspace/AsurDev/admission_controller/probabilistic.py:137:        controller.update("rtx-node", val)
     ```
 
 ### INFERRED #imports_from-66
@@ -2536,13 +2536,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/AsurDev/failure_orchestrator/detectors.py:14:    """Check if Slurm controller is responsive."""
-    ```
-    ```
     /home/workspace/AsurDev/admission_controller/__init__.py:1:from .controller import AdmissionController, AdmitDecision, AdmitResult
     ```
     ```
-    /home/workspace/AsurDev/admission_controller/probabilistic.py:129:    controller = ProbabilisticAdmissionController(windows)
+    /home/workspace/AsurDev/failure_orchestrator/detectors.py:14:    """Check if Slurm controller is responsive."""
+    ```
+    ```
+    /home/workspace/AsurDev/tests/unit/test_determinism.py:111:    controller = AdmissionController(store)
     ```
 
 ### INFERRED #imports_from-67
@@ -2911,13 +2911,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
+    /home/workspace/tests/test_dual_mode.py:151:    print("   run_sentinel_v5_karl: exists ✓")
+    ```
+    ```
     /home/workspace/tests/ralph_benchmark/test_agent_basic.py:22:        if os.path.exists(f):
     ```
     ```
     /home/workspace/tests/ralph_benchmark/test_agent_basic.py:26:        if os.path.exists(f):
-    ```
-    ```
-    /home/workspace/tests/ralph_benchmark/test_agent_basic.py:53:    assert os.path.exists(TARGET_FILE), f"Агент не создал {TARGET_FILE}"
     ```
 
 ### INFERRED #defines-9
@@ -2962,10 +2962,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/_sbs_old/adapters.py:181:        Map DRL network layer state → SBS canonical state.
     ```
     ```
+    /home/workspace/_sbs_old/global_invariant_engine.py:95:            DRL layer state (network partitions, clock skew, causality markers)
+    ```
+    ```
     /home/workspace/_sbs_old/boundary_spec.py:36:        Maximum allowed network partitions before system halts.
-    ```
-    ```
-    /home/workspace/_sbs_old/boundary_spec.py:68:            - partitions (int): number of detected network partitions
     ```
 
 ### INFERRED #defines-12
@@ -3055,10 +3055,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
     ```
     ```
-    /home/workspace/knowledge/daily_brief/idea_tracker_refactored.py:356:    """Show detailed idea info."""
+    /home/workspace/scripts/optimize_lag_blend.py:103:    logger.info(f"[Demo] Generated {n} rows, reversals in raw: {sum(np.abs(np.diff(np.sign(raw - 50))) > 0)}")
     ```
     ```
-    /home/workspace/knowledge/daily_brief/idea_tracker.py:302:    """Show detailed idea info."""
+    /home/workspace/scripts/optimize_lag_blend.py:125:    logger.info(f"[Data] Loaded {len(df)} rows from {path}")
     ```
 
 ### INFERRED #defines-18
@@ -3084,13 +3084,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_logging.py:22:    assert captured.out, "No log output"
-    ```
-    ```
-    /home/workspace/tests/test_logging.py:37:    assert captured.out, "No log output from orchestrator"
-    ```
-    ```
     /home/workspace/knowledge/daily_digest/cli.py:8:    log       — Show digest processing history
+    ```
+    ```
+    /home/workspace/knowledge/daily_digest/cli.py:9:    run       — Full pipeline: analyze → propose → log
+    ```
+    ```
+    /home/workspace/knowledge/daily_digest/cli.py:14:    python -m knowledge.daily_digest log --limit 10
     ```
 
 ### INFERRED #defines-20
@@ -3183,13 +3183,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/AsurDev/governance.py:130:                for kw in ['slurm','kubectl','ceph','docker','systemctl']:
-    ```
-    ```
     /home/workspace/AsurDev/tests/integration/test_ml_pipeline.py:49:      - 18 feature columns  (cpu, mem, gpu, disk, net, slurm, proc)
     ```
     ```
     /home/workspace/AsurDev/ai_scheduler/scheduler_v2.py:88:    """Submit job to selected partition via slurm wrapper."""
+    ```
+    ```
+    /home/workspace/AsurDev/ai_scheduler/scheduler.py:152:    "rtx-node":   {"ip": "10.20.20.10", "capabilities": ["gpu", "slurm", "ceph_osd", "ray_head"]},
     ```
 
 ### INFERRED #defines-26
@@ -3231,13 +3231,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/health_endpoints.py:135:        "service": "AstroFin Sentinel V5",
-    ```
-    ```
     /home/workspace/tools/metrics_server.py:17:OLLAMA_STATUS = Gauge("astrofin_ollama_status", "Ollama service status (1=healthy)")
     ```
     ```
-    /home/workspace/audit_repo/tools/metrics_server.py:16:OLLAMA_STATUS = Gauge("astrofin_ollama_status", "Ollama service status (1=healthy)")
+    /home/workspace/health_endpoints.py:135:        "service": "AstroFin Sentinel V5",
+    ```
+    ```
+    /home/workspace/audit_repo/health_endpoints.py:135:        "service": "AstroFin Sentinel V5",
     ```
 
 ### INFERRED #defines-29
@@ -3247,13 +3247,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:72:    # Speed-ups: skip Hyperopt warm-up and KARL state updates during the test.
-    ```
-    ```
-    /home/workspace/tests/observability/test_metrics.py:37:    async def fake_run(state):
-    ```
-    ```
     /home/workspace/tests/architecture/test_architecture_linter.py:51:    def run(self, state):
+    ```
+    ```
+    /home/workspace/tests/architecture/test_architecture_linter.py:112:    def run(self, state):
+    ```
+    ```
+    /home/workspace/tests/architecture/test_validate_agent.py:52:    async def run(self, state):
     ```
 
 ### INFERRED #defines-30
@@ -3263,13 +3263,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/knowledge/daily_brief/daily_brief.py:187:def main():
+    /home/workspace/tests/test_dual_mode.py:48:            # We can't easily test main(), so just verify the architecture
     ```
     ```
-    /home/workspace/knowledge/daily_brief/daily_brief.py:257:    main()
+    /home/workspace/tests/architecture/test_infer_edges.py:91:    """Import infer_edges.py with REPO_ROOT monkey-patched, run main()."""
     ```
     ```
-    /home/workspace/knowledge/daily_digest/cli.py:209:def main():
+    /home/workspace/tests/architecture/test_infer_edges.py:110:        mod.main()
     ```
 
 ### INFERRED #defines-31
@@ -3362,13 +3362,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tools/nightly_export.py:37:        logger.info(f"Top {len(top)} strategies in pool:")
+    /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
     ```
     ```
-    /home/workspace/tools/nightly_export.py:39:            logger.info(f"  {s.id}: reward={s.reward:.4f}")
+    /home/workspace/scripts/optimize_lag_blend.py:103:    logger.info(f"[Demo] Generated {n} rows, reversals in raw: {sum(np.abs(np.diff(np.sign(raw - 50))) > 0)}")
     ```
     ```
-    /home/workspace/tools/nightly_export.py:48:    logger.info(f"Starting nightly export daemon (poll={poll_seconds}s)")
+    /home/workspace/scripts/optimize_lag_blend.py:125:    logger.info(f"[Data] Loaded {len(df)} rows from {path}")
     ```
 
 ### INFERRED #defines-37
@@ -3381,13 +3381,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
+    /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
+    /home/workspace/graphify-out/infer_edges.py:179:    "pop-os-setup":         "pop-os-setup",
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:139:    "pop-os-setup/",
+    /home/workspace/astrofin-sentinel-v5/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
 
 ### INFERRED #defines-38
@@ -3416,10 +3416,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
     ```
     ```
-    /home/workspace/knowledge/daily_brief/idea_tracker_refactored.py:356:    """Show detailed idea info."""
+    /home/workspace/scripts/validate_agent.py:76:    """Return the {agent_name: info} dict from agents/gitagent_registry.py."""
     ```
     ```
-    /home/workspace/knowledge/daily_brief/idea_tracker.py:302:    """Show detailed idea info."""
+    /home/workspace/scripts/optimize_lag_blend.py:103:    logger.info(f"[Demo] Generated {n} rows, reversals in raw: {sum(np.abs(np.diff(np.sign(raw - 50))) > 0)}")
     ```
 
 ### INFERRED #defines-40
@@ -3473,7 +3473,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:139:    "pop-os-setup/",
+    /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
     ```
 
 ### INFERRED #defines-43
@@ -3492,7 +3492,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:139:    "pop-os-setup/",
+    /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
     ```
 
 ### INFERRED #defines-44
@@ -3566,13 +3566,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/roma-execution-bridge/gpu_worker/connector.py:219:            "command": "echo 'ROM A GPU working!' && nvidia-smi --query-gpu=name --format=csv,noheader",
+    /home/workspace/AsurDev/failure_orchestrator/recovery.py:127:    ok, msg = _run(["nvidia-smi"])
     ```
     ```
-    /home/workspace/roma-execution-bridge/gpu_worker/observability_fast.py:24:    return {"gpus": []}  # In production: nvidia-smi query
+    /home/workspace/AsurDev/failure_orchestrator/recovery.py:129:        return False, "nvidia-smi not responding"
     ```
     ```
-    /home/workspace/roma-execution-bridge/gpu_worker/server.py:67:                ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+    /home/workspace/AsurDev/failure_orchestrator/recovery.py:130:    ok2, msg2 = _run(["systemctl", "nvidia-smi"])
     ```
 
 ### INFERRED #defines-49
@@ -3646,7 +3646,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_rate_limit.py:11:from deploy.monitoring.health_endpoints import app
     ```
     ```
-    /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:75:        "monitoring",
+    /home/workspace/scripts/validate_alerts_metrics.py:45:    alerts_path = Path(__file__).parent.parent / "deploy" / "monitoring" / "alerts.yml"
     ```
 
 ### INFERRED #defines-54
@@ -3656,13 +3656,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_risk_v2.py:117:        state = engine.get_state()
+    /home/workspace/tests/architecture/test_architecture_linter.py:51:    def run(self, state):
     ```
     ```
-    /home/workspace/tests/test_risk_v2.py:118:        assert not math.isnan(state.total_equity)
+    /home/workspace/tests/architecture/test_architecture_linter.py:112:    def run(self, state):
     ```
     ```
-    /home/workspace/tests/observability/test_metrics.py:37:    async def fake_run(state):
+    /home/workspace/tests/architecture/test_validate_agent.py:52:    async def run(self, state):
     ```
 
 ### INFERRED #defines-55
@@ -3672,7 +3672,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/AsurDev/lccp_v12.py:120:        Node("rtx-node",0.85,0.75,0.60,["slurm","ceph"]),
+    /home/workspace/AsurDev/tests/integration/test_ml_pipeline.py:49:      - 18 feature columns  (cpu, mem, gpu, disk, net, slurm, proc)
     ```
     ```
     /home/workspace/AsurDev/ai_scheduler/scheduler_v2.py:88:    """Submit job to selected partition via slurm wrapper."""
@@ -3707,10 +3707,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
     ```
     ```
-    /home/workspace/scripts/optimize_lag_blend.py:103:    logger.info(f"[Demo] Generated {n} rows, reversals in raw: {sum(np.abs(np.diff(np.sign(raw - 50))) > 0)}")
+    /home/workspace/knowledge/daily_brief/idea_tracker_refactored.py:356:    """Show detailed idea info."""
     ```
     ```
-    /home/workspace/scripts/optimize_lag_blend.py:125:    logger.info(f"[Data] Loaded {len(df)} rows from {path}")
+    /home/workspace/knowledge/daily_brief/idea_tracker.py:302:    """Show detailed idea info."""
     ```
 
 ### INFERRED #defines-58
@@ -3745,7 +3745,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:139:    "pop-os-setup/",
+    /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
     ```
 
 ### INFERRED #defines-60
@@ -3787,13 +3787,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/graphify-out/infer_edges.py:129:    "roma-execution-bridge/",
-    ```
-    ```
-    /home/workspace/graphify-out/infer_edges.py:150:    "roma-execution-bridge":"roma-execution-bridge",
-    ```
-    ```
     /home/workspace/audit_repo/agents/_impl/amre/idea_buffer_integration.py:192:    ATOM-R-041 + ATOM-016 bridge:
+    ```
+    ```
+    /home/workspace/graphify-out/infer_edges.py:146:    "roma-execution-bridge/",
+    ```
+    ```
+    /home/workspace/graphify-out/infer_edges.py:167:    "roma-execution-bridge":"roma-execution-bridge",
     ```
 
 ### INFERRED #defines-63
@@ -3841,7 +3841,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_auth.py:20:    pytest.skip("FastAPI metrics endpoint not yet implemented")
     ```
     ```
-    /home/workspace/tests/integration/test_evolution_pipeline.py:72:    # Speed-ups: skip Hyperopt warm-up and KARL state updates during the test.
+    /home/workspace/tests/test_healthcheck.py:35:        pytest.skip("healthcheck.py not found")
     ```
 
 ### INFERRED #defines-66
@@ -3857,7 +3857,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_rate_limit.py:11:from deploy.monitoring.health_endpoints import app
     ```
     ```
-    /home/workspace/scripts/validate_alerts_metrics.py:45:    alerts_path = Path(__file__).parent.parent / "deploy" / "monitoring" / "alerts.yml"
+    /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:75:        "monitoring",
     ```
 
 ### INFERRED #defines-67
@@ -3883,10 +3883,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/graphify-out/infer_edges.py:130:    "local-ai-stack/",
+    /home/workspace/graphify-out/infer_edges.py:147:    "local-ai-stack/",
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:151:    "local-ai-stack":       "local-ai-stack",
+    /home/workspace/graphify-out/infer_edges.py:168:    "local-ai-stack":       "local-ai-stack",
     ```
     ```
     /home/workspace/roma-execution-bridge/saas/email/service.py:31:    from_email: str = "noreply@roma.ai"
@@ -3956,7 +3956,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:139:    "pop-os-setup/",
+    /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
     ```
 
 ### INFERRED #defines-73
@@ -3972,7 +3972,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/common/interfaces.py:5:them for callers that still import from ``common.interfaces`` during
     ```
     ```
-    /home/workspace/common/__init__.py:1:"""astrofin.common — DEPRECATED compatibility shim.
+    /home/workspace/common/deterministic.py:7:``common.deterministic`` during the migration window and will be
     ```
 
 ### INFERRED #defines-74
@@ -4020,10 +4020,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/graphify-out/recall_test.py:24:  python3 graphify-out/recall_test.py --keyword scheduler
     ```
     ```
-    /home/workspace/AsurDev/ete/gate/governance_gate.py:22:    Every DAG passes through here before hitting the scheduler.
+    /home/workspace/AsurDev/admission_controller/controller.py:36:    All job submissions MUST pass through here before reaching the scheduler.
     ```
     ```
-    /home/workspace/AsurDev/ete/scheduler/adapter.py:12:        """Determine scheduler for job."""
+    /home/workspace/AsurDev/acos_correction/rca_engine.py:158:                "final_score computed but not enforced in scheduler hot path — "
     ```
 
 ### INFERRED #defines-77
@@ -4065,13 +4065,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/test_logging.py:22:    assert captured.out, "No log output"
-    ```
-    ```
-    /home/workspace/tests/test_logging.py:37:    assert captured.out, "No log output from orchestrator"
-    ```
-    ```
     /home/workspace/knowledge/daily_digest/cli.py:8:    log       — Show digest processing history
+    ```
+    ```
+    /home/workspace/knowledge/daily_digest/cli.py:9:    run       — Full pipeline: analyze → propose → log
+    ```
+    ```
+    /home/workspace/knowledge/daily_digest/cli.py:14:    python -m knowledge.daily_digest log --limit 10
     ```
 
 ### INFERRED #defines-80
@@ -4090,7 +4090,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:139:    "pop-os-setup/",
+    /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
     ```
 
 ### INFERRED #defines-81
@@ -4106,7 +4106,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/scripts/validate_docker_security.py:56:                    errors.append(f"{svc_name}: port {port_str} is not bound to 127.0.0.1")
     ```
     ```
-    /home/workspace/tools/healthcheck.py:58:        "port": 5432,
+    /home/workspace/health_endpoints.py:74:            port=int(os.getenv("POSTGRES_PORT", 5432)),
     ```
 
 ### INFERRED #defines-82
@@ -4173,7 +4173,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
-    /home/workspace/graphify-out/infer_edges.py:139:    "pop-os-setup/",
+    /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
     ```
 
 ---
@@ -4238,10 +4238,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/tests/ralph_benchmark/test_agent_basic.py:38:    assert add(2, 3) == 5
-    ```
-    ```
     /home/workspace/tests/test_dual_mode.py:124:    print("\n[TEST 5] Function signatures unchanged...")
+    ```
+    ```
+    /home/workspace/tests/ralph_benchmark/test_agent_basic.py:38:    assert add(2, 3) == 5
     ```
     ```
     /home/workspace/tests/observability/test_metrics.py:25:    assert elapsed["elapsed"] < 0.5
@@ -4260,7 +4260,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_observability_rag_quality.py:78:            results = retriever.retrieve("test query", domain="astrology", top_k=2)
     ```
     ```
-    /home/workspace/knowledge/build_index.py:187:    query_vec = get_embedding(args.query)
+    /home/workspace/knowledge/rag_retriever.py:58:    Agents call `retrieve(query, domain=None)` to get top-k relevant
     ```
 
 ### INFERRED #rationale_for-6
@@ -4690,13 +4690,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/AsurDev/ete/scheduler/adapter.py:11:    def route(self, job: dict) -> dict:
+    /home/workspace/roma-execution-bridge/dashboard/app.py:25:        {"type": "JOB_SUBMITTED", "payload": {"job_id": "job-001", "tenant_id": "acme", "plugin": "ml_training"}},
     ```
     ```
-    /home/workspace/AsurDev/ete/scheduler/adapter.py:12:        """Determine scheduler for job."""
+    /home/workspace/roma-execution-bridge/dashboard/app.py:26:        {"type": "JOB_QUEUED", "payload": {"job_id": "job-001"}},
     ```
     ```
-    /home/workspace/AsurDev/ete/scheduler/adapter.py:13:        jtype = job.get("type", "agent")
+    /home/workspace/roma-execution-bridge/dashboard/app.py:27:        {"type": "JOB_SCHEDULED", "payload": {"job_id": "job-001", "gpu_node": "gpu-node-1"}},
     ```
 
 ### INFERRED #references-6
@@ -4722,13 +4722,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/AsurDev/feature_pipeline/exporter.py:22:    """Map job/outcome string to label integer."""
+    /home/workspace/AsurDev/tests/unit/test_determinism.py:31:        self.id = "test-job-1"
     ```
     ```
-    /home/workspace/AsurDev/feature_pipeline/exporter.py:49:        2. For each job outcome at time T, look ahead horizon_minutes
+    /home/workspace/AsurDev/tests/unit/test_determinism.py:50:    """Test 1: Same job + same node state → same node selected."""
     ```
     ```
-    /home/workspace/AsurDev/feature_pipeline/exporter.py:67:        """Load job events from state_store. Falls back to synthetic data."""
+    /home/workspace/AsurDev/tests/unit/test_determinism.py:56:    job = MockJob("gpu", memory_gb=8)
     ```
 
 ### INFERRED #references-8
@@ -4913,13 +4913,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/backtest/metrics_agent.py:133:    """SQLite-backed metrics store for all backtest runs."""
-    ```
-    ```
     /home/workspace/audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
     ```
     ```
     /home/workspace/audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
+    ```
+    ```
+    /home/workspace/audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
     ```
 
 ### INFERRED #references-19
@@ -5018,10 +5018,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
     ```
     ```
-    /home/workspace/audit_repo/tests/test_logging.py:18:    logger.info("Test event")
+    /home/workspace/_sbs_old/failure_classifier.py:90:        Classify a single failure event.
     ```
     ```
-    /home/workspace/audit_repo/db/session.py:35:    from sqlalchemy import create_engine, event
+    /home/workspace/_sbs_old/failure_classifier.py:95:            Raw failure event with at minimum:
     ```
 
 ### INFERRED #references-25
@@ -5212,13 +5212,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/AsurDev/tests/test_security_fixes.py:25:        log.emit("t", EventType.DAG_CREATED, {"dag": {}})
+    /home/workspace/AsurDev/tests/test_amneziawg_integration.py:141:    dag = {"nodes": [{"id": "n1"}, {"id": "n2"}], "edges": []}
     ```
     ```
-    /home/workspace/AsurDev/tests/test_security_fixes.py:45:        log.emit("t", EventType.DAG_CREATED, {"dag": {}})
+    /home/workspace/AsurDev/tests/test_amneziawg_integration.py:142:    returned = engine.execute(dag, {}, "inv1")
     ```
     ```
-    /home/workspace/AsurDev/tests/test_security_fixes.py:50:        log.emit("t", EventType.DAG_CREATED, {"dag": {}})
+    /home/workspace/AsurDev/tests/test_amneziawg_integration.py:200:    log.emit("inv5", EventType.DAG_CREATED, {"dag": {"nodes": [{"id": "n"}]}})
     ```
 
 ### INFERRED #references-36
@@ -5244,13 +5244,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/roma-execution-bridge/gpu_worker/observability.py:155:            # Check job failures
+    /home/workspace/AsurDev/feature_pipeline/exporter.py:22:    """Map job/outcome string to label integer."""
     ```
     ```
-    /home/workspace/roma-execution-bridge/gpu_worker/observability.py:202:    # Simulate job results
+    /home/workspace/AsurDev/feature_pipeline/exporter.py:49:        2. For each job outcome at time T, look ahead horizon_minutes
     ```
     ```
-    /home/workspace/roma-execution-bridge/gpu_worker/observability.py:203:    obs.record_job_result("job-001", "gpu-node-1", success=True, duration_ms=1200)
+    /home/workspace/AsurDev/feature_pipeline/exporter.py:67:        """Load job events from state_store. Falls back to synthetic data."""
     ```
 
 ### INFERRED #references-38
@@ -5285,10 +5285,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/audit_repo/agents/_impl/amre/self_question.py:51:        "Is the regime stable enough to act on this signal?",
     ```
     ```
-    /home/workspace/AsurDev/lccp_v12.py:96:        act = ctrl(issue)
+    /home/workspace/AsurDev/v7/drift_alignment/tracker.py:145:        for sim, act in zip(simulated_states[-50:], actual_states[-50:]):
     ```
     ```
-    /home/workspace/AsurDev/lccp_v12.py:99:            results.append({"node":n.id,"issue":issue,"action":act,"gate":"REJECT_SCOPE","status":"BLOCKED"})
+    /home/workspace/AsurDev/v7/drift_alignment/tracker.py:148:                if key in sim and key in act:
     ```
 
 ### INFERRED #references-40
@@ -5400,13 +5400,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
+    /home/workspace/AsurDev/governance.py:17:    "incident":"v8","admission":"v8","constraint_compiler":"v8","k8s_manifests":"v8",
+    ```
+    ```
     /home/workspace/AsurDev/v8/safety_kernel/engine.py:88:            incident = self.incident_manager.create(
     ```
     ```
     /home/workspace/AsurDev/v8/safety_kernel/engine.py:117:            incident = self.incident_manager.create(
-    ```
-    ```
-    /home/workspace/AsurDev/v8/rollback/engine.py:59:        - On incident: before recovery action
     ```
 
 ### INFERRED #references-47
@@ -5486,10 +5486,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:82:        "decision",
     ```
     ```
+    /home/workspace/audit_repo/trading/safety_gate.py:21:  decision = gate.check(signal, state)
+    ```
+    ```
     /home/workspace/audit_repo/db/models.py:114:    """Vedic planetary positions at decision time."""
-    ```
-    ```
-    /home/workspace/audit_repo/db/migrate_from_sqlite.py:67:                # Convert session to decision record format
     ```
 
 ### INFERRED #references-52
@@ -5499,13 +5499,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/AsurDev/scheduler_v3/scorer.py:4:Reads job + node state from DB. Considers history + failure counts.
+    /home/workspace/AsurDev/feature_pipeline/exporter.py:22:    """Map job/outcome string to label integer."""
     ```
     ```
-    /home/workspace/AsurDev/scheduler_v3/scorer.py:25:def score_and_select(job, state_store) -> Tuple[Optional[Any], List[Dict]]:
+    /home/workspace/AsurDev/feature_pipeline/exporter.py:49:        2. For each job outcome at time T, look ahead horizon_minutes
     ```
     ```
-    /home/workspace/AsurDev/scheduler_v3/scorer.py:38:    job_type   = job.job_type if hasattr(job, "job_type") else job.get("job_type", "gpu")
+    /home/workspace/AsurDev/feature_pipeline/exporter.py:67:        """Load job events from state_store. Falls back to synthetic data."""
     ```
 
 ### INFERRED #references-53
@@ -5588,10 +5588,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_orchestrator.py:18:    """Router must correctly classify queries."""
     ```
     ```
-    /home/workspace/audit_repo/tests/test_orchestrator.py:16:    """Router must correctly classify queries."""
+    /home/workspace/_sbs_old/failure_classifier.py:88:    def classify(self, failure_event: dict[str, Any]) -> ClassifiedFailure:
     ```
     ```
-    /home/workspace/_sbs_old/tests/test_invariants.py:227:        result = classifier.classify({"type": "partition", "layer": "DRL", "description": "net split"})
+    /home/workspace/_sbs_old/failure_classifier.py:124:        return [self.classify(e) for e in failure_events]
     ```
 
 ### INFERRED #references-58
@@ -5642,10 +5642,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:82:        "decision",
     ```
     ```
-    /home/workspace/audit_repo/core/online_trainer.py:301:            decision = self.decide_position(ss, unc, astro, regime)
+    /home/workspace/audit_repo/db/models.py:114:    """Vedic planetary positions at decision time."""
     ```
     ```
-    /home/workspace/audit_repo/core/online_trainer.py:302:            pos = decision["position_pct"]
+    /home/workspace/audit_repo/db/migrate_from_sqlite.py:67:                # Convert session to decision record format
     ```
 
 ### INFERRED #references-61
@@ -5674,13 +5674,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/knowledge/daily_digest/cli.py:21:from datetime import datetime
+    /home/workspace/tests/test_orchestrator.py:176:        from datetime import datetime
     ```
     ```
-    /home/workspace/knowledge/daily_digest/cli.py:33:        date = args.date or datetime.now().strftime("%Y-%m-%d")
+    /home/workspace/tests/test_orchestrator.py:178:        dt = datetime.fromisoformat(result["timestamp"].replace("Z", "+00:00"))
     ```
     ```
-    /home/workspace/knowledge/daily_digest/cli.py:137:    print(f"  🔄 DAILY DIGEST PIPELINE — {args.date or datetime.now().strftime('%Y-%m-%d')}")
+    /home/workspace/tests/test_backtest_real_agents.py:3:from datetime import datetime, timezone
     ```
 
 ### INFERRED #references-63
@@ -5722,10 +5722,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:82:        "decision",
     ```
     ```
-    /home/workspace/audit_repo/trading/safety_gate.py:21:  decision = gate.check(signal, state)
-    ```
-    ```
     /home/workspace/audit_repo/db/models.py:114:    """Vedic planetary positions at decision time."""
+    ```
+    ```
+    /home/workspace/audit_repo/trading/safety_gate.py:21:  decision = gate.check(signal, state)
     ```
 
 ### INFERRED #references-66
@@ -5760,7 +5760,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/audit_repo/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
     ```
     ```
-    /home/workspace/AsurDev/acos_correction/rca_engine.py:24:    CONSTRAINT_VIOLATION = "constraint violation"
+    /home/workspace/AsurDev/acos.py:78:  └── Policy compiler (policy → executable constraint graph)
     ```
 
 ### INFERRED #references-68
@@ -5811,10 +5811,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_orchestrator.py:18:    """Router must correctly classify queries."""
     ```
     ```
-    /home/workspace/audit_repo/tests/test_orchestrator.py:16:    """Router must correctly classify queries."""
-    ```
-    ```
     /home/workspace/_sbs_old/tests/test_invariants.py:227:        result = classifier.classify({"type": "partition", "layer": "DRL", "description": "net split"})
+    ```
+    ```
+    /home/workspace/_sbs_old/tests/test_invariants.py:234:        result = classifier.classify({"type": "drop", "layer": "DRL"})
     ```
 
 ---
@@ -5882,7 +5882,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/agent_test_base.py:15:Why a base class and not a free function:
     ```
     ```
-    /home/workspace/scripts/optimize_lag_blend.py:429:        help=f"LagWindow base window size. Default: {DEFAULT_WINDOW_SIZE}.",
+    /home/workspace/knowledge/rag_retriever.py:191:    Agent tool: semantic search over the knowledge base.
     ```
 
 ### INFERRED #re_exports-5
@@ -5940,10 +5940,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/AsurDev/failure_orchestrator/orchestrator.py:165:                log.info(f"Previously failed detector now OK: {name}")
-    ```
-    ```
     /home/workspace/AsurDev/failure_orchestrator/detectors.py:5:Each detector returns (is_down: bool, reason: str, severity: str)
+    ```
+    ```
+    /home/workspace/AsurDev/failure_orchestrator/orchestrator.py:165:                log.info(f"Previously failed detector now OK: {name}")
     ```
     ```
     /home/workspace/atom-federation-os/tests/test_temporal_proof_v77.py:249:        detector = ProofDriftDetector(severity_threshold=0.6)
@@ -5962,7 +5962,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/data/market_adapter.py:48:    """Multi-source market data adapter with fallback chain and caching."""
     ```
     ```
-    /home/workspace/audit_repo/data/market_adapter.py:45:    """Multi-source market data adapter with fallback chain and caching."""
+    /home/workspace/audit_repo/agents/gitagent_registry.py:253:    Provides run(), run_ttc(), validate() with output adapter normalization.
     ```
 
 ### INFERRED #re_exports-10
@@ -6030,13 +6030,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
+    /home/workspace/graphify-out/infer_edges.py:66:# thousands of times. Many enriched edges share paths (e.g. all
+    ```
+    ```
+    /home/workspace/graphify-out/infer_edges.py:67:# 'enum' inherits targets share target_path=''). Keys are absolute
+    ```
+    ```
     /home/workspace/roma-execution-bridge/scheduler/gpu_policy_engine_v2.py:11:#   - Fair share scheduling (weighted by priority)
-    ```
-    ```
-    /home/workspace/roma-execution-bridge/billing/ledger.py:102:# Revenue-share extension (dev helper only)
-    ```
-    ```
-    /home/workspace/roma-execution-bridge/tests/test_revenue_share.py:60:    print("\n✅ All revenue-share tests passed")
     ```
 
 ### INFERRED #re_exports-15
@@ -6194,13 +6194,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/tests/architecture/test_infer_edges.py:31:def _write_fake_report(edges: list[dict], target: Path) -> None:
+    /home/workspace/tests/_template_agent_test.py:51:def happy_state() -> dict:
     ```
     ```
-    /home/workspace/tests/architecture/test_infer_edges.py:90:def _run_infer_edges(workspace: Path, out: Path) -> dict:
+    /home/workspace/tests/_template_agent_test.py:65:async def test_happy_path_returns_agent_response(agent: TemplateAgent, happy_state: dict) -> None:
     ```
     ```
-    /home/workspace/tests/architecture/test_infer_edges.py:116:def _read_enriched(path: Path) -> list[dict]:
+    /home/workspace/tests/_template_agent_test.py:82:async def test_run_via_convenience_function(happy_state: dict) -> None:
     ```
 
 ### INFERRED #method-6
@@ -6232,7 +6232,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/architecture/test_architecture_linter.py:112:    def run(self, state):
     ```
     ```
-    /home/workspace/tests/architecture/test_validate_agent.py:52:    async def run(self, state):
+    /home/workspace/tests/observability/test_metrics.py:37:    async def fake_run(state):
     ```
 
 ---
@@ -6306,10 +6306,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/observability/test_metrics.py:29:    with pytest.raises(RuntimeError):
     ```
     ```
+    /home/workspace/tests/agent_test_base.py:137:        """If a data source raises, the response is degraded with a machine reason."""
+    ```
+    ```
     /home/workspace/tests/_template_agent_test.py:123:    """If a data source raises, the response is degraded with a machine reason."""
-    ```
-    ```
-    /home/workspace/tests/_template_agent_test.py:190:    with pytest.raises(ValueError):
     ```
 
 ### INFERRED #calls-5
@@ -6360,13 +6360,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/atom-federation-os/build/lib/alignment/gcpl.py:347:                details=f"|B|={recent_b[0]} stable, oscillation_free: terminal leaves",
+    /home/workspace/atom-federation-os/federation/delta_gossip/anti_entropy.py:74:        # Layer 0: leaves — store mode in each node
     ```
     ```
-    /home/workspace/atom-federation-os/build/lib/alignment/equivalence.py:25:    SPLIT = auto()       # irreconcilable → both become terminal leaves
+    /home/workspace/atom-federation-os/federation/delta_gossip/anti_entropy.py:76:        leaves = [
     ```
     ```
-    /home/workspace/atom-federation-os/build/lib/federation/delta_gossip/anti_entropy.py:74:        # Layer 0: leaves — store mode in each node
+    /home/workspace/atom-federation-os/federation/delta_gossip/anti_entropy.py:81:        while len(leaves) > 1:
     ```
 
 ### INFERRED #calls-8
@@ -6385,7 +6385,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/AsurDev/acos/cli/monitor.py:69:            icon, status = "⚠️ ", "terminal"
     ```
     ```
-    /home/workspace/atom-federation-os/formal/dfa_gateway.py:129:        "dfa": "Only terminal states: S11 (accept) or SR (reject)",
+    /home/workspace/atom-federation-os/formal/model_checker.py:223:        # If state is terminal (no successors), AF is FALSE
     ```
 
 ### INFERRED #calls-9
@@ -6401,10 +6401,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_validator.py:267:                    "description": "Agent with invalid version format for semantic versioning",
     ```
     ```
+    /home/workspace/knowledge/build_index.py:44:    """Load all markdown files, split into semantic chunks."""
+    ```
+    ```
     /home/workspace/knowledge/rag_retriever.py:4:FAISS-backed semantic search with Ollama embeddings.
-    ```
-    ```
-    /home/workspace/knowledge/rag_retriever.py:191:    Agent tool: semantic search over the knowledge base.
     ```
 
 ### INFERRED #calls-10
@@ -6541,13 +6541,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/knowledge/daily_brief/idea_tracker.py:434:    print("\nUse --help for commands.")
-    ```
-    ```
     /home/workspace/knowledge/daily_brief/idea_tracker_refactored.py:488:    print("\nUse --help for commands.")
     ```
     ```
-    /home/workspace/audit_repo/orchestration/karl_cli.py:154:    """Prometheus /metrics server commands."""
+    /home/workspace/knowledge/daily_brief/idea_tracker.py:434:    print("\nUse --help for commands.")
+    ```
+    ```
+    /home/workspace/audit_repo/migrations/migrate.py:140:# ── CLI commands ──────────────────────────────────────────────────────────────
     ```
 
 ### INFERRED #calls-18
@@ -6674,10 +6674,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/scripts/optimize_lag_blend.py:164:    Compute Sharpe ratio if PnL column is available.
     ```
     ```
-    /home/workspace/_sbs_old/tests/test_invariants.py:47:        """Quorum ratio below threshold must fail."""
+    /home/workspace/audit_repo/trading/execution/order_book.py:211:        permanent_frac: float = 0.5,  # permanent vs temporary impact ratio
     ```
     ```
-    /home/workspace/_sbs_old/tests/test_invariants.py:55:        """Quorum ratio at exact threshold should pass."""
+    /home/workspace/audit_repo/agents/_impl/risk_agent.py:25:    4. Validate risk/reward ratio
     ```
 
 ### INFERRED #calls-25
@@ -6709,13 +6709,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
+    /home/workspace/tests/ralph_benchmark/test_agent_basic.py:44:    result = subprocess.run(
+    ```
+    ```
+    /home/workspace/tests/ralph_benchmark/test_agent_basic.py:54:    pytest_result = subprocess.run(
+    ```
+    ```
     /home/workspace/tests/test_dual_mode.py:33:    return asyncio.run(run_test())
-    ```
-    ```
-    /home/workspace/tests/test_dual_mode.py:52:    return asyncio.run(run_test())
-    ```
-    ```
-    /home/workspace/tests/test_dual_mode.py:118:    return asyncio.run(run_test())
     ```
 
 ### INFERRED #calls-27
@@ -6877,13 +6877,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/backtest/test_metrics_agent.py:45:        win_rate=60.0,
+    /home/workspace/tests/ralph_benchmark/test_agent_basic.py:60:    assert pytest_result.returncode == 0, f"pytest упал:\n{pytest_result.stdout}\n{pytest_result.stderr}"
     ```
     ```
-    /home/workspace/backtest/test_metrics_agent.py:50:        avg_win_pct=3.0,
+    /home/workspace/tests/test_type_consolidation.py:21:    assert len(violations) == 0, f"Found duplicate imports in: {violations}"
     ```
     ```
-    /home/workspace/backtest/test_metrics_agent.py:51:        avg_loss_pct=-2.0,
+    /home/workspace/tests/test_dual_mode.py:10:sys.path.insert(0, "/home/workspace/AstroFinSentinelV5")
     ```
 
 ### INFERRED #calls-36
@@ -6931,13 +6931,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
+    /home/workspace/atom-federation-os/build/lib/alignment/bcil.py:330:        self.decider = TrustWeightedMergeDecider(quorum)
+    ```
+    ```
+    /home/workspace/atom-federation-os/build/lib/alignment/bcil.py:347:        decision = self.decider.decide(gcpl_convergence, gcpl_convergence_rate, branch_trusts, risk)
+    ```
+    ```
     /home/workspace/atom-federation-os/build/lib/alignment/test_alignment.py:160:    decider = RollbackDecider()
-    ```
-    ```
-    /home/workspace/atom-federation-os/build/lib/alignment/test_alignment.py:168:    scope_ok = decider.decide(bind_ok, rep_ok)
-    ```
-    ```
-    /home/workspace/atom-federation-os/build/lib/alignment/test_alignment.py:170:    print(f"  decider OK→noop: type={scope_ok.rollback_type.name} ✅")
     ```
 
 ### INFERRED #calls-39
@@ -7023,7 +7023,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/architecture/test_architecture_linter.py:112:    def run(self, state):
     ```
     ```
-    /home/workspace/tests/architecture/test_validate_agent.py:52:    async def run(self, state):
+    /home/workspace/tests/observability/test_metrics.py:37:    async def fake_run(state):
     ```
 
 ### INFERRED #calls-44
@@ -7265,13 +7265,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/meta_rl/quant/metrics.py:47:    """Omega: gain above threshold / loss below threshold."""
+    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:12:      - Compute expected utility E[U] = p·gain − (1−p)·loss for each,
     ```
     ```
-    /home/workspace/audit_repo/meta_rl/quant/metrics.py:48:    gain = sum(threshold - r for r in returns if r >= threshold)
+    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:13:        using VolatilityEngine.analyze() for gain/loss.
     ```
     ```
-    /home/workspace/audit_repo/meta_rl/quant/metrics.py:50:    return gain / loss if loss != 0 else 0.0
+    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:125:        # E[U] = p·gain − (1−p)·loss. VolatilityEngine gives us the
     ```
 
 ### INFERRED #calls-58
@@ -7341,10 +7341,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/observability/test_metrics.py:31:            raise RuntimeError("boom")
     ```
     ```
+    /home/workspace/tests/test_switch_nodes.py:239:        print("  WARNING: Bad change did not raise error")
+    ```
+    ```
     /home/workspace/tests/_template_agent_test.py:93:    """An empty state is not allowed to raise — must degrade gracefully."""
-    ```
-    ```
-    /home/workspace/tests/_template_agent_test.py:97:    # the contract is "do not raise".
     ```
 
 ### INFERRED #calls-62
@@ -7354,13 +7354,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
+    /home/workspace/audit_repo/meta_rl/live_data.py:295:        # ATR-based stop distance
+    ```
+    ```
     /home/workspace/audit_repo/agents/_impl/compromise_agent.py:126:        # stop_distance_pct (≈ loss) and a 2R target distance (≈ gain).
     ```
     ```
     /home/workspace/audit_repo/agents/_impl/fundamental_agent.py:185:        # ATH distance bonus
-    ```
-    ```
-    /home/workspace/audit_repo/agents/_impl/risk_agent.py:195:        # ATR-based stop distance
     ```
 
 ### INFERRED #calls-63
@@ -7395,10 +7395,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/observability/test_metrics.py:29:    with pytest.raises(RuntimeError):
     ```
     ```
-    /home/workspace/tests/agent_test_base.py:137:        """If a data source raises, the response is degraded with a machine reason."""
-    ```
-    ```
     /home/workspace/tests/_template_agent_test.py:123:    """If a data source raises, the response is degraded with a machine reason."""
+    ```
+    ```
+    /home/workspace/tests/_template_agent_test.py:190:    with pytest.raises(ValueError):
     ```
 
 ### INFERRED #calls-65
@@ -7487,10 +7487,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/AsurDev/acos.py:89:  └── Correlation engine (causal linking)
     ```
     ```
-    /home/workspace/atom-federation-os/federation/delta_gossip/dag_hash_modes.py:44:                 Suitable for deterministic replay, causal traces,
+    /home/workspace/atom-federation-os/consistency/cross_layer_invariant_engine.py:80:    """Lightweight causal ancestry graph for events."""
     ```
     ```
-    /home/workspace/atom-federation-os/federation/delta_gossip/dag_hash_modes.py:89:                     For replay, execution traces, causal lineage.
+    /home/workspace/atom-federation-os/consistency/cross_layer_invariant_engine.py:95:        """Return all causal ancestors of an event (transitive closure)."""
     ```
 
 ### INFERRED #calls-70
@@ -7560,10 +7560,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/observability/test_metrics.py:29:    with pytest.raises(RuntimeError):
     ```
     ```
-    /home/workspace/tests/agent_test_base.py:137:        """If a data source raises, the response is degraded with a machine reason."""
-    ```
-    ```
     /home/workspace/tests/_template_agent_test.py:123:    """If a data source raises, the response is degraded with a machine reason."""
+    ```
+    ```
+    /home/workspace/tests/_template_agent_test.py:190:    with pytest.raises(ValueError):
     ```
 
 ### INFERRED #calls-74
@@ -7633,13 +7633,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
+    /home/workspace/tests/observability/test_metrics.py:29:    with pytest.raises(RuntimeError):
+    ```
+    ```
     /home/workspace/tests/_template_agent_test.py:123:    """If a data source raises, the response is degraded with a machine reason."""
     ```
     ```
     /home/workspace/tests/_template_agent_test.py:190:    with pytest.raises(ValueError):
-    ```
-    ```
-    /home/workspace/tests/agent_test_base.py:137:        """If a data source raises, the response is degraded with a machine reason."""
     ```
 
 ### INFERRED #calls-78
@@ -7677,7 +7677,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:174:            "merge node",
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/visualizer.py:17:        "merge": "#9C27B0",  # Purple for merges
+    /home/workspace/audit_repo/knowledge/daily_digest/daily_digest_analytics.py:49:        "merge node",
     ```
 
 ### INFERRED #calls-80
@@ -7750,10 +7750,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:359:                apps.append("Интегрировать в KARL reward calibration loop")
     ```
     ```
-    /home/workspace/audit_repo/knowledge/daily_digest/daily_digest_analytics.py:358:                apps.append("Интегрировать в KARL reward calibration loop")
+    /home/workspace/_sbs_old/tests/test_sbs_runtime.py:244:        loop = self._make_loop()
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/engine.py:220:            loop = asyncio.get_event_loop()
+    /home/workspace/_sbs_old/tests/test_sbs_runtime.py:245:        plan = loop.execute("read system status")
     ```
 
 ### INFERRED #calls-84
