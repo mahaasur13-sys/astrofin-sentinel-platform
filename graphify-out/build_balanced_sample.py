@@ -57,8 +57,8 @@ def main() -> None:
     )
     ap.add_argument(
         "--out",
-        default="",
-        help="Output path. If empty, write JSONL to stdout.",
+        required=True,
+        help="Output path. Required.",
     )
     ap.add_argument(
         "--max-per-bucket",
@@ -91,8 +91,7 @@ def main() -> None:
     # Anchor pairs: always include override-anchored edges (ADR-0004).
     anchored: set = set()
     if args.anchor_pairs:
-        from pathlib import Path as _P
-        ov_path = _P("/home/workspace/config/memory_overrides.json")
+        ov_path = Path("/home/workspace/config/memory_overrides.json")
         if ov_path.exists():
             ov = json.loads(ov_path.read_text(encoding="utf-8"))
             anchored = {
@@ -146,16 +145,12 @@ def main() -> None:
     if args.max_total and len(sampled) > args.max_total:
         sampled = sampled[: args.max_total]
 
-    if args.out:
-        out_path = Path(args.out)
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        with out_path.open("w", encoding="utf-8") as f:
-            for e in sampled:
-                f.write(json.dumps(e, ensure_ascii=False) + "\n")
-        print(f"wrote {len(sampled)} edges to {out_path}")
-    else:
+    out_path = Path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", encoding="utf-8") as f:
         for e in sampled:
-            print(json.dumps(e, ensure_ascii=False))
+            f.write(json.dumps(e, ensure_ascii=False) + "\n")
+    print(f"wrote {len(sampled)} edges to {out_path}")
 
     summary = {
         "total_sampled": len(sampled),
