@@ -34,6 +34,7 @@ import sys
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+from collections import Counter
 
 REPO_ROOT = Path("/home/workspace")
 GRAPH_JSON = REPO_ROOT / "graphify-out" / "graph.json"
@@ -109,6 +110,11 @@ _SUBMODULE_PREFIXES = (
     "local-ai-stack/", "audit_repo/", "agent-runtime/",
     "acos-contracts/", "acos-core/", "sbs/",
 )
+# Canonical prefix -> submodule display name. Derived from _SUBMODULE_PREFIXES
+# so the two stay in lockstep. Used by _submodule_of() to attach
+# submodule_source/submodule_target to each inferred edge without re-walking
+# the filesystem (ADR-0004 + locality enrichment).
+_SUBMODULE_NAMES = {p.rstrip("/"): p.rstrip("/") for p in _SUBMODULE_PREFIXES}
 _CORE_PREFIXES = (
     "core/", "agents/", "orchestration/", "meta_rl/", "ragservice/",
     "astra/", "astrology/", "domain/", "atom-core/", "AsurDev/",
@@ -141,6 +147,28 @@ def categorize(src_path: str, tgt_path: str) -> tuple[str, int]:
     else:
         effective = src_cat
     return effective, HALF_LIFE_BY_CATEGORY[effective]
+
+
+def _submodule_of(path: str) -> str | None:
+    p = path.lower()
+    for prefix in _SUBMODULE_PREFIXES:
+        if p.startswith(prefix):
+            return _SUBMODULE_NAMES[prefix.rstrip("/")]
+    return None
+
+
+def _locality_of(src_sub: str | None, tgt_sub: str | None) -> str:
+    # <core> ↔ <core>  → truly unknown (both ends are core, can't localize)
+    if src_sub is None and tgt_sub is None:
+        return "unknown"
+    # core ↔ submodule is a real cross-class interaction (not "unknown")
+    if src_sub is None or tgt_sub is None:
+        return "cross"
+    # both ends in same submodule
+    if src_sub == tgt_sub:
+        return "intra"
+    # submodule → different submodule
+    return "cross"
 
 
 def load_overrides() -> dict:
@@ -473,6 +501,14 @@ def main():
             "relation_weight": rel_weight,
             "recall_score": recall_score,
             "override_applied": key in overrides,
+            "submodule_source": _submodule_of(src_path) or "",
+            "submodule_target": _submodule_of(tgt_path) or "",
+            "locality": _locality_of(_submodule_of(src_path), _submodule_of(tgt_path)),
+            "is_cross_submodule": (
+                _submodule_of(src_path) is not None
+                and _submodule_of(tgt_path) is not None
+                and _submodule_of(src_path) != _submodule_of(tgt_path)
+            ),
         })
         tier_counts[tier] += 1
         cat_counts[cat] = cat_counts.get(cat, 0) + 1
@@ -485,6 +521,13 @@ def main():
         "tier_counts": tier_counts,
         "category_counts": cat_counts,
         "override_hits": override_hits,
+        "locality_counts": dict(Counter(e["locality"] for e in enriched)),
+        "cross_submodule_edges": sum(1 for e in enriched if e["is_cross_submodule"]),
+        "submodule_pair_counts": dict(Counter(
+            f"{e['submodule_source']}->{e['submodule_target']}"
+            for e in enriched
+            if e["is_cross_submodule"]
+        )),
         "total_edges": len(enriched),
     }
 
