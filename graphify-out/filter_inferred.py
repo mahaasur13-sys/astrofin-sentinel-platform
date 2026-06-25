@@ -15,9 +15,16 @@ import os
 import sys
 from pathlib import Path
 
-# Resolve workspace from $WORKSPACE or $HOME/workspace, fall back to CWD.
-# Avoids a hard-coded absolute path that breaks portability.
-WORKSPACE = Path(os.environ.get("WORKSPACE") or os.environ.get("ASTROFIN_WORKSPACE") or (Path.home() / "workspace").resolve())
+# Resolve workspace from $WORKSPACE or $ASTROFIN_WORKSPACE, fall back to CWD.
+# CWD is the canonical fallback because this script is invoked from the repo
+# root (e.g. CI: `python graphify-out/filter_inferred.py`). Using
+# ~/workspace would silently point at a non-existent dir in containers/agents
+# whose $HOME is /root.
+WORKSPACE = Path(
+    os.environ.get("WORKSPACE")
+    or os.environ.get("ASTROFIN_WORKSPACE")
+    or Path.cwd()
+).resolve()
 INPUT = WORKSPACE / "graphify-out" / "inferred_clean.jsonl"
 OUTPUT = WORKSPACE / "graphify-out" / "inferred_clean_filtered.jsonl"
 
