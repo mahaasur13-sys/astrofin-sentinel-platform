@@ -281,26 +281,6 @@ def tier_for(verdict: str, confidence: float) -> str:
     return "T3"
 
 
-_GIT_MTIME_CACHE: dict[str, int] = {}
-
-
-def _git_mtime_days(path: str, as_of: datetime) -> int:
-    """Return days since last git modification of `path`, or 0 if unknown."""
-    if not path or path in _GIT_MTIME_CACHE:
-        return _GIT_MTIME_CACHE.get(path, 0)
-    try:
-        out = subprocess.run(
-            ["git", "log", "-1", "--format=%ct", "--", path],
-            cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=5,
-        )
-        ts = int(out.stdout.strip())
-        delta = max(0, int((as_of.timestamp() - ts) // 86400))
-    except Exception:
-        delta = 0
-    _GIT_MTIME_CACHE[path] = delta
-    return delta
-
-
 def _normalize_line(s: str) -> str:
     """Strip the parser's accidental 'LL' duplication in source_location."""
     if s.startswith("LL"):
