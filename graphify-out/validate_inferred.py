@@ -59,11 +59,21 @@ def _adapt_sample(sample: list) -> list:
     ]
 
 
+def _load_jsonl_or_json(path):
+    """Read a file that may be either a JSON array or a JSONL stream of objects."""
+    with open(path) as f:
+        first = f.read(1)
+        f.seek(0)
+        if first == "[":
+            return json.load(f)
+        return [json.loads(line) for line in f if line.strip()]
+
+
 def load() -> tuple[dict, list, list]:
     g = json.load(open(GRAPH))
     nodes = {n["id"]: n for n in g["nodes"]}
     links = g["links"]
-    raw_sample = json.load(open(SAMPLE))
+    raw_sample = _load_jsonl_or_json(SAMPLE)
     sample = _adapt_sample(raw_sample) if raw_sample and "source_node_id" in raw_sample[0] else raw_sample
     return nodes, links, sample
 
