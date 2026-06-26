@@ -95,7 +95,7 @@ jobs:
   validate-agents:
     name: Validate Changed Agents (A1-A9)
     needs: [ known-issues ]
-    if: contains(github.event.pull_request.changed_files ?? '', 'agents/_impl/') || github.event_name == 'push'
+    if: contains(github.event.pull_request.changed_files || '', 'agents/_impl/') || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -143,7 +143,7 @@ jobs:
   # ---- Phase 2 Job 3: registry-coverage check (CI version, hard fail). ----
   registry-check:
     name: Registry Coverage (CI strict)
-    if: contains(github.event.pull_request.changed_files ?? '', 'agents/_impl/') || contains(github.event.pull_request.changed_files ?? '', 'agents/gitagent_registry.py')
+    if: contains(github.event.pull_request.changed_files || '', 'agents/_impl/') || contains(github.event.pull_request.changed_files || '', 'agents/gitagent_registry.py')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
