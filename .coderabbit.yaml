@@ -1,25 +1,28 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 # .coderabbit.yaml — AstroFin Sentinel V5
-# CodeRabbit настроен как **дополнительный** ревьюер к pre-commit хукам.
+# CodeRabbit настроен как дополнительный ревьюер к pre-commit хукам.
 # Подробная матрица ответственности — в docs/CODE_REVIEW.md.
 
 # ==================== REVIEW PROFILE ====================
 language: ru
 reviews:
-  profile: assertive              # строгий стиль, обращается к автору напрямую
+  profile: assertive
   high_level_summary: true
-  suggest_code_changes: true      # предлагать конкретные исправления
+  suggest_code_changes: true
   poem: false
   humor: false
-  request_changes_workflow: true # PR нельзя слить, пока CodeRabbit ставит request_changes
-  review_status: true            # показывать статус "Review skipped/finished" в PR
+  request_changes_workflow: true
+  review_status: true
+  auto_review:
+    enabled: true
+    drafts: false
 
-  # ==================== PATH FILTERS (v2 — бывший exclude) ====================
+  # ==================== PATH FILTERS ====================
   # Двухсписочная семантика: паттерны с "!" — override default blocks (allow),
   # паттерны без "!" — exclude (block).
-  # CodeRabbit v2 по умолчанию блокирует .md/.txt/doc-файлы → добавляем explicit allow.
   path_filters:
-    - "!**/*.md"                   # allow docs/** (ARCHITECTURE.md, KNOWN_ISSUES.md, ...)
-    - "!**/*.txt"                  # allow текстовые документы
+    - "!**/*.md"
+    - "!**/*.txt"
     # ----- exclude (block) -----
     - "**/__pycache__/**"
     - "**/.pytest_cache/**"
@@ -30,110 +33,26 @@ reviews:
     - "**/.env*"
     - "**/venv/**"
     - "**/node_modules/**"
-    - "**/agents/_archived/**"   # deprecated
-    - "**/*.bak"                  # KI-007/KI-008
+    - "**/agents/_archived/**"
+    - "**/*.bak"
     - "**/dist/**"
     - "**/build/**"
     - "**/.eggs/**"
-    - "**/roma-execution-bridge/**"  # nested git repo, не наш
+    - "**/roma-execution-bridge/**"
 
-  # ==================== PATH INSTRUCTIONS (v2 — теперь внутри reviews:) ====================
-  path_instructions:
-    # Агенты
-    - path: "agents/_impl/**/*.py"
-      instructions: |
-        Проверь для каждого агента:
-        1. **R1**: класс наследует BaseAgent[AgentResponse] (не ABC, не Protocol).
-        2. **R5**: агент зарегистрирован в agents/gitagent_registry.py:AGENT_AGENTS
-           с корректным domain и weight ∈ [0, 1].
-        3. **R9**: top-level функция run_<agent_name>(state) — async, возвращает
-           AgentResponse. Запусти `python scripts/validate_agent.py <path>`.
-        4. **A9**: run() содержит try/except и возвращает graceful AgentResponse
-           (NEUTRAL signal + reasoning) при сбое, а не raise.
-        5. **BlackRock Six тесты**: `tests/test_<agent>.py` существует и покрывает
-           6 случаев: happy path, ephemeris missing, timeout, malformed state,
-           signal bounds, registry entry.
-        6. ASTROLOGICAL вес агента в комментарии соответствует astro_weights
-           в synthesis (Bradley ~50%, Gann ~40%, Cycle ~40%, остальные 15–30%).
-
-    - path: "agents/_impl/**/ephemeris*.py"
-      instructions: |
-        Проверь **R2**: методы, использующие Swiss Ephemeris, помечены
-        @require_ephemeris (из agents/_impl/ephemeris_decorator).
-        НЕ предлагай обернуть методы, которые НЕ используют ephemeris.
-
-    - path: "agents/technical_agent.py"
-      instructions: |
-        Этот агент вне _impl/. Проверь, что его НЕ дублирует _impl/technical_agent
-        и что он не импортируется из _archived/.
-
-    - path: "agents/_archived/**"
-      instructions: |
-        DEPRECATED. Не ревьюь, не предлагай изменения. Любой import отсюда —
-        нарушение R5/KI-011.
-
-    # Web / API
-    - path: "web/**/*.py"
-      instructions: |
-        Проверь **R4**: все FastAPI/Flask routes, кроме явно public (login,
-        health, docs), имеют @require_auth или аналогичный декоратор.
-        Особое внимание на:
-        - /api/admin/* (admin routes)
-        - /api/agents/* (gating by role)
-        - /api/backtest/* (rate-limit обязателен)
-
-    # Core / shared
-    - path: "core/**/*.py"
-      instructions: |
-        **R3** CRITICAL: core/ — это data plane. Если core/ начинает делать
-        requests.* — это регрессия Data Room pattern (KI-001).
-        Предложи: вынести в data_room/resolvers/<name>.py.
-
-    - path: "**/*.py"
-      instructions: |
-        Применить универсальные правила:
-        - **R6**: НЕТ top-level `print()`. Заменить на `logger.info()`.
-        - **R7**: НЕТ f-string SQL. Параметризованные queries.
-        - **R8**: НЕТ hardcoded API keys, tokens, passwords. Settings() или env.
-        - type hints: `Optional[X]` → `X | None` (3.12+).
-        - не использовать `import *`.
-
-    - path: "data_room/**"
-      instructions: |
-        Data Room — единственный путь к external data. При добавлении нового
-        resolver проверь:
-        - наследование от data_room/resolvers/base.py
-        - регистрация в data_room/blueprint.py
-        - inventory в data_room/inventory/sources_inventory.json
-        - circuit breaker настроен (data_room/circuit_breaker.py)
-
-    - path: "tests/**"
-      instructions: |
-        BlackRock Six test cases ОБЯЗАТЕЛЬНЫ для каждого нового агента:
-        1. happy_path
-        2. ephemeris_missing (если астрологический)
-        3. timeout
-        4. malformed_state
-        5. signal_bounds (LONG/SHORT/NEUTRAL/AVOID)
-        6. registry_entry
-        Шаблон: tests/_template_agent_test.py.
-
-    - path: "docs/**"
-      instructions: |
-        При structural changes в agents/, core/, data_room/ — флаг "обновите
-        docs/ARCHITECTURE.md". При появлении нового P1 issue — флаг
-        "добавьте запись в docs/KNOWN_ISSUES.md".
-
-    - path: ".coderabbit.yaml"
-      instructions: |
-        Свой feedback по самому CodeRabbit конфигу — не нужен. Игнорируй изменения
-        в этом файле при review (это meta-config, не код).
-
-# ==================== TRIGGER ====================
-# CodeRabbit работает ТОЛЬКО на pull_request (не на push, не на /review вручную).
-# Цель: дать обратную связь автору ДО merge в master/develop.
+  # ==================== TOOLS ====================
+  tools:
+    # pre-commit уже закрывает: ruff, bandit, detect-secrets, end-of-file fixer
+    # Оставляем только те, что добавляют ценность относительно pre-commit
+    ast-grep:
+      enabled: true
+    shellcheck:
+      enabled: true
+    markdownlint:
+      enabled: false
 
 # ==================== KNOWLEDGE BASE ====================
+# Контекст для код-ревью — единое место для архитектурных правил, P1 blockers и стиля.
 knowledge_base:
   instructions: |
     Ты — Senior AI Engineer, Quantitative Researcher и Principal Software Architect
@@ -161,6 +80,63 @@ knowledge_base:
     | **R8** | НЕТ hardcoded secrets | Покажи правильное использование Settings/env |
     | **R9** | run_<agent_name> экспортируется | Проверь async-сигнатуру и return type |
 
+    ## Path-specific rules (переехали из старого path_instructions)
+    Применяй следующие проверки для соответствующих путей:
+
+    - `agents/_impl/**/*.py`:
+      - R1: класс наследует BaseAgent[AgentResponse] (не ABC, не Protocol)
+      - R5: агент зарегистрирован в agents/gitagent_registry.py:AGENT_AGENTS с domain и weight ∈ [0, 1]
+      - R9: top-level функция run_<agent_name>(state) — async, возвращает AgentResponse
+      - A9: run() содержит try/except и возвращает graceful AgentResponse (NEUTRAL + reasoning) при сбое
+      - BlackRock Six тесты: `tests/test_<agent>.py` существует и покрывает 6 случаев
+      - ASTROLOGICAL вес агента соответствует astro_weights в synthesis
+
+    - `agents/_impl/**/ephemeris*.py`:
+      - R2: методы со Swiss Ephemeris помечены @require_ephemeris (agents/_impl/ephemeris_decorator)
+      - НЕ предлагай обернуть методы, которые НЕ используют ephemeris
+
+    - `agents/technical_agent.py` (вне _impl/):
+      - Проверь, что его НЕ дублирует _impl/technical_agent и что он не импортируется из _archived/
+
+    - `agents/_archived/**`:
+      - DEPRECATED. Не ревьюь, не предлагай изменения. Любой import отсюда — нарушение R5/KI-011
+
+    - `web/**/*.py`:
+      - R4: все FastAPI/Flask routes, кроме явно public (login, health, docs), имеют @require_auth
+      - Особое внимание: /api/admin/*, /api/agents/*, /api/backtest/* (rate-limit обязателен)
+
+    - `core/**/*.py`:
+      - R3 CRITICAL: core/ — это data plane. Если core/ начинает делать requests.* —
+        регрессия Data Room pattern (KI-001). Предложи: вынести в data_room/resolvers/<name>.py
+
+    - `**/*.py` (universal):
+      - R6: НЕТ top-level `print()`. Заменить на `logger.info()`
+      - R7: НЕТ f-string SQL. Параметризованные queries
+      - R8: НЕТ hardcoded API keys, tokens, passwords. Settings() или env
+      - type hints: `Optional[X]` → `X | None` (3.12+)
+      - не использовать `import *`
+
+    - `data_room/**`:
+      - Data Room — единственный путь к external data
+      - наследование от data_room/resolvers/base.py
+      - регистрация в data_room/blueprint.py
+      - inventory в data_room/inventory/sources_inventory.json
+      - circuit breaker настроен (data_room/circuit_breaker.py)
+
+    - `tests/**`:
+      - BlackRock Six test cases ОБЯЗАТЕЛЬНЫ для каждого нового агента:
+        1. happy_path 2. ephemeris_missing 3. timeout 4. malformed_state
+        5. signal_bounds (LONG/SHORT/NEUTRAL/AVOID) 6. registry_entry
+      - Шаблон: tests/_template_agent_test.py
+
+    - `docs/**`:
+      - При structural changes в agents/, core/, data_room/ — флаг "обновите docs/ARCHITECTURE.md"
+      - При появлении нового P1 issue — флаг "добавьте запись в docs/KNOWN_ISSUES.md"
+
+    - `.coderabbit.yaml`:
+      - Свой feedback по самому CodeRabbit конфигу — не нужен. Игнорируй изменения
+        в этом файле при review (это meta-config, не код)
+
     ## P1 blockers (docs/KNOWN_ISSUES.md)
     При ревью ОБЯЗАТЕЛЬНО упоминай эти P1-блокеры, если релевантно:
 
@@ -171,14 +147,6 @@ knowledge_base:
     - **KI-011** — backwards-compat stubs в `agents/__init__.py` (см. R5 registry coverage).
     - **KI-012** — `.env` файлы, hardcoded API keys, tokens. Требуй `Settings()` или
       переменные окружения через `os.environ`.
-
-    ## Focus areas (бывший focus_areas, переехал в knowledge_base)
-    - "architecture compliance (R1–R9)"
-    - "Data Room pattern enforcement"
-    - "security: secrets, auth, SQL"
-    - "graceful degradation (try/except in run)"
-    - "test coverage: BlackRock Six"
-    - "documentation freshness (ARCHITECTURE.md, KNOWN_ISSUES.md)"
 
     ## Style ревью
     1. **Русский язык** — все комментарии на русском, кратко, по делу.
@@ -196,7 +164,7 @@ knowledge_base:
     - НЕ критикуй agents/_archived/ (deprecated, no active imports).
     - НЕ ревьюй изменения в .coderabbit.yaml (это meta-config).
 
-# ==================== CHAT (in-app Zo) ====================
+# ==================== CHAT ====================
 chat:
   auto_reply: false
 
@@ -207,5 +175,5 @@ chat:
 # CodeRabbit:   architectural reasoning, KNOWN_ISSUES context, cross-file impact,
 #             test coverage gaps, soft rules (S1–S3 docstrings).
 #
-# Review cycle: quarterly — пересмотр правил и path_instructions каждые 3 месяца.
+# Review cycle: quarterly — пересмотр правил каждые 3 месяца.
 # Reviewers: @architect + @lead
