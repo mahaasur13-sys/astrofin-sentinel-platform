@@ -12,6 +12,10 @@ graphify-out/inferred_clean.*
 graphify-out/cache/
 ab_*
 
+# local secrets template (never commit)
+.env.secrets
+.env
+
 # graphify-out runtime artifacts (do not commit)
 graphify-out/inferred_clean_filtered.jsonl
 graphify-out/_ad_hoc_ov_check*.jsonl
