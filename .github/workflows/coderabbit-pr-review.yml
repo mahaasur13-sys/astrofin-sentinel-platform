@@ -1,0 +1,41 @@
+name: CodeRabbit PR Review
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+
+jobs:
+  coderabbit-review:
+    name: Trigger CodeRabbit review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Log PR metadata
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_ACTION: ${{ github.event.action }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "PR=#${PR_NUMBER} action=${PR_ACTION} repo=${REPO}"
+          echo "CodeRabbit review is handled by the CodeRabbit GitHub App on this repository."
+
+      - name: Verify CodeRabbit bot
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "Checking for CodeRabbit review comments on PR #${PR_NUMBER}..."
+          gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            --jq '.[] | select(.user.login | startswith("coderabbitai")) | {user: .user.login, created: .created_at}' \
+            || echo "No CodeRabbit comments yet (review may still be in progress)"
