@@ -20,6 +20,8 @@ reviews:
   path_filters:
     - "!**/*.md"                   # allow docs/** (ARCHITECTURE.md, KNOWN_ISSUES.md, ...)
     - "!**/*.txt"                  # allow текстовые документы
+    - "!**/*.yaml"                 # allow YAML files including this .coderabbit.yaml
+    - "!**/*.yml"                  # allow YAML files
     # ----- exclude (block) -----
     - "**/__pycache__/**"
     - "**/.pytest_cache/**"
@@ -38,101 +40,8 @@ reviews:
     - "**/roma-execution-bridge/**"  # nested git repo, не наш
 
   # ==================== PATH INSTRUCTIONS (v2 — теперь внутри reviews:) ====================
-  path_instructions:
-    # Агенты
-    - path: "agents/_impl/**/*.py"
-      instructions: |
-        Проверь для каждого агента:
-        1. **R1**: класс наследует BaseAgent[AgentResponse] (не ABC, не Protocol).
-        2. **R5**: агент зарегистрирован в agents/gitagent_registry.py:AGENT_AGENTS
-           с корректным domain и weight ∈ [0, 1].
-        3. **R9**: top-level функция run_<agent_name>(state) — async, возвращает
-           AgentResponse. Запусти `python scripts/validate_agent.py <path>`.
-        4. **A9**: run() содержит try/except и возвращает graceful AgentResponse
-           (NEUTRAL signal + reasoning) при сбое, а не raise.
-        5. **BlackRock Six тесты**: `tests/test_<agent>.py` существует и покрывает
-           6 случаев: happy path, ephemeris missing, timeout, malformed state,
-           signal bounds, registry entry.
-        6. ASTROLOGICAL вес агента в комментарии соответствует astro_weights
-           в synthesis (Bradley ~50%, Gann ~40%, Cycle ~40%, остальные 15–30%).
-
-    - path: "agents/_impl/**/ephemeris*.py"
-      instructions: |
-        Проверь **R2**: методы, использующие Swiss Ephemeris, помечены
-        @require_ephemeris (из agents/_impl/ephemeris_decorator).
-        НЕ предлагай обернуть методы, которые НЕ используют ephemeris.
-
-    - path: "agents/technical_agent.py"
-      instructions: |
-        Этот агент вне _impl/. Проверь, что его НЕ дублирует _impl/technical_agent
-        и что он не импортируется из _archived/.
-
-    - path: "agents/_archived/**"
-      instructions: |
-        DEPRECATED. Не ревьюь, не предлагай изменения. Любой import отсюда —
-        нарушение R5/KI-011.
-
-    # Web / API
-    - path: "web/**/*.py"
-      instructions: |
-        Проверь **R4**: все FastAPI/Flask routes, кроме явно public (login,
-        health, docs), имеют @require_auth или аналогичный декоратор.
-        Особое внимание на:
-        - /api/admin/* (admin routes)
-        - /api/agents/* (gating by role)
-        - /api/backtest/* (rate-limit обязателен)
-
-    # Core / shared
-    - path: "core/**/*.py"
-      instructions: |
-        **R3** CRITICAL: core/ — это data plane. Если core/ начинает делать
-        requests.* — это регрессия Data Room pattern (KI-001).
-        Предложи: вынести в data_room/resolvers/<name>.py.
-
-    - path: "**/*.py"
-      instructions: |
-        Применить универсальные правила:
-        - **R6**: НЕТ top-level `print()`. Заменить на `logger.info()`.
-        - **R7**: НЕТ f-string SQL. Параметризованные queries.
-        - **R8**: НЕТ hardcoded API keys, tokens, passwords. Settings() или env.
-        - type hints: `Optional[X]` → `X | None` (3.12+).
-        - не использовать `import *`.
-
-    - path: "data_room/**"
-      instructions: |
-        Data Room — единственный путь к external data. При добавлении нового
-        resolver проверь:
-        - наследование от data_room/resolvers/base.py
-        - регистрация в data_room/blueprint.py
-        - inventory в data_room/inventory/sources_inventory.json
-        - circuit breaker настроен (data_room/circuit_breaker.py)
-
-    - path: "tests/**"
-      instructions: |
-        BlackRock Six test cases ОБЯЗАТЕЛЬНЫ для каждого нового агента:
-        1. happy_path
-        2. ephemeris_missing (если астрологический)
-        3. timeout
-        4. malformed_state
-        5. signal_bounds (LONG/SHORT/NEUTRAL/AVOID)
-        6. registry_entry
-        Шаблон: tests/_template_agent_test.py.
-
-    - path: "docs/**"
-      instructions: |
-        При structural changes в agents/, core/, data_room/ — флаг "обновите
-        docs/ARCHITECTURE.md". При появлении нового P1 issue — флаг
-        "добавьте запись в docs/KNOWN_ISSUES.md".
-
-    - path: ".coderabbit.yaml"
-      instructions: |
-        Свой feedback по самому CodeRabbit конфигу — не нужен. Игнорируй изменения
-        в этом файле при review (это meta-config, не код).
-
-# ==================== TRIGGER ====================
-# CodeRabbit работает ТОЛЬКО на pull_request (не на push, не на /review вручную).
-# Цель: дать обратную связь автору ДО merge в master/develop.
-
+  # path_instructions (v1) → перенесено в knowledge_base.instructions (v2).
+  # См. секцию KNOWLEDGE BASE ниже для path-specific правил.
 # ==================== KNOWLEDGE BASE ====================
 knowledge_base:
   instructions: |
