@@ -43,6 +43,9 @@ RUN groupadd --system --gid 1001 appuser \
 
 WORKDIR /app
 
+# Copy requirements.txt for runtime dependency installation.
+COPY requirements.txt .
+
 # Install pre-built wheels from the builder stage.
 COPY --from=builder /wheels /wheels
 RUN pip install --no-index --find-links=/wheels \
