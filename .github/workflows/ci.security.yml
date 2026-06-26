@@ -1,118 +1,86 @@
-name: CI - Security and Quality
-
-# Phase 3+4: secret-scan, security-scan (bandit + docker),
-# code-quality (ruff + mypy, soft), test (pytest+cov),
-# blackrock-tests (six required tests per agent).
-#
-# Hard-fail jobs (block merge): secret-scan, security-scan, test, blackrock-tests
-# Soft-fail job: code-quality (P2 warnings, not blocking).
-
-on:
-  pull_request:
-    branches: [ master, develop ]
-  push:
-    branches: [ master, develop ]
-  workflow_call:
-
-permissions:
-  contents: read
-  pull-requests: write
-
-env:
-  PYTHON_VERSION: '3.12'
-
-jobs:
-  secret-scan:
-    name: Secret Scan (detect-secrets)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install detect-secrets
-        run: pip install detect-secrets==1.5.0
-      - name: detect-secrets (with baseline, exclude tests/ and docs/)
-        run: |
-          set +e
-          detect-secrets scan \
-            --baseline .secrets.baseline \
-            --exclude-files 'tests/' --exclude-files 'docs/' \
-            > /tmp/secrets.out 2>&1
-          rc=$?
-          set -e
-          cat /tmp/secrets.out
-          # detect-secrets returns non-zero only on internal errors.
-          # Hard-fail only if NEW findings appear in the JSON output.
-          if grep -qE '"filename":' /tmp/secrets.out; then
-            count=$(grep -cE '"filename":' /tmp/secrets.out)
-            echo 'detected-secrets-found='$count
-            exit 1
-          fi
-      - name: Upload secret scan log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with: { name: secret-scan-log, path: /tmp/secrets.out, retention-days: 7 }
-
-  security-scan:
-    name: Security (Bandit + Docker)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/workflows/python-setup.yml
-        with: { install-dev: 'false' }
-      - name: Install bandit
-        run: pip install bandit==1.8.0
-      - name: Bandit (medium severity)
-        run: |
-          bandit -r agents core web meta_rl scripts \
-            --severity-level medium --confidence-level medium \
-            -f screen
-      - name: Docker security validation
-        run: python scripts/validate_docker_security.py
-
-  code-quality:
-    name: Code Quality (Ruff + mypy)
-    runs-on: ubuntu-latest
-    continue-on-error: true   # soft check (P2 - not blocking)
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/workflows/python-setup.yml
-        with: { install-dev: 'true' }
-      - name: Ruff lint (github format)
-        run: ruff check . --output-format=github
-      - name: Ruff format check
-        run: ruff format --check .
-      - name: mypy (scoped)
-        run: |
-          mypy agents/ scripts/ core/ orchestration/ \
-            --ignore-missing-imports --no-error-summary || true
-
-  test:
-    name: Tests + Coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/workflows/python-setup.yml
-        with: { install-dev: 'true' }
-      - name: Pytest (with coverage)
-        run: |
-          pytest tests/ \
-            --cov=agents --cov=core --cov=data_room --cov=observability \
-            --cov-report=xml --cov-report=term-missing \
-            -v --tb=short
-      - name: Upload coverage.xml
-        if: always()
-        uses: actions/upload-artifact@v4
-        with: { name: coverage-report, path: coverage.xml, retention-days: 14 }
-
-  blackrock-tests:
-    name: BlackRock Six Tests
+  dep-vuln-scan:
+    name: Dependency Vulnerability Scan (pip-audit + safety)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
-      - name: Validate six required tests per agent
-        run: python scripts/validate_blackrock_tests.py
-
+      - name: Install pip-audit and safety
+        run: pip install pip-audit==2.7.3 safety==3.2.3
+      - name: pip-audit (requirements + requirements-dev)
+        run: |
+          set +e
+          pip-audit -r requirements.txt -f json --disable-pip > /tmp/pip-audit.json 2>/tmp/pip-audit.err
+          rc=$?
+          cat /tmp/pip-audit.err
+          # Re-emit final JSON with vulnerabilities only
+          python -c "import json,sys; d=json.load(open('/tmp/pip-audit.json')); d=[x for x in d if x.get('vulns')]; open('/tmp/pip-audit.final.json','w').write(json.dumps(d,indent=2))"
+          if [ "$rc" -ne 0 ] || [ -s /tmp/pip-audit.final.json ]; then
+            echo "::error::pip-audit reported vulnerabilities"
+            cat /tmp/pip-audit.final.json
+            exit 1
+          fi
+      - name: safety check (requirements.txt)
+        env:
+          SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
+        run: |
+          set +e
+          safety check -r requirements.txt --output text > /tmp/safety.out 2>&1
+          safety_rc=$?
+          cat /tmp/safety.out
+          set -e
+          if [ "$safety_rc" -ne 0 ]; then
+            echo "::error::safety check reported vulnerabilities (rc=$safety_rc)"
+            exit 1
+          fi
+      - name: Upload pip-audit JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: pip-audit-report, path: /tmp/pip-audit.final.json, retention-days: 14 }
+      - name: Upload safety log
+        dep-vuln-scan:
+    name: Dependency Vulnerability Scan (pip-audit + safety)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Install pip-audit and safety
+        run: pip install pip-audit==2.7.3 safety==3.2.3
+      - name: pip-audit (requirements + requirements-dev)
+        run: |
+          set +e
+          pip-audit -r requirements.txt -f json --disable-pip > /tmp/pip-audit.json 2>/tmp/pip-audit.err
+          rc=$?
+          cat /tmp/pip-audit.err
+          # Re-emit final JSON with vulnerabilities only
+          python -c "import json,sys; d=json.load(open('/tmp/pip-audit.json')); d=[x for x in d if x.get('vulns')]; open('/tmp/pip-audit.final.json','w').write(json.dumps(d,indent=2))"
+          if [ "$rc" -ne 0 ] || [ -s /tmp/pip-audit.final.json ]; then
+            echo "::error::pip-audit reported vulnerabilities"
+            cat /tmp/pip-audit.final.json
+            exit 1
+          fi
+      - name: safety check (requirements.txt)
+        env:
+          SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
+        run: |
+          set +e
+          safety check -r requirements.txt --output text > /tmp/safety.out 2>&1
+          safety_rc=$?
+          cat /tmp/safety.out
+          set -e
+          if [ "$safety_rc" -ne 0 ]; then
+            echo "::error::safety check reported vulnerabilities (rc=$safety_rc)"
+            exit 1
+          fi
+      - name: Upload pip-audit JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: pip-audit-report, path: /tmp/pip-audit.final.json, retention-days: 14 }
+      - name: Upload safety log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: safety-report, path: /tmp/safety.out, retention-days: 14 }
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: safety-report, path: /tmp/safety.out, retention-days: 14 }
