@@ -11,7 +11,7 @@
 set -euo pipefail
 
 REPO="mahaasur13-sys/astrofin-sentinel-platform"
-TAG="v1.0.0-rc1"
+TAG="${TAG:-v1.0.0-rc1}"
 REMOTE="origin"
 
 WAIT="${WAIT:-0}"
