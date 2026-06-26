@@ -1,0 +1,55 @@
+openapi: 3.0.3
+info:
+  title: AstroFin Sentinel Platform API
+  version: 0.1.0
+  description: |
+    Minimal OpenAPI specification for externally reachable HTTP endpoints.
+    The platform is primarily an internal multi-agent system; the only discovered
+    HTTP endpoint in the current codebase is the conflict journal reader.
+servers:
+  - url: https://asurdev.zo.space
+paths:
+  /data-room/conflicts:
+    get:
+      summary: List conflict journal entries
+      description: Returns the parsed conflict journal as JSON.
+      responses:
+        '200':
+          description: Conflict journal payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          description: Conflict journal not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  conflicts:
+                    type: array
+                    items:
+                      type: object
+        '500':
+          description: Invalid JSON or unexpected server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  conflicts:
+                    type: array
+                    items:
+                      type: object
+components:
+  schemas: {}
