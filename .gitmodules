@@ -27,6 +27,3 @@
 	path = integrations/gitagent
 	url = git@github.com:mahaasur13-sys/integrations-gitagent.git
 
-[submodule "push"]
-	path = push
-	url = git@github.com:mahaasur13-sys/push.git
