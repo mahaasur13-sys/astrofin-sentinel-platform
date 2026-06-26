@@ -72,8 +72,8 @@ echo "Жду появления workflow run для тега ${TAG}…"
 run_id=""
 TAG_SHA="$(git rev-parse "${TAG}^{commit}" 2>/dev/null || true)"
 for attempt in {1..30}; do
-  run_id="$(gh api "repos/${REPO}/actions/runs?event=push&per_page=20" \
-            --jq ".workflow_runs[] | select(.head_branch == \"${TAG}\" or .head_sha == \"${TAG_SHA}\") | .id" \
+  run_id="$(gh api "repos/${REPO}/actions/runs?event=push&per_page=50" \
+            --jq ".workflow_runs[] | select((.head_sha == \"${TAG_SHA}\") and (.name == \"CD \\u2014 Build, Sign, Deploy\") and (.path == \".github/workflows/deploy.yml\")) | .id" \
             2>/dev/null | head -n1 || true)"
   if [[ -n "$run_id" ]]; then break; fi
   sleep 2
