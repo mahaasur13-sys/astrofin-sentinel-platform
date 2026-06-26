@@ -18,21 +18,21 @@ reviews:
   # паттерны без "!" — exclude (block).
   # CodeRabbit v2 по умолчанию блокирует .md/.txt/doc-файлы → добавляем explicit allow.
   path_filters:
-    - "**/__pycache__/**"
-    - "**/.pytest_cache/**"
-    - "**/.mypy_cache/**"
-    - "**/data/raw/**"
-    - "**/data/processed/**"
-    - "**/*.log"
-    - "**/.env*"
-    - "**/venv/**"
-    - "**/node_modules/**"
-    - "**/agents/_archived/**"   # deprecated
-    - "**/*.bak"                  # KI-007/KI-008
-    - "**/dist/**"
-    - "**/build/**"
-    - "**/.eggs/**"
-    - "**/roma-execution-bridge/**"  # nested git repo, не наш
+    - "!**/__pycache__/**"
+    - "!**/.pytest_cache/**"
+    - "!**/.mypy_cache/**"
+    - "!**/data/raw/**"
+    - "!**/data/processed/**"
+    - "!**/*.log"
+    - "!**/.env*"
+    - "!**/venv/**"
+    - "!**/node_modules/**"
+    - "!**/agents/_archived/**"   # deprecated
+    - "!**/*.bak"                  # KI-007/KI-008
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/.eggs/**"
+    - "!**/roma-execution-bridge/**"  # nested git repo, не наш
     # ----- allow (override defaults) -----
     - "!**/*.md"
     - "!**/LICENSE"
