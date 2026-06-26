@@ -190,7 +190,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: staging
-      url: ${{ secrets.STAGING_HEALTH_URL }}
+      url: ${{ vars.STAGING_HEALTH_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -242,7 +242,7 @@ jobs:
     steps:
       - name: Healthcheck
         env:
-          URL: ${{ secrets.STAGING_HEALTH_URL }}
+          URL: ${{ vars.STAGING_HEALTH_URL }}
         run: |
           set -euo pipefail
           if [ -z "${URL}" ]; then
@@ -272,7 +272,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: ${{ secrets.PROD_HEALTH_URL }}
+      url: ${{ vars.PROD_HEALTH_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -321,7 +321,7 @@ jobs:
 
       - name: Post-deploy healthcheck
         env:
-          URL: ${{ secrets.PROD_HEALTH_URL }}
+          URL: ${{ vars.PROD_HEALTH_URL }}
         run: |
           set -euo pipefail
           for i in {1..15}; do
