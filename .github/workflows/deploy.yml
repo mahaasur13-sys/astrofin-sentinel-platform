@@ -133,14 +133,6 @@ jobs:
           format: spdx-json
           artifact-name: astrofin-sbom.spdx.json
 
-      - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom
-          path: astrofin-sbom.spdx.json
-          retention-days: 90
-          if-no-files-found: error
-
       # ------------------------- Cosign sign -------------------------
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
