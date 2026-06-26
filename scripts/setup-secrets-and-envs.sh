@@ -111,6 +111,8 @@ print_noninteractive() {
     echo "${name}=" >> "$out"
     printf "   gh secret set %-26s --env %-10s  # %s\n" "$name" "$env" "$desc"
   done
+  chmod 600 "$out"
+  echo "🔒 права на '$out' установлены в 0600"
   echo
   echo "📄 Шаблон: $out"
 }
@@ -151,8 +153,8 @@ done
 
 echo
 echo "=== 3/3 Проверка ==="
-gh secret list --repo "$REPO" --env "$ENV_STAGING" 2>/dev/null | sed 's/^/   [staging]    /' || true
-gh secret list --repo "$REPO" --env "$ENV_PROD"   2>/dev/null | sed 's/^/   [production] /' || true
+gh secret list --repo "$REPO" --env "$ENV_STAGING" --json name,updatedAt 2>/dev/null | jq -r '.[] | "   [staging]    " + .name' || true
+gh secret list --repo "$REPO" --env "$ENV_PROD"   --json name,updatedAt 2>/dev/null | jq -r '.[] | "   [production] " + .name' || true
 
 echo
 echo "🎉 Готово. Дальше: docs/FINAL_STEPS.md → шаг 2 (Grafana), шаг 3 (релиз)."
