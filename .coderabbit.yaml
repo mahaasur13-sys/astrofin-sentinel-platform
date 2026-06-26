@@ -32,7 +32,6 @@ reviews:
     - "!**/dist/**"
     - "!**/build/**"
     - "!**/.eggs/**"
-    - "!**/roma-execution-bridge/**"  # nested git repo, не наш
     # ----- allow (override defaults) -----
     - "!**/*.md"
     - "!**/LICENSE"
