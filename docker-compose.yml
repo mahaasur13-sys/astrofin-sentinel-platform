@@ -84,7 +84,7 @@ services:
       postgres:
         condition: service_started
     volumes:
-      - ./AsurDev/models:/app/models:ro
+      - ./AsurDev/ml_engine/models:/app/models:ro
       - ./AsurDev/ml_engine:/app/ml_engine:ro
     restart: unless-stopped
     healthcheck:

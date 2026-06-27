@@ -1,8 +1,14 @@
 # =============================================================================
 # Monitoring stack для AstroFin Sentinel Platform (staging + local dev).
 #
-# Использование:
+# Использование (любой из вариантов):
+#   # Вариант 1: запуск из корня репозитория
+#   cd ~/Projects/astrofin-sentinel-platform
 #   docker compose -f deploy/docker-compose.monitoring.yml up -d
+#
+#   # Вариант 2: запуск из каталога deploy/
+#   cd ~/Projects/astrofin-sentinel-platform/deploy
+#   docker compose -f docker-compose.monitoring.yml up -d
 #
 # Сервисы:
 #   - prometheus    :9050 — сбор метрик
