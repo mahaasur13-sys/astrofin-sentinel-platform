@@ -21,5 +21,8 @@ graphify-out/inferred_clean_filtered.jsonl
 graphify-out/_ad_hoc_ov_check*.jsonl
 graphify-out/*.filtered.jsonl
 
+# local artifacts (never commit)
+push/
+
 # audit_repo — локальная копия репо для аудита (не для коммита)
 audit_repo/
