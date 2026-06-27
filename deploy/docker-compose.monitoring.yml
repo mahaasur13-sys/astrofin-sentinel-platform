@@ -21,10 +21,10 @@ services:
     ports:
       - "9050:9090"
     volumes:
-      - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./deploy/monitoring/prometheus-alerts.yml:/etc/prometheus/prometheus-alerts.yml:ro
-      - ./deploy/monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
-      - ./deploy/monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus-alerts.yml:/etc/prometheus/prometheus-alerts.yml:ro
+      - ./monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -47,7 +47,7 @@ services:
     ports:
       - "9053:9093"
     volumes:
-      - ./deploy/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     environment:
       # Передаются из .env или CI (НЕ коммитить значения):
       SLACK_WEBHOOK_URL:     ${SLACK_WEBHOOK_URL:-}
@@ -71,11 +71,11 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED:  "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
     volumes:
-      - ./deploy/monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-      - ./deploy/monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./deploy/monitoring/grafana-dashboard.json:/var/lib/grafana/dashboards/astrofin-overview.json:ro
-      - ./deploy/monitoring/grafana/provisioning/dashboards/agent-performance.json:/var/lib/grafana/dashboards/agent-performance.json:ro
-      - ./deploy/monitoring/grafana/provisioning/dashboards/infrastructure-overview.json:/var/lib/grafana/dashboards/infrastructure-overview.json:ro
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana-dashboard.json:/var/lib/grafana/dashboards/astrofin-overview.json:ro
+      - ./monitoring/grafana/provisioning/dashboards/agent-performance.json:/var/lib/grafana/dashboards/agent-performance.json:ro
+      - ./monitoring/grafana/provisioning/dashboards/infrastructure-overview.json:/var/lib/grafana/dashboards/infrastructure-overview.json:ro
       - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
@@ -87,7 +87,7 @@ services:
     ports:
       - "9115:9115"
     volumes:
-      - ./deploy/monitoring/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+      - ./monitoring/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
     command:
       - '--config.file=/etc/blackbox_exporter/config.yml'
 

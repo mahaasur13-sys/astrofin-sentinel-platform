@@ -49,3 +49,22 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+  - job_name: 'astrofin-app'
+    static_configs:
+      - targets: ['host.docker.internal:8050']
+        labels: {service: app, role: web}
+
+  - job_name: 'astrofin-ml-engine'
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+        labels: {service: ml-engine, role: api}
+
+  - job_name: 'astrofin-feature-pipeline'
+    static_configs:
+      - targets: ['host.docker.internal:8090']
+        labels: {service: feature-pipeline, role: batch}
+
+  - job_name: 'astrofin-gpu-worker'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+        labels: {service: gpu-worker, role: worker}

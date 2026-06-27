@@ -20,7 +20,7 @@ global:
   smtp_from:       'alerts@astrofin.example'
   smtp_require_tls: true
   smtp_auth_username: 'apikey'
-  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_auth_password: 'PLACEHOLDER_SMTP'
 
 templates:
   - '/etc/alertmanager/templates/*.tmpl'
@@ -62,7 +62,7 @@ route:
 receivers:
   - name: 'slack-default'
     slack_configs:
-      - api_url: '${SLACK_WEBHOOK_URL}'
+      - api_url: 'https://hooks.slack.com/services/PLACEHOLDER/PLACEHOLDER/PLACEHOLDER'
         channel: '#alerts'
         title:   'AstroFin Alert'
         text: |
@@ -74,7 +74,7 @@ receivers:
 
   - name: 'slack-slo'
     slack_configs:
-      - api_url: '${SLACK_WEBHOOK_SLO_URL}'
+      - api_url: 'https://hooks.slack.com/services/PLACEHOLDER/PLACEHOLDER/PLACEHOLDER'
         channel: '#slo-burn'
         title:   'AstroFin SLO burn'
         text: |
@@ -85,7 +85,7 @@ receivers:
 
   - name: 'pagerduty-critical'
     pagerduty_configs:
-      - routing_key: '${PAGERDUTY_ROUTING_KEY}'
+      - routing_key: 'PLACEHOLDER_PAGERDUTY_ROUTING_KEY'
         severity:    '{{ .CommonLabels.severity }}'
         description: '{{ .CommonAnnotations.summary }}'
         details:
@@ -93,7 +93,7 @@ receivers:
           namespace: '{{ .CommonLabels.namespace }}'
           runbook:  '{{ .CommonAnnotations.runbook_url }}'
     slack_configs:
-      - api_url: '${SLACK_WEBHOOK_URL}'
+      - api_url: 'https://hooks.slack.com/services/PLACEHOLDER/PLACEHOLDER/PLACEHOLDER'
         channel: '#alerts-critical'
         title:   ':rotating_light: PAGER: AstroFin Critical'
 
