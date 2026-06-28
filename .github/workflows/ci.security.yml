@@ -64,7 +64,7 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
-      - uses: ./.github/workflows/python-setup.yml
+      - uses: ./.github/actions/setup-astrofin-python
         with: { install-dev: 'false' }
       - name: Install bandit
         run: pip install bandit==1.8.0
@@ -85,7 +85,7 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
-      - uses: ./.github/workflows/python-setup.yml
+      - uses: ./.github/actions/setup-astrofin-python
         with: { install-dev: 'true' }
       - name: Ruff lint (github format)
         run: ruff check . --output-format=github
@@ -104,7 +104,7 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.GH_PAT }}
-      - uses: ./.github/workflows/python-setup.yml
+      - uses: ./.github/actions/setup-astrofin-python
         with: { install-dev: 'true' }
       - name: Pytest (with coverage)
         run: |
