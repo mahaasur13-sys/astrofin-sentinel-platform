@@ -28,3 +28,7 @@ __pycache__/
 .ruff_cache/
 _sbs_old/
 .venv/
+*.AppImage
+ruff_remaining.json
+ruff_fixed.json
+_*.json
