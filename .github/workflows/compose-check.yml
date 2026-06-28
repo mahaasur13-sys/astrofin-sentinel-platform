@@ -16,6 +16,9 @@ jobs:
           token: ${{ secrets.GH_PAT }}
         with:
           submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+        with:
+          submodules: recursive
 
       - name: Validate docker-compose syntax
         run: docker compose -f docker-compose.yml config --quiet
