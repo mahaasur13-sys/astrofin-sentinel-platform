@@ -212,7 +212,7 @@ def get_sidereal_longitude(jd: float) -> float:
 
     # Mean elements of Moon's orbit
     L = 218.3164477 + 481267.88123421 * T  # Mean longitude
-    l = 134.9633964 + 477198.8675055 * T  # Mean anomaly
+    l = 134.9633964 + 477198.8675055 * T  # Mean anomaly  # noqa: E741
     357.5291092 + 35999.0502909 * T  # Sun's mean anomaly
 
     # Simplified latitude (in radians)

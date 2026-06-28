@@ -81,7 +81,7 @@ def gt_to_edge(r):
 edges = [gt_to_edge(p) for p in ov_pairs] + competitors
 
 # Shuffle so file order does not pre-bias the (un-)sorted result
-import random
+import random  # noqa: E402
 random.seed(42)
 random.shuffle(edges)
 

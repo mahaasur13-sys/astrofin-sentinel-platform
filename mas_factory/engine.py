@@ -10,18 +10,18 @@ Optimizations:
 - Meta-questioning as topology change driver
 """
 
-import asyncio
-import hashlib
-import logging
-import time
-from dataclasses import dataclass
-from datetime import datetime
-from functools import lru_cache
-from typing import Any
+import asyncio  # noqa: E402
+import hashlib  # noqa: E402
+import logging  # noqa: E402
+import time  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
+from datetime import datetime  # noqa: E402
+from functools import lru_cache  # noqa: E402
+from typing import Any  # noqa: E402
 
-from mas_factory.architect import MASFactoryArchitect
-from mas_factory.registry import AgentRegistry, get_registry
-from mas_factory.topology import Role, Topology
+from mas_factory.architect import MASFactoryArchitect  # noqa: E402
+from mas_factory.registry import AgentRegistry, get_registry  # noqa: E402
+from mas_factory.topology import Role, Topology  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

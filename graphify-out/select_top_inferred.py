@@ -135,7 +135,7 @@ def main() -> None:
     # weight/confidence ranking, so the override mechanism in infer_edges.py is
     # end-to-end testable on every run.
     override_pairs = _load_override_pairs()
-    link_index = {(l.get("source"), l.get("target")): l for l in links}
+    link_index = {(l.get("source"), l.get("target")): l for l in links}  # noqa: E741
     anchored = []
     for s, t in sorted(override_pairs):
         link = link_index.get((s, t))

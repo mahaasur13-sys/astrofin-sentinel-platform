@@ -1,5 +1,5 @@
 from __future__ import annotations
-import sys; sys.path.insert(0, '/home/workspace')
+import sys; sys.path.insert(0, '/home/workspace')  # noqa: E702
 import time
 import numpy as np
 from strategies.generator import GeneratedStrategy, random_chromosome

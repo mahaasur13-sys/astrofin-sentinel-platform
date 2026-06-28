@@ -114,7 +114,7 @@ def _run_infer_edges(workspace: Path, out: Path) -> dict:
 def _read_enriched(path: Path) -> list[dict]:
     if not path.exists():
         return []
-    return [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+    return [json.loads(l) for l in path.read_text().splitlines() if l.strip()]  # noqa: E741
 
 
 # --- tests ---------------------------------------------------------------

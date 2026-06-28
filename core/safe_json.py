@@ -71,7 +71,7 @@ def safe_jsonl_load(filepath: str) -> list:
     """Load all records from a JSONL file safely."""
     try:
         with open(filepath, encoding="utf-8") as f:
-            lines = [l.strip() for l in f if l.strip()]
+            lines = [l.strip() for l in f if l.strip()]  # noqa: E741
         records = []
         for i, line in enumerate(lines):
             try:

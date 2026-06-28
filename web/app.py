@@ -25,11 +25,11 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-import dash
-import dash_bootstrap_components as dbc
-from dash import Input, Output, dcc, html
+import dash  # noqa: E402
+import dash_bootstrap_components as dbc  # noqa: E402
+from dash import Input, Output, dcc, html  # noqa: E402
 
-from web.data_room import data_room_bp
+from web.data_room import data_room_bp  # noqa: E402
 
 
 # ── Config ──────────────────────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ DEBUG = os.getenv("DEBUG_MODE", "false").lower() == "true"
 PORT = int(os.getenv("PORT", "8050"))
 SECRET_KEY = os.getenv("SECRET_KEY", os.urandom(16).hex())
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*")
-from core.auth import validate_startup
+from core.auth import validate_startup  # noqa: E402
 
 validate_startup()
 
@@ -189,8 +189,8 @@ def update_clock(_):
 
 
 # ── Register callbacks ──────────────────────────────────────────────────────────
-from web.callbacks import register_callbacks
-from web.sessions_callbacks import register_sessions_callbacks
+from web.callbacks import register_callbacks  # noqa: E402
+from web.sessions_callbacks import register_sessions_callbacks  # noqa: E402
 
 register_callbacks(app, _engine_ref)
 register_sessions_callbacks(app)

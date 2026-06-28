@@ -29,8 +29,8 @@ class OrderBookSnapshot:
         best_ask = self.asks[0].price if self.asks else 0.0
         self.spread = best_ask - best_bid
         self.mid_price = (best_bid + best_ask) / 2 if best_bid and best_ask else 0.0
-        self.depth_bid_10 = sum(l.quantity for l in self.bids[:10])
-        self.depth_ask_10 = sum(l.quantity for l in self.asks[:10])
+        self.depth_bid_10 = sum(l.quantity for l in self.bids[:10])  # noqa: E741
+        self.depth_ask_10 = sum(l.quantity for l in self.asks[:10])  # noqa: E741
 
 
 @dataclass
@@ -181,11 +181,11 @@ class OrderBookSimulator:
         # Adjust qty if book depth is insufficient
         fill_qty = qty
         if side == "buy":
-            available = sum(l.quantity for l in self.build_snapshot(price).asks[:3])
+            available = sum(l.quantity for l in self.build_snapshot(price).asks[:3])  # noqa: E741
             if qty > available * 0.5:
                 fill_qty = min(qty, available * 0.5 + available * 0.1)
         else:
-            available = sum(l.quantity for l in self.build_snapshot(price).bids[:3])
+            available = sum(l.quantity for l in self.build_snapshot(price).bids[:3])  # noqa: E741
             if qty > available * 0.5:
                 fill_qty = min(qty, available * 0.5 + available * 0.1)
 
@@ -265,8 +265,8 @@ if __name__ == "__main__":
     sim = OrderBookSimulator(mid_price=50000, spread_bps=5, depth_per_level=500, adv=10000)
     book = sim.build_snapshot()
     print(f"  Mid price: {book.mid_price}, Spread: {book.spread:.2f}")
-    print(f"  Top 3 bids: {[round(l.price, 2) for l in book.bids[:3]]}")
-    print(f"  Top 3 asks: {[round(l.price, 2) for l in book.asks[:3]]}")
+    print(f"  Top 3 bids: {[round(l.price, 2) for l in book.bids[:3]]}")  # noqa: E741
+    print(f"  Top 3 asks: {[round(l.price, 2) for l in book.asks[:3]]}")  # noqa: E741
 
     impact = sim.estimate_market_impact("buy", qty=500, num_slices=5, base_price=50000)
     print("\n  Market Impact (buy 500 BTC, 5 slices):")

@@ -12,8 +12,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from agents._impl.macro_agent import MacroAgent
-from tests.agent_test_base import AgentTestContract, DegradedContract
+from agents._impl.macro_agent import MacroAgent  # noqa: E402
+from tests.agent_test_base import AgentTestContract, DegradedContract  # noqa: E402
 
 
 class TestMacroAgent(AgentTestContract, DegradedContract):

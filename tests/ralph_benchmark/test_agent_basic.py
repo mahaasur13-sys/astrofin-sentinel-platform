@@ -5,10 +5,10 @@ import pytest
 pytestmark = pytest.mark.skip(reason="Requires external Ralph agent")
 """Бенчмарк для Ralph Loop – минимальная задача, которую агент должен решить."""
 
-import os
-import subprocess
-import sys
-import pytest
+import os  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+import pytest  # noqa: E402
 
 BENCHMARK_DIR = os.path.dirname(__file__)
 TARGET_FILE = os.path.join(BENCHMARK_DIR, "_temp_add.py")

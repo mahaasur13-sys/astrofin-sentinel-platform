@@ -15,12 +15,12 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from data_room.circuit_breaker import (
+from data_room.circuit_breaker import (  # noqa: E402
     BreakerState as CircuitState,
     CircuitBreaker,
     call_with_breaker,
 )
-from data_room.observability import MetricsStore
+from data_room.observability import MetricsStore  # noqa: E402
 reset_metrics = MetricsStore.instance().reset
 
 

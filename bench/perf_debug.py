@@ -1,5 +1,5 @@
 from __future__ import annotations
-import sys; sys.path.insert(0, '/home/workspace')
+import sys; sys.path.insert(0, '/home/workspace')  # noqa: E702
 import time
 import numpy as np
 from strategies.generator import GeneratedStrategy, random_chromosome
@@ -27,7 +27,7 @@ cand_vecs = np.vstack([pool._chrom_to_vec(c.strategy) for c in _cands])
 ext_vecs  = np.vstack([pool._chrom_to_vec(s.strategy) for s in pool._pool])
 print('cand vecs shape:', cand_vecs.shape, 'existing shape:', ext_vecs.shape)
 
-from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import NearestNeighbors  # noqa: E402
 nn = NearestNeighbors(n_neighbors=1, algorithm='brute', metric='cosine')
 nn.fit(ext_vecs)
 t0 = time.perf_counter()

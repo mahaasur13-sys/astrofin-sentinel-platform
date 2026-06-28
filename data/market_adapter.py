@@ -291,7 +291,7 @@ class MarketAdapter:
             ts = now - timedelta(hours=limit - i - 1) if interval == "1h" else now - timedelta(days=limit - i - 1)
             change = random.gauss(0, 0.02)
             o, c = price, price * (1 + change)
-            h, l = (
+            h, l = (  # noqa: E741
                 max(o, c) * (1 + abs(change) * 0.5),
                 min(o, c) * (1 - abs(change) * 0.5),
             )
@@ -321,7 +321,7 @@ class MarketAdapter:
             change = rng.gauss(0, 0.02)
             o, c = price, price * (1 + change)
             h = max(o, c) * (1 + abs(change) * 0.5)
-            l = min(o, c) * (1 - abs(change) * 0.5)
+            l = min(o, c) * (1 - abs(change) * 0.5)  # noqa: E741
             data.append(
                 OHLCV(
                     timestamp=ts,

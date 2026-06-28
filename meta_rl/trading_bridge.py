@@ -2,16 +2,16 @@ from __future__ import annotations
 META_RL_TRADING_ENABLED = False  # F821 fix (TODO: move to config)
 """meta_rl/trading_bridge.py — Live/Paper Trading Bridge for Meta-RL"""
 
-import logging
-from dataclasses import dataclass
+import logging  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
 
-from meta_rl.config import (
+from meta_rl.config import (  # noqa: E402
     LIVE_TRADING_ENABLED,
     PAPER_TRADING_ENABLED,
 )
-from trading.execution.sanity import ExecutionSanityChecker
-from trading.mode import ModeEnforcer
-from trading.risk_v2 import RiskEngineV2
+from trading.execution.sanity import ExecutionSanityChecker  # noqa: E402
+from trading.mode import ModeEnforcer  # noqa: E402
+from trading.risk_v2 import RiskEngineV2  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

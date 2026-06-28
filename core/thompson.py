@@ -13,7 +13,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-from core.belief import get_belief_tracker
+from core.belief import get_belief_tracker  # noqa: E402
 
 # ═════════════════════════════════════════════════
 # Agent Pools

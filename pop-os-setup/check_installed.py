@@ -133,8 +133,8 @@ if __name__ == "__main__":
         total = len(stage_pkgs)
         pct = int(matched_count * 100 / total)
 
-        if pct == 100:   color, sym = GREEN, "✓"
-        elif pct > 0:    color, sym = YELLOW, "◐"
-        else:            color, sym = RED, "✖"
+        if pct == 100:   color, sym = GREEN, "✓"  # noqa: E701
+        elif pct > 0:    color, sym = YELLOW, "◐"  # noqa: E701
+        else:            color, sym = RED, "✖"  # noqa: E701
 
         print(f"  {color}{sym}{RESET} {sname:<30} {pct:3d}%  ({matched_count}/{total})")

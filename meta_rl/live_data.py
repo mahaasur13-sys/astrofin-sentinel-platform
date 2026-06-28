@@ -175,7 +175,7 @@ class LiveDataProvider:
 
             result = []
             for bar in raw:
-                ts, o, h, l, c, v = bar
+                ts, o, h, l, c, v = bar  # noqa: E741
                 result.append(
                     {
                         "timestamp": ts,
@@ -266,7 +266,7 @@ class LiveDataProvider:
         # ATR (Average True Range) — 14-bar
         trs = []
         for i in range(1, len(ohlcv)):
-            h, l, pc = highs[i], lows[i], closes[i - 1]
+            h, l, pc = highs[i], lows[i], closes[i - 1]  # noqa: E741
             tr = max(h - l, abs(h - pc), abs(l - pc))
             trs.append(tr)
         atr = float(np.mean(trs[-14:])) if len(trs) >= 14 else float(np.mean(trs))
@@ -366,7 +366,7 @@ class LiveDataProvider:
             o = price
             c = price * (1 + ret)
             h = max(o, c) * (1 + abs(ret) * np.random.uniform(0.1, 0.5))
-            l = min(o, c) * (1 - abs(ret) * np.random.uniform(0.1, 0.5))
+            l = min(o, c) * (1 - abs(ret) * np.random.uniform(0.1, 0.5))  # noqa: E741
             v = np.random.uniform(500, 5000) * (1 + abs(ret) / vol)
 
             ohlcv.append(

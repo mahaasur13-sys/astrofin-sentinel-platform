@@ -282,7 +282,7 @@ class SelfQuestioningEngine:
 # ============================================================================
 # PHASE 4: SelfQ Triple Trigger (ATOM-KARL-015)
 # ============================================================================
-import os
+import os  # noqa: E402
 
 # Feature flag (можно переопределить через env)
 SELFQ_TRIPLE_TRIGGER_ENABLED = os.getenv("SELFQ_TRIPLE_TRIGGER_ENABLED", "true").lower() == "true"

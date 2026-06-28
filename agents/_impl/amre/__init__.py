@@ -144,7 +144,7 @@ __all__ = [
     "DelistFallback",
     "AMREOutput",
 ]
-from .astro_reward import (
+from .astro_reward import (  # noqa: E402
     LUNAR_PHASES,
     NAKSHATRA_SCORES,
     PLANETARY_ASPECTS,
@@ -155,20 +155,20 @@ from .astro_reward import (
     get_nakshatra_score,
     get_planetary_aspect_score,
 )
-from .karl_diagnostics import (
+from .karl_diagnostics import (  # noqa: E402
     KARLHealthMetrics,
     compute_karl_health,
     format_diagnostics_rich,
     get_recommendations,
     get_system_status,
 )
-from .karl_optimizer import (
+from .karl_optimizer import (  # noqa: E402
     AsyncPipeline,
     KARLOptimizer,
     KARLPerfProfile,
     get_karl_optimizer,
 )
-from .meta_questioning import MetaQuestion, MetaQuestioningEngine, get_meta_engine
+from .meta_questioning import MetaQuestion, MetaQuestioningEngine, get_meta_engine  # noqa: E402
 
 __all__ += ["MetaQuestioningEngine", "MetaQuestion", "get_meta_engine"]
 __all__ += ["RewardState", "EMA_ALPHA", "update_reward_ema"]

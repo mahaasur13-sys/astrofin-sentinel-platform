@@ -1,5 +1,5 @@
 from __future__ import annotations
-import sys; sys.path.insert(0, '/home/workspace')
+import sys; sys.path.insert(0, '/home/workspace')  # noqa: E702
 import time
 import numpy as np
 from strategies.generator import GeneratedStrategy, random_chromosome
@@ -33,7 +33,7 @@ M = np.stack([pool._chrom_to_vec(s.strategy) for s in pool._pool])
 print(f'(c) existing matrix build: {(time.perf_counter()-t0)*1000:.1f} ms, shape={M.shape}')
 
 # (d) nn fit + query batch
-from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import NearestNeighbors  # noqa: E402
 t0 = time.perf_counter()
 nn = NearestNeighbors(n_neighbors=1, metric='cosine', algorithm='brute')
 nn.fit(M)

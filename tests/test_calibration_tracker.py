@@ -87,7 +87,7 @@ class CalibrationTrackerTest(unittest.TestCase):
         # 5 predictions, one in each of 5 different bins
         confs = [0.05, 0.25, 0.45, 0.65, 0.85]
         labels = [0, 1, 0, 1, 1]
-        for c, l in zip(confs, labels):
+        for c, l in zip(confs, labels):  # noqa: E741
             pid = self.tracker.record_prediction("a", "LONG", c * 100)
             self.tracker.record_outcome(pid, l)
 

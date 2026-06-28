@@ -266,7 +266,7 @@ class DigestAnalyzer:
 
             if not title:
                 # Fallback: first line
-                lines = [l.strip() for l in section.split("\n") if l.strip() and not l.startswith("#")]
+                lines = [l.strip() for l in section.split("\n") if l.strip() and not l.startswith("#")]  # noqa: E741
                 if lines:
                     title = lines[0][:100]
 
