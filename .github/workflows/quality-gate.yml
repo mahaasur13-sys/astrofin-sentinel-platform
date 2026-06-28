@@ -25,6 +25,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+        with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:

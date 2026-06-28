@@ -28,6 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -58,6 +61,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: ./.github/workflows/python-setup.yml
         with: { install-dev: 'false' }
       - name: Install bandit
@@ -76,6 +82,9 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: ./.github/workflows/python-setup.yml
         with: { install-dev: 'true' }
       - name: Ruff lint (github format)
@@ -92,6 +101,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: ./.github/workflows/python-setup.yml
         with: { install-dev: 'true' }
       - name: Pytest (with coverage)
@@ -110,6 +122,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -121,6 +136,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
