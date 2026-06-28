@@ -8,6 +8,7 @@ Reference implementation: a price resolver that chains CoinGecko → Binance.
 The Resolver will be picked up by the Data Room via the resolver
 registry (data_room/blueprint.py:RESOLVERS).
 """
+
 from __future__ import annotations
 
 import logging

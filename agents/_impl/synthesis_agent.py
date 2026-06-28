@@ -220,9 +220,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
             if compromise_meta.get("compromise_active") and compromise_response.confidence >= 60:
                 compromise_signal = compromise_response
         except Exception as e:  # noqa: BLE001 — non-fatal
-            logger.warning(
-                "[SYNTHESIS] CompromiseAgent failed, falling back: %r", e
-            )
+            logger.warning("[SYNTHESIS] CompromiseAgent failed, falling back: %r", e)
 
         # ─── 3. Считаем взвешенные оценки ───────────────────────────────
         direction, confidence, reasoning = self._synthesize(categories, conflicts, symbol)
@@ -336,12 +334,8 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                         "reason_code": compromise_signal.metadata.get("reason_code"),
                         "top1": compromise_signal.metadata.get("top1"),
                         "top2": compromise_signal.metadata.get("top2"),
-                        "expected_utility": compromise_signal.metadata.get(
-                            "expected_utility"
-                        ),
-                        "drift_triggers": compromise_signal.metadata.get(
-                            "drift_triggers", []
-                        ),
+                        "expected_utility": compromise_signal.metadata.get("expected_utility"),
+                        "drift_triggers": compromise_signal.metadata.get("drift_triggers", []),
                     }
                     if compromise_signal is not None
                     else None

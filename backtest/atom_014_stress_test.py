@@ -1,4 +1,5 @@
 """backtest/atom_014_stress_test.py — ATOM-014: KARL Stress Test"""
+
 from __future__ import annotations
 
 import asyncio

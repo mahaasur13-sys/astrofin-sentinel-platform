@@ -4,10 +4,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-try:
-    from .topology import Connection, NodeType, Role, SwitchAction, SwitchNode, Topology
-except ImportError:
-    from topology import Topology
+from typing import TYPE_CHECKING
+
+from topology import Topology  # always available fallback (sibling module)
+
+if TYPE_CHECKING:
+    from .topology import Connection, NodeType, Role, SwitchAction, SwitchNode  # noqa: F401
 
 
 class TopologyVisualizer:

@@ -31,6 +31,7 @@ The contract — every agent SHOULD:
       degradation.
     - Tag every log line with `agent=<self.name>` and `session_id`.
 """
+
 from __future__ import annotations
 
 import logging
@@ -178,6 +179,7 @@ class TemplateAgent(BaseAgent[AgentResponse]):
 
 # ─── Convenience runner ──────────────────────────────────────────────────────
 # The registry calls this. Do not change the signature.
+
 
 async def run_template_agent(state: dict[str, Any]) -> AgentResponse:
     """Convenience runner used by `agents/gitagent_registry.py`."""

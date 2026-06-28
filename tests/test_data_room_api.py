@@ -1,4 +1,5 @@
 """Smoke test for Data Room API blueprint."""
+
 from __future__ import annotations
 
 from flask import Flask
@@ -6,6 +7,8 @@ from web.data_room import data_room_bp
 
 
 import pytest
+
+
 @pytest.mark.unit
 def test_blueprint_exists():
     """Проверяем, что Blueprint зарегистрирован и имеет правильный префикс."""

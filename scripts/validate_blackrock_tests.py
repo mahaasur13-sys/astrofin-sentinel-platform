@@ -58,7 +58,10 @@ def has_function(test_file, fn_name):
                     for bn in ast.walk(base_tree):
                         if isinstance(bn, ast.ClassDef) and bn.name == base_name:
                             for method in bn.body:
-                                if isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)) and method.name == fn_name:  # noqa: E501
+                                if (
+                                    isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef))
+                                    and method.name == fn_name
+                                ):  # noqa: E501
                                     return True
     return False
 

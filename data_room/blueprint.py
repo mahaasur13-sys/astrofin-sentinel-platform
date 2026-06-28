@@ -1,4 +1,5 @@
 """Data Room Blueprint — fallback chain for data access."""
+
 from __future__ import annotations
 
 import logging
@@ -11,6 +12,7 @@ logger = logging.getLogger("data_room.blueprint")
 @dataclass(frozen=True)
 class PriceTick:
     """A point-in-time price observation."""
+
     symbol: str
     price: float
     asof: str = ""
@@ -27,6 +29,7 @@ class PriceTick:
 @runtime_checkable
 class Resolver(Protocol):
     """Anything that has an async resolve() method."""
+
     id: str
     freshness_sla_seconds: int
 
@@ -84,7 +87,9 @@ class Blueprint:
             except Exception as exc:  # noqa: BLE001
                 logger.warning(
                     "blueprint: resolver %s failed for %s: %s",
-                    getattr(resolver, "id", "?"), symbol, exc,
+                    getattr(resolver, "id", "?"),
+                    symbol,
+                    exc,
                 )
                 continue
         return None

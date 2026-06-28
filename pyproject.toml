@@ -87,5 +87,6 @@ markers = [
 select = ["E", "F", "W"]
 ignore = []
 [tool.ruff.lint.per-file-ignores]
-# Legacy multi-statement / late imports (74 + 6 = 80 ошибок)
-"**/*.py" = ["E402", "E701", "E702"]
+"**/__init__.py" = ["F401"]
+"tools/metrics_server.py" = ["F403"]
+["E402", "E701", "E702"]

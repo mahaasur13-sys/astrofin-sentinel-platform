@@ -16,6 +16,7 @@
     result = lw.add(confidence=85, position_pct=0.15, volatility=0.008)
     # result = {final_confidence: int, ema: float, lag_adj: float, ...}
 """
+
 from __future__ import annotations
 
 

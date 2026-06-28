@@ -9,6 +9,7 @@ Usage:
     python -m meta_rl.cli --live --symbol BTC/USDT --timeframe 1h  # live CCXT data
     python -m meta_rl.cli --paper --symbol ETH/USDT --gens 10       # paper mode
 """
+
 from __future__ import annotations
 
 import argparse

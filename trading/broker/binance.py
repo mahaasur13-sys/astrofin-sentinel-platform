@@ -15,7 +15,7 @@ except ImportError:
 
 from tools.metrics_server import BROKER_ERRORS
 
-from .base import (
+from .base import (  # noqa: F401
     AccountBalance,
     BaseBroker,
     Order,

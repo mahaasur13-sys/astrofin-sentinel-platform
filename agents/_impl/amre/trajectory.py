@@ -1,4 +1,5 @@
 """amre/trajectory.py — Market state + Trajectory + TrajectoryStep"""
+
 from __future__ import annotations
 
 

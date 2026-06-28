@@ -1,4 +1,5 @@
 """amre/karl_diagnostics.py - ATOM-021: Enhanced KARL Diagnostics"""
+
 from __future__ import annotations
 
 

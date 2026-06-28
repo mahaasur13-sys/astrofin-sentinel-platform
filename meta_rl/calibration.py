@@ -11,6 +11,7 @@ Public API:
     tracker.record_outcome(pid, actual_label=1, observed_at=..., pnl=...)
     report = tracker.get_calibration(agent="macro_agent", window_days=30)
 """
+
 from __future__ import annotations
 
 import json
@@ -188,8 +189,7 @@ class CalibrationTracker:
         ts = self._ts(observed_at)
         with self._cursor() as cur:
             cur.execute(
-                "INSERT INTO outcomes (prediction_id, actual_label, observed_at, pnl) "
-                "VALUES (?, ?, ?, ?)",
+                "INSERT INTO outcomes (prediction_id, actual_label, observed_at, pnl) VALUES (?, ?, ?, ?)",
                 (int(prediction_id), int(actual_label), ts, float(pnl)),
             )
             outcome_id = int(cur.lastrowid)
@@ -222,8 +222,10 @@ class CalibrationTracker:
                     "WHERE p.predicted_at >= ? AND p.predicted_at <= ?",
                     (start_iso, end_iso),
                 )
-                cur.execute("SELECT COUNT(*) FROM predictions WHERE predicted_at >= ? AND predicted_at <= ?",
-                            (start_iso, end_iso))
+                cur.execute(
+                    "SELECT COUNT(*) FROM predictions WHERE predicted_at >= ? AND predicted_at <= ?",
+                    (start_iso, end_iso),
+                )
             else:
                 cur.execute(
                     "SELECT confidence, actual_label FROM predictions p "
@@ -232,8 +234,7 @@ class CalibrationTracker:
                     (agent, start_iso, end_iso),
                 )
                 cur.execute(
-                    "SELECT COUNT(*) FROM predictions "
-                    "WHERE agent = ? AND predicted_at >= ? AND predicted_at <= ?",
+                    "SELECT COUNT(*) FROM predictions WHERE agent = ? AND predicted_at >= ? AND predicted_at <= ?",
                     (agent, start_iso, end_iso),
                 )
 
@@ -296,10 +297,7 @@ class CalibrationTracker:
     ) -> CalibrationReport:
         n_resolved = len(pairs)
         if n_resolved == 0:
-            empty_bins = [
-                ReliabilityBin(BIN_EDGES[i], BIN_EDGES[i + 1], 0, 0.0, 0.0)
-                for i in range(N_BINS)
-            ]
+            empty_bins = [ReliabilityBin(BIN_EDGES[i], BIN_EDGES[i + 1], 0, 0.0, 0.0) for i in range(N_BINS)]
             return CalibrationReport(
                 agent=agent,
                 n_predictions=n_predictions,

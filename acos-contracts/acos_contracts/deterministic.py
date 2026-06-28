@@ -9,6 +9,7 @@ Long-term, all consumers will depend on `acos-contracts` only.
 Until then, `common/deterministic.py` re-exports the same names from
 `acos_contracts.deterministic` for backward compatibility.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -19,6 +20,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Sequence
+from typing import TYPE_CHECKING  # noqa: E402  # deferred import
 
 import uuid as _uuid
 
@@ -61,6 +63,13 @@ def deterministic_uuid(
     return f"{digest[:8]}-{digest[8:12]}-{digest[12:16]}-{digest[16:20]}-{digest[20:32]}"
 
 
+if TYPE_CHECKING:
+    from acos_contracts.interfaces import DeterministicClock  # noqa: F401
+
+if TYPE_CHECKING:
+    from acos_contracts.interfaces import DeterministicClock  # noqa: F401
+
+
 class DeterministicContext:
     """Bundle of deterministic primitives passed through call stacks."""
 
@@ -93,10 +102,7 @@ class DeterministicContext:
         rng: "DeterministicRNG | None" = None,
         clock: "DeterministicClock | None" = None,
     ) -> "DeterministicContext":
-        derived_seed = (
-            seed if isinstance(seed, int)
-            else DeterministicRNG.from_seed(seed).seed
-        )
+        derived_seed = seed if isinstance(seed, int) else DeterministicRNG.from_seed(seed).seed
         return cls(
             clock=clock or DeterministicClockImpl(frozen_at=frozen_at),
             rng=rng or DeterministicRNG.from_seed(seed),
@@ -177,7 +183,8 @@ class DeterministicRNG:
 
     def uuid4(self) -> str:
         seed_bytes = b"".join(
-            self._state.randbytes(4) if hasattr(self._state, "randbytes")
+            self._state.randbytes(4)
+            if hasattr(self._state, "randbytes")
             else self._state.getrandbits(32).to_bytes(4, "big")
             for _ in range(4)
         )

@@ -1,4 +1,5 @@
 """tests/test_dual_mode.py - ATOM-R-027: Dual-Mode Backward Compatibility Tests"""
+
 from __future__ import annotations
 
 import asyncio
@@ -7,6 +8,7 @@ import traceback
 from unittest.mock import patch
 
 import pytest
+
 sys.path.insert(0, "/home/workspace/AstroFinSentinelV5")
 
 

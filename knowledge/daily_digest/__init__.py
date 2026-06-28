@@ -34,7 +34,7 @@ Files:
 
 from __future__ import annotations
 from .atom_proposer import AtomProposal, AtomProposer
-from .daily_digest_analytics import (
+from .daily_digest_analytics import (  # noqa: F401
     Category,
     DigestAnalysis,
     DigestAnalyzer,

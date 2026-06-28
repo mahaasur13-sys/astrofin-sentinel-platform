@@ -174,11 +174,7 @@ class RewardCalculator:
                 return short_circuit
 
             cfg = self.config
-            adj_dd = (
-                result.adjusted_drawdown
-                if result.adjusted_drawdown is not None
-                else result.max_drawdown
-            )
+            adj_dd = result.adjusted_drawdown if result.adjusted_drawdown is not None else result.max_drawdown
 
             reward = (
                 cfg.base_reward
@@ -203,11 +199,7 @@ class RewardCalculator:
         All pnl/dd values are risk-adjusted (ATOM-META-RL-004).
         """
         cfg = self.config
-        adj_dd = (
-            result.adjusted_drawdown
-            if result.adjusted_drawdown is not None
-            else result.max_drawdown
-        )
+        adj_dd = result.adjusted_drawdown if result.adjusted_drawdown is not None else result.max_drawdown
         return {
             "sharpe_comp": cfg.sharpe_weight * self._sharpe_component(result.sharpe),
             "pnl_comp": cfg.pnl_weight * self._pnl_component(result.risk_adjusted_pnl),
@@ -305,7 +297,7 @@ class RewardCalculator:
         if math.isnan(adjusted_dd) or math.isinf(adjusted_dd):
             return cfg.drawdown_penalty_fallback
         dd = float(np.clip(adjusted_dd, 0.0, 1.0))
-        return cfg.drawdown_penalty_scale * (dd ** 2)
+        return cfg.drawdown_penalty_scale * (dd**2)
 
     def _execution_cost_penalty(self, cost: float) -> float:
         """

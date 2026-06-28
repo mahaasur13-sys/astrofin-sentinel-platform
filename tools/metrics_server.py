@@ -3,6 +3,7 @@
 
 Optional authentication via METRICS_AUTH_ENABLED / METRICS_API_KEY.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -10,6 +11,7 @@ import os
 
 from aiohttp import web
 from prometheus_client import REGISTRY, generate_latest, Counter, Gauge, Histogram
+from meta_rl.metrics import *  # noqa: F403,F401  # re-export
 
 # Metrics required by rag_retriever and other modules
 CACHE_HITS = Counter("astrofin_cache_hits", "Cache hits")
@@ -24,7 +26,6 @@ RAG_RELEVANCE_SCORE = Histogram(
 AGENT_DURATION = Histogram(
     "astrofin_agent_duration_seconds", "Agent execution duration", buckets=(0.1, 0.5, 1, 2, 5, 10, 30)
 )
-from meta_rl.metrics import *  # noqa: F403  # re-export
 
 METRICS_AUTH_ENABLED = os.getenv("METRICS_AUTH_ENABLED", "false").lower() == "true"
 METRICS_API_KEY = os.getenv("METRICS_API_KEY", "")

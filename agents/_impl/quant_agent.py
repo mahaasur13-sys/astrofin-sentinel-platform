@@ -121,8 +121,8 @@ class QuantAgent(BaseAgent[AgentResponse]):
     @track_agent_metrics
     async def run(self, state: dict) -> AgentResponse:
         """Public entry point. Wraps analyze() with the latency histogram
-        and defensive error handling so a single agent can never crash
-the orchestrator."""
+                and defensive error handling so a single agent can never crash
+        the orchestrator."""
         try:
             return await self.analyze(state)
         except EphemerisUnavailableError as e:

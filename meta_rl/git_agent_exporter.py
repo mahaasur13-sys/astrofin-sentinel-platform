@@ -112,7 +112,11 @@ def export_strategy(strategy: Any, version_tag: str = None, output_dir: str = No
         is_valid, validation_error = _validate_agent_yaml(agent_yaml)
         if not is_valid:
             return ExportResult(
-                slug=slug, path=str(pkg), validated=False, errors=[validation_error or "YAML validation failed"], deduplicated=False  # noqa: E501
+                slug=slug,
+                path=str(pkg),
+                validated=False,
+                errors=[validation_error or "YAML validation failed"],
+                deduplicated=False,  # noqa: E501
             )
         # Deduplication: skip if identical agent.yaml already exists
         existing_yaml = pkg / "agent.yaml"

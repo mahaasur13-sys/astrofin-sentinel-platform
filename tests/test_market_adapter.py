@@ -71,8 +71,10 @@ def test_source_chain_binance_falls_back_to_synthetic_on_network_error():
     assert "synthetic" in chain  # fallback всегда есть
 
     # Принудительно гасим оба источника — synthetic должен сработать
-    with patch.object(a, "_fetch_binance", side_effect=ConnectionError("net down")), \
-         patch.object(a, "_fetch_coingecko", side_effect=ConnectionError("net down")):
+    with (
+        patch.object(a, "_fetch_binance", side_effect=ConnectionError("net down")),
+        patch.object(a, "_fetch_coingecko", side_effect=ConnectionError("net down")),
+    ):
         data = a.fetch_ohlcv("BTCUSDT", interval="1h", limit=5)
     assert len(data) == 5
 

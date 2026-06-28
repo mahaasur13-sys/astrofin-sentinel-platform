@@ -10,6 +10,7 @@ etc.) working during the migration window.
 Importing this package must remain cheap and side-effect-free so it can be
 pulled from any layer without creating cycles.
 """
+
 from __future__ import annotations
 
 from acos_contracts import (

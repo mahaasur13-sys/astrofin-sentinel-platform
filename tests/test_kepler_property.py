@@ -5,6 +5,7 @@ Property tests for core/kepler.py using Hypothesis.
 Covers: orbital mechanics invariants, convergence, periodicity, no NaN across
         wide JD ranges, Swiss Ephemeris boundary conditions, edge cases.
 """
+
 from __future__ import annotations
 
 import math

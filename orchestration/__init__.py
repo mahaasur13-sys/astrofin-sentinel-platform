@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from orchestration import sentinel_v5, sentinel_v5_mas
+    from orchestration import sentinel_v5, sentinel_v5_mas  # noqa: F401  # re-exported via __getattr__ below  # noqa: F401  # re-exported via __getattr__ below
 
 
 def __getattr__(name: str):

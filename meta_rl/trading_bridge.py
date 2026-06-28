@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 META_RL_TRADING_ENABLED = False  # F821 fix (TODO: move to config)
 """meta_rl/trading_bridge.py — Live/Paper Trading Bridge for Meta-RL"""
 

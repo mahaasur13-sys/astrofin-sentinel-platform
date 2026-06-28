@@ -1,4 +1,5 @@
 """amre/uncertainty.py — Uncertainty quantification"""
+
 from __future__ import annotations
 
 

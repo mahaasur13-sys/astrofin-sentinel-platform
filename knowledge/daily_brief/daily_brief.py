@@ -117,7 +117,6 @@ def ideas_to_tracker(ideas: list, source: str = "daily_brief"):
     """Import ideas into idea_tracker."""
     try:
         from knowledge.daily_brief.idea_tracker import (
-            IdeaStatus,
             create_idea,
             load_ideas,
             save_idea,

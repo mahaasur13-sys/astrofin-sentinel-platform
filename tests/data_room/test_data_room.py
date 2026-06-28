@@ -4,6 +4,7 @@ tests/data_room/test_data_room.py
 Tests for the Data Room: circuit breaker, graceful degradation,
 observability counter.
 """
+
 from __future__ import annotations
 
 import sys
@@ -21,6 +22,7 @@ from data_room.circuit_breaker import (  # noqa: E402
     call_with_breaker,
 )
 from data_room.observability import MetricsStore  # noqa: E402
+
 reset_metrics = MetricsStore.instance().reset
 
 
@@ -116,21 +118,23 @@ def test_blueprint_falls_back_to_secondary_on_error():
     class AlwaysFails:
         id = "always_fails"
         freshness_sla_seconds = 30
+
         async def resolve(self, symbol, asof):
             raise RuntimeError("down")
 
     class AlwaysSucceeds:
         id = "always_succeeds"
         freshness_sla_seconds = 30
+
         async def resolve(self, symbol, asof):
-            return PriceTick(symbol=symbol, price=100.0, asof=asof or "now",
-                             source_id=self.id, quality_score=0.9)
+            return PriceTick(symbol=symbol, price=100.0, asof=asof or "now", source_id=self.id, quality_score=0.9)
 
     bp = Blueprint()
     bp.register("price", AlwaysFails(), chain=["always_succeeds"])
     bp.register("price", AlwaysSucceeds())
 
     import asyncio
+
     tick = asyncio.run(bp.get_price("BTCUSDT"))
     assert tick.source_id == "always_succeeds"
     assert tick.price == 100.0
@@ -143,12 +147,14 @@ def test_blueprint_returns_none_when_all_fail():
     class Fail1:
         id = "fail1"
         freshness_sla_seconds = 30
+
         async def resolve(self, symbol, asof):
             raise RuntimeError("down1")
 
     class Fail2:
         id = "fail2"
         freshness_sla_seconds = 30
+
         async def resolve(self, symbol, asof):
             raise RuntimeError("down2")
 
@@ -157,5 +163,6 @@ def test_blueprint_returns_none_when_all_fail():
     bp.register("price", Fail2())
 
     import asyncio
+
     result = asyncio.run(bp.get_price("BTCUSDT"))
     assert result is None

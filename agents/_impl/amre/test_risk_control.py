@@ -11,6 +11,7 @@ Tests:
 Запуск:
     pytest agents/_impl/amre/test_risk_control.py -v
 """
+
 from __future__ import annotations
 
 

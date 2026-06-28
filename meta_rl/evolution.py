@@ -390,7 +390,7 @@ class EvolutionEngine:
 
         return max(
             candidates,
-            key=lambda s: s.reward_history[-1] if getattr(s, 'reward_history', None) else s.reward,
+            key=lambda s: s.reward_history[-1] if getattr(s, "reward_history", None) else s.reward,
         )
 
     def convergence_report(self) -> dict:

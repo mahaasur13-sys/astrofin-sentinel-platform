@@ -4,6 +4,7 @@ AstroFin Sentinel v5 — Persistent Session History (R-08)
 SQLite-backed session history. Every run_sentinel_v5() call is persisted.
 Supports: save, get, list, stats, clear.
 """
+
 from __future__ import annotations
 
 import json

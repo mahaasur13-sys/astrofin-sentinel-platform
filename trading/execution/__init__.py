@@ -1,7 +1,7 @@
 """trading/execution/ — ATOM-STEP-10: Execution Layer (TWAP/VWAP/OrderBook/Slippage)"""
 
 from __future__ import annotations
-from .order_book import (
+from .order_book import (  # noqa: F401
     MarketImpactModel,
     MarketImpactResult,
     OrderBookSimulator,

@@ -7,6 +7,7 @@ This module re-exports them for callers that still import from
 ``common.deterministic`` during the migration window and will be
 removed in a future release.
 """
+
 from __future__ import annotations
 
 from acos_contracts.deterministic import (

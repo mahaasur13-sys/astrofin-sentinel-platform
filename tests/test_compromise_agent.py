@@ -8,6 +8,7 @@ This is a runtime harness, not a normal pytest test: we need to stub
 project code is loaded. Once a proper conftest at tests/conftest.py
 stubs the chain, this file can be reduced to a normal test module.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -29,15 +30,20 @@ for stub_name in [
     if stub_name not in sys.modules:
         m = types.ModuleType(stub_name)
         if stub_name.endswith("agent_validator"):
+
             class _Stub:
-                def __init__(self, *a, **k): pass
+                def __init__(self, *a, **k):
+                    pass
+
             m.AgentYamlValidator = _Stub
         sys.modules[stub_name] = m
+
 
 # ── 2. Stub tools.metrics_server which pulls in meta_rl.metrics ────────
 class _StubModule(types.ModuleType):
     def __getattr__(self, name):
         return _StubModule(name)
+
 
 sys.modules.setdefault("tools", _StubModule("tools"))
 sys.modules["tools.metrics_server"] = _StubModule("tools.metrics_server")
@@ -122,6 +128,7 @@ async def main():
     class Boom(CompromiseAgent):
         async def analyze(self, state):
             raise RuntimeError("simulated upstream failure")
+
     r = await Boom().run({"symbol": "BTCUSDT", "current_price": 50000, "all_signals": conflict})
     assert r.signal == SignalDirection.NEUTRAL
     assert r.metadata.get("degraded") is True
@@ -155,9 +162,20 @@ if True:  # keep block scoped
     class TestCompromiseAgentBlackRock(AgentTestContract, DegradedContract):
         agent_class = CompromiseAgent
 
-        async def test_happy_path(self, agent, happy_state): return await super().test_happy_path(agent, happy_state)
-        async def test_empty_state(self, agent): return await super().test_empty_state(agent)
-        async def test_malformed_state(self, agent): return await super().test_malformed_state(agent)
-        async def test_data_source_unavailable(self, agent, happy_state): return await super().test_data_source_unavailable(agent, happy_state)  # noqa: E501
-        async def test_missing_ephemeris(self, agent, happy_state): return await super().test_missing_ephemeris(agent, happy_state)  # noqa: E501
-        async def test_large_input(self, agent): return await super().test_large_input(agent)
+        async def test_happy_path(self, agent, happy_state):
+            return await super().test_happy_path(agent, happy_state)
+
+        async def test_empty_state(self, agent):
+            return await super().test_empty_state(agent)
+
+        async def test_malformed_state(self, agent):
+            return await super().test_malformed_state(agent)
+
+        async def test_data_source_unavailable(self, agent, happy_state):
+            return await super().test_data_source_unavailable(agent, happy_state)  # noqa: E501
+
+        async def test_missing_ephemeris(self, agent, happy_state):
+            return await super().test_missing_ephemeris(agent, happy_state)  # noqa: E501
+
+        async def test_large_input(self, agent):
+            return await super().test_large_input(agent)

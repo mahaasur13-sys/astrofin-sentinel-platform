@@ -11,6 +11,7 @@ closes once both sides depend on this contract.
 
 See ADR-0002 for the full rationale.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -80,4 +81,4 @@ __all__ = [
 
 
 # Legacy alias.
-WindowEngine = WindowEngineProtocol     # type: ignore[misc, assignment]
+WindowEngine = WindowEngineProtocol  # type: ignore[misc, assignment]

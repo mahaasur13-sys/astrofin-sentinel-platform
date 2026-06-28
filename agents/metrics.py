@@ -46,6 +46,7 @@ e.g. legacy agents whose ``run()`` signature cannot be wrapped)::
 Both patterns produce the same metric names, so dashboards see one
 metric per agent regardless of which pattern the author picked.
 """
+
 from __future__ import annotations
 
 import functools
@@ -132,6 +133,7 @@ def track_agent_metrics(func: Callable[P, R]) -> Callable[P, R]:
     The decorator discovers the agent's display name from ``self.name`` —
     so the metric suffix stays consistent with the registry.
     """
+
     @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         # Resolve the agent name lazily (we need a live instance to read it).

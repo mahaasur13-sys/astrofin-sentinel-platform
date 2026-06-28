@@ -7,6 +7,8 @@ from core.base_agent import AgentResponse, BaseAgent, SignalDirection
 
 
 import pytest
+
+
 class MockAgent(BaseAgent):
     """Concrete agent for testing."""
 

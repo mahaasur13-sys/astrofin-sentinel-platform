@@ -7,6 +7,8 @@ from tools.metrics_server import CACHE_HITS, CACHE_MISSES
 
 
 import pytest
+
+
 @pytest.mark.unit
 def test_ephemeris_cache_increments_counters():
     """Повторный вызов calculate_natal_chart должен инкрементировать cache hit."""

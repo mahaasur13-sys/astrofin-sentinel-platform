@@ -3,6 +3,7 @@ data_room/resolvers/base.py
 ============================
 Abstract base class for all resolvers.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

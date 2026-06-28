@@ -1,4 +1,5 @@
 """tests/test_risk_integration.py — ATOM-INTEGRATION-001: SafetyGate Integration Tests"""
+
 from __future__ import annotations
 
 import os

@@ -13,6 +13,7 @@ run_ab_calibration.py — ADR-0006 A/B calibration runner.
 Выход: graphify-out/ab_calibration_v3.json
         Markdown-таблица в stdout
 """
+
 from __future__ import annotations
 import json
 import math
@@ -77,12 +78,8 @@ def evaluate(edges: list[dict], gt: list[dict], formula: str) -> dict:
     result = {"formula": formula}
     for k in K_TOP:
         topk = [e for _, e in scored[:k]]
-        result[f"gt_pos_in_top{k}"] = sum(
-            1 for e in topk if (e["source_node_id"], e["target_node_id"]) in gt_pos
-        )
-        result[f"gt_neg_in_top{k}"] = sum(
-            1 for e in topk if (e["source_node_id"], e["target_node_id"]) in gt_neg
-        )
+        result[f"gt_pos_in_top{k}"] = sum(1 for e in topk if (e["source_node_id"], e["target_node_id"]) in gt_pos)
+        result[f"gt_neg_in_top{k}"] = sum(1 for e in topk if (e["source_node_id"], e["target_node_id"]) in gt_neg)
         result[f"override_in_top{k}"] = sum(1 for e in topk if e.get("override_applied"))
         scores_k = [s for s, _ in scored[:k]]
         result[f"spread_top{k}"] = round(max(scores_k) - min(scores_k), 4) if scores_k else 0.0

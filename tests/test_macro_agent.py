@@ -3,6 +3,7 @@ BlackRock Six Tests for MacroAgent.
 
 Inherits from AgentTestContract + DegradedContract for full coverage.
 """
+
 from __future__ import annotations
 
 import sys

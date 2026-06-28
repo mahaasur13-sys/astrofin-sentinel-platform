@@ -2,6 +2,7 @@
 Встраивает AMRE-контур (uncertainty, grounding, decision record)
 в SynthesisAgent и sentinel_v5.
 """
+
 from __future__ import annotations
 
 
@@ -9,13 +10,13 @@ import hashlib
 from dataclasses import dataclass
 from typing import Any
 
-from .audit import (
+from .audit import (  # noqa: F401
     build_decision_record,
     get_audit_log,
 )
 from .grounding import validate_with_grounding
 from .oap_optimizer import get_oap_optimizer
-from .reward import (
+from .reward import (  # noqa: F401
     compute_trajectory_reward,
     get_reward_diagnostics,
 )

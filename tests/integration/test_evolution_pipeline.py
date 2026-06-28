@@ -103,9 +103,7 @@ def _cleanup_session_files(unique_session_id):
 
 
 @pytest.mark.integration
-def test_evolution_pipeline_export_persist_reload(
-    fast_evolution_agent, synthetic_market_data, unique_session_id
-):
+def test_evolution_pipeline_export_persist_reload(fast_evolution_agent, synthetic_market_data, unique_session_id):
     """Generate → evolve → export → persist → reload → verify metrics."""
     agent = fast_evolution_agent
     initial_pool_size = len(agent.pool)
@@ -170,9 +168,7 @@ def test_evolution_pipeline_export_persist_reload(
     # history was passed as EvolutionStats objects with to_dict() — reload returns
     # the same length and identical generation numbers.
     assert len(loaded["history"]) == len(history)
-    assert [s["generation"] for s in loaded["history"]] == [
-        s.generation for s in history
-    ]
+    assert [s["generation"] for s in loaded["history"]] == [s.generation for s in history]
 
     # Verify pool export is also reproducible (StrategyPool.export_elites is pure).
     exported_again = agent.pool.export_elites(top_n=3)
