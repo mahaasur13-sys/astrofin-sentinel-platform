@@ -1,0 +1,10 @@
+name: skip-submodule-checks
+on:
+  pull_request:
+    paths-ignore:
+      - 'AsurDev/**'
+      - 'home-cluster-iac/**'
+      - 'roma-execution-bridge/**'
+      - 'astrofin-sentinel-v5/**'
+      - 'atom-federation-os/**'
+      - 'integrations/**'
