@@ -1,9 +1,9 @@
 """Benchmark diversity_filter at n=1000 candidates x n=1000 pool."""
 from __future__ import annotations
-import sys, time
+import sys
+import time
 sys.path.insert(0, "/home/workspace")
 
-import numpy as np
 from strategies.generator import GeneratedStrategy, random_chromosome
 from meta_rl.strategy_pool import StrategyPool
 from meta_rl.types import EvaluationResult

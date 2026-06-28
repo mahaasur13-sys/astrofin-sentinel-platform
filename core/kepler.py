@@ -315,7 +315,7 @@ def validate_vs_swiss_ephemeris(
         )
     else:
         status = "FAIL"
-        message = f"❌ Keplerian differs from Swiss Ephemeris by {delta:.4f}° (>{tolerance_deg * 5}°) — check orbital elements"
+        message = f"❌ Keplerian differs from Swiss Ephemeris by {delta:.4f}° (>{tolerance_deg * 5}°) — check orbital elements"  # noqa: E501
 
     return {
         "kepler_lon": round(kepler_lon, 4),

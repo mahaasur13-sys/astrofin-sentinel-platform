@@ -152,7 +152,7 @@ def main() -> int:
             f"не дефект формулы — требует ADR-0007 (override-aware secondary sort)."
         )
     else:
-        print(f"✅ Override-contract: все 7/7 override в top-10.")
+        print("✅ Override-contract: все 7/7 override в top-10.")
 
     OUT.write_text(json.dumps(results, indent=2, ensure_ascii=False))
     print(f"\n📁 результат: {OUT.relative_to(REPO)}")

@@ -17,8 +17,6 @@ they do NOT touch the real graph.json / inferred_clean.jsonl files.
 from __future__ import annotations
 
 import json
-import math
-import subprocess
 import sys
 from pathlib import Path
 
@@ -35,7 +33,7 @@ def _write_fake_report(edges: list[dict], target: Path) -> None:
         lines.append(f"### INFERRED #{e['relation']}-{i}")
         lines.append(f"- **Source:** `{e['source_path']}:L{e['source_line']} :: {e['source_node_id']}`")
         lines.append(f"- **Target:** `{e['target_path']}:L{e['target_line']} :: {e['target_node_id']}`")
-        lines.append(f"- **Confidence:** {e['confidence']:.3f}  **Weight:** {e['weight']:.2f}  **Relation:** `{e['relation']}`")
+        lines.append(f"- **Confidence:** {e['confidence']:.3f}  **Weight:** {e['weight']:.2f}  **Relation:** `{e['relation']}`")  # noqa: E501
         lines.append(f"- **Verdict:** **{e['verdict']}**")
         lines.append("")
     target.write_text("\n".join(lines))
@@ -176,7 +174,7 @@ def test_relation_weight_in_output(fake_workspace, tmp_path):
 def test_all_11_relation_types_in_output(fake_workspace, tmp_path):
     """Test that RELATION_WEIGHTS has 11 entries."""
     import importlib.util
-    spec = importlib.util.spec_from_file_location("infer_edges", INFER_EDGES)
+    importlib.util.spec_from_file_location("infer_edges", INFER_EDGES)
     src = INFER_EDGES.read_text()
     src = src.replace('REPO_ROOT = Path("/home/workspace")',
                       'REPO_ROOT = Path("/tmp")')

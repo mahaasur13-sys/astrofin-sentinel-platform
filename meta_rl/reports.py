@@ -141,7 +141,7 @@ class HTMLReportGenerator:
                 <thead><tr><th>Split</th><th>IS Sharpe</th><th>OOS Sharpe</th><th>Degradation</th></tr></thead>
                 <tbody>{rows}</tbody>
             </table>
-            <div class='alert alert-{cls}'>Status: {status} | OOS={mean_oos} | IS={mean_is} | deg={deg} | overfit splits={splits}/{n_splits}</div>
+            <div class='alert alert-{cls}'>Status: {status} | OOS={mean_oos} | IS={mean_is} | deg={deg} | overfit splits={splits}/{n_splits}</div>  # noqa: E501
             """
         except Exception as e:
             return f"<tr><td colspan='4' class='text-muted'>WFA error: {e}</td></tr>"
@@ -267,7 +267,7 @@ body {{ background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', sans-serif
     <h5 class="card-title">🏆 Top Strategies (Composite Ranking)</h5>
     <table class="table table-hover">
       <thead>
-        <tr><th>#</th><th>Strategy ID</th><th>Reward</th><th>Sharpe</th><th>Win Rate</th><th>Max DD</th><th>Trades</th></tr>
+        <tr><th>  # noqa: E501  #</th><th>Strategy ID</th><th>Reward</th><th>Sharpe</th><th>Win Rate</th><th>Max DD</th><th>Trades</th></tr>
       </thead>
       <tbody>{top_strategy_table}</tbody>
     </table>

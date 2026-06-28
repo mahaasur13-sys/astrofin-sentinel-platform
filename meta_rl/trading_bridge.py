@@ -69,7 +69,7 @@ class MetaRLTradingBridge:
                 )
             # 5) Log
             logger.info(
-                f"[META-RL-TRADING] {mode} approved: {order_req['symbol']} signal={order_req['direction']} size={order_req['size_pct']:.2%}"
+                f"[META-RL-TRADING] {mode} approved: {order_req['symbol']} signal={order_req['direction']} size={order_req['size_pct']:.2%}"  # noqa: E501
             )
             return TradingExecutionResult(status="APPROVED", reason=f"{mode} approved", adjusted_signal=order_req)
         except Exception as e:

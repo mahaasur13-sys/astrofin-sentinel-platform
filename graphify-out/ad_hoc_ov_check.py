@@ -6,7 +6,6 @@ then runs recall_test.py against it and counts override edges in top-10.
 """
 
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path

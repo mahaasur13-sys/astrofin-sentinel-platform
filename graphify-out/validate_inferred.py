@@ -148,7 +148,7 @@ def main() -> None:
     lines.append("# VALIDATION_REPORT.md")
     lines.append("")
     total = sum(len(edges) for edges in buckets.values())
-    lines.append(f"Stratified validation of N={total} INFERRED edges from `graphify-out/graph.json` (snapshot 2026-06-17).")
+    lines.append(f"Stratified validation of N={total} INFERRED edges from `graphify-out/graph.json` (snapshot 2026-06-17).")  # noqa: E501
     lines.append("")
     lines.append("**Verdict legend:**")
     lines.append("- `valid` — link is real and current")
@@ -172,9 +172,9 @@ def main() -> None:
             lines.append(f"- **Source:** `{e['source_file']}:L{e['source_location']} :: {e['source']}`")
             tgt_file = (tnode or {}).get("source_file", "") or "(empty)"
             lines.append(f"- **Target:** `{tgt_file}:{tnode.get('source_location', '?')} :: {e['target']}`")
-            lines.append(f"- **Confidence:** {e.get('confidence_score', 0):.3f}  **Weight:** {e.get('weight', 0):.2f}  **Relation:** `{e['relation']}`")
+            lines.append(f"- **Confidence:** {e.get('confidence_score', 0):.3f}  **Weight:** {e.get('weight', 0):.2f}  **Relation:** `{e['relation']}`")  # noqa: E501
             lines.append(f"- **Verdict:** **{verdict}**")
-            lines.append(f"- **Evidence:**")
+            lines.append("- **Evidence:**")
             for ev in evidence:
                 lines.append(f"    ```\n    {ev}\n    ```")
             lines.append("")

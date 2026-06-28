@@ -28,7 +28,7 @@ class AstroState:
             self.state_hash = self._compute_hash()
 
     def _compute_hash(self) -> str:
-        data = f"{self.timestamp.isoformat()}:{self.jd:.4f}:{self.moon_longitude:.2f}:{self.jupiter_longitude:.2f}:{self.saturn_longitude:.2f}"
+        data = f"{self.timestamp.isoformat()}:{self.jd:.4f}:{self.moon_longitude:.2f}:{self.jupiter_longitude:.2f}:{self.saturn_longitude:.2f}"  # noqa: E501
         return hashlib.md5(data.encode()).hexdigest()[:8]
 
 

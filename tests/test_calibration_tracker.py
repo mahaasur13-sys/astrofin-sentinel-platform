@@ -1,15 +1,12 @@
 """tests/test_calibration_tracker.py — CalibrationTracker unit tests."""
 from __future__ import annotations
 
-import math
-import os
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from meta_rl.calibration import (
-    BIN_EDGES,
     CalibrationTracker,
     N_BINS,
     get_calibration_tracker,

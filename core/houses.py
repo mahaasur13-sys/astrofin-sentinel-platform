@@ -312,7 +312,7 @@ def calculate_alcabitius_cusps(ra_asc: float, ra_mc: float) -> List[float]:
     return cusps_ra
 
 
-def normalize_degrees(deg: float, is_ra: bool = False) -> float:
+def normalize_degrees_or_ra(deg: float, is_ra: bool = False) -> float:
     """Нормализовать градусы
 
     Args:

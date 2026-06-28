@@ -11,7 +11,6 @@ real Agent (FundamentalAgent) and exercising the decorator behavior.
 
 from __future__ import annotations
 
-import pytest
 
 from tests.agent_test_base import AgentTestContract, DegradedContract  # noqa: E402
 from agents._impl.fundamental_agent import FundamentalAgent  # noqa: E402

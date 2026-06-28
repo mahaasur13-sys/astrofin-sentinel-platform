@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 logger = logging.getLogger("data_room.blueprint")
 
@@ -63,7 +63,7 @@ class Blueprint:
         if name not in self._named:
             return []
         primary = self._named[name]
-        primary_id = getattr(primary[0], "id", None) if primary else None
+        getattr(primary[0], "id", None) if primary else None
         # The chain attribute is on the FIRST registered resolver under that name.
         chain_ids = list(getattr(primary[0], "_chain", [])) if primary else []
         ordered: list[Resolver] = []

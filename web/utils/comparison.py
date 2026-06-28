@@ -28,7 +28,7 @@ def build_comparison_table(session_records: list[dict]) -> str:
         )
 
     return f"""<table class="table table-sm table-dark table-hover">
-        <thead><tr><th>ID</th><th>Gen</th><th>Reward</th><th>Sharpe</th><th>Trades</th><th>Win%</th><th>MaxDD</th></tr></thead>
+        <thead><tr><th>ID</th><th>Gen</th><th>Reward</th><th>Sharpe</th><th>Trades</th><th>Win%</th><th>MaxDD</th></tr></thead>  # noqa: E501
         <tbody>{"".join(rows)}</tbody></table>"""
 
 

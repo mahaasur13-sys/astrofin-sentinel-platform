@@ -158,6 +158,6 @@ if True:  # keep block scoped
         async def test_happy_path(self, agent, happy_state): return await super().test_happy_path(agent, happy_state)
         async def test_empty_state(self, agent): return await super().test_empty_state(agent)
         async def test_malformed_state(self, agent): return await super().test_malformed_state(agent)
-        async def test_data_source_unavailable(self, agent, happy_state): return await super().test_data_source_unavailable(agent, happy_state)
-        async def test_missing_ephemeris(self, agent, happy_state): return await super().test_missing_ephemeris(agent, happy_state)
+        async def test_data_source_unavailable(self, agent, happy_state): return await super().test_data_source_unavailable(agent, happy_state)  # noqa: E501
+        async def test_missing_ephemeris(self, agent, happy_state): return await super().test_missing_ephemeris(agent, happy_state)  # noqa: E501
         async def test_large_input(self, agent): return await super().test_large_input(agent)

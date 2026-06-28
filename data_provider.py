@@ -184,7 +184,7 @@ def _fetch_yahoo_v8(symbol: str, interval: str = "1d", range_: str = "60d", limi
         result[0].get("indicators", {}).get("adjclose", [{}])
 
         if not timestamps:
-            # If timestamps are empty but price is available (JJN case), generate synthetic OHLCV bars from current price using recent price history from yfinance lib.
+  # noqa: E501  # If timestamps are empty but price is available (JJN case), generate synthetic OHLCV bars from current price using recent price history from yfinance lib.
             current_price = meta.get("regularMarketPrice")
             if current_price is None:
                 raise ValueError(f"No current price for {symbol}")

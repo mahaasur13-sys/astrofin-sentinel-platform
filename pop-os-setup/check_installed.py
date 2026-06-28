@@ -5,7 +5,9 @@ usage:
   python3 check_installed.py                    # live system
   python3 check_installed.py /path/to/dpkg.txt  # from file
 """
-import sys, subprocess, re
+import sys
+import subprocess
+import re
 from pathlib import Path
 
 # ── ANSI colors ──────────────────────────────────────────────────────────────
@@ -76,7 +78,7 @@ if __name__ == "__main__":
     print(f"  Прочитано из: {BOLD}{'файла: ' + dpkg_path if dpkg_path else 'dpkg -l (live)'}{RESET}")
     print()
     print(f"{BOLD}{'═'*60}{RESET}")
-    print(f"  {CYAN}ПОКРЫТИЕ:{RESET}  {GREEN}{len(matched)}{RESET} установлено  ·  {RED}{len(missing)}{RESET} отсутствует")
+    print(f"  {CYAN}ПОКРЫТИЕ:{RESET}  {GREEN}{len(matched)}{RESET} установлено  ·  {RED}{len(missing)}{RESET} отсутствует")  # noqa: E501
     print(f"{BOLD}{'═'*60}{RESET}")
     print()
 

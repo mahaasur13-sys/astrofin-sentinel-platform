@@ -13,7 +13,6 @@ Class attribute `agent_class` tells the mixin which agent to instantiate.
 
 from __future__ import annotations
 
-import pytest
 
 from tests.agent_test_base import AgentTestContract, DegradedContract  # noqa: E402
 from agents._impl.bear_researcher import BearResearcherAgent  # noqa: E402

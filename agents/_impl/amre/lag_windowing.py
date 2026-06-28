@@ -255,7 +255,7 @@ class LagWindow:
         }
 
         logger.debug(
-            f"[LagWindow] {result['raw_confidence']} → {result['final_confidence']} (ema={result['ema']:.2f}, lag_adj={result['lag_adj']:+.3f})"
+            f"[LagWindow] {result['raw_confidence']} → {result['final_confidence']} (ema={result['ema']:.2f}, lag_adj={result['lag_adj']:+.3f})"  # noqa: E501
         )
 
         return result

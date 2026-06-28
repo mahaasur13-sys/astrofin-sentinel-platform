@@ -265,17 +265,17 @@ async def main():
     base_results = await run_base_mode(bars)
     base_metrics = compute_metrics(base_results["decisions"])
     print(
-        f"      {base_metrics['total_decisions']} decisions | Win Rate: {base_metrics['win_rate']:.2%} | Sharpe: {base_metrics['sharpe_ratio']:.4f}"
+        f"      {base_metrics['total_decisions']} decisions | Win Rate: {base_metrics['win_rate']:.2%} | Sharpe: {base_metrics['sharpe_ratio']:.4f}"  # noqa: E501
     )
     print()
     print("[3/4] Running KARL mode (SynthesisAgent + AMRE)...")
     karl_results = await run_karl_mode(bars)
     karl_metrics = compute_metrics(karl_results["decisions"])
     print(
-        f"      {karl_metrics['total_decisions']} decisions | Win Rate: {karl_metrics['win_rate']:.2%} | Sharpe: {karl_metrics['sharpe_ratio']:.4f}"
+        f"      {karl_metrics['total_decisions']} decisions | Win Rate: {karl_metrics['win_rate']:.2%} | Sharpe: {karl_metrics['sharpe_ratio']:.4f}"  # noqa: E501
     )
     print(
-        f"      Audit: {karl_results['audit_total']} | Cal: {karl_results['calibration_n']} | DD: {karl_results['dd_trades']}"
+        f"      Audit: {karl_results['audit_total']} | Cal: {karl_results['calibration_n']} | DD: {karl_results['dd_trades']}"  # noqa: E501
     )
     print()
     print("[4/4] Analyzing audit drift...")
@@ -353,7 +353,7 @@ async def main():
         improvements.append(f"Sharpe Ratio: +{karl_metrics['sharpe_ratio'] - base_metrics['sharpe_ratio']:.4f}")
     if karl_metrics.get("calibration_error", 999) < base_metrics.get("calibration_error", 999):
         improvements.append(
-            f"Calibration Error reduced by {base_metrics.get('calibration_error', 0) - karl_metrics.get('calibration_error', 0):.4f}"
+            f"Calibration Error reduced by {base_metrics.get('calibration_error', 0) - karl_metrics.get('calibration_error', 0):.4f}"  # noqa: E501
         )
     print("Conclusions:")
     if improvements:

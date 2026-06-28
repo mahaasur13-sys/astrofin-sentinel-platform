@@ -111,7 +111,7 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
             f"RSI(14)={rsi:.1f} {'(oversold)' if rsi < 30 else '(overbought)' if rsi > 70 else ''}. "
             f"MACD={'bullish' if macd['histogram'] > 0 else 'bearish'} "
             f"(signal={macd['macd']:.2f}, histogram={macd['histogram']:.2f}). "
-            f"BB: price={'below' if current_price < bb['lower'] else 'above' if current_price > bb['upper'] else 'inside'} "
+            f"BB: price={'below' if current_price < bb['lower'] else 'above' if current_price > bb['upper'] else 'inside'} "  # noqa: E501
             f"bands [{bb['lower']:.0f}-{bb['upper']:.0f}]. "
             f"Vol: {volume_profile['trend']}"
         )

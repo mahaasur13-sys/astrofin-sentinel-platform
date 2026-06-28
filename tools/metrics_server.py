@@ -24,7 +24,7 @@ RAG_RELEVANCE_SCORE = Histogram(
 AGENT_DURATION = Histogram(
     "astrofin_agent_duration_seconds", "Agent execution duration", buckets=(0.1, 0.5, 1, 2, 5, 10, 30)
 )
-from meta_rl.metrics import *  # re-export
+from meta_rl.metrics import *  # noqa: F403  # re-export
 
 METRICS_AUTH_ENABLED = os.getenv("METRICS_AUTH_ENABLED", "false").lower() == "true"
 METRICS_API_KEY = os.getenv("METRICS_API_KEY", "")

@@ -14,7 +14,7 @@ See ADR-0002 for the full rationale.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 
 @runtime_checkable

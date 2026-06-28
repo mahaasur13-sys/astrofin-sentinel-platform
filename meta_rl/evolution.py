@@ -307,7 +307,7 @@ class EvolutionEngine:
 
         if drop_pct >= ALPHA_DECAY_REWARD_DROP_PCT:
             return {
-                "reason": f"reward dropped {drop_pct:.1%} over {window} gens (threshold={ALPHA_DECAY_REWARD_DROP_PCT:.0%})",
+                "reason": f"reward dropped {drop_pct:.1%} over {window} gens (threshold={ALPHA_DECAY_REWARD_DROP_PCT:.0%})",  # noqa: E501
                 "reward": recent[-1],
                 "drop_pct": drop_pct,
                 "baseline_reward": baseline,

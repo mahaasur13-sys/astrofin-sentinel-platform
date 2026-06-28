@@ -51,7 +51,7 @@ from __future__ import annotations
 import functools
 import re
 from collections.abc import Callable
-from typing import Any, ParamSpec, TypeVar
+from typing import ParamSpec, TypeVar
 
 from prometheus_client import Counter, Histogram
 

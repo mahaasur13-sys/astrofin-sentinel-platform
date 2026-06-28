@@ -38,10 +38,10 @@ def test_add():
     assert add(2, 3) == 5
 """)
     # 2. Запустить Ralph Loop с задачей (только одна итерация)
-    task = f"Создай файл {TARGET_FILE} с функцией add(a, b), которая возвращает сумму a+b. Затем убедись, что pytest {TEST_FILE} проходит."
+    task = f"Создай файл {TARGET_FILE} с функцией add(a, b), которая возвращает сумму a+b. Затем убедись, что pytest {TEST_FILE} проходит."  # noqa: E501
     env = os.environ.copy()
     env["VSELM_API_KEY"] = os.getenv("VSELM_API_KEY", "sk-TEST")  # подставь реальный ключ при необходимости
-    result = subprocess.run(
+    subprocess.run(
         [sys.executable, "scripts/ralph_agent.py", task],
         capture_output=True,
         text=True,

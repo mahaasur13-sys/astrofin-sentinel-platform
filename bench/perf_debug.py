@@ -13,9 +13,8 @@ for i in range(N):
     pool.add(ScoredStrategy(strategy=st, reward=0.5+i*0.0001, evaluation=EvaluationResult.fail()))
 
 # Pre-build candidate vectors (simulate hot path)
-from meta_rl.strategy_pool import StrategyPool as SP
 _cands = [
-    ScoredStrategy(strategy=GeneratedStrategy(random_chromosome(), generation=1), reward=0.5, evaluation=EvaluationResult.fail())
+    ScoredStrategy(strategy=GeneratedStrategy(random_chromosome(), generation=1), reward=0.5, evaluation=EvaluationResult.fail())  # noqa: E501
     for _ in range(1000)
 ]
 

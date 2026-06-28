@@ -44,12 +44,18 @@ from pathlib import Path
 _USE_COLOR = sys.stdout.isatty()
 def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
-GREEN = lambda s: _c("32;1", s)
-RED = lambda s: _c("31;1", s)
-YELLOW = lambda s: _c("33;1", s)
-CYAN = lambda s: _c("36", s)
-BOLD = lambda s: _c("1", s)
-DIM = lambda s: _c("2", s)
+def GREEN(s):
+    return _c("32;1", s)
+def RED(s):
+    return _c("31;1", s)
+def YELLOW(s):
+    return _c("33;1", s)
+def CYAN(s):
+    return _c("36", s)
+def BOLD(s):
+    return _c("1", s)
+def DIM(s):
+    return _c("2", s)
 
 # ─── Constants ──────────────────────────────────────────────────────────────
 

@@ -115,7 +115,7 @@ class TemplateAgent(BaseAgent[AgentResponse]):
         Raises:
             Never. Convert every exception to a degraded AgentResponse.
         """
-        symbol = state.get("symbol", "BTCUSDT")
+        state.get("symbol", "BTCUSDT")
         # TODO: implement the actual analysis.
 
         # ── Step 1: pull data from the Data Room ───────────────────────

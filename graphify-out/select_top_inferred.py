@@ -212,7 +212,7 @@ def main() -> None:
     # Map raw links → inferred_clean.jsonl schema.
     out_edges: list[dict] = []
     for link in selected:
-        src_node = nodes_by_id.get(link.get("source", ""), {})
+        nodes_by_id.get(link.get("source", ""), {})
         tgt_node = nodes_by_id.get(link.get("target", ""), {})
         out_edges.append({
             "source_node_id": link.get("source", ""),

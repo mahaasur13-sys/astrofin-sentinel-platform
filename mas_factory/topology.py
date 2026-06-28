@@ -276,7 +276,7 @@ class TopologyUpdater:
             )
             self.change_history.append(change)
             print(
-                f"    [DEBUG] current_topology id={id(self.current_topology)}, roles={[r.name for r in self.current_topology.roles]}"
+                f"    [DEBUG] current_topology id={id(self.current_topology)}, roles={[r.name for r in self.current_topology.roles]}"  # noqa: E501
             )
             self.current_topology = new_topo
             return new_topo

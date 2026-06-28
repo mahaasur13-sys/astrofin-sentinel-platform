@@ -58,7 +58,7 @@ def has_function(test_file, fn_name):
                     for bn in ast.walk(base_tree):
                         if isinstance(bn, ast.ClassDef) and bn.name == base_name:
                             for method in bn.body:
-                                if isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)) and method.name == fn_name:
+                                if isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)) and method.name == fn_name:  # noqa: E501
                                     return True
     return False
 
@@ -88,7 +88,7 @@ def main():
     args = parser.parse_args()
 
     agents_dir = Path(args.agents_dir)
-    tests_dir = Path(args.tests_dir)
+    Path(args.tests_dir)
 
     missing_files = []
     incomplete_files = []
