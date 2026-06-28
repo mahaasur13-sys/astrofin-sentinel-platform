@@ -1,0 +1,1123 @@
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	﻿2026-06-28T05:42:14.0444923Z ##[group]Run set +e
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0446800Z [36;1mset +e[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0448017Z [36;1mpython scripts/architecture_linter.py > /tmp/lint.out 2>&1[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0449370Z [36;1mrc=$?[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0450233Z [36;1mset -e[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0451119Z [36;1mcat /tmp/lint.out[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0452267Z [36;1mecho 'lint-exit-code='$rc >> $GITHUB_OUTPUT[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0453993Z [36;1m# Skip violations linked to KI-xxx entries (Phase 6).[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0455249Z [36;1mki=[[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0456141Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0457041Z [36;1m    "id": "KI-001",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0458304Z [36;1m    "title": "— Data Room is a draft, not a runtime contract",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0459643Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0460647Z [36;1m      "data_room/blueprint.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0461783Z [36;1m      "docs/ARCHITECTURE.md",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0463106Z [36;1m      "scripts/architecture_linter.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0464289Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0465146Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0465981Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0466827Z [36;1m    "id": "KI-002",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0467887Z [36;1m    "title": "— Manual registry edits",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0469013Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0470217Z [36;1m      "scripts/validate_agent.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0471306Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0472149Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0473137Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0474006Z [36;1m    "id": "KI-003",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0475127Z [36;1m    "title": "— No Postgres in dev environments",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0476321Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0477285Z [36;1m      "core/history_db.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0478303Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0479155Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0479983Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0480935Z [36;1m    "id": "KI-004",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0482201Z [36;1m    "title": "— LangGraph and asyncio.gather both active",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0483671Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0484643Z [36;1m      "asyncio.gather",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0485694Z [36;1m      "langgraph_schema.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0486850Z [36;1m      "orchestration/sentinel_v5.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0487948Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0488770Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0489582Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0490422Z [36;1m    "id": "KI-005",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0491574Z [36;1m    "title": "— 7 archived root-level agent duplicates",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0492956Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0493915Z [36;1m      "AGENTS.md"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0494841Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0495673Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0496487Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0497325Z [36;1m    "id": "KI-006",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0498461Z [36;1m    "title": "— Plotly Dash dashboard, no React yet",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0499693Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0500628Z [36;1m      "web/app.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0501612Z [36;1m      "web/callbacks.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0502605Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0503575Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0504387Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0505227Z [36;1m    "id": "KI-007",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0506544Z [36;1m    "title": "— `core/base_agent.py` and `core/base_agent.py.bak` coexist",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0507950Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0508993Z [36;1m      "core/base_agent.py.bak"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0510034Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0510860Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0511676Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0512508Z [36;1m    "id": "KI-008",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0513740Z [36;1m    "title": "— `web/wsgi.py.bak` exists",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0514873Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0515822Z [36;1m      "web/wsgi.py.bak"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0517015Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0517832Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0518642Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0519740Z [36;1m    "id": "KI-009",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0521326Z [36;1m    "title": "— No central config file for agent weights",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0522871Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0523907Z [36;1m      "config/agent_weights.yaml",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0525051Z [36;1m      "weights_proposal.json"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0526093Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0526911Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0527726Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0528564Z [36;1m    "id": "KI-010",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0529663Z [36;1m    "title": "— `core/belief.py` is monolithic",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0530843Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0531797Z [36;1m      "core/belief.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0532898Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0533788Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0534618Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0535472Z [36;1m    "id": "KI-011",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0536623Z [36;1m    "title": "— No automatic e2e CI run on real agents",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0537846Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0538869Z [36;1m      "test_backtest_real_agents.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0540096Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0540923Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0541755Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0542609Z [36;1m    "id": "KI-012",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0543986Z [36;1m    "title": "— Secrets in `.env` (not gitignored cleanly)",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0545271Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0546210Z [36;1m      ".env.example"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0547163Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0547996Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0548815Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0549667Z [36;1m    "id": "KI-013",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0550887Z [36;1m    "title": "— `house_cluster` symlink exists in project root",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0552219Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0553310Z [36;1m      "AGENTS.md"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0554235Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0555060Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0555872Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0556712Z [36;1m    "id": "KI-014",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0558128Z [36;1m    "title": "— graph.json reports 20 \"1-file self-imports\" that are parser bugs",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0559629Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0560654Z [36;1m      "AsurDev/acos/storage/schema.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0561921Z [36;1m      "AsurDev/load_test/workload/generator.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0563341Z [36;1m      "AsurDev/ml_engine/dataset/builder.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0564519Z [36;1m      "GRAPH_REPORT.md",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0565632Z [36;1m      "agents/_impl/technical_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0566992Z [36;1m      "agents/astro_council_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0568443Z [36;1m      "astrofin-sentinel-v5/agents/_impl/technical_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0570033Z [36;1m      "astrofin-sentinel-v5/agents/astro_council_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0571472Z [36;1m      "astrofin-sentinel-v5/astrology/vedic.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0572959Z [36;1m      "astrofin-sentinel-v5/backtest/engine.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0574361Z [36;1m      "astrofin-sentinel-v5/integrations/__init__.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0575799Z [36;1m      "astrofin-sentinel-v5/mas_factory/visualizer.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0577228Z [36;1m      "astrofin-sentinel-v5/meta_rl/calibration.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0578554Z [36;1m      "astrofin-sentinel-v5/muhurtha.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0579702Z [36;1m      "graph.json",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0580719Z [36;1m      "graphify-out/graph.json",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0581847Z [36;1m      "push/core/base_agent.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0583005Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0583840Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0584675Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0585691Z [36;1m    "id": "KI-015",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0587057Z [36;1m    "title": "— Duplicate `agents/` namespace in workspace root vs. submodule",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0588522Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0589468Z [36;1m      "agents.X",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0590516Z [36;1m      "agents/astro_council_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0591702Z [36;1m      "astro_council_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0593002Z [36;1m      "astrofin-sentinel-v5.agents.X",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0594204Z [36;1m      "astrology/models/.gitkeep",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0595307Z [36;1m      "base_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0596307Z [36;1m      "core.base_agent",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0597379Z [36;1m      "core.ephemeris_decorator",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0598499Z [36;1m      "core/residual_model.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0599554Z [36;1m      "sys.path",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0600541Z [36;1m      "technical_agent.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0601710Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0603036Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0603874Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0604718Z [36;1m    "id": "KI-016",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0606065Z [36;1m    "title": "— graph.json INFERRED edges are mostly noise (17% signal)",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0607557Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0609206Z [36;1m      "docs/VALIDATION_REPORT.md",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0610484Z [36;1m      "docs/adr/ADR-0003-hybrid-memory-policy.md",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0611732Z [36;1m      "graphify-out/graph.json",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0613065Z [36;1m      "graphify-out/infer_edges.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0614300Z [36;1m      "graphify-out/validate_inferred.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0615463Z [36;1m      "validate_inferred.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0616467Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0617294Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0618115Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0618953Z [36;1m    "id": "KI-017",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0620371Z [36;1m    "title": "— SynthesisAgent is not covered by tests (13 of 21 agents lack any test)",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0621906Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0623082Z [36;1m      "agents/_impl/synthesis_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0624287Z [36;1m      "scripts/validate_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0625423Z [36;1m      "synthesis_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0626524Z [36;1m      "tests/agent_test_base.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0627654Z [36;1m      "tests/test_macro_agent.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0628695Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0629519Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0630339Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0631182Z [36;1m    "id": "KI-018",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0633537Z [36;1m    "title": "— Prometheus Gauge 'astrofin_strategies_active' raises ValueError on second import (root meta_rl/metrics.py vs. observability/evolution_metrics.py)",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0635770Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0636791Z [36;1m      "REGISTRY._names_to_collectors",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0638066Z [36;1m      "astrofin-sentinel-v5/meta_rl/metrics.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0639551Z [36;1m      "astrofin-sentinel-v5/observability/evolution_metrics.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0640911Z [36;1m      "meta_rl/metrics.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0642053Z [36;1m      "observability/evolution_metrics.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0643336Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0644183Z [36;1m  },[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0645003Z [36;1m  {[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0645824Z [36;1m    "id": "KI-019",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0647294Z [36;1m    "title": "— `astrofin-sentinel-v5/` is a phantom submodule (untracked, blocking commits)",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0648856Z [36;1m    "paths": [[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0649808Z [36;1m      "docs/ARCHITECTURE.md",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0650856Z [36;1m      "meta_rl/metrics.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0651938Z [36;1m      "orchestration/sentinel_v5.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0653182Z [36;1m      "secrets_loader.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0654421Z [36;1m      "tests/test_synthesis_agent.py",[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0655503Z [36;1m      "web/app.py"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0656407Z [36;1m    ][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0657190Z [36;1m  }[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0657956Z [36;1m][0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0658906Z [36;1mecho "$ki" | python -c "import json,sys,re;" \[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0660100Z [36;1m  "items=json.load(sys.stdin);\n" \[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0661163Z [36;1m  "import os;\n" \[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0662183Z [36;1m  "src=open('/tmp/lint.out').read();\n" \[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0663325Z [36;1m  "out=src;\n" \[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0664242Z [36;1m  "for it in items:\n" \[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0665280Z [36;1m  "  paths=it.get('paths',[]);\n" \[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0666350Z [36;1m  "  for p in paths:\n" \[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0667567Z [36;1m  "    out=re.sub(r'(?m)^.*'+re.escape(p)+r'.*R\d+.*$','',out);\n" \[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0668964Z [36;1m  "open('/tmp/lint.filtered.out','w').write(out)"[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0670316Z [36;1m# Hard fail (exit 1) blocks merge. Soft (exit 2) does not.[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0671576Z [36;1mif [ $rc -eq 1 ]; then exit 1; fi[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0672589Z [36;1mexit 0[0m
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0916356Z shell: /usr/bin/bash -e {0}
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0917603Z env:
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0918394Z   PYTHON_VERSION: 3.12
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0919457Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0920952Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0922415Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0923942Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0925289Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0926666Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:14.0927857Z ##[endgroup]
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3422251Z 
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3430948Z Architecture linter — 27 FAIL, 423 WARN (scanned 141 files)
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3431595Z 
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3431973Z   ⚠  S1  agents/astro_council_agent.py:73
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3432650Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3433576Z   ✖  R2  agents/gitagent_exporter.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3434408Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3435254Z   ⚠  S1  agents/gitagent_exporter.py:267
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3435866Z       FunctionDef generate_agent_yaml has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3436560Z   ⚠  S1  agents/gitagent_exporter.py:312
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3437162Z       FunctionDef generate_prompt_md has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3437955Z   ⚠  S1  agents/gitagent_exporter.py:380
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3438613Z       FunctionDef generate_schema_py has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3439308Z   ⚠  S1  agents/gitagent_exporter.py:402
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3439904Z       FunctionDef generate_tests_yaml has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3440690Z   ⚠  S1  agents/gitagent_exporter.py:468
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3441295Z       FunctionDef generate_tools_py has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3441963Z   ⚠  S1  agents/gitagent_exporter.py:488
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3442501Z       FunctionDef export_agent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3443656Z   ⚠  S1  agents/gitagent_exporter.py:509
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3444275Z       FunctionDef export_all has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3444938Z   ⚠  S1  agents/gitagent_registry.py:445
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3445568Z       FunctionDef get_registry has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3446220Z   ⚠  S1  agents/gitagent_registry.py:452
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3446770Z       FunctionDef list_agents has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3447372Z   ⚠  S1  agents/gitagent_registry.py:456
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3447939Z       FunctionDef get_agent_info has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3448617Z   ⚠  S1  agents/gitagent_registry.py:460
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3449228Z       FunctionDef validate_agent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3450430Z   ⚠  S1  agents/gitagent_registry.py:467
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3451015Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3451640Z   ⚠  S1  agents/gitagent_registry.py:257
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3452262Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3453192Z   ⚠  S1  agents/gitagent_registry.py:279
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3453762Z       FunctionDef get_info has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3454417Z   ⚠  S1  agents/gitagent_registry.py:519
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3454964Z       AsyncFunctionDef do_run has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3455612Z   ⚠  S1  agents/metrics.py:136
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3455966Z       AsyncFunctionDef wrapper has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3456370Z   ✖  R1  agents/karl_synthesis.py:71
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3456806Z       class KARLSynthesisAgent should inherit BaseAgent[AgentResponse]; got []
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3457301Z   ✖  R2  agents/karl_synthesis.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3457734Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3458287Z   ⚠  S1  agents/karl_synthesis.py:578
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3458636Z       FunctionDef get_karl_agent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3459016Z   ⚠  S1  agents/karl_synthesis.py:83
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3459345Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3459968Z   ⚠  S1  agents/_impl/quant_agent.py:32
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3460300Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3460666Z   ⚠  S1  agents/_impl/quant_agent.py:41
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3461009Z       AsyncFunctionDef analyze has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3461391Z   ⚠  S1  agents/_impl/insider_agent.py:30
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3461722Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3462092Z   ⚠  S1  agents/_impl/insider_agent.py:39
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3462439Z       AsyncFunctionDef analyze has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3463066Z   ✖  R3  agents/_impl/ml_predictor_agent.py:109
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3463665Z       direct `import requests` is forbidden outside data_room/; use data_room.blueprint.get_price(...)
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3464283Z   ⚠  S1  agents/_impl/ml_predictor_agent.py:32
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3464628Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3465002Z   ⚠  S1  agents/_impl/ml_predictor_agent.py:41
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3465403Z       AsyncFunctionDef analyze has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3465779Z   ⚠  S1  agents/_impl/cycle_agent.py:31
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3466103Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3467111Z /home/runner/work/_temp/dac4f3eb-3240-415e-8f3f-ff5120cb047d.sh: line 206: syntax error: unexpected end of file
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3467708Z   ✖  R2  agents/_impl/__init__.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3468128Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3468623Z   ⚠  S1  agents/_impl/options_flow_agent.py:30
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3468966Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3469382Z   ⚠  S1  agents/_impl/options_flow_agent.py:39
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3469737Z       AsyncFunctionDef analyze has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3470118Z   ✖  R2  agents/_impl/market_analyst.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3470556Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3471073Z   ⚠  S1  agents/_impl/market_analyst.py:24
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3471437Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3471810Z   ⚠  S1  agents/_impl/market_analyst.py:45
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3472162Z       AsyncFunctionDef analyze has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3472543Z   ⚠  S1  agents/_impl/market_analyst.py:177
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3473055Z       FunctionDef ema has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3473432Z   ⚠  S1  agents/_impl/elliot_agent.py:29
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3473769Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3474141Z   ⚠  S1  agents/_impl/sentiment_agent.py:23
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3474481Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3475127Z   ⚠  S1  agents/_impl/bradley_agent.py:30
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3475451Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3475818Z   ⚠  S1  agents/_impl/risk_agent.py:30
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3476144Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3476547Z   ✖  R2  agents/_impl/synthesis_agent.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3476974Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3477464Z   ⚠  S1  agents/_impl/synthesis_agent.py:115
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3477798Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3478164Z   ⚠  S1  agents/_impl/synthesis_agent.py:414
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3478518Z       FunctionDef get_direction has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3478908Z   ✖  R3  agents/_impl/fundamental_agent.py:9
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3479408Z       direct `import requests` is forbidden outside data_room/; use data_room.blueprint.get_price(...)
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3479996Z   ⚠  S1  agents/_impl/fundamental_agent.py:32
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3480343Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3480732Z   ⚠  S1  agents/_impl/fundamental_agent.py:41
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3481091Z       AsyncFunctionDef analyze has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3481578Z   ⚠  S1  agents/_impl/technical_agent.py:27
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3481909Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3482272Z   ⚠  S1  agents/_impl/technical_agent.py:49
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3482611Z       AsyncFunctionDef analyze has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3483239Z   ⚠  S1  agents/_impl/ephemeris_decorator.py:38
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3483609Z       AsyncFunctionDef wrapper has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3483987Z   ⚠  S1  agents/_impl/electoral_agent.py:29
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3484315Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3484685Z   ✖  R2  agents/_impl/compromise_agent.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3485121Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3485647Z   ⚠  S1  agents/_impl/compromise_agent.py:77
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3485991Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3486359Z   ⚠  S1  agents/_impl/compromise_agent.py:85
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3486709Z       AsyncFunctionDef analyze has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3487134Z   ⚠  S1  agents/_impl/compromise_agent.py:146
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3487496Z       FunctionDef expected_utility has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3487890Z   ⚠  S1  agents/_impl/bull_researcher.py:30
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3488219Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3488581Z   ⚠  S1  agents/_impl/bear_researcher.py:29
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3488911Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3489283Z   ⚠  S1  agents/_impl/time_window_agent.py:31
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3489621Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3489979Z   ⚠  S1  agents/_impl/macro_agent.py:44
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3490339Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3490694Z   ⚠  S1  agents/_impl/gann_agent.py:29
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3491019Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3491371Z   ⚠  S1  agents/_impl/types.py:13
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3491685Z       ClassDef Signal has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3492090Z   ✖  R2  agents/_impl/astro_council/agent.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3492530Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3493181Z   ⚠  S1  agents/_impl/astro_council/agent.py:29
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3493527Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3493907Z   ⚠  S1  agents/_impl/astro_council/agent.py:61
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3494270Z       AsyncFunctionDef aggregate has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3494651Z   ✖  R2  agents/_impl/amre/__init__.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3495075Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3495713Z   ⚠  S1  agents/_impl/amre/trajectory.py:10
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3496052Z       ClassDef TrajectoryStep has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3496442Z   ⚠  S1  agents/_impl/amre/trajectory.py:20
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3496777Z       ClassDef Trajectory has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3497149Z   ⚠  S1  agents/_impl/amre/trajectory.py:26
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3497536Z       ClassDef TrajectoryMetrics has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3497928Z   ⚠  S1  agents/_impl/amre/trajectory.py:37
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3498264Z       ClassDef MarketState has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3498633Z   ⚠  S1  agents/_impl/amre/trajectory.py:55
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3498991Z       FunctionDef market_state_hash has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3499384Z   ⚠  S1  agents/_impl/amre/trajectory.py:62
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3499752Z       FunctionDef trajectory_from_state has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3500159Z   ⚠  S1  agents/_impl/amre/trajectory.py:74
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3500541Z       FunctionDef compute_trajectory_metrics has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3501002Z   ⚠  S1  agents/_impl/amre/trajectory.py:99
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3501363Z       FunctionDef trajectory_to_dict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3501769Z   ⚠  S1  agents/_impl/amre/trajectory.py:106
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3502142Z       FunctionDef trajectory_from_dict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3502651Z   ⚠  S1  agents/_impl/amre/similarity.py:10
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3503293Z       FunctionDef trajectory_distance has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3503703Z   ⚠  S1  agents/_impl/amre/similarity.py:19
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3504074Z       FunctionDef is_similar_trajectory has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3504485Z   ⚠  S1  agents/_impl/amre/similarity.py:23
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3504873Z       FunctionDef jensen_shannon_divergence has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3505298Z   ⚠  S1  agents/_impl/amre/similarity.py:31
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3505641Z       FunctionDef estimate_q_star has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3506033Z   ⚠  S1  agents/_impl/amre/similarity.py:60
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3506440Z       FunctionDef select_top_k_trajectories has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3506860Z   ⚠  S1  agents/_impl/amre/similarity.py:68
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3507195Z       FunctionDef knn_q_star has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3507571Z   ⚠  S1  agents/_impl/amre/similarity.py:24
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3507934Z       FunctionDef kl has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3508311Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:12
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3508670Z       ClassDef MetaQuestion has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3509062Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:24
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3509434Z       ClassDef QuestionEvolution has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3509834Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:32
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3510197Z       ClassDef MetaQuestionBank has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3510602Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:136
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3510983Z       ClassDef MetaQuestioningEngine has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3511436Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:211
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3511805Z       FunctionDef get_meta_engine has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3512203Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:33
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3512557Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3513099Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:85
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3513475Z       FunctionDef get_applicable has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3513880Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:117
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3514249Z       FunctionDef refine_question has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3514651Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:137
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3514999Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3515387Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:141
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3515774Z       FunctionDef generate_questions has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3516187Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:144
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3516694Z       FunctionDef ask has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3517090Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:182
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3517443Z       FunctionDef evaluate has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3517868Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:187
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3518256Z       FunctionDef refine has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3518644Z   ⚠  S1  agents/_impl/amre/meta_questioning.py:195
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3519011Z       FunctionDef get_statistics has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3519414Z   ⚠  S1  agents/_impl/amre/self_question.py:64
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3519757Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3520124Z   ⚠  S1  agents/_impl/amre/audit.py:545
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3520468Z       FunctionDef get_audit_log has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3520860Z   ⚠  S1  agents/_impl/amre/audit.py:261
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3521186Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3521546Z   ⚠  S1  agents/_impl/amre/audit.py:280
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3521936Z       FunctionDef get_by_generation has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3522324Z   ⚠  S1  agents/_impl/amre/audit.py:283
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3522670Z       FunctionDef get_by_strategy_id has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3523141Z   ⚠  S1  agents/_impl/amre/audit.py:286
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3523580Z       FunctionDef get_recent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3523953Z   ⚠  S1  agents/_impl/amre/audit.py:289
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3524277Z       FunctionDef get_all has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3524639Z   ⚠  S1  agents/_impl/amre/audit.py:416
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3524962Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3525328Z   ⚠  S1  agents/_impl/amre/audit.py:439
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3525660Z       FunctionDef get_recent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3526035Z   ⚠  S1  agents/_impl/amre/audit.py:442
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3526367Z       FunctionDef get_by_symbol has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3526739Z   ⚠  S1  agents/_impl/amre/audit.py:445
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3527112Z       FunctionDef get_by_regime has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3527530Z   ⚠  S1  agents/_impl/amre/audit.py:448
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3527855Z       FunctionDef get_by_action has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3528227Z   ⚠  S1  agents/_impl/amre/audit.py:505
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3528620Z       FunctionDef avg_metrics has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3529008Z   ✖  R2  agents/_impl/amre/astro_reward.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3529449Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3529939Z   ⚠  S1  agents/_impl/amre/astro_reward.py:73
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3530319Z       FunctionDef get_lunar_phase_score has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3530735Z   ⚠  S1  agents/_impl/amre/astro_reward.py:87
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3531125Z       FunctionDef get_planetary_aspect_score has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3531570Z   ⚠  S1  agents/_impl/amre/astro_reward.py:112
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3531943Z       FunctionDef get_nakshatra_score has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3532397Z   ⚠  S1  agents/_impl/amre/astro_reward.py:117
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3532860Z       FunctionDef compute_astro_reward has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3533281Z   ⚠  S1  agents/_impl/amre/astro_reward.py:160
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3533660Z       FunctionDef get_astro_market_phase has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3534121Z   ✖  R2  agents/_impl/amre/karl_diagnostics.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3534581Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3535087Z   ⚠  S1  agents/_impl/amre/karl_diagnostics.py:48
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3535448Z       FunctionDef to_dict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3535867Z   ⚠  S1  agents/_impl/amre/idea_buffer_integration.py:29
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3536239Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3536622Z   ⚠  S1  agents/_impl/amre/replay_buffer.py:15
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3609139Z       ClassDef BufferEntry has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3610074Z   ⚠  S1  agents/_impl/amre/replay_buffer.py:23
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3610507Z       ClassDef ReplayBuffer has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3610946Z   ⚠  S1  agents/_impl/amre/replay_buffer.py:46
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3611324Z       FunctionDef get_default_buffer has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3611779Z   ⚠  S1  agents/_impl/amre/replay_buffer.py:24
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3612123Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3612503Z   ⚠  S1  agents/_impl/amre/replay_buffer.py:28
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3612979Z       FunctionDef add has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3613357Z   ⚠  S1  agents/_impl/amre/replay_buffer.py:33
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3613731Z       FunctionDef get_all_trajectories has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3614145Z   ⚠  S1  agents/_impl/amre/replay_buffer.py:36
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3614490Z       FunctionDef get_similar has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3614869Z   ⚠  S1  agents/_impl/amre/replay_buffer.py:39
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3615210Z       FunctionDef size has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3615643Z   ⚠  S1  agents/_impl/amre/ensemble_selection.py:8
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3616018Z       FunctionDef select_ensemble has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3616432Z   ⚠  S1  agents/_impl/amre/ensemble_selection.py:24
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3616824Z       FunctionDef ensemble_diversity_score has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3617386Z   ⚠  S1  agents/_impl/amre/ensemble_selection.py:32
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3617863Z       FunctionDef select_ensemble_by_confidence has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3618365Z   ⚠  S1  agents/_impl/amre/reward.py:232
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3618708Z       ClassDef DrawdownState has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3619088Z   ⚠  S1  agents/_impl/amre/reward.py:281
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3619439Z       FunctionDef get_calibrator has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3619879Z   ⚠  S1  agents/_impl/amre/reward.py:288
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3620248Z       FunctionDef get_correlation_detector has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3620703Z   ⚠  S1  agents/_impl/amre/reward.py:295
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3621102Z       FunctionDef get_dd_tracker has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3621484Z   ⚠  S1  agents/_impl/amre/reward.py:412
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3621848Z       FunctionDef get_default_buffer has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3622234Z   ⚠  S1  agents/_impl/amre/reward.py:419
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3622622Z       FunctionDef get_global_buffer has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3623160Z   ⚠  S1  agents/_impl/amre/reward.py:424
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3623516Z       FunctionDef set_global_buffer has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3623924Z   ⚠  S1  agents/_impl/amre/reward.py:24
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3624259Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3624642Z   ⚠  S1  agents/_impl/amre/reward.py:59
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3624969Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3625332Z   ⚠  S1  agents/_impl/amre/reward.py:177
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3625653Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3626013Z   ⚠  S1  agents/_impl/amre/reward.py:242
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3626383Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3626768Z   ⚠  S1  agents/_impl/amre/karl_optimizer.py:27
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3627137Z       FunctionDef overhead_pct has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3627525Z   ⚠  S1  agents/_impl/amre/karl_optimizer.py:32
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3627918Z       FunctionDef overhead_ms has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3628307Z   ⚠  S1  agents/_impl/amre/karl_optimizer.py:39
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3628644Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3629023Z   ⚠  S1  agents/_impl/amre/karl_optimizer.py:94
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3629370Z       FunctionDef clear_cache has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3629766Z   ⚠  S1  agents/_impl/amre/karl_optimizer.py:106
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3630119Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3630499Z   ⚠  S1  agents/_impl/amre/counterfactual.py:8
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3630872Z       ClassDef CounterfactualEngine has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3631453Z   ⚠  S1  agents/_impl/amre/counterfactual.py:9
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3631796Z       FunctionDef check has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3632177Z   ⚠  S1  agents/_impl/amre/backtest_loop.py:78
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3632514Z       FunctionDef to_dict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3633023Z   ⚠  S1  agents/_impl/amre/backtest_loop.py:118
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3633369Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3633761Z   ⚠  S1  agents/_impl/amre/test_lag_windowing.py:101
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3634128Z       FunctionDef setup_method has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3634517Z   ⚠  S1  agents/_impl/amre/oap_optimizer.py:14
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3634878Z       ClassDef OptimizationStatus has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3635374Z   ⚠  S1  agents/_impl/amre/oap_optimizer.py:355
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3635736Z       FunctionDef get_oap_optimizer has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3636147Z   ⚠  S1  agents/_impl/amre/oap_optimizer.py:83
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3636533Z       FunctionDef to_dict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3636915Z   ⚠  S1  agents/_impl/amre/oap_optimizer.py:107
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3637272Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3637639Z   ⚠  S1  agents/_impl/amre/uncertainty.py:8
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3638000Z       FunctionDef estimate_uncertainty has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3638531Z   ⚠  S1  agents/_impl/amre/lag_windowing.py:90
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3638871Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3639260Z   ⚠  S1  agents/_impl/amre/hierarchical_policy.py:8
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3639644Z       ClassDef HierarchicalPolicy has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3640071Z   ⚠  S1  agents/_impl/amre/hierarchical_policy.py:9
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3640433Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3640837Z   ⚠  S1  agents/_impl/amre/hierarchical_policy.py:12
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3641212Z       FunctionDef detect_regime has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3641622Z   ⚠  S1  agents/_impl/amre/hierarchical_policy.py:25
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3642025Z       FunctionDef get_action has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3642403Z   ✖  R3  core/volatility.py:320
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3642968Z       direct `import requests` is forbidden outside data_room/; use data_room.blueprint.get_price(...)
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3643553Z   ⚠  S1  core/volatility.py:38
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3643877Z       ClassDef VolatilityRegime has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3644247Z   ⚠  S1  core/volatility.py:81
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3644565Z       ClassDef VolatilityRisk has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3644931Z   ⚠  S1  core/volatility.py:290
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3645271Z       FunctionDef clear_volatility_cache has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3645654Z   ⚠  S1  core/volatility.py:92
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3645965Z       FunctionDef stop_loss_long has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3646334Z   ⚠  S1  core/volatility.py:95
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3646650Z       FunctionDef stop_loss_short has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3647063Z   ⚠  S1  core/volatility.py:98
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3647369Z       FunctionDef target_long has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3647742Z   ⚠  S1  core/volatility.py:101
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3648057Z       FunctionDef target_short has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3648421Z   ⚠  S1  core/volatility.py:124
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3648771Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3649131Z   ⚠  S1  core/reward_engine.py:12
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3649451Z       ClassDef TradeOutcome has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3649815Z   ⚠  S1  core/reward_engine.py:23
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3650139Z       ClassDef RewardSignal has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3650498Z   ⚠  S1  core/reward_engine.py:40
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3650806Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3651152Z   ✖  R2  core/kepler.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3651554Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3652018Z   ⚠  S1  core/kepler.py:43
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3652448Z       FunctionDef earth has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3652879Z   ⚠  S1  core/kepler.py:59
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3653175Z       FunctionDef jupiter has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3653524Z   ⚠  S1  core/kepler.py:75
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3653811Z       FunctionDef saturn has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3654205Z   ⚠  S1  core/kepler.py:104
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3654512Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3654861Z   ⚠  S1  core/kepler.py:197
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3655163Z       FunctionDef earth has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3655501Z   ⚠  S1  core/kepler.py:201
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3655796Z       FunctionDef jupiter has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3656132Z   ⚠  S1  core/kepler.py:205
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3656418Z       FunctionDef saturn has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3656780Z   ✖  R2  core/panchanga.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3657192Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3657709Z   ⚠  S1  core/thompson.py:235
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3658030Z       FunctionDef thompson_select has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3658404Z   ⚠  S1  core/thompson.py:100
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3658704Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3659051Z   ⚠  S1  core/thompson.py:186
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3659502Z       FunctionDef select_with_exclusions has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3659892Z   ⚠  S1  core/thompson.py:199
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3660185Z       FunctionDef scores has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3660536Z   ✖  R2  core/residual_model.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3660955Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3661426Z   ⚠  S1  core/residual_model.py:24
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3661759Z       ClassDef ResidualCorrection has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3662138Z   ⚠  S1  core/residual_model.py:33
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3662462Z       ClassDef ResidualModel has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3662980Z   ⚠  S1  core/residual_model.py:84
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3663343Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3663704Z   ⚠  S1  core/residual_model.py:36
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3664016Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3664362Z   ⚠  S1  core/residual_model.py:51
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3664717Z       FunctionDef is_trained has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3665071Z   ⚠  S1  core/residual_model.py:55
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3665403Z       FunctionDef predict_correction has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3665781Z   ⚠  S1  core/residual_model.py:67
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3666119Z       FunctionDef corrected_longitude has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3666501Z   ⚠  S1  core/residual_model.py:70
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3666824Z       FunctionDef print_comparison has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3667190Z   ✖  R2  core/base_agent.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3667586Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3668049Z   ⚠  S1  core/base_agent.py:42
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3668411Z       ClassDef SignalDirection has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3668775Z   ⚠  S1  core/base_agent.py:62
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3669086Z       FunctionDef __post_init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3669450Z   ⚠  S1  core/base_agent.py:66
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3669794Z       FunctionDef to_dict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3670142Z   ⚠  S1  core/base_agent.py:100
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3670451Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3670795Z   ⚠  S1  core/code_io.py:9
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3671107Z       FunctionDef is_valid_python has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3671477Z   ⚠  S1  core/code_io.py:17
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3671789Z       FunctionDef normalize_code has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3672163Z   ⚠  S1  core/code_io.py:22
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3672488Z       FunctionDef format_code_black has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3672942Z   ⚠  S1  core/code_io.py:40
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3673255Z       FunctionDef write_code_file has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3673769Z   ⚠  S1  core/code_io.py:68
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3674089Z       FunctionDef safe_write_code_file has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3674478Z   ⚠  S1  core/online_trainer.py:26
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3674793Z       ClassDef Experience has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3675197Z   ⚠  S1  core/online_trainer.py:38
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3675512Z       ClassDef TrainingState has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3675875Z   ⚠  S1  core/online_trainer.py:52
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3676181Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3676546Z   ⚠  S1  core/online_trainer.py:258
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3676856Z       FunctionDef save has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3677204Z   ⚠  S1  core/online_trainer.py:280
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3677520Z       FunctionDef load has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3677855Z   ⚠  S1  core/belief.py:494
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3678174Z       FunctionDef get_belief_tracker has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3678540Z   ⚠  S1  core/belief.py:501
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3678919Z       FunctionDef update_beliefs_from_session has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3679316Z   ⚠  S1  core/belief.py:109
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3679606Z       FunctionDef std has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3679942Z   ⚠  S1  core/belief.py:130
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3680345Z       FunctionDef to_dict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3680688Z   ⚠  S1  core/belief.py:160
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3680978Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3681319Z   ⚠  S1  core/belief.py:458
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3681632Z       FunctionDef get_selection_log has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3682011Z   ⚠  S1  core/astro_rl_engine.py:14
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3682336Z       ClassDef AstroState has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3682692Z   ⚠  S1  core/astro_rl_engine.py:36
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3683100Z       ClassDef AstroRLConfig has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3683468Z   ⚠  S1  core/astro_rl_engine.py:46
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3683781Z       ClassDef AstroRLLoop has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3684186Z   ⚠  S1  core/astro_rl_engine.py:26
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3684517Z       FunctionDef __post_init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3684886Z   ⚠  S1  core/astro_rl_engine.py:47
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3685192Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3685587Z   ⚠  S1  core/astro_rl_engine.py:55
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3685898Z       FunctionDef observe has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3686249Z   ⚠  S1  core/astro_rl_engine.py:65
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3686583Z       FunctionDef compute_alignment has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3686969Z   ⚠  S1  core/astro_rl_engine.py:81
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3687283Z       FunctionDef decide has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3687635Z   ⚠  S1  core/astro_rl_engine.py:102
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3687974Z       FunctionDef record_and_update has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3688350Z   ⚠  S1  core/astro_rl_engine.py:149
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3688661Z       FunctionDef status has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3689057Z   ⚠  S1  core/astro_rl_engine.py:157
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3689366Z       FunctionDef save_log has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3689706Z   ⚠  S1  core/auth.py:27
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3690001Z       FunctionDef wrapper has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3690348Z   ⚠  S1  core/idea_model.py:15
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3690690Z       ClassDef IdeaStatus has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3691036Z   ⚠  S1  core/idea_model.py:24
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3691332Z       ClassDef IdeaStage has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3691673Z   ⚠  S1  core/idea_model.py:35
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3691969Z       ClassDef Idea has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3692302Z   ⚠  S1  core/idea_model.py:49
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3692610Z       FunctionDef __post_init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3693053Z   ⚠  S1  core/idea_model.py:57
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3693349Z       FunctionDef to_dict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3693691Z   ⚠  S1  core/idea_model.py:61
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3693995Z       FunctionDef from_dict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3694488Z   ⚠  S1  core/idea_model.py:66
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3694784Z       FunctionDef get has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3695121Z   ⚠  S1  core/idea_model.py:69
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3695428Z       FunctionDef __getitem__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3695788Z   ⚠  S1  core/idea_model.py:72
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3696138Z       FunctionDef __setitem__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3696491Z   ⚠  S1  core/idea_model.py:75
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3696783Z       FunctionDef keys has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3697128Z   ⚠  S1  core/idea_model.py:91
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3697422Z       FunctionDef items has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3697760Z   ⚠  S1  core/idea_model.py:94
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3698055Z       FunctionDef stage has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3698397Z   ⚠  S1  core/idea_model.py:104
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3698726Z       FunctionDef is_quality_passed has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3699097Z   ⚠  S1  core/idea_model.py:107
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3699452Z       FunctionDef is_terminal has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3699804Z   ⚠  S1  core/logging.py:18
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3700119Z       FunctionDef setup_logging has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3700487Z   ✖  R2  core/ephemeris.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3700894Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3701462Z   ⚠  S1  core/ephemeris.py:56
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3701778Z       ClassDef PlanetPosition has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3702146Z   ⚠  S1  core/ephemeris.py:64
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3702456Z       ClassDef HouseCusps has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3702906Z   ⚠  S1  core/ephemeris.py:72
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3703220Z       ClassDef NatalChart has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3703566Z   ⚠  S1  core/ephemeris.py:91
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3703879Z       FunctionDef is_available has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3704241Z   ⚠  S1  core/ephemeris.py:93
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3704550Z       FunctionDef julian_day has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3704946Z   ⚠  S1  core/ephemeris.py:95
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3705269Z       FunctionDef calculate_planet has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3705641Z   ⚠  S1  core/ephemeris.py:97
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3705960Z       FunctionDef calculate_houses has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3706373Z   ⚠  S1  core/ephemeris.py:101
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3706709Z       FunctionDef get_planetary_positions has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3707103Z   ⚠  S1  core/ephemeris.py:117
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3707409Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3707755Z   ⚠  S1  core/ephemeris.py:122
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3708061Z       FunctionDef is_available has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3708422Z   ⚠  S1  core/ephemeris.py:125
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3708728Z       FunctionDef julian_day has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3709086Z   ⚠  S1  core/ephemeris.py:128
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3709404Z       FunctionDef calculate_planet has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3709777Z   ⚠  S1  core/ephemeris.py:147
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3710137Z       FunctionDef calculate_houses has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3710501Z   ⚠  S1  core/ephemeris.py:163
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3710839Z       FunctionDef get_planetary_positions has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3711225Z   ⚠  S1  core/ephemeris.py:187
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3711571Z       FunctionDef is_available has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3711935Z   ⚠  S1  core/ephemeris.py:190
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3712251Z       FunctionDef julian_day has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3712604Z   ⚠  S1  core/ephemeris.py:193
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3713005Z       FunctionDef calculate_planet has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3713377Z   ⚠  S1  core/ephemeris.py:197
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3713698Z       FunctionDef calculate_houses has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3714067Z   ⚠  S1  core/ephemeris.py:204
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3714404Z       FunctionDef get_planetary_positions has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3714790Z   ⚠  S1  core/cache.py:13
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3715216Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3715578Z   ⚠  S1  core/history_db.py:295
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3715888Z       FunctionDef get_db has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3716241Z   ⚠  S1  core/history_db.py:302
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3716560Z       FunctionDef save_session has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3716962Z   ⚠  S1  core/history_db.py:306
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3717292Z       FunctionDef get_session has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3717690Z   ⚠  S1  core/history_db.py:310
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3718002Z       FunctionDef list_sessions has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3718365Z   ⚠  S1  core/history_db.py:314
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3718676Z       FunctionDef session_stats has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3719036Z   ⚠  S1  core/history_db.py:68
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3719336Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3719678Z   ⚠  S1  core/tracing.py:19
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3719984Z       FunctionDef setup_tracing has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3720373Z   ✖  R2  core/aspects.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3720768Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3721221Z   ⚠  S1  core/aspects.py:21
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3721515Z       ClassDef AspectType has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3721858Z   ⚠  S1  core/aspects.py:64
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3722253Z       ClassDef Aspect has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3722588Z   ⚠  S1  core/aspects.py:75
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3722970Z       ClassDef AspectReport has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3723321Z   ⚠  S1  core/aspects.py:79
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3723619Z       FunctionDef by_planet has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3724044Z   ⚠  S1  core/aspects.py:82
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3724432Z       FunctionDef applying has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3724922Z   ⚠  S1  core/aspects.py:85
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3725361Z       FunctionDef by_type has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3725922Z   ⚠  S1  core/aspects.py:88
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3726231Z       FunctionDef has has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3726620Z   ⚠  S1  core/aspects.py:234
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3726921Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3727283Z   ✖  R2  core/kepler_calibrator.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3727711Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3728236Z   ⚠  S1  core/kepler_calibrator.py:37
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3728585Z       ClassDef CalibrationTarget has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3728971Z   ⚠  S1  core/kepler_calibrator.py:45
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3729307Z       ClassDef CalibrationState has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3729680Z   ⚠  S1  core/kepler_calibrator.py:56
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3730016Z       ClassDef CalibrationResult has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3730396Z   ⚠  S1  core/kepler_calibrator.py:356
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3730710Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3731069Z   ⚠  S1  core/kepler_calibrator.py:202
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3731384Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3731770Z   ✖  R2  core/kepler_hybrid.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3732181Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3732647Z   ⚠  S1  core/kepler_hybrid.py:25
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3733072Z       ClassDef HybridResult has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3733476Z   ⚠  S1  core/kepler_hybrid.py:114
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3733816Z       FunctionDef get_residual_model has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3734197Z   ⚠  S1  core/kepler_hybrid.py:57
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3734512Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3734866Z   ⚠  S1  core/kepler_hybrid.py:71
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3735187Z       FunctionDef is_trained has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3735547Z   ⚠  S1  core/metrics.py:12
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3735847Z       FunctionDef decorator has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3736191Z   ⚠  S1  core/metrics.py:13
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3736497Z       AsyncFunctionDef wrapper has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3737026Z   ⚠  S1  core/reward/ema.py:63
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3737340Z       FunctionDef get_reward_ema has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3737705Z   ⚠  S1  core/reward/ema.py:23
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3738011Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3738373Z   ✖  R2  core/reward/reward_engine.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3738828Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3739294Z   ✖  R2  core/reward/test_reward.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3739714Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3740182Z   ⚠  S1  core/reward/test_reward.py:31
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3740548Z       FunctionDef test_first_value_seeds_ema has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3740954Z   ✖  R2  core/reward/astro_reward.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3741369Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3741828Z   ⚠  S1  core/council/runner.py:11
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3742182Z       FunctionDef run_council has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3742551Z   ⚠  S1  core/council/council.py:14
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3743187Z       FunctionDef compute_weighted_signal has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3743612Z   ⚠  S1  core/council/council.py:23
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3744049Z       FunctionDef resolve_conflict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3744433Z   ⚠  S1  core/council/council.py:46
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3744782Z       FunctionDef build_council_result has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3745176Z   ⚠  S1  core/council/council.py:66
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3745504Z       ClassDef AstroCouncil has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3745867Z   ⚠  S1  core/council/council.py:71
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3746186Z       FunctionDef add_member has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3746560Z   ⚠  S1  core/council/council.py:74
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3746874Z       FunctionDef vote has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3747223Z   ⚠  S1  core/council/council.py:78
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3747575Z       FunctionDef summary has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3747926Z   ⚠  S1  core/council/agents.py:7
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3748259Z       FunctionDef fundamental_agent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3748647Z   ⚠  S1  core/council/agents.py:42
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3748966Z       FunctionDef quant_agent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3749358Z   ⚠  S1  core/council/agents.py:75
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3749669Z       FunctionDef macro_agent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3750032Z   ⚠  S1  core/council/agents.py:108
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3750363Z       FunctionDef technical_agent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3750737Z   ⚠  S1  core/council/agents.py:150
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3751060Z       FunctionDef sentiment_agent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3751432Z   ⚠  S1  core/council/agents.py:182
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3751761Z       FunctionDef optionsflow_agent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3752136Z   ⚠  S1  core/council/agents.py:214
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3752452Z       FunctionDef astro_agent has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3752931Z   ✖  R2  core/council/types.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3753342Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3753804Z   ⚠  S1  core/council/types.py:9
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3754114Z       ClassDef Signal has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3754491Z   ⚠  S1  core/council/types.py:16
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3754813Z       ClassDef CouncilMember has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3755178Z   ⚠  S1  core/council/types.py:31
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3755493Z       ClassDef CouncilResult has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3755856Z   ⚠  S1  core/council/types.py:26
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3756169Z       FunctionDef signal has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3756555Z   ⚠  S1  core/coordination/pressure_field.py:39
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3756902Z       FunctionDef to_dict has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3757297Z   ⚠  S1  core/coordination/test_pressure_field.py:94
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3757683Z       FunctionDef test_strong_signals has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3758279Z   ⚠  S1  core/coordination/test_pressure_field.py:109
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3758669Z       FunctionDef test_same_signal has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3759096Z   ⚠  S1  core/coordination/test_pressure_field.py:121
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3759481Z       FunctionDef test_neutral_signal has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3759916Z   ⚠  S1  orchestration/sentinel_v5_mas.py:27
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3760298Z       AsyncFunctionDef run_sentinel_v5_mas has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3760714Z   ⚠  S1  orchestration/__init__.py:12
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3761044Z       FunctionDef __getattr__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3761411Z   ⚠  S1  orchestration/router.py:25
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3761740Z       ClassDef RouterOutput has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3762103Z   ⚠  S1  orchestration/tracing.py:11
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3762439Z       FunctionDef init_tracing has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3762899Z   ⚠  S1  orchestration/sentinel_v5.py:81
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3763302Z       AsyncFunctionDef run_technical_flow has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3763718Z   ⚠  S1  orchestration/sentinel_v5.py:112
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3764068Z       AsyncFunctionDef run_astro_flow has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3764456Z   ⚠  S1  orchestration/sentinel_v5.py:118
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3764912Z       AsyncFunctionDef run_electoral_flow has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3765315Z   ⚠  S1  orchestration/sentinel_v5.py:122
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3765657Z       AsyncFunctionDef run_macro_flow has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3766037Z   ⚠  S1  orchestration/sentinel_v5.py:200
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3766389Z       AsyncFunctionDef run_sentinel_v5 has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3766784Z   ⚠  S1  orchestration/sentinel_v5.py:315
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3767159Z       AsyncFunctionDef run_karl_sentinel_v5 has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3767567Z   ⚠  S1  orchestration/sentinel_v5.py:484
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3767887Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3768279Z   ⚠  S1  orchestration/karl_cli.py:23
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3768606Z       FunctionDef cprint has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3768960Z   ⚠  S1  orchestration/karl_cli.py:30
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3769287Z       FunctionDef print_banner has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3769657Z   ⚠  S1  orchestration/karl_cli.py:46
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3770040Z       FunctionDef print_decision_rich has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3770429Z   ⚠  S1  orchestration/karl_cli.py:78
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3770775Z       FunctionDef print_decision_ascii has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3771162Z   ⚠  S1  orchestration/karl_cli.py:91
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3771504Z       FunctionDef save_decision_jsonl has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3771885Z   ⚠  S1  orchestration/karl_cli.py:99
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3772231Z       FunctionDef generate_html_report has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3772624Z   ⚠  S1  orchestration/karl_cli.py:112
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3773048Z       FunctionDef print_topology_viz has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3773470Z   ⚠  S1  orchestration/karl_cli.py:116
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3773867Z       AsyncFunctionDef visualize_current_topology has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3774301Z   ⚠  S1  orchestration/karl_cli.py:170
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3774621Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3775008Z   ⚠  S1  orchestration/__main__.py:14
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3775326Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3775667Z   ⚠  R4  web/data_room.py:19
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3776019Z       route handler 'list_conflicts' is missing @require_auth
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3776410Z   ⚠  R4  web/wsgi.py:11
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3776718Z       route handler 'health' is missing @require_auth
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3777087Z   ⚠  R4  web/wsgi.py:18
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3777403Z       route handler 'ab_compare' is missing @require_auth
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3777781Z   ⚠  R4  web/wsgi.py:46
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3778104Z       route handler 'live_enable' is missing @require_auth
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3778601Z   ⚠  S1  web/wsgi.py:11
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3778902Z       FunctionDef health has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3779246Z   ⚠  S1  web/app.py:187
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3779547Z       FunctionDef update_clock has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3779914Z   ⚠  S1  web/callbacks.py:40
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3780255Z       FunctionDef render_tab has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3780609Z   ⚠  S1  web/callbacks.py:61
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3780921Z       FunctionDef update_clock has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3781278Z   ⚠  S1  web/callbacks.py:74
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3781609Z       FunctionDef refresh_sessions_table has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3781993Z   ⚠  S1  web/callbacks.py:126
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3782320Z       FunctionDef update_comparison has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3782693Z   ⚠  S1  web/callbacks.py:150
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3783147Z       FunctionDef update_comparison_table has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3783538Z   ⚠  S1  web/callbacks.py:171
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3783932Z       FunctionDef populate_convergence_select has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3784340Z   ⚠  S1  web/callbacks.py:184
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3784682Z       FunctionDef update_convergence_chart has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3785073Z   ⚠  S1  web/callbacks.py:204
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3785409Z       FunctionDef load_session_strategies has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3785898Z   ⚠  S1  web/callbacks.py:330
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3786213Z       FunctionDef start_evolution has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3786585Z   ⚠  S1  web/callbacks.py:415
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3786905Z       FunctionDef poll_evolution has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3787272Z   ⚠  S1  web/callbacks.py:550
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3787595Z       FunctionDef poll_live_metrics has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3787963Z   ⚠  S1  web/callbacks.py:600
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3788294Z       FunctionDef update_system_status has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3788671Z   ⚠  S1  web/callbacks.py:657
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3789020Z       FunctionDef populate_explorer_sessions has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3789459Z   ⚠  S1  web/callbacks.py:680
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3789774Z       FunctionDef deploy_to_karl has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3790142Z   ⚠  S1  web/callbacks.py:723
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3790455Z       FunctionDef paper_test has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3790847Z   ⚠  S1  web/callbacks.py:741
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3791153Z       FunctionDef export_json has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3791514Z   ⚠  S1  web/callbacks.py:769
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3791831Z       FunctionDef export_python has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3792194Z   ⚠  S1  web/callbacks.py:803
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3792514Z       FunctionDef backtest_strategy has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3792975Z   ⚠  S1  web/callbacks.py:840
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3793309Z       FunctionDef show_strategy_detail has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3793701Z   ⚠  S1  web/callbacks.py:841
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3794031Z       FunctionDef empty_fig has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3794446Z   ⚠  S1  web/sessions_callbacks.py:20
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3794812Z       FunctionDef refresh_sessions_table has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3795205Z   ⚠  S1  web/sessions_callbacks.py:86
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3795549Z       FunctionDef update_comparison has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3795970Z   ⚠  S1  web/sessions_callbacks.py:111
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3796333Z       FunctionDef update_comparison_table has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3796734Z   ⚠  S1  web/sessions_callbacks.py:133
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3797107Z       FunctionDef populate_convergence_select has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3797519Z   ⚠  S1  web/sessions_callbacks.py:146
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3797878Z       FunctionDef update_convergence_chart has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3798281Z   ⚠  S1  web/utils/notifications.py:17
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3798604Z       FunctionDef make_toast has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3798975Z   ⚠  S1  web/utils/notifications.py:74
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3799307Z       FunctionDef next_toast_id has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3799824Z   ⚠  S1  web/components/strategy_explorer.py:32
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3800182Z       FunctionDef explorer_tab has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3800559Z   ⚠  S1  web/components/dashboard.py:10
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3800898Z       FunctionDef dashboard_tab has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3801312Z   ⚠  S1  web/components/evolution.py:11
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3801644Z       FunctionDef evolution_tab has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3802022Z   ⚠  S1  web/components/sessions.py:8
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3802349Z       FunctionDef sessions_tab has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3802824Z   ⚠  S1  web/components/autonomous_panel.py:5
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3803212Z       FunctionDef render_autonomous_panel has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3803612Z   ⚠  S1  web/components/live.py:8
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3803940Z       FunctionDef live_tab has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3804321Z   ⚠  S1  scripts/compare_backtest_modes.py:87
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3804689Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3805070Z   ⚠  S1  scripts/validate_alerts_metrics.py:44
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3805418Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3805771Z   ⚠  S1  scripts/validate_agent.py:67
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3806129Z       ClassDef Check has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3806586Z   ⚠  S1  scripts/validate_agent.py:109
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3806937Z       FunctionDef find_agent_class has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3807322Z   ⚠  S1  scripts/validate_agent.py:118
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3807662Z       FunctionDef find_run_method has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3808054Z   ⚠  S1  scripts/validate_agent.py:124
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3808414Z       FunctionDef find_runner_function has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3808819Z   ⚠  S1  scripts/validate_agent.py:136
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3809182Z       FunctionDef has_decorator has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3809558Z   ⚠  S1  scripts/validate_agent.py:144
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3809917Z       FunctionDef check_A1_has_agent_class has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3810353Z   ⚠  S1  scripts/validate_agent.py:152
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3810704Z       FunctionDef check_A2_super_init has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3811090Z   ⚠  S1  scripts/validate_agent.py:163
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3811431Z       FunctionDef check_A3_run_method has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3811849Z   ⚠  S1  scripts/validate_agent.py:198
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3812206Z       FunctionDef check_A5_runner_function has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3812607Z   ⚠  S1  scripts/validate_agent.py:210
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3813042Z       FunctionDef check_A6_registry_entry has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3813442Z   ⚠  S1  scripts/validate_agent.py:238
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3813784Z       FunctionDef check_A7_docstrings has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3814175Z   ⚠  S1  scripts/validate_agent.py:247
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3814526Z       FunctionDef check_A8_return_type has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3814913Z   ⚠  S1  scripts/validate_agent.py:274
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3815264Z       FunctionDef validate has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3815630Z   ⚠  S1  scripts/validate_agent.py:300
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3815954Z       FunctionDef render has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3816308Z   ⚠  S1  scripts/validate_agent.py:326
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3816673Z       FunctionDef recommend_fixes has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3817052Z   ⚠  S1  scripts/validate_agent.py:342
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3817414Z       FunctionDef run_pytest has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3817778Z   ⚠  S1  scripts/validate_agent.py:346
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3818116Z       FunctionDef iter_agent_files has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3818503Z   ⚠  S1  scripts/validate_agent.py:355
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3818830Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3819213Z   ✖  R2  scripts/validate_blackrock_tests.py:1
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3819669Z       module uses ephemeris symbols but is missing @require_ephemeris on a method
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3820293Z   ⚠  S1  scripts/validate_blackrock_tests.py:23
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3820666Z       FunctionDef agent_test_path has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3821069Z   ⚠  S1  scripts/validate_blackrock_tests.py:84
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3821409Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3821769Z   ⚠  S1  scripts/validate_registry.py:32
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3822132Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3822494Z   ⚠  S1  scripts/translate_comments.py:79
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3822925Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3823282Z   ⚠  S1  scripts/run_backtest.py:13
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3823644Z       FunctionDef generate_synthetic_data has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3824055Z   ⚠  S1  scripts/run_backtest.py:26
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3824422Z       FunctionDef generate_signals has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3824811Z   ⚠  S1  scripts/run_backtest.py:60
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3825132Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3825515Z   ⚠  S1  scripts/validate_docker_security.py:11
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3825908Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3826269Z   ⚠  S1  scripts/architecture_linter.py:64
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3826600Z       ClassDef Finding has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3826957Z   ⚠  S1  scripts/architecture_linter.py:76
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3827381Z       ClassDef Report has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3827743Z   ⚠  S1  scripts/architecture_linter.py:191
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3828116Z       FunctionDef check_web_auth_decorators has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3828541Z   ⚠  S1  scripts/architecture_linter.py:285
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3828908Z       FunctionDef check_no_fstring_sql has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3829320Z   ⚠  S1  scripts/architecture_linter.py:306
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3829663Z       FunctionDef check_secrets has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3830048Z   ⚠  S1  scripts/architecture_linter.py:327
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3830397Z       FunctionDef check_docstrings has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3830818Z   ⚠  S1  scripts/architecture_linter.py:366
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3831169Z       FunctionDef iter_python_files has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3831562Z   ⚠  S1  scripts/architecture_linter.py:389
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3831895Z       FunctionDef lint_file has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3832299Z   ⚠  S1  scripts/architecture_linter.py:415
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3832639Z       FunctionDef render_report has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3833133Z   ⚠  S1  scripts/architecture_linter.py:434
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3833458Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3833826Z   ⚠  S1  scripts/architecture_linter.py:72
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3834158Z       FunctionDef code has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3834521Z   ⚠  S1  scripts/architecture_linter.py:80
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3834838Z       FunctionDef fail has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3835194Z   ⚠  S1  scripts/architecture_linter.py:83
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3835515Z       FunctionDef warn has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3835902Z   ⚠  S1  scripts/architecture_linter.py:87
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3836236Z       FunctionDef has_failures has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3836612Z   ⚠  S1  scripts/architecture_linter.py:91
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3836949Z       FunctionDef has_warnings has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3837330Z   ⚠  S1  scripts/architecture_linter.py:488
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3837690Z       FunctionDef __init__ has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3838054Z   ⚠  S1  scripts/architecture_linter.py:496
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3838379Z       FunctionDef run has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3838740Z   ⚠  S1  scripts/optimize_lag_blend.py:58
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3839083Z       ClassDef BlendResult has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3839454Z   ⚠  S1  scripts/optimize_lag_blend.py:406
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3839795Z       FunctionDef parse_args has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3840169Z   ⚠  S1  scripts/optimize_lag_blend.py:464
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3840491Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3840968Z   ⚠  S1  scripts/ralph_agent.py:20
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3841299Z       FunctionDef read_file has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3841664Z   ⚠  S1  scripts/ralph_agent.py:25
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3841991Z       FunctionDef write_file has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3842356Z   ⚠  S1  scripts/ralph_agent.py:30
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3842705Z       FunctionDef run has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3843188Z   ⚠  S1  scripts/ralph_agent.py:84
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3843498Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3843850Z   ⚠  S1  tools/nightly_export.py:47
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3844178Z       FunctionDef run_daemon has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3844552Z   ⚠  S1  tools/nightly_export.py:54
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3844879Z       FunctionDef run_once has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3845238Z   ⚠  S1  tools/thompson_cli.py:56
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3845559Z       FunctionDef cmd_scores has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3845923Z   ⚠  S1  tools/thompson_cli.py:81
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3846267Z       FunctionDef cmd_select has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3846623Z   ⚠  S1  tools/thompson_cli.py:93
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3846947Z       FunctionDef cmd_leaderboard has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3847328Z   ⚠  S1  tools/thompson_cli.py:141
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3847645Z       FunctionDef cmd_reset has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3848111Z   ⚠  S1  tools/thompson_cli.py:151
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3848438Z       FunctionDef cmd_daily_brief has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3848815Z   ⚠  S1  tools/thompson_cli.py:201
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3849142Z       FunctionDef cmd_idea_tracker has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3849530Z   ⚠  S1  tools/thompson_cli.py:278
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3849836Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3850197Z   ⚠  S1  tools/healthcheck.py:76
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3850533Z       FunctionDef run_all_checks has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3850908Z   ⚠  S1  tools/healthcheck.py:87
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3851215Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3851596Z   ⚠  S1  tools/metrics_server.py:33
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3851945Z       AsyncFunctionDef metrics_handler has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3852328Z   ⚠  S1  tools/metrics_server.py:42
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3852676Z       AsyncFunctionDef health_handler has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3853183Z   ⚠  S1  tools/metrics_server.py:46
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3853505Z       FunctionDef run_server has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3853874Z   ⚠  S1  tools/db_monitor.py:19
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3854199Z       FunctionDef get_counts has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3854574Z   ⚠  S1  tools/db_monitor.py:81
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3854889Z       FunctionDef main has no docstring
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3855091Z 
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3855281Z ❌ 27 hard-rule violation(s). Build blocked.
+Architecture Lint (R1-R9)	Run architecture linter (R1-R9)	2026-06-28T05:42:15.3867081Z ##[error]Process completed with exit code 2.

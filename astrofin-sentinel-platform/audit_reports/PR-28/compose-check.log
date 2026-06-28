@@ -1,0 +1,134 @@
+validate	Run actions/checkout@v4	﻿2026-06-28T05:42:03.0547341Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0556708Z ##[group]Run actions/checkout@v4
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0557500Z with:
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0557961Z   submodules: recursive
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0558571Z   repository: mahaasur13-sys/astrofin-sentinel-platform
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0563299Z   token: ***
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0563747Z   ssh-strict: true
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0564205Z   ssh-user: git
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0564658Z   persist-credentials: true
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0565368Z   clean: true
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0565827Z   sparse-checkout-cone-mode: true
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0566363Z   fetch-depth: 1
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0566805Z   fetch-tags: false
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0567259Z   show-progress: true
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0567754Z   lfs: false
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0568193Z   set-safe-directory: true
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.0568955Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1555716Z Syncing repository: mahaasur13-sys/astrofin-sentinel-platform
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1557863Z ##[group]Getting Git version info
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1559042Z Working directory is '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform'
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1560341Z [command]/usr/bin/git version
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1608711Z git version 2.54.0
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1639402Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1656318Z Temporarily overriding HOME='/home/runner/work/_temp/88fdd4db-a336-4018-aa12-b83918f45cbb' before making global git config changes
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1658809Z Adding repository directory to the temporary git global config as a safe directory
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1662884Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1710316Z Deleting the contents of '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform'
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1713665Z ##[group]Initializing the repository
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1718774Z [command]/usr/bin/git init /home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1826249Z hint: Using 'master' as the name for the initial branch. This default branch name
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1827805Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1829463Z hint: to use in all of your new repositories, which will suppress this warning,
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1830694Z hint: call:
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1831835Z hint:
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1832852Z hint: 	git config --global init.defaultBranch <name>
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1834008Z hint:
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1835203Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1836363Z hint: 'development'. The just-created branch can be renamed via this command:
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1837608Z hint:
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1838184Z hint: 	git branch -m <name>
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1838743Z hint:
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1839529Z hint: Disable this message with "git config set advice.defaultBranchName false"
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1841455Z Initialized empty Git repository in /home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/.git/
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1844876Z [command]/usr/bin/git remote add origin https://github.com/mahaasur13-sys/astrofin-sentinel-platform
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1883919Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1885093Z ##[group]Disabling automatic garbage collection
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1887718Z [command]/usr/bin/git config --local gc.auto 0
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1915961Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1916843Z ##[group]Setting up auth
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1923453Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.1955627Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.2307286Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.2336060Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.2548843Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.2578317Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.2793509Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.2826293Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.2827365Z ##[group]Fetching the repository
+validate	Run actions/checkout@v4	2026-06-28T05:42:03.2836452Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +3bebdecb9e22aa3ef68db7b9bcbc7c3666520636:refs/remotes/pull/28/merge
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.6892525Z From https://github.com/mahaasur13-sys/astrofin-sentinel-platform
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.6894028Z  * [new ref]         3bebdecb9e22aa3ef68db7b9bcbc7c3666520636 -> pull/28/merge
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.6929174Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.6929891Z ##[group]Determining the checkout info
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.6931399Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.6936786Z [command]/usr/bin/git sparse-checkout disable
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.6981013Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.7013550Z ##[group]Checking out the ref
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.7017469Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/28/merge
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8664011Z Note: switching to 'refs/remotes/pull/28/merge'.
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8664875Z 
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8665693Z You are in 'detached HEAD' state. You can look around, make experimental
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8666834Z changes and commit them, and you can discard any commits you make in this
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8667942Z state without impacting any branches by switching back to a branch.
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8668977Z 
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8669413Z If you want to create a new branch to retain commits you create, you may
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8670446Z do so (now or later) by using -c with the switch command. Example:
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8671107Z 
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8671440Z   git switch -c <new-branch-name>
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8671840Z 
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8672152Z Or undo this operation with:
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8672542Z 
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8672918Z   git switch -
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8673344Z 
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8673887Z Turn off this advice by setting config variable advice.detachedHead to false
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8674372Z 
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8674812Z HEAD is now at 3bebdec Merge ef1c08bfa78ced1e94a767a28a2fe65cf74847a2 into 5b1af779431badc365607c410727c8b474fd1003
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8679582Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8680704Z ##[group]Setting up auth for fetching submodules
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8686381Z [command]/usr/bin/git config --global http.https://github.com/.extraheader AUTHORIZATION: basic ***
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8723430Z [command]/usr/bin/git config --global --unset-all url.https://github.com/.insteadOf
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8751014Z [command]/usr/bin/git config --global --add url.https://github.com/.insteadOf git@github.com:
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8779734Z [command]/usr/bin/git config --global --add url.https://github.com/.insteadOf org-226812515@github.com:
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8805995Z ##[endgroup]
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8806712Z ##[group]Fetching submodules
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.8809305Z [command]/usr/bin/git submodule sync --recursive
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.9036902Z [command]/usr/bin/git -c protocol.version=2 submodule update --init --force --depth=1 --recursive
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.9255179Z Submodule 'AsurDev' (https://github.com/mahaasur13-sys/AsurDev.git) registered for path 'AsurDev'
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.9258265Z Submodule 'astrofin-sentinel-v5' (https://github.com/mahaasur13-sys/astrofin-sentinel-v5.git) registered for path 'astrofin-sentinel-v5'
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.9263045Z Submodule 'atom-federation-os' (https://github.com/mahaasur13-sys/atom-federation-os.git) registered for path 'atom-federation-os'
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.9268363Z Submodule 'home-cluster-iac' (https://github.com/mahaasur13-sys/home-cluster-iac.git) registered for path 'home-cluster-iac'
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.9274124Z Submodule 'integrations/gitagent' (https://github.com/mahaasur13-sys/integrations-gitagent.git) registered for path 'integrations/gitagent'
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.9280066Z Submodule 'roma-execution-bridge' (https://github.com/mahaasur13-sys/roma-execution-bridge.git) registered for path 'roma-execution-bridge'
+validate	Run actions/checkout@v4	2026-06-28T05:42:04.9306288Z Cloning into '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/AsurDev'...
+validate	Run actions/checkout@v4	2026-06-28T05:42:05.1439969Z remote: Repository not found.
+validate	Run actions/checkout@v4	2026-06-28T05:42:05.1464193Z ##[error]fatal: repository 'https://github.com/mahaasur13-sys/AsurDev.git/' not found
+validate	Run actions/checkout@v4	2026-06-28T05:42:05.1474253Z ##[error]fatal: clone of 'https://github.com/mahaasur13-sys/AsurDev.git' into submodule path '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/AsurDev' failed
+validate	Run actions/checkout@v4	2026-06-28T05:42:05.1476355Z Failed to clone 'AsurDev'. Retry scheduled
+validate	Run actions/checkout@v4	2026-06-28T05:42:05.1497611Z Cloning into '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/astrofin-sentinel-v5'...
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.0771837Z Cloning into '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/atom-federation-os'...
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.3098585Z remote: Repository not found.
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.3100277Z ##[error]fatal: repository 'https://github.com/mahaasur13-sys/atom-federation-os.git/' not found
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.3123922Z ##[error]fatal: clone of 'https://github.com/mahaasur13-sys/atom-federation-os.git' into submodule path '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/atom-federation-os' failed
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.3127128Z Failed to clone 'atom-federation-os'. Retry scheduled
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.3155986Z Cloning into '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/home-cluster-iac'...
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.5258830Z remote: Repository not found.
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.5261337Z ##[error]fatal: repository 'https://github.com/mahaasur13-sys/home-cluster-iac.git/' not found
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.5284834Z ##[error]fatal: clone of 'https://github.com/mahaasur13-sys/home-cluster-iac.git' into submodule path '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/home-cluster-iac' failed
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.5288665Z Failed to clone 'home-cluster-iac'. Retry scheduled
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.5320276Z Cloning into '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/integrations/gitagent'...
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.7425949Z remote: Repository not found.
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.7434530Z ##[error]fatal: repository 'https://github.com/mahaasur13-sys/integrations-gitagent.git/' not found
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.7461177Z ##[error]fatal: clone of 'https://github.com/mahaasur13-sys/integrations-gitagent.git' into submodule path '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/integrations/gitagent' failed
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.7462972Z Failed to clone 'integrations/gitagent'. Retry scheduled
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.7485915Z Cloning into '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/roma-execution-bridge'...
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.9601741Z remote: Repository not found.
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.9603046Z ##[error]fatal: repository 'https://github.com/mahaasur13-sys/roma-execution-bridge.git/' not found
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.9624721Z ##[error]fatal: clone of 'https://github.com/mahaasur13-sys/roma-execution-bridge.git' into submodule path '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/roma-execution-bridge' failed
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.9627502Z Failed to clone 'roma-execution-bridge'. Retry scheduled
+validate	Run actions/checkout@v4	2026-06-28T05:42:06.9652923Z Cloning into '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/AsurDev'...
+validate	Run actions/checkout@v4	2026-06-28T05:42:07.1950606Z remote: Repository not found.
+validate	Run actions/checkout@v4	2026-06-28T05:42:07.1951912Z ##[error]fatal: repository 'https://github.com/mahaasur13-sys/AsurDev.git/' not found
+validate	Run actions/checkout@v4	2026-06-28T05:42:07.1973713Z ##[error]fatal: clone of 'https://github.com/mahaasur13-sys/AsurDev.git' into submodule path '/home/runner/work/astrofin-sentinel-platform/astrofin-sentinel-platform/AsurDev' failed
+validate	Run actions/checkout@v4	2026-06-28T05:42:07.1976290Z Failed to clone 'AsurDev' a second time, aborting
+validate	Run actions/checkout@v4	2026-06-28T05:42:07.2017387Z ##[error]The process '/usr/bin/git' failed with exit code 1

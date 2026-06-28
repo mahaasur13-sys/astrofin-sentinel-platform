@@ -1,0 +1,151 @@
+Quality Gate	Lint changed files	﻿2026-06-28T05:42:18.8490892Z ##[group]Run ruff check agents/ core/ scripts/ --output-format=github
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8491585Z [36;1mruff check agents/ core/ scripts/ --output-format=github[0m
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8522364Z shell: /usr/bin/bash -e {0}
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8522627Z env:
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8522821Z   PYTHON_VERSION: 3.12
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8523051Z   COVERAGE_FAIL_UNDER: 85
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8523344Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8523776Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8524206Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8524610Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8525000Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8525383Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8525699Z ##[endgroup]
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8805836Z ##[error]agents/_impl/_template_agent.py:118:9: F841 Local variable `symbol` is assigned to but never used
+Quality Gate	Lint changed files	  help: Remove assignment to unused variable `symbol`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8815350Z ##[error]agents/_impl/amre/__init__.py:8:5: F401 `.audit.build_decision_record` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import: `.audit.build_decision_record`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8818724Z ##[error]agents/_impl/amre/__init__.py:39:5: F401 `.oap_optimizer.get_oap_optimizer` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import: `.oap_optimizer.get_oap_optimizer`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8821519Z ##[error]agents/_impl/amre/__init__.py:49:5: F401 `.reward.CalibrationMetrics` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8824034Z ##[error]agents/_impl/amre/__init__.py:50:5: F401 `.reward.CorrelationPenalty` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8826501Z ##[error]agents/_impl/amre/__init__.py:51:5: F401 `.reward.DrawdownState` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8829388Z ##[error]agents/_impl/amre/__init__.py:52:5: F401 `.reward.DrawdownTracker` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8831957Z ##[error]agents/_impl/amre/__init__.py:53:5: F401 `.reward.FalseCorrelationDetector` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8834485Z ##[error]agents/_impl/amre/__init__.py:54:5: F401 `.reward.RewardCalibrator` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8837080Z ##[error]agents/_impl/amre/__init__.py:59:5: F401 `.reward.get_calibrator` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8839911Z ##[error]agents/_impl/amre/__init__.py:60:5: F401 `.reward.get_dd_tracker` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8842447Z ##[error]agents/_impl/amre/__init__.py:62:5: F401 `.reward.get_reward_diagnostics` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8844405Z ##[error]agents/_impl/amre/__init__.py:147:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8846643Z ##[error]agents/_impl/amre/__init__.py:148:5: F401 `.astro_reward.LUNAR_PHASES` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8849743Z ##[error]agents/_impl/amre/__init__.py:149:5: F401 `.astro_reward.NAKSHATRA_SCORES` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8852843Z ##[error]agents/_impl/amre/__init__.py:150:5: F401 `.astro_reward.PLANETARY_ASPECTS` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8855422Z ##[error]agents/_impl/amre/__init__.py:151:5: F401 `.astro_reward.ZODIAC_ARC` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8858279Z ##[error]agents/_impl/amre/__init__.py:152:5: F401 `.astro_reward.compute_astro_reward` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8860999Z ##[error]agents/_impl/amre/__init__.py:153:5: F401 `.astro_reward.get_astro_market_phase` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8863649Z ##[error]agents/_impl/amre/__init__.py:154:5: F401 `.astro_reward.get_lunar_phase_score` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8866254Z ##[error]agents/_impl/amre/__init__.py:155:5: F401 `.astro_reward.get_nakshatra_score` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8869335Z ##[error]agents/_impl/amre/__init__.py:156:5: F401 `.astro_reward.get_planetary_aspect_score` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8871276Z ##[error]agents/_impl/amre/__init__.py:158:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8873567Z ##[error]agents/_impl/amre/__init__.py:159:5: F401 `.karl_diagnostics.KARLHealthMetrics` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8876235Z ##[error]agents/_impl/amre/__init__.py:160:5: F401 `.karl_diagnostics.compute_karl_health` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8879236Z ##[error]agents/_impl/amre/__init__.py:161:5: F401 `.karl_diagnostics.format_diagnostics_rich` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8881927Z ##[error]agents/_impl/amre/__init__.py:162:5: F401 `.karl_diagnostics.get_recommendations` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8884568Z ##[error]agents/_impl/amre/__init__.py:163:5: F401 `.karl_diagnostics.get_system_status` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8886500Z ##[error]agents/_impl/amre/__init__.py:165:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8889196Z ##[error]agents/_impl/amre/__init__.py:166:5: F401 `.karl_optimizer.AsyncPipeline` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8891839Z ##[error]agents/_impl/amre/__init__.py:167:5: F401 `.karl_optimizer.KARLOptimizer` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8894428Z ##[error]agents/_impl/amre/__init__.py:168:5: F401 `.karl_optimizer.KARLPerfProfile` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8897029Z ##[error]agents/_impl/amre/__init__.py:169:5: F401 `.karl_optimizer.get_karl_optimizer` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+Quality Gate	Lint changed files	  help: Remove unused import
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8899655Z ##[error]agents/_impl/amre/__init__.py:171:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8901379Z ##[error]agents/_impl/amre/karl_diagnostics.py:7:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8903005Z ##[error]agents/_impl/amre/karl_diagnostics.py:8:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8904623Z ##[error]agents/_impl/amre/karl_optimizer.py:7:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8906222Z ##[error]agents/_impl/amre/karl_optimizer.py:8:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8908153Z ##[error]agents/_impl/amre/karl_optimizer.py:9:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8932297Z ##[error]agents/_impl/amre/karl_optimizer.py:10:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8934586Z ##[error]agents/_impl/amre/karl_optimizer.py:11:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8936315Z ##[error]agents/_impl/amre/karl_optimizer.py:12:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8938215Z ##[error]agents/_impl/amre/lag_windowing.py:258:121: E501 Line too long (144 > 120)
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8939845Z ##[error]agents/_impl/amre/self_question.py:285:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8941462Z ##[error]agents/_impl/amre/self_question.py:286:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8943924Z ##[error]agents/_impl/amre/self_question.py:286:20: F811 Redefinition of unused `Any` from line 10: `Any` redefined here
+Quality Gate	Lint changed files	  agents/_impl/amre/self_question.py:10:20: previous definition of `Any` here
+Quality Gate	Lint changed files	  help: Remove definition: `Any`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8946094Z ##[error]agents/_impl/macro_agent.py:15:17: F401 `numpy` imported but unused
+Quality Gate	Lint changed files	  help: Remove unused import: `numpy`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8948013Z ##[error]agents/_impl/market_analyst.py:114:121: E501 Line too long (124 > 120)
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8950460Z ##[error]agents/_impl/synthesis_agent.py:16:73: F401 `agents._impl.ephemeris_decorator.require_ephemeris` imported but unused
+Quality Gate	Lint changed files	  help: Remove unused import: `agents._impl.ephemeris_decorator.require_ephemeris`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8952987Z ##[error]agents/_impl/synthesis_agent.py:298:13: F841 Local variable `amre_fallback` is assigned to but never used
+Quality Gate	Lint changed files	  help: Remove assignment to unused variable `amre_fallback`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8955354Z ##[error]agents/astro_council_agent.py:21:61: F401 `core.base_agent.SignalDirection` imported but unused
+Quality Gate	Lint changed files	  help: Remove unused import: `core.base_agent.SignalDirection`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8957556Z ##[error]agents/base_agent.py:4:1: F403 `from core.base_agent import *` used; unable to detect undefined names
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8959353Z ##[error]agents/gitagent_exporter.py:223:5: E401 Multiple imports on one line
+Quality Gate	Lint changed files	  help: Split imports
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8960952Z ##[error]agents/karl_synthesis.py:14:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8962497Z ##[error]agents/karl_synthesis.py:15:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8964013Z ##[error]agents/karl_synthesis.py:16:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8965519Z ##[error]agents/karl_synthesis.py:17:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8966993Z ##[error]agents/karl_synthesis.py:19:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8968783Z ##[error]agents/karl_synthesis.py:41:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8970300Z ##[error]agents/karl_synthesis.py:45:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8971795Z ##[error]agents/karl_synthesis.py:46:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8973286Z ##[error]agents/karl_synthesis.py:64:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8974783Z ##[error]agents/karl_synthesis.py:65:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8976545Z ##[error]agents/karl_synthesis.py:66:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8978798Z ##[error]agents/metrics.py:54:20: F401 `typing.Any` imported but unused
+Quality Gate	Lint changed files	  help: Remove unused import: `typing.Any`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8980394Z ##[error]core/astro_rl_engine.py:31:121: E501 Line too long (143 > 120)
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8982994Z ##[error]core/houses.py:315:5: F811 Redefinition of unused `normalize_degrees` from line 67: `normalize_degrees` redefined here
+Quality Gate	Lint changed files	  core/houses.py:67:5: previous definition of `normalize_degrees` here
+Quality Gate	Lint changed files	  help: Remove definition: `normalize_degrees`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8984947Z ##[error]core/kepler.py:318:120: E501 Line too long (127 > 120)
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8986338Z ##[error]core/safe_json.py:74:36: E741 Ambiguous variable name: `l`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8988095Z ##[error]core/thompson.py:16:1: E402 Module level import not at top of file
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8990003Z ##[error]scripts/architecture_linter.py:54:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `GREEN` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8992022Z ##[error]scripts/architecture_linter.py:55:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `RED` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8994069Z ##[error]scripts/architecture_linter.py:56:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `YELLOW` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8996102Z ##[error]scripts/architecture_linter.py:57:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `CYAN` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.8998352Z ##[error]scripts/architecture_linter.py:58:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `BOLD` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.9000383Z ##[error]scripts/architecture_linter.py:59:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `DIM` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.9002375Z ##[error]scripts/validate_agent.py:47:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `GREEN` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.9004329Z ##[error]scripts/validate_agent.py:48:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `RED` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.9006279Z ##[error]scripts/validate_agent.py:49:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `YELLOW` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.9008554Z ##[error]scripts/validate_agent.py:50:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `CYAN` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.9010569Z ##[error]scripts/validate_agent.py:51:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `BOLD` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.9012518Z ##[error]scripts/validate_agent.py:52:1: E731 Do not assign a `lambda` expression, use a `def`
+Quality Gate	Lint changed files	  help: Rewrite `DIM` as a `def`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.9014207Z ##[error]scripts/validate_blackrock_tests.py:61:121: E501 Line too long (122 > 120)
+Quality Gate	Lint changed files	2026-06-28T05:42:18.9016268Z ##[error]scripts/validate_blackrock_tests.py:91:5: F841 Local variable `tests_dir` is assigned to but never used
+Quality Gate	Lint changed files	  help: Remove assignment to unused variable `tests_dir`
+Quality Gate	Lint changed files	2026-06-28T05:42:18.9019249Z ##[error]Process completed with exit code 1.
