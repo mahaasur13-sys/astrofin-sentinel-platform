@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.AFS2 }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -63,7 +63,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.AFS2 }}
       - uses: ./.github/actions/setup-astrofin-python
         with: { install-dev: 'false' }
       - name: Install bandit
@@ -84,7 +84,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.AFS2 }}
       - uses: ./.github/actions/setup-astrofin-python
         with: { install-dev: 'true' }
       - name: Ruff lint (github format)
@@ -103,7 +103,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.AFS2 }}
       - uses: ./.github/actions/setup-astrofin-python
         with: { install-dev: 'true' }
       - name: Pytest (with coverage)
@@ -124,7 +124,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.AFS2 }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -138,7 +138,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.AFS2 }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
