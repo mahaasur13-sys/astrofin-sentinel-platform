@@ -29,3 +29,6 @@ __pycache__/
 _sbs_old/
 .venv/
 AsurDev.WIP/
+AsurDev.WIP/
+settings/
+deploy/deploy/
