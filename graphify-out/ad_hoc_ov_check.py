@@ -6,7 +6,6 @@ then runs recall_test.py against it and counts override edges in top-10.
 """
 
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -31,27 +30,30 @@ assert len(ov_pairs) == 7, f"Expected 7 override pairs in GT, got {len(ov_pairs)
 # beat the override paths on pure alpha order.
 competitors = []
 for i in range(10):
-    competitors.append({
-        "source_node_id": f"aaa_alpha_{i:02d}",
-        "source_path": f"aaa/alpha/{i:02d}.py",
-        "source_line": 10,
-        "target_node_id": f"aaa_beta_{i:02d}",
-        "target_path": f"aaa/beta/{i:02d}.py",
-        "target_line": 20,
-        "confidence": 1.0,
-        "weight": 1.0,
-        "relation": "calls",
-        "verdict": "valid",
-        "tier": "T1",
-        "category": "submodule",
-        "half_life_days": 365,
-        "delta_days": 0,
-        "decay_factor": 1.0,
-        "tier_weight": 1.0,
-        "relation_weight": 1.0,
-        "recall_score": 1.0,
-        "override_applied": False,
-    })
+    competitors.append(
+        {
+            "source_node_id": f"aaa_alpha_{i:02d}",
+            "source_path": f"aaa/alpha/{i:02d}.py",
+            "source_line": 10,
+            "target_node_id": f"aaa_beta_{i:02d}",
+            "target_path": f"aaa/beta/{i:02d}.py",
+            "target_line": 20,
+            "confidence": 1.0,
+            "weight": 1.0,
+            "relation": "calls",
+            "verdict": "valid",
+            "tier": "T1",
+            "category": "submodule",
+            "half_life_days": 365,
+            "delta_days": 0,
+            "decay_factor": 1.0,
+            "tier_weight": 1.0,
+            "relation_weight": 1.0,
+            "recall_score": 1.0,
+            "override_applied": False,
+        }
+    )
+
 
 # Convert GT override pairs into enriched-edge shape
 def gt_to_edge(r):
@@ -79,10 +81,12 @@ def gt_to_edge(r):
         "override_applied": True,
     }
 
+
 edges = [gt_to_edge(p) for p in ov_pairs] + competitors
 
 # Shuffle so file order does not pre-bias the (un-)sorted result
-import random
+import random  # noqa: E402
+
 random.seed(42)
 random.shuffle(edges)
 
@@ -94,20 +98,31 @@ print(f"Wrote {len(edges)} edges to {AD_HOC} ({sum(1 for e in edges if e['overri
 
 # Run recall_test.py against the synthetic file
 result = subprocess.run(
-    [sys.executable, "graphify-out/recall_test.py", "-n", "10",
-     "--json", str(AD_HOC)],
-    capture_output=True, text=True, cwd="/home/workspace"
+    [sys.executable, "graphify-out/recall_test.py", "-n", "10", "--json", str(AD_HOC)],
+    capture_output=True,
+    text=True,
+    cwd="/home/workspace",
 )
 
 # recall_test.py currently reads a hardcoded path. We can't override it without
 # editing the script. Fall back to a simple reproduction of the sort key:
 print("\n=== Reproducing sort key in Python (current production key) ===")
+
+
 def k_old(e):
     return (-e["recall_score"], e["source_path"], e["target_path"], e["source_node_id"], e["target_node_id"])
 
+
 def k_new(e):
-    return (-int(e.get("override_applied", False)), -e["recall_score"],
-            e["source_path"], e["target_path"], e["source_node_id"], e["target_node_id"])
+    return (
+        -int(e.get("override_applied", False)),
+        -e["recall_score"],
+        e["source_path"],
+        e["target_path"],
+        e["source_node_id"],
+        e["target_node_id"],
+    )
+
 
 top_old = sorted(edges, key=k_old)[:10]
 top_new = sorted(edges, key=k_new)[:10]

@@ -8,6 +8,7 @@ the registry (AGENT_AGENTS) or docs/ also changes in the same commit.
 Warns (does not fail) — but emits a colored "⚠" line so the developer
 notices during `git commit`.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -24,7 +25,9 @@ def _changed_files(scope: str) -> list[str]:
     """Return files changed in the working tree under `scope`."""
     out = subprocess.run(
         ["git", "diff", "--name-only", "--diff-filter=ACMR", "HEAD"],
-        capture_output=True, text=True, cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
     )
     return [f for f in out.stdout.splitlines() if f.startswith(scope)]
 

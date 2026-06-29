@@ -11,10 +11,10 @@ Features:
 - Connection pool stats
 """
 
-import logging
-import os
-import time
-from contextlib import contextmanager
+import logging  # noqa: E402
+import os  # noqa: E402
+import time  # noqa: E402
+from contextlib import contextmanager  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

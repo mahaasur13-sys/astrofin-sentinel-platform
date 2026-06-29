@@ -220,7 +220,9 @@ AGENTS = {
 def _discover_agents():
     """Return merged agents dict: static base + dynamic discovery from agents/_impl/."""
     agents = dict(AGENTS)  # start with static definitions
-    import importlib, inspect, pkgutil
+    import importlib
+    import inspect
+    import pkgutil
     import agents._impl as impl_pkg
 
     for _, modname, _ in pkgutil.iter_modules(impl_pkg.__path__):

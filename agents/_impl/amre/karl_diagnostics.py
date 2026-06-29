@@ -1,11 +1,12 @@
 """amre/karl_diagnostics.py - ATOM-021: Enhanced KARL Diagnostics"""
+
 from __future__ import annotations
 
 
 """Extended diagnostics for KARL self-improvement loop."""
 
-from dataclasses import asdict, dataclass
-from typing import Any
+from dataclasses import asdict, dataclass  # noqa: E402
+from typing import Any  # noqa: E402
 
 
 @dataclass

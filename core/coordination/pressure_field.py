@@ -9,6 +9,7 @@ Sandbox-безопасная версия: никаких embeddings, тольк
 - k_neighbors ≤ 5
 - БЕЗ embeddings
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

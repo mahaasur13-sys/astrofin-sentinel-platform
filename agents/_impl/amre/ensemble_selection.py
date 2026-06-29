@@ -1,4 +1,5 @@
 """amre/ensemble_selection.py — Ensemble diversity selection"""
+
 from __future__ import annotations
 
 

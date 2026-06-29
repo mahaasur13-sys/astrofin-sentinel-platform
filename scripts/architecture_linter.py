@@ -35,6 +35,7 @@ Usage:
     python scripts/architecture_linter.py --changed       # only git-changed files
     python scripts/architecture_linter.py path/to/file.py # single file
 """
+
 from __future__ import annotations
 
 import argparse
@@ -48,8 +49,11 @@ from typing import Iterable
 # ─── ANSI colours (skip if no tty) ──────────────────────────────────────────
 
 _USE_COLOR = sys.stdout.isatty()
+
+
 def _c(code: str, text: str) -> str:  # noqa: ANN001
     return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
+
 
 GREEN = lambda s: _c("32", s)
 RED = lambda s: _c("31;1", s)
@@ -60,17 +64,19 @@ DIM = lambda s: _c("2", s)
 
 # ─── Result model ───────────────────────────────────────────────────────────
 
+
 @dataclass
 class Finding:
     file: str
     line: int
     rule: str
-    severity: str        # "FAIL" | "WARN"
+    severity: str  # "FAIL" | "WARN"
     message: str
 
     @property
     def code(self) -> str:  # alias for .rule
         return self.rule
+
 
 @dataclass
 class Report:
@@ -91,6 +97,7 @@ class Report:
     def has_warnings(self) -> bool:
         return any(f.severity == "WARN" for f in self.findings)
 
+
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -101,15 +108,16 @@ REGISTRY_PATH = REPO_ROOT / "agents" / "gitagent_registry.py"
 
 # Token-ish regexes. Tighter than "any alphanumeric string >= 20".
 SECRET_REGEXES = [
-    re.compile(r"sk_(?:live|test)_[A-Za-z0-9]{10,}"),                       # Stripe
-    re.compile(r"ghp_[A-Za-z0-9]{20,}"),                                    # GitHub PAT
-    re.compile(r"AKIA[0-9A-Z]{16}"),                                        # AWS access key
-    re.compile(r"AIza[0-9A-Za-z_\-]{35}"),                                  # Google API key
-    re.compile(r"xox[boprs]-[A-Za-z0-9-]{10,}"),                            # Slack tokens
+    re.compile(r"sk_(?:live|test)_[A-Za-z0-9]{10,}"),  # Stripe
+    re.compile(r"ghp_[A-Za-z0-9]{20,}"),  # GitHub PAT
+    re.compile(r"AKIA[0-9A-Z]{16}"),  # AWS access key
+    re.compile(r"AIza[0-9A-Za-z_\-]{35}"),  # Google API key
+    re.compile(r"xox[boprs]-[A-Za-z0-9-]{10,}"),  # Slack tokens
     re.compile(r"eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}"),  # JWT
 ]
 
 # ─── R1: inheritance from BaseAgent ─────────────────────────────────────────
+
 
 def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> None:
     """Every class in agents/_impl/* must inherit from BaseAgent."""
@@ -121,10 +129,7 @@ def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> No
             for b in node.bases:
                 base_names.append(ast.unparse(b))
             # Allow BaseAgent subclass or a recognized mixin.
-            is_agent = any(
-                re.match(r"BaseAgent\[.*\]", n) or n.endswith("BaseAgent")
-                for n in base_names
-            )
+            is_agent = any(re.match(r"BaseAgent\[.*\]", n) or n.endswith("BaseAgent") for n in base_names)
             if not is_agent:
                 # Not every class has to be an agent; only flag the *file*
                 # if the class name ends in "Agent".
@@ -136,9 +141,11 @@ def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> No
                         f"class {node.name} should inherit BaseAgent[AgentResponse]; got {base_names}",
                     )
 
+
 # ─── R2: @require_ephemeris usage ───────────────────────────────────────────
 
 EPHEMERIS_KEYWORDS = ("swisseph", "ephemeris", "planet_position", "natal", "aspect")
+
 
 def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: Report) -> None:
     """If the module uses ephemeris symbols, every class must have @require_ephemeris."""
@@ -159,7 +166,9 @@ def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: 
             "module uses ephemeris symbols but is missing @require_ephemeris on a method",
         )
 
+
 # ─── R3: no requests outside data_room ──────────────────────────────────────
+
 
 def check_data_room_compliance(src: Path, source_text: str, report: Report) -> None:
     """No `import requests` (or `from requests import ...`) outside data_room/."""
@@ -175,8 +184,7 @@ def check_data_room_compliance(src: Path, source_text: str, report: Report) -> N
             str(src_rel),
             _first_match_line(source_text, r"^\s*import\s+requests\b"),
             "R3",
-            "direct `import requests` is forbidden outside data_room/; "
-            "use data_room.blueprint.get_price(...)",
+            "direct `import requests` is forbidden outside data_room/; use data_room.blueprint.get_price(...)",
         )
     if re.search(r"^\s*from\s+requests\b", source_text, re.MULTILINE):
         report.fail(
@@ -186,7 +194,9 @@ def check_data_room_compliance(src: Path, source_text: str, report: Report) -> N
             "`from requests import ...` is forbidden outside data_room/",
         )
 
+
 # ─── R4: web/ routes must have @require_auth ───────────────────────────────
+
 
 def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> None:
     if WEB_DIR not in src.parents and src.parent != WEB_DIR:
@@ -202,10 +212,7 @@ def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> No
             is_route = any(".route(" in d for d in decorator_names)
             if not is_route:
                 continue
-            has_auth = any(
-                "require_auth" in d or "auth_required" in d
-                for d in decorator_names
-            )
+            has_auth = any("require_auth" in d or "auth_required" in d for d in decorator_names)
             is_public = "PUBLIC" in source_text.split(ast.unparse(node))[0][-200:]  # weak but useful
             if not has_auth and not is_public:
                 # Allow if the function is named with a public prefix or returns a static asset.
@@ -218,7 +225,9 @@ def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> No
                     f"route handler '{node.name}' is missing @require_auth",
                 )
 
+
 # ─── R5: registry coverage ─────────────────────────────────────────────────
+
 
 def check_registry_coverage(report: Report) -> None:
     """Every .py file in agents/_impl/ (excluding _templates) must be referenced in AGENT_AGENTS."""
@@ -236,9 +245,9 @@ def check_registry_coverage(report: Report) -> None:
     registry_text = REGISTRY_PATH.read_text(encoding="utf-8")
     # All .py files under _impl/ (skip __init__, _archived, _templates).
     impl_files = [
-        p for p in AGENT_IMPL_DIR.rglob("*.py")
-        if "_archived" not in p.parts and "_templates" not in p.parts
-        and p.name != "__init__.py"
+        p
+        for p in AGENT_IMPL_DIR.rglob("*.py")
+        if "_archived" not in p.parts and "_templates" not in p.parts and p.name != "__init__.py"
     ]
 
     for impl in impl_files:
@@ -258,7 +267,9 @@ def check_registry_coverage(report: Report) -> None:
                 f"module {rel_module} is not registered in AGENT_AGENTS",
             )
 
+
 # ─── R6: no top-level print in production ───────────────────────────────────
+
 
 def check_no_top_level_print(src: Path, source_text: str, report: Report) -> None:
     """`print(...)` at module top level is a smell; we allow it in tests/ and scripts/."""
@@ -280,7 +291,9 @@ def check_no_top_level_print(src: Path, source_text: str, report: Report) -> Non
                     "top-level print(); use logger.info(...) instead",
                 )
 
+
 # ─── R7: no f-string SQL ───────────────────────────────────────────────────
+
 
 def check_no_fstring_sql(src: Path, source_text: str, report: Report) -> None:
     try:
@@ -293,7 +306,7 @@ def check_no_fstring_sql(src: Path, source_text: str, report: Report) -> None:
         rf"{sql_verbs}.*f[\"']"  # SQL verb followed (eventually) by an f-string on the same statement
     )
     for i, line in enumerate(source_text.splitlines(), 1):
-        if pattern.search(line) and "f\"" in line and "?" not in line:
+        if pattern.search(line) and 'f"' in line and "?" not in line:
             report.fail(
                 str(rel),
                 i,
@@ -301,7 +314,9 @@ def check_no_fstring_sql(src: Path, source_text: str, report: Report) -> None:
                 "f-string SQL detected; use parameterized queries (`?` placeholders)",
             )
 
+
 # ─── R8: secret scan ───────────────────────────────────────────────────────
+
 
 def check_secrets(src: Path, source_text: str, report: Report) -> None:
     try:
@@ -322,7 +337,9 @@ def check_secrets(src: Path, source_text: str, report: Report) -> None:
                 )
                 break
 
+
 # ─── S1: docstring check ───────────────────────────────────────────────────
+
 
 def check_docstrings(tree: ast.AST, src: Path, report: Report) -> None:
     try:
@@ -343,6 +360,7 @@ def check_docstrings(tree: ast.AST, src: Path, report: Report) -> None:
                     f"{type(node).__name__} {node.name} has no docstring",
                 )
 
+
 # ─── Library API (used by tests and embedding) ────────────────
 
 # ─── Driver ─────────────────────────────────────────────────────────────────
@@ -351,11 +369,13 @@ SCAN_DIRS = ["agents", "core", "orchestration", "web", "scripts", "tools"]
 SKIP_SUFFIXES = {".pyc", ".pyo", ".swp", ".bak"}
 SKIP_NAMES = {"__pycache__", ".venv", "venv", "node_modules", ".git", ".ruff_cache", ".pytest_cache"}
 
+
 def _first_match_line(source_text: str, pattern: str) -> int:
     for i, line in enumerate(source_text.splitlines(), 1):
         if re.search(pattern, line):
             return i
     return 1
+
 
 def _rel(p: Path) -> str:
     try:
@@ -363,12 +383,16 @@ def _rel(p: Path) -> str:
     except (ValueError, AttributeError):
         return str(p)
 
+
 def iter_python_files(root: Path, only_changed: bool = False) -> Iterable[Path]:
     if only_changed:
         import subprocess
+
         out = subprocess.run(
             ["git", "diff", "--name-only", "--diff-filter=ACMR", "HEAD"],
-            capture_output=True, text=True, cwd=root,
+            capture_output=True,
+            text=True,
+            cwd=root,
         )
         for line in out.stdout.splitlines():
             p = root / line
@@ -385,6 +409,7 @@ def iter_python_files(root: Path, only_changed: bool = False) -> Iterable[Path]:
             if p.suffix in SKIP_SUFFIXES:
                 continue
             yield p
+
 
 def lint_file(src: Path, report: Report) -> None:
     report.files_scanned += 1
@@ -412,14 +437,16 @@ def lint_file(src: Path, report: Report) -> None:
     check_secrets(src, source_text, report)
     check_docstrings(tree, src, report)
 
+
 def render_report(report: Report) -> None:
     if not report.findings:
         print(GREEN("✔ architecture linter: no findings."))
         return
     fails = [f for f in report.findings if f.severity == "FAIL"]
     warns = [f for f in report.findings if f.severity == "WARN"]
-    print(BOLD(f"\nArchitecture linter — {len(fails)} FAIL, {len(warns)} WARN "
-               f"(scanned {report.files_scanned} files)\n"))
+    print(
+        BOLD(f"\nArchitecture linter — {len(fails)} FAIL, {len(warns)} WARN (scanned {report.files_scanned} files)\n")
+    )
     for finding in report.findings:
         icon = RED("✖") if finding.severity == "FAIL" else YELLOW("⚠")
         loc = f"{finding.file}:{finding.line}"
@@ -430,6 +457,7 @@ def render_report(report: Report) -> None:
         print(RED(f"❌ {len(fails)} hard-rule violation(s). Build blocked."))
     if warns and not fails:
         print(YELLOW(f"⚠ {len(warns)} soft warning(s). Build allowed."))
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="AstroFin architecture linter")
@@ -459,6 +487,7 @@ def main(argv: list[str] | None = None) -> int:
     if report.has_warnings:
         return 2
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

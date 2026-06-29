@@ -118,7 +118,7 @@ async def visualize_current_topology(session_id=None):
 
 
 # ── CLI (Click) ─────────────────────────────────────────────────
-import click
+import click  # noqa: E402
 
 
 @click.group()

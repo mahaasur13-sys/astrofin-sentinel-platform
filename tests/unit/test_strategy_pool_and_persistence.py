@@ -140,13 +140,11 @@ class TestStrategyPoolUnit:
     def test_top_k_returns_strategies_sorted_by_reward(self):
         """``top_k`` must return strategies ordered by latest reward desc."""
         pool = StrategyPool(max_size=10)
-        scored_list = [
-            _make_scored(reward=0.1, sid=f"low_{i}") for i in range(2)
-        ] + [
-            _make_scored(reward=0.9, sid=f"hi_{i}") for i in range(2)
-        ] + [
-            _make_scored(reward=0.5, sid=f"mid_{i}") for i in range(2)
-        ]
+        scored_list = (
+            [_make_scored(reward=0.1, sid=f"low_{i}") for i in range(2)]
+            + [_make_scored(reward=0.9, sid=f"hi_{i}") for i in range(2)]
+            + [_make_scored(reward=0.5, sid=f"mid_{i}") for i in range(2)]
+        )
         for s in scored_list:
             assert pool.add(s) is True
 
@@ -156,9 +154,7 @@ class TestStrategyPoolUnit:
         # Highest two must be the hi_* strategies.
         assert all(s.reward == 0.9 for s in top3[:2])
 
-    def test_diversity_filter_rejects_close_cosine_under_high_threshold(
-        self, monkeypatch
-    ):
+    def test_diversity_filter_rejects_close_cosine_under_high_threshold(self, monkeypatch):
         """With threshold=0.7, an identical feature vector must be filtered out.
 
         We monkeypatch ``StrategyPool._chrom_to_vec`` to a deterministic mapper
@@ -184,9 +180,7 @@ class TestStrategyPoolUnit:
 
         # Bound call: StrategyPool._chrom_to_vec(self, strategy). Patch as
         # a staticmethod so the class attribute lookup does not bind self.
-        monkeypatch.setattr(
-            StrategyPool, "_chrom_to_vec", staticmethod(_vec)
-        )
+        monkeypatch.setattr(StrategyPool, "_chrom_to_vec", staticmethod(_vec))
 
         pool = StrategyPool(max_size=20, diversity_threshold=0.7)
 
@@ -195,14 +189,10 @@ class TestStrategyPoolUnit:
         assert pool.add(seed) is True
 
         # Near-identical candidate: same chromosome → cosine = 1.0 → filtered.
-        clone = _make_scored(
-            chromosome=dict(shared_chrom), reward=0.5, sid="clone_1"
-        )
+        clone = _make_scored(chromosome=dict(shared_chrom), reward=0.5, sid="clone_1")
         # Orthogonal candidate: zero-vector chromosome so cosine is 0.0.
         zero_chrom = {k: 0 for k in shared_chrom.keys()}
-        orthogonal = _make_scored(
-            chromosome=zero_chrom, reward=0.4, sid="ortho_1"
-        )
+        orthogonal = _make_scored(chromosome=zero_chrom, reward=0.4, sid="ortho_1")
 
         kept = pool.diversity_filter([clone, orthogonal])
         kept_ids = {s.id for s in kept}
@@ -232,9 +222,7 @@ class TestStrategyPoolUnit:
                     vals.append(0.0)
             return np.array(vals, dtype=np.float64)
 
-        monkeypatch.setattr(
-            StrategyPool, "_chrom_to_vec", staticmethod(_vec)
-        )
+        monkeypatch.setattr(StrategyPool, "_chrom_to_vec", staticmethod(_vec))
 
         # Use a strictly-numerical chromosome so cosine == 1.0 exactly
         # (no float-rounding fuzz from bool→float conversion).
@@ -245,21 +233,14 @@ class TestStrategyPoolUnit:
 
         clone = _make_scored(chromosome=dict(shared_chrom), reward=0.5, sid="clone_1")
         # ortho: numerical chromosome far from seed (no zero-vector / NaN)
-        ortho_chrom = {k: (v * 100 + 17) if isinstance(v, (int, float)) else v
-                       for k, v in shared_chrom.items()}
+        ortho_chrom = {k: (v * 100 + 17) if isinstance(v, (int, float)) else v for k, v in shared_chrom.items()}
         ortho = _make_scored(chromosome=ortho_chrom, reward=0.4, sid="ortho_1")
         kept = pool.diversity_filter([clone, ortho])
         kept_ids = {s.id for s in kept}
-        assert "clone_1" not in kept_ids, (
-            "exact clone (cos==1.0) must be filtered at threshold=1.0"
-        )
-        assert "ortho_1" in kept_ids, (
-            "non-identical vector must survive (cos < 1.0 ⇒ kept)"
-        )
+        assert "clone_1" not in kept_ids, "exact clone (cos==1.0) must be filtered at threshold=1.0"
+        assert "ortho_1" in kept_ids, "non-identical vector must survive (cos < 1.0 ⇒ kept)"
 
-    def test_diversity_filter_strict_inequality_filters_identical_vectors(
-        self, monkeypatch
-    ):
+    def test_diversity_filter_strict_inequality_filters_identical_vectors(self, monkeypatch):
         """``if max_sim < threshold`` ⇒ identical vectors are always filtered
         (cos=1.0 < threshold is False for any threshold ≤ 1.0).
 
@@ -278,9 +259,7 @@ class TestStrategyPoolUnit:
                     vals.append(0.0)
             return np.array(vals, dtype=np.float64)
 
-        monkeypatch.setattr(
-            StrategyPool, "_chrom_to_vec", staticmethod(_vec)
-        )
+        monkeypatch.setattr(StrategyPool, "_chrom_to_vec", staticmethod(_vec))
 
         # Seed: numerical-only chromosome.
         seed_chrom = {"a": 1.0, "b": 2.0, "c": 3.0, "d": 4.0}
@@ -391,9 +370,7 @@ class TestPersistenceScoredAndVersions:
             assert rec["sharpe"] == pytest.approx(0.75)
             assert rec["trades"] == int(10 * 0.75)
             # Chromosome round-trips intact (same keys, same float values).
-            assert set(rec["chromosome"].keys()) == set(
-                scored.strategy.chromosome.keys()
-            )
+            assert set(rec["chromosome"].keys()) == set(scored.strategy.chromosome.keys())
             # Loader injects bookkeeping timestamps.
             assert "saved_at" in rec
         finally:
@@ -414,15 +391,15 @@ class TestPersistenceScoredAndVersions:
         self._per_version_cleanup(tags[1])
         try:
             # Version A: weaker pool (mean reward 0.3).
-            weak_pool = [
-                _make_scored(reward=0.2, sid=f"a_{i}") for i in range(3)
-            ] + [_make_scored(reward=0.4, sid=f"a_3")]
+            weak_pool = [_make_scored(reward=0.2, sid=f"a_{i}") for i in range(3)] + [
+                _make_scored(reward=0.4, sid="a_3")
+            ]
             assert persistence.save_version(weak_pool, tags[0]) is True
 
             # Version B: stronger pool (mean reward 0.8).
-            strong_pool = [
-                _make_scored(reward=0.7, sid=f"b_{i}") for i in range(3)
-            ] + [_make_scored(reward=1.0, sid=f"b_3")]
+            strong_pool = [_make_scored(reward=0.7, sid=f"b_{i}") for i in range(3)] + [
+                _make_scored(reward=1.0, sid="b_3")
+            ]
             assert persistence.save_version(strong_pool, tags[1]) is True
 
             # Both versions are listed in the index.
@@ -454,9 +431,7 @@ class TestPersistenceScoredAndVersions:
         existing = f"unit_ver_known_{uuid.uuid4().hex[:8]}"
         self._per_version_cleanup(existing)
         try:
-            assert persistence.save_version(
-                [_make_scored(reward=0.5, sid="only_1")], existing
-            ) is True
+            assert persistence.save_version([_make_scored(reward=0.5, sid="only_1")], existing) is True
             result = persistence.compare_versions(existing, "no_such_tag")
             assert result.get("error") == "version not found"
             assert result["a"] == existing

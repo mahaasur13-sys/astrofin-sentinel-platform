@@ -28,6 +28,7 @@ buckets (calls/imports/uses/inherits) would otherwise dominate the entire
 selection, collapsing diversity. The cap is enforced across anchor + min-floor
 + remainder + topup so every relation stays bounded.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -91,18 +92,28 @@ def is_cross_file(link: dict, nodes_by_id: dict) -> bool:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--max", type=int, default=500,
-                    help="Total edges to select (default: 500).")
-    ap.add_argument("--max-per-relation", type=int, default=100,
-                    help="Cap per relation bucket (default: 100).")
-    ap.add_argument("--min-per-relation", type=int, default=10,
-                    help="Floor per relation bucket when enough edges exist (default: 10).")
-    ap.add_argument("--hard-cap-per-relation", type=int, default=200,
-                    help="Absolute ceiling per relation across ALL passes (default: 200). "
-                         "Defends against large --max (e.g. 5000) collapsing diversity "
-                         "when a few buckets (calls/imports/uses/inherits) dominate.")
-    ap.add_argument("--cross-file-priority", action="store_true", default=True,
-                    help="Prefer cross-file edges inside each bucket (default: on).")
+    ap.add_argument("--max", type=int, default=500, help="Total edges to select (default: 500).")
+    ap.add_argument("--max-per-relation", type=int, default=100, help="Cap per relation bucket (default: 100).")
+    ap.add_argument(
+        "--min-per-relation",
+        type=int,
+        default=10,
+        help="Floor per relation bucket when enough edges exist (default: 10).",
+    )
+    ap.add_argument(
+        "--hard-cap-per-relation",
+        type=int,
+        default=200,
+        help="Absolute ceiling per relation across ALL passes (default: 200). "
+        "Defends against large --max (e.g. 5000) collapsing diversity "
+        "when a few buckets (calls/imports/uses/inherits) dominate.",
+    )
+    ap.add_argument(
+        "--cross-file-priority",
+        action="store_true",
+        default=True,
+        help="Prefer cross-file edges inside each bucket (default: on).",
+    )
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     args = ap.parse_args()
@@ -163,9 +174,7 @@ def main() -> None:
             if not remainder:
                 continue
             if args.cross_file_priority:
-                remainder.sort(
-                    key=lambda L: (not is_cross_file(L, nodes_by_id), -_w(L), -_conf(L))
-                )
+                remainder.sort(key=lambda L: (not is_cross_file(L, nodes_by_id), -_w(L), -_conf(L)))
             # Hard cap is absolute across ALL passes; soft cap is per-pass.
             headroom = args.hard_cap_per_relation - per_rel_count.get(rel, 0)
             if headroom <= 0:
@@ -212,22 +221,24 @@ def main() -> None:
     # Map raw links → inferred_clean.jsonl schema.
     out_edges: list[dict] = []
     for link in selected:
-        src_node = nodes_by_id.get(link.get("source", ""), {})
+        nodes_by_id.get(link.get("source", ""), {})
         tgt_node = nodes_by_id.get(link.get("target", ""), {})
-        out_edges.append({
-            "source_node_id": link.get("source", ""),
-            "source_path": link.get("source_file", ""),
-            "source_line": link.get("source_location", ""),
-            "target_node_id": link.get("target", ""),
-            "target_path": (tgt_node.get("source_file") or link.get("target_file") or ""),
-            "target_line": tgt_node.get("source_location", ""),
-            "confidence": _conf(link),
-            "weight": _w(link),
-            "relation": link.get("relation", "unknown"),
-            "context": link.get("context", ""),
-            "source_file": link.get("source_file", ""),
-            "source_location": link.get("source_location", ""),
-        })
+        out_edges.append(
+            {
+                "source_node_id": link.get("source", ""),
+                "source_path": link.get("source_file", ""),
+                "source_line": link.get("source_location", ""),
+                "target_node_id": link.get("target", ""),
+                "target_path": (tgt_node.get("source_file") or link.get("target_file") or ""),
+                "target_line": tgt_node.get("source_location", ""),
+                "confidence": _conf(link),
+                "weight": _w(link),
+                "relation": link.get("relation", "unknown"),
+                "context": link.get("context", ""),
+                "source_file": link.get("source_file", ""),
+                "source_location": link.get("source_location", ""),
+            }
+        )
 
     rng = random.Random(args.seed)
     rng.shuffle(out_edges)
@@ -240,10 +251,7 @@ def main() -> None:
 
     # Print summary so the caller sees diversity.
     rel_counter = Counter(e["relation"] for e in out_edges)
-    cross = sum(
-        1 for e in out_edges
-        if e["source_path"] and e["target_path"] and e["source_path"] != e["target_path"]
-    )
+    cross = sum(1 for e in out_edges if e["source_path"] and e["target_path"] and e["source_path"] != e["target_path"])
     summary = {
         "total": len(out_edges),
         "cross_file": cross,

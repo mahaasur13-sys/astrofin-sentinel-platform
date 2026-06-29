@@ -8,6 +8,7 @@ Tests:
 5. Per-agent EMA keys
 6. Regime modifier
 """
+
 from __future__ import annotations
 
 import sys

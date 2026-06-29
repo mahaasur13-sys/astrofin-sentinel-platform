@@ -8,11 +8,11 @@ Writes: graphify-out/inferred_clean_filtered.jsonl
 
 The script is deterministic and side-effect-free outside the output file.
 """
+
 from __future__ import annotations
 
 import json
 import os
-import sys
 from pathlib import Path
 
 # Resolve workspace from $WORKSPACE or $ASTROFIN_WORKSPACE, fall back to CWD.
@@ -20,11 +20,7 @@ from pathlib import Path
 # root (e.g. CI: `python graphify-out/filter_inferred.py`). Using
 # ~/workspace would silently point at a non-existent dir in containers/agents
 # whose $HOME is /root.
-WORKSPACE = Path(
-    os.environ.get("WORKSPACE")
-    or os.environ.get("ASTROFIN_WORKSPACE")
-    or Path.cwd()
-).resolve()
+WORKSPACE = Path(os.environ.get("WORKSPACE") or os.environ.get("ASTROFIN_WORKSPACE") or Path.cwd()).resolve()
 INPUT = WORKSPACE / "graphify-out" / "inferred_clean.jsonl"
 OUTPUT = WORKSPACE / "graphify-out" / "inferred_clean_filtered.jsonl"
 

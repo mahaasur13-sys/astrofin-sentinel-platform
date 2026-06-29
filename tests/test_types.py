@@ -11,7 +11,6 @@ BlackRock gate still wants a test file, so we instantiate a real agent
 
 from __future__ import annotations
 
-import pytest
 
 from tests.agent_test_base import AgentTestContract, DegradedContract  # noqa: E402
 from agents._impl.synthesis_agent import SynthesisAgent  # noqa: E402

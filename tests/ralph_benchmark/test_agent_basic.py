@@ -5,10 +5,10 @@ import pytest
 pytestmark = pytest.mark.skip(reason="Requires external Ralph agent")
 """Бенчмарк для Ralph Loop – минимальная задача, которую агент должен решить."""
 
-import os
-import subprocess
-import sys
-import pytest
+import os  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+import pytest  # noqa: E402
 
 BENCHMARK_DIR = os.path.dirname(__file__)
 TARGET_FILE = os.path.join(BENCHMARK_DIR, "_temp_add.py")
@@ -41,7 +41,7 @@ def test_add():
     task = f"Создай файл {TARGET_FILE} с функцией add(a, b), которая возвращает сумму a+b. Затем убедись, что pytest {TEST_FILE} проходит."
     env = os.environ.copy()
     env["VSELM_API_KEY"] = os.getenv("VSELM_API_KEY", "sk-TEST")  # подставь реальный ключ при необходимости
-    result = subprocess.run(
+    subprocess.run(
         [sys.executable, "scripts/ralph_agent.py", task],
         capture_output=True,
         text=True,

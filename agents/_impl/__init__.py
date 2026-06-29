@@ -9,6 +9,7 @@ Architecture (2026 Hybrid Signal):
   - Sentiment: 10%
   - Technical: 10% (filter only)
 """
+
 from __future__ import annotations
 
 

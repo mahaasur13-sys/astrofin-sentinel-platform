@@ -21,11 +21,11 @@ trading/safety_gate.py — ATOM-INTEGRATION-001: Safety Gate
   decision = gate.check(signal, state)
 """
 
-import os
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Optional
+import os  # noqa: E402
+from dataclasses import asdict, dataclass, field  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
+from enum import Enum  # noqa: E402
+from typing import Any, Optional  # noqa: E402
 
 # ─── Feature Flags ──────────────────────────────────────────────────────────────
 

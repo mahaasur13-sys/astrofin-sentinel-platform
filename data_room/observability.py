@@ -2,6 +2,7 @@
 
 Replace with prometheus_client in production.
 """
+
 from __future__ import annotations
 
 import threading
@@ -11,6 +12,7 @@ from typing import Any
 
 class MetricsStore:
     """Thread-safe singleton. Track resolver usage + quality."""
+
     _instance: "MetricsStore | None" = None
     _lock = threading.Lock()
 
@@ -19,9 +21,7 @@ class MetricsStore:
         self.error_count: dict[str, int] = defaultdict(int)
         self.latency_sum: dict[str, float] = defaultdict(float)
         self.last_quality: dict[str, float] = {}
-        self.source_breakdown: dict[str, dict[str, int]] = defaultdict(
-            lambda: defaultdict(int)
-        )
+        self.source_breakdown: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
     @classmethod
     def instance(cls) -> "MetricsStore":
@@ -51,7 +51,7 @@ class MetricsStore:
         """
         self.access_count[resolver] += 1
         self.source_breakdown[resolver][""] += 1
-        self.error_count[resolver] += (0 if success else 1)
+        self.error_count[resolver] += 0 if success else 1
         self.latency_sum[resolver] += latency
         self.last_quality[resolver] = quality
 
@@ -62,9 +62,7 @@ class MetricsStore:
             "latency_sum": dict(self.latency_sum),
             "latency_sum_ms": {k: v * 1000 for k, v in self.latency_sum.items()},
             "last_quality": dict(self.last_quality),
-            "source_breakdown": {
-                k: dict(v) for k, v in self.source_breakdown.items()
-            },
+            "source_breakdown": {k: dict(v) for k, v in self.source_breakdown.items()},
         }
 
     def reset(self) -> None:

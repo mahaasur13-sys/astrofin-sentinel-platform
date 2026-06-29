@@ -1,15 +1,16 @@
 """amre/karl_optimizer.py - ATOM-021: KARL Optimization & Parallelism"""
+
 from __future__ import annotations
 
 
 """Optimizations for KARL loop: parallel processing, TTC depth, reduced overhead."""
 
-import asyncio
-import threading
-import time
-from collections.abc import Callable
-from dataclasses import dataclass
-from typing import Any, Optional
+import asyncio  # noqa: E402
+import threading  # noqa: E402
+import time  # noqa: E402
+from collections.abc import Callable  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
+from typing import Any, Optional  # noqa: E402
 
 
 @dataclass

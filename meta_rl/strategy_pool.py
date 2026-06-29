@@ -297,8 +297,7 @@ class StrategyPool:
             self._nn_cache = ("sklearn", matrix, nn)
         except Exception as exc:  # noqa: BLE001 — sklearn import/runtime failure
             logger.warning(
-                "[META-RL] NearestNeighbors unavailable (%s); "
-                "diversity_filter falls back to O(n*m) loop.",
+                "[META-RL] NearestNeighbors unavailable (%s); diversity_filter falls back to O(n*m) loop.",
                 exc,
             )
             self._nn_cache = ("fallback", matrix, None)
@@ -333,9 +332,7 @@ class StrategyPool:
             return candidates
 
         # Build the pool's chromosome matrix once per call.
-        existing_vectors = np.stack(
-            [self._chrom_to_vec(s.strategy) for s in self._pool]
-        )
+        existing_vectors = np.stack([self._chrom_to_vec(s.strategy) for s in self._pool])
 
         filtered = []
         candidates_with_chrom: list[tuple[int, ScoredStrategy, np.ndarray]] = []
@@ -343,9 +340,7 @@ class StrategyPool:
             if not hasattr(candidate.strategy, "chromosome"):
                 filtered.append(candidate)
                 continue
-            candidates_with_chrom.append(
-                (idx, candidate, self._chrom_to_vec(candidate.strategy))
-            )
+            candidates_with_chrom.append((idx, candidate, self._chrom_to_vec(candidate.strategy)))
 
         if not candidates_with_chrom:
             return filtered
@@ -354,9 +349,7 @@ class StrategyPool:
         try:
             from sklearn.neighbors import NearestNeighbors  # lazy import
 
-            nn = NearestNeighbors(
-                n_neighbors=1, metric="cosine", algorithm="brute"
-            )
+            nn = NearestNeighbors(n_neighbors=1, metric="cosine", algorithm="brute")
             nn.fit(existing_vectors)
             query = np.stack([v for _, _, v in candidates_with_chrom])
             # cosine distance in sklearn = 1 - cosine_similarity
@@ -368,13 +361,9 @@ class StrategyPool:
                     filtered.append(candidate)
             return filtered
         except Exception as exc:  # noqa: BLE001 — degrade gracefully
-            logger.debug(
-                "[META-RL] NN diversity_filter unavailable, using fallback: %s", exc
-            )
+            logger.debug("[META-RL] NN diversity_filter unavailable, using fallback: %s", exc)
             for _, candidate, cand_vec in candidates_with_chrom:
-                max_sim = max(
-                    self._cosine_sim(cand_vec, vec) for vec in existing_vectors
-                )
+                max_sim = max(self._cosine_sim(cand_vec, vec) for vec in existing_vectors)
                 if max_sim < self.diversity_threshold:
                     filtered.append(candidate)
             return filtered
@@ -441,7 +430,7 @@ class StrategyPool:
             sim_matrix = normalized @ normalized.T
             # Zero out the diagonal and any rows where the original norm
             # was effectively zero (those entries are not real similarities).
-            zero_mask = (norms.squeeze(-1) < 1e-8)
+            zero_mask = norms.squeeze(-1) < 1e-8
             sim_matrix[zero_mask, :] = 0.0
             sim_matrix[:, zero_mask] = 0.0
             np.fill_diagonal(sim_matrix, 0.0)

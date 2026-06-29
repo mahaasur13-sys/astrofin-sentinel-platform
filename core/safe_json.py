@@ -1,4 +1,5 @@
 """core/safe_json.py — ATOM-017 FIX: Safe JSON operations with error handling"""
+
 from __future__ import annotations
 
 import json

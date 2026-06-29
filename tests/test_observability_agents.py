@@ -7,6 +7,8 @@ from tools.metrics_server import AGENT_SELECTION_COUNTS
 
 
 import pytest
+
+
 @pytest.mark.unit
 def test_agent_selection_increments_counter():
     """После выбора агентов через _select_for_flow счётчик должен инкрементироваться."""

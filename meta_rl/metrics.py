@@ -45,9 +45,7 @@ def _safe(metric_cls: type[_T], name: str, *args, **kwargs) -> _T:
 
 
 ## Gauge: current number of active strategies in the pool
-strategies_active = _safe(
-    Gauge, "astrofin_strategies_active", "Current number of active strategies in the pool"
-)
+strategies_active = _safe(Gauge, "astrofin_strategies_active", "Current number of active strategies in the pool")
 
 
 ## Histogram: duration of one generation of evolution (seconds)

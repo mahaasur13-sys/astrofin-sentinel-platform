@@ -1,4 +1,5 @@
 """strategies/base.py — ATOM-STEP-11: Strategy Base Classes"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

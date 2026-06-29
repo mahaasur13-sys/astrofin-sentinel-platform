@@ -3,6 +3,7 @@
 Каждый тик исторических данных проходит через:
 state → decision → reward_evaluation → buffer.add
 """
+
 from __future__ import annotations
 
 

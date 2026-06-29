@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
     result = await karl_agent.run(state)
 """
 
-import hashlib
-import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+import hashlib  # noqa: E402
+import uuid  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
+from typing import Any, Optional  # noqa: E402
 
-from agents._impl.amre import (
+from agents._impl.amre import (  # noqa: E402
     SelfQuestioningEngine,
     # Audit
     build_decision_record,
@@ -38,12 +38,12 @@ from agents._impl.amre import (
     should_trigger_self_questioning,
     validate_with_grounding,
 )
-from agents._impl.amre.reward import (
+from agents._impl.amre.reward import (  # noqa: E402
     RewardState,
     update_reward_ema,
 )
-from agents._impl.synthesis_agent import SynthesisAgent
-from agents.base_agent import AgentResponse
+from agents._impl.synthesis_agent import SynthesisAgent  # noqa: E402
+from agents.base_agent import AgentResponse  # noqa: E402
 
 # ATOM-019: PostgreSQL integration
 try:
@@ -61,9 +61,9 @@ except Exception:
     AgentSignalRepository = None
     AstroPositionRepository = None
 # ATOM-KARL-015 Phase 5: Lag Windowing
-from agents._impl.amre.lag_windowing import get_lag_window
-from agents._impl.amre.risk_control import apply_position_lag_risk
-from agents._impl.amre.trajectory import MarketState, market_state_hash
+from agents._impl.amre.lag_windowing import get_lag_window  # noqa: E402
+from agents._impl.amre.risk_control import apply_position_lag_risk  # noqa: E402
+from agents._impl.amre.trajectory import MarketState, market_state_hash  # noqa: E402
 
 # ─── KARL Synthesis Agent ────────────────────────────────────────────────────────
 
