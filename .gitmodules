@@ -23,7 +23,3 @@
 	url = https://github.com/mahaasur13-sys/atom-federation-os.git
 	branch = master
 
-[submodule "integrations/gitagent"]
-	path = integrations/gitagent
-	url = https://github.com/mahaasur13-sys/integrations-gitagent.git
-
