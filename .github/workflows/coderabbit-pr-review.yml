@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+          with:
+            submodules: recursive
+            token: ${{ secrets.GH_PAT }}
         with:
           fetch-depth: 0
 

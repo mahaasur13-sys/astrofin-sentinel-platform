@@ -1,25 +1,30 @@
-__pycache__/
+
+ab_*
+astrofin-sentinel-platform/
+audit_repo/
+audit_reports/
+# audit_repo — локальная копия репо для аудита (не для коммита)
+*.bak
+build/
+dist/
+*.egg-info/
+.env
+.env.secrets
+graphify-out/_ad_hoc_ov_check*.jsonl
+graphify-out/cache/
+graphify-out/*.filtered.jsonl
+graphify-out/inferred_clean.*
+graphify-out/inferred_clean_filtered.jsonl
+# graphify-out runtime artifacts (do not commit)
+# local artifacts (never commit)
+# local secrets template (never commit)
+_pr_logs/
+PRODUCTION_PLAN.md
+push/
 *.pyc
+__pycache__/
 *.pyo
 .pytest_cache/
 .ruff_cache/
-*.egg-info/
+_sbs_old/
 .venv/
-build/
-dist/
-*.bak
-graphify-out/inferred_clean.*
-graphify-out/cache/
-ab_*
-
-# local secrets template (never commit)
-.env.secrets
-.env
-
-# graphify-out runtime artifacts (do not commit)
-graphify-out/inferred_clean_filtered.jsonl
-graphify-out/_ad_hoc_ov_check*.jsonl
-graphify-out/*.filtered.jsonl
-
-# audit_repo — локальная копия репо для аудита (не для коммита)
-audit_repo/

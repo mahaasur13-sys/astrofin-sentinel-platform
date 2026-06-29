@@ -33,3 +33,4 @@ pytest-asyncio
 prometheus-client
 aiohttp
 openai>=1.0.0
+faiss-cpu>=1.7.4

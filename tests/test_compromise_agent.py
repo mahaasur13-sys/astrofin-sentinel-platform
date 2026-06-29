@@ -143,3 +143,21 @@ async def main():
 
 
 asyncio.run(main())
+
+
+# ─── BlackRock Six Tests (mixin) ─────────────────────────────────────────────
+# Imported at the bottom so it doesn't interfere with the PR1 stubs above.
+
+if True:  # keep block scoped
+    from tests.agent_test_base import AgentTestContract, DegradedContract  # noqa: E402
+    from agents._impl.compromise_agent import CompromiseAgent  # noqa: E402
+
+    class TestCompromiseAgentBlackRock(AgentTestContract, DegradedContract):
+        agent_class = CompromiseAgent
+
+        async def test_happy_path(self, agent, happy_state): return await super().test_happy_path(agent, happy_state)
+        async def test_empty_state(self, agent): return await super().test_empty_state(agent)
+        async def test_malformed_state(self, agent): return await super().test_malformed_state(agent)
+        async def test_data_source_unavailable(self, agent, happy_state): return await super().test_data_source_unavailable(agent, happy_state)
+        async def test_missing_ephemeris(self, agent, happy_state): return await super().test_missing_ephemeris(agent, happy_state)
+        async def test_large_input(self, agent): return await super().test_large_input(agent)
