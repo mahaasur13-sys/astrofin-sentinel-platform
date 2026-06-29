@@ -2,6 +2,7 @@
 Инициализация OpenTelemetry с экспортом в Jaeger (OTLP gRPC).
 Добавлено автоматическое инструментирование aiohttp, если пакет установлен.
 """
+
 from __future__ import annotations
 
 import logging

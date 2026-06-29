@@ -7,6 +7,8 @@ from tools.metrics_server import RAG_CHUNK_COUNT, RAG_RELEVANCE_SCORE
 
 
 import pytest
+
+
 @pytest.mark.unit
 def test_rag_retrieve_updates_quality_metrics():
     """После retrieve должны обновиться метрики relevance_score и chunk_count."""

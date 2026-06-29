@@ -1,4 +1,5 @@
 """agents._impl.astro_council — AstroCouncil Agent Package"""
+
 from __future__ import annotations
 
 

@@ -2,6 +2,7 @@
 
 All 4 mandatory tests + additional coverage.
 """
+
 from __future__ import annotations
 
 import sys

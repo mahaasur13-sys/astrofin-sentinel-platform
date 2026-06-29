@@ -10,6 +10,7 @@ Pipeline:
     compute_smoothed_reward() → EMA per symbol
     compute_reward_pipeline() → combined with full breakdown
 """
+
 from __future__ import annotations
 
 from core.reward.astro_reward import compute_astro_reward

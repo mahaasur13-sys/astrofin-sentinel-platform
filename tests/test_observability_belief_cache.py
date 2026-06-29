@@ -4,6 +4,8 @@ from tools.metrics_server import CACHE_HITS, CACHE_MISSES
 
 
 import pytest
+
+
 @pytest.mark.unit
 def test_belief_get_cache_increments_counters():
     """Повторный вызов get() для одного агента должен инкрементировать hit/miss."""

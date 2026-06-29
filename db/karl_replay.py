@@ -1,6 +1,7 @@
 """db/karl_replay.py — PostgresReplayBuffer (ATOM-019)
 Stores KARL trajectories in PostgreSQL + TimescaleDB.
 """
+
 from __future__ import annotations
 
 

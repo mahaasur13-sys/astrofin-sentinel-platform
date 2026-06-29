@@ -13,6 +13,7 @@ Usage:
   agent.record("BTCUSDT", 2025, win_rate=63.5, sharpe=1.42, trades=142)
   summary = agent.get_summary()
 """
+
 from __future__ import annotations
 
 import sqlite3

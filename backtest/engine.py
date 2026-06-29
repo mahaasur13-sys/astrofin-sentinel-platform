@@ -1,4 +1,5 @@
 """backtest/engine.py — G-01/G-03 Backtesting Engine (with real agent support + metrics)"""
+
 from __future__ import annotations
 
 import asyncio

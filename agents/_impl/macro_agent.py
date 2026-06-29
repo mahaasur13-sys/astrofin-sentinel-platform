@@ -12,7 +12,6 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-import numpy as np
 
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics

@@ -1,4 +1,5 @@
 """data/market_adapter.py — ATOM-STEP-6: Market Data Adapter with live sources, cache, and metrics."""
+
 from __future__ import annotations
 
 import logging
@@ -9,7 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 import requests
-from prometheus_client import Counter, Gauge, Histogram, REGISTRY
+from prometheus_client import Counter, Histogram
 
 
 logger = logging.getLogger(__name__)

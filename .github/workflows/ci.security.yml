@@ -28,6 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -58,7 +61,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/workflows/python-setup.yml
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+      - uses: ./.github/actions/setup-astrofin-python
         with: { install-dev: 'false' }
       - name: Install bandit
         run: pip install bandit==1.8.0
@@ -76,7 +82,10 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/workflows/python-setup.yml
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+      - uses: ./.github/actions/setup-astrofin-python
         with: { install-dev: 'true' }
       - name: Ruff lint (github format)
         run: ruff check . --output-format=github
@@ -92,7 +101,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/workflows/python-setup.yml
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
+      - uses: ./.github/actions/setup-astrofin-python
         with: { install-dev: 'true' }
       - name: Pytest (with coverage)
         run: |
@@ -110,6 +122,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -121,6 +136,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -129,7 +147,7 @@ jobs:
       - name: pip-audit (requirements + requirements-dev)
         run: |
           set +e
-          pip-audit -r requirements.txt -f json --disable-pip > /tmp/pip-audit.json 2>/tmp/pip-audit.err
+          pip-audit -r requirements.txt --no-deps -f json > /tmp/pip-audit.json 2>/tmp/pip-audit.err
           rc=$?
           cat /tmp/pip-audit.err
           python -c "import json,sys; d=json.load(open('/tmp/pip-audit.json')); d=[x for x in d if x.get('vulns')]; open('/tmp/pip-audit.final.json','w').write(json.dumps(d,indent=2))"

@@ -26,14 +26,62 @@ def agent_test_path(agent_file):
 
 
 def has_function(test_file, fn_name):
+    """Return True if fn_name is defined in test_file OR in any base class file."""
     try:
-        tree = ast.parse(test_file.read_text(encoding="utf-8"))
+        text = test_file.read_text(encoding="utf-8")
     except (SyntaxError, FileNotFoundError):
         return False
+
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, FileNotFoundError):
+        return False
+
+    # 1. Check directly in this file
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name == fn_name:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == fn_name:
             return True
+
+    # 2. Find base classes of Test classes and search them
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            for base in node.bases:
+                base_name = base.id if isinstance(base, ast.Name) else getattr(base, "attr", None)
+                if not base_name:
+                    continue
+                base_file = _find_class_file(base_name)
+                if base_file and base_file.exists():
+                    try:
+                        base_tree = ast.parse(base_file.read_text(encoding="utf-8"))
+                    except (SyntaxError, FileNotFoundError):
+                        continue
+                    for bn in ast.walk(base_tree):
+                        if isinstance(bn, ast.ClassDef) and bn.name == base_name:
+                            for method in bn.body:
+                                if (
+                                    isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef))
+                                    and method.name == fn_name
+                                ):
+                                    return True
     return False
+
+
+def _find_class_file(class_name, repo_root="."):
+    """Find which .py file in common search dirs defines class_name."""
+    search_dirs = ["tests", "core", "agents/_impl"]
+    for d in search_dirs:
+        dpath = Path(repo_root) / d
+        if not dpath.exists():
+            continue
+        for py in dpath.glob("*.py"):
+            try:
+                t = ast.parse(py.read_text(encoding="utf-8"))
+            except (SyntaxError, FileNotFoundError):
+                continue
+            for n in ast.walk(t):
+                if isinstance(n, ast.ClassDef) and n.name == class_name:
+                    return py
+    return None
 
 
 def main():
@@ -43,7 +91,7 @@ def main():
     args = parser.parse_args()
 
     agents_dir = Path(args.agents_dir)
-    tests_dir = Path(args.tests_dir)
+    Path(args.tests_dir)
 
     missing_files = []
     incomplete_files = []

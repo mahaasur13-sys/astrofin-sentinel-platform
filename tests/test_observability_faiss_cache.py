@@ -8,6 +8,8 @@ from tools.metrics_server import CACHE_HITS, CACHE_MISSES
 
 
 import pytest
+
+
 @pytest.mark.unit
 def test_faiss_load_cache_increments_counters():
     """Повторный вызов _load для одного домена должен инкрементировать hit/miss."""

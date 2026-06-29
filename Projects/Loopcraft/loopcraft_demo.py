@@ -61,11 +61,11 @@ LR_MIN, LR_MAX = 1e-5, 1.0
 
 # Параметры цикла
 DEFAULT_MAX_ITERATIONS = 60
-TARGET_LOSS = 0.10          # порог «идеального» результата
-GATE_TOLERANCE = 1e-4       # новая loss должна быть < best - tolerance
+TARGET_LOSS = 0.10  # порог «идеального» результата
+GATE_TOLERANCE = 1e-4  # новая loss должна быть < best - tolerance
 
 # Агент
-AGENT_STEP_LOG_MEAN = 0.3   # средне-логарифмический шаг изменения lr
+AGENT_STEP_LOG_MEAN = 0.3  # средне-логарифмический шаг изменения lr
 AGENT_EXPLORATION_RATE = 0.2  # вероятность случайного «прыжка»
 
 
@@ -73,39 +73,37 @@ AGENT_EXPLORATION_RATE = 0.2  # вероятность случайного «п
 # Модели данных                                                               #
 # --------------------------------------------------------------------------- #
 
+
 @dataclass
 class Attempt:
     """Одна попытка агента: какое lr он предложил, какой loss получил,
     было ли это принято шлюзом, и по какой причине."""
+
     iteration: int
     lr: float
     loss: float
     accepted: bool
     reason: str
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 @dataclass
 class CycleState:
     """Полное состояние цикла, сериализуемое в JSON."""
+
     best_lr: float = 0.1
     best_loss: float = float("inf")
     attempts: list[dict[str, Any]] = field(default_factory=list)
     accepted_count: int = 0
     rejected_count: int = 0
-    created_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
-    updated_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 # --------------------------------------------------------------------------- #
 # Среда: «обучение»                                                           #
 # --------------------------------------------------------------------------- #
+
 
 class Environment:
     """Заглушка обучения. val_loss = f(lr) + шум.
@@ -114,9 +112,9 @@ class Environment:
     Используется лог-пространство, потому что lr — мультипликативный параметр.
     """
 
-    def __init__(self, optimal_lr: float = LANDSCAPE_OPTIMAL_LR,
-                 noise_std: float = LANDSCAPE_NOISE_STD,
-                 seed: int | None = None) -> None:
+    def __init__(
+        self, optimal_lr: float = LANDSCAPE_OPTIMAL_LR, noise_std: float = LANDSCAPE_NOISE_STD, seed: int | None = None
+    ) -> None:
         self.optimal_lr = optimal_lr
         self.noise_std = noise_std
         self._rng = random.Random(seed)
@@ -127,7 +125,7 @@ class Environment:
             return float("inf")
         # Гладкая U-образная функция в лог-пространстве
         log_distance = math.log(lr / self.optimal_lr)
-        loss = log_distance ** 2 + 0.05
+        loss = log_distance**2 + 0.05
         # Добавим гауссов шум (Box-Muller)
         noise = self._rng.gauss(0, self.noise_std)
         return max(0.0, loss + noise)
@@ -136,6 +134,7 @@ class Environment:
 # --------------------------------------------------------------------------- #
 # Агент: «предлагает» новое lr                                                #
 # --------------------------------------------------------------------------- #
+
 
 class Agent:
     """Имитация LLM-агента. Вместо реальной модели — детерминированная
@@ -163,8 +162,8 @@ class Agent:
 # Шлюз верификации                                                            #
 # --------------------------------------------------------------------------- #
 
-def gate(lr: float, loss: float, state: CycleState,
-         verbose: bool = False) -> tuple[bool, str]:
+
+def gate(lr: float, loss: float, state: CycleState, verbose: bool = False) -> tuple[bool, str]:
     """Решение о принятии/отклонении попытки.
 
     Правила:
@@ -193,6 +192,7 @@ def gate(lr: float, loss: float, state: CycleState,
 # State-файл                                                                  #
 # --------------------------------------------------------------------------- #
 
+
 def save_state(state: CycleState) -> None:
     """Атомарная запись state-файла: write to .tmp → rename."""
     state.updated_at = datetime.now(timezone.utc).isoformat()
@@ -217,8 +217,7 @@ def load_state() -> CycleState:
             data["best_loss"] = float("inf")
         return CycleState(**data)
     except (OSError, json.JSONDecodeError, TypeError) as e:
-        print(f"[WARN] state file corrupt, starting fresh: {e}",
-              file=sys.stderr)
+        print(f"[WARN] state file corrupt, starting fresh: {e}", file=sys.stderr)
         return CycleState()
 
 
@@ -226,8 +225,8 @@ def load_state() -> CycleState:
 # Главный цикл                                                                #
 # --------------------------------------------------------------------------- #
 
-def run_cycle(verbose: bool = False,
-              max_iterations: int = DEFAULT_MAX_ITERATIONS) -> CycleState:
+
+def run_cycle(verbose: bool = False, max_iterations: int = DEFAULT_MAX_ITERATIONS) -> CycleState:
     """Один прогон loopcraft-цикла.
 
     Возвращает финальное состояние. Прерывания:
@@ -241,8 +240,7 @@ def run_cycle(verbose: bool = False,
     agent = Agent(seed=42)
 
     if verbose:
-        print(f"[INIT] state loaded: best_lr={state.best_lr:.6f}, "
-              f"best_loss={state.best_loss:.6f}")
+        print(f"[INIT] state loaded: best_lr={state.best_lr:.6f}, best_loss={state.best_loss:.6f}")
         print(f"[INIT] target_loss={TARGET_LOSS}, max_iterations={max_iterations}")
         print("-" * 70)
 
@@ -260,10 +258,15 @@ def run_cycle(verbose: bool = False,
             except Exception as e:
                 if verbose:
                     print(f"[ITER {i:03d}] environment error: {e}")
-                state.attempts.append(Attempt(
-                    iteration=i, lr=proposed_lr, loss=float("inf"),
-                    accepted=False, reason=f"rejected: env error: {e}"
-                ).__dict__)
+                state.attempts.append(
+                    Attempt(
+                        iteration=i,
+                        lr=proposed_lr,
+                        loss=float("inf"),
+                        accepted=False,
+                        reason=f"rejected: env error: {e}",
+                    ).__dict__
+                )
                 state.rejected_count += 1
                 save_state(state)
                 continue
@@ -279,10 +282,9 @@ def run_cycle(verbose: bool = False,
             else:
                 state.rejected_count += 1
 
-            state.attempts.append(Attempt(
-                iteration=i, lr=proposed_lr, loss=loss,
-                accepted=accepted, reason=reason
-            ).__dict__)
+            state.attempts.append(
+                Attempt(iteration=i, lr=proposed_lr, loss=loss, accepted=accepted, reason=reason).__dict__
+            )
 
             # ---- 5. Сохранить state после КАЖДОЙ попытки (атомарно) ----
             save_state(state)
@@ -290,9 +292,11 @@ def run_cycle(verbose: bool = False,
             # ---- 6. Лог ----
             if verbose:
                 tag = "ACCEPT" if accepted else "REJECT"
-                print(f"[ITER {i:03d}] {tag} | lr={proposed_lr:.6f} "
-                      f"loss={loss:.6f} | best_lr={state.best_lr:.6f} "
-                      f"best_loss={state.best_loss:.6f}")
+                print(
+                    f"[ITER {i:03d}] {tag} | lr={proposed_lr:.6f} "
+                    f"loss={loss:.6f} | best_lr={state.best_lr:.6f} "
+                    f"best_loss={state.best_loss:.6f}"
+                )
                 if accepted:
                     print(f"         reason: {reason}")
 
@@ -300,8 +304,7 @@ def run_cycle(verbose: bool = False,
             if state.best_loss <= TARGET_LOSS:
                 if verbose:
                     print("-" * 70)
-                    print(f"[STOP] target loss {TARGET_LOSS} достигнут "
-                          f"(best_loss={state.best_loss:.6f})")
+                    print(f"[STOP] target loss {TARGET_LOSS} достигнут (best_loss={state.best_loss:.6f})")
                 converged = True
                 break
 
@@ -318,6 +321,7 @@ def run_cycle(verbose: bool = False,
 # --------------------------------------------------------------------------- #
 # Отчёт                                                                       #
 # --------------------------------------------------------------------------- #
+
 
 def print_report(state: CycleState) -> dict[str, Any]:
     """Вывести финальный отчёт и вернуть машинно-читаемую статистику."""
@@ -340,23 +344,20 @@ def print_report(state: CycleState) -> dict[str, Any]:
     print(f"Best lr:              {state.best_lr:.6f}")
     print(f"Best loss:            {state.best_loss:.6f}")
     print(f"Initial loss:         {first_loss:.6f}")
-    print(f"Improvement:          {improvement:.6f}  ({improvement/first_loss*100:.1f}%)"
-          if first_loss > 0 else "")
+    print(f"Improvement:          {improvement:.6f}  ({improvement / first_loss * 100:.1f}%)" if first_loss > 0 else "")
     print(f"Target loss:          {TARGET_LOSS}")
     print(f"Converged:            {'YES' if state.best_loss <= TARGET_LOSS else 'NO'}")
     print()
     print(f"Cost per accepted change (CPA):  {cpa:.2f} attempts per accepted")
     print(f"  (interpretation: каждая принятая правка стоила {cpa:.1f} попыток,")
-    print(f"   из них {cpa-1:.1f} были отклонены шлюзом как не-улучшения)")
+    print(f"   из них {cpa - 1:.1f} были отклонены шлюзом как не-улучшения)")
     print("=" * 70)
 
     if accepted_attempts:
         print()
         print("Accepted improvements (history of convergence):")
         for a in accepted_attempts:
-            print(f"  iter {a['iteration']:3d}  "
-                  f"lr={a['lr']:.6f}  loss={a['loss']:.6f}  "
-                  f"-> {a['reason']}")
+            print(f"  iter {a['iteration']:3d}  lr={a['lr']:.6f}  loss={a['loss']:.6f}  -> {a['reason']}")
 
     return {
         "total_attempts": total,
@@ -375,6 +376,7 @@ def print_report(state: CycleState) -> dict[str, Any]:
 # Точка входа                                                                 #
 # --------------------------------------------------------------------------- #
 
+
 def main() -> int:
     """Точка входа. Демонстрирует все 7 принципов loopcraft:
 
@@ -386,15 +388,15 @@ def main() -> int:
     6. МЕТРИКА        — CPA в финальном отчёте
     7. БЕЗОПАСНОСТЬ    — max_iterations, try/except, KeyboardInterrupt
     """
-    parser = argparse.ArgumentParser(
-        description="Loopcraft demo: автономный цикл оптимизации learning_rate"
+    parser = argparse.ArgumentParser(description="Loopcraft demo: автономный цикл оптимизации learning_rate")
+    parser.add_argument("--verbose", "-v", action="store_true", help="подробный лог каждой итерации")
+    parser.add_argument("--reset", action="store_true", help="сбросить state-файл перед запуском")
+    parser.add_argument(
+        "--iterations",
+        type=int,
+        default=DEFAULT_MAX_ITERATIONS,
+        help=f"макс. итераций (по умолчанию {DEFAULT_MAX_ITERATIONS})",
     )
-    parser.add_argument("--verbose", "-v", action="store_true",
-                        help="подробный лог каждой итерации")
-    parser.add_argument("--reset", action="store_true",
-                        help="сбросить state-файл перед запуском")
-    parser.add_argument("--iterations", type=int, default=DEFAULT_MAX_ITERATIONS,
-                        help=f"макс. итераций (по умолчанию {DEFAULT_MAX_ITERATIONS})")
     args = parser.parse_args()
 
     if args.reset and STATE_FILE.exists():

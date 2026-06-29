@@ -1,0 +1,16 @@
+# Ruff config — exclude submodule code (handled by their own repos)
+extend-exclude = [
+    "AsurDev",
+    "home-cluster-iac",
+    "atom-federation-os",
+    "roma-execution-bridge",
+    "astrofin-sentinel-v5",
+    "integrations",
+    "audit_repo",
+    "_sbs_old",
+    "_pr_logs",
+    ".venv",
+]
+
+target-version = "py310"
+line-length = 120

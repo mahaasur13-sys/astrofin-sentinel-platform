@@ -38,6 +38,9 @@ jobs:
       json: ${{ steps.parse.outputs.json }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - id: parse
@@ -61,6 +64,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - name: Run architecture linter (R1-R9)
@@ -99,6 +105,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
         with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
@@ -147,6 +156,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
         with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
@@ -168,6 +180,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - name: Install dev dependencies
@@ -198,6 +213,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - name: Write summary to GITHUB_STEP_SUMMARY
         run: |
           status() { if [ "$1" = "success" ]; then echo '- '"$2"': OK'; else echo '- '"$2"': FAIL ('"$1"')'; fi; }
@@ -223,6 +241,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.GH_PAT }}
       - name: Post/update PR comment
         uses: actions/github-script@v7
         with:

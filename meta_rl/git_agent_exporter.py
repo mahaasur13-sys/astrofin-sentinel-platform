@@ -24,7 +24,7 @@ def _validate_agent_yaml(agent_yaml: dict[str, Any]) -> tuple[bool, str | None]:
     """
     try:
         from integrations.gitagent.validators.agent_validator import AgentYamlValidator
-    except Exception as e:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         return True, None  # validator unavailable -> skip validation (best-effort)
     try:
         validator = AgentYamlValidator()
@@ -112,7 +112,11 @@ def export_strategy(strategy: Any, version_tag: str = None, output_dir: str = No
         is_valid, validation_error = _validate_agent_yaml(agent_yaml)
         if not is_valid:
             return ExportResult(
-                slug=slug, path=str(pkg), validated=False, errors=[validation_error or "YAML validation failed"], deduplicated=False
+                slug=slug,
+                path=str(pkg),
+                validated=False,
+                errors=[validation_error or "YAML validation failed"],
+                deduplicated=False,
             )
         # Deduplication: skip if identical agent.yaml already exists
         existing_yaml = pkg / "agent.yaml"

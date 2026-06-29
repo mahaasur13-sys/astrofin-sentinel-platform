@@ -5,6 +5,7 @@ scripts/translate_comments.py
 Использует deep-translator (GoogleTranslate) – требуется интернет.
 Строковые литералы и docstring не изменяются.
 """
+
 from __future__ import annotations
 
 import re

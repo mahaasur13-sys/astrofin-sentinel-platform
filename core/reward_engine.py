@@ -3,6 +3,7 @@ core/reward_engine.py — ATOM-STEP-6: Reward Engine for Online RL
 ===============================================================
 Computes trading rewards from market outcomes.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

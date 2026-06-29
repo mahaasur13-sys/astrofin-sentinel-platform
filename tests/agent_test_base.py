@@ -9,13 +9,8 @@ Provides:
   every agent must satisfy. Subclasses opt in by setting the class
   attribute :pyattr:`agent_class` and may override individual tests.
 
-- :class:`DegradedContract` — six tests that exercise the
+- :class:`DegradedContract` — tests for the
   ``self._degraded(reason, msg)`` path inherited from BaseAgent.
-
-Why a base class and not a free function:
-    - Per-agent tests stay tiny (one file ~ 30 lines + imports).
-    - New agents inherit compliance for free.
-    - When the contract changes, ONE place to update.
 
 Usage::
 
@@ -42,7 +37,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from core.base_agent import AgentResponse, SignalDirection  # noqa: E402
+from core.base_agent import AgentResponse, SignalDirection, EPHEMERIS_UNAVAILABLE  # noqa: E402
 
 # Latency budget per agent call (seconds). Anything longer than this
 # should trip the per-agent p99 budget alarm in production.
@@ -75,9 +70,7 @@ class AgentTestContract:
     @pytest.fixture
     def agent(self):
         """Fresh agent per-test (no shared state)."""
-        assert self.agent_class is not None, (
-            f"{self.__class__.__name__} must set `agent_class`"
-        )
+        assert self.agent_class is not None, f"{self.__class__.__name__} must set `agent_class`"
         return self.agent_class()
 
     @pytest.fixture
@@ -94,7 +87,7 @@ class AgentTestContract:
 
     # ─── 1. happy path ────────────────────────────────────────────
     @pytest.mark.asyncio
-    async def test_happy_path_returns_agent_response(self, agent, happy_state):
+    async def test_happy_path(self, agent, happy_state):
         """A well-formed state must produce a fully-populated AgentResponse."""
         response = await agent.run(happy_state)
         assert isinstance(response, AgentResponse)
@@ -111,7 +104,7 @@ class AgentTestContract:
 
     # ─── 2. empty state ───────────────────────────────────────────
     @pytest.mark.asyncio
-    async def test_empty_state_does_not_crash(self, agent):
+    async def test_empty_state(self, agent):
         """An empty state is not allowed to raise — must degrade gracefully."""
         response = await agent.run({})
         assert response is not None
@@ -119,7 +112,7 @@ class AgentTestContract:
 
     # ─── 3. malformed state ───────────────────────────────────────
     @pytest.mark.asyncio
-    async def test_malformed_state_does_not_crash(self, agent):
+    async def test_malformed_state(self, agent):
         """Wrong types in known fields must not raise."""
         bad_state = {
             "symbol": None,
@@ -133,7 +126,7 @@ class AgentTestContract:
 
     # ─── 4. data source unavailable ───────────────────────────────
     @pytest.mark.asyncio
-    async def test_data_source_unavailable_marks_degraded(self, agent, happy_state):
+    async def test_data_source_unavailable(self, agent, happy_state):
         """If a data source raises, the response is degraded with a machine reason."""
         with patch.object(agent, self.data_method, side_effect=ConnectionError("data_room down")):
             response = await agent.run(happy_state)
@@ -145,13 +138,12 @@ class AgentTestContract:
 
     # ─── 5. graceful degradation when ephemeris is missing ────────
     @pytest.mark.asyncio
-    async def test_missing_ephemeris_returns_degraded(self, agent, happy_state):
+    async def test_missing_ephemeris(self, agent, happy_state):
         """@require_ephemeris must convert to a degraded response, not a crash."""
         # Patch every plausible import path.
         with patch("agents._impl.ephemeris_decorator.HAS_SWISS_EPHEMERIS", False):
-            with patch("agents._impl._template_agent.HAS_SWISS_EPHEMERIS", False):
-                with patch.object(agent.__class__, "HAS_SWISS_EPHEMERIS", False, create=True):
-                    response = await agent.run(happy_state)
+            with patch.object(agent.__class__, "HAS_SWISS_EPHEMERIS", False, create=True):
+                response = await agent.run(happy_state)
         assert response.metadata.get("degraded") is True
         assert response.metadata.get("degradation_reason") == "EPHEMERIS_UNAVAILABLE"
         assert response.signal == SignalDirection.NEUTRAL
@@ -159,7 +151,7 @@ class AgentTestContract:
 
     # ─── 6. large input ───────────────────────────────────────────
     @pytest.mark.asyncio
-    async def test_large_input_does_not_explode(self, agent):
+    async def test_large_input(self, agent):
         """A 1MB-ish state must complete; the agent must not blow up on size."""
         big_state = {
             "symbol": "BTCUSDT",
@@ -178,6 +170,7 @@ class AgentTestContract:
     async def test_hot_latency_under_budget(self, agent, happy_state):
         """First call must return within HOT_LATENCY_BUDGET_S."""
         import time
+
         t0 = time.perf_counter()
         await agent.run(happy_state)
         dt = time.perf_counter() - t0
@@ -218,10 +211,8 @@ class DegradedContract:
         assert self.agent_class is not None
         return self.agent_class()
 
-    @pytest.mark.asyncio
-    async def test_degraded_returns_neutral_zero_confidence(self, agent):
+    def test_degraded_returns_neutral_zero_confidence(self, agent):
         """_degraded() must return NEUTRAL with confidence=0."""
-        from core.base_agent import EPHEMERIS_UNAVAILABLE
         response = agent._degraded(EPHEMERIS_UNAVAILABLE, "sweph not installed")
         assert response.agent_name == agent.name
         assert response.signal == SignalDirection.NEUTRAL
@@ -229,10 +220,10 @@ class DegradedContract:
         assert response.metadata["degraded"] is True
         assert response.metadata["degradation_reason"] == "EPHEMERIS_UNAVAILABLE"
 
-    @pytest.mark.asyncio
-    async def test_degraded_runs_under_budget(self, agent):
+    def test_degraded_runs_under_budget(self, agent):
         """_degraded() must be fast — orchestrator's last-resort path."""
         import time
+
         t0 = time.perf_counter()
         for _ in range(100):
             agent._degraded("UNKNOWN", "test")

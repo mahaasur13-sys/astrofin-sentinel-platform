@@ -14,11 +14,10 @@ Run:
 These tests construct an in-memory pipeline on a temp directory;
 they do NOT touch the real graph.json / inferred_clean.jsonl files.
 """
+
 from __future__ import annotations
 
 import json
-import math
-import subprocess
 import sys
 from pathlib import Path
 
@@ -35,7 +34,9 @@ def _write_fake_report(edges: list[dict], target: Path) -> None:
         lines.append(f"### INFERRED #{e['relation']}-{i}")
         lines.append(f"- **Source:** `{e['source_path']}:L{e['source_line']} :: {e['source_node_id']}`")
         lines.append(f"- **Target:** `{e['target_path']}:L{e['target_line']} :: {e['target_node_id']}`")
-        lines.append(f"- **Confidence:** {e['confidence']:.3f}  **Weight:** {e['weight']:.2f}  **Relation:** `{e['relation']}`")
+        lines.append(
+            f"- **Confidence:** {e['confidence']:.3f}  **Weight:** {e['weight']:.2f}  **Relation:** `{e['relation']}`"
+        )
         lines.append(f"- **Verdict:** **{e['verdict']}**")
         lines.append("")
     target.write_text("\n".join(lines))
@@ -46,43 +47,78 @@ def fake_workspace(tmp_path: Path) -> Path:
     """Build a minimal fake workspace with 3 edges (calls/uses/defines) + 1 override."""
     graph = {
         "nodes": [
-            {"id": "a", "source_file": "core/a.py", "source_location": "L10",
-             "last_modified": "2026-01-01T00:00:00Z"},
-            {"id": "b", "source_file": "core/b.py", "source_location": "L20",
-             "last_modified": "2026-01-01T00:00:00Z"},
-            {"id": "c", "source_file": "core/c.py", "source_location": "L30",
-             "last_modified": "2026-01-01T00:00:00Z"},
+            {"id": "a", "source_file": "core/a.py", "source_location": "L10", "last_modified": "2026-01-01T00:00:00Z"},
+            {"id": "b", "source_file": "core/b.py", "source_location": "L20", "last_modified": "2026-01-01T00:00:00Z"},
+            {"id": "c", "source_file": "core/c.py", "source_location": "L30", "last_modified": "2026-01-01T00:00:00Z"},
         ],
         "links": [
-            {"source": "a", "target": "b", "relation": "calls",   "weight": 1.0},
-            {"source": "a", "target": "c", "relation": "uses",    "weight": 0.8},
+            {"source": "a", "target": "b", "relation": "calls", "weight": 1.0},
+            {"source": "a", "target": "c", "relation": "uses", "weight": 0.8},
             {"source": "b", "target": "c", "relation": "defines", "weight": 0.9},
         ],
     }
     (tmp_path / "graph.json").write_text(json.dumps(graph))
 
     edges = [
-        {"source_node_id": "a", "source_path": "core/a.py", "source_line": "L10",
-         "target_node_id": "b", "target_path": "core/b.py", "target_line": "L20",
-         "confidence": 0.9, "weight": 1.0, "relation": "calls", "verdict": "valid",
-         "source_file": "core/a.py", "source_location": "L10"},
-        {"source_node_id": "a", "source_path": "core/a.py", "source_line": "L11",
-         "target_node_id": "c", "target_path": "core/c.py", "target_line": "L30",
-         "confidence": 0.7, "weight": 0.8, "relation": "uses", "verdict": "valid",
-         "source_file": "core/a.py", "source_location": "L11"},
-        {"source_node_id": "b", "source_path": "core/b.py", "source_line": "L20",
-         "target_node_id": "c", "target_path": "core/c.py", "target_line": "L30",
-         "confidence": 0.95, "weight": 0.9, "relation": "defines", "verdict": "valid",
-         "source_file": "core/b.py", "source_location": "L20"},
+        {
+            "source_node_id": "a",
+            "source_path": "core/a.py",
+            "source_line": "L10",
+            "target_node_id": "b",
+            "target_path": "core/b.py",
+            "target_line": "L20",
+            "confidence": 0.9,
+            "weight": 1.0,
+            "relation": "calls",
+            "verdict": "valid",
+            "source_file": "core/a.py",
+            "source_location": "L10",
+        },
+        {
+            "source_node_id": "a",
+            "source_path": "core/a.py",
+            "source_line": "L11",
+            "target_node_id": "c",
+            "target_path": "core/c.py",
+            "target_line": "L30",
+            "confidence": 0.7,
+            "weight": 0.8,
+            "relation": "uses",
+            "verdict": "valid",
+            "source_file": "core/a.py",
+            "source_location": "L11",
+        },
+        {
+            "source_node_id": "b",
+            "source_path": "core/b.py",
+            "source_line": "L20",
+            "target_node_id": "c",
+            "target_path": "core/c.py",
+            "target_line": "L30",
+            "confidence": 0.95,
+            "weight": 0.9,
+            "relation": "defines",
+            "verdict": "valid",
+            "source_file": "core/b.py",
+            "source_location": "L20",
+        },
     ]
     (tmp_path / "docs").mkdir()
     _write_fake_report(edges, tmp_path / "docs" / "VALIDATION_REPORT.md")
 
-    overrides = {"overrides": [
-        {"source_node_id": "a", "target_node_id": "b", "tier": "T1",
-         "half_life": 365, "category": "core", "author": "asurdev",
-         "reason": "core contract"},
-    ]}
+    overrides = {
+        "overrides": [
+            {
+                "source_node_id": "a",
+                "target_node_id": "b",
+                "tier": "T1",
+                "half_life": 365,
+                "category": "core",
+                "author": "asurdev",
+                "reason": "core contract",
+            },
+        ]
+    }
     (tmp_path / "memory_overrides.json").write_text(json.dumps(overrides))
     return tmp_path
 
@@ -90,22 +126,23 @@ def fake_workspace(tmp_path: Path) -> Path:
 def _run_infer_edges(workspace: Path, out: Path) -> dict:
     """Import infer_edges.py with REPO_ROOT monkey-patched, run main()."""
     import importlib.util
+
     spec = importlib.util.spec_from_file_location("infer_edges", INFER_EDGES)
     mod = importlib.util.module_from_spec(spec)
     src = INFER_EDGES.read_text()
-    src = src.replace('REPO_ROOT = Path("/home/workspace")',
-                      f'REPO_ROOT = Path("{workspace}")')
-    src = src.replace('GRAPH_JSON = REPO_ROOT / "graphify-out" / "graph.json"',
-                      'GRAPH_JSON = REPO_ROOT / "graph.json"')
-    src = src.replace('OVERRIDES_JSON = REPO_ROOT / "config" / "memory_overrides.json"',
-                      'OVERRIDES_JSON = REPO_ROOT / "memory_overrides.json"')
-    src = src.replace('REPORT_MD = REPO_ROOT / "docs" / "VALIDATION_REPORT.md"',
-                      'REPORT_MD = REPO_ROOT / "docs" / "VALIDATION_REPORT.md"')
-    src = src.replace('VALIDATOR = REPO_ROOT / "graphify-out" / "validate_inferred.py"',
-                      'VALIDATOR = None')
+    src = src.replace('REPO_ROOT = Path("/home/workspace")', f'REPO_ROOT = Path("{workspace}")')
+    src = src.replace('GRAPH_JSON = REPO_ROOT / "graphify-out" / "graph.json"', 'GRAPH_JSON = REPO_ROOT / "graph.json"')
+    src = src.replace(
+        'OVERRIDES_JSON = REPO_ROOT / "config" / "memory_overrides.json"',
+        'OVERRIDES_JSON = REPO_ROOT / "memory_overrides.json"',
+    )
+    src = src.replace(
+        'REPORT_MD = REPO_ROOT / "docs" / "VALIDATION_REPORT.md"',
+        'REPORT_MD = REPO_ROOT / "docs" / "VALIDATION_REPORT.md"',
+    )
+    src = src.replace('VALIDATOR = REPO_ROOT / "graphify-out" / "validate_inferred.py"', "VALIDATOR = None")
     exec(compile(src, str(INFER_EDGES), "exec"), mod.__dict__)
-    sys.argv = ["infer_edges", "--out", str(out),
-                "--as-of", "2026-01-15T00:00:00+00:00"]
+    sys.argv = ["infer_edges", "--out", str(out), "--as-of", "2026-01-15T00:00:00+00:00"]
     try:
         mod.main()
     except SystemExit:
@@ -120,6 +157,7 @@ def _read_enriched(path: Path) -> list[dict]:
 
 
 # --- tests ---------------------------------------------------------------
+
 
 def test_tier_T1_for_high_confidence_valid(fake_workspace, tmp_path):
     out = tmp_path / "out.jsonl"
@@ -176,10 +214,10 @@ def test_relation_weight_in_output(fake_workspace, tmp_path):
 def test_all_11_relation_types_in_output(fake_workspace, tmp_path):
     """Test that RELATION_WEIGHTS has 11 entries."""
     import importlib.util
-    spec = importlib.util.spec_from_file_location("infer_edges", INFER_EDGES)
+
+    importlib.util.spec_from_file_location("infer_edges", INFER_EDGES)
     src = INFER_EDGES.read_text()
-    src = src.replace('REPO_ROOT = Path("/home/workspace")',
-                      'REPO_ROOT = Path("/tmp")')
+    src = src.replace('REPO_ROOT = Path("/home/workspace")', 'REPO_ROOT = Path("/tmp")')
     exec(compile(src, str(INFER_EDGES), "exec"), {"__name__": "infer_edges"})
     # We can't actually import; instead read the dict from source
 
@@ -294,21 +332,20 @@ def test_total_edges_count_matches_input(fake_workspace, tmp_path):
 def test_summary_writes_when_json_format(fake_workspace, tmp_path):
     """--fmt json writes a JSON summary with tier_counts."""
     import importlib.util
+
     spec = importlib.util.spec_from_file_location("infer_edges", INFER_EDGES)
     mod = importlib.util.module_from_spec(spec)
     src = INFER_EDGES.read_text()
-    src = src.replace('REPO_ROOT = Path("/home/workspace")',
-                      f'REPO_ROOT = Path("{fake_workspace}")')
-    src = src.replace('GRAPH_JSON = REPO_ROOT / "graphify-out" / "graph.json"',
-                      'GRAPH_JSON = REPO_ROOT / "graph.json"')
-    src = src.replace('OVERRIDES_JSON = REPO_ROOT / "config" / "memory_overrides.json"',
-                      'OVERRIDES_JSON = REPO_ROOT / "memory_overrides.json"')
-    src = src.replace('VALIDATOR = REPO_ROOT / "graphify-out" / "validate_inferred.py"',
-                      'VALIDATOR = None')
+    src = src.replace('REPO_ROOT = Path("/home/workspace")', f'REPO_ROOT = Path("{fake_workspace}")')
+    src = src.replace('GRAPH_JSON = REPO_ROOT / "graphify-out" / "graph.json"', 'GRAPH_JSON = REPO_ROOT / "graph.json"')
+    src = src.replace(
+        'OVERRIDES_JSON = REPO_ROOT / "config" / "memory_overrides.json"',
+        'OVERRIDES_JSON = REPO_ROOT / "memory_overrides.json"',
+    )
+    src = src.replace('VALIDATOR = REPO_ROOT / "graphify-out" / "validate_inferred.py"', "VALIDATOR = None")
     exec(compile(src, str(INFER_EDGES), "exec"), mod.__dict__)
     out_json = tmp_path / "summary.json"
-    sys.argv = ["infer_edges", "--out", str(out_json), "--fmt", "json",
-                "--as-of", "2026-01-15T00:00:00+00:00"]
+    sys.argv = ["infer_edges", "--out", str(out_json), "--fmt", "json", "--as-of", "2026-01-15T00:00:00+00:00"]
     try:
         mod.main()
     except SystemExit:

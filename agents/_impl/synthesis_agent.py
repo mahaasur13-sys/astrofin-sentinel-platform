@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 from core.volatility import VolatilityEngine, VolatilityRegime
@@ -220,9 +220,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
             if compromise_meta.get("compromise_active") and compromise_response.confidence >= 60:
                 compromise_signal = compromise_response
         except Exception as e:  # noqa: BLE001 — non-fatal
-            logger.warning(
-                "[SYNTHESIS] CompromiseAgent failed, falling back: %r", e
-            )
+            logger.warning("[SYNTHESIS] CompromiseAgent failed, falling back: %r", e)
 
         # ─── 3. Считаем взвешенные оценки ───────────────────────────────
         direction, confidence, reasoning = self._synthesize(categories, conflicts, symbol)
@@ -295,7 +293,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                 metadata={"symbol": symbol, "timeframe": timeframe},
             )
         except Exception as amre_err:
-            amre_fallback = {"enabled": False, "error": str(amre_err)}
+            {"enabled": False, "error": str(amre_err)}
 
         # ─── 4. Формируем breakdown ────────────────────────────────────
         breakdown = self._format_breakdown(categories)
@@ -336,12 +334,8 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                         "reason_code": compromise_signal.metadata.get("reason_code"),
                         "top1": compromise_signal.metadata.get("top1"),
                         "top2": compromise_signal.metadata.get("top2"),
-                        "expected_utility": compromise_signal.metadata.get(
-                            "expected_utility"
-                        ),
-                        "drift_triggers": compromise_signal.metadata.get(
-                            "drift_triggers", []
-                        ),
+                        "expected_utility": compromise_signal.metadata.get("expected_utility"),
+                        "drift_triggers": compromise_signal.metadata.get("drift_triggers", []),
                     }
                     if compromise_signal is not None
                     else None

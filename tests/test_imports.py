@@ -2,6 +2,7 @@
 
 These tests will fail if Flask or Hypothesis are missing.
 """
+
 from __future__ import annotations
 
 import pytest

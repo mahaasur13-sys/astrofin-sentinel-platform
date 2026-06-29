@@ -19,6 +19,7 @@ Env vars:
     GROUNDING_MIN_FACTOR      (default: "0.65")
     GROUNDING_PENALTY_STEP    (default: "0.13")
 """
+
 from __future__ import annotations
 
 

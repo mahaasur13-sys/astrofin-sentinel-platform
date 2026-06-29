@@ -13,18 +13,37 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          token: ${{ secrets.GH_PAT }}
 
       - name: Validate docker-compose syntax
         run: docker compose -f docker-compose.yml config --quiet
 
       - name: Verify referenced Dockerfiles exist
         run: |
-          # Extract all 'dockerfile:' paths from compose config
-          docker compose -f docker-compose.yml config | grep -E '^\s+dockerfile:' | awk '{print $2}' | while read df; do
-            if [ ! -f "$df" ]; then
-              echo "ERROR: Dockerfile not found: $df"
-              exit 1
-            else
-              echo "OK: $df"
-            fi
-          done
+          # Parse compose config: for each service with build: { context, dockerfile } verify
+          # the dockerfile path resolves relative to its context.
+          set -e
+          docker compose -f docker-compose.yml config --format json | python3 -c "
+          import json, sys, os
+          data = json.load(sys.stdin)
+          services = data.get('services', {})
+          missing = []
+          for name, svc in services.items():
+              build = svc.get('build') or {}
+              if not isinstance(build, dict):
+                  continue
+              context = build.get('context', '.')
+              dockerfile = build.get('dockerfile')
+              if not dockerfile:
+                  continue
+              df_path = os.path.normpath(os.path.join(context, dockerfile))
+              if not os.path.exists(df_path):
+                  missing.append((name, df_path))
+                  print(f'MISSING: service={name} dockerfile={df_path}')
+              else:
+                  print(f'OK: service={name} dockerfile={df_path}')
+          if missing:
+              print(f'ERROR: {len(missing)} Dockerfile(s) missing')
+              sys.exit(1)
+          print('All Dockerfiles found.')
+          "

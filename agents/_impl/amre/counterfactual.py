@@ -1,4 +1,5 @@
 """amre/counterfactual.py — Counterfactual reasoning"""
+
 from __future__ import annotations
 
 

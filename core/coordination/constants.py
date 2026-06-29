@@ -1,4 +1,5 @@
 """core/coordination/constants.py — ATOM-COORD-001: Feature Flags"""
+
 from __future__ import annotations
 
 import os

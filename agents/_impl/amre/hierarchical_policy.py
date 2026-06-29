@@ -1,4 +1,5 @@
 """amre/hierarchical_policy.py — Hierarchical Policy + Regime Detection"""
+
 from __future__ import annotations
 
 

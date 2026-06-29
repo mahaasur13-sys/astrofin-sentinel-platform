@@ -20,6 +20,7 @@ Usage:
     # With .env update
     python scripts/optimize_lag_blend.py --data data/logs.csv --update-env
 """
+
 from __future__ import annotations
 
 import argparse

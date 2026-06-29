@@ -1,29 +1,29 @@
 [submodule "AsurDev"]
 	path = AsurDev
-	url = git@github.com:mahaasur13-sys/AsurDev.git
+	url = https://github.com/mahaasur13-sys/AsurDev.git
 	branch = master
 
 [submodule "home-cluster-iac"]
 	path = home-cluster-iac
-	url = git@github.com:mahaasur13-sys/home-cluster-iac.git
+	url = https://github.com/mahaasur13-sys/home-cluster-iac.git
 	branch = master
 
 [submodule "roma-execution-bridge"]
 	path = roma-execution-bridge
-	url = git@github.com:mahaasur13-sys/roma-execution-bridge.git
+	url = https://github.com/mahaasur13-sys/roma-execution-bridge.git
 	branch = master
 
 [submodule "astrofin-sentinel-v5"]
 	path = astrofin-sentinel-v5
-	url = git@github.com:mahaasur13-sys/astrofin-sentinel-v5.git
+	url = https://github.com/mahaasur13-sys/astrofin-sentinel-v5.git
 	branch = main
 
 [submodule "atom-federation-os"]
 	path = atom-federation-os
-	url = git@github.com:mahaasur13-sys/atom-federation-os.git
+	url = https://github.com/mahaasur13-sys/atom-federation-os.git
 	branch = master
 
 [submodule "integrations/gitagent"]
 	path = integrations/gitagent
-	url = git@github.com:mahaasur13-sys/integrations-gitagent.git
+	url = https://github.com/mahaasur13-sys/integrations-gitagent.git
 
