@@ -67,7 +67,7 @@ from agents._impl.amre.trajectory import MarketState, market_state_hash
 # ─── KARL Synthesis Agent ────────────────────────────────────────────────────────
 
 
-class KARLSynthesisAgent:
+class KARLSynthesisAgent(SynthesisAgent):
     """
     SynthesisAgent + Full AMRE/KARL Control Loop.
 
@@ -86,7 +86,6 @@ class KARLSynthesisAgent:
         enable_backtest: bool = True,
         backtest_horizon: int = 5,
     ):
-        self.base_agent = SynthesisAgent()
         self.sync_interval = sync_interval  # Recalibrate every N decisions
         self.enable_self_question = enable_self_question
         self.enable_backtest = enable_backtest

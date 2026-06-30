@@ -1,106 +1,110 @@
-# AstroFin Sentinel Platform — Architecture
+# Architecture - AstroFin Sentinel V5
 
-> Monorepo-level architecture for the unified `astrofin-sentinel-platform` repository.
+Last updated: 2026-06-30
 
-## Repository Layout
+## Overview
 
-```
-astrofin-sentinel-platform/
-├── (root)                     ← AstroFinSentinelV5 — multi-agent trading
-│   ├── agents/                ← Agent registry (KARL, AMRE, Astro Council)
-│   ├── core/                  ← Core kernels (ephemeris, aspects, volatility)
-│   ├── orchestration/         ← Sentinel v5 orchestrator + router
-│   ├── meta_rl/               ← Meta-reinforcement learning subsystem
-│   ├── web/                   ← Dash dashboard
-│   ├── trading/               ← Broker integration + execution
-│   └── tests/                 ← Pytest suite (50+ files)
-│
-├── infrastructure/asurdev/    ← Home-cluster IaC + monitoring
-│   ├── acos/                  ← ACOS controller
-│   ├── k8s/                   ← Kubernetes manifests
-│   ├── terraform/             ← IaC
-│   ├── monitoring/            ← Observability stack
-│   └── l9_ebl/ l10_self_healing/ l11_verifier/   ← Self-healing layers
-│
-├── kernel/atom-federation/    ← ATOM alignment kernel
-│   ├── alignment/             ← Alignment contracts & verification
-│   ├── formal_model/          ← Formal verification artifacts
-│   ├── kubernetes/            ← atom-operator CRDs
-│   └── core/                  ← Federation primitives
-│
-├── bridge/roma/               ← ROMA execution bridge
-│   ├── billing/               ← Stripe integration
-│   ├── saas/                  ← Multi-tenant SaaS endpoints
-│   ├── gpu_worker/            ← GPU execution layer
-│   └── control_plane/         ← Reconciler
-│
-├── scripts/                   ← Operational scripts (dora, linters, …)
-├── docs/                      ← Architecture & design docs
-└── audit_reports/             ← Static-analysis & compliance reports
-```
+AstroFin Sentinel V5 is a multi-agent trading system combining:
+- **RAG-First** knowledge retrieval (knowledge/rag_retriever.py)
+- **LangGraph** orchestration (orchestration/sentinel_v5.py)
+- **Multi-Agent Council** of 16 analytical agents
+- **Hybrid Signal** synthesis with weight-based conflict resolution
 
-## Logical Layers
+## System Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  Presentation: web/ (Dash), SaaS endpoints, Grafana dashboards      │
-├─────────────────────────────────────────────────────────────────────┤
-│  Orchestration: orchestration/sentinel_v5.py + router + meta_rl    │
-├─────────────────────────────────────────────────────────────────────┤
-│  Agent Layer: agents/* — KARL/AMRE/Astro Council/Quant/Macro/...   │
-├─────────────────────────────────────────────────────────────────────┤
-│  Core Kernels: core/ephemeris.py · core/aspects.py · core/tracing   │
-├─────────────────────────────────────────────────────────────────────┤
-│  Alignment Kernel (kernel/atom-federation): formal verification     │
-├─────────────────────────────────────────────────────────────────────┤
-│  Execution Bridge (bridge/roma): SaaS · GPU · Billing · RBAC        │
-├─────────────────────────────────────────────────────────────────────┤
-│  Infrastructure (infrastructure/asurdev): IaC · observability       │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    U[User Query] --> R[Router]
+    R --> AC[AstroCouncil Coordinator]
+    R --> FA[FundamentalAgent<br/>20%]
+    R --> MA[MacroAgent<br/>15%]
+    R --> QA[QuantAgent<br/>20%]
+    R --> OF[OptionsFlowAgent<br/>15%]
+    R --> SA[SentimentAgent<br/>10%]
+    R --> TA[TechnicalAgent<br/>10%]
+    R --> BR[BullResearcher<br/>5%]
+    R --> BER[BearResearcher<br/>5%]
+    AC --> BA[BradleyAgent 3%]
+    AC --> EA[ElectoralAgent 3%]
+    AC --> TWA[TimeWindowAgent 2%]
+    AC --> GA[GannAgent 3%]
+    AC --> CA[CycleAgent 5%]
+    FA --> S[SynthesisAgent]
+    MA --> S
+    QA --> S
+    OF --> S
+    SA --> S
+    TA --> S
+    BR --> S
+    BER --> S
+    BA --> S
+    EA --> S
+    TWA --> S
+    GA --> S
+    CA --> S
+    S --> TS[TradingSignal]
+    TS --> EX[Execution<br/>trading/execution/]
+    EX --> LOG[History DB<br/>core/history.db]
+    S -.-> AMRE[AMRE Framework]
+    AMRE -.-> LOG
+    FA -.-> DR[Data Room<br/>data_room/blueprint]
+    MA -.-> DR
+    QA -.-> DR
+    OF -.-> DR
+    SA -.-> DR
+    DR --> CG[CoinGecko]
+    DR --> BIN[Binance]
+    DR --> SWE[Swiss Ephemeris]
 ```
 
-## Cross-Component Contracts
+## Layer Map
 
-| Producer | Contract | Consumer |
-|---|---|---|
-| `orchestration/sentinel_v5.py` | `TradingSignal` (action, confidence, regime) | Dashboard, KARL integration |
-| `agents/_impl/*` | `AgentResponse` (direction, weight, evidence) | `SynthesisAgent` |
-| `kernel/atom-federation` | `AlignmentReport` (score, violations) | `bridge/roma` RBAC |
-| `bridge/roma/billing` | `StripeEvent` (webhook payload) | `bridge/roma/saas` |
+| Layer | Path | Purpose |
+|-------|------|---------|
+| Entry | orchestration/ | LangGraph routing, sentinel_v5.py main loop |
+| Council | agents/_impl/ | 16 active agents (see docs/AGENT_REGISTRY.md) |
+| Synthesis | agents/_impl/synthesis_agent.py | Weighted merge + conflict resolution |
+| Data | data_room/ | Single ingress for external APIs (R3) |
+| Core | core/ | ephemeris, aspects, volatility, history_db |
+| Meta-RL | meta_rl/ | OAP, ATOM-KARL, backtest loops |
+| Web | web/ | FastAPI + Flask dashboard, data_room API |
+| Trading | trading/ | Execution, TWAP, risk gates |
+| Bridge | bridge/roma/ | ROMA execution bridge (closed-loop SaaS) |
+| Infra | infrastructure/ | atom-federation-os, AsurDev, home-cluster-iac |
 
 ## Data Flow
 
-1. User query → `orchestration/sentinel_v5.py` (router)
-2. Router → parallel agents (`agents/_impl/*`)
-3. Each agent → `AgentResponse` with `SignalDirection`
-4. `SynthesisAgent` (100% weight) aggregates via `TradingSignal.from_agents()`
-5. `core/volatility.py` computes dynamic `risk_pct`
-6. `meta_rl/` updates ensemble weights (off-policy)
-7. `core/history_db.py` persists session to SQLite
-8. Dashboard renders signal via `web/`
+1. User query enters via `orchestration/sentinel_v5.py:run_sentinel_v5`
+2. Router dispatches to parallel agent council
+3. Each agent reads market data via `data_room.blueprint` (R3 compliant)
+4. Astro-agents query Swiss Ephemeris via `core/ephemeris`
+5. SynthesisAgent merges signals with weights, resolves conflicts
+6. AMRE Framework (audit, backtest, reward) records decision
+7. TradingSignal → execution layer → history DB
 
-## Subsystem Dependencies
+## R1-R9 Architecture Rules
 
-- `kernel/atom-federation` is **independent** of trading layer — only consumes contracts.
-- `bridge/roma` **consumes** signals via event bus; never imports from `agents/`.
-- `infrastructure/asurdev` is **deploy-only** — no runtime imports.
-- `orchestration/` is the **only** entry point that imports from multiple subsystems.
+- **R1**: All agents extend BaseAgent (verified: 16/16)
+- **R2**: Astro-agents use @require_ephemeris (verified: 5/5)
+- **R3**: No direct requests.* outside data_room/ (linter enforced)
+- **R4**: web/ routes use @require_auth (linter enforced)
+- **R5**: All agents in _impl/__init__.py (verified: 16/16)
+- **R6**: No top-level print() (linter enforced)
+- **R7**: No f-string SQL (linter enforced)
+- **R8**: No hardcoded secrets (linter enforced)
+- **R9**: run_<agent_name> exported (verified: 16/16)
 
-## Versioning
+## Conflict Resolution
 
-- Repo version follows SemVer on tags (`vMAJOR.MINOR.PATCH`).
-- Subprojects may pin via path: `pip install -e infrastructure/asurdev`.
-- API-breaking changes require an ADR in `docs/` before merge.
+| Conflict | Rule |
+|----------|------|
+| Astro vs Fundamental+Quant | Astro -30%, Fundamental +18%, Quant +12% |
+| Bull vs Bear | Compromise agent averages with vol regime weighting |
 
-## CI/CD
+## Module Status (2026-06-30)
 
-- **CI** runs on every push & PR to `main`.
-- **CD** uses Dependabot for weekly updates; releases via git tags.
-- **Required checks**: pytest, flake8, bandit (high severity), radon (cyclomatic complexity).
-
-## Observability
-
-- Structured logging via `core/logging.py` (`structlog`).
-- Tracing via `core/tracing.py` (OpenTelemetry).
-- Metrics via `observability/metrics.py` (Prometheus).
-- DORA metrics via `scripts/dora_metrics.py` (deployment frequency + lead time).
+- AstroFinSentinelV5: Production-Beta
+- atom-federation-os: v10.x active
+- ROMA bridge: v1.1.0 K8s ready
+- home-cluster-iac: bootstrap complete
+- AsurDev: active

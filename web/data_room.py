@@ -8,12 +8,14 @@ import json
 from pathlib import Path
 
 from flask import Blueprint, jsonify
+from core.auth import require_api_key as require_auth
 
 data_room_bp = Blueprint("data_room", __name__)
 
 CONFLICT_JOURNAL = Path("data_room/conflict_journal.json")
 
 
+@require_auth
 @data_room_bp.route("/data-room/conflicts", methods=["GET"])
 def list_conflicts():
     """

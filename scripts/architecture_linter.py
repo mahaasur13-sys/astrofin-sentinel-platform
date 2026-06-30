@@ -165,22 +165,51 @@ EPHEMERIS_KEYWORDS = ("swisseph", "ephemeris", "planet_position", "natal", "aspe
 
 
 def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: Report) -> None:
-    """If the module uses ephemeris symbols, every class must have @require_ephemeris."""
+    """Every function whose body calls an ephemeris primitive must be decorated
+    with @require_ephemeris (or live inside a class whose every ephemeris-using
+    method has it)."""
     if "_archived" in src.parts:
         return
-    # Lightweight textual check: does this file mention ephemeris at all?
-    lowered = source_text.lower()
-    uses_ephemeris = any(kw in lowered for kw in EPHEMERIS_KEYWORDS)
-    if not uses_ephemeris:
-        return
 
-    has_decorator = "@require_ephemeris" in source_text
-    if not has_decorator:
+    # AST-based detection: walk function bodies for real ephemeris calls.
+    # "aspect" alone is too broad (matches docstrings, comments, identifiers
+    # like AspectCalculator); we only flag the actual primitive calls.
+    primitive_calls = (
+        "swisseph",  # module/import use
+        ".calc_ut(",
+        "calc_houses",
+        "get_planet_position",
+        "planet_position(",
+        "compute_aspect(",
+        "calc_planet(",
+        "get_tropical(",  # core/kepler.py
+    )
+
+    def _body_uses_primitive(func_node: ast.AST) -> bool:
+        for sub in ast.walk(func_node):
+            if isinstance(sub, ast.Call):
+                fn = ast.unparse(sub.func)
+                for prim in primitive_calls:
+                    if prim in fn:
+                        return True
+        return False
+
+    def _func_has_decorator(func_node: ast.AST) -> bool:
+        return any("require_ephemeris" in ast.unparse(d) for d in func_node.decorator_list)
+
+    # Walk every function/method in the module.
+    bad_funcs: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if _body_uses_primitive(node) and not _func_has_decorator(node):
+                bad_funcs.append((node.lineno, node.name))
+
+    for lineno, name in bad_funcs:
         report.fail(
             _rel(src),
-            1,
+            lineno,
             "R2",
-            "module uses ephemeris symbols but is missing @require_ephemeris on a method",
+            f"function {name}() calls an ephemeris primitive but is missing @require_ephemeris",
         )
 
 

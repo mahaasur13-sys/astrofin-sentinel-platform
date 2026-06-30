@@ -314,15 +314,13 @@ def calculate_atr(highs_lows_closes: list[list[float]], period: int = 14) -> flo
 
 
 def atr_from_binance(symbol: str, interval: str = "1d", limit: int = 30) -> float:
-    """Fetch Binance klines and compute ATR."""
+    """Fetch Binance klines and compute ATR via data_room blueprint (R3)."""
     try:
-        import requests
-
-        url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}&interval={interval}&limit={limit}"
-        data = requests.get(url, timeout=10).json()
-        klines = [[float(x[2]), float(x[3]), float(x[4])] for x in data]  # high, low, close
-        atr = calculate_atr(klines)
-        return atr
+        from data_room import blueprint as dr_blueprint
+        closes = dr_blueprint.get_klines(symbol, interval=interval, limit=limit)
+        # derive klines with high/low proxies from close (best-effort for ATR fallback)
+        klines = [[c, c, c] for c in closes]
+        return calculate_atr(klines)
     except Exception as e:
         logger.warning(f"[VolatilityEngine] Failed to fetch ATR for {symbol}: {e}")
         return 0.0
