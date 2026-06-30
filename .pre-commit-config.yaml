@@ -1,0 +1,55 @@
+# Pre-commit config — AstroFin Sentinel Platform
+# Install: pip install pre-commit && pre-commit install
+# Run all: pre-commit run --all-files
+# Skip a hook: SKIP=ruff git commit -m "..."
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: no-commit-to-branch
+        args: ["--branch=main", "--branch=master"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: ["--fix", "--exit-non-zero-on-fix"]
+        types_or: [python, pyi]
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: ["-c", "pyproject.toml", "-ll", "-ii", "-x", "tests/,build/,dist/"]
+        additional_dependencies: ["bandit[toml]"]
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        args: ["--skip=*.json,*.lock,*.yml,*.yaml,*.toml", "--ignore-words-list=teh,recive"]
+
+  - repo: local
+    hooks:
+      - id: architecture-linter
+        name: Architecture linter (local)
+        entry: python3 scripts/architecture_linter.py
+        language: system
+        pass_filenames: false
+        types: [python]
+        stages: [pre-commit]
