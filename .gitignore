@@ -1,65 +1,17 @@
-# Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-*.egg-info/
-.eggs/
-*.egg
-
-# venvs / package managers
+*.pyc
+*.pyo
 .venv/
 venv/
-env/
-.python-version
-
-# Test caches
+.env
+.env.local
+.coverage
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.hypothesis/
-.coverage
-coverage.xml
-.coverage.*
-
-# IDE
-.vscode/
-.idea/
-.cursor/
-.claude/
-*.swp
-*.swo
-
-# OS
+*.egg-info/
 .DS_Store
-Thumbs.db
-
-# Env
-.env
-.env.*
-!.env.example
-
-# Build / dist
-dist/
-build/
-*.log
-
-# Runtime files
-*.pid
-*.lock
-nohup.out
-.pids/
-.logs/
-.backup_dir/
-.trigger
-
-# Specific to this monorepo
-data/*.db
-data/*.sqlite
-models/*.joblib
-models/*.json
-!models/.keep
-*.sqlite
-*.db
-*.duckdb
-audit_reports/PR-*/__pycache__/
+reports/*.json
+!reports/.gitkeep
+logs/
+tmp/
