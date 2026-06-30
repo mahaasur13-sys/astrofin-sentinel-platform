@@ -1,0 +1,12 @@
+{
+  "window_days": 30,
+  "deployment_frequency_per_week": 2.1,
+  "lead_time_hours_avg": 0.99,
+  "lead_time_hours_median": 0.01,
+  "lead_time_samples": 9,
+  "change_failure_rate": 0.908,
+  "deployments": 9,
+  "failed_runs": 89,
+  "successful_runs": 9,
+  "generated_at": "2026-06-30T08:36:30.858815+00:00"
+}
