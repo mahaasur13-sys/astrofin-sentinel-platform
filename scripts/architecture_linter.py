@@ -135,28 +135,113 @@ SECRET_REGEXES = [
 
 # ─── R1: inheritance from BaseAgent ─────────────────────────────────────────
 
+# Base agent names accepted as a "valid" ancestor (direct or transitive).
+_BASE_AGENT_NAMES: frozenset[str] = frozenset({"BaseAgent"})
+
+# Directories that contain agent classes (we only look here for transitive
+# lookups to keep the linter fast on large repos).
+_AGENT_DIRS: tuple[str, ...] = ("agents",)
+
+
+def _build_inheritance_graph(root: Path) -> dict[str, set[str]]:
+    """Walk every ``.py`` file under ``root/agents`` and collect
+    ``class_name -> {base_names}`` declarations, transitively.
+
+    Only declared bases are used -- we do not chase imports. A class
+    with base ``SynthesisAgent`` is resolved through this map, so
+    inheritance is project-wide, not file-local.
+    """
+    parents: dict[str, set[str]] = {}
+    for agents_dir in _AGENT_DIRS:
+        base = root / agents_dir
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*.py"):
+            if "_archived" in path.parts:
+                continue
+            try:
+                src = path.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            try:
+                tree = ast.parse(src, filename=str(path))
+            except SyntaxError:
+                continue
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                bases = {ast.unparse(b) for b in node.bases}
+                # Strip generic parameters for graph comparison.
+                names = {b.split("[", 1)[0] for b in bases}
+                parents[node.name] = names
+    return parents
+
+
+def _transitive_base_agents(root: Path) -> set[str]:
+    """Return the set of class names that (transitively) inherit
+    ``BaseAgent`` anywhere under ``root/agents``."""
+    parents = _build_inheritance_graph(root)
+    result: set[str] = set()
+    for cls in parents:
+        seen: set[str] = set()
+        stack = [cls]
+        reachable = False
+        while stack:
+            cur = stack.pop()
+            if cur in seen:
+                continue
+            seen.add(cur)
+            if cur in _BASE_AGENT_NAMES:
+                reachable = True
+                break
+            for parent in parents.get(cur, ()):
+                stack.append(parent)
+        if reachable:
+            result.add(cls)
+    return result
+
 
 def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> None:
-    """Every class in agents/_impl/* must inherit from BaseAgent."""
+    """Every class in agents/_impl/* must inherit from BaseAgent.
+
+    Transitive inheritance is honored: a class is valid if its MRO chain
+    (resolved project-wide under ``root/agents``) reaches ``BaseAgent``.
+    This avoids false positives for subclasses of subclasses (e.g.
+    ``KARLSynthesisAgent`` -> ``SynthesisAgent`` -> ``BaseAgent[AgentResponse]``).
+    """
     if "_archived" in src.parts:
         return
+    # Project root is the first ancestor of the file that contains a
+    # top-level ``agents/`` directory. ``src`` is always under it.
+    project_root = src
+    for candidate in src.parents:
+        if (candidate / "agents").is_dir():
+            project_root = candidate
+            break
+    transitive = _transitive_base_agents(project_root)
     for node in ast.walk(tree):
-        if isinstance(node, ast.ClassDef):
-            base_names: list[str] = []
-            for b in node.bases:
-                base_names.append(ast.unparse(b))
-            # Allow BaseAgent subclass or a recognized mixin.
-            is_agent = any(re.match(r"BaseAgent\[.*\]", n) or n.endswith("BaseAgent") for n in base_names)
-            if not is_agent:
-                # Not every class has to be an agent; only flag the *file*
-                # if the class name ends in "Agent".
-                if node.name.endswith("Agent") and not node.name.endswith("BaseAgent"):
-                    report.fail(
-                        _rel(src),
-                        node.lineno,
-                        "R1",
-                        f"class {node.name} should inherit BaseAgent[AgentResponse]; got {base_names}",
-                    )
+        if not isinstance(node, ast.ClassDef):
+            continue
+        base_names: list[str] = []
+        for b in node.bases:
+            base_names.append(ast.unparse(b))
+        is_agent_direct = any(
+            re.match(r"BaseAgent\[.*\]", n) or n.endswith("BaseAgent")
+            for n in base_names
+        )
+        is_agent_transitive = any(
+            b.split("[", 1)[0] in transitive for b in base_names
+        )
+        if not (is_agent_direct or is_agent_transitive):
+            # Not every class has to be an agent; only flag the *file*
+            # if the class name ends in "Agent".
+            if node.name.endswith("Agent") and not node.name.endswith("BaseAgent"):
+                report.fail(
+                    _rel(src),
+                    node.lineno,
+                    "R1",
+                    f"class {node.name} should inherit BaseAgent[AgentResponse]; got {base_names}",
+                )
 
 
 # ─── R2: @require_ephemeris usage ───────────────────────────────────────────
@@ -179,6 +264,7 @@ def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: 
         ".calc_ut(",
         "calc_houses",
         "get_planet_position",
+        "get_planetary_positions",
         "planet_position(",
         "compute_aspect(",
         "calc_planet(",
