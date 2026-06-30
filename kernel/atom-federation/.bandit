@@ -1,3 +1,0 @@
-[bandit]
-exclude = .git,venv,.venv,tests,examples,archive
-skips = B101,B311
