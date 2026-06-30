@@ -1,0 +1,34 @@
+# Ansible role: Ceph storage cluster setup
+- name: Ceph — install packages
+  package:
+    name:
+      - ceph
+      - ceph-common
+      - librados-dev
+    state: present
+
+- name: Ceph — ensure directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /etc/ceph
+    - /var/lib/ceph/mon
+    - /var/lib/ceph/osd
+    - /var/lib/ceph/mgr
+    - /var/log/ceph
+
+- name: Ceph — create ceph.conf
+  template:
+    src: ceph.conf.j2
+    dest: /etc/ceph/ceph.conf
+    mode: "0644"
+  when: "'rtx_node' in group_names"
+
+- name: Ceph — bootstrap mon
+  shell: |
+    ceph-authtool --create-keyring /tmp/ceph.mon.keyring --gen-key -n mon. --cap mon 'allow *'
+    ceph-deploy mon create-initial
+  when: "'rtx_node' in group_names"
+  ignore_errors: true

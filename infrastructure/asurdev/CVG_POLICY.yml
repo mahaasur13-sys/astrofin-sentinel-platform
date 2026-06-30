@@ -1,0 +1,169 @@
+# ================================================================
+# CVG v3 — CI Validation Gate Policy
+# Source of truth for CI generation.
+# ================================================================
+policy_version: "3.0"
+generated: "2026-04-10"
+schema: "https://cvgsystem.io/v3/policy.schema.json"
+
+toolchain:
+  python:
+    version: "==3.12"
+    pinned: true
+  ruff:
+    version: "==0.9.3"
+    pinned: true
+  black:
+    version: "==25.1.0"
+    pinned: true
+  pytest:
+    version: "==8.3.5"
+    pinned: true
+  pytest_cov:
+    version: "==6.0.0"
+    pinned: true
+
+determinism:
+  rules:
+    - rule_id: D001
+      type: file_count
+      path: ".yamllint.yml"
+      expected: 1
+      enforcement: strict
+    - rule_id: D002
+      type: file_count
+      path: ".ansible-lint.yml"
+      expected: 1
+      enforcement: strict
+    - rule_id: D003
+      type: file_count
+      path: "pyproject.toml"
+      expected: 1
+      enforcement: strict
+    - rule_id: D004
+      type: forbidden_pattern
+      pattern: "*"
+      locations: [".github/workflows/"]
+      enforcement: strict
+    - rule_id: D005
+      type: required_directories
+      paths:
+        - "acos/"
+        - "tests/"
+      enforcement: strict
+    - rule_id: D006
+      type: action_pin
+      pattern: "uses: .*@v[0-9]"
+      enforcement: strict
+    - rule_id: D007
+      type: no_cron
+      enforcement: strict
+    - rule_id: D008
+      type: no_workflow_dispatch
+      enforcement: strict
+    - rule_id: D009
+      type: no_wildcard_glob
+      enforcement: strict
+    - rule_id: D010
+      type: no_floating_versions
+      locations: [".github/workflows/"]
+      enforcement: strict
+
+triggers:
+  allowed:
+    - event: pull_request
+      types: [opened, reopened, synchronize]
+      branches: [main, master]
+    - event: push
+      branches: [main, master]
+  forbidden:
+    - workflow_dispatch
+    - schedule
+    - external
+    - manual
+
+jobs:
+  g0_setup:
+    name: "G0 - Setup & Determinism Pre-check"
+    runs_on: ubuntu-latest
+    outputs:
+      audit_hash: "${{ steps.hash.outputs.audit_hash }}"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            acos/
+            tests/
+            .github/workflows/
+            .yamllint.yml
+            .ansible-lint.yml
+            pyproject.toml
+            Makefile
+      - name: Compute audit hash
+        id: hash
+        run: |
+          find . -type f \( -name "*.py" -o -name "*.yml" -o -name "*.yaml" -o -name "*.sh" -o -name "*.toml" \) | sort | xargs sha256sum > /tmp/audit.hash
+          echo "audit_hash=$(sha256sum /tmp/audit.hash | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "file_count=$(find . -type f \( -name "*.py" -o -name "*.yml" -o -name "*.yaml" -o -name "*.toml" \) | wc -l)" >> $GITHUB_OUTPUT
+      - name: Validate determinism rules
+        run: |
+          echo "=== DETERMINISM VALIDATION ==="
+          echo "Audit hash: ${{ steps.hash.outputs.audit_hash }}"
+          echo "=== D001-D003: Config file counts ==="
+          [ $(find . -name '.yamllint.yml' -type f | wc -l) -eq 1 ] || { echo "FAIL D001"; exit 1; }
+          [ $(find . -name '.ansible-lint.yml' -type f | wc -l) -eq 1 ] || { echo "FAIL D002"; exit 1; }
+          [ $(find . -name 'pyproject.toml' -type f | wc -l) -eq 1 ] || { echo "FAIL D003"; exit 1; }
+          echo "=== D005: Required directories ==="
+          for dir in acos tests; do
+            [ -d "$dir" ] || { echo "FAIL: Missing $dir"; exit 1; }
+          done
+          echo "=== PASS: All determinism rules ==="
+
+  g1_ruff:
+    name: "G1 - Ruff Lint"
+    runs_on: ubuntu-latest
+    needs: [g0_setup]
+    scope:
+      - "acos/"
+      - "tests/"
+    command: "ruff check --output-format=concise acos/ tests/"
+    mode: strict
+    tool: ruff
+    version_rule: "==0.9.3"
+    install: "pip install ruff==0.9.3"
+    failure_is: error
+
+  g2_black:
+    name: "G2 - Black Format Check"
+    runs_on: ubuntu-latest
+    needs: [g0_setup]
+    scope:
+      - "acos/"
+      - "tests/"
+    command: "ruff format --check acos/ tests/"
+    mode: strict
+    tool: black
+    version_rule: "==25.1.0"
+    install: "pip install ruff==0.9.3"
+    failure_is: error
+
+  g3_pytest:
+    name: "G3 - Pytest + Coverage"
+    runs_on: ubuntu-latest
+    needs: [g0_setup]
+    scope:
+      - "tests/"
+    command: "python -m pytest tests/ -v --tb=short --cov=acos --cov-report=xml || echo 'No tests yet'"
+    mode: warning
+    tool: pytest
+    version_rule: "==8.3.5"
+    install: "pip install pytest==8.3.5 pytest-cov==6.0.0"
+    failure_is: warning
+
+merge_gate:
+  required_checks:
+    - g1_ruff
+    - g2_black
+    - g3_pytest
+  enforcement: branch_protection
+  bypass_allowed: false

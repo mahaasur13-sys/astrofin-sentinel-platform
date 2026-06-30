@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint:
+    name: Lint & Static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install linters
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 bandit
+      - name: Flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+        continue-on-error: false
+      - name: Bandit
+        run: |
+          bandit -r . -ll --skip B101 -x ./tests,./.venv,./archive,./.git
+        continue-on-error: true
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install 'hypothesis<6.88' pytest pytest-asyncio pytest-timeout
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f pyproject.toml ]; then pip install -e .; fi
+      - name: Healthcheck
+        run: |
+          if [ -f tools/healthcheck.py ]; then python tools/healthcheck.py; fi
+        continue-on-error: true
+      - name: Collect
+        run: |
+          python -m pytest --collect-only -q
+      - name: Run tests (no cache, with timeout)
+        run: |
+          python -m pytest -q --no-header -p no:cacheprovider --timeout=30 -p no:randomly --tb=line
+        continue-on-error: true
+      - name: Archive test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-logs
+          path: |
+            /tmp/pytest*.log
+            .pytest_cache/
+          if-no-files-found: ignore

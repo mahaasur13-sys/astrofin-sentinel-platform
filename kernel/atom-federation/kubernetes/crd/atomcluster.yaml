@@ -1,0 +1,160 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: atomclusters.atom.io
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  labels:
+    app.kubernetes.io/name: atom-os
+    app.kubernetes.io/version: "7.0"
+spec:
+  group: atom.io
+  names:
+    kind: ATOMCluster
+    plural: atomclusters
+    singular: atomcluster
+    shortNames:
+      - ac
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Replicas
+          type: integer
+          jsonPath: .spec.replicas
+        - name: Ready
+          type: integer
+          jsonPath: .status.readyReplicas
+        - name: SBS Violation %
+          type: number
+          jsonPath: .status.sbsViolationRate
+        - name: Drift Score
+          type: number
+          jsonPath: .status.coherenceDrift
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: ATOMCluster defines a self-healing distributed OS runtime
+          properties:
+            spec:
+              type: object
+              required:
+                - replicas
+              properties:
+                replicas:
+                  type: integer
+                  minimum: 1
+                  maximum: 127
+                  description: Target number of ATOM node replicas
+                sbsThreshold:
+                  type: number
+                  default: 0.01
+                  minimum: 0.0
+                  maximum: 1.0
+                  description: Max allowed SBS violation rate before healing triggers
+                coherenceDriftMax:
+                  type: number
+                  default: 0.05
+                  minimum: 0.0
+                  maximum: 1.0
+                  description: Max allowed coherence drift before throttle applies
+                replayEnabled:
+                  type: boolean
+                  default: true
+                  description: Enable failure replay subsystem
+                image:
+                  type: string
+                  default: ghcr.io/atom-federation/atom-os:latest
+                  description: ATOM node container image
+                resources:
+                  type: object
+                  description: Compute resources per node
+                  properties:
+                    requests:
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                    limits:
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                healingPolicy:
+                  type: string
+                  enum:
+                    - aggressive
+                    - conservative
+                    - disabled
+                  default: conservative
+                  description: Healing reaction mode
+                monitoringEnabled:
+                  type: boolean
+                  default: true
+                  description: Export metrics to Prometheus
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  enum:
+                    - Pending
+                    - Initializing
+                    - Running
+                    - Degraded
+                    - Healing
+                    - Failed
+                readyReplicas:
+                  type: integer
+                sbsViolationRate:
+                  type: number
+                coherenceDrift:
+                  type: number
+                quorumSafe:
+                  type: boolean
+                currentVersion:
+                  type: string
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      lastTransitionTime:
+                        type: string
+                      reason:
+                        type: string
+                      message:
+                        type: string
+                nodeStates:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      nodeId:
+                        type: string
+                      status:
+                        type: string
+                      sbsViolationRate:
+                        type: number
+                      coherenceDrift:
+                        type: number
+                      lastHealTime:
+                        type: string

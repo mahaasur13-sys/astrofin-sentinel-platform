@@ -1,0 +1,82 @@
+# =============================================================================
+# KongPlugin — Rate Limiting by Tenant Plan
+# =============================================================================
+# Free  : 100 req/min per consumer
+# Pro   : 1000 req/min per consumer
+# Ent   : unlimited (100000 req/min effectively)
+# Configured via annotations on Service (see roma-api-server.yaml)
+# =============================================================================
+
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: roma-rate-limit-free
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+plugin: rate-limiting
+config:
+  minute: 100
+  hour: null
+  day: null
+  month: null
+  year: null
+  limit_by: consumer  # per consumer (identified by JWT sub or API key)
+  policy: redis      # sliding window via Redis (shared across pods)
+  redis_host: redis-master.roma-system.svc.cluster.local
+  redis_port: 6379
+  redis_password:
+    valueFrom:
+      secretKeyRef:
+        name: redis-master-secret
+        key: redis-password
+  error_code: 429
+  error_message: "Rate limit exceeded. Upgrade to Pro for 1000 req/min."
+  hide_client_headers: false
+  flush_timeout: 2
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: roma-rate-limit-pro
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+plugin: rate-limiting
+config:
+  minute: 1000
+  limit_by: consumer
+  policy: redis
+  redis_host: redis-master.roma-system.svc.cluster.local
+  redis_port: 6379
+  redis_password:
+    valueFrom:
+      secretKeyRef:
+        name: redis-master-secret
+        key: redis-password
+  error_code: 429
+  error_message: "Rate limit exceeded. Contact sales for Enterprise plan."
+  hide_client_headers: false
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: roma-rate-limit-enterprise
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+plugin: rate-limiting
+config:
+  minute: 100000  # effectively unlimited
+  limit_by: consumer
+  policy: redis
+  redis_host: redis-master.roma-system.svc.cluster.local
+  redis_port: 6379
+  redis_password:
+    valueFrom:
+      secretKeyRef:
+        name: redis-master-secret
+        key: redis-password
+  error_code: 429
+  error_message: "Enterprise rate limit reached."
+  hide_client_headers: false

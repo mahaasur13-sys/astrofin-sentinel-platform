@@ -1,0 +1,12 @@
+[global]
+fsid = {{ ceph_fsid }}
+mon initial members = {{ ceph_mon_host }}
+mon host = {{ hostvars[ceph_mon_host].ansible_host }}
+public network = 10.30.30.0/24
+osd pool default size = 2
+
+[mon]
+mon host = {{ ansible_host }}
+
+[osd]
+osd journal size = 1024

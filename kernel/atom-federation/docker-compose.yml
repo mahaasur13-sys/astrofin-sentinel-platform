@@ -1,0 +1,117 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ATOMFederationOS v6.2 — Stable Distributed Cluster
+#
+# 3-node cluster with:
+#   • gRPC RPC mesh (real TCP between containers)
+#   • DRL propagation (loss/delay/jitter)
+#   • SBS cross-node invariant evaluation
+#   • Cluster health graph (live ping/lag/violation tracking)
+#   • Structured observability (logs + metrics)
+#   • Boot handshake protocol
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Node A ────────────────────────────────────────────────────────────────
+  node-a:
+    build:
+      context: .
+      dockerfile: cluster/node/Dockerfile
+    container_name: atom-node-a
+    hostname: atom-node-a
+    environment:
+      NODE_ID: node-a
+      PEERS: node-b,node-c
+      # gRPC port (fixed for deterministic peer discovery)
+      NODE_PORT: "50051"
+    networks:
+      atom-net:
+        ipv4_address: 172.28.1.10
+    volumes:
+      - shared-data:/app/shared_data
+    # Liveness probe mirrors the Dockerfile HEALTHCHECK — delegates to
+    # cluster/node.healthcheck which performs a real gRPC channel state
+    # check (with /proc/net/tcp LISTEN fallback). Avoid the weak
+    # `import grpc` one-liner: that only proves the dep is installed,
+    # not that the node is actually serving.
+    healthcheck:
+      test: ["CMD", "python", "-m", "cluster.node.healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  # ── Node B ────────────────────────────────────────────────────────────────
+  node-b:
+    build:
+      context: .
+      dockerfile: cluster/node/Dockerfile
+    container_name: atom-node-b
+    hostname: atom-node-b
+    environment:
+      NODE_ID: node-b
+      PEERS: node-a,node-c
+      NODE_PORT: "50052"
+    networks:
+      atom-net:
+        ipv4_address: 172.28.1.11
+    volumes:
+      - shared-data:/app/shared_data
+    # Liveness probe mirrors the Dockerfile HEALTHCHECK — delegates to
+    # cluster/node.healthcheck which performs a real gRPC channel state
+    # check (with /proc/net/tcp LISTEN fallback). Avoid the weak
+    # `import grpc` one-liner: that only proves the dep is installed,
+    # not that the node is actually serving.
+    healthcheck:
+      test: ["CMD", "python", "-m", "cluster.node.healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  # ── Node C ────────────────────────────────────────────────────────────────
+  node-c:
+    build:
+      context: .
+      dockerfile: cluster/node/Dockerfile
+    container_name: atom-node-c
+    hostname: atom-node-c
+    environment:
+      NODE_ID: node-c
+      PEERS: node-a,node-b
+      NODE_PORT: "50053"
+    networks:
+      atom-net:
+        ipv4_address: 172.28.1.12
+    volumes:
+      - shared-data:/app/shared_data
+    # Liveness probe mirrors the Dockerfile HEALTHCHECK — delegates to
+    # cluster/node.healthcheck which performs a real gRPC channel state
+    # check (with /proc/net/tcp LISTEN fallback). Avoid the weak
+    # `import grpc` one-liner: that only proves the dep is installed,
+    # not that the node is actually serving.
+    healthcheck:
+      test: ["CMD", "python", "-m", "cluster.node.healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+# ── Shared volume (for future persistent state) ─────────────────────────────
+volumes:
+  shared-data:
+
+# ── Docker network ───────────────────────────────────────────────────────────
+networks:
+  atom-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1

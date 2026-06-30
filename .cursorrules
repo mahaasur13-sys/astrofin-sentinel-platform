@@ -1,0 +1,6 @@
+# Cursor rules for AstroFinSentinelV5
+# See AGENTS.md for the complete project context and AI rules.
+# This file ensures AI coding assistants (Cursor, etc.) inherit the same
+# guidelines as defined in AGENTS.md.
+
+ref: AGENTS.md

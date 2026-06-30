@@ -1,0 +1,19 @@
+apiVersion: v2
+name: atom-os
+description: ATOM Federation OS — self-managing distributed AI runtime
+type: application
+version: 7.1.0
+appVersion: "7.1"
+keywords:
+  - atom
+  - distributed
+  - ai-runtime
+  - self-healing
+  - kubeflow
+  - federation
+home: https://github.com/atom-federation/atom-federation-os
+sources:
+  - https://github.com/atom-federation/atom-federation-os
+maintainers:
+  - name: ATOM Federation
+    email: atom@atom.io

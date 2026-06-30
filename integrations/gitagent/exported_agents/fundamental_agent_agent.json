@@ -1,0 +1,14 @@
+{
+  "name": "FundamentalAgent",
+  "module": "unified-platform.domain.astrofin.agents.registry",
+  "acos_job_type": "astrofin_fundamental",
+  "acos_layer": "L6",
+  "description": "Fundamental market analysis - earnings, financials, valuation",
+  "tools": [
+    "financial_data",
+    "earnings_analysis",
+    "valuation_metrics",
+    "sec_filings"
+  ],
+  "instructions": "Analyze fundamental data: earnings reports, financial statements, valuation metrics (P/E, P/B, EV/EBITDA), SEC filings. Provide buy/sell/hold recommendations based on fundamental factors."
+}

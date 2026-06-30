@@ -1,0 +1,202 @@
+# ML Serving — FastAPI inference service with HPA
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ml
+  labels:
+    app.kubernetes.io/name: ml-serving
+    app.kubernetes.io/part-of: asurdev
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ml-api
+  namespace: ml
+  labels:
+    app.kubernetes.io/name: ml-api
+    app.kubernetes.io/part-of: asurdev
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-api-config
+  namespace: ml
+  labels:
+    app.kubernetes.io/name: ml-api
+    app.kubernetes.io/part-of: asurdev
+data:
+  ML_MODEL_PATH: "/models/failure_xgb_v2.pkl"
+  ML_FEATURES_PATH: "/models/features.txt"
+  LOG_LEVEL: "info"
+  CACHE_TTL: "5"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-api
+  namespace: ml
+  labels:
+    app.kubernetes.io/name: ml-api
+    app.kubernetes.io/part-of: asurdev
+    app.kubernetes.io/component: inference
+    version: v1.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ml-api
+      app.kubernetes.io/part-of: asurdev
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ml-api
+        app.kubernetes.io/part-of: asurdev
+        app.kubernetes.io/component: inference
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/prometheus"
+    spec:
+      serviceAccountName: ml-api
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: ml-api
+          image: ghcr.io/mahaasur13-sys/asurdev-ml-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: ml-api-config
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+              nvidia.com/gpu: "0"
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+              nvidia.com/gpu: "0"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: models
+              mountPath: /models
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+      volumes:
+        - name: models
+          emptyDir: {}
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-api
+  namespace: ml
+  labels:
+    app.kubernetes.io/name: ml-api
+    app.kubernetes.io/part-of: asurdev
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8081
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: ml-api
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ml-api
+  namespace: ml
+  labels:
+    app.kubernetes.io/name: ml-api
+    app.kubernetes.io/part-of: asurdev
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ml-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 4
+          periodSeconds: 15
+      selectPolicy: Max
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ml-api
+  namespace: ml
+  labels:
+    app.kubernetes.io/name: ml-api
+    app.kubernetes.io/part-of: asurdev
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ml-api

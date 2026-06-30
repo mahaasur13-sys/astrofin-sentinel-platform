@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI / docs (not needed in image)
+.github/
+docs/
+*.md
+LICENSE
+
+# Local artefacts
+.pids/
+.logs/
+*.log
+*.pid
+*.sock
+.pid_history
+
+# Tests
+tests/
+test_*.py
+*_test.py
+conftest.py
+
+# Type stubs
+*.pyi
+py.typed

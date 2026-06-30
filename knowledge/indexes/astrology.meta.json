@@ -1,0 +1,121 @@
+[
+  {
+    "id": "3f70674ea25a",
+    "content": "Choghadiya (चौघडिया) — это система деления дня на 8 периодов, каждый из которых имеет свою энергетику. Используется для определения благоприятного времени для различных начинаний.",
+    "source": "astrology/choghadiya.md",
+    "title": "Overview",
+    "domain": "astrology"
+  },
+  {
+    "id": "201569be93f0",
+    "content": "| Тип | Качество | Описание | Торговля |\n|-----|---------|----------|----------|\n| **Amrita** | ⭐ Лучший | Нектарное время — наиболее благоприятно | ✅ Отлично |\n| **Shubha** | 🟢 Хороший | Благоприятное время | ✅ Хорошо |\n| **Labha** | 🟢 Хороший | Время прибыли | ✅ Хорошо |\n| **Chandra** | 🟢 Хороший | Время Луны — хорошо для эмоциональных дел | ✅ Приемлемо |\n| **Kaala** | 🔴 Плохой | Чёрное время | ❌ Избегать |\n| **Marana** | ⛔ Худший | Время смерти — категорически избегать | ❌ Нет |\n| **Vyatipata** | 🔴 Опасный | Опасный период | ❌ Нет |\n| **Parivesha** | 🔴 Проблемный | Время трудностей | ❌ Нет |",
+    "source": "astrology/choghadiya.md",
+    "title": "8 Типов Choghadiya",
+    "domain": "astrology"
+  },
+  {
+    "id": "c73fc7a43b57",
+    "content": "- **Дневные** (от восхода до заката): 8 периодов\n- **Ночные** (от заката до восхода): 8 периодов\n- Каждый период ≈ 90 минут (зависит от широты и времени года)",
+    "source": "astrology/choghadiya.md",
+    "title": "Дневные vs Ночные",
+    "domain": "astrology"
+  },
+  {
+    "id": "4da0ebc8daf0",
+    "content": "### ✅ Благоприятно (ENTER):\n- Amrita Choghadiya — входить в сделки\n- Shubha — хорошие входы\n- Labha — особенно хорошо для profit-taking\n\n### ❌ Неблагоприятно (AVOID):\n- Marana — НИКОГДА не входить\n- Vyatipata — избегать новых позиций\n- Kaala — только закрытие позиций",
+    "source": "astrology/choghadiya.md",
+    "title": "Правила для трейдинга",
+    "domain": "astrology"
+  },
+  {
+    "id": "c8e7c39ecb51",
+    "content": "Muhurta Score = Choghadiya Score + Nakshatra Score\n\n| Choghadiya | Score |\n|------------|-------|\n| Amrita | +3.0 |\n| Shubha | +2.0 |\n| Labha | +1.5 |\n| Chandra | +1.0 |\n| Kaala | -2.0 |\n| Marana | -3.0 |\n| Vyatipata | -2.5 |\n| Parivesha | -2.0 |",
+    "source": "astrology/choghadiya.md",
+    "title": "Muhurta Score",
+    "domain": "astrology"
+  },
+  {
+    "id": "476599568257",
+    "content": "Отдельный неблагоприятный период, не связанный с Choghadiya:\n- Каждый день ~1.5 часа\n- День делится на 8 частей по 90 минут\n- Rahukaal — последняя часть каждого дня\n\nRahukaal не является Choghadiya, но同样 важно учитывать для трейдинга.",
+    "source": "astrology/choghadiya.md",
+    "title": "Rahukaal (Рahu Kaal)",
+    "domain": "astrology"
+  },
+  {
+    "id": "592df9f19b88",
+    "content": "Muhurta (मुहूर्त) — ведическая наука о выборе благоприятного момента для любого начинания. Трейдинг — это бизнес, и выбор правильного времени для входа критически важен.",
+    "source": "astrology/muhurta.md",
+    "title": "Overview",
+    "domain": "astrology"
+  },
+  {
+    "id": "7d1d43b9c8ed",
+    "content": "Muhurta Score = Choghadiya Score + Nakshatra Score + Yoga Score\n\n| Компонент | Вес | Описание |\n|-----------|-----|---------|\n| Choghadiya | 50% | Период дня |\n| Nakshatra | 30% | Лунная стоянка |\n| Yoga | 20% | Комбинация планет |",
+    "source": "astrology/muhurta.md",
+    "title": "Связь с Choghadiya и Nakshatra",
+    "domain": "astrology"
+  },
+  {
+    "id": "fbf7fff709cc",
+    "content": "В астрологии Yoga — это комбинация положений планет. \nСуществует 27 Yoga, каждая с своим влиянием.\n\n### Благоприятные Yoga для трейдинга:\n- **Shubha** — благоприятная\n- **Amrita** — нектарная\n- **Siddhi** — успешная\n- **Dhruva** — устойчивая\n\n### Неблагоприятные Yoga:\n- **Vyaghata** — препятствия\n- **Harshana** — разрушительная\n- **K Duval** — несёт потери",
+    "source": "astrology/muhurta.md",
+    "title": "Yoga (не путать с физическими упражнениями)",
+    "domain": "astrology"
+  },
+  {
+    "id": "f4be97fdf136",
+    "content": "```\nMuhurta Score = 5.0 (base)\n              + Choghadiya_modifier  # -3 to +3\n              + Nakshatra_modifier   # -2 to +2\n              + Yoga_modifier        # -1 to +1\n```\n\n| Muhurta Score | Рекомендация |\n|---------------|--------------|\n| 8.0 — 10.0 | Отличное время для входа |\n| 6.0 — 7.9 | Хорошее время |\n| 4.0 — 5.9 | Нейтральное |\n| 2.0 — 3.9 | Плохое время |\n| 0.0 — 1.9 | Не входить |",
+    "source": "astrology/muhurta.md",
+    "title": "Формула Muhurta Score",
+    "domain": "astrology"
+  },
+  {
+    "id": "50e62d39853e",
+    "content": "### ✅ ENTER (Score >= 6.5):\n- Choghadiya: Amrita, Shubha, Labha\n- Nakshatra: Ashwini, Rohini, Pushya, Hasta, Uttara Ashadha, Revati\n- Good Yoga\n\n### ⚠️ WAIT (Score 4.0-6.4):\n- Choghadiya: Chandra\n- Neutral Nakshatras\n- Mixed Yoga\n\n### ❌ AVOID (Score < 4.0):\n- Choghadiya: Marana, Vyatipata, Kaala\n- Bad Nakshatras: Bharani, Ardra, Ashlesha, Jyeshtha\n- Bad Yoga",
+    "source": "astrology/muhurta.md",
+    "title": "Trade Entry Rules",
+    "domain": "astrology"
+  },
+  {
+    "id": "f9d8ef9fba9e",
+    "content": "```\nДата: 2026-03-24 14:00 MSK\nChoghadiya: Amrita (+3.0)\nNakshatra: Rohini (excellent, +2.0)\nYoga: Shubha (+1.0)\n\nMuhurta Score = 5.0 + 3.0 + 2.0 + 1.0 = 11.0 → capped at 10.0\nРекомендация: ✅ EXCELLENT TIME TO ENTER\n```",
+    "source": "astrology/muhurta.md",
+    "title": "Пример расчёта",
+    "domain": "astrology"
+  },
+  {
+    "id": "de4397b94f19",
+    "content": "1. **Не входить в Marana Choghadiya** независимо от технического анализа\n2. **Не входить в Nakshatra Ashlesha** — ловушки и обман\n3. **Не входить в Vyatipata** — опасные развороты\n4. **Избегать Rahukaal** для новых позиций",
+    "source": "astrology/muhurta.md",
+    "title": "Важные запреты",
+    "domain": "astrology"
+  },
+  {
+    "id": "c32135ab9ac4",
+    "content": "Nakshatras (नक्षत्र) — 27 лунных созвездий, через которые проходит Луна за ~27 дней. Каждое имеет уникальную энергетику, влияющую на начинания.",
+    "source": "astrology/nakshatras.md",
+    "title": "Overview",
+    "domain": "astrology"
+  },
+  {
+    "id": "a2d305356f40",
+    "content": "| # | Name | Качество | Божество | Правитель | Трейдинг |\n|---|------|---------|----------|-----------|----------|\n| 1 | Ashwini | ⭐ Отличное | Aswins | Ketu | ✅ Быстрые прибыли |\n| 2 | Bharani | 🔴 Плохое | Yama | Venus | ❌ Потери |\n| 3 | Krittika | 🟡 Нейтральное | Agni | Sun | ⚖️ Осторожно |\n| 4 | Rohini | ⭐ Отличное | Brahma | Moon | ✅ Рост |\n| 5 | Mrigashira | 🟢 Хорошее | Soma | Mars | ✅ Импульс |\n| 6 | Ardra | 🔴 Плохое | Rudra | Rahu | ❌ Волатильность |\n| 7 | Punarvasu | 🟢 Хорошее | Aditi | Jupiter | ✅ Восстановление |\n| 8 | Pushya | ⭐ Отличное | Saturn | Saturn | ✅ Стабильность |\n| 9 | Ashlesha | ⛔ Худшее | Naga | Mercury | ❌ Обман |\n| 10 | Magha | 🟡 Нейтральное | Pitris | Ketu | ⚖️ Наследство |\n| 11 | Purva Phalguni | 🟢 Хорошее | Bhaga | Venus | ✅ Партнёрство |\n| 12 | Uttara Phalguni | 🟢 Хорошее | Aryaman | Sun | ✅ Успех |\n| 13 | Hasta | ⭐ Отличное | Savitar | Moon | ✅ Творчество |\n| 14 | Chitra | 🟡 Нейтральное | Tvashtar | Mars | ⚖️ Манипуляции |\n| 15 | Swati | 🟢 Хорошее | Vayu | Rahu | ✅ Гибкость |\n| 16 | Vishakha | 🟡 Нейтральное | Indra | Jupiter | ⚖️ Конфликты |\n| 17 | Anuradha | 🟢 Хорошее | Mitra | Saturn | ✅ Сотрудничество |\n| 18 | Jyeshtha | 🔴 Плохое | Nirriti | Mercury | ❌ Убытки |\n| 19 | Mula | 🟡 Нейтральное | Nirriti | Ketu | ⚖️ Корни |\n| 20 | Purva Ashadha | 🟢 Хорошее | Apo | Venus | ✅ Честность |\n| 21 | Uttara Ashadha | ⭐ Отличное | Vishwa | Sun | ✅ Победа |\n| 22 | Shravana | 🟢 Хорошее | Vishnu | Moon | ✅ Обучение |\n| 23 | Dhanishtha | 🟡 Нейтральное | Vasu | Mars | ⚖️ Богатство |\n| 24 | Shatabhisha | 🟡 Нейтральное | Varuna | Rahu | ⚖️ Тайны |\n| 25 | Purva Bhadrapada | 🟡 Нейтральное | Aja | Jupiter | ⚖️ Духовность |\n| 26 | Uttara Bhadrapada | 🟢 Хорошее | Ahirbudhnya | Saturn | ✅ Защита |\n| 27 | Revati | ⭐ Отличное | Pushan | Mercury | ✅ Процветание |",
+    "source": "astrology/nakshatras.md",
+    "title": "Таблица Nakshatras",
+    "domain": "astrology"
+  },
+  {
+    "id": "747dd683cd0b",
+    "content": "### Лучшие Nakshatras для трейдинга:\n1. **Ashwini** — быстрые результаты\n2. **Rohini** — устойчивый рост\n3. **Pushya** — стабильность\n4. **Hasta** — творческие стратегии\n5. **Uttara Ashadha** — победа\n6. **Revati** — процветание\n\n### Худшие Nakshatras для трейдинга:\n1. **Bharani** — потери\n2. **Ardra** — волатильность и убытки\n3. **Ashlesha** — обман, ловушки\n4. **Jyeshtha** — низкая точка",
+    "source": "astrology/nakshatras.md",
+    "title": "Правила для Muhurta",
+    "domain": "astrology"
+  },
+  {
+    "id": "884161a28b23",
+    "content": "Каждая Nakshatra делится на 4 Pada (части) по ~3°20'. \nPada 1 и 3 обычно более благоприятны для начинаний.",
+    "source": "astrology/nakshatras.md",
+    "title": "Pada (Четверти)",
+    "domain": "astrology"
+  }
+]
