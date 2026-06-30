@@ -1,35 +1,35 @@
 # Core
-numpy>=1.26.0
-pandas>=2.0.0
-pydantic>=2.0.0
+numpy>=2.2.6
+pandas>=2.3.3
+pydantic>=2.13.4
 
 # AstroFin Core
-pyswisseph>=2.10.0
-ta>=0.10.0
-requests>=2.31.0
+pyswisseph>=2.10.3.2
+ta>=0.11.0
+requests>=2.34.2
 
 # KARL AMRE
-sqlalchemy>=2.0.0
-alembic>=1.13.0
-psycopg2-binary>=2.9.9
-redis>=5.0.0
+sqlalchemy>=2.0.51
+alembic>=1.18.5
+psycopg2-binary>=2.9.12
+redis>=8.0.1
 
 # API & Monitoring
-fastapi>=0.109.0
-uvicorn[standard]>=0.27.0
-psutil>=5.9.0
+fastapi>=0.138.2
+uvicorn[standard]>=0.49.0
+psutil>=7.2.2
 prometheus-client>=0.19.0
 
 # CLI & UI
-rich>=13.7.0
-click>=8.1.0
-pyyaml>=6.0.0
+rich>=15.0.0
+click>=8.4.2
+pyyaml>=6.0.3
 
 # Testing
-pytest>=8.0.0
+pytest>=9.1.1
 pytest-asyncio>=0.23.0
-httpx>=0.26.0
+httpx>=0.28.1
 pytest-asyncio
 prometheus-client
 aiohttp
-openai>=1.0.0
+openai>=2.44.0
