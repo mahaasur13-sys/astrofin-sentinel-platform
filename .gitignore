@@ -23,3 +23,6 @@ graphify-out/*.filtered.jsonl
 
 # audit_repo — локальная копия репо для аудита (не для коммита)
 audit_repo/
+
+# pytest-hypothesis database (do not commit)
+.hypothesis/
