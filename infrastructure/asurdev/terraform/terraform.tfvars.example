@@ -1,0 +1,42 @@
+# Example terraform variables — copy to terraform.tfvars and edit
+cluster_name = "home-cluster"
+
+# RTX 3060 PC
+rtx_node = {
+  hostname   = "rtx-node"
+  ip_mgmt    = "10.10.10.10"
+  ip_compute = "10.20.20.10"
+  ip_storage = "10.30.30.10"
+  ip_vpn     = "10.40.40.10"
+  gpu_count  = 1
+  cpu_cores  = 12
+  ram_gb     = 32
+}
+
+# RK3576 edge node
+rk3576_node = {
+  hostname   = "rk3576-node"
+  ip_mgmt    = "10.10.10.20"
+  ip_compute = "10.20.20.20"
+  ip_vpn     = "10.40.40.20"
+  cpu_cores  = 8
+  ram_gb     = 8
+}
+
+# Optional VPS (enable when ready)
+vps_node = {
+  enabled   = false
+  ip_vpn    = "10.40.40.30"
+  public_ip = "your.vps.public.ip"
+  hostname  = "vps-node"
+}
+
+# MikroTik hEX S
+mikrotik = {
+  ip_mgmt    = "10.10.10.1"
+  ip_compute = "10.20.20.1"
+  ip_storage = "10.30.30.1"
+  ip_vpn     = "10.40.40.1"
+  ssh_user   = "admin"
+  ssh_port   = 22
+}

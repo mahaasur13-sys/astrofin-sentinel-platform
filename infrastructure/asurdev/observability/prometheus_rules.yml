@@ -1,0 +1,31 @@
+groups:
+  - name: acos_alerts
+    interval: 30s
+    rules:
+      - alert: TunnelDown
+        expr: awg_tunnel_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: amnezia_wg
+        annotations:
+          summary: "AmneziaWG tunnel is DOWN"
+          description: "Tunnel {{ $labels.instance }} has been down for more than 1 minute"
+
+      - alert: NoPeersConnected
+        expr: awg_peers_connected == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: amnezia_wg
+        annotations:
+          summary: "No peers connected to AmneziaWG"
+
+      - alert: ACOSEventLogGrowthRate
+        expr: rate(acos_events_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: acos_core
+        annotations:
+          summary: "Unusual event generation rate"

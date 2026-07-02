@@ -1,0 +1,11 @@
+# Kustomization for ML Training manifests
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ml
+
+commonLabels:
+  app.kubernetes.io/part-of: asurdev
+
+resources:
+  - job.yaml

@@ -1,0 +1,61 @@
+# =============================================================================
+# Sample RomaTenant — Enterprise Tier
+# =============================================================================
+
+apiVersion: roma.io/v1
+kind: RomaTenant
+metadata:
+  name: partner-beta-enterprise
+  labels:
+    roma.io/partner: beta
+spec:
+  tenantId: partner-beta
+  displayName: "Beta Industries"
+  domain: "api.beta.io"
+  subdomain: "beta"
+  plan: enterprise
+  tier: 3
+
+  branding:
+    logoUrl: "https://cdn.beta.io/logo-256.png"
+    primaryColor: "#00D9FF"
+    secondaryColor: "#0A0A14"
+    companyName: "Beta Industries Ltd"
+    supportEmail: "enterprise@beta.io"
+    websiteUrl: "https://beta.io"
+
+  compute:
+    gpuEnabled: true
+    gpuModel: nvidia-a100
+    maxWorkers: 20
+    memoryLimitGi: 64
+    cpuLimit: "16"
+
+  storage:
+    s3Bucket: "roma-beta-enterprise"
+    minioEndpoint: "http://minio.roma-system.svc.cluster.local:9000"
+    storageQuotaGi: 2000
+
+  networking:
+    customCertificates: true
+    tlsSecretName: "beta-custom-tls"
+    allowedIpRanges:
+    - "10.0.0.0/8"
+    - "192.168.0.0/16"
+    - "185.12.64.0/22"
+
+  billing:
+    stripeCustomerId: "cus_yyyy"
+    billingEmail: "enterprise@beta.io"
+    invoicePrefix: "BETA"
+
+  features:
+    prometheusMetrics: true
+    advancedAnalytics: true
+    customPlugins: true
+    ssoEnabled: true
+    auditLogRetentionDays: 365
+
+  vaultSecrets:
+    apiKeySecretPath: "roma/tenants/beta/api-keys"
+    dbPasswordPath: "roma/tenants/beta/db-password"

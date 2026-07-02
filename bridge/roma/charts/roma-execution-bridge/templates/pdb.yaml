@@ -1,0 +1,50 @@
+{{/*
+PDB for API Server — ensures at least minAvailable pods during voluntary disruptions
+*/}}
+{{- if and .Values.apiServer.enabled .Values.apiServer.podDisruptionBudget.enabled }}
+{{- $pdb := .Values.apiServer.podDisruptionBudget }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "roma-execution-bridge.fullname" . }}-api-server
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "roma-execution-bridge.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api-server
+spec:
+  {{- if $pdb.minAvailable }}
+  minAvailable: {{ $pdb.minAvailable }}
+  {{- else if $pdb.maxUnavailable }}
+  maxUnavailable: {{ $pdb.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "roma-execution-bridge.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api-server
+{{- end }}
+
+{{/*
+PDB for GPU Worker — ensures GPU compute capacity during upgrades
+*/}}
+{{- if and .Values.gpuWorker.enabled .Values.gpuWorker.podDisruptionBudget.enabled }}
+{{- $pdb := .Values.gpuWorker.podDisruptionBudget }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "roma-execution-bridge.fullname" . }}-gpu-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "roma-execution-bridge.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gpu-worker
+spec:
+  {{- if $pdb.minAvailable }}
+  minAvailable: {{ $pdb.minAvailable }}
+  {{- else if $pdb.maxUnavailable }}
+  maxUnavailable: {{ $pdb.maxUnavailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "roma-execution-bridge.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: gpu-worker
+{{- end }}

@@ -1,0 +1,48 @@
+"""
+saas/branding/templates/welcome_email.html.j2
+"""
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9fafb; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .header { background: {{ branding.primary_color }}; padding: 32px 24px; color: #ffffff; text-align: center; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .header p { margin: 8px 0 0; opacity: 0.9; }
+    .body { padding: 32px 24px; }
+    .cta { display: inline-block; background: {{ branding.primary_color }}; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 16px 0; }
+    .footer { background: #f3f4f6; padding: 16px 24px; font-size: 12px; color: #6b7280; text-align: center; }
+    code { background: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      {% if branding.logo_url %}
+      <img src="{{ branding.logo_url }}" alt="{{ branding.app_name }}" width="200" style="margin-bottom:12px">
+      {% endif %}
+      <h1>Welcome to {{ branding.app_name }}!</h1>
+      <p>Your GPU compute platform is ready</p>
+    </div>
+    <div class="body">
+      <p>Hello {{ user_name }},</p>
+      <p>Your account is now active. Here's your API key:</p>
+      <p><code>{{ api_key }}</code></p>
+      <p>Get started:</p>
+      <ol>
+        <li>Store your API key securely</li>
+        <li>Install the SDK: <code>pip install roma-sdk</code></li>
+        <li>Submit your first job: <code>roma jobs submit --gpu h100 --script train.py</code></li>
+      </ol>
+      <a href="{{ dashboard_url }}" class="cta">Open Dashboard</a>
+      <p>Need help? Contact {{ branding.support_email }}</p>
+    </div>
+    <div class="footer">
+      <p>{{ branding.app_name }} — {{ branding.support_email }}</p>
+      <p>© {{ year }} {{ branding.app_name }}. Powered by {{ branding.metadata.powered_by|default("ROMA") }}</p>
+    </div>
+  </div>
+</body>
+</html>

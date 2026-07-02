@@ -1,0 +1,404 @@
+# =============================================================================
+# ROMA — Helm Values
+# =============================================================================
+
+# --- Global ---
+global:
+  storageClass: longhorn  # longhorn | rook-ceph-block | standard
+  imagePullSecrets: []
+  tlsSecretName: ""
+
+# --- Namespace ---
+namespace: roma-system
+
+# --- ROMA API Server ---
+apiServer:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: ghcr.io/mahaasur13-sys/roma-execution-bridge
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8080
+    annotations: {}
+
+  ingress:
+    enabled: false
+    className: nginx
+    hostname: roma.local
+    path: /
+    tls: false
+
+  # Auto-scaling
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+    # GPU-aware: scale on GPU utilization
+    targetGPUUtilizationPercentage: 75
+
+  resources:
+    limits:
+      cpu: "2"
+      memory: 4Gi
+      nvidia.com/gpu: "0"
+    requests:
+      cpu: "500m"
+      memory: 1Gi
+
+  env:
+    # FastAPI
+    APP_ENV: production
+    LOG_LEVEL: INFO
+    # Storage backend
+    STATE_STORE: redis
+    EVENT_STORE: postgres
+    # Redis
+    REDIS_HOST: roma-redis
+    REDIS_PORT: "6379"
+    # PostgreSQL
+    POSTGRES_HOST: roma-postgres
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: roma
+    # MinIO / S3
+    S3_ENDPOINT: http://roma-minio:9000
+    S3_ACCESS_KEY: minioadmin
+    S3_SECRET_KEY: minioadmin123
+    S3_BUCKET: roma-artifacts
+    # Stripe
+    STRIPE_SECRET_KEY: ""
+    STRIPE_WEBHOOK_SECRET: ""
+    # Tailscale
+    TAILSCALE_AUTHKEY: ""
+    # Auth
+    JWT_SECRET: change-me-in-production
+    API_KEY_HEADER: X-API-Key
+    # Feature flags
+    ENABLE_RAFT: "true"
+    ENABLE_STRIPE_BILLING: "true"
+    ENABLE_PLUGINS: "true"
+    ENABLE_OBSERVABILITY: "true"
+
+  probes:
+    liveness:
+      enabled: true
+      path: /health
+      port: 8080
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readiness:
+      enabled: true
+      path: /ready
+      port: 8080
+      initialDelaySeconds: 10
+      periodSeconds: 5
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  # Pod anti-affinity for HA
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - roma-execution-bridge
+            topologyKey: kubernetes.io/hostname
+
+  serviceMonitor:
+    enabled: false  # Set true if Prometheus Operator installed
+    interval: 30s
+    namespace: monitoring
+
+  initContainers: []
+  sidecarContainers: []
+
+# --- GPU Worker ---
+gpuWorker:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: ghcr.io/mahaasur13-sys/roma-gpu-worker
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  resources:
+    limits:
+      cpu: "4"
+      memory: 16Gi
+      nvidia.com/gpu: "1"
+    requests:
+      cpu: "1"
+      memory: 4Gi
+      nvidia.com/gpu: "1"
+
+  nodeSelector:
+    gpu: "true"
+    node.kubernetes.io/l workload: gpu-job
+
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+  # Autoscaling via KEDA or built-in HPA
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 20
+    metricType: Utilization
+    targetGPUUtilization: 75
+
+  # Pod Disruption Budget — ensures GPU compute stays available during upgrades/drains
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  env:
+    WORKER_NAME_PREFIX: roma-gpu-worker
+    LOG_LEVEL: INFO
+    REDIS_HOST: roma-redis
+    API_SERVER_URL: http://roma-api-server:8080
+
+  probes:
+    liveness:
+      enabled: true
+      path: /health
+      port: 8000
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readiness:
+      enabled: true
+      path: /ready
+      port: 8000
+      initialDelaySeconds: 10
+      periodSeconds: 5
+
+  # GPU nodes only
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: gpu
+              operator: In
+              values:
+                - "true"
+
+# --- Redis (State Store) ---
+redis:
+  enabled: true
+  architecture: replication
+
+  auth:
+    enabled: false  # Internal cluster, no auth needed
+
+  master:
+    count: 1
+    persistence:
+      enabled: true
+      size: 2Gi
+      storageClass: longhorn
+    resources:
+      limits:
+        cpu: "1"
+        memory: 1Gi
+      requests:
+        cpu: "100m"
+        memory: 256Mi
+
+  replica:
+    count: 2
+    persistence:
+      enabled: true
+      size: 2Gi
+      storageClass: longhorn
+    resources:
+      limits:
+        cpu: "1"
+        memory: 1Gi
+      requests:
+        cpu: "100m"
+        memory: 256Mi
+
+  service:
+    type: ClusterIP
+
+# --- PostgreSQL (Event Store) ---
+postgresql:
+  enabled: true
+  architecture: replication
+
+  auth:
+    database: roma
+    username: roma
+    password: roma_secret
+    existingSecret: roma-postgres-secret
+
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: longhorn
+    resources:
+      limits:
+        cpu: "2"
+        memory: 4Gi
+      requests:
+        cpu: "250m"
+        memory: 1Gi
+
+  readReplicas:
+    count: 2
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: longhorn
+    resources:
+      limits:
+        cpu: "2"
+        memory: 4Gi
+      requests:
+        cpu: "250m"
+        memory: 1Gi
+
+  service:
+    type: ClusterIP
+
+# --- MinIO (S3 for Artifacts) ---
+minio:
+  enabled: true
+  mode: distributed
+  replicaCount: 4
+
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: longhorn
+    mountPath: /data
+
+  resources:
+    limits:
+      cpu: "2"
+      memory: 4Gi
+    requests:
+      cpu: "100m"
+      memory: 1Gi
+
+  apiService:
+    type: ClusterIP
+    port: 9000
+
+  consoleService:
+    type: ClusterIP
+    port: 9001
+
+  defaultBuckets:
+    - name: roma-artifacts
+    - name: roma-checkpoints
+    - name: roma-models
+
+  rootUser: minioadmin
+  rootPassword: minioadmin123
+
+# --- PVCs ---
+persistence:
+  checkpoints:
+    enabled: true
+    storageClass: longhorn
+    size: 100Gi
+    accessMode: ReadWriteMany  # needs rook-cephfs or nfs
+
+  models:
+    enabled: true
+    storageClass: longhorn
+    size: 200Gi
+    accessMode: ReadWriteMany
+
+  eventStore:
+    enabled: true
+    storageClass: longhorn
+    size: 50Gi
+    accessMode: ReadWriteOnce
+
+# --- RBAC ---
+rbac:
+  create: true
+  serviceAccountName: roma-executor
+  clusterRoleName: roma-executor-cluster
+
+# --- Network ---
+network:
+  policy:
+    enabled: true
+    # Allow only from roma namespace
+    allowSameNamespace: true
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                name: roma-system
+    egress:
+      enabled: true
+      # Allow DNS, internet, internal
+      to:
+        - namespaceSelector: {}
+
+# --- Monitoring ---
+monitoring:
+  prometheusRule:
+    enabled: true
+    namespace: monitoring
+
+  serviceMonitor:
+    enabled: false  # true if using Prometheus Operator
+
+# --- Security ---
+securityContext:
+  apiServer:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+    readOnlyRootFilesystem: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+  gpuWorker:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+    readOnlyRootFilesystem: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+# --- Persistence ConfigMaps ---
+configMaps:
+  romaConfig:
+    APP_ENV: production
+    LOG_LEVEL: INFO
+    ENABLE_RAFT: "true"
+    ENABLE_STRIPE_BILLING: "true"
+    ENABLE_PLUGINS: "true"
+    ENABLE_OBSERVABILITY: "true"
+    LOG_FORMAT: json
+    PYTHONUNBUFFERED: "1"

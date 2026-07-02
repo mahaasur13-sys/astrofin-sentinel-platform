@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.db
+*.sqlite3
+*.sqlite
+.env
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+htmlcov/
+.tox/
+.dmypy.json
+dmypy.json
+
+# Project-specific
+.phase5-backup/
+.phase5/
+data/meta_rl/sessions/*.json
+*.log
+*.pid
+*.tmp
+.DS_Store
+Thumbs.db
+
+# ML models / serialized artifacts (LARGE, must not be in git)
+models/*.joblib
+models/*.pkl
+models/*.h5
+models/*.hdf5
+models/*.onnx
+models/*.pt
+models/*.bin
+models/*.safetensors
+models/*.npy
+models/*.npz
+
+# Python dist/build (per-package)
+**/dist/
+**/build/
+*.egg-info/
+
+# OS / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

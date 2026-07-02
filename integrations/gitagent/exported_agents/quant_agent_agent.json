@@ -1,0 +1,14 @@
+{
+  "name": "QuantAgent",
+  "module": "unified-platform.domain.astrofin.agents.registry",
+  "acos_job_type": "astrofin_quant",
+  "acos_layer": "L6",
+  "description": "Quantitative analysis - momentum, volatility, statistical arbitrage",
+  "tools": [
+    "momentum_signals",
+    "volatility_analysis",
+    "stat_arb",
+    "backtester"
+  ],
+  "instructions": "Apply quantitative models: momentum indicators, volatility clustering, statistical arbitrage opportunities, backtesting strategies. Generate data-driven trading signals."
+}

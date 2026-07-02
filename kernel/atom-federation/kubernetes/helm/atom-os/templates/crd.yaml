@@ -1,0 +1,88 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: atomclusters.atom.io
+  labels:
+    app.kubernetes.io/name: atom-os
+    app.kubernetes.io/version: "7.0"
+spec:
+  group: atom.io
+  names:
+    kind: ATOMCluster
+    plural: atomclusters
+    singular: atomcluster
+    shortNames:
+      - ac
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Replicas
+          type: integer
+          jsonPath: .spec.replicas
+        - name: Ready
+          type: integer
+          jsonPath: .status.readyReplicas
+        - name: SBS Violation %
+          type: number
+          jsonPath: .status.sbsViolationRate
+        - name: Drift Score
+          type: number
+          jsonPath: .status.coherenceDrift
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - replicas
+              properties:
+                replicas:
+                  type: integer
+                  minimum: 1
+                sbsThreshold:
+                  type: number
+                  default: 0.01
+                coherenceDriftMax:
+                  type: number
+                  default: 0.05
+                replayEnabled:
+                  type: boolean
+                  default: true
+                image:
+                  type: string
+                resources:
+                  type: object
+                healingPolicy:
+                  type: string
+                  enum: ["aggressive", "conservative", "disabled"]
+                monitoringEnabled:
+                  type: boolean
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                readyReplicas:
+                  type: integer
+                sbsViolationRate:
+                  type: number
+                coherenceDrift:
+                  type: number
+                quorumSafe:
+                  type: boolean
+                conditions:
+                  type: array
+                nodeStates:
+                  type: array

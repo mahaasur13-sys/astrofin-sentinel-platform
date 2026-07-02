@@ -1,0 +1,11 @@
+# Kustomization for TimescaleDB manifests
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: timescaledb
+
+commonLabels:
+  app.kubernetes.io/part-of: asurdev
+
+resources:
+  - statefulset.yaml

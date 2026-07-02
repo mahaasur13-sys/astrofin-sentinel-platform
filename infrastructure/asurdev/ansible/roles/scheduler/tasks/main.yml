@@ -1,0 +1,48 @@
+# Ansible role: AI Scheduler service (FastAPI)
+- name: Scheduler — install Python + FastAPI
+  package:
+    name:
+      - python3
+      - python3-pip
+    state: present
+
+- name: Scheduler — install Python packages
+  pip:
+    name:
+      - fastapi
+      - uvicorn
+      - psutil
+      - pydantic
+    state: present
+    executable: pip3
+
+- name: Scheduler — create app dir
+  file:
+    path: /opt/scheduler
+    state: directory
+    mode: "0755"
+
+- name: Scheduler — copy scheduler.py
+  template:
+    src: scheduler.py.j2
+    dest: /opt/scheduler/scheduler.py
+    mode: "0755"
+  notify: Restart Scheduler
+
+- name: Scheduler — copy submit wrapper
+  copy:
+    src: submit_wrapper.sh
+    dest: /usr/local/bin/schedule-submit
+    mode: "0755"
+
+- name: Scheduler — systemd unit
+  template:
+    src: scheduler.service.j2
+    dest: /etc/systemd/system/scheduler.service
+  notify: Daemon-reload-scheduler
+
+- name: Scheduler — enable and start
+  systemd:
+    name: scheduler
+    enabled: true
+    state: started
