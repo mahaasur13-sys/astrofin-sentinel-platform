@@ -4,6 +4,8 @@ Muhurta, Nakshatra, Tithi, Yoga, Karana, Choghadiya
 
 from datetime import datetime, timedelta, timezone
 
+from agents._impl.ephemeris_decorator import require_ephemeris
+
 SIDEREAL_YEAR = 365.25636
 LUNAR_MONTH = 27.3217
 TROPICAL_RASHI = [
@@ -383,6 +385,7 @@ def get_muhurta_score(choghadiya_name: str, nakshatra: dict, tithi: dict, yoga: 
     }
 
 
+@require_ephemeris
 def calculate_panchanga(dt: datetime) -> dict:
     """Calculate full panchanga for a given datetime in Dubai."""
     from core.ephemeris import get_planetary_positions
