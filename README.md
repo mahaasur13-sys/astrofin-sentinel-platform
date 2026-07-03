@@ -1,51 +1,95 @@
-# AstroFin Sentinel V5
+# AstroFin Sentinel Platform — Monorepo
 
-RAG-First Multi-Agent Architecture with Thompson Sampling, KARL AMRE, and autonomous development loops.
+[![CI](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/ci.yml)
+[![Nightly](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/nightly.yml/badge.svg)](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/nightly.yml)
+[![Release](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/release.yml/badge.svg)](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/release.yml)
+[![Security](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/security.yml/badge.svg)](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/security.yml)
+[![PR Checks](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/pr-checks.yml)
+[![License: All Rights Reserved](https://img.shields.io/badge/license-All%20Rights%20Reserved-red.svg)](LICENSE)
 
-## Architecture Overview
-- **Orchestration:** `orchestration/sentinel_v5.py` — main entry point, routes queries, selects agents via Thompson Sampling, runs synthesis.
-- **Agents:** 20+ specialized agents (technical, fundamental, astro, etc.) in `agents/_impl/`.
-- **Monitoring:** Prometheus + Grafana (metrics on port 8000), Jaeger (traces on :16686), Alertmanager (alerts to Slack).
-- **Infrastructure:** Docker Compose with TimescaleDB, Redis, Jaeger, Prometheus, Grafana, exporters, Alertmanager.
-- **Autonomous Dev:** Ralph Loop (`scripts/ralph_loop.sh`) iterates over `docs/tickets.md`, writes tests, commits, and updates progress.
+Unified monorepo aggregating three production-grade projects under one CI/CD:
 
-## Quick Start
-1. Clone and enter project directory.
-2. Create `.env` from `.env.example` and set required variables (see below).
-3. Install dependencies: `pip install -r requirements.txt`
-4. Start infrastructure: `docker compose up -d`
-5. Run health endpoint: `python -m deploy.monitoring.health_endpoints`
-6. Execute orchestrator: `python -m orchestration.sentinel_v5 "Analyze BTC" BTCUSDT SWING`
+| Path | Origin | Purpose |
+| --- | --- | --- |
+| `/` (root) | `push/` | KARL / AMRE / Astro Council — orchestration, meta-RL, web dashboard |
+| `infrastructure/asurdev/` | `AsurDev/` | Home-cluster IaC, ACOS admission controllers, monitoring stack |
+| `kernel/atom-federation/` | `atom-federation-os/` | Deterministic alignment kernel, formal verification, K8s operator (re-integration in progress, see [Roadmap](#roadmap--known-issues)) |
+| `bridge/roma/` | `roma-execution-bridge/` | GPU execution bridge, SaaS billing, Stripe webhooks |
 
-## Required Environment Variables (.env)
-POSTGRES_PASSWORD=...
-POSTGRES_USER=astrofin
-POSTGRES_DB=astrofin
-API_KEY=...
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
-VSELM_API_KEY=sk-...
-text
+## Quickstart
 
+```bash
+git clone https://github.com/mahaasur13-sys/astrofin-sentinel-platform.git
+cd astrofin-sentinel-platform
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install -r requirements.all.txt
+pytest -q
+```
 
-## Monitoring Links
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3001 (admin/admin)
-- Jaeger: http://localhost:16686
-- Health & Metrics: http://localhost:8000/health, /metrics
+## Layout
 
-## Development with Ralph Loop
-- Add tasks to `docs/tickets.md`
-- Run `./scripts/ralph_loop.sh 3` to autonomously complete up to 3 tasks.
-- Review and merge the created branch.
+```
+astrofin-sentinel-platform/
+├── agents/                       # KARL/AMRE agent implementations (active: agents/_impl/)
+├── orchestration/                # Sentinel V5 orchestrator + meta-RL pipeline
+├── core/                         # Cross-cutting primitives: logging, ephemeris, cache
+├── web/                          # FastAPI dashboard (Dash/Plotly) + WebSocket
+├── tests/                        # Pytest suite (see CONTRIBUTING.md)
+├── knowledge/                    # RAG index, FAISS, daily-digest pipeline
+├── trading/                      # Execution adapters, broker integrations
+├── meta_rl/                      # Meta-reinforcement learning, A/B testing
+├── monitoring/                   # Prometheus exporter, OpenTelemetry, health endpoints
+├── infrastructure/asurdev/       # Cluster IaC, ACOS admission controllers
+├── kernel/atom-federation/       # Alignment + verification kernel, K8s operator
+├── bridge/roma/                  # GPU execution bridge, SaaS billing
+├── scripts/                      # Monorepo-level automation (DORA, audits)
+├── docs/                         # Architecture, contribution, runbooks
+├── audit_reports/                # CI artifacts, audit snapshots
+├── .github/workflows/            # CI/CD pipelines (ci/nightly/release/security/pr-checks)
+├── requirements.txt              # Core runtime deps
+├── requirements.all.txt          # Dev + test + lint deps
+├── pyproject.toml                # Package metadata (astrofin-sentinel-v5 5.0.0)
+├── LICENSE                       # All Rights Reserved
+├── CONTRIBUTING.md               # Development setup, lint, test workflow
+└── README.md                     # This file
+```
+
+## CLI Examples
+
+```bash
+# KARL/AMRE Sentinel V5 — single-symbol analysis
+python -m orchestration.sentinel_v5 "Analyze BTC" BTCUSDT SWING
+
+# Run targeted agent pool
+python -m orchestration.sentinel_v5_mas --symbol ETHUSDT --timeframe INTRADAY
+
+# Web dashboard (FastAPI + Dash)
+python -m web.app
+
+# Meta-RL backtest loop
+python -m meta_rl.backtest_loop --symbol BTCUSDT --horizon 24h
+
+# Observability smoke-test
+python -m monitoring.health_endpoints
+
+# Atom-Federation kernel verification
+python -m kernel.atom_federation.verification.runner
+
+# ROMA execution bridge (local)
+cd bridge/roma && uvicorn roma_execution_bridge.main:app --reload
+```
 
 ## Documentation
-- A/B Testing: `deploy/README.md`
-- Autonomous loop instructions: `RALPH_INSTRUCTIONS.md`
-- Architecture details: see docstrings in `orchestration/sentinel_v5.py`
 
-## CI/CD
-[![CI](https://github.com/m)](https://github.com/m)
-GitHub Actions run linting, security scan, and tests on every push. See `.github/workflows/ci.yml`.
-compose stack.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — full architecture overview
+- [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) — dev workflow (or see [`CONTRIBUTING.md`](CONTRIBUTING.md))
+- [`LICENSE`](LICENSE) — usage terms
+- [`docs/AGENT_REGISTRY.md`](docs/AGENT_REGISTRY.md) — agent roster & weights (KARL/AMRE)
 
-### 7 workflow files.
+## License
+
+All Rights Reserved. See [LICENSE](LICENSE) for full terms.
+
+See `docs/ARCHITECTURE.md` for deeper context.
