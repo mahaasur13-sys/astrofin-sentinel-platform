@@ -16,6 +16,7 @@ from slowapi.util import get_remote_address
 from starlette.responses import JSONResponse, PlainTextResponse
 
 from core.auth import fastapi_require_api_key
+from web.api.auth import router as auth_router  # NEW: P1-03
 
 # NEW: инициализируем лимитер (100 запросов в минуту глобально)
 limiter = Limiter(key_func=get_remote_address, default_limits=["100 per minute"])
@@ -26,6 +27,9 @@ process = psutil.Process(os.getpid())
 # NEW: привязываем лимитер к приложению
 app.state.limiter = limiter
 app.add_exception_handler(429, _rate_limit_exceeded_handler)
+
+# NEW: P1-03 — JWT auth router (login/refresh/whoami)
+app.include_router(auth_router)
 
 
 class HealthResponse(BaseModel):

@@ -81,6 +81,43 @@ python -m kernel.atom_federation.verification.runner
 cd bridge/roma && uvicorn roma_execution_bridge.main:app --reload
 ```
 
+## Authentication
+
+The FastAPI service (`health_endpoints.py`) exposes JWT (Bearer) auth
+endpoints under `/auth/*` — implemented in `web/api/auth.py` (P1-03).
+
+| Endpoint | Method | Auth | Description |
+| --- | --- | --- | --- |
+| `/auth/login` | POST | none | exchange username/password for `access_token` + `refresh_token` |
+| `/auth/refresh` | POST | none | exchange a valid `refresh_token` for a new `access_token` |
+| `/auth/whoami` | GET | Bearer (access) | returns the subject of the current token |
+
+Tokens are HS256 JWTs.  Access TTL: 15 min, refresh TTL: 7 days
+(configurable via the encrypted `config/secrets.secret.yaml`).
+
+### Example
+
+```bash
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"devpass123"}'
+```
+
+```json
+{
+  "access_token": "eyJhbGciOi...",
+  "refresh_token": "eyJhbGciOi...",
+  "token_type": "bearer"
+}
+```
+
+Use the access token in subsequent calls:
+
+```bash
+curl http://localhost:8000/auth/whoami \
+  -H "Authorization: Bearer <access_token>"
+```
+
 ## Documentation
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — full architecture overview
