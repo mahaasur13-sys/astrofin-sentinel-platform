@@ -28,6 +28,8 @@ from typing import Any, Dict, List, Optional
 import bcrypt
 import jwt
 import yaml
+from core.access_policy import normalize_role
+from core.audit import write_audit
 from core.rate_limiter import rate_limit_dependency
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pydantic import BaseModel
@@ -109,9 +111,11 @@ def _now() -> datetime:
     return datetime.now(tz=timezone.utc)
 
 
-def create_access_token(sub: str) -> str:
+def create_access_token(sub: str, role: str = "reader") -> str:
+    role_norm = normalize_role(role)
     payload = {
         "sub": sub,
+        "role": role_norm,
         "exp": _now() + timedelta(minutes=ACCESS_TTL_MIN),
         "iat": _now(),
         "type": "access",
@@ -119,9 +123,11 @@ def create_access_token(sub: str) -> str:
     return jwt.encode(payload, _require_secret(), algorithm=ALGORITHM)
 
 
-def create_refresh_token(sub: str) -> str:
+def create_refresh_token(sub: str, role: str = "reader") -> str:
+    role_norm = normalize_role(role)
     payload = {
         "sub": sub,
+        "role": role_norm,
         "exp": _now() + timedelta(days=REFRESH_TTL_DAYS),
         "iat": _now(),
         "type": "refresh",
@@ -161,12 +167,23 @@ def fastapi_require_jwt(request: Request) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def authenticate_user(username: str, password: str) -> Optional[str]:
+def authenticate_user(username: str, password: str) -> Optional[Dict[str, str]]:
+    """Return user record on success, else None.
+
+    A user record is ``{"username": str, "role": str}`` where ``role`` is
+    normalized via :func:`core.access_policy.normalize_role`. The dev
+    users table lives in ``config/secrets.yaml`` and may optionally carry
+    a ``role`` field per entry; missing or unknown values fall back to
+    ``"reader"`` (least privilege).
+    """
     for user in DEV_USERS:
         if user.get("username") == username and verify_password(
             password, user.get("password_hash", "")
         ):
-            return username
+            return {
+                "username": username,
+                "role": normalize_role(user.get("role")),
+            }
     return None
 
 
@@ -199,33 +216,110 @@ class AccessTokenOut(BaseModel):
 
 class WhoAmIOut(BaseModel):
     sub: str
+    role: str = "reader"
+
+
+def _client_ip(request: Request) -> str:
+    try:
+        return request.client.host if request.client else "-"
+    except Exception:
+        return "-"
 
 
 @router.post("/login", response_model=TokenPair)
 def login(
     body: LoginIn,
+    request: Request,
     _lim: None = Depends(rate_limit_dependency(5, 60)),
 ) -> TokenPair:
+    ip = _client_ip(request)
     user = authenticate_user(body.username, body.password)
     if not user:
+        write_audit(
+            "auth.login.failure",
+            actor=body.username,
+            ip=ip,
+            method=request.method,
+            path=request.url.path,
+            status="denied",
+            detail={"reason": "invalid_credentials"},
+        )
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return TokenPair(
-        access_token=create_access_token(user),
-        refresh_token=create_refresh_token(user),
+    role = user["role"]
+    access = create_access_token(user["username"], role=role)
+    refresh = create_refresh_token(user["username"], role=role)
+    write_audit(
+        "auth.login.success",
+        actor=user["username"],
+        ip=ip,
+        method=request.method,
+        path=request.url.path,
+        status="ok",
+        detail={"role": role},
     )
+    return TokenPair(access_token=access, refresh_token=refresh)
 
 
 @router.post("/refresh", response_model=AccessTokenOut)
 def refresh(
     body: RefreshIn,
+    request: Request,
     _lim: None = Depends(rate_limit_dependency(10, 60)),
 ) -> AccessTokenOut:
-    payload = decode_token(body.refresh_token)
+    ip = _client_ip(request)
+    try:
+        payload = decode_token(body.refresh_token)
+    except HTTPException:
+        write_audit(
+            "auth.refresh.failure",
+            actor="-",
+            ip=ip,
+            method=request.method,
+            path=request.url.path,
+            status="denied",
+            detail={"reason": "invalid_refresh_token"},
+        )
+        raise
     if payload.get("type") != "refresh":
+        write_audit(
+            "auth.refresh.failure",
+            actor=payload.get("sub", "-"),
+            ip=ip,
+            method=request.method,
+            path=request.url.path,
+            status="denied",
+            detail={"reason": "wrong_token_type"},
+        )
         raise HTTPException(status_code=401, detail="Invalid token type")
-    return AccessTokenOut(access_token=create_access_token(payload["sub"]))
+    sub = payload.get("sub", "")
+    role = normalize_role(payload.get("role"))
+    access = create_access_token(sub, role=role)
+    write_audit(
+        "auth.refresh.success",
+        actor=sub,
+        ip=ip,
+        method=request.method,
+        path=request.url.path,
+        status="ok",
+        detail={"role": role},
+    )
+    return AccessTokenOut(access_token=access)
 
 
 @router.get("/whoami", response_model=WhoAmIOut)
-def whoami(payload: dict = Depends(fastapi_require_jwt)) -> WhoAmIOut:
-    return WhoAmIOut(sub=payload["sub"])
+def whoami(
+    request: Request,
+    payload: dict = Depends(fastapi_require_jwt),
+) -> WhoAmIOut:
+    sub = payload.get("sub", "")
+    role = normalize_role(payload.get("role"))
+    write_audit(
+        "auth.whoami",
+        actor=sub,
+        ip=_client_ip(request),
+        method=request.method,
+        path=request.url.path,
+        status="ok",
+        detail={"role": role},
+    )
+    return WhoAmIOut(sub=sub, role=role)
