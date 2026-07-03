@@ -28,6 +28,7 @@ from typing import Any, Dict, List, Optional
 import bcrypt
 import jwt
 import yaml
+from core.rate_limiter import rate_limit_dependency
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pydantic import BaseModel
 
@@ -201,7 +202,10 @@ class WhoAmIOut(BaseModel):
 
 
 @router.post("/login", response_model=TokenPair)
-def login(body: LoginIn) -> TokenPair:
+def login(
+    body: LoginIn,
+    _lim: None = Depends(rate_limit_dependency(5, 60)),
+) -> TokenPair:
     user = authenticate_user(body.username, body.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -212,7 +216,10 @@ def login(body: LoginIn) -> TokenPair:
 
 
 @router.post("/refresh", response_model=AccessTokenOut)
-def refresh(body: RefreshIn) -> AccessTokenOut:
+def refresh(
+    body: RefreshIn,
+    _lim: None = Depends(rate_limit_dependency(10, 60)),
+) -> AccessTokenOut:
     payload = decode_token(body.refresh_token)
     if payload.get("type") != "refresh":
         raise HTTPException(status_code=401, detail="Invalid token type")
