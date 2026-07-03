@@ -17,6 +17,7 @@ from starlette.responses import JSONResponse, PlainTextResponse
 
 from core.auth import fastapi_require_api_key
 from web.api.auth import router as auth_router  # NEW: P1-03
+from web.api.middleware import SecurityHeadersMiddleware  # P1-13
 
 # NEW: инициализируем лимитер (100 запросов в минуту глобально)
 limiter = Limiter(key_func=get_remote_address, default_limits=["100 per minute"])
@@ -27,6 +28,7 @@ process = psutil.Process(os.getpid())
 # NEW: привязываем лимитер к приложению
 app.state.limiter = limiter
 app.add_exception_handler(429, _rate_limit_exceeded_handler)
+app.add_middleware(SecurityHeadersMiddleware)
 
 # NEW: P1-03 — JWT auth router (login/refresh/whoami)
 app.include_router(auth_router)
@@ -174,7 +176,7 @@ async def karl_status(request: Request):  # добавлен параметр re
 # ------------------------------------------------------------
 @app.get("/metrics/karl")
 @limiter.limit("30 per minute")  # NEW: метрики могут запрашиваться чаще
-async def karl_metrics():
+async def karl_metrics(request: Request):  # NEW: slowapi requires Request
     try:
         from agents.karl_synthesis import get_karl_agent
 
@@ -230,7 +232,7 @@ async def karl_metrics():
 
 @app.get("/metrics/system")
 @limiter.limit("30 per minute")  # NEW
-async def system_metrics():
+async def system_metrics(request: Request):  # NEW: slowapi requires Request
     return {
         "memory_percent": process.memory_percent(),
         "memory_mb": process.memory_info().rss / 1024 / 1024,
