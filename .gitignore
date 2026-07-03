@@ -26,3 +26,4 @@ audit_repo/
 
 # pytest-hypothesis database (do not commit)
 .hypothesis/
+.github/workflows/decrypt-secrets.yml
