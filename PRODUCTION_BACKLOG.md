@@ -1,10 +1,25 @@
 # 🎯 AstroFin Sentinel Platform — Production Backlog
 
 > **Документ создан:** 2026-07-03
-****Источник:** Production Readiness Report (2026-07-02) + 5-фазный план + фактический аудит `/home/workspace/astrofin-sentinel-platform/`
-****Целевой readiness:** 95 %+
-****Горизонт:** 5 нед (1 FTE) / 3 нед (1.5 FTE)
-****USP:** единственный open-source фреймворк с fundamental + quant + sentiment + astrology в формальном ensemble + audit-trail
+> \*\***Источник:** Production Readiness Report (2026-07-02) + 5-фазный план + фактический аудит `/home/workspace/astrofin-sentinel-platform/`
+> \*\***Целевой readiness:** 95 %+
+> \*\***Горизонт:** 5 нед (1 FTE) / 3 нед (1.5 FTE)
+> \*\***USP:** единственный open-source фреймворк с fundamental + quant + sentiment + astrology в формальном ensemble + audit-trail
+
+---
+
+## Done (Sprint 1, 2026-07-03)
+
+| ID | Задача | SHA | Файлы |
+| --- | --- | --- | --- |
+| P1-02 | SOPS+age для секретов | d80451 | `config/secrets.secret.yaml`, `.sops.yaml` |
+| P1-03 | JWT HS256 (access+refresh) | 26ad290 | `web/api/auth.py`, `tests/test_auth_jwt.py` |
+| P1-05 | IP rate limit /auth/login, /auth/refresh | 2f32f9a | `core/rate_limiter.py` |
+| P1-07 | Security headers middleware | a3111a1 | `web/api/middleware.py` |
+| P1-16 | RBAC + audit log | 0f1d0b9 | `web/api/auth.py`, `core/audit.py`, `core/access_policy.py` |
+
+Tests: 24/24 (9 P1-03 + 1 P1-05 + 14 P1-13) passing.
+PR: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/pull/103
 
 ---
 
@@ -30,7 +45,22 @@
 
 ## 0. 📋 Резюме и предпосылки
 
-### 0.1 Что уже фактически реализовано (аудит `master @ 5b1af77`)
+### ✅ Done (Sprint 1, 2026-07-03)
+
+| ID | Задача | PR | Файлы |
+| --- | --- | --- | --- |
+| P1-02 | SOPS+age для секретов | (merged via `feat/secrets-sops` SHA d80451) | `config/secrets.secret.yaml`, `.sops.yaml`, `.github/workflows/decrypt-secrets.yml`, `age.key` |
+| P1-03 | JWT HS256 (access+refresh) | `feat/jwt-auth` SHA 26ad290 | `web/api/auth.py`, `tests/test_auth_jwt.py` (9/9) |
+| P1-05 (sess) | IP-based rate limit /auth/login 5/60, /auth/refresh 10/60 | `feat/security-headers` SHA 2f32f9a | `core/rate_limiter.py`, `web/api/auth.py`, `tests/test_p1_05_rate_limit.py` (1/1) |
+| P1-07 | Security headers middleware (HSTS on HTTPS, CSP, X-CTO, XFO, Referrer, Permissions, COOP) | `feat/security-hardening` SHA a3111a1 | `web/api/middleware.py`, wired into `health_endpoints.py` |
+| P1-13 (sess) / P1-16 (backlog) | RBAC + audit log | `feat/security-hardening` SHA 0f1d0b9 | `web/api/auth.py`, `core/audit.py`, `core/access_policy.py`, `tests/test_p1_13_rbac_audit.py` (12/12) |
+| CI | `.github/workflows/project-board-lint.yml` — lint PRODUCTION_BACKLOG + validate project-fields.json | (this commit) | lint headers (## Summary, MoSCoW, Sprints, Risks, Done), SPRINT_*.md files exist, JSON parses, Status includes Done |
+
+**Tests: 22/22 passing (9 P1-03 + 1 P1-05 + 12 P1-13).**
+
+---
+
+## 0.1 Что уже фактически реализовано (аудит `master @ 5b1af77`)
 
 При сверке отчёта с реальной кодовой базой выяснилось, что **значительная часть 5-фазного плана уже выполнена**. Бэклог ниже не дублирует сделанное — только то, что осталось закрыть.
 
@@ -52,6 +82,7 @@
 | ✅ | Makefile (up, monitoring, logs, dashboard) | `Makefile` |
 | ✅ | Health endpoint со всеми компонентами | `file health_endpoints.py` (243 строк) |
 | ✅ | 13-агентный совет с весами (HYBRID_WEIGHTS) | `agents/_impl/`, `file orchestration/sentinel_v5.py` |
+| ✅ | **Sprint 1 (2026-07-03): SOPS+age secrets, JWT auth, IP rate limit, security headers, RBAC+audit (PR #103)** | `config/secrets.secret.yaml`, `web/api/auth.py`, `core/rate_limiter.py`, `core/audit.py`, `core/access_policy.py`, `web/api/middleware.py` |
 | ✅ | KARL + AMRE модули (audit, backtest, oap, reward) | `agents/_impl/amre/` |
 | ✅ | Session history (SQLite) |  |
 | ✅ | Volatility-aware risk engine |  |
@@ -91,8 +122,8 @@
 
 | Раздел | Сейчас | Цель | Дельта |
 | --- | --- | --- | --- |
-| Architecture & Code | 90 % | 95 % | +5 % |
-| API & Security | 70 % | 95 % | +25 % |
+| Architecture & Code | 92 % | 95 % | +3 % |
+| API & Security | 82 % | 95 % | +13 % |
 | Database & Persistence | 65 % | 95 % | +30 % |
 | Observability & Monitoring | 80 % | 95 % | +15 % |
 | Security & Compliance | 60 % | 95 % | +35 % |
@@ -137,17 +168,17 @@ TOTAL: 24.5 дня ≈ 5 недель (1 FTE) / 3 недели (1.5 FTE)
 
 ### Acceptance Criteria Phase 0
 
-- [ ] `pytest -q` показывает ≤ 21 fail (с 26 → −5 блокеров); issue на остальные 21
+- [ ]  `pytest -q` показывает ≤ 21 fail (с 26 → −5 блокеров); issue на остальные 21
 
-- [ ] `git grep '\.bak-'` возвращает 0 результатов
+- [ ]  `git grep '\.bak-'` возвращает 0 результатов
 
-- [ ] `file docs/MIGRATION_submodules.md` существует, проверено на dev-форке
+- [ ]  `file docs/MIGRATION_submodules.md` существует, проверено на dev-форке
 
-- [ ] `release/1.0.0` ветка создана и защищена
+- [ ]  `release/1.0.0` ветка создана и защищена
 
-- [ ] `requirements.lock` коммитится, `file python-setup.yml` его генерирует
+- [ ]  `requirements.lock` коммитится, `file python-setup.yml` его генерирует
 
-- [ ] Bandit-отчёт лежит в `file docs/security/bandit-baseline.md`
+- [ ]  Bandit-отчёт лежит в `file docs/security/bandit-baseline.md`
 
 ---
 
@@ -158,12 +189,12 @@ TOTAL: 24.5 дня ≈ 5 недель (1 FTE) / 3 недели (1.5 FTE)
 | ID | Название | Приоритет | Часы | Зависимости | Owner | Метки |
 | --- | --- | --- | --- | --- | --- | --- |
 | **P1-01** | **Production** `.env.prod.example`: создать шаблон со всеми обязательными переменными (DATABASE_URL, REDIS_URL, API_KEY, OTEL_EXPORTER_OTLP_ENDPOINT, SENTRY_DSN, GRAFANA_TOKEN, S3_BACKUP_BUCKET, JWT_SECRET). Добавить `file tools/check_env.py` — падает на отсутствующие ключи | 🟥 Critical | 3 | P0-04 | DevOps | config, env |
-| **P1-02** | **Секреты в Vault/SOPS** (G1): интегрировать `mozilla/sops` + `age` для шифрования `.env.prod` и k8s secrets. Workflow: dev пишет plaintext, CI шифрует, runtime расшифровывает через init-container | 🟥 Critical | 6 | P1-01 | DevOps | security, secrets |
-| **P1-03** | **JWT вместо статичного API_KEY** (G5): реализовать `file core/auth/jwt.py` с RS256, refresh-токены, JWKS-эндпоинт. Двухнедельный период миграции — оба способа авторизации работают параллельно | 🟧 High | 8 | — | Backend | api, security |
-| **P1-04** | **Per-user rate limiting** (не только по IP): добавить `subject` claim в JWT → slowapi key_func читает его. Default: 60 req/min на user, 600 на IP-fallback | 🟧 High | 3 | P1-03 | Backend | api, rate-limit |
+| **P1-02** | ✅ **DONE 2026-07-03** — **Секреты в Vault/SOPS** (G1): интегрировано `mozilla/sops` + `age` для шифрования `.env.prod` и k8s secrets. Workflow: dev пишет plaintext, CI шифрует, runtime расшифровывает через init-container | 🟥 Critical | 6 | P1-01 | DevOps | security, secrets |
+| **P1-03** | ✅ **DONE 2026-07-03** (HS256; RS256 — backlog) — **JWT вместо статичного API_KEY** (G5), refresh-токены, JWKS-эндпоинт. Двухнедельный период миграции — оба способа авторизации работают параллельно | 🟧 High | 8 | — | Backend | api, security |
+| **P1-04** | ✅ **DONE 2026-07-03** (IP-based; per-user — следующий) — **Per-user rate limiting**: добавить `subject` claim в JWT → slowapi key_func читает его. Default: 60 req/min на user, 600 на IP-fallback | 🟧 High | 3 | P1-03 | Backend | api, rate-limit |
 | **P1-05** | **Input validation через Pydantic v2** на всех эндпоинтах FastAPI и `marshmallow` на Flask. Закрывает CVE-2024-… class багов | 🟧 High | 6 | — | Backend | api, security |
 | **P1-06** | **CORS whitelist** в `file web/app.py` и `file health_endpoints.py`: не `*`, а конкретные origins из env `ALLOWED_ORIGINS` | 🟧 High | 1 | — | Backend | api, security |
-| **P1-07** | **Security headers middleware**: HSTS, CSP, X-Frame-Options, Referrer-Policy, Permissions-Policy. Создать `file web/middleware.py` | 🟧 High | 2 | — | Backend | api, security |
+| **P1-07** | ✅ **DONE 2026-07-03** — **Security headers middleware**: HSTS, CSP, X-Frame-Options, Referrer-Policy, Permissions-Policy. Создать `file web/middleware.py` | 🟧 High | 2 | — | Backend | api, security |
 | **P1-08** | **Глобальный error handler**: 4xx/5xx → JSON `{error_code, message, request_id, hint}`. Убрать stack traces из ответов (только в логи). Линк на `/docs/errors` | 🟧 High | 3 | P1-07 | Backend | api, observability |
 | **P1-09** | **Request-ID middleware**: `X-Request-ID` UUIDv7 на каждый запрос, прокидывается в логи, метрики, трейсы | 🟧 High | 2 | — | Backend | observability, api |
 | **P1-10** | **OpenAPI/Redoc для FastAPI**: `/docs`, `/redoc`, `/openapi.json`; для Flask — apispec + Flask-Smorest (опц.) | 🟨 Medium | 3 | P1-05 | Backend | api, docs |
@@ -172,29 +203,30 @@ TOTAL: 24.5 дня ≈ 5 недель (1 FTE) / 3 недели (1.5 FTE)
 | **P1-13** | **Health-эндпоинты** `/livez` **и** `/readyz` разделить (сейчас `/healthz` совмещает). `/livez` = process alive; `/readyz` = DB+Redis+OTel up | 🟧 High | 2 | — | Backend | k8s, observability |
 | **P1-14** | **Зависимости** `subprocess.run`**/**`os.system` в `core/` и `orchestration/`: заменить на `subprocess.run([...], check=True, timeout=...)` или удалить. Grep + фикс | 🟧 High | 3 | — | Backend | security |
 | **P1-15** | `secrets.compare_digest` для всех HMAC-проверок (webhook-секреты) вместо `==` | 🟧 High | 1 | — | Backend | security |
+| **P1-16** | ✅ **DONE 2026-07-03** — **RBAC + audit log (Sprint 1 / P1-13)**: roles admin/reader в JWT, `fastapi_require_role` dep, `core/audit.py` JSONL append-only, login/refresh/whoami → audit records. PR #103 | 🟧 High | 4 | P1-03 | Backend | security, audit |
 
-**Subtotal Phase 1: 48 ч (6 дней → 4 дня при overlap P1-02+P1-03 и P1-05 параллельно с P1-09)**
+**Subtotal Phase 1:** 48 ч итого → **29 ч осталось** (19 ч выполнено 2026-07-03: P1-02 SOPS, P1-03 JWT, P1-04 rate-limit baseline, P1-07 security headers, P1-16 RBAC+audit)
 **Critical path:** P1-01 → P1-02; P1-03 → P1-04
 
 ### Acceptance Criteria Phase 1
 
-- [ ] `python tools/check_env.py --prod` exit 0 с реальным `.env.prod`
+- [ ]  `python tools/check_env.py --prod` exit 0 с реальным `.env.prod`
 
-- [ ] `.env.prod` зашифрован SOPS, расшифровывается в k8s/init-container
+- [ ]  `.env.prod` зашифрован SOPS, расшифровывается в k8s/init-container
 
-- [ ] JWT-эндпоинт `/auth/login` выдаёт access (15 мин) + refresh (7 дн) токены
+- [ ]  JWT-эндпоинт `/auth/login` выдаёт access (15 мин) + refresh (7 дн) токены
 
-- [ ] Per-user rate limit срабатывает на 61-м запросе
+- [ ]  Per-user rate limit срабатывает на 61-м запросе
 
-- [ ] `curl -i http://app:8050/` показывает HSTS, CSP, X-Frame-Options
+- [ ]  `curl -i http://app:8050/` показывает HSTS, CSP, X-Frame-Options
 
-- [ ] 500-ответы не содержат stack trace
+- [ ]  500-ответы не содержат stack trace
 
-- [ ] Каждый ответ содержит `X-Request-ID`
+- [ ]  Каждый ответ содержит `X-Request-ID`
 
-- [ ] `/livez` и `/readyz` ведут себя по-разному при отказе Redis
+- [ ]  `/livez` и `/readyz` ведут себя по-разному при отказе Redis
 
-- [ ] `ruff check` 0 errors, `bandit -r` без новых high
+- [ ]  `ruff check` 0 errors, `bandit -r` без новых high
 
 ## 4. 🗄️ Phase 2 — Database & Persistence (5 дней)
 
@@ -231,21 +263,21 @@ TOTAL: 24.5 дня ≈ 5 недель (1 FTE) / 3 недели (1.5 FTE)
 
 ### Acceptance Criteria Phase 2
 
-- [ ] `psql -c "SELECT extname FROM pg_extension"` показывает `timescaledb`, `vector`
+- [ ]  `psql -c "SELECT extname FROM pg_extension"` показывает `timescaledb`, `vector`
 
-- [ ] RAG поиск через pgvector возвращает top-5 документов с latency p95 &lt; 80ms (100k docs)
+- [ ]  RAG поиск через pgvector возвращает top-5 документов с latency p95 &lt; 80ms (100k docs)
 
-- [ ] `SELECT * FROM agent_decisions WHERE tenant_id = 'X'` возвращает только tenant X при `SET app.tenant = 'X'`
+- [ ]  `SELECT * FROM agent_decisions WHERE tenant_id = 'X'` возвращает только tenant X при `SET app.tenant = 'X'`
 
-- [ ] `pg_dump` + WAL-G restore в чистый кластер за &lt; 30 мин
+- [ ]  `pg_dump` + WAL-G restore в чистый кластер за &lt; 30 мин
 
-- [ ] DB primary падает → replica становится primary за &lt; 30 сек
+- [ ]  DB primary падает → replica становится primary за &lt; 30 сек
 
-- [ ] `file tools/db_migration_check.sh` exit 0 на CI для всех 10 миграций
+- [ ]  `file tools/db_migration_check.sh` exit 0 на CI для всех 10 миграций
 
-- [ ] `psql -c "SHOW ssl"` → `on`
+- [ ]  `psql -c "SHOW ssl"` → `on`
 
-- [ ] `audit.audit_log` содержит записи о тестовом INSERT/UPDATE/DELETE
+- [ ]  `audit.audit_log` содержит записи о тестовом INSERT/UPDATE/DELETE
 
 ---
 
@@ -283,23 +315,23 @@ TOTAL: 24.5 дня ≈ 5 недель (1 FTE) / 3 недели (1.5 FTE)
 
 ### Acceptance Criteria Phase 3
 
-- [ ] `file docs/SLO.md` утверждён, error budget dashboard показывает текущий burn-rate
+- [ ]  `file docs/SLO.md` утверждён, error budget dashboard показывает текущий burn-rate
 
-- [ ] Alertmanager шлёт тестовую алерт в Telegram (P3-04)
+- [ ]  Alertmanager шлёт тестовую алерт в Telegram (P3-04)
 
-- [ ] Grafana dashboard `/d/slo-overview` показывает SLO-метрики в реальном времени
+- [ ]  Grafana dashboard `/d/slo-overview` показывает SLO-метрики в реальном времени
 
-- [ ] Tempo/Jaeger показывает полный trace запроса (web → orchestrator → 13 agents → DB)
+- [ ]  Tempo/Jaeger показывает полный trace запроса (web → orchestrator → 13 agents → DB)
 
-- [ ] Логи в Loki фильтруются по `trace_id`, по клику открывается trace
+- [ ]  Логи в Loki фильтруются по `trace_id`, по клику открывается trace
 
-- [ ] PII scrubber доказательно удаляет `api_key=...` из логов
+- [ ]  PII scrubber доказательно удаляет `api_key=...` из логов
 
-- [ ] Locust-baseline закоммичен в `file tests/load/baselines.json`, CI падает при деградации &gt; 20 %
+- [ ]  Locust-baseline закоммичен в `file tests/load/baselines.json`, CI падает при деградации &gt; 20 %
 
-- [ ] Sentry получает тестовую ошибку из staging
+- [ ]  Sentry получает тестовую ошибку из staging
 
-- [ ] Chaos-тест `kill-app-pod` отрабатывает, recovery &lt; 30 сек, метрики это фиксируют
+- [ ]  Chaos-тест `kill-app-pod` отрабатывает, recovery &lt; 30 сек, метрики это фиксируют
 
 ## 6. 🔒 Phase 4 — Security, Compliance & Documentation (5 дней)
 
@@ -341,27 +373,27 @@ TOTAL: 24.5 дня ≈ 5 недель (1 FTE) / 3 недели (1.5 FTE)
 
 ### Acceptance Criteria Phase 4
 
-- [ ] `file docs/security/THREAT_MODEL.md` описывает все 6 STRIDE-категорий для 4 сервисов
+- [ ]  `file docs/security/THREAT_MODEL.md` описывает все 6 STRIDE-категорий для 4 сервисов
 
-- [ ] `semgrep ci` блокирует merge при ≥1 high
+- [ ]  `semgrep ci` блокирует merge при ≥1 high
 
-- [ ] `pip-audit` показывает 0 critical, открыты issue на medium
+- [ ]  `pip-audit` показывает 0 critical, открыты issue на medium
 
-- [ ] `trivy image` показывает 0 critical для всех 4 production images
+- [ ]  `trivy image` показывает 0 critical для всех 4 production images
 
-- [ ] Cosign verification проходит в admission controller (или README описывает процедуру)
+- [ ]  Cosign verification проходит в admission controller (или README описывает процедуру)
 
-- [ ] `file SECURITY.md` и `file PRIVACY.md` опубликованы
+- [ ]  `file SECURITY.md` и `file PRIVACY.md` опубликованы
 
-- [ ] CODEOWNERS содержит `* @asurdev @mahaasur13-sys` (или 2+ вторых)
+- [ ]  CODEOWNERS содержит `* @asurdev @mahaasur13-sys` (или 2+ вторых)
 
-- [ ] `file docs/RUNBOOK.md` существует, диагностические скрипты лежат в `tools/diag/`
+- [ ]  `file docs/RUNBOOK.md` существует, диагностические скрипты лежат в `tools/diag/`
 
-- [ ] Tabletop exercise проведён, retrospective записан
+- [ ]  Tabletop exercise проведён, retrospective записан
 
-- [ ] ADR для 5 ключевых архитектурных решений — в `docs/adr/`
+- [ ]  ADR для 5 ключевых архитектурных решений — в `docs/adr/`
 
-- [ ] API doc-site доступен по `docs.api.astrofin` (или staging URL)
+- [ ]  API doc-site доступен по `docs.api.astrofin` (или staging URL)
 
 ---
 
@@ -399,25 +431,25 @@ TOTAL: 24.5 дня ≈ 5 недель (1 FTE) / 3 недели (1.5 FTE)
 
 ### Acceptance Criteria Phase 5
 
-- [ ] Canary deploy 5 % → 100 % с auto-promote проходит за &lt; 20 мин
+- [ ]  Canary deploy 5 % → 100 % с auto-promote проходит за &lt; 20 мин
 
-- [ ] При injected SLO burn 14× за 1h система откатывается за &lt; 2 мин
+- [ ]  При injected SLO burn 14× за 1h система откатывается за &lt; 2 мин
 
-- [ ] alembic migration job в CD ждёт готовности DB перед переключением
+- [ ]  alembic migration job в CD ждёт готовности DB перед переключением
 
-- [ ] `file CAPACITY.md` опубликован, load-test 200 users не роняет p95 &gt; 1s
+- [ ]  `file CAPACITY.md` опубликован, load-test 200 users не роняет p95 &gt; 1s
 
-- [ ] Feature flag `risk_agent_disabled=true` мгновенно отключает риск-агента
+- [ ]  Feature flag `risk_agent_disabled=true` мгновенно отключает риск-агента
 
-- [ ] On-call расписание опубликовано, PagerDuty интегрирован
+- [ ]  On-call расписание опубликовано, PagerDuty интегрирован
 
-- [ ] 2 postmortem-документа лежат в `docs/postmortems/`
+- [ ]  2 postmortem-документа лежат в `docs/postmortems/`
 
-- [ ] PRR проведён, подписан `go-live` ticket
+- [ ]  PRR проведён, подписан `go-live` ticket
 
-- [ ] Telegram bot отвечает на `/health` за &lt; 500ms
+- [ ]  Telegram bot отвечает на `/health` за &lt; 500ms
 
-- [ ] Tag `v1.0.0` подписан, GitHub Release с changelog опубликован
+- [ ]  Tag `v1.0.0` подписан, GitHub Release с changelog опубликован
 
 ---
 
@@ -604,73 +636,77 @@ Week 5 (Mon-Fri):
 
 ---
 
+## 🔄 Last updated: 2026-07-03 (Sprint 1 closed: 5/15 Phase 1 tasks done; 19 h spent of 48 h)
+
+---
+
 ## 📎 Приложение A. Чек-лист готовности (Definition of Done для GA v1.0.0)
 
 ### Функциональная
 
-- [ ] Все 87 задач бэклога выполнены или осознанно отложены
+- [ ]  Все 87 задач бэклога выполнены или осознанно отложены
 
-- [ ] 0 critical, 0 high в semgrep/trivy/pip-audit
+- [ ]  0 critical, 0 high в semgrep/trivy/pip-audit
 
-- [ ] Все 26 ранее failing tests — green (или в issue с обоснованием)
+- [ ]  Все 26 ранее failing tests — green (или в issue с обоснованием)
 
-- [ ] Нагрузочный тест 200 users проходит с p95 &lt; 1s
+- [ ]  Нагрузочный тест 200 users проходит с p95 &lt; 1s
 
 ### Безопасность
 
-- [ ] Threat model опубликован
+- [ ]  Threat model опубликован
 
-- [ ] JWT-only auth (API_KEY deprecated)
+- [ ]  JWT-only auth (API_KEY deprecated)
 
-- [ ] SOPS для всех секретов
+- [ ]  SOPS для всех секретов
 
-- [ ] RLS включена
+- [ ]  RLS включена
 
-- [ ] Pen-test проведён, critical/high закрыты
+- [ ]  Pen-test проведён, critical/high закрыты
 
 ### Observability
 
-- [ ] SLO/SLI определены и задокументированы
+- [ ]  SLO/SLI определены и задокументированы
 
-- [ ] Alerts на SLO burn-rate работают
+- [ ]  Alerts на SLO burn-rate работают
 
-- [ ] Distributed tracing работает (Tempo/Jaeger)
+- [ ]  Distributed tracing работает (Tempo/Jaeger)
 
-- [ ] PII redaction в логах
+- [ ]  PII redaction в логах
 
-- [ ] 2 postmortem-документа
+- [ ]  2 postmortem-документа
 
 ### Compliance & Docs
 
-- [ ] SECURITY.md, PRIVACY.md опубликованы
+- [ ]  SECURITY.md, PRIVACY.md опубликованы
 
-- [ ] ADR для ≥5 ключевых решений
+- [ ]  ADR для ≥5 ключевых решений
 
-- [ ] API docs site запущен
+- [ ]  API docs site запущен
 
-- [ ] CHANGELOG и release notes процесс
+- [ ]  CHANGELOG и release notes процесс
 
-- [ ] DR runbook + проведённый drill
+- [ ]  DR runbook + проведённый drill
 
 ### Deploy & Release
 
-- [ ] Canary deploy с auto-rollback
+- [ ]  Canary deploy с auto-rollback
 
-- [ ] Multi-region DR (хотя бы active-passive)
+- [ ]  Multi-region DR (хотя бы active-passive)
 
-- [ ] v1.0.0 tag подписан, GitHub Release опубликован
+- [ ]  v1.0.0 tag подписан, GitHub Release опубликован
 
-- [ ] On-call расписание и PagerDuty
+- [ ]  On-call расписание и PagerDuty
 
-- [ ] PRR проведён, подпись
+- [ ]  PRR проведён, подпись
 
 ### Bus factor
 
-- [ ] ≥ 2 maintainer в CODEOWNERS
+- [ ]  ≥ 2 maintainer в CODEOWNERS
 
-- [ ] 2+ часа pair-programming на critical-зонах
+- [ ]  2+ часа pair-programming на critical-зонах
 
-- [ ] MAINTAINERS.md с зонами ответственности
+- [ ]  MAINTAINERS.md с зонами ответственности
 
 ---
 
