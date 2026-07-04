@@ -208,7 +208,11 @@ async def cmd_stats(args: argparse.Namespace) -> int:
 
         # pgvector: best-effort count
         pg_total: int | None = None
-        pg_table = "rag_documents"  # match migration 0009
+        pg_table = "documents"  # match migration 0009
+        try:
+            await client._get_pg_pool()
+        except Exception as e:
+            _warn(f"pgvector pool init failed: {e}")
         if client._pg_pool is not None:
             try:
                 async with client._pg_pool.acquire() as conn:
@@ -328,7 +332,7 @@ async def cmd_list_domains(args: argparse.Namespace) -> int:
         if client._pg_pool is not None:
             try:
                 async with client._pg_pool.acquire() as conn:
-                    rows = await conn.fetch("SELECT DISTINCT domain FROM rag_documents")
+                    rows = await conn.fetch("SELECT DISTINCT metadata->>'domain' AS domain FROM documents")
                     for row in rows:
                         domains.add(row["domain"])
             except Exception as e:
@@ -385,7 +389,7 @@ async def cmd_migrate_status(args: argparse.Namespace) -> int:
             try:
                 async with client._pg_pool.acquire() as conn:
                     rows = await conn.fetch(
-                        "SELECT domain, COUNT(*) AS n FROM rag_documents GROUP BY domain"
+                        "SELECT metadata->>'domain' AS domain, COUNT(*) AS n FROM documents GROUP BY metadata->>'domain'"
                     )
                     for row in rows:
                         pg_counts[row["domain"]] = row["n"]
@@ -445,7 +449,7 @@ async def cmd_reindex_faiss(args: argparse.Namespace) -> int:
         async with client._pg_pool.acquire() as conn:  # type: ignore[union-attr]
             rows = await conn.fetch(
                 "SELECT doc_id, content, source, title, domain "
-                "FROM rag_documents WHERE domain = $1",
+                "FROM documents WHERE domain = $1",
                 args.domain,
             )
         if not rows:

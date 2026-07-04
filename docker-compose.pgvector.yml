@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: astrofin-pgvector
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: astrofin
+      POSTGRES_USER: astrofin
+      POSTGRES_PASSWORD: astrofin_secure_password_2026
+    volumes:
+      - pgvector_data:/var/lib/postgresql/data
+    command: postgres -c shared_preload_libraries=vector -c max_connections=200
+
+volumes:
+  pgvector_data:
