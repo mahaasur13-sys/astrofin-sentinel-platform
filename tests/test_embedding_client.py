@@ -108,7 +108,7 @@ async def test_batch_preserves_order(stub_client):
 @pytest.mark.unit
 async def test_batch_with_empty_and_none(stub_client):
     result = await stub_client.embed(["valid", "", None, "another"])
-    assert result[0] == [v for v in result[0]] and len(result[0]) == 1536
+    assert result[0] is not None and len(result[0]) == 1536
     assert result[1] == [0.0] * 1536
     assert result[2] == [0.0] * 1536
     assert result[3] is not None and len(result[3]) == 1536

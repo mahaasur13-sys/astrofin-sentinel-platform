@@ -9,8 +9,12 @@ Supports three providers, switchable via env at runtime:
 Key behaviours:
   - Async-first. `embed()` is the canonical interface, takes a list[str].
     `embed_one()` is syntactic sugar (await self.embed([text])[0]).
-  - In-process LRU cache (RAG_CACHE=memory, default on). Disable with RAG_CACHE=off.
-  - Cache is TTL-bounded via a per-key monotonic timestamp (see _cache_get/_cache_put).
+  - In-process LRU cache (RAG_CACHE=memory, default on) backed by
+    `cachetools.LRUCache(maxsize=10_000)`. Disable with RAG_CACHE=off.
+  - Cache is TTL-bounded: a per-key monotonic timestamp is checked on read;
+    expired entries are evicted on access. Least-recently-used entries are
+    evicted when the cap is exceeded, so memory stays bounded for long-lived
+    processes.
   - OpenAI errors: rate-limit (429) and server (5xx) trigger a single retry with
     exponential backoff (0.5s, 1.5s). Auth/quota errors (401/403) raise immediately
     — they are not transient and stub-fallback would silently mask misconfig.
@@ -35,6 +39,7 @@ from typing import List, Optional
 
 import httpx
 import openai
+from cachetools import LRUCache
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -80,7 +85,7 @@ class EmbeddingClient:
         self._openai_client: Optional[openai.AsyncOpenAI] = None
         self._httpx_client: Optional[httpx.AsyncClient] = None  # lazy: created on first ollama call
         # Cache: key -> (vector, monotonic_ts)
-        self._cache: dict[str, tuple[list[float], float]] = {}
+        self._cache: LRUCache[str, tuple[list[float], float]] = LRUCache(maxsize=10000)
 
     # ─── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -127,13 +132,17 @@ class EmbeddingClient:
             return None
         vec, ts = entry
         if (time.monotonic() - ts) > self.config.cache_ttl_seconds:
-            del self._cache[key]
+            try:
+                del self._cache[key]
+            except KeyError:
+                pass
             return None
         return vec
 
     def _cache_put(self, text: str, vec: list[float]) -> None:
         if not self.config.cache_enabled:
             return
+        # LRUCache evicts the least-recently-used entry when maxsize is exceeded.
         self._cache[self._cache_key(text)] = (vec, time.monotonic())
 
     # ─── Stub provider (deterministic) ──────────────────────────────────────

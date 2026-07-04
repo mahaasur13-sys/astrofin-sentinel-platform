@@ -319,7 +319,12 @@ async def cmd_list_domains(args: argparse.Namespace) -> int:
             for p in faiss_dir.glob("*.index"):
                 domains.add(p.stem)
 
-        # pgvector
+        # pgvector — _pg_pool is lazy; force-init before checking.
+        if client.config.backend == "pgvector":
+            try:
+                await client._get_pg_pool()
+            except Exception as e:
+                _warn(f"pgvector init failed: {e}")
         if client._pg_pool is not None:
             try:
                 async with client._pg_pool.acquire() as conn:
@@ -369,8 +374,13 @@ async def cmd_migrate_status(args: argparse.Namespace) -> int:
                 else:
                     faiss_counts[idx_path.stem] = -1
 
-        # pgvector side
+        # pgvector side — _pg_pool is lazy; force-init before checking.
         pg_counts: dict[str, int] = {}
+        if client.config.backend == "pgvector":
+            try:
+                await client._get_pg_pool()
+            except Exception as e:
+                _warn(f"pgvector init failed: {e}")
         if client._pg_pool is not None:
             try:
                 async with client._pg_pool.acquire() as conn:
@@ -413,6 +423,11 @@ async def cmd_migrate_status(args: argparse.Namespace) -> int:
 async def cmd_reindex_faiss(args: argparse.Namespace) -> int:
     """Rebuild a FAISS index for one domain (drop and re-create from pgvector)."""
     _header(f"Reindex FAISS: {args.domain}")
+    try:
+        client = await _get_client(args)
+    except Exception as e:
+        _err(f"failed to construct client: {e}")
+        return 2
 
     if client.config.backend != "faiss":
         # Need to query pgvector
@@ -494,7 +509,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--faiss-dir", default=None, help="override FAISS index directory",
     )
     common.add_argument(
-        "--min-score", type=float, default=-1.0,
+        "--min-score", type=float, default=None,
         help="minimum relevance score for retrieved chunks",
     )
     common.add_argument(

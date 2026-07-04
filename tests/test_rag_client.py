@@ -115,7 +115,7 @@ async def test_store_empty_list_returns_zero_inserted(tmp_path):
 @pytest.mark.asyncio
 async def test_store_faiss_happy_path(tmp_path):
     """End-to-end: store 2 docs into a fresh FAISS dir, verify file appears."""
-    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path), faiss_domain="test_store")
+    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path))
     client = RAGClient(cfg)
 
     docs = [
@@ -137,7 +137,7 @@ async def test_store_faiss_happy_path(tmp_path):
 @pytest.mark.asyncio
 async def test_store_faiss_unicode_content(tmp_path):
     """Unicode content (Russian, emoji) must round-trip without crashing."""
-    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path), faiss_domain="unicode")
+    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path))
     client = RAGClient(cfg)
     docs = [Document(content="Привет 🚀", source="test://unicode", domain="unicode")]
     result = await client.store(docs)
@@ -152,7 +152,7 @@ async def test_store_faiss_empty_content_is_allowed(tmp_path):
 
     The embedder handles empty strings as zero-vectors; FAISS accepts them.
     """
-    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path), faiss_domain="empty")
+    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path))
     client = RAGClient(cfg)
     docs = [Document(content="", source="test://empty", domain="empty")]
     result = await client.store(docs)
@@ -262,7 +262,7 @@ async def test_store_pgvector_partial_failure_continues_batch():
 @pytest.mark.asyncio
 async def test_retrieve_faiss_empty_when_index_missing(tmp_path):
     """Query against nonexistent domain must return [] — no exception, no crash."""
-    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path), faiss_domain="never_loaded")
+    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path))
     client = RAGClient(cfg)
     results = await client.retrieve("any query", top_k=5)
     assert results == []
@@ -300,7 +300,7 @@ async def test_retrieve_faiss_roundtrip_after_store(tmp_path):
 @pytest.mark.asyncio
 async def test_retrieve_faiss_min_score_filters(tmp_path):
     """min_score must filter out low-relevance results."""
-    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path), faiss_domain="filter", min_score=0.99)
+    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path), min_score=0.99)
     client = RAGClient(cfg)
 
     from tools.embedding_client import EmbeddingClient, EmbeddingConfig
@@ -469,7 +469,7 @@ async def test_concurrent_store_on_singleton_is_safe(monkeypatch, tmp_path):
     monkeypatch.delenv("AFS_PG_DSN", raising=False)
     monkeypatch.setenv("RAG_BACKEND", "faiss")
 
-    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path), faiss_domain="concurrent")
+    cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path))
     client = RAGClient(cfg)
 
     batch1 = [Document(content=f"a-{i}", source=f"test://a{i}", domain="concurrent") for i in range(2)]

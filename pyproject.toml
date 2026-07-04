@@ -47,6 +47,9 @@ dependencies = [
 
   # Optional LLM (used by git_agent_exporter)
   "openai>=1.0.0,<2.0",
+
+  # Bounded LRU cache for EmbeddingClient (P2-02 review, CR-104)
+  "cachetools>=5.3.0,<6.0",
 ]
 
 [project.optional-dependencies]
