@@ -157,10 +157,10 @@ async def retrieve(query: str, domain: str | None = None, top_k: int = 5) -> lis
 | Sat 18 Jul | P2-09, test triage | | | |
 | Sun 19 Jul | buffer / push / retro | | | |
 
-## 10. Open Questions (resolve by EOD Mon 13 Jul)
+## 10. Open Questions
 
-0. **Embedding dimension: 768 vs 1536.** `PRODUCTION_BACKLOG.md` lines 206, 492 specify `vector(1536)` (matches `text-embedding-3-small`/`text-embedding-ada-002`), but current `knowledge/rag_retriever.py:25` has `DIM = 768` (Ollama `nomic-embed-text`). Sprint plan uses **768** to match production code; switching to 1536 is a separate, breaking decision (requires re-embedding all 29 chunks + swapping embedder). Defer dimension migration to a follow-up `P2-13 embedding-dim-migration` task; do NOT block W3 on it.
+0. **Embedding dimension: 1536 (RESOLVED 2026-07-04).** `PRODUCTION_BACKLOG.md` lines 206, 492 specify `vector(1536)` (matches `text-embedding-3-small` from OpenAI). Decision: use **1536** for the migration. Rationale: financial-domain semantics (FOMC, earnings calls, 10-K filings) benefit from higher-dim embeddings (+5-8% MTEB recall vs 768); pgvector 0.7+ supports `halfvec(1536)` (3GB / 1M docs) + HNSW cosine ops. Single dimension, no dual-mode flag. Backfill re-embeds 29 chunks via OpenAI `text-embedding-3-small` ($0.02/1M tokens ≈ <$0.01 total for 29 chunks). `Ollama nomic-embed-text` (768-dim) stays in `knowledge/rag_retriever.py` only for offline dev; production path uses `OPENAI_API_KEY` + `text-embedding-3-small` returning 1536-dim. `P2-13 embedding-dim-migration` is **closed** (no follow-up needed).
 
-1. **Branch policy:** continue on `feat/p1-01-check-env-and-logger` or cut new `feat/p2-02-pgvector` from `origin/main` (01435a0) if it has pgvector scaffolding?
-2. **RAG agent scope:** rewrite all 8 RAG-touching agents in W3B, or limit to 3 critical-path agents (fundamental, astro_council, synthesis) and migrate the rest in W4?
-3. **Embedding cache scope:** in-process LRU (P2-09) or skip and rely on pgvector HNSW only? (Recommendation: in-process LRU, 2h cost, ~40% latency win.)
+1. **Branch policy:** continue on `feat/p1-01-check-env-and-logger` or cut new `feat/p2-02-pgvector` from `origin/main` (01435a0) if it has pgvector scaffolding? — **RESOLVED 2026-07-04: cut new branch `feat/p2-02-pgvector` from current `HEAD 59556f0`** (W2 hygiene baseline + SPRINT_3 doc). Rationale: keeps W2 hygiene history clean on `feat/p1-01-...`; W3 work is a separate concern with its own PR.
+2. **RAG agent scope:** rewrite all 8 RAG-touching agents in W3B, or limit to 3 critical-path agents (fundamental, astro_council, synthesis) and migrate the rest in W4? — **OPEN, decide by Tue 14 Jul EOD.** Recommendation: 3 critical-path in W3B (saves ~6h), rest in W4.
+3. **Embedding cache scope:** in-process LRU (P2-09) or skip and rely on pgvector HNSW only? — **OPEN, decide by Wed 15 Jul.** Recommendation: in-process LRU, 2h cost, ~40% latency win.
