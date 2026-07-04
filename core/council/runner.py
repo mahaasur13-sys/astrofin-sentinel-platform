@@ -1,11 +1,14 @@
 """core/council/runner.py — AstroCouncil Runner"""
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 
 from core.council.agents import AGENT_FACTORIES
 from core.council.council import AstroCouncil
 from core.council.types import CouncilResult
+
+logger = logging.getLogger(__name__)
 
 
 def run_council(
@@ -67,6 +70,5 @@ def run_council(
 
 if __name__ == "__main__":
     result = run_council("BTCUSDT")
-    print(result.deliberation)
-    print()
-    print("SUMMARY:", result.final_signal.value, result.confidence, result.consensus)
+    logger.info(result.deliberation)
+    logger.info("SUMMARY: %s confidence=%.3f consensus=%.3f", result.final_signal.value, result.confidence, result.consensus)
