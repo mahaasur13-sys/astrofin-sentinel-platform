@@ -171,8 +171,11 @@ def print_hybrid_comparison(jd_start: float = 2451545.0, jd_end: float = 2460000
     import core.ephemeris as eph
 
     bodies = ["earth", "jupiter", "saturn"]
-    print(f"\n{'BODY':<10} {'JD':>10} {'KEPLER':>8} {'CORRECTED':>10} {'CORR_ARCMIN':>12} {'METHOD'}")
-    print("-" * 70)
+    logger.info(
+        "\n%-10s %10s %8s %10s %12s %s",
+        "BODY", "JD", "KEPLER", "CORRECTED", "CORR_ARCMIN", "METHOD",
+    )
+    logger.info("%s", "-" * 70)
 
     for body in bodies:
         for jd in [jd_start, jd_end]:
@@ -181,12 +184,14 @@ def print_hybrid_comparison(jd_start: float = 2451545.0, jd_end: float = 2460000
             swiss_lon = swiss.longitude % 360.0
             (h.kepler_lon - swiss_lon + 180) % 360 - 180
             (h.corrected_lon - swiss_lon + 180) % 360 - 180
-            print(
-                f"{body:<10} {jd:>10.1f} "
-                f"{h.kepler_lon:>8.3f}° "
-                f"{h.corrected_lon:>10.3f}° "
-                f"{h.correction_arcmin:>10.2f}' "
-                f"{h.method}"
+            logger.info(
+                "%-10s %10.1f %8.3f° %10.3f° %10.2f' %s",
+                body,
+                jd,
+                h.kepler_lon,
+                h.corrected_lon,
+                h.correction_arcmin,
+                h.method,
             )
 
 
