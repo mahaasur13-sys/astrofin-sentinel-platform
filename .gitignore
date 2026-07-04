@@ -33,3 +33,17 @@ config/secrets.secret.yaml
 age.key
 .south-secrets/
 venv/
+
+# Python venvs (NEVER commit)
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+
+# Local config with secrets
+.env
+.env.local
