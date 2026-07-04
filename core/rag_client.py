@@ -246,6 +246,8 @@ class RAGClient:
                 chunks = []
 
             arr = np.array(vectors, dtype="float32")
+            # L2-normalize so IndexFlatIP gives cosine similarity
+            arr = arr / np.linalg.norm(arr, axis=1, keepdims=True)
             index.add(arr)
             for doc in docs:
                 chunks.append({
@@ -267,26 +269,41 @@ class RAGClient:
         query: str,
         top_k: Optional[int] = None,
         domain: Optional[str] = None,
+        min_score: Optional[float] = None,
     ) -> list[RetrievedChunk]:
         """Query active backend; on failure + legacy_fallback, retry FAISS.
+
+        Args:
+            query: Natural-language query string. Embedded with the configured
+                embedding provider (OpenAI / Ollama / Stub).
+            top_k: Max results to return. Defaults to RAGConfig.top_k (5).
+            domain: Restrict to one domain (trading | technical | astrology |
+                general). None = search all domains.
+            min_score: Drop results below this relevance (0..1). Defaults to
+                RAGConfig.min_score (0.5). Set to 0.0 to disable.
 
         Result order: primary backend results first, then legacy-only results
         (if fallback fired). NEVER merges scores across systems.
         """
         k = top_k or self.config.top_k
+        threshold = min_score if min_score is not None else self.config.min_score
         try:
             if self.config.backend == "pgvector":
-                return await self._retrieve_pgvector(query, k, domain)
-            return await self._retrieve_faiss(query, k, domain)
-        except Exception as e:  # noqa: BLE001 — broad: we want any failure to trigger fallback
+                results = await self._retrieve_pgvector(query, k, domain)
+            else:
+                results = await self._retrieve_faiss(query, k, domain)
+        except Exception as e:  # noqa: BLE001
             if not self.config.legacy_fallback or self.config.backend == "faiss":
-                # No fallback configured, or we're already on FAISS.
                 raise
             logger.warning(
                 "primary backend %s failed (%s) — falling back to FAISS",
                 self.config.backend, type(e).__name__,
             )
-            return await self._retrieve_faiss(query, k, domain)
+            results = await self._retrieve_faiss(query, k, domain)
+        # Apply min_score uniformly (both primary and legacy paths).
+        if threshold > 0.0:
+            results = [r for r in results if r.relevance_score >= threshold]
+        return results
 
     async def _retrieve_pgvector(
         self, query: str, k: int, domain: Optional[str],
@@ -327,9 +344,12 @@ class RAGClient:
     ) -> list[RetrievedChunk]:
         qvec = await self.embedding.embed_one(query)
         q = np.array([qvec], dtype="float32")
-        q = q / (np.linalg.norm(q) + 1e-8)
+        # L2-normalize so IndexFlatIP gives cosine similarity
+        q = q / np.linalg.norm(q, axis=1, keepdims=True)
 
-        domains = [domain] if domain else ["astrology", "technical", "trading"]
+        domains = [domain] if domain else [
+            p.stem for p in Path(self.config.faiss_dir).glob("*.index")
+        ]
         all_results: list[RetrievedChunk] = []
         for d in domains:
             index, chunks = self._load_faiss_domain(d)
@@ -379,13 +399,17 @@ class RAGClient:
 
     @staticmethod
     def _update_rag_metrics(results: list[RetrievedChunk]) -> None:
-        if results:
-            avg = sum(r.relevance_score for r in results) / len(results)
-            RAG_RELEVANCE_SCORE.set(avg)
-            RAG_CHUNK_COUNT.set(len(results))
-            RAG_QUERY_CACHE_HITS.inc()  # semantic: a successful retrieval counts as a "hit"
-        else:
-            RAG_QUERY_CACHE_MISSES.inc()
+        # RAG_RELEVANCE_SCORE is declared as a Histogram in tools/metrics_server.py
+        try:
+            if results:
+                avg = sum(r.relevance_score for r in results) / len(results)
+                RAG_RELEVANCE_SCORE.set(avg)
+                RAG_CHUNK_COUNT.set(len(results))
+                RAG_QUERY_CACHE_HITS.inc()  # semantic: a successful retrieval counts as a "hit"
+            else:
+                RAG_QUERY_CACHE_MISSES.inc()
+        except Exception:
+            pass
 
     # ─── Health ─────────────────────────────────────────────────────────────
 
