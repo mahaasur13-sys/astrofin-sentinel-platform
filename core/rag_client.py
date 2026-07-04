@@ -264,8 +264,11 @@ class RAGClient:
                 chunks = []
 
             arr = np.array(vectors, dtype="float32")
-            # L2-normalize so IndexFlatIP gives cosine similarity
-            arr = arr / np.linalg.norm(arr, axis=1, keepdims=True)
+            # L2-normalize so IndexFlatIP gives cosine similarity.
+            # NaN-safe: zero vectors stay zero instead of producing NaN/Inf
+            # that would poison FAISS search results downstream.
+            norms = np.linalg.norm(arr, axis=1, keepdims=True)
+            np.divide(arr, norms, out=arr, where=norms > 0)
             index.add(arr)
             for doc in docs:
                 chunks.append({
@@ -307,9 +310,9 @@ class RAGClient:
         threshold = min_score if min_score is not None else self.config.min_score
         try:
             if self.config.backend == "pgvector":
-                results = await self._retrieve_pgvector(query, k, domain)
+                results = await self._retrieve_pgvector(query, k, domain, threshold)
             else:
-                results = await self._retrieve_faiss(query, k, domain)
+                results = await self._retrieve_faiss(query, k, domain, threshold)
         except Exception as e:  # noqa: BLE001
             if not self.config.legacy_fallback or self.config.backend == "faiss":
                 raise
@@ -317,26 +320,27 @@ class RAGClient:
                 "primary backend %s failed (%s) — falling back to FAISS",
                 self.config.backend, type(e).__name__,
             )
-            results = await self._retrieve_faiss(query, k, domain)
+            results = await self._retrieve_faiss(query, k, domain, threshold)
         # Apply min_score uniformly (both primary and legacy paths).
         if threshold > 0.0:
             results = [r for r in results if r.relevance_score >= threshold]
         return results
 
     async def _retrieve_pgvector(
-        self, query: str, k: int, domain: Optional[str],
+        self, query: str, k: int, domain: Optional[str], threshold: float,
     ) -> list[RetrievedChunk]:
         pool = await self._get_pg_pool()
         qvec = await self.embedding.embed_one(query)
         qvec_str = "[" + ",".join(f"{x:.6f}" for x in qvec) + "]"
 
         # Domain filter is optional. NULL = no filter (all domains).
+        # domain is a first-class column (see migrations_postgres/0009_pgvector.sql)
+        # so the planner can use the B-tree pre-filter before HNSW.
         sql = """
-            SELECT doc_id, source, title, body,
-                   metadata->>'domain' AS domain,
+            SELECT doc_id, source, title, body, domain,
                    1 - (embedding <=> $1::vector) AS score
             FROM documents
-            WHERE ($2::text IS NULL OR metadata->>'domain' = $2)
+            WHERE ($2::text IS NULL OR domain = $2)
             ORDER BY embedding <=> $1::vector
             LIMIT $3
         """
@@ -347,19 +351,19 @@ class RAGClient:
                 content=r["body"],
                 source=r["source"],
                 title=r["title"] or "",
-                domain=r["domain"],
+                domain=r["domain"] or "",
                 relevance_score=float(r["score"]),
                 doc_id=r["doc_id"],
                 backend="pgvector",
             )
             for r in rows
-            if float(r["score"]) >= self.config.min_score
+            if float(r["score"]) >= threshold
         ]
         self._update_rag_metrics(results)
         return results
 
     async def _retrieve_faiss(
-        self, query: str, k: int, domain: Optional[str],
+        self, query: str, k: int, domain: Optional[str], threshold: float,
     ) -> list[RetrievedChunk]:
         qvec = await self.embedding.embed_one(query)
         q = np.array([qvec], dtype="float32")
@@ -395,7 +399,7 @@ class RAGClient:
         deduped: list[RetrievedChunk] = []
         for r in all_results:
             key = (r.source, r.title)
-            if key in seen or r.relevance_score < self.config.min_score:
+            if key in seen or r.relevance_score < threshold:
                 continue
             seen.add(key)
             deduped.append(r)
