@@ -314,10 +314,11 @@ class RAGClient:
 
         # Domain filter is optional. NULL = no filter (all domains).
         sql = """
-            SELECT doc_id, source, title, body, domain,
+            SELECT doc_id, source, title, body,
+                   metadata->>'domain' AS domain,
                    1 - (embedding <=> $1::vector) AS score
             FROM documents
-            WHERE ($2::text IS NULL OR domain = $2)
+            WHERE ($2::text IS NULL OR metadata->>'domain' = $2)
             ORDER BY embedding <=> $1::vector
             LIMIT $3
         """

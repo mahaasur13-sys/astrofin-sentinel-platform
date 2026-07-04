@@ -32,3 +32,4 @@ config/secrets.yaml
 config/secrets.secret.yaml
 age.key
 .south-secrets/
+venv/
