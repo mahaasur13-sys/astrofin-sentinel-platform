@@ -88,9 +88,11 @@ def load_faiss_index(domain: str, kb_dir: Path) -> tuple[faiss.Index | None, lis
 
 
 INSERT_SQL = """
-INSERT INTO documents (source, source_type, title, body, tokens, lang, metadata, embedding)
-VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::vector)
-ON CONFLICT DO NOTHING
+INSERT INTO documents
+    (doc_id, source, source_type, title, body, tokens, lang, domain, metadata, embedding)
+VALUES
+    (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::vector)
+ON CONFLICT (doc_id) DO NOTHING
 """
 
 
@@ -134,12 +136,14 @@ async def _migrate_domain(
             tokens = max(len(chunk["content"].split()), 1)
             result = await conn.execute(
                 INSERT_SQL,
+                chunk.get("id"),
                 chunk.get("source", "unknown"),
                 "report",
                 chunk.get("title") or "",
                 chunk["content"],
                 tokens,
                 "en",
+                domain,
                 metadata,
                 vec_str,
             )

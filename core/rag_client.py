@@ -191,30 +191,38 @@ class RAGClient:
         inserted = 0
         errors: list[str] = []
         async with pool.acquire() as conn:
+            # Outer transaction keeps the connection in a healthy state; an
+            # aborted savepoint inside does NOT poison the outer transaction,
+            # so we can continue with the next document after a per-doc failure.
             async with conn.transaction():
                 for doc, vec in zip(docs, vectors, strict=True):
                     try:
-                        vec_str = "[" + ",".join(f"{x:.6f}" for x in vec) + "]"
-                        await conn.execute(
-                            """
-                            INSERT INTO documents
-                                (doc_id, source, source_type, title, body,
-                                 tokens, lang, metadata, embedding)
-                            VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5,
-                                    $6, COALESCE($7, 'en'), $8::jsonb, $9::vector)
-                            ON CONFLICT (doc_id) DO NOTHING
-                            """,
-                            doc.doc_id,
-                            doc.source,
-                            doc.source_type,
-                            doc.title or doc.source,
-                            doc.content,
-                            max(1, len(doc.content) // 4),  # rough token estimate
-                            None,  # lang: leave NULL → default 'en'
-                            json.dumps(doc.metadata),
-                            vec_str,
-                        )
-                        inserted += 1
+                        # Nested asyncpg.transaction() creates a SAVEPOINT.
+                        # On exception the savepoint is rolled back and the
+                        # outer transaction can continue.
+                        async with conn.transaction():
+                            vec_str = "[" + ",".join(f"{x:.6f}" for x in vec) + "]"
+                            await conn.execute(
+                                """
+                                INSERT INTO documents
+                                    (doc_id, source, source_type, title, body,
+                                     tokens, lang, domain, metadata, embedding)
+                                VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5,
+                                        $6, COALESCE($7, 'en'), $8, $9::jsonb, $10::vector)
+                                ON CONFLICT (doc_id) DO NOTHING
+                                """,
+                                doc.doc_id,
+                                doc.source,
+                                doc.source_type,
+                                doc.title or doc.source,
+                                doc.content,
+                                max(1, len(doc.content) // 4),  # rough token estimate
+                                None,  # lang: leave NULL → default 'en'
+                                doc.domain or None,
+                                json.dumps(doc.metadata),
+                                vec_str,
+                            )
+                            inserted += 1
                     except Exception as e:  # noqa: BLE001 — log per-doc, continue batch
                         errors.append(f"{doc.source}: {type(e).__name__}: {e}")
                         logger.exception("store: failed for doc %s", doc.source)
@@ -230,12 +238,22 @@ class RAGClient:
         Not concurrency-safe. Held under a module-level lock; not optimal
         for high-throughput writes. Kept for backwards compatibility during W3.
         """
+        # Guard: mixed-domain batches used to be silently written to docs[0].domain,
+        # which corrupted retrieval. Reject explicitly so callers can split the batch.
+        domains_in_batch = {d.domain for d in docs}
+        if len(domains_in_batch) > 1:
+            raise ValueError(
+                f"_store_faiss requires a single domain per batch; got "
+                f"{sorted(domains_in_batch)}. Group docs by domain before calling."
+            )
+
         async with _FAISS_WRITE_LOCK:
             vectors = await self.embedding.embed([d.content for d in docs])
+            domain = docs[0].domain
             faiss_dir = Path(self.config.faiss_dir)
             faiss_dir.mkdir(parents=True, exist_ok=True)
-            index_path = faiss_dir / f"{docs[0].domain}.index"
-            meta_path = faiss_dir / f"{docs[0].domain}.meta.json"
+            index_path = faiss_dir / f"{domain}.index"
+            meta_path = faiss_dir / f"{domain}.meta.json"
 
             if index_path.exists():
                 index = faiss.read_index(str(index_path))
