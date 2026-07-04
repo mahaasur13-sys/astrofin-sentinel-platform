@@ -198,11 +198,9 @@ def apply_pressure_field(
         # Логирование
         if abs(delta) > 0.1:
             top_names = [n for _, n, _, _ in top]
-            print(
-                f"[PF] {agent_i.name}({agent_i.signal}): "
-                f"{raw_eff:.2f} → {new_eff:.2f} "
-                f"(Δ={delta:+.2f}, regime={agent_i.regime}, "
-                f"consensus={consensus_pct:.0%}, from={top_names})"
+            logger.info(
+                f"[PF] %s(%s): %.2f -> %.2f (delta=%+.2f, regime=%s, consensus=%.0f%%, from=%s)",
+                agent_i.name, agent_i.signal, raw_eff, new_eff, delta, agent_i.regime, consensus_pct * 100, top_names,
             )
 
         updated.append(
