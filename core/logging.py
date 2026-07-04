@@ -53,8 +53,6 @@ def setup_logging():
             structlog.processors.add_log_level,
             _add_trace_context,
             _add_correlation_id,
-            structlog.stdlib.add_logger_name,
-            structlog.stdlib.add_log_level,
             structlog.processors.TimeStamper(fmt="iso"),
             renderer,
         ],
