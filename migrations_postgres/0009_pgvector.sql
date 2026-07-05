@@ -82,9 +82,17 @@ CREATE INDEX IF NOT EXISTS documents_domain_idx ON documents (domain);
 -- HNSW composite index: when callers filter by domain + ORDER BY embedding, PG can
 -- use this index for both predicate and distance ordering without a sort step.
 -- Only built if pgvector >= 0.5 (supports HNSW + WHERE clause optimization).
+-- Cast via TEXT to support version strings like '0.5.1' / '0.7.0'
+-- (pgvector extversion is not a strictly numeric value).
 DO $$
+DECLARE
+    pgvector_version_text TEXT;
 BEGIN
-    IF (SELECT extversion FROM pg_extension WHERE extname = 'vector')::numeric >= 0.5 THEN
+    SELECT extversion INTO pgvector_version_text
+        FROM pg_extension WHERE extname = 'vector';
+    IF pgvector_version_text IS NOT NULL
+       AND split_part(pgvector_version_text, '.', 1)::int >= 0
+       AND split_part(pgvector_version_text, '.', 2)::int >= 5 THEN
         CREATE INDEX IF NOT EXISTS documents_domain_embedding_hnsw_idx
             ON documents USING hnsw (embedding vector_cosine_ops)
             WHERE domain IS NOT NULL;
