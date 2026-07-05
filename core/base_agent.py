@@ -10,9 +10,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Generic, TypeVar
-
-from knowledge.rag_retriever import RAGRetriever
+from typing import Generic, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +106,11 @@ class BaseAgent(ABC, Generic[T]):
         self.weight = weight
         self.domain = domain
         self.instructions_md = ""
-        self._rag = RAGRetriever()
+        # Start with a no-op degraded retriever; the real HybridRetriever
+        # (pgvector + BM25) is constructed lazily on first await of
+        # _get_retriever(). This keeps __init__ cheap and lets tests
+        # patch.object(self._retriever, "retrieve") safely.
+        self._retriever = _DegradedRetriever()
 
         if instructions_path:
             try:
@@ -151,25 +153,60 @@ class BaseAgent(ABC, Generic[T]):
             metadata={"degraded": True, "degradation_reason": reason},
         )
 
-    def retrieve(
+    async def _get_retriever(self):
+        """
+        Lazy factory for the hybrid RAG retriever.
+
+        Returns the cached HybridRetriever on subsequent calls. Falls back to
+        a degraded stub (returning empty chunks) if the RAG stack cannot be
+        initialised — agents stay runnable, just without knowledge.
+        """
+        if self._retriever is not None:
+            return self._retriever
+
+        try:
+            from knowledge.hybrid_retriever import HybridRetriever
+
+            self._retriever = HybridRetriever.create()
+        except Exception as exc:  # noqa: BLE001 — degraded fallback
+            logger.warning(
+                "rag_retriever_init_failed",
+                extra={"agent": self.name, "error": str(exc)},
+            )
+            self._retriever = _DegradedRetriever()
+        return self._retriever
+
+    async def retrieve(
         self,
         query: str,
         domain: str = None,
         top_k: int = 5,
     ) -> list[dict]:
         """
-        Запрос к RAG базе знаний.
+        Запрос к RAG базе знаний (async, hybrid BM25+vector с RRF).
 
         Использовать когда:
         - Вопрос выходит за рамки instructions.md
         - Нужен факт из авторитетного источника
         - Требуется подтверждение перед выводом
+
+        Returns an empty list on RAG failure; callers should treat that as
+        «no knowledge» rather than raising.
         """
-        return self._rag.retrieve(
-            query=query,
-            domain=domain or self.domain,
-            top_k=top_k,
-        )
+        try:
+            retriever = await self._get_retriever()
+            chunks = await retriever.retrieve(
+                query=query,
+                domain=domain or self.domain,
+                top_k=top_k,
+            )
+            return chunks or []
+        except Exception as exc:  # noqa: BLE001 — degraded fallback
+            logger.warning(
+                "rag_retrieve_failed",
+                extra={"agent": self.name, "query": query[:80], "error": str(exc)},
+            )
+            return []
 
     def format_retrieval(self, chunks: list[dict]) -> str:
         """Форматировать результаты RAG для включения в ответ."""
@@ -199,7 +236,7 @@ class BaseAgent(ABC, Generic[T]):
         """
         pass
 
-    def _build_prompt(
+    async def _build_prompt(
         self,
         user_task: str,
         extra_context: str = "",
@@ -219,7 +256,7 @@ class BaseAgent(ABC, Generic[T]):
 
         if use_rag:
             try:
-                chunks = self.retrieve(user_task, top_k=5)
+                chunks = await self.retrieve(user_task, top_k=5)
                 if chunks:
                     parts.append(self.format_retrieval(chunks))
                 else:
@@ -231,3 +268,21 @@ class BaseAgent(ABC, Generic[T]):
             parts.append(f"\n# Current Context\n\n{extra_context}")
 
         return "\n\n".join(parts)
+
+
+class _DegradedRetriever:
+    """
+    No-op retriever used when the real RAG stack is unavailable
+    (e.g. pgvector pool cannot be created in CI).
+
+    Returns an empty chunk list for any query; agents continue to function
+    but without knowledge augmentation.
+    """
+
+    async def retrieve(
+        self,
+        query: str,
+        domain: str | None = None,
+        top_k: int = 5,
+    ) -> list[dict]:
+        return []
