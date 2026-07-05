@@ -29,6 +29,7 @@ from typing import List, Optional
 
 from knowledge.bm25_retriever import BM25Retriever, Chunk
 from core.rag_client import RAGClient
+from tools.metrics_server import RAG_BM25_REFRESH_TIMESTAMP, RAG_LATENCY_SECONDS
 
 logger = logging.getLogger(__name__)
 
@@ -89,16 +90,24 @@ class PersistentBM25Retriever:
 
         Call this explicitly after RAGClient.store() if you need new chunks
         to be searchable without waiting for TTL expiry.
+
+        Observability (P2-04):
+          * RAG_LATENCY_SECONDS  — observed across the full rebuild.
+          * RAG_BM25_REFRESH_TIMESTAMP — set to time.time() when the rebuild
+            completes successfully. Prometheus scrapes this Gauge to compute
+            index freshness (now - timestamp).
         """
-        t0 = time.monotonic()
-        chunks = await self._fetch_chunks()
-        self._index = BM25Retriever(chunks)
-        self._indexed_at = time.monotonic()
-        self._chunk_count = len(chunks)
+        with RAG_LATENCY_SECONDS.time():
+            t0 = time.monotonic()
+            chunks = await self._fetch_chunks()
+            self._index = BM25Retriever(chunks)
+            self._indexed_at = time.monotonic()
+            self._chunk_count = len(chunks)
         logger.info(
             "PersistentBM25Retriever: indexed %d chunks (domain=%s) in %.3fs",
             self._chunk_count, self.domain, self._indexed_at - t0,
         )
+        RAG_BM25_REFRESH_TIMESTAMP.set(time.time())
 
     async def retrieve(self, query: str, top_k: int = 10) -> List[Chunk]:
         """Return top-k chunks by BM25 score, refreshing the index if stale."""

@@ -218,11 +218,24 @@ async def cmd_stats(args: argparse.Namespace) -> int:
             except Exception as e:
                 _warn(f"pgvector count failed: {e}")
 
-        # Cache hit rate
+        # Query rate (P2-04: read from labeled RAG_QUERIES_TOTAL).
         try:
-            from tools.metrics_server import RAG_QUERY_CACHE_HITS, RAG_QUERY_CACHE_MISSES
-            hits = RAG_QUERY_CACHE_HITS._value.get()  # type: ignore[attr-defined]
-            misses = RAG_QUERY_CACHE_MISSES._value.get()  # type: ignore[attr-defined]
+            from tools.metrics_server import RAG_QUERIES_TOTAL
+            from prometheus_client import REGISTRY
+
+            hits = 0
+            misses = 0
+            for metric in REGISTRY.collect():
+                if metric.name != "astrofin_rag_queries_total":
+                    continue
+                for sample in metric.samples:
+                    if sample.name != "astrofin_rag_queries_total":
+                        continue
+                    labels = sample.labels
+                    if labels.get("status") == "ok":
+                        hits += int(sample.value)
+                    elif labels.get("status") == "error":
+                        misses += int(sample.value)
             total = hits + misses
             rate = (hits / total * 100) if total > 0 else 0.0
         except Exception:

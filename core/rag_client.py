@@ -46,11 +46,13 @@ from pydantic import BaseModel
 from tools.embedding_client import EmbeddingClient
 from tools.metrics_server import (  # type: ignore[import-not-found]
     RAG_CHUNK_COUNT,
-    RAG_QUERY_CACHE_HITS,
-    RAG_QUERY_CACHE_MISSES,
+    RAG_CHUNKS_RETURNED,
+    RAG_ERRORS_TOTAL,
+    RAG_LATENCY_SECONDS,
+    RAG_QUERIES_TOTAL,
+    RAG_RELEVANCE_AVG,
     RAG_RELEVANCE_SCORE,
 )
-
 logger = logging.getLogger(__name__)
 
 # ─── Configuration ──────────────────────────────────────────────────────────
@@ -221,13 +223,22 @@ class RAGClient:
     # ─── Store ──────────────────────────────────────────────────────────────
 
     async def store(self, docs: list[Document]) -> StoreResult:
-        """Embed + insert documents into the active backend. No dual-write."""
+        """Embed + insert documents into the active backend. No dual-write.
+
+        Records: latency → RAG_LATENCY_SECONDS, errors → RAG_ERRORS_TOTAL{stage='store'}.
+        """
         if not docs:
             return StoreResult(inserted=0, failed=0, backend=self.config.backend)
 
-        if self.config.backend == "pgvector":
-            return await self._store_pgvector(docs)
-        return await self._store_faiss(docs)
+        with RAG_LATENCY_SECONDS.time():
+            try:
+                if self.config.backend == "pgvector":
+                    return await self._store_pgvector(docs)
+                return await self._store_faiss(docs)
+            except Exception as e:  # noqa: BLE001
+                RAG_ERRORS_TOTAL.labels(stage="store", kind=type(e).__name__).inc()
+                logger.error("rag_store_failed: backend=%s, error=%s", self.config.backend, str(e))
+                raise
 
     async def get_all_chunks(
         self, domain: Optional[str] = None
@@ -383,25 +394,58 @@ class RAGClient:
 
         Result order: primary backend results first, then legacy-only results
         (if fallback fired). NEVER merges scores across systems.
+
+        Records: latency → RAG_LATENCY_SECONDS, outcome → RAG_QUERIES_TOTAL{status,backend,domain},
+        errors → RAG_ERRORS_TOTAL{stage='retrieve'}, chunk count → RAG_CHUNKS_RETURNED,
+        avg relevance → RAG_RELEVANCE_AVG.
         """
         k = top_k or self.config.top_k
         threshold = min_score if min_score is not None else self.config.min_score
-        try:
-            if self.config.backend == "pgvector":
-                results = await self._retrieve_pgvector(query, k, domain, threshold)
-            else:
+        backend_label = self.config.backend
+        domain_label = domain or "all"
+        with RAG_LATENCY_SECONDS.time():
+            try:
+                if self.config.backend == "pgvector":
+                    results = await self._retrieve_pgvector(query, k, domain, threshold)
+                else:
+                    results = await self._retrieve_faiss(query, k, domain, threshold)
+            except Exception as e:  # noqa: BLE001
+                if not self.config.legacy_fallback or self.config.backend == "faiss":
+                    RAG_ERRORS_TOTAL.labels(
+                        stage="retrieve", kind=type(e).__name__,
+                    ).inc()
+                    RAG_QUERIES_TOTAL.labels(
+                        status="error", backend=backend_label, domain=domain_label,
+                    ).inc()
+                    logger.error(
+                        "rag_retrieve_failed: backend=%s, domain=%s, error=%s, error_type=%s",
+                        backend_label, domain_label, str(e), type(e).__name__,
+                    )
+                    raise
+                logger.warning(
+                    "primary backend %s failed (%s) — falling back to FAISS",
+                    self.config.backend, type(e).__name__,
+                )
+                RAG_ERRORS_TOTAL.labels(
+                    stage="retrieve_fallback", kind=type(e).__name__,
+                ).inc()
+                backend_label = "faiss"
                 results = await self._retrieve_faiss(query, k, domain, threshold)
-        except Exception as e:  # noqa: BLE001
-            if not self.config.legacy_fallback or self.config.backend == "faiss":
-                raise
-            logger.warning(
-                "primary backend %s failed (%s) — falling back to FAISS",
-                self.config.backend, type(e).__name__,
-            )
-            results = await self._retrieve_faiss(query, k, domain, threshold)
         # Apply min_score uniformly (both primary and legacy paths).
         if threshold > 0.0:
             results = [r for r in results if r.relevance_score >= threshold]
+        RAG_QUERIES_TOTAL.labels(
+            status="ok", backend=backend_label, domain=domain_label,
+        ).inc()
+        RAG_CHUNKS_RETURNED.observe(len(results))
+        if results:
+            RAG_RELEVANCE_AVG.set(
+                sum(r.relevance_score for r in results) / len(results)
+            )
+        logger.info(
+            "rag_retrieve: backend=%s, domain=%s, top_k=%d, returned=%d, min_score=%f",
+            backend_label, domain_label, k, len(results), threshold,
+        )
         return results
 
     async def _retrieve_pgvector(
@@ -500,17 +544,12 @@ class RAGClient:
 
     @staticmethod
     def _update_rag_metrics(results: list[RetrievedChunk]) -> None:
-        # RAG_RELEVANCE_SCORE is declared as a Histogram in tools/metrics_server.py
-        try:
-            if results:
-                avg = sum(r.relevance_score for r in results) / len(results)
-                RAG_RELEVANCE_SCORE.set(avg)
-                RAG_CHUNK_COUNT.set(len(results))
-                RAG_QUERY_CACHE_HITS.inc()  # semantic: a successful retrieval counts as a "hit"
-            else:
-                RAG_QUERY_CACHE_MISSES.inc()
-        except Exception:
-            pass
+        # Back-compat shim — actual metrics are emitted from retrieve() at the
+        # call-site so that latency / errors / queries_total line up with the
+        # caller's domain/backend labels. Previously this method called
+        # RAG_RELEVANCE_SCORE.set(avg) on a Histogram, which is a no-op
+        # (Histogram has no .set); the bug is fixed in P2-04.
+        return
 
     # ─── Health ─────────────────────────────────────────────────────────────
 
