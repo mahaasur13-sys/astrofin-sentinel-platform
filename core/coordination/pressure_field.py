@@ -12,9 +12,6 @@ Sandbox-безопасная версия: никаких embeddings, тольк
 from __future__ import annotations
 
 import logging
-
-_logger = logging.getLogger(__name__)
-
 from dataclasses import dataclass, field
 
 from core.coordination.constants import (
@@ -23,6 +20,8 @@ from core.coordination.constants import (
     PRESSURE_FIELD_K_NEIGHBORS,
     PRESSURE_FIELD_MIN_CONSENSUS,
 )
+
+_logger = logging.getLogger(__name__)
 
 # ─── AgentSignal Dataclass ───────────────────────────────────────────────────────
 

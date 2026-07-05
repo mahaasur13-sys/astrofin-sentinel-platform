@@ -23,7 +23,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import os
-import shutil
 import sys
 import time
 from pathlib import Path
@@ -42,7 +41,6 @@ from core.rag_client import (  # noqa: E402
     RetrievedChunk,
     StoreResult,
 )
-from tools.embedding_client import EmbeddingClient, EmbeddingConfig  # noqa: E402
 
 
 # ─── ANSI colors (no external deps) ──────────────────────────────────────────
@@ -169,7 +167,7 @@ async def cmd_health(args: argparse.Namespace) -> int:
     print(f"  status             : {status}")
     print(f"  legacy fallback    : {legacy}")
     if h.details:
-        print(f"  details:")
+        print("  details:")
         for k, v in sorted(h.details.items()):
             print(f"    {C.dim(k)}: {v}")
     await client.aclose()
@@ -270,7 +268,6 @@ async def cmd_retrieve(args: argparse.Namespace) -> int:
         # Force FAISS-only if requested
         if args.backend == "faiss" and not args.legacy_fallback:
             # Bypass pgvector temporarily
-            old_backend = client.config.backend
             client.config.backend = "faiss"
         t0 = time.perf_counter()
         results: list[RetrievedChunk] = await client.retrieve(
@@ -389,7 +386,9 @@ async def cmd_migrate_status(args: argparse.Namespace) -> int:
             try:
                 async with client._pg_pool.acquire() as conn:
                     rows = await conn.fetch(
-                        "SELECT metadata->>'domain' AS domain, COUNT(*) AS n FROM documents GROUP BY metadata->>'domain'"
+                        "SELECT metadata->>'domain' AS domain, "
+                        "COUNT(*) AS n "
+                        "FROM documents GROUP BY metadata->>'domain'"
                     )
                     for row in rows:
                         pg_counts[row["domain"]] = row["n"]

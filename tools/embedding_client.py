@@ -40,7 +40,7 @@ from typing import List, Optional
 import httpx
 import openai
 from cachetools import LRUCache
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 

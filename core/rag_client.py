@@ -33,7 +33,6 @@ import asyncio
 import json
 import logging
 import os
-import time
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -42,9 +41,9 @@ from typing import Literal, Optional
 import asyncpg
 import faiss
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from tools.embedding_client import EmbeddingClient, EmbeddingConfig
+from tools.embedding_client import EmbeddingClient
 from tools.metrics_server import (  # type: ignore[import-not-found]
     RAG_CHUNK_COUNT,
     RAG_QUERY_CACHE_HITS,

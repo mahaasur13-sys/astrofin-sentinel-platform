@@ -29,10 +29,8 @@ import asyncio
 import json
 import os
 import sys
-import time
 import urllib.request
 from pathlib import Path
-from typing import Any
 
 import asyncpg
 import faiss
@@ -113,7 +111,6 @@ async def _migrate_domain(
     if not chunks:
         return 0
 
-    indexed_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     inserted = 0
 
     for i in range(0, len(chunks), BATCH_SIZE):
