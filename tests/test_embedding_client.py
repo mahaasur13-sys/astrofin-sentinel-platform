@@ -18,7 +18,6 @@ No network calls. All tests are <1s total.
 """
 from __future__ import annotations
 
-import asyncio
 import time
 from unittest.mock import AsyncMock, patch
 

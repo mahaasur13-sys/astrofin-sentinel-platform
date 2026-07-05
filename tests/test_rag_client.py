@@ -13,9 +13,8 @@ Coverage strategy (25 tests, organized by surface):
   9. Lifecycle (1)              — aclose() releases pg pool
 """
 import asyncio
-import os
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 import uuid
 
 from core.rag_client import (
@@ -25,7 +24,6 @@ from core.rag_client import (
     StoreResult,
     HealthStatus,
     get_rag_client,
-    _singleton,
 )
 
 
