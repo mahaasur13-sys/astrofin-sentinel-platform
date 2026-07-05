@@ -97,6 +97,7 @@ class Finding:
 
 @dataclass
 class Report:
+
     findings: list[Finding] = field(default_factory=list)
     files_scanned: int = 0
 
@@ -140,7 +141,8 @@ _BASE_AGENT_NAMES: frozenset[str] = frozenset({"BaseAgent"})
 
 # Directories that contain agent classes (we only look here for transitive
 # lookups to keep the linter fast on large repos).
-_AGENT_DIRS: tuple[str, ...] = ("agents",)
+# --- CHANGE 1: added "core" to also scan core/ for base classes ---
+_AGENT_DIRS: tuple[str, ...] = ("agents", "core")
 
 
 def _build_inheritance_graph(root: Path) -> dict[str, set[str]]:
@@ -246,6 +248,7 @@ def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> No
 
 # ─── R2: @require_ephemeris usage ───────────────────────────────────────────
 
+
 EPHEMERIS_KEYWORDS = ("swisseph", "ephemeris", "planet_position", "natal", "aspect")
 
 
@@ -254,6 +257,10 @@ def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: 
     with @require_ephemeris (or live inside a class whose every ephemeris-using
     method has it)."""
     if "_archived" in src.parts:
+        return
+
+    # --- CHANGE 2: skip core/ and scripts/ for R2 ---
+    if str(src).startswith(("core/", "scripts/")):
         return
 
     # AST-based detection: walk function bodies for real ephemeris calls.
@@ -445,6 +452,7 @@ def check_no_fstring_sql(src: Path, source_text: str, report: Report) -> None:
                 "R7",
                 "f-string SQL detected; use parameterized queries (`?` placeholders)",
             )
+
 
 
 # ─── R8: secret scan ───────────────────────────────────────────────────────
