@@ -47,3 +47,10 @@ ENV/
 # Local config with secrets
 .env
 .env.local
+
+# Coverage artifacts (do not commit)
+*.coverage
+.coverage
+coverage.xml
+unified-platform/.coverage
+htmlcov/
