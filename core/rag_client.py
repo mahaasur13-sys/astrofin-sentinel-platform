@@ -56,6 +56,42 @@ logger = logging.getLogger(__name__)
 # ─── Configuration ──────────────────────────────────────────────────────────
 
 
+def _safe_int(name: str, default: int, min_val: int = 0) -> int:
+    """Parse an env var as int; on bad input or below min_val, return default.
+
+    Used by RAGConfig.from_env() so a malformed value (e.g. HYBRID_RRF_K=abc)
+    cannot crash the process at startup — we log and fall back to the default.
+    """
+    raw = os.getenv(name)
+    if raw is None or raw == "":
+        return default
+    try:
+        val = int(raw)
+    except ValueError:
+        logger.warning("env %s=%r is not an int; using default %d", name, raw, default)
+        return default
+    if val < min_val:
+        logger.warning("env %s=%d below min %d; using default %d", name, val, min_val, default)
+        return default
+    return val
+
+
+def _safe_float(name: str, default: float, min_val: float = 0.0) -> float:
+    """Parse an env var as float; on bad input or below min_val, return default."""
+    raw = os.getenv(name)
+    if raw is None or raw == "":
+        return default
+    try:
+        val = float(raw)
+    except ValueError:
+        logger.warning("env %s=%r is not a float; using default %f", name, raw, default)
+        return default
+    if val < min_val:
+        logger.warning("env %s=%f below min %f; using default %f", name, val, min_val, default)
+        return default
+    return val
+
+
 class RAGConfig(BaseModel):
     backend: Literal["pgvector", "faiss"] = "pgvector"  # RAG_BACKEND env var
     legacy_fallback: bool = True
@@ -66,6 +102,11 @@ class RAGConfig(BaseModel):
     pg_pool_min: int = 2
     pg_pool_max: int = 10
     pg_command_timeout: float = 10.0
+    # Hybrid (P2-03b): RRF fusion knobs. Read by HybridRetriever in P2-03c.
+    # Defaults match the RRF paper (k=60) and balanced weights (1.0/1.0).
+    hybrid_rrf_k: int = 60
+    hybrid_vector_weight: float = 1.0
+    hybrid_bm25_weight: float = 1.0
 
     @classmethod
     def from_env(cls) -> "RAGConfig":
@@ -84,6 +125,11 @@ class RAGConfig(BaseModel):
             in ("true", "1", "yes", "on"),
             pg_dsn=os.getenv("AFS_PG_DSN"),
             faiss_dir=os.getenv("RAG_FAISS_DIR", "knowledge/indexes"),
+            # Hybrid env knobs (P2-03b). Defensive parsing: bad ints/floats
+            # fall back to the dataclass defaults instead of crashing boot.
+            hybrid_rrf_k=_safe_int("HYBRID_RRF_K", 60, min_val=1),
+            hybrid_vector_weight=_safe_float("HYBRID_VECTOR_WEIGHT", 1.0, min_val=0.0),
+            hybrid_bm25_weight=_safe_float("HYBRID_BM25_WEIGHT", 1.0, min_val=0.0),
         )
 
 
