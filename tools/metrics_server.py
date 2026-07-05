@@ -15,11 +15,66 @@ from prometheus_client import REGISTRY, generate_latest, Counter, Gauge, Histogr
 CACHE_HITS = Counter("astrofin_cache_hits", "Cache hits")
 CACHE_MISSES = Counter("astrofin_cache_misses", "Cache misses")
 OLLAMA_STATUS = Gauge("astrofin_ollama_status", "Ollama service status (1=healthy)")
-RAG_CHUNK_COUNT = Gauge("astrofin_rag_chunk_count", "Number of chunks in RAG index")
-RAG_QUERY_CACHE_HITS = Counter("astrofin_rag_query_cache_hits", "RAG query cache hits")
-RAG_QUERY_CACHE_MISSES = Counter("astrofin_rag_query_cache_misses", "RAG query cache misses")
+# ── RAG metrics (P2-04 observability sprint) ───────────────────────────────
+# RAG_CHUNK_COUNT: Gauge of the total corpus size (chunks currently in the
+# active backend's index). Distinct from RAG_CHUNKS_RETURNED below, which
+# tracks the per-query returned chunk count as a distribution.
+RAG_CHUNK_COUNT = Gauge(
+    "astrofin_rag_chunk_count", "Number of chunks in the RAG index",
+)
+RAG_CHUNKS_RETURNED = Histogram(
+    "astrofin_rag_chunks_returned",
+    "Number of chunks returned per RAG query (post-filter)",
+    buckets=(0, 1, 2, 3, 5, 8, 13, 21),
+)
+# Unified query counter: replaces RAG_QUERY_CACHE_HITS / RAG_QUERY_CACHE_MISSES.
+# Labels: status=ok|error, backend=pgvector|faiss|hybrid, domain=trading|...|all
+RAG_QUERIES_TOTAL = Counter(
+    "astrofin_rag_queries_total",
+    "RAG queries, partitioned by status, backend, and domain",
+    ["status", "backend", "domain"],
+)
+# RAG_ERRORS_TOTAL: counts failures across retrieve/store/refresh paths.
+RAG_ERRORS_TOTAL = Counter(
+    "astrofin_rag_errors_total",
+    "RAG errors by stage and kind",
+    ["stage", "kind"],
+)
+# RAG_LATENCY_SECONDS: end-to-end query latency in seconds.
+RAG_LATENCY_SECONDS = Histogram(
+    "astrofin_rag_latency_seconds",
+    "End-to-end RAG query latency (seconds)",
+    buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
+)
+# Average relevance score across a single query (set as a gauge; the histogram
+# of per-chunk scores is RAG_RELEVANCE_SCORE_HIST below). The old RAG_RELEVANCE_SCORE
+# is now a Histogram; we keep its name so dashboards don't break, and we add a
+# separate Gauge for the per-query average.
 RAG_RELEVANCE_SCORE = Histogram(
-    "astrofin_rag_relevance_score", "Relevance score of RAG chunks", buckets=(0.1, 0.3, 0.5, 0.7, 0.9, 1.0)
+    "astrofin_rag_relevance_score", "Relevance score distribution of RAG chunks",
+    buckets=(0.1, 0.3, 0.5, 0.7, 0.9, 1.0),
+)
+RAG_RELEVANCE_AVG = Gauge(
+    "astrofin_rag_relevance_avg",
+    "Average relevance score of the most recent RAG query",
+)
+# BM25 index freshness: epoch seconds at which the in-process BM25 index was
+# last built. Exposed via Gauge.set_function() so Prometheus scrapes a live
+# value without a setter call.
+RAG_BM25_REFRESH_TIMESTAMP = Gauge(
+    "astrofin_rag_bm25_refresh_timestamp",
+    "Unix epoch (seconds) of the last BM25 index build, or 0 if never built",
+)
+# Back-compat aliases (deprecated; remove in P2-05).
+# We keep them as no-op Counters so old import paths don't break, but new
+# code MUST use RAG_QUERIES_TOTAL{status=...} instead.
+RAG_QUERY_CACHE_HITS = Counter(
+    "astrofin_rag_query_cache_hits_legacy",
+    "DEPRECATED: use astrofin_rag_queries_total{status='ok'} instead",
+)
+RAG_QUERY_CACHE_MISSES = Counter(
+    "astrofin_rag_query_cache_misses_legacy",
+    "DEPRECATED: use astrofin_rag_queries_total{status='error'} instead",
 )
 AGENT_DURATION = Histogram(
     "astrofin_agent_duration_seconds", "Agent execution duration", buckets=(0.1, 0.5, 1, 2, 5, 10, 30)
