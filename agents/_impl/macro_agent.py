@@ -49,7 +49,7 @@ class MacroAgent(BaseAgent[AgentResponse]):
         """Lazy init RAG retriever."""
         if self.rag is None:
             try:
-                self.rag = RAGRetriever(index_name="macro")
+                self.rag = RAGRetriever()  # index_name removed in P2-02 RAGClient (G12)
             except Exception as e:
                 logger.warning("Failed to init RAG for MacroAgent: %s", e)
         return self.rag

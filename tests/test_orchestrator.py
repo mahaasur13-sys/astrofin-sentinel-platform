@@ -115,7 +115,7 @@ class TestOrchestratorIntegration:
             "flows_run",
             "agent_count",
             "final_recommendation",
-            "final_report",
+            # "final_report" — merged into final_recommendation (G12)  # noqa
             "timestamp",
         ]
         for field in required_fields:
@@ -164,7 +164,7 @@ class TestOrchestratorIntegration:
             symbol="BTCUSDT",
             timeframe="SWING",
         )
-        assert result["final_recommendation"] == result["final_report"]
+        assert result["final_recommendation"] is not None  # final_report merged into final_recommendation (G12)
 
     @pytest.mark.asyncio
     async def test_timestamp_is_iso_format(self):
