@@ -17,7 +17,6 @@
 --     or build from https://github.com/pgvector/pgvector — needs `pg_config`).
 --   - Apply with: `psql -v ON_ERROR_STOP=1 -d astrofin -f migrations_postgres/0009_pgvector.sql`
 
-BEGIN;
 
 -- 1. Extension ----------------------------------------------------------------
 -- `vector` is provided by pgvector. CREATE EXTENSION must run as superuser once
@@ -125,7 +124,6 @@ INSERT INTO _schema_version (version, note)
 VALUES (9, 'pgvector + RAG documents table (Sprint 3, P2-02, dim=1536)')
 ON CONFLICT (version) DO NOTHING;
 
-COMMIT;
 
 -- Verification (run manually after applying):
 --   SELECT extversion FROM pg_extension WHERE extname = 'vector';

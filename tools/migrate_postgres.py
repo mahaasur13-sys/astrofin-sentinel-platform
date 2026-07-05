@@ -31,6 +31,17 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 MIGRATIONS_DIR = REPO_ROOT / "migrations_postgres"
 VERSION_RE = re.compile(r"^(\d{4})_.+\.sql$")
 
+def split_sql_script(sql):
+    """Split SQL script into statements (commas, comments, blanks)."""
+    sql = re.sub(r"/\*.*?\*/", "", sql, flags=re.DOTALL)
+    sql = re.sub(r"--.*?$", "", sql, flags=re.MULTILINE)
+    stmts = []
+    for raw in sql.split(";"):
+        s = raw.strip()
+        if s:
+            stmts.append(s)
+    return stmts
+
 
 def discover_migrations() -> list[tuple[int, Path]]:
     """Return [(version, path), ...] sorted by version ascending."""
@@ -59,7 +70,9 @@ async def apply_one(conn: asyncpg.Connection, version: int, path: Path) -> None:
     # in autocommit. We wrap in an explicit transaction so a syntax error rolls
     # back cleanly without poisoning the connection.
     async with conn.transaction():
-        await conn.execute(sql)
+        statements = split_sql_script(sql)
+        for stmt in statements:
+            await conn.execute(stmt)
     logger.info("✅ %s applied", path.name)
 
 
