@@ -36,7 +36,7 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal, Optional, List
 
 import asyncpg
 import faiss
@@ -228,6 +228,39 @@ class RAGClient:
         if self.config.backend == "pgvector":
             return await self._store_pgvector(docs)
         return await self._store_faiss(docs)
+
+    async def get_all_chunks(
+        self, domain: Optional[str] = None
+    ) -> List["RetrievedChunk"]:
+        """Return every chunk in `documents` (pgvector backend) as RetrievedChunk.
+
+        Used by PersistentBM25Retriever (P2-03c) to build a lexical index over
+        the same corpus the vector retriever searches. Returns [] when the
+        active backend is faiss (BM25 is then built from disk by the retriever
+        itself). Domain filter is optional; NULL = all domains.
+        """
+        if self.config.backend != "pgvector":
+            return []
+        pool = await self._get_pg_pool()
+        sql = """
+            SELECT doc_id, source, title, body, domain, metadata
+            FROM documents
+            WHERE ($1::text IS NULL OR domain = $1)
+        """
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(sql, domain)
+        return [
+            RetrievedChunk(
+                content=r["body"],
+                source=r["source"],
+                title=r["title"] or "",
+                domain=r["domain"] or "",
+                relevance_score=0.0,
+                doc_id=r["doc_id"],
+                backend="pgvector",
+            )
+            for r in rows
+        ]
 
     async def _store_pgvector(self, docs: list[Document]) -> StoreResult:
         pool = await self._get_pg_pool()
