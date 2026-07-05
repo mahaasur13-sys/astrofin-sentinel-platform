@@ -99,6 +99,7 @@ class RAGRetriever:
         """
         Semantic search across knowledge chunks.
 
+
         Args:
             query: Natural-language query from the agent
             domain: Optional domain filter (astrology / technical / trading).
@@ -157,7 +158,8 @@ class RAGRetriever:
             avg_rel = sum(r["relevance_score"] for r in deduped) / len(deduped)
         else:
             avg_rel = 0.0
-        RAG_RELEVANCE_SCORE.set(avg_rel)
+        # Исправлено: .set() -> .observe() для Histogram
+        RAG_RELEVANCE_SCORE.observe(avg_rel)
         RAG_CHUNK_COUNT.set(len(deduped))
 
         # Сохраняем результат в кеш запросов
@@ -197,6 +199,7 @@ def retrieve_knowledge(
     """
     retriever = RAGRetriever()
     chunks = retriever.retrieve(query, domain=domain, top_k=top_k)
+
 
     if not chunks:
         return "⚠ В базе знаний не найдена релевантная информация."

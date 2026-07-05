@@ -57,7 +57,7 @@ def test_cache_redis_path_increments_counters():
     # First call: redis returns None -> miss
     cache.redis.get = AsyncMock(return_value=None)
     # Second call: redis returns bytes -> hit
-    cache.redis.setex = AsyncMock()
+    # Удалена лишняя строка: cache.redis.setex = AsyncMock()
 
     before_hits = _counter_value(CACHE_HITS)
     before_misses = _counter_value(CACHE_MISSES)
