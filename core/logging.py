@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 
 import structlog
@@ -15,8 +16,32 @@ def _add_trace_context(logger, method, event_dict):
     return event_dict
 
 
+def _add_correlation_id(logger, method_name, event_dict):
+    """Ensure every log line has a correlation_id; default 'unknown' if not bound."""
+    event_dict.setdefault("correlation_id", "unknown")
+    return event_dict
+
+
 def setup_logging():
-    # Настраиваем стандартный логгер для вывода в stdout
+    """Configure structured logging for the AstroFin Sentinel platform.
+
+    The renderer is selected by RENDER_MODE env var:
+      - "json" (default): JSONRenderer — machine-readable, CI/ELK friendly.
+        All tests that assert on log structure (test_logging.py) use this.
+      - "console": ConsoleRenderer — human-friendly colors for dev (rich).
+
+    logger_factory=PrintLoggerFactory(file=sys.stdout) writes to the **current**
+    sys.stdout at call time. This is required for pytest's capsys fixture to
+    work correctly: pytest redirects sys.stdout INSIDE the test, and the
+    default LoggerFactory captures the *original* stdout at config time, so
+    pytest's redirect is missed.
+    """
+    render_mode = (os.getenv("RENDER_MODE") or "json").lower()
+    if render_mode == "console":
+        renderer = structlog.dev.ConsoleRenderer()
+    else:
+        renderer = structlog.processors.JSONRenderer()
+
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
@@ -25,23 +50,22 @@ def setup_logging():
 
     structlog.configure(
         processors=[
-            structlog.stdlib.filter_by_level,
+            structlog.processors.add_log_level,
             _add_trace_context,
-            structlog.stdlib.add_logger_name,
-            structlog.stdlib.add_log_level,
+            _add_correlation_id,
             structlog.processors.TimeStamper(fmt="iso"),
-            structlog.dev.ConsoleRenderer(),
+            renderer,
         ],
         context_class=dict,
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        wrapper_class=structlog.stdlib.BoundLogger,
+        logger_factory=structlog.PrintLoggerFactory(file=sys.stdout),
+        wrapper_class=structlog.BoundLogger,
         cache_logger_on_first_use=True,
     )
-    # Уменьшаем шум от библиотек
+    # Reduce noise from libraries
     logging.getLogger("aiohttp").setLevel(logging.WARNING)
     logging.getLogger("opentelemetry").setLevel(logging.WARNING)
 
 
 def get_logger(name=None):
-    """Возвращает логгер structlog."""
+    """Return a structlog logger."""
     return structlog.get_logger(name)

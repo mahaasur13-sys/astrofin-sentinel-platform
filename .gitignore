@@ -21,8 +21,29 @@ graphify-out/inferred_clean_filtered.jsonl
 graphify-out/_ad_hoc_ov_check*.jsonl
 graphify-out/*.filtered.jsonl
 
-# audit_repo — локальная копия репо для аудита (не для коммита)
+# audit_repo - local copy of repo for audit (do not commit)
 audit_repo/
 
 # pytest-hypothesis database (do not commit)
 .hypothesis/
+
+# Secrets (decrypted locally, never commit)
+config/secrets.yaml
+config/secrets.secret.yaml
+age.key
+.south-secrets/
+venv/
+
+# Python venvs (NEVER commit)
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+
+# Local config with secrets
+.env
+.env.local

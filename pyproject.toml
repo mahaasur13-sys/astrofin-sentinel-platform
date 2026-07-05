@@ -28,6 +28,7 @@ dependencies = [
   "sqlalchemy>=2.0.0,<3.0",
   "alembic>=1.13.0,<2.0",
   "psycopg2-binary>=2.9.9,<3.0",
+  "asyncpg>=0.29.0,<1.0",          # pgvector + RAG client (Sprint W3, P2-02)
   "redis>=5.0.0,<6.0",
 
   # API & monitoring
@@ -46,6 +47,9 @@ dependencies = [
 
   # Optional LLM (used by git_agent_exporter)
   "openai>=1.0.0,<2.0",
+
+  # Bounded LRU cache for EmbeddingClient (P2-02 review, CR-104)
+  "cachetools>=5.3.0,<6.0",
 ]
 
 [project.optional-dependencies]

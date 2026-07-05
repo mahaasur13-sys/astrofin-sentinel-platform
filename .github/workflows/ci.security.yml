@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/workflows/python-setup.yml
+      - uses: ./.github/actions/python-setup
         with: { install-dev: 'false' }
       - name: Install bandit
         run: pip install bandit==1.8.0
@@ -76,7 +76,7 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/workflows/python-setup.yml
+      - uses: ./.github/actions/python-setup
         with: { install-dev: 'true' }
       - name: Ruff lint (github format)
         run: ruff check . --output-format=github
@@ -92,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/workflows/python-setup.yml
+      - uses: ./.github/actions/python-setup
         with: { install-dev: 'true' }
       - name: Pytest (with coverage)
         run: |

@@ -5,7 +5,7 @@ description: 'Reusable composite action: setup Python 3.12 with pip caching'
 # Usage:
 #   steps:
 #     - uses: actions/checkout@v4
-#     - uses: ./.github/workflows/python-setup.yml
+#     - uses: ./.github/actions/python-setup/action.yml
 #       with:
 #         python-version: '3.12'
 #         install-dev: 'true'

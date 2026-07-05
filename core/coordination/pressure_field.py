@@ -11,6 +11,7 @@ Sandbox-безопасная версия: никаких embeddings, тольк
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 
 from core.coordination.constants import (
@@ -19,6 +20,8 @@ from core.coordination.constants import (
     PRESSURE_FIELD_K_NEIGHBORS,
     PRESSURE_FIELD_MIN_CONSENSUS,
 )
+
+_logger = logging.getLogger(__name__)
 
 # ─── AgentSignal Dataclass ───────────────────────────────────────────────────────
 
@@ -198,11 +201,9 @@ def apply_pressure_field(
         # Логирование
         if abs(delta) > 0.1:
             top_names = [n for _, n, _, _ in top]
-            print(
-                f"[PF] {agent_i.name}({agent_i.signal}): "
-                f"{raw_eff:.2f} → {new_eff:.2f} "
-                f"(Δ={delta:+.2f}, regime={agent_i.regime}, "
-                f"consensus={consensus_pct:.0%}, from={top_names})"
+            _logger.info(
+                "[PF] %s(%s): %.2f -> %.2f (delta=%+.2f, regime=%s, consensus=%.0f%%, from=%s)",
+                agent_i.name, agent_i.signal, raw_eff, new_eff, delta, agent_i.regime, consensus_pct * 100, top_names,
             )
 
         updated.append(
