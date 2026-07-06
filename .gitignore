@@ -54,3 +54,13 @@ ENV/
 coverage.xml
 unified-platform/.coverage
 htmlcov/
+
+# v1.0.0 migration additions
+src/bridges/roma/audit/
+src/bridges/roma/.backup_dir/
+deploy/iac/terraform/.terraform/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyright/
