@@ -1,0 +1,13 @@
+⚠️ FROZEN: master is read-only for migration until v1.0.0
+
+Active branch: migration/v1-unification
+Snapshot date: 2026-07-06
+Backup location: /home/workspace/snapshots/2026-07-06-pre-migration/
+
+Migration phases:
+- [x] Phase 0: Backup (tar.bz2 + bundle), tags, feature branch
+- [ ] Phase 1: Cleanup duplicates (asps-main, astrofin-fed) + main decision
+- [ ] Phase 2: Unification — inline submodules → src/, restore validate_agent linter
+- [ ] Phase 3: CI/CD polish, docs, PR + tag v1.0.0
+
+DO NOT push to origin/master. Use feature branches only.
