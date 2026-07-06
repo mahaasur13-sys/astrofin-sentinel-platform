@@ -10,6 +10,10 @@
 	path = astrofin-sentinel-v5
 	url = git@github.com:mahaasur13-sys/astrofin-sentinel-v5.git
 	branch = master
+[submodule "atom-federation-os"]
+	path = atom-federation-os
+	url = git@github.com:mahaasur13-sys/atom-federation-os.git
+	branch = master
 [submodule "integrations/gitagent"]
 	path = integrations/gitagent
 	url = git@github.com:mahaasur13-sys/gitagent.git
