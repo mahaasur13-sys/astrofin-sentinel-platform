@@ -1,0 +1,4 @@
+# ATOM Operator — runtime dependencies
+# Pinned to exact versions for reproducible builds (Phase 2.A standard).
+# Only third-party deps that are actually imported by operator/*.py live here.
+kubernetes==29.0.0

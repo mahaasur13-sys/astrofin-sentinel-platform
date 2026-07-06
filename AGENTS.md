@@ -371,6 +371,64 @@ python -m orchestration.sentinel_v5 "Analyze BTC" BTCUSDT SWING
 
 ---
 
+## Monorepo Migration v1.0.0 (2026-07-06)
+
+Unified 12+ repos into single master (commit `b6574c2`).
+
+### Tier A Integration (inline)
+
+| Path | Source | Status |
+|------|--------|--------|
+| `src/bridges/roma/` | `main:bridge/roma` (roma-execution-bridge inline) | ✅ done (commit 7d1bb60) |
+| `src/formal_verification/` | `main:kernel/atom-federation` (atom-federation-os inline) | ✅ done (commit e23b072) |
+
+Install both as editable packages:
+```bash
+cd src/bridges/roma && pip install -e .[dev]
+cd src/formal_verification && pip install -e .[dev]
+```
+
+### Imports
+
+```python
+# Tier A imports (after pip install -e . in both src/ subdirs)
+from roma_execution_bridge.bridge import StripeBridge
+from alignment.adlr import ADLRecoveryOrchestrator
+from sbs.schema_validator import validate_state
+```
+
+### Remaining Submodules (4)
+
+- `AsurDev` (kebab-case kept) - inlined in v1.0.1
+- `home-cluster-iac` - inlined in v1.0.1
+- `integrations/gitagent` - inlined in v1.0.1
+- `astrofin-sentinel-v5` - inlined in v1.0.1
+
+### Path Fixes (commit da3ef41)
+
+Replaced 5 hard-coded `/home/workspace/atom-federation-os` paths with `Path(__file__).resolve().parent` relative paths in:
+- `src/formal_verification/alignment/test_adlr.py`
+- `src/formal_verification/alignment/test_bcil.py`
+- `src/formal_verification/sbs/tests/test_sbs_contract.py`
+- `src/formal_verification/sbs/tests/test_sbs_runtime.py`
+- `src/formal_verification/cluster/node/node.py`
+
+Test results after fix: 18 + 5 + 19 = 42 passed.
+
+### Tier B/C Cleanup
+
+Not migrated: `AstroFinSentinelV5/`, `AsurDev/`, `home-cluster-iac/`, `astrofin-sentinel-v5/`, `data_provider/`, `knowledge/`, `observability/`, `training/`. These remain in `main` branch only and will be archived in v1.0.1.
+
+### Backups
+
+- `backup/master-pre-migration` (39c15c4) - master before migration
+- `backup/main-pre-deprecation` (994fcd7) - main snapshot
+- `backup/atomos-after-merge` (b6574c2) - after Tier A + path fixes
+- `/home/workspace/snapshots/2026-07-06-pre-migration/` - tar.bz2 + bundle backups
+
+
+---
+
 ## 🤖 AI Agent Rules
 
 1. **Virtual Environment**: All commands and scripts must be executed inside the project's venv (`source venv/bin/activate`).

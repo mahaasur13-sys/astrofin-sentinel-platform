@@ -1,0 +1,93 @@
+-- ============================================================
+-- NuSMV Model: P5 Replay Timing Bug Fix Verification
+-- atom-federation-os v9.0 | 2026-04-15
+-- ============================================================
+-- To verify:
+--   cd /tmp && python3 -m nusmv formal/replay_nusmv.smv
+--   Or: nuXmv formal/replay_nusmv.smv
+-- ============================================================
+
+MODULE main
+VAR
+  state : {idle, verify, noncelocked, exec, commit, replay, blocked};
+  nonce_used : boolean;
+  nonce_locked : boolean;
+  request : {none, fresh, replay};
+  verify_passed : boolean;
+
+ASSIGN
+  init(state) := idle;
+  init(nonce_used) := FALSE;
+  init(nonce_locked) := FALSE;
+  init(request) := none;
+  init(verify_passed) := FALSE;
+
+  -- T_AFTER: verify first, then lock nonce
+  next(state) :=
+    case
+      -- From idle: receive request
+      state = idle & request = none : verify;
+      -- From verify: if replay → blocked; if nonce free → noncelocked
+      state = verify & request = replay & nonce_used = TRUE : replay;
+      state = verify & request = replay & nonce_used = FALSE : noncelocked;
+      state = verify & request = fresh & nonce_used = TRUE : replay;
+      state = verify & request = fresh & nonce_used = FALSE : noncelocked;
+      -- From noncelocked: go to exec
+      state = noncelocked : exec;
+      -- From exec: if gates pass → commit; if fail → blocked
+      state = exec : {commit, blocked};
+      -- Terminal states
+      state in {replay, blocked, commit} : idle;
+      TRUE : state;
+    esac;
+
+  next(nonce_locked) :=
+    case
+      state = verify & nonce_used = FALSE : TRUE;
+      state in {replay, blocked, commit, idle} : FALSE;
+      TRUE : nonce_locked;
+    esac;
+
+  next(nonce_used) :=
+    case
+      -- AFTER fix: nonce locked DURING verify, before exec
+      state = verify & nonce_used = FALSE : TRUE;
+      TRUE : nonce_used;
+    esac;
+
+DEFINE
+  -- Key invariants to verify
+  exec_requires_noncelocked := !(state = exec & nonce_locked = FALSE);
+  no_replay_exec := !(state = replay);
+  safety := !(state = exec & nonce_locked = FALSE);
+
+-- ============================================================
+-- SPECIFICATIONS (temporal logic)
+-- ============================================================
+
+-- LTL Safety: G(Exec → NonceLocked)
+-- "Whenever Exec is reached, NonceLocked must have been set"
+LTLSPEC G(exec -> NonceLocked);
+
+-- LTL Safety: G(Exec → O NonceLocked)
+-- "Exec implies that NonceLocked held in the previous state"
+LTLSPEC G(exec -> Y NonceLocked);
+
+-- LTL Anti-replay: ¬F(Replay ∧ Exec)
+-- "Replay and Exec never both hold"
+LTLSPEC G(!(Replay & Exec));
+
+-- CTL: No path exists where Replay leads to Exec
+-- "Along all paths from current state, Exec is never reachable from Replay"
+CTLSPEC AG(Replay -> AX !Exec);
+
+-- CTL: NonceLocked is a prerequisite for Exec
+CTLSPEC AG(Exec -> NonceLocked);
+
+-- CTL: No reachable state where Exec ∧ ¬NonceLocked
+-- "There does NOT exist a path to a state where Exec is true and NonceLocked is false"
+CTLSPEC EF(Exec & !NonceLocked);
+
+-- TOCTOU check: Exec without NonceLocked
+-- Should be FALSE after fix
+CTLSPEC EF(Exec & !NonceLocked);

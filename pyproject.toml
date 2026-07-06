@@ -65,7 +65,7 @@ astrofin-karl = "orchestration.karl_cli:cli"
 astrofin-dashboard = "web.wsgi:launch"
 
 [tool.setuptools.packages.find]
-include = ["meta_rl*", "orchestration*", "agents*", "core*", "trading*", "web*", "data_provider*"]
+include = ["meta_rl*", "orchestration*", "agents*", "core*", "trading*", "web*", "data_provider*", "src.bridges.roma", "src.formal_verification", "alignment", "sbs"]
 exclude = ["tests*", "docs*", "bench*"]
 
 [tool.ruff]

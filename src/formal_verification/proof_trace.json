@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-04-15T09:47:40Z",
+  "repository": "/home/workspace/atom-federation-os",
+  "total_paths_found": 1,
+  "valid_paths": 0,
+  "invalid_paths": 1,
+  "proof_valid": false,
+  "paths": [
+    {
+      "path_id": "733128efdd498f1c",
+      "nodes": [
+        "orchestration/ExecutionGateway/execution_gateway.py:execute@208"
+      ],
+      "gated": [
+        "ACT"
+      ],
+      "bypasses": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9",
+        "G10"
+      ],
+      "reaches_actuator": true,
+      "is_complete": false
+    }
+  ],
+  "gate_coverage": {
+    "G1": 0,
+    "G2": 0,
+    "G3": 0,
+    "G4": 0,
+    "G5": 0,
+    "G6": 0,
+    "G7": 0,
+    "G8": 0,
+    "G9": 0,
+    "G10": 0
+  }
+}

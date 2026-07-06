@@ -1,0 +1,75 @@
+# =============================================================================
+# ROMA Executor RBAC — ServiceAccount + Role + RoleBinding
+# Namespace: roma-system
+# Permissions: create/list/delete jobs, get pod logs
+# =============================================================================
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: roma-system
+  labels:
+    app: roma-executor
+    purpose: gpu-task-orchestration
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: roma-executor
+  namespace: roma-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: roma-executor-jobs
+  namespace: roma-system
+rules:
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["create", "get", "list", "delete", "patch"]
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: roma-executor-binding
+  namespace: roma-system
+subjects:
+- kind: ServiceAccount
+  name: roma-executor
+  namespace: roma-system
+roleRef:
+  kind: Role
+  name: roma-executor-jobs
+  apiGroup: rbac.authorization.k8s.io
+---
+# Optional: allow roma-executor to run on GPU nodes (if restricted)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: roma-executor-nodes
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list"]
+  resourceNames: ["*"]  # read-only, GPU nodes only
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: roma-executor-nodes-binding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: roma-executor
+  namespace: roma-system
+roleRef:
+  kind: Role
+  name: roma-executor-nodes
+  apiGroup: rbac.authorization.k8s.io
