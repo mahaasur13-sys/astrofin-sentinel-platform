@@ -1,0 +1,59 @@
+---
+- name: Add Ceph signing key
+  ansible.builtin.apt_key:
+    url: https://download.ceph.com/keys/release.asc
+    state: present
+
+- name: Add Ceph stable repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://download.ceph.com/debian-{{ ceph_version }}/ {{ ansible_distribution_release }} main"
+    state: present
+
+- name: Install Ceph storage packages
+  ansible.builtin.apt:
+    name:
+      - ceph-base
+      - ceph-common
+      - ceph-osd
+      - ceph-mgr
+      - ceph-mon
+      - python3-ceph-argparse
+    state: present
+    update_cache: true
+
+- name: Bootstrap Ceph monitor
+  when: "'ceph_nodes' | first == ansible_hostname"
+  block:
+    - name: Generate Ceph initial keys
+      ansible.builtin.shell: |
+        ceph-volume raw prepare --bluestore --data /dev/sda
+      register: ceph_osd_prepare
+      failed_when: false
+
+    - name: Create Ceph config
+      ansible.builtin.template:
+        src: ceph.conf.j2
+        dest: /etc/ceph/ceph.conf
+        mode: "0644"
+
+    - name: Deploy Ceph OSD
+      ansible.builtin.shell: |
+        ceph-volume raw activate all
+      notify: restart ceph-osd
+
+- name: Create Ceph filesystem for shared storage
+  ansible.builtin.shell: |
+    ceph osd pool create cephfs_data 128
+    ceph osd pool create cephfs_metadata 64
+    ceph fs new cephfs cephfs_metadata cephfs_data
+  when: "'ceph_nodes' | first == ansible_hostname"
+  register: ceph_fs_create
+  failed_when: false
+
+- name: Mount CephFS on all nodes
+  ansible.builtin.mount:
+    path: /mnt/cephfs
+    src: "{{ groups['ceph_nodes'] | first }}:{{ cephfs_path }}"
+    fstype: ceph
+    opts: "name={{ ceph_client }},secret={{ ceph_keyring }},_netdev"
+    state: mounted

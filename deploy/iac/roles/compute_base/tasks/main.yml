@@ -1,0 +1,40 @@
+# ============================================================
+# Role: compute_base — Day 3: Docker + CUDA drivers + env
+# ============================================================
+
+- name: Add NVIDIA CUDA repo
+  ansible.builtin.command: |
+    wget -qO /tmp/cuda-repo-wsl.deb https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-repo-wsl.deb
+    dpkg --force-all -i /tmp/cuda-repo-wsl.deb
+    apt-key add /var/cuda-repo-wsl*/7fa2af80.pub
+    apt-get update
+  args:
+    creates: /etc/apt/sources.list.d/cuda.list
+  when: ansible_os_family == "Debian"
+
+- name: Install CUDA drivers + Docker
+  ansible.builtin.apt:
+    name:
+      - nvidia-driver-535
+      - nvidia-utils-535
+      - cuda-toolkit-12-3
+      - docker.io
+      - docker-compose
+      - python3-pip
+      - python3-venv
+      - python3-dev
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true
+
+- name: Start Docker
+  ansible.builtin.systemd_service:
+    name: docker
+    enabled: true
+    state: started

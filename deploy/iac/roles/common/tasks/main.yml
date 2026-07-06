@@ -1,0 +1,56 @@
+---
+# Common role: NTP, DNS, SSH keys, motd
+- name: Set hostname from inventory
+  ansible.builtin.hostname:
+    name: "{{ ansible_hostname }}"
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name: [curl, wget, vim, htop, iotop, tmux, chrony]
+    update_cache: yes
+
+- name: Configure chrony NTP
+  ansible.builtin.copy:
+    dest: /etc/chrony/chrony.conf
+    content: |
+      # Use home cluster NTP server if available
+      server 10.10.10.1 prefer iburst
+      server 0.pool.ntp.org iburst
+      server 1.pool.ntp.org iburst
+      driftfile /var/lib/chrony/chrony/drift
+      makestep 1.0 3
+      rtcsync
+    mode: '0644'
+  notify: Restart chrony
+
+- name: Add cluster SSH keys to authorized_keys
+  ansible.posix.authorized_key:
+    user: root
+    key: "{{ lookup('pipe', 'cat /root/.ssh/id_rsa.pub 2>/dev/null || ssh-keygen -t rsa -f /root/.ssh/id_rsa -N "" && cat /root/.ssh/id_rsa.pub') }}"
+    state: present
+
+- name: Set cluster MOTD
+  ansible.builtin.copy:
+    dest: /etc/motd
+    content: |
+      ===========================================
+      HOME CLUSTER NODE: {{ inventory_hostname }}
+      Role: {{ group_names | join(', ') }}
+      ===========================================
+    mode: '0644'
+
+- name: Create cluster directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/cluster/bin
+    - /opt/cluster/logs
+    - /opt/cluster/state
+
+handlers:
+  - name: Restart chrony
+    ansible.builtin.service:
+      name: chrony
+      state: restarted
