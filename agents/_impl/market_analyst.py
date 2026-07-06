@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 from core.metrics import track_agent_duration
@@ -20,6 +20,7 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
     MarketAnalyst — главный технический аналитик.
     Вес: 25%
     """
+    @require_ephemeris
 
     def __init__(self):
         super().__init__(
@@ -236,3 +237,8 @@ async def run_market_analyst(state: dict) -> dict:
     agent = MarketAnalystAgent()
     result = await agent.run(state)
     return {"market_analyst_signal": result.to_dict()}
+
+async def run_market_analyst_agent(state: dict) -> dict:
+    """Alias runner for validate_agent A5 compliance."""
+    return await run_market_analyst(state)
+

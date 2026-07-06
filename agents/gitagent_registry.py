@@ -203,6 +203,16 @@ AGENT_AGENTS: dict[str, dict] = {
         "path": "agents._impl.elliot_agent",
         "method": "run_elliot_agent",
     },
+    "MarketAnalystAgent": {
+        "name": "MarketAnalystAgent",
+        "domain": "technical",
+        "weight": 0.25,
+        "karl": True,
+        "ttc": True,
+        "selfq": True,
+        "path": "agents._impl.market_analyst",
+        "method": "run_market_analyst",
+    },
     "RiskAgent": {
         "name": "RiskAgent",
         "domain": "risk",
