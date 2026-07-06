@@ -12,7 +12,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: false
+
+      - name: Initialize required submodules for compose
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "git@github.com:"
+          git submodule update --init --depth 1 home-cluster-iac roma-execution-bridge
+          # Restore default URL rewrite so it doesn't leak into subsequent steps
+          git config --global --unset-all url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf
 
       - name: Validate docker-compose syntax
         run: docker compose -f docker-compose.yml config --quiet
