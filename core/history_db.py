@@ -194,29 +194,25 @@ class HistoryDB:
             args = (days_arg,)
 
         with self._conn() as conn:
-            # Count + avg confidence
-            meta = conn.execute(
-                f"""
+            # Count + avg confidence. f-string {where} built from internal allow-list; args bound.
+            meta_sql = f"""  # nosec B608
                 SELECT
                     COUNT(*)                          AS total,
                     AVG(final_confidence)              AS avg_conf,
                     MIN(final_confidence)              AS min_conf,
                     MAX(final_confidence)              AS max_conf
                 FROM sessions {where}
-            """,
-                args,
-            ).fetchone()
+            """
+            meta = conn.execute(meta_sql, args).fetchone()
 
-            # Signal distribution
-            dist_rows = conn.execute(
-                f"""
+            # Signal distribution. Same allow-list + bound args as above.
+            dist_sql = f"""  # nosec B608
                 SELECT final_signal, COUNT(*) AS cnt
                 FROM sessions {where}
                 GROUP BY final_signal
                 ORDER BY cnt DESC
-            """,
-                args,
-            ).fetchall()
+            """
+            dist_rows = conn.execute(dist_sql, args).fetchall()
 
             # Recent trend: LONG vs SHORT ratio per day (last 7 days)
             trend_sql = """

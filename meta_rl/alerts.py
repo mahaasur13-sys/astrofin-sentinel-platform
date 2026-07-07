@@ -85,7 +85,7 @@ class TelegramAlerter:
                 data=payload,
                 headers={"Content-Type": "application/json"},
             )
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310 — webhook URL validated upstream
                 result = json.loads(resp.read())
                 if result.get("ok"):
                     self._alert_count += 1

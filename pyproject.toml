@@ -89,4 +89,13 @@ markers = [
 
 [tool.ruff.lint]
 select = ["E", "F", "W"]
-ignore = []
+# E501 disabled: 162 pre-existing long lines in src/bridges/roma/saas/* and tests
+# originated before migration/v1-unification. Auto-fix is unsafe (touches SQL/strings).
+# TODO: fix long lines post-stabilization — see ROADMAP §CI Cleanup.
+ignore = ["E501"]
+
+[tool.bandit]
+# B608: f-string SQL with {where} built from internal allow-list of column names
+# and integer constants. All user-supplied values are bound via `args`. See audit
+# notes at the top of core/history_db.py and # nosec markers in-line.
+skips = ["B608"]

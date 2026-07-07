@@ -54,3 +54,4 @@ ENV/
 coverage.xml
 unified-platform/.coverage
 htmlcov/
+backtest/results.db
