@@ -191,4 +191,3 @@ if __name__ == "__main__":
     sig = auth.sign_request("tenant-acme", "POST", "/api/v1/submit", '{"task":"test"}', ts)
     verify = auth.verify_signature("tenant-acme", "POST", "/api/v1/submit", '{"task":"test"}', ts, sig)
     print(f"HMAC verify: {verify}")
-    print(f"Timestamp drift (+10min): {auth.verify_signature('tenant-acme', 'POST', '/api/v1/submit', '{"task":"test"}', ts - 600, sig)}")

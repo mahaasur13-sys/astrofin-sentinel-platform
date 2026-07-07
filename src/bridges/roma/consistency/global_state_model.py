@@ -125,8 +125,8 @@ class GlobalStateModel:
         result = {}
         records = []
 
-        for field in fields:
-            record = self.get_truth(job_id, field)
+        for f in fs:
+            record = self.get_truth(job_id, f)
             if record:
                 records.append(record)
 
