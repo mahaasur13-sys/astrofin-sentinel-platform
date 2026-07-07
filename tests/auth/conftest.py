@@ -1,8 +1,9 @@
 """Pytest fixtures for JWT auth tests (issue #81).
 
-We rely on the same RS256 keypair that ships under ``keys/jwt_*.pem``.
-The fixture patches ``AuthConfig.from_env`` so JWT modules resolve the
-correct paths even when the test runner's CWD differs.
+We **generate** a fresh RS256 keypair per test session and point the JWT
+modules at the temp dir. The repo intentionally does **not** commit the
+private key (``keys/jwt_private.pem`` is in .gitignore), so any test that
+relied on a checked-in keypath would fail in CI.
 """
 from __future__ import annotations
 
@@ -10,22 +11,70 @@ import os
 from pathlib import Path
 
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 
-# Make sure the auth_jwt module picks up our keypair before any test
-# module imports it. Doing this at module-import time keeps every test
-# in this directory deterministic.
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-os.environ.setdefault("JWT_PRIVATE_KEY_PATH", str(_REPO_ROOT / "keys" / "jwt_private.pem"))
-os.environ.setdefault("JWT_PUBLIC_KEY_PATH", str(_REPO_ROOT / "keys" / "jwt_public.pem"))
-os.environ.setdefault("JWT_ISSUER", "astrofin-sentinel")
-os.environ.setdefault("JWT_AUDIENCE", "astrofin-sentinel")
-os.environ.setdefault("JWT_ACCESS_TTL", "3600")
-os.environ.setdefault("JWT_REFRESH_TTL", "86400")
+
+def _generate_rsa_keypair(tmp_dir: Path) -> tuple[Path, Path]:
+    """Create a fresh RS256 keypair under ``tmp_dir`` and return (priv, pub)."""
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    priv_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    pub_pem = private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    priv_path = tmp_dir / "jwt_private.pem"
+    pub_path = tmp_dir / "jwt_public.pem"
+    priv_path.write_bytes(priv_pem)
+    pub_path.write_bytes(pub_pem)
+    return priv_path, pub_path
+
+
+@pytest.fixture(scope="session")
+def jwt_keypair(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, Path]:
+    """Session-scoped RS256 keypair generated on the fly."""
+    tmp = tmp_path_factory.mktemp("jwt_keys")
+    return _generate_rsa_keypair(tmp)
+
+
+@pytest.fixture(autouse=True)
+def _wire_jwt_env(jwt_keypair: tuple[Path, Path]) -> None:
+    """Point every JWT module at the temp keypair for the duration of a test."""
+    priv, pub = jwt_keypair
+    os.environ["JWT_PRIVATE_KEY_PATH"] = str(priv)
+    os.environ["JWT_PUBLIC_KEY_PATH"] = str(pub)
+    os.environ.setdefault("JWT_ISSUER", "astrofin-sentinel")
+    os.environ.setdefault("JWT_AUDIENCE", "astrofin-sentinel")
+    os.environ.setdefault("JWT_ACCESS_TTL", "3600")
+    os.environ.setdefault("JWT_REFRESH_TTL", "86400")
 
 
 @pytest.fixture
-def cfg():
-    """Reload AuthConfig from the patched env for each test."""
+def cfg() -> "AuthConfig":
+    """Reload AuthConfig from the (autouse-patched) env for each test."""
     from core.auth_jwt import AuthConfig
 
     return AuthConfig.from_env()
+
+
+@pytest.fixture
+def auth_app():
+    """FastAPI app wired with a refresh route and a smoke endpoint."""
+    from fastapi import Depends, FastAPI
+
+    from core.auth_jwt import AuthConfig, verify_token
+    from core.auth_refresh import register_refresh_route
+
+    application = FastAPI()
+    cfg = AuthConfig.from_env()
+    register_refresh_route(application, cfg=cfg)
+
+    @application.post("/_smoke")
+    def _smoke(claims=Depends(verify_token)) -> dict:  # type: ignore[valid-type]
+        return {"sub": claims.sub}
+
+    return application
