@@ -3,6 +3,7 @@ from .audit import (
     AuditLog,
     DecisionRecord,
     get_audit_log,
+    build_decision_record,
     record_decision,
 )
 from .backtest_loop import (
@@ -28,6 +29,7 @@ from .karl_integration import (
     process_amre,
 )
 from .oap_optimizer import (
+    get_oap_optimizer,
     OAPConfig,
     OAPOptimizer,
     OptimizationStatus,
@@ -40,11 +42,16 @@ from .replay_buffer import (
     get_default_buffer,
 )
 from .reward import (
+    get_reward_diagnostics,
     EMA_ALPHA,
     RewardState,
     compute_reward_from_outcome,
     compute_trajectory_reward,
     get_global_buffer,
+    get_calibrator,
+    get_dd_tracker,
+    
+    
     set_global_buffer,
     update_reward_ema,
 )
@@ -99,6 +106,10 @@ __all__ = [
     "compute_reward_from_outcome",
     "get_default_buffer",
     "get_global_buffer",
+    "get_calibrator",
+    "get_dd_tracker",
+    "get_oap_optimizer",
+    "get_reward_diagnostics",
     "set_global_buffer",
     "validate_with_grounding",
     "estimate_uncertainty",
@@ -120,6 +131,7 @@ __all__ = [
     "DecisionRecord",
     "get_audit_log",
     "record_decision",
+    "build_decision_record",
     "ContinuousBacktest",
     "BacktestRegime",
     "create_backtest_runner",
