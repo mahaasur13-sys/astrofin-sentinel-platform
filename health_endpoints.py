@@ -16,11 +16,13 @@ from slowapi.util import get_remote_address
 from starlette.responses import JSONResponse, PlainTextResponse
 
 from core.auth_jwt_middleware import require_jwt
+from core.auth_refresh import router as _refresh_router
 
 # NEW: инициализируем лимитер (100 запросов в минуту глобально)
 limiter = Limiter(key_func=get_remote_address, default_limits=["100 per minute"])
 
 app = FastAPI(title="AstroFin Sentinel — Health & Metrics")
+app.include_router(_refresh_router)
 process = psutil.Process(os.getpid())
 
 # NEW: привязываем лимитер к приложению
