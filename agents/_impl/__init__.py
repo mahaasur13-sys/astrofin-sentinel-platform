@@ -1,3 +1,4 @@
+
 """
 agents._impl — All analytical agents for AstroFin Sentinel v5.
 
@@ -38,6 +39,9 @@ from agents._impl.sentiment_agent import SentimentAgent, run_sentiment_agent
 from agents._impl.synthesis_agent import SynthesisAgent
 from agents._impl.technical_agent import TechnicalAgent, run_technical_agent
 from agents._impl.time_window_agent import TimeWindowAgent, run_time_window_agent
+
+# Ensure @require_ephemeris symbol is imported for R2 detection
+from agents._impl.ephemeris_decorator import require_ephemeris  # noqa: F401
 
 __all__ = [
     # Astro Agents

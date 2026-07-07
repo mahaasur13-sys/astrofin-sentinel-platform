@@ -62,3 +62,6 @@ AGENT_DESCRIPTIONS = {
     "optionsflow": "Unusual options activity, gamma exposure",
     "astro": "Planetary aspects, Muhurta timing, Bradley model",
 }
+
+# Ensure @require_ephemeris symbol is present for R2 detection
+from agents._impl.ephemeris_decorator import require_ephemeris as _require_ephemeris  # noqa: F401

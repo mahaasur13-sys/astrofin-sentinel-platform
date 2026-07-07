@@ -18,6 +18,7 @@ All clamped to [-1, 1].
 from __future__ import annotations
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def compute_astro_reward(
     muhurta: str = "neutral",
     yoga: str = "neutral",

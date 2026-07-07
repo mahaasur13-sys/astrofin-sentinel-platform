@@ -49,6 +49,7 @@ MIN_CONFIDENCE = 30
 MAX_CONFIDENCE = 80  # EC-01 hubris cap, slightly tighter than SynthesisAgent's 92
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def _signal_value(direction: SignalDirection | str) -> int:
     """Map signal to signed vote: LONG=+1, SHORT=-1, else 0."""
     name = direction.value if hasattr(direction, "value") else str(direction)

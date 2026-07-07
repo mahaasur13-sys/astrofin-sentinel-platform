@@ -225,6 +225,7 @@ class KeplerResult:
     speed_deg_per_day: float
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def propagate_kepler(body: str, jd: float) -> KeplerResult:
     """Convenience function: propagate Keplerian orbit for a named body."""
     orbit_map = {

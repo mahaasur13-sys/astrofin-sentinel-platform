@@ -27,6 +27,7 @@ MIN_AGENTS_FALLBACK = 2  # minimum agents needed for a reliable synthesis
 # ─── Load weights from config (R-02: single source of truth) ──────────────────
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def _load_weights() -> dict:
     """
     Load and normalize weights from config/agent_weights.yaml.

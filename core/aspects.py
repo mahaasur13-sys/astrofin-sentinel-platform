@@ -93,6 +93,7 @@ class AspectReport:
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def _normalize_angle(a: float) -> float:
     return a % 360
 

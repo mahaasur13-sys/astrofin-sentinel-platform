@@ -32,6 +32,7 @@ class RewardResult:
 # ─── Raw Reward ───────────────────────────────────────────────────────────────
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def compute_raw_reward(
     signal: str,
     price_change: float,

@@ -235,6 +235,7 @@ _CHOGHADIYA_TABLE = {
 }
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def _julian_day(dt: datetime) -> float:
     """Convert datetime to Julian Day."""
     y, m, d = dt.year, dt.month, dt.day

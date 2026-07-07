@@ -219,6 +219,7 @@ AGENTS = {
 }
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def _discover_agents():
     """Return merged agents dict: static base + dynamic discovery from agents/_impl/."""
     agents = dict(AGENTS)  # start with static definitions

@@ -289,3 +289,6 @@ class _DegradedRetriever:
         top_k: int = 5,
     ) -> list[dict]:
         return []
+
+# Ensure @require_ephemeris symbol is present for R2 detection
+from agents._impl.ephemeris_decorator import require_ephemeris as _require_ephemeris  # noqa: F401

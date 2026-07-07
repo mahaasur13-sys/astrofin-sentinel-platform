@@ -70,6 +70,7 @@ NAKSHATRA_SCORES = [
 ]
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def get_lunar_phase_score(moon_longitude: float) -> float:
     phase_angle = moon_longitude % 180
     nearest = min(LUNAR_PHASES, key=lambda x: abs(x[0] - phase_angle))

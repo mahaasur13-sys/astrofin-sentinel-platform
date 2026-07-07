@@ -111,6 +111,7 @@ class ResidualModel:
 _residual_model: ResidualModel | None = None
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def get_residual_model() -> ResidualModel:
     global _residual_model
     if _residual_model is None:

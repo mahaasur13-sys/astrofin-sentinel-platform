@@ -59,6 +59,7 @@ logger = logging.getLogger(__name__)
 # ─── Configuration ──────────────────────────────────────────────────────────
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def _safe_int(name: str, default: int, min_val: int = 0) -> int:
     """Parse an env var as int; on bad input or below min_val, return default.
 

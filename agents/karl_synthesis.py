@@ -552,6 +552,7 @@ class KARLSynthesisAgent:
 _KARL_AGENT: Optional["KARLSynthesisAgent"] = None
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def get_karl_agent() -> KARLSynthesisAgent:
     global _KARL_AGENT
     if _KARL_AGENT is None:

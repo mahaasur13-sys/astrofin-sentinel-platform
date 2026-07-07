@@ -49,6 +49,7 @@ class KARLHealthMetrics:
         return asdict(self)
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def compute_karl_health(
     decision_records: list[dict[str, Any]],
     reward_history: list[float],

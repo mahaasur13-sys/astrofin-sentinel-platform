@@ -79,6 +79,7 @@ class ResidualModel:
             print(f"{body:<10} {rc.kepler_lon_deg:>8.3f} {rc.swiss_lon_deg:>8.3f} {rc.correction_deg:>8.4f} {rc.correction_arcmin:>10.2f} {self.mode}")
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def main():
     print("=" * 66)
     print("ATOM-STEP-4: Residual Model - Kepler vs SwissEph")

@@ -69,6 +69,7 @@ class CalibrationResult:
 # ── Loss function ────────────────────────────────────────────────────────────
 
 
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 def _mae_loss(elements: OrbitalElements, body: str, jd_samples: np.ndarray) -> float:
     """Mean Absolute Error between Kepler and SwissEph (geocentric) over JD samples."""
     KeplerOrbit(elements)

@@ -231,6 +231,7 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
 
 
 @track_agent_duration("MarketAnalyst")
+@require_ephemeris  # noqa: R2  # module-wide ephemeris dep
 async def run_market_analyst(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = MarketAnalystAgent()
