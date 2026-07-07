@@ -15,7 +15,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from starlette.responses import JSONResponse, PlainTextResponse
 
-from core.auth import fastapi_require_api_key
+from core.auth_jwt_middleware import require_jwt
 
 # NEW: инициализируем лимитер (100 запросов в минуту глобально)
 limiter = Limiter(key_func=get_remote_address, default_limits=["100 per minute"])
@@ -57,7 +57,7 @@ async def startup_event():
 async def auth_middleware(request: Request, call_next):
     if request.url.path.startswith("/api/"):
         try:
-            await fastapi_require_api_key(request)
+            await require_jwt(request)
         except HTTPException as e:
             return JSONResponse(status_code=e.status_code, content={"detail": e.detail})
     response = await call_next(request)
