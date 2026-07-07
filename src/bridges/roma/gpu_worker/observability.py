@@ -128,7 +128,7 @@ class GPUObservabilityLayer:
 
             metrics = self._metrics[worker_id][-20:]  # last 20 points
             latest = metrics[-1]
-            sum(m.gpu_util for m in metrics) / len(metrics)
+            avg_gpu_util = sum(m.gpu_util for m in metrics) / len(metrics) if metrics else 0.0
 
             # Health score based on: GPU utilization is not too high (>95% = degraded)
             # and not too low (<5% = idle but OK)

@@ -150,9 +150,6 @@ class DESCEventLogger:
         discrepancies: list[str] = []
         for i, event in enumerate(self._events):
             if event["type"] == "INVARIANT_VIOLATION":
-                event["stage"]
-                event["violated"]
-                event["state_hash"]
                 # In a real system, we would reconstruct the state from prior events
                 # and verify hash matches. Here we just verify the event structure.
                 if not all(k in event for k in ("stage", "violated", "state_hash", "timestamp")):

@@ -293,7 +293,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                 metadata={"symbol": symbol, "timeframe": timeframe},
             )
         except Exception as amre_err:
-            {"enabled": False, "error": str(amre_err)}
+            meta["amre_fallback"] = {"enabled": False, "error": str(amre_err)}
 
         # ─── 4. Формируем breakdown ────────────────────────────────────
         breakdown = self._format_breakdown(categories)

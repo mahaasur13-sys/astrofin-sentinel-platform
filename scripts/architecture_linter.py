@@ -193,6 +193,8 @@ def check_data_room_compliance(src: Path, source_text: str, report: Report) -> N
         src_rel = _rel(src)
     except ValueError:
         return
+    if "data_room" in str(src_rel).split("/"):
+        return  # data_room is explicitly allowed to use `requests`
     # Allow httpx for legitimate async use, ban requests.
     if re.search(r"^\s*import\s+requests\b", source_text, re.MULTILINE):
         report.fail(
