@@ -4,6 +4,12 @@ We **generate** a fresh RS256 keypair per test session and point the JWT
 modules at the temp dir. The repo intentionally does **not** commit the
 private key (``keys/jwt_private.pem`` is in .gitignore), so any test that
 relied on a checked-in keypath would fail in CI.
+
+Implementation note: we avoid importing ``cryptography`` at module level
+because it is not a hard dependency in every CI env. The import is
+deferred to inside the keypair fixture; if it ever fails the failure is
+scoped to the JWT tests, not to the whole ``tests/`` collect (which would
+mask unrelated issues).
 """
 from __future__ import annotations
 
@@ -11,12 +17,15 @@ import os
 from pathlib import Path
 
 import pytest
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 
 
 def _generate_rsa_keypair(tmp_dir: Path) -> tuple[Path, Path]:
     """Create a fresh RS256 keypair under ``tmp_dir`` and return (priv, pub)."""
+    # Defer the import — cryptography is a transitive dep of pyjwt, but the
+    # CI image we run on may install only the core test deps.
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     priv_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
