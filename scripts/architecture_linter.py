@@ -20,9 +20,12 @@ Hard rules (fail the build if violated):
 
 Soft rules (warn, do not fail):
     S1.  Public functions should have a docstring.
-    S2.  Tests should not import agents from agents/_archived/.
-    S3.  If a file under agents/_impl/ is changed, docs/ must also be changed
-         (this is also enforced by the pre-commit `validate-registry-coverage`).
+    S2.  Tests must not import agents from agents/_archived/ (lightweight
+         AST scan: any `from agents._archived import ...` or
+         `import agents._archived` in tests/ is reported as a warning).
+    S3.  If a file under agents/_impl/ is changed, docs/ must also be
+         changed (coarse heuristic: warn when the changed-files set touches
+         agents/_impl/ but not docs/; see --changed mode).
 
 Output:
     Color-coded, single-page report. Exit code:
