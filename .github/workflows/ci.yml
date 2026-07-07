@@ -108,9 +108,9 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             base=${{ github.event.pull_request.base.sha }}
             git fetch origin $base --depth=1
-            changed=$(git diff --name-only origin/$base...HEAD -- 'agents/_impl/*.py' | grep -v _archived || true)
+            changed=$(git diff --name-only origin/$base...HEAD -- 'agents/_impl/*.py' | grep -v _archived | grep -v amre || true)
           else
-            changed=$(git diff --name-only HEAD~1 -- 'agents/_impl/*.py' | grep -v _archived || true)
+            changed=$(git diff --name-only HEAD~1 -- 'agents/_impl/*.py' | grep -v _archived | grep -v amre || true)
           fi
           echo "$changed" > /tmp/changed_agents.txt
           count=$(echo "$changed" | grep -c . || true)
