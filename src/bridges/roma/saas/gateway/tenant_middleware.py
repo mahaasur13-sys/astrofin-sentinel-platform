@@ -12,7 +12,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
     2. Subdomain (tenant.roma.ai)
     3. Path prefix (/t/{tenant_id}/...)
     4. API Key (looked up async)
-    
+
     Injects tenant config into request.state.
     """
 
@@ -33,7 +33,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
             tenant_id = await self._resolve_tenant(request)
-            
+
             if not tenant_id and self.require_tenant:
                 from starlette.responses import JSONResponse
                 return JSONResponse({"detail": "Tenant ID required"}, status_code=400)

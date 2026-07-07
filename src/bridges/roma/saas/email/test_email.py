@@ -33,7 +33,7 @@ def test_no_cross_contamination():
     b1 = {"app_name": "Alpha", "primary_color": "#111111"}
     b2 = {"app_name": "Beta", "primary_color": "#222222"}
     html1 = svc1._render("welcome", tenant_name="Alpha", api_key="key1", brand=b1, dashboard_url="https://a.com")
-    html2 = svc2._render("welcome", tenant_name="Beta", api_key="key2", brand=b2, dashboard_url="https://b.com")
+    svc2._render("welcome", tenant_name="Beta", api_key="key2", brand=b2, dashboard_url="https://b.com")
     assert "Alpha" in html1 and "Beta" not in html1, "cross-contamination: Alpha/Beta"
     assert "key1" in html1 and "key2" not in html1, "cross-contamination: key1/key2"
     assert "#111111" in html1 and "#222222" not in html1, "cross-contamination: colors"

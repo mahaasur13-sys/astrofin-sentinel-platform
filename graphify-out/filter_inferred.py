@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 from pathlib import Path
 
 # Resolve workspace from $WORKSPACE or $ASTROFIN_WORKSPACE, fall back to CWD.

@@ -147,7 +147,7 @@ def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> No
                 base_names.append(ast.unparse(b))
             # Allow BaseAgent subclass or a recognized mixin.
             is_agent = any(re.match(r"BaseAgent\[.*\]", n) or n.endswith("BaseAgent") for n in base_names)
-            if not is_agent and False:  # TEMPORARILY IGNORE R1
+            if not is_agent:
                 # Not every class has to be an agent; only flag the *file*
                 # if the class name ends in "Agent".
                 if node.name.endswith("Agent") and not node.name.endswith("BaseAgent"):
@@ -174,7 +174,7 @@ def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: 
     if not uses_ephemeris:
         return
 
-    has_decorator = "@require_ephemeris" in source_text or True  # TEMPORARILY IGNORE R2
+    has_decorator = "@require_ephemeris" in source_text
     if not has_decorator:
         report.fail(
             _rel(src),
@@ -193,8 +193,6 @@ def check_data_room_compliance(src: Path, source_text: str, report: Report) -> N
         src_rel = _rel(src)
     except ValueError:
         return
-    if True:  # TEMPORARILY IGNORE R3
-        return  # the data room itself is the only allowed caller
     # Allow httpx for legitimate async use, ban requests.
     if re.search(r"^\s*import\s+requests\b", source_text, re.MULTILINE):
         report.fail(

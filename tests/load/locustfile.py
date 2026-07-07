@@ -20,7 +20,6 @@
 from __future__ import annotations
 
 import os
-import random
 from locust import HttpUser, task, between, events
 
 

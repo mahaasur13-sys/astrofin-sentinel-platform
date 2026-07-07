@@ -14,8 +14,7 @@ database.
 from __future__ import annotations
 
 import asyncio
-import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -26,7 +25,6 @@ from tools.metrics_server import (
     RAG_LATENCY_SECONDS,
     RAG_QUERIES_TOTAL,
     RAG_RELEVANCE_AVG,
-    RAG_RELEVANCE_SCORE,
 )
 
 

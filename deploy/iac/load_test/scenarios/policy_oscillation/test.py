@@ -173,8 +173,8 @@ class PolicyOscillationScenario:
             "switch_rate_per_min": round(switch_rate, 3),
             "utility_variance": round(variance, 4),
             "total_decisions": len(self.policy_history),
-            "policy_versions_seen": len(set(s.version for s in self.policy_history)),
-            "ml_versions_seen": len(set(s.ml_version for s in self.policy_history)),
+            "policy_versions_seen": len({s.version for s in self.policy_history}),
+            "ml_versions_seen": len({s.ml_version for s in self.policy_history}),
         }
 
     def _check_failure(self, metrics: dict) -> bool:

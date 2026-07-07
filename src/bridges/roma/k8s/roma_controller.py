@@ -45,8 +45,8 @@ def create_k8s_job_object(romatask: Dict[str, Any]) -> Dict[str, Any]:
     spec = romatask.get("spec", {})
     task = spec.get("task", "")
     gpu_required = spec.get("gpuRequired", False)
-    execution_mode = spec.get("executionMode", "k8s_job")
-    priority = spec.get("priority", 5)
+    spec.get("executionMode", "k8s_job")
+    spec.get("priority", 5)
 
     job_name = f"roma-{romatask['metadata']['name']}-{int(time.time())}"
     image = "pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime"

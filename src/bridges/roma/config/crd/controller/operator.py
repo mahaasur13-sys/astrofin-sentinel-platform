@@ -379,7 +379,7 @@ def reconcile_tenant(meta, spec, status, namespace, name, **kwargs):
     subdomain   = spec.get("subdomain", tenant_id)
     plan        = spec.get("plan", "free")
     branding    = spec.get("branding", {})
-    compute     = spec.get("compute", {})
+    spec.get("compute", {})
     tier        = spec.get("tier", 1)
 
     core = get_core_v1()

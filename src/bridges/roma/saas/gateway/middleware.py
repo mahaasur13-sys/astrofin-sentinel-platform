@@ -16,16 +16,16 @@ def setup_gateway_middleware(
 ) -> None:
     """
     Wire all gateway middleware into a FastAPI app.
-    
+
     Starlette BaseHTTPMiddleware uses FIFO order:
     First add_middleware() = first in the request chain.
-    
+
     Correct order (FIFO):
     1. TenantMiddleware    — MUST be added FIRST so it resolves tenant FIRST
     2. AuthMiddleware       — uses tenant_id set by TenantMiddleware
     3. BrandingInjector    — injects headers at response time
     4. CORS                 — outermost, handles preflight
-    
+
     If CORS were added last (outermost), it would run first and reject
     OPTIONS requests before TenantMiddleware could set tenant context.
     """

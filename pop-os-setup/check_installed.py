@@ -5,7 +5,9 @@ usage:
   python3 check_installed.py                    # live system
   python3 check_installed.py /path/to/dpkg.txt  # from file
 """
-import sys, subprocess, re
+import sys
+import subprocess
+import re
 from pathlib import Path
 
 # ── ANSI colors ──────────────────────────────────────────────────────────────
