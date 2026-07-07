@@ -10,6 +10,7 @@ This module is the *single* definition. Existing local copies will be replaced
 by `from acos_contracts import EventType, ExecutionResult, Decision` during
 the AsurDev / home-cluster-iac migrations in Etapах 3 и 4.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

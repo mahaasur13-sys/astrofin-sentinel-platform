@@ -96,9 +96,7 @@ class NodeEmbeddingBuilder:
             return 0.0
         return float(np.dot(a, b) / (norm_a * norm_b))
 
-    def find_similar_nodes(
-        self, target_embedding: np.ndarray, all_embeddings: dict[str, np.ndarray], top_k: int = 3
-    ) -> list[tuple]:
+    def find_similar_nodes(self, target_embedding: np.ndarray, all_embeddings: dict[str, np.ndarray], top_k: int = 3) -> list[tuple]:
         """
         Find top-k most similar nodes to target_embedding.
         Returns list of (node_id, similarity_score).

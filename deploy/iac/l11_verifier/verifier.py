@@ -156,9 +156,7 @@ class L11Verifier:
     def verify_invariants(self) -> dict[str, bool]:
         return dict.fromkeys(SYSTEM_INVARIANTS, True)
 
-    def full_pipeline(
-        self, dag: dict, node_results: list[dict], trace: dict, context: dict | None = None
-    ) -> dict[str, Any]:
+    def full_pipeline(self, dag: dict, node_results: list[dict], trace: dict, context: dict | None = None) -> dict[str, Any]:
         pre = self.pre_execution(dag, context)
         mid = self.mid_execution(node_results, dag)
         post = self.post_execution(trace, dag)

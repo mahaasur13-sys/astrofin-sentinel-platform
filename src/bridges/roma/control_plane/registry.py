@@ -1,4 +1,5 @@
 """Worker Registry — Source of Truth"""
+
 import time
 import threading
 import logging
@@ -6,6 +7,7 @@ from typing import Optional, List, Dict, Any
 from .core_models import Worker, WorkerStatus
 
 log = logging.getLogger("registry")
+
 
 class WorkerRegistry:
     def __init__(self, heartbeat_timeout: float = 15.0):
@@ -43,8 +45,7 @@ class WorkerRegistry:
 
     def list_healthy(self) -> List[Worker]:
         with self._lock:
-            return [w for w in self._w.values()
-                    if w.is_healthy() and (time.time() - w.last_heartbeat) < self._ht]
+            return [w for w in self._w.values() if w.is_healthy() and (time.time() - w.last_heartbeat) < self._ht]
 
     def list_all(self) -> List[Worker]:
         with self._lock:
@@ -61,8 +62,4 @@ class WorkerRegistry:
             total = len(self._w)
             healthy = sum(1 for w in self._w.values() if w.is_healthy())
             dead = sum(1 for w in self._w.values() if w.status == WorkerStatus.DEAD)
-            return {
-                "total": total, "healthy": healthy, "dead": dead,
-                "gpu_total": sum(w.gpu_total for w in self._w.values()),
-                "gpu_used": sum(w.gpu_used for w in self._w.values())
-            }
+            return {"total": total, "healthy": healthy, "dead": dead, "gpu_total": sum(w.gpu_total for w in self._w.values()), "gpu_used": sum(w.gpu_used for w in self._w.values())}

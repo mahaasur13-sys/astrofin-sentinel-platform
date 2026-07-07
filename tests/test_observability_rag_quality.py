@@ -3,10 +3,12 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 
-from tools.metrics_server import RAG_CHUNK_COUNT, RAG_CHUNKS_RETURNED, RAG_QUERIES_TOTAL, RAG_RELEVANCE_AVG, RAG_RELEVANCE_SCORE
+from tools.metrics_server import RAG_CHUNK_COUNT, RAG_QUERIES_TOTAL, RAG_RELEVANCE_AVG
 
 
 import pytest
+
+
 @pytest.mark.unit
 def test_rag_retrieve_updates_quality_metrics():
     """После retrieve должны обновиться метрики relevance_score и chunk_count."""
@@ -51,9 +53,7 @@ def test_rag_query_cache_hits_increment():
             after = _query_count()
 
             assert res1 == res2, "Cached result should match"
-            assert after > before, (
-                f"Expected RAG_QUERIES_TOTAL to increase; before={before}, after={after}"
-            )
+            assert after > before, f"Expected RAG_QUERIES_TOTAL to increase; before={before}, after={after}"
     retriever = RAGRetriever()
     # Мокаем _embed и FAISS-индекс, чтобы вернуть известные результаты
     with patch("knowledge.rag_retriever._embed") as mock_embed:

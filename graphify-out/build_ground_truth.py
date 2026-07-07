@@ -8,6 +8,7 @@ build_ground_truth.py — генерирует ground_truth.jsonl по прин�
 Это не «золотая» ручная разметка, а стартовая правдоподобная выборка
 для A/B калибровки формул. После прогона A/B GT пополняется вручную.
 """
+
 import json
 import random
 from pathlib import Path
@@ -24,21 +25,17 @@ with open(SRC) as f:
 override = [e for e in edges if e.get("override_applied")]
 print(f"override-рёбер: {len(override)} (label=1)")
 
+
 # cross-file = source_path != target_path (разные файлы)
 def is_cross_file(e):
     return (e.get("source_path") or "").strip() != (e.get("target_path") or "").strip()
 
-cross = [
-    e for e in edges
-    if e.get("tier") == "T1"
-    and not e.get("override_applied")
-    and is_cross_file(e)
-]
+
+cross = [e for e in edges if e.get("tier") == "T1" and not e.get("override_applied") and is_cross_file(e)]
 cross_sorted = sorted(cross, key=lambda x: x.get("recall_score", 0), reverse=True)
 cross_top = cross_sorted[:7]
 print(f"cross-file T1 (не override): {len(cross)}; взято top-7 по recall_score")
-print(f"  диапазон recall_score: "
-      f"{cross_top[-1]['recall_score']:.3f} … {cross_top[0]['recall_score']:.3f}")
+print(f"  диапазон recall_score: {cross_top[-1]['recall_score']:.3f} … {cross_top[0]['recall_score']:.3f}")
 
 # фон: T3 (forced decay 0.05), случайные 10
 background = [e for e in edges if e.get("tier") == "T3"]
@@ -47,30 +44,36 @@ background_pick = random.sample(background, 10)
 
 gt = []
 for e in override:
-    gt.append({
-        "source_node_id": e["source_node_id"],
-        "target_node_id": e["target_node_id"],
-        "relation": e.get("relation"),
-        "label": 1,
-        "kind": "override",
-    })
+    gt.append(
+        {
+            "source_node_id": e["source_node_id"],
+            "target_node_id": e["target_node_id"],
+            "relation": e.get("relation"),
+            "label": 1,
+            "kind": "override",
+        }
+    )
 for e in cross_top:
-    gt.append({
-        "source_node_id": e["source_node_id"],
-        "target_node_id": e["target_node_id"],
-        "relation": e.get("relation"),
-        "label": 1,
-        "kind": "cross_file_top",
-        "recall_score": e.get("recall_score"),
-    })
+    gt.append(
+        {
+            "source_node_id": e["source_node_id"],
+            "target_node_id": e["target_node_id"],
+            "relation": e.get("relation"),
+            "label": 1,
+            "kind": "cross_file_top",
+            "recall_score": e.get("recall_score"),
+        }
+    )
 for e in background_pick:
-    gt.append({
-        "source_node_id": e["source_node_id"],
-        "target_node_id": e["target_node_id"],
-        "relation": e.get("relation"),
-        "label": 0,
-        "kind": "background_T3",
-    })
+    gt.append(
+        {
+            "source_node_id": e["source_node_id"],
+            "target_node_id": e["target_node_id"],
+            "relation": e.get("relation"),
+            "label": 0,
+            "kind": "background_T3",
+        }
+    )
 
 with open(OUT, "w") as f:
     for item in gt:

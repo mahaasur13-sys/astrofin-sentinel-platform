@@ -92,32 +92,23 @@ class ROMA_CLI:
         print("⏳ Анализирую...")
 
         # Предсказание стоимости
-        prediction = self.predictor.predict(
-            task,
-            gpu_required=("gpu" in task.lower() or "train" in task.lower())
-        )
+        prediction = self.predictor.predict(task, gpu_required=("gpu" in task.lower() or "train" in task.lower()))
 
         # Вывод базовой информации
         print(f"\n💰 Ожидаемая стоимость: ${prediction['estimated_cost']:.2f}")
         print(f"⏱  Расчётная длительность: ~{self._format_duration(prediction.get('estimated_duration_minutes', 0))}")
         print(f"🖥  GPU: {prediction.get('gpu_node', 'cpu-cluster')} (×{prediction.get('gpu_count', 0)})")
         print(f"⚠️  Уровень риска: {prediction.get('risk_level', 'LOW')}\n")
-        print(self._breakdown_str(prediction.get('breakdown', {})))
+        print(self._breakdown_str(prediction.get("breakdown", {})))
 
         # Принимаем решение через Gate
-        decision = self.gate.decide(
-            task,
-            plugin_type="default",
-            gpu_required=prediction.get("gpu_required", False),
-            tenant_id="default-tenant",
-            **prediction
-        )
+        decision = self.gate.decide(task, plugin_type="default", gpu_required=prediction.get("gpu_required", False), tenant_id="default-tenant", **prediction)
 
-        if decision['action'] == "REJECTED":
+        if decision["action"] == "REJECTED":
             print(f"\n🚫 ОТКЛОНЕНО: {decision['reason']}")
             return 1
 
-        if decision['action'] == "REQUIRES_CONFIRMATION":
+        if decision["action"] == "REQUIRES_CONFIRMATION":
             print(f"\n⚠️  Предупреждение: стоимость ${decision['final_cost']:.2f} — подтвердите?")
             print(self.PROMPT_OPTIONS)
             choice = input("\n> ").strip().lower()
@@ -147,34 +138,31 @@ class ROMA_CLI:
         explanation = self.explainer.explain(task)
         print("=" * 50)
         print("📋 ПЛАН ВЫПОЛНЕНИЯ")
-        for step in explanation['execution_plan']:
+        for step in explanation["execution_plan"]:
             print(f"  {step['phase']}: {step['description']}")
         print("\n💰 РАЗБОР СТОИМОСТИ")
-        for item, cost in explanation['cost_breakdown'].items():
+        for item, cost in explanation["cost_breakdown"].items():
             print(f"  {item}: ${cost:.2f}")
         print(f"\n  ВСЕГО: ${explanation['total_cost']:.2f}")
-        if explanation.get('alternatives'):
+        if explanation.get("alternatives"):
             print("\n💡 БОЛЕЕ ДЕШЁВЫЕ АЛЬТЕРНАТИВЫ")
-            for alt in explanation['alternatives']:
+            for alt in explanation["alternatives"]:
                 print(f"  • {alt['description']} → ${alt['cost']:.2f} (экономия {alt['savings']}%)")
         print("\n🔍 ПОЧЕМУ ТАКОЕ РЕШЕНИЕ")
-        for reason in explanation['decision_reasons']:
+        for reason in explanation["decision_reasons"]:
             print(f"  • {reason}")
         return 0
 
     def cmd_cost(self, task: str) -> int:
         """Быстрый расчёт стоимости."""
         print(f"\n💰 Оценка стоимости: {task}\n")
-        prediction = self.predictor.predict(
-            task,
-            gpu_required=("gpu" in task.lower() or "train" in task.lower())
-        )
+        prediction = self.predictor.predict(task, gpu_required=("gpu" in task.lower() or "train" in task.lower()))
         # Выводим только ключевые цифры
         result = {
-            "estimated_cost": round(prediction['estimated_cost'], 4),
-            "duration_minutes": prediction.get('estimated_duration_minutes', 0),
-            "gpu_node": prediction.get('gpu_node', 'cpu-cluster'),
-            "risk": prediction.get('risk_level', 'LOW')
+            "estimated_cost": round(prediction["estimated_cost"], 4),
+            "duration_minutes": prediction.get("estimated_duration_minutes", 0),
+            "gpu_node": prediction.get("gpu_node", "cpu-cluster"),
+            "risk": prediction.get("risk_level", "LOW"),
         }
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return 0
@@ -189,11 +177,11 @@ class ROMA_CLI:
         print(f"\n🖥  Задача: {data['job_id']}")
         print(f"📌 Статус: {data['status']}")
         print(f"🕒 Создана: {data['created_at']}")
-        if data.get('started_at'):
+        if data.get("started_at"):
             print(f"▶️  Запущена: {data['started_at']}")
-        if data.get('completed_at'):
+        if data.get("completed_at"):
             print(f"✅ Завершена: {data['completed_at']}")
-        if data.get('error'):
+        if data.get("error"):
             print(f"❌ Ошибка: {data['error']}")
         return 0
 
@@ -223,20 +211,15 @@ class ROMA_CLI:
 
     def _submit_job(self, task: str, prediction: dict) -> str:
         """Отправляет задачу на сервер и возвращает job_id."""
-        payload = {
-            "task": task,
-            "gpu_required": prediction.get("gpu_required", False),
-            "priority": 5,
-            "execution_mode": "k8s_job"
-        }
+        payload = {"task": task, "gpu_required": prediction.get("gpu_required", False), "priority": 5, "execution_mode": "k8s_job"}
         result = _api_post("/submit", payload)
         return result.get("job_id")
 
     def _show_alternatives(self, task: str) -> None:
         explanation = self.explainer.explain(task)
         print("\n💡 АЛЬТЕРНАТИВЫ:")
-        if explanation.get('alternatives'):
-            for alt in explanation['alternatives']:
+        if explanation.get("alternatives"):
+            for alt in explanation["alternatives"]:
                 print(f"  • {alt['description']} → ${alt['cost']:.2f} (экономия {alt['savings']}%)")
         else:
             print("  (дешёвых альтернатив не найдено)")

@@ -44,9 +44,9 @@ class ConstraintCompiler:
     def _make_pre_guard(self, constraints: dict) -> dict:
         checks = []
         if "max_risk" in constraints:
-            checks.append(f'assert state.risk_score <= {constraints["max_risk"]}')
+            checks.append(f"assert state.risk_score <= {constraints['max_risk']}")
         if "max_exposure" in constraints:
-            checks.append(f'assert state.exposure <= {constraints["max_exposure"]}')
+            checks.append(f"assert state.exposure <= {constraints['max_exposure']}")
         if "forbidden_assets" in constraints:
             assets = constraints["forbidden_assets"]
             checks.append(f"for a in {assets}: assert state.asset != a")

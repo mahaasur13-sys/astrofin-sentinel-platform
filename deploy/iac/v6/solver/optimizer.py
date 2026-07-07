@@ -39,9 +39,7 @@ class CandidateGenerator:
     def __init__(self, k: int = 5):
         self.k = k
 
-    def generate(
-        self, job_id: str, nodes: list[str], risk_scores: dict[str, float], node_loads: dict[str, dict]
-    ) -> list[tuple[str, float]]:
+    def generate(self, job_id: str, nodes: list[str], risk_scores: dict[str, float], node_loads: dict[str, dict]) -> list[tuple[str, float]]:
         """
         Returns list of (node_id, score) for top-k candidates.
         Score = base_score - risk_penalty (from v5).
@@ -100,9 +98,7 @@ class ILPOptimizer:
     def __init__(self, timeout_ms: int = 100):
         self.timeout_ms = timeout_ms
 
-    def solve(
-        self, job_ids: list[str], candidates: dict[str, list[str]], utilities: dict[tuple[str, str], float]
-    ) -> dict[str, str]:
+    def solve(self, job_ids: list[str], candidates: dict[str, list[str]], utilities: dict[tuple[str, str], float]) -> dict[str, str]:
         """
         Returns {job_id: node_id} assignment.
         Falls back to greedy if ILP unavailable or timeout.

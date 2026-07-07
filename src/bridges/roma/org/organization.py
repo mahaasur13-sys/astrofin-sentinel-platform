@@ -1,5 +1,6 @@
 """ROMA Organization Model — org → project → tenant hierarchy."""
 
+
 class Organization:
     def __init__(self, org_id: str, name: str, plan: str, billing_account: str):
         self.org_id = org_id

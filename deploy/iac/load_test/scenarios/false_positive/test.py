@@ -60,9 +60,7 @@ class FalsePositiveScenario:
             "result_after_fix": None,
         }
         if failure:
-            result["correction_applied"] = (
-                "correction_applied: cooldown 30->60s, debounce=5->10s, multi_signal_confirm=True"
-            )
+            result["correction_applied"] = "correction_applied: cooldown 30->60s, debounce=5->10s, multi_signal_confirm=True"
             result["result_after_fix"] = {"status": "debounce logic applied", "transient_recoveries_expected": 0}
         return result
 

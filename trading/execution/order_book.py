@@ -278,7 +278,4 @@ if __name__ == "__main__":
     m = MarketImpactModel(volatility_bps=100, adv=50000)
     for side, qty in [("buy", 100), ("buy", 1000), ("sell", 500)]:
         r = m.estimate(side, qty, 50000)
-        print(
-            f"  {side.upper()} {qty} units: {r['slippage_bps']:.2f}bps, "
-            f"${r['impact_cost']:.2f} cost, participation={r['participation_rate']:.1f}%"
-        )
+        print(f"  {side.upper()} {qty} units: {r['slippage_bps']:.2f}bps, ${r['impact_cost']:.2f} cost, participation={r['participation_rate']:.1f}%")

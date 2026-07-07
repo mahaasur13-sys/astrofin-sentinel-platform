@@ -141,9 +141,7 @@ def analyze_oap_drift(records: list[dict[str, Any]], session_id: str = "") -> OA
         late = np.mean(gen_means[-max(1, len(gen_means) // 3) :])
         if late > early and std_q > DRIFT_SCORE_MODERATE:
             is_overfitting = True
-            overfitting_evidence.append(
-                f"Reward rising ({early:.3f} → {late:.3f}) with high variance (std={std_q:.3f})"
-            )
+            overfitting_evidence.append(f"Reward rising ({early:.3f} → {late:.3f}) with high variance (std={std_q:.3f})")
         if len(gen_means) >= 3:
             recent_deltas = [gen_means[i] - gen_means[i - 1] for i in range(1, len(gen_means))]
             if all(d > 0 for d in recent_deltas[-2:]) and std_q > DRIFT_SCORE_MILD:

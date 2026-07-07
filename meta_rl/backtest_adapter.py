@@ -187,11 +187,7 @@ class BacktestEngineAdapter:
             win_rate = winning / max(1, total)
 
             equity_arr = np.array([eq for _, eq in equity_curve]) if equity_curve else None
-            returns = (
-                np.diff(equity_arr) / equity_arr[:-1]
-                if equity_arr is not None and len(equity_arr) > 1
-                else np.array([0.0])
-            )
+            returns = np.diff(equity_arr) / equity_arr[:-1] if equity_arr is not None and len(equity_arr) > 1 else np.array([0.0])
             mean_ret = float(np.mean(returns)) if len(returns) > 0 else 0.0
             std_ret = float(np.std(returns)) if len(returns) > 0 else 0.01
             sharpe = float((mean_ret / std_ret) * np.sqrt(252)) if std_ret > 1e-8 else 0.0

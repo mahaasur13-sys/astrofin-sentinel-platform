@@ -184,15 +184,9 @@ class MLBatch:
 
 FEATURE_SPECS: list[FeatureSpec] = [
     # GPU
-    FeatureSpec(
-        name="gpu_mean_1m", source="gpu_util", window_seconds=60, aggregation="mean", unit="%", typical_range=(0, 100)
-    ),
-    FeatureSpec(
-        name="gpu_mean_5m", source="gpu_util", window_seconds=300, aggregation="mean", unit="%", typical_range=(0, 100)
-    ),
-    FeatureSpec(
-        name="gpu_std_5m", source="gpu_util", window_seconds=300, aggregation="std", unit="%", typical_range=(0, 50)
-    ),
+    FeatureSpec(name="gpu_mean_1m", source="gpu_util", window_seconds=60, aggregation="mean", unit="%", typical_range=(0, 100)),
+    FeatureSpec(name="gpu_mean_5m", source="gpu_util", window_seconds=300, aggregation="mean", unit="%", typical_range=(0, 100)),
+    FeatureSpec(name="gpu_std_5m", source="gpu_util", window_seconds=300, aggregation="std", unit="%", typical_range=(0, 50)),
     FeatureSpec(
         name="gpu_slope_15m",
         source="gpu_util",
@@ -201,12 +195,8 @@ FEATURE_SPECS: list[FeatureSpec] = [
         unit="%/min",
         typical_range=(-5, 5),
     ),
-    FeatureSpec(
-        name="gpu_p95_5m", source="gpu_util", window_seconds=300, aggregation="p95", unit="%", typical_range=(0, 100)
-    ),
-    FeatureSpec(
-        name="gpu_max_15m", source="gpu_util", window_seconds=900, aggregation="max", unit="%", typical_range=(0, 100)
-    ),
+    FeatureSpec(name="gpu_p95_5m", source="gpu_util", window_seconds=300, aggregation="p95", unit="%", typical_range=(0, 100)),
+    FeatureSpec(name="gpu_max_15m", source="gpu_util", window_seconds=900, aggregation="max", unit="%", typical_range=(0, 100)),
     FeatureSpec(
         name="gpu_temp_mean_5m",
         source="gpu_temp",

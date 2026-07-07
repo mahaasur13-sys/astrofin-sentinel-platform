@@ -7,13 +7,17 @@ app = FastAPI()
 locks = {}
 _lock = threading.Lock()
 
+
 class LockReq(BaseModel):
     gpu_id: str
     job_id: str
     ttl_seconds: int = 3600
 
+
 @app.get("/health")
-def health(): return {"status": "alive", "locked_gpus": len(locks)}
+def health():
+    return {"status": "alive", "locked_gpus": len(locks)}
+
 
 @app.post("/lock/acquire")
 def acquire(req: LockReq):
@@ -24,6 +28,7 @@ def acquire(req: LockReq):
         locks[req.gpu_id] = {"gpu_id": req.gpu_id, "job_id": req.job_id, "expires_at": time.time() + req.ttl_seconds}
     return {"acquired": req.gpu_id, "ttl_seconds": req.ttl_seconds}
 
+
 @app.post("/lock/release")
 def release(gpu_id: str, job_id: str):
     with _lock:
@@ -31,6 +36,7 @@ def release(gpu_id: str, job_id: str):
             del locks[gpu_id]
             return {"released": gpu_id}
     raise HTTPException(status_code=403, detail="Not owner or not locked")
+
 
 @app.get("/lock/status/{gpu_id}")
 def status(gpu_id: str):
@@ -40,6 +46,8 @@ def status(gpu_id: str):
             return {"locked": True, "job_id": l["job_id"], "expires_in": max(0, l["expires_at"] - time.time())}
     return {"locked": False}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8001)

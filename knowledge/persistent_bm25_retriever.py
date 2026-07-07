@@ -20,6 +20,7 @@ Design notes
 * Domain filter is applied at fetch time to keep the index in sync with
   whatever the vector retriever would see.
 """
+
 from __future__ import annotations
 
 import logging
@@ -76,10 +77,7 @@ class PersistentBM25Retriever:
     async def _ensure_index(self) -> BM25Retriever:
         """Build index if absent or stale (TTL expired)."""
         now = time.monotonic()
-        stale = (
-            self._index is None
-            or (self.ttl_seconds > 0 and (now - self._indexed_at) > self.ttl_seconds)
-        )
+        stale = self._index is None or (self.ttl_seconds > 0 and (now - self._indexed_at) > self.ttl_seconds)
         if stale:
             await self.refresh()
         assert self._index is not None, "refresh() failed to populate index"
@@ -105,7 +103,9 @@ class PersistentBM25Retriever:
             self._chunk_count = len(chunks)
         logger.info(
             "PersistentBM25Retriever: indexed %d chunks (domain=%s) in %.3fs",
-            self._chunk_count, self.domain, self._indexed_at - t0,
+            self._chunk_count,
+            self.domain,
+            self._indexed_at - t0,
         )
         RAG_BM25_REFRESH_TIMESTAMP.set(time.time())
 

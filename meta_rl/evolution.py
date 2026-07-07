@@ -102,10 +102,7 @@ class EvolutionEngine:
         return list(self._history)
 
     def run(self, ensemble_seeds: int = 3) -> tuple[list[ScoredStrategy], list[EvolutionStats]]:
-        logger.info(
-            f"[META-RL-INTEGRATION] Starting: {self.max_generations} gens, "
-            f"population={self.agent.config.population_size}, walk_forward={self.walk_forward_enabled}"
-        )
+        logger.info(f"[META-RL-INTEGRATION] Starting: {self.max_generations} gens, population={self.agent.config.population_size}, walk_forward={self.walk_forward_enabled}")
         self._start_time = time.time()
         self._history = []
         self._prev_best = -float("inf")
@@ -180,10 +177,7 @@ class EvolutionEngine:
         # 4. Final selection
         final_elites = self.agent.select(population)
         self._final_elites = final_elites  # store for get_best_strategy()
-        logger.info(
-            f"[META-RL-INTEGRATION] Complete: {len(self._history)} gens, "
-            f"best_reward={self._history[-1].max_reward if self._history else 'N/A':.4f}"
-        )
+        logger.info(f"[META-RL-INTEGRATION] Complete: {len(self._history)} gens, best_reward={self._history[-1].max_reward if self._history else 'N/A':.4f}")
 
         # ATOM-META-RL-011: Auto-visualization
         if self.visualize:
@@ -273,10 +267,7 @@ class EvolutionEngine:
         if ALPHA_DECAY_DETECTION and len(self._history) >= ALPHA_DECAY_WINDOW_GENS:
             decay_signal = self._check_alpha_decay()
             if decay_signal:
-                logger.warning(
-                    f"[META-RL-ALPHA-DECAY] {decay_signal['reason']} "
-                    f"→ forcing reset (reward={decay_signal['reward']:.4f})"
-                )
+                logger.warning(f"[META-RL-ALPHA-DECAY] {decay_signal['reason']} → forcing reset (reward={decay_signal['reward']:.4f})")
                 self._force_reset()
                 return False  # don't stop, continue with reset population
 
@@ -364,20 +355,14 @@ class EvolutionEngine:
             self.agent._generations_no_improve = 0
             self.agent._best_reward = max(s.reward for s in self.agent.pool) if self.agent.pool else 0.0
 
-            logger.warning(
-                f"[META-RL-ALPHA-DECAY] Force-reset complete: "
-                f"injected {inject_count} random strategies, "
-                f"pool_size={len(self.agent.pool)}"
-            )
+            logger.warning(f"[META-RL-ALPHA-DECAY] Force-reset complete: injected {inject_count} random strategies, pool_size={len(self.agent.pool)}")
         except Exception as e:
             logger.warning(f"[META-RL-ALPHA-DECAY] Force-reset failed: {e}")
 
     def _log_stats(self, stats: EvolutionStats):
         flag = " [KARL-UPDATED]" if stats.karl_updated else ""
         logger.info(
-            f"[META-RL-INTEGRATION] Gen {stats.generation:3d}: "
-            f"mean={stats.mean_reward:+.4f} max={stats.max_reward:+.4f} "
-            f"std={stats.std_reward:.4f} improve={stats.improvement_over_prev:+.4f}{flag}"
+            f"[META-RL-INTEGRATION] Gen {stats.generation:3d}: mean={stats.mean_reward:+.4f} max={stats.max_reward:+.4f} std={stats.std_reward:.4f} improve={stats.improvement_over_prev:+.4f}{flag}"
         )
 
     def get_best_strategy(self) -> ScoredStrategy | None:
@@ -390,7 +375,7 @@ class EvolutionEngine:
 
         return max(
             candidates,
-            key=lambda s: s.reward_history[-1] if getattr(s, 'reward_history', None) else s.reward,
+            key=lambda s: s.reward_history[-1] if getattr(s, "reward_history", None) else s.reward,
         )
 
     def convergence_report(self) -> dict:
@@ -446,10 +431,7 @@ class EvolutionEngine:
             self.agent._best_reward = loaded.get("best_reward", -float("inf"))
             for k, v in loaded.get("karl_state", {}).items():
                 self.agent._karl_state[k] = v
-            logger.info(
-                f"[META-RL-PERSISTENCE] Loaded {self.session_id[:8]}: "
-                f"gen={loaded['current_generation']} best={loaded['best_reward']:.4f}"
-            )
+            logger.info(f"[META-RL-PERSISTENCE] Loaded {self.session_id[:8]}: gen={loaded['current_generation']} best={loaded['best_reward']:.4f}")
         except Exception as e:
             logger.warning(f"[META-RL-PERSISTENCE] _load_session failed: {e}")
 

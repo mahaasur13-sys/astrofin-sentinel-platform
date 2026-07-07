@@ -5,6 +5,8 @@ from pathlib import Path
 
 
 import pytest
+
+
 @pytest.mark.unit
 def test_agents_md_has_ai_rules_section():
     """AGENTS.md должен содержать секцию 'AI Agent Rules'."""

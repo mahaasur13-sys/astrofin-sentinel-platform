@@ -164,9 +164,7 @@ class MetaAgent:
                 scored.reward = reward
                 if not scored.reward_history or scored.reward_history[-1] != reward:
                     scored.reward_history.append(reward)
-                logger.debug(
-                    f"[META-RL] {scored.id[:8]}: reward={reward:.4f} risk_adj_pnl={eval_result.risk_adjusted_pnl:+.3f}"
-                )
+                logger.debug(f"[META-RL] {scored.id[:8]}: reward={reward:.4f} risk_adj_pnl={eval_result.risk_adjusted_pnl:+.3f}")
                 try:
                     sid = getattr(self, "_session_id", "meta_rl_default")
                     record_meta_rl_decision(scored, market_data, session_id=sid)
@@ -259,11 +257,7 @@ class MetaAgent:
             self._generations_no_improve = 0
         else:
             self._generations_no_improve += 1
-        logger.info(
-            f"[META-RL] Gen {self._generation}: pop={len(new_pop)} "
-            f"best={current_best:.4f} no_improve={self._generations_no_improve} "
-            f"crossover={label}({adaptive_rate:.3f})"
-        )
+        logger.info(f"[META-RL] Gen {self._generation}: pop={len(new_pop)} best={current_best:.4f} no_improve={self._generations_no_improve} crossover={label}({adaptive_rate:.3f})")
         return new_pop[: self.config.population_size]
 
     def _compute_adaptive_crossover_rate(self) -> float:

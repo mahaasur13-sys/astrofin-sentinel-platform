@@ -21,9 +21,9 @@ class TenantStatus(str, Enum):
 
 
 class TenantTier(str, Enum):
-    STARTER = "starter"       # ≤ $100 MRR
-    GROWTH = "growth"        # ≤ $1,000 MRR
-    SCALE = "scale"          # ≤ $10,000 MRR
+    STARTER = "starter"  # ≤ $100 MRR
+    GROWTH = "growth"  # ≤ $1,000 MRR
+    SCALE = "scale"  # ≤ $10,000 MRR
     ENTERPRISE = "enterprise"  # > $10,000 MRR
 
 

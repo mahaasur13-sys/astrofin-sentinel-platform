@@ -46,15 +46,7 @@ class Event:
 
     def _compute_hash(self) -> str:
         et_val = self.event_type.value if hasattr(self.event_type, "value") else str(self.event_type)
-        data = (
-            f"{self.event_id}"
-            f"{self.trace_id}"
-            f"{et_val}"
-            f"{self.timestamp}"
-            f"{json.dumps(dict(self.payload), sort_keys=True)}"
-            f"{self.actor}"
-            f"{self.prev_hash}"
-        )
+        data = f"{self.event_id}{self.trace_id}{et_val}{self.timestamp}{json.dumps(dict(self.payload), sort_keys=True)}{self.actor}{self.prev_hash}"
         return hashlib.sha256(data.encode()).hexdigest()
 
     def to_dict(self) -> dict[str, Any]:

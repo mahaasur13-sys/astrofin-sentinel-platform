@@ -12,18 +12,20 @@ import threading
 @dataclass
 class BackpressureConfig:
     """Configuration for backpressure thresholds."""
-    gpu_saturation_max: float = 0.90        # Reject new jobs at 90% GPU VRAM
-    gpu_saturation_warn: float = 0.75       # Warning at 75%
-    queue_depth_max: int = 100              # Max jobs in queue
-    queue_depth_warn: int = 50              # Warning threshold
-    vram_reserve_mb: int = 512              # Reserved VRAM for system (512MB)
-    eviction_threshold: float = 0.95         # Start evicting at 95%
-    cooldown_seconds: int = 30              # Cooldown after backpressure trigger
+
+    gpu_saturation_max: float = 0.90  # Reject new jobs at 90% GPU VRAM
+    gpu_saturation_warn: float = 0.75  # Warning at 75%
+    queue_depth_max: int = 100  # Max jobs in queue
+    queue_depth_warn: int = 50  # Warning threshold
+    vram_reserve_mb: int = 512  # Reserved VRAM for system (512MB)
+    eviction_threshold: float = 0.95  # Start evicting at 95%
+    cooldown_seconds: int = 30  # Cooldown after backpressure trigger
 
 
 @dataclass
 class BackpressureStatus:
     """Current backpressure state."""
+
     gpu_saturation: float = 0.0
     gpu_vram_used_mb: int = 0
     gpu_vram_available_mb: int = 10240
@@ -38,7 +40,7 @@ class BackpressureStatus:
 class BackpressureSystem:
     """
     GPU saturation + queue admission control.
-    
+
     Rules:
     1. GPU VRAM > config.gpu_saturation_max → stop admitting new GPU jobs
     2. Queue depth > config.queue_depth_max → stop admitting

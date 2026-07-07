@@ -7,6 +7,8 @@ from tools.metrics_server import OLLAMA_STATUS
 
 
 import pytest
+
+
 @pytest.mark.unit
 def test_ollama_available_sets_status_to_one():
     """При успешном ответе Ollama счётчик astrofin_ollama_available должен стать 1."""

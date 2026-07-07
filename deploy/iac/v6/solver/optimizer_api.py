@@ -130,10 +130,7 @@ def optimize(req: OptimizationRequest) -> OptimizationResult:
     ]
     # Parallel batch simulation
     with ProcessPoolExecutor(max_workers=4) as pool:
-        futures = [
-            pool.submit(_sim_wrapper, twin, req.cluster_state, a, req.ml_predictions, req.timeout_ms)
-            for a in twin_actions
-        ]
+        futures = [pool.submit(_sim_wrapper, twin, req.cluster_state, a, req.ml_predictions, req.timeout_ms) for a in twin_actions]
         twin_results = [f.result() for f in futures]
 
     # Step 5: Policy selection (regret-aware)
@@ -146,11 +143,7 @@ def optimize(req: OptimizationRequest) -> OptimizationResult:
         placements=final_placements or result.placements,
         migrations=result.migrations,
         rejections=result.rejections,
-        total_utility=(
-            twin_results[best_idx].get("expected_utility", result.total_utility)
-            if twin_results
-            else result.total_utility
-        ),
+        total_utility=(twin_results[best_idx].get("expected_utility", result.total_utility) if twin_results else result.total_utility),
         solver_ms=elapsed_ms,
         mode_used=req.mode,
         candidates_evaluated=len(candidates),
@@ -166,10 +159,7 @@ def simulate(req: SimulationRequest) -> SimulationResult:
     time.time()
 
     with ProcessPoolExecutor(max_workers=min(8, len(req.candidate_actions))) as pool:
-        futures = [
-            pool.submit(_sim_wrapper, twin, req.cluster_state, a, req.ml_predictions, req.horizon_minutes)
-            for a in req.candidate_actions
-        ]
+        futures = [pool.submit(_sim_wrapper, twin, req.cluster_state, a, req.ml_predictions, req.horizon_minutes) for a in req.candidate_actions]
         results = [f.result() for f in futures]
 
     best = max(results, key=lambda r: r.get("expected_utility", -999))

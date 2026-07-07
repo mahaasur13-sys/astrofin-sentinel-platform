@@ -91,11 +91,7 @@ class DAGValidator:
                 try:
                     EventType(event_type)
                 except ValueError:
-                    violations.append(
-                        ContractViolation(
-                            f"Invalid EventType: {event_type}", f"/nodes/{node.get('id')}/event_type", "error"
-                        )
-                    )
+                    violations.append(ContractViolation(f"Invalid EventType: {event_type}", f"/nodes/{node.get('id')}/event_type", "error"))
 
         return violations
 

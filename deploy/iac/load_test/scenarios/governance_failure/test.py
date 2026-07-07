@@ -45,9 +45,7 @@ class GovernanceFailureScenario:
             "result_after_fix": None,
         }
         if failure:
-            result["correction_applied"] = (
-                "correction_applied: safety_threshold 0.2->0.7, hard_constraints enforced, severity gating added"
-            )
+            result["correction_applied"] = "correction_applied: safety_threshold 0.2->0.7, hard_constraints enforced, severity gating added"
             result["result_after_fix"] = {"dangerous_executed_expected": 0}
         return result
 

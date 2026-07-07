@@ -64,20 +64,14 @@ class ExecutionSandbox:
             return SandboxResult(
                 False,
                 node_id,
-                violations=[
-                    SandboxViolation(ViolationType.MEMORY_EXCEED, node_id, f"Memory {mem} > {self.max_memory}")
-                ],
+                violations=[SandboxViolation(ViolationType.MEMORY_EXCEED, node_id, f"Memory {mem} > {self.max_memory}")],
             )
         # Check fs write scope
         if "write_path" in node and not self.validate_fs_write(node["write_path"]):
             return SandboxResult(
                 False,
                 node_id,
-                violations=[
-                    SandboxViolation(
-                        ViolationType.FS_WRITE, node_id, f"Write to '{node['write_path']}' outside allowed scope"
-                    )
-                ],
+                violations=[SandboxViolation(ViolationType.FS_WRITE, node_id, f"Write to '{node['write_path']}' outside allowed scope")],
             )
         # Check network
         if node.get("network_required") and not self.allow_network:
@@ -88,9 +82,7 @@ class ExecutionSandbox:
             )
         # Check env mutation
         if node.get("env_mutate") and not self.allow_env_write:
-            return SandboxResult(
-                False, node_id, violations=[SandboxViolation(ViolationType.ENV_MUTATE, node_id, "Env mutation blocked")]
-            )
+            return SandboxResult(False, node_id, violations=[SandboxViolation(ViolationType.ENV_MUTATE, node_id, "Env mutation blocked")])
         return SandboxResult(True, node_id, output=node.get("output"))
 
     def execute_batch(self, nodes: list[dict[str, Any]]) -> list[SandboxResult]:

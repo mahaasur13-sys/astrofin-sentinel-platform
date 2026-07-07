@@ -200,9 +200,7 @@ COMPOSITE_FEATURES: list[Feature] = [
     Feature(
         name="overload_score",
         fn=lambda c: (
-            c.get("gpu_util", {}).get("5m", {}).get("mean", 0.0) * 0.5
-            + c.get("cpu_util", {}).get("5m", {}).get("mean", 0.0) * 0.3
-            + c.get("mem_util", {}).get("5m", {}).get("mean", 0.0) * 0.2
+            c.get("gpu_util", {}).get("5m", {}).get("mean", 0.0) * 0.5 + c.get("cpu_util", {}).get("5m", {}).get("mean", 0.0) * 0.3 + c.get("mem_util", {}).get("5m", {}).get("mean", 0.0) * 0.2
         ),
         unit="percent",
         description="Composite system overload indicator",
@@ -215,15 +213,6 @@ COMPOSITE_FEATURES: list[Feature] = [
     ),
 ]
 
-ALL_FEATURES = (
-    GPU_FEATURES
-    + CPU_FEATURES
-    + MEM_FEATURES
-    + QUEUE_FEATURES
-    + STORAGE_FEATURES
-    + NETWORK_FEATURES
-    + FAILURE_FEATURES
-    + COMPOSITE_FEATURES
-)
+ALL_FEATURES = GPU_FEATURES + CPU_FEATURES + MEM_FEATURES + QUEUE_FEATURES + STORAGE_FEATURES + NETWORK_FEATURES + FAILURE_FEATURES + COMPOSITE_FEATURES
 
 FEATURE_NAMES = [f.name for f in ALL_FEATURES]

@@ -9,12 +9,16 @@ failed_queue = {}
 RETRY_DELAYS = [10, 30, 60, 120, 300]
 recovered = deque(maxlen=100)
 
+
 class RetryReq(BaseModel):
     job_id: str
     error: str
 
+
 @app.get("/health")
-def health(): return {"status": "alive", "pending": len(failed_queue)}
+def health():
+    return {"status": "alive", "pending": len(failed_queue)}
+
 
 @app.post("/retry/add")
 def add_retry(req: RetryReq):
@@ -27,10 +31,12 @@ def add_retry(req: RetryReq):
             f["next_retry"] = time.time() + RETRY_DELAYS[f["attempt"] - 1]
     return {"queued": req.job_id, "attempt": failed_queue[req.job_id]["attempt"]}
 
+
 @app.get("/retry/pending")
 def get_pending():
     now = time.time()
     return {"pending": len(failed_queue), "jobs": [f for f in failed_queue.values() if f["next_retry"] <= now]}
+
 
 @app.post("/retry/remove/{job_id}")
 def remove(job_id: str):
@@ -39,6 +45,7 @@ def remove(job_id: str):
         return {"removed": job_id}
     return {"removed": None}
 
+
 def cleanup_loop():
     while True:
         time.sleep(30)
@@ -46,11 +53,14 @@ def cleanup_loop():
         for jid in [k for k, v in failed_queue.items() if v["expires_at"] < now]:
             failed_queue.pop(jid, None)
 
+
 @app.on_event("startup")
 def start():
     t = threading.Thread(target=cleanup_loop, daemon=True)
     t.start()
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8002)

@@ -29,9 +29,7 @@ async def test_use_real_agents_does_not_generate_synthetic_signals():
 
         result = await engine.run(start_date="2025-01-01", end_date="2025-01-10", use_real_agents=True)
 
-        assert all("momentum=" not in t.signal_reasoning for t in result.trades), (
-            "Real agents should not produce synthetic momentum signals"
-        )
+        assert all("momentum=" not in t.signal_reasoning for t in result.trades), "Real agents should not produce synthetic momentum signals"
         assert mock_run.called, "Real agent was not called"
 
 

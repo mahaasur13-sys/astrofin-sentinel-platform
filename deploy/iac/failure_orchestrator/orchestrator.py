@@ -144,9 +144,7 @@ def run_cycle():
                 attempt = engine.attempt_counts[name]
                 backoff = engine.BACKOFF_BASE**attempt
 
-                log.warning(
-                    f"Failure detected [{name}]: {reason} → attempt {attempt}/{engine.MAX_RETRIES} (backoff={backoff}s)"
-                )
+                log.warning(f"Failure detected [{name}]: {reason} → attempt {attempt}/{engine.MAX_RETRIES} (backoff={backoff}s)")
 
                 time.sleep(backoff)
                 ok, msg = recovery_fn()

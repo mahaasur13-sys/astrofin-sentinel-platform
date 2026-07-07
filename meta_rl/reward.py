@@ -115,9 +115,7 @@ class RewardConfig:
         total = self.sharpe_weight + self.pnl_weight + self.execution_cost_weight
         if abs(total - 1.0) > 0.01:
             warnings.warn(
-                f"RewardConfig weights sum to {total:.4f}, expected 1.0 "
-                f"(±0.01). Renormalising sharpe/pnl/execution_cost weights "
-                f"to maintain relative proportions.",
+                f"RewardConfig weights sum to {total:.4f}, expected 1.0 (±0.01). Renormalising sharpe/pnl/execution_cost weights to maintain relative proportions.",
                 stacklevel=2,
             )
             norm = total
@@ -174,11 +172,7 @@ class RewardCalculator:
                 return short_circuit
 
             cfg = self.config
-            adj_dd = (
-                result.adjusted_drawdown
-                if result.adjusted_drawdown is not None
-                else result.max_drawdown
-            )
+            adj_dd = result.adjusted_drawdown if result.adjusted_drawdown is not None else result.max_drawdown
 
             reward = (
                 cfg.base_reward
@@ -203,11 +197,7 @@ class RewardCalculator:
         All pnl/dd values are risk-adjusted (ATOM-META-RL-004).
         """
         cfg = self.config
-        adj_dd = (
-            result.adjusted_drawdown
-            if result.adjusted_drawdown is not None
-            else result.max_drawdown
-        )
+        adj_dd = result.adjusted_drawdown if result.adjusted_drawdown is not None else result.max_drawdown
         return {
             "sharpe_comp": cfg.sharpe_weight * self._sharpe_component(result.sharpe),
             "pnl_comp": cfg.pnl_weight * self._pnl_component(result.risk_adjusted_pnl),
@@ -305,7 +295,7 @@ class RewardCalculator:
         if math.isnan(adjusted_dd) or math.isinf(adjusted_dd):
             return cfg.drawdown_penalty_fallback
         dd = float(np.clip(adjusted_dd, 0.0, 1.0))
-        return cfg.drawdown_penalty_scale * (dd ** 2)
+        return cfg.drawdown_penalty_scale * (dd**2)
 
     def _execution_cost_penalty(self, cost: float) -> float:
         """

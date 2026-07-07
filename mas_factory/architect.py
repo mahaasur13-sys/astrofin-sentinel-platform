@@ -194,13 +194,7 @@ class MASFactoryArchitect:
                 required_capabilities.update(["fundamental_analysis", "macro_analysis", "sentiment"])
 
         # Determine complexity
-        complexity = (
-            "simple"
-            if len(required_capabilities) <= 3
-            else "moderate"
-            if len(required_capabilities) <= 5
-            else "complex"
-        )
+        complexity = "simple" if len(required_capabilities) <= 3 else "moderate" if len(required_capabilities) <= 5 else "complex"
 
         # Constraints
         constraints = {

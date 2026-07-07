@@ -30,6 +30,7 @@ class SecurityConfig(BaseModel):
 
 class ROMAInput(BaseModel):
     """Full ROMA JSON structure expected from Planner."""
+
     task_id: str
     analysis: dict
     dag: list[TaskStep]

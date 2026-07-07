@@ -136,11 +136,7 @@ class SolverLatencyScenario:
 
     def _apply_correction(self) -> str:
         self.beam_width = max(5, self.beam_width // 2)
-        return (
-            f"correction_applied: beam_width {self.beam_width} "
-            f"(reduced), ilp_timeout_ms={self.ilp_timeout_ms}, "
-            f"total_budget_ms={self.total_budget_ms}"
-        )
+        return f"correction_applied: beam_width {self.beam_width} (reduced), ilp_timeout_ms={self.ilp_timeout_ms}, total_budget_ms={self.total_budget_ms}"
 
     def _simulate_after_fix(self) -> dict:
         self.beam_width = max(5, self.beam_width // 2)

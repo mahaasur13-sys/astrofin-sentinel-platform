@@ -3,6 +3,7 @@
 All repositories work with PostgreSQL when available,
 fall back gracefully to SQLite when not.
 """
+
 from __future__ import annotations
 
 
@@ -104,13 +105,7 @@ if _BACKEND == "postgresql":
         @staticmethod
         def get_by_symbol(symbol: str, limit: int = 100) -> list[dict]:
             with pg_session() as s:
-                rows = (
-                    s.query(KARLDecisionRecord)
-                    .filter(KARLDecisionRecord.symbol == symbol)
-                    .order_by(KARLDecisionRecord.created_at.desc())
-                    .limit(limit)
-                    .all()
-                )
+                rows = s.query(KARLDecisionRecord).filter(KARLDecisionRecord.symbol == symbol).order_by(KARLDecisionRecord.created_at.desc()).limit(limit).all()
                 return [_row_to_karl(r) for r in rows]
 
         @staticmethod
@@ -183,12 +178,7 @@ if _BACKEND == "postgresql":
         @staticmethod
         def get_by_session(session_id: str) -> list[dict]:
             with pg_session() as s:
-                rows = (
-                    s.query(AgentSignal)
-                    .filter(AgentSignal.session_id == session_id)
-                    .order_by(AgentSignal.created_at)
-                    .all()
-                )
+                rows = s.query(AgentSignal).filter(AgentSignal.session_id == session_id).order_by(AgentSignal.created_at).all()
                 return [_row_to_signal(r) for r in rows]
 
     class AstroPositionRepository:

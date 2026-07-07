@@ -166,11 +166,7 @@ class BasketEvaluator:
                 evaluation=eval_result,
             )
             symbol_metrics[symbol] = sm
-            logger.debug(
-                f"[META-RL-BASKET] {symbol}: "
-                f"pnl={eval_result.pnl:+.4f} sharpe={eval_result.sharpe:.3f} "
-                f"trades={eval_result.trades} dd={eval_result.max_drawdown:.4f}"
-            )
+            logger.debug(f"[META-RL-BASKET] {symbol}: pnl={eval_result.pnl:+.4f} sharpe={eval_result.sharpe:.3f} trades={eval_result.trades} dd={eval_result.max_drawdown:.4f}")
 
         if not symbol_metrics:
             logger.warning("[META-RL-BASKET] No valid metrics across basket, returning fail-safe")

@@ -136,34 +136,13 @@ class RCAEngine:
 
     def _root_cause(self, scenario: str, metrics: dict, cause_type: CauseType) -> str:
         causes = {
-            "policy_oscillation": (
-                "PolicyGovernor EMA dampening coefficient too low (0.2) — "
-                "ML retraining triggers rapid policy weight oscillation without damping"
-            ),
-            "solver_latency": (
-                "ILP solver P99 > 5000ms violates EBC budget — "
-                "BeamSearch candidates=20 too large, Twin timeout too loose (3000ms)"
-            ),
-            "state_drift": (
-                "Feature pipeline builds from Prometheus, ML trains from TimescaleDB — "
-                "drift between sources causes model/system decoupling"
-            ),
-            "false_positive": (
-                "cooldown=30s, debounce=5s too aggressive for transient Ceph failures — "
-                "network jitter (5-10s) triggers unnecessary OSD restart"
-            ),
-            "ml_risk_ignored": (
-                "final_score computed but not enforced in scheduler hot path — "
-                "risk_penalty not subtracted from base_score before node selection"
-            ),
-            "idempotency": (
-                "Recovery actions lack execution registry — "
-                "replay of event stream causes duplicate slurmctld/OSD restarts"
-            ),
-            "governance_failure": (
-                "SafetyKernel threshold too low (0.2) for severity>0.8 decisions — "
-                "conflicting constraints allow dangerous action"
-            ),
+            "policy_oscillation": ("PolicyGovernor EMA dampening coefficient too low (0.2) — ML retraining triggers rapid policy weight oscillation without damping"),
+            "solver_latency": ("ILP solver P99 > 5000ms violates EBC budget — BeamSearch candidates=20 too large, Twin timeout too loose (3000ms)"),
+            "state_drift": ("Feature pipeline builds from Prometheus, ML trains from TimescaleDB — drift between sources causes model/system decoupling"),
+            "false_positive": ("cooldown=30s, debounce=5s too aggressive for transient Ceph failures — network jitter (5-10s) triggers unnecessary OSD restart"),
+            "ml_risk_ignored": ("final_score computed but not enforced in scheduler hot path — risk_penalty not subtracted from base_score before node selection"),
+            "idempotency": ("Recovery actions lack execution registry — replay of event stream causes duplicate slurmctld/OSD restarts"),
+            "governance_failure": ("SafetyKernel threshold too low (0.2) for severity>0.8 decisions — conflicting constraints allow dangerous action"),
         }
         return causes.get(scenario, f"Unknown cause: {cause_type.value}")
 

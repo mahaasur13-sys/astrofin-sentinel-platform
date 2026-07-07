@@ -66,9 +66,7 @@ class DeterministicReplayer:
                     hook(node_data["data"])
                     steps_executed += 1
                 except Exception as e:
-                    divergence_points.append(
-                        {"node_id": node_data["node_id"], "layer": layer, "error": str(e), "position": steps_executed}
-                    )
+                    divergence_points.append({"node_id": node_data["node_id"], "layer": layer, "error": str(e), "position": steps_executed})
 
         duration_ms = (time.time() - start) * 1000
         current_hash = self._hash_trace_state(trace)
@@ -110,7 +108,5 @@ class CorrelationEngine:
         for node_id, current in current_nodes.items():
             baseline = baseline_nodes.get(node_id)
             if baseline and current["data"] != baseline["data"]:
-                divergences.append(
-                    {"node_id": node_id, "layer": layer, "baseline": baseline["data"], "current": current["data"]}
-                )
+                divergences.append({"node_id": node_id, "layer": layer, "baseline": baseline["data"], "current": current["data"]})
         return divergences

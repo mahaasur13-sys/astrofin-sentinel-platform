@@ -72,11 +72,7 @@ def validate_trace_recorder_contract(obj: Any) -> None:
     required_methods = ["record_trace", "get_trace", "list_traces", "update_trace"]
     for method in required_methods:
         if not hasattr(obj, method):
-            raise RuntimeError(
-                f"TraceRecorder contract violation: missing method '{method}()'. "
-                f"Object: {type(obj).__name__}. "
-                f"Implement all required methods: {required_methods}"
-            )
+            raise RuntimeError(f"TraceRecorder contract violation: missing method '{method}()'. Object: {type(obj).__name__}. Implement all required methods: {required_methods}")
         if not callable(getattr(obj, method)):
             raise RuntimeError(f"TraceRecorder contract violation: '{method}' is not callable.")
     # Verify return type hints exist (documentation contract)

@@ -34,9 +34,7 @@ class Retrainer:
             for key in ["test_auc", "test_f1"]:
                 if key in current_metrics and key in self._last_metrics:
                     if abs(current_metrics[key] - self._last_metrics[key]) > self.drift_threshold:
-                        logger.info(
-                            f"Drift detected on {key}: {self._last_metrics[key]:.4f} → {current_metrics[key]:.4f}"
-                        )
+                        logger.info(f"Drift detected on {key}: {self._last_metrics[key]:.4f} → {current_metrics[key]:.4f}")
                         return True
 
         return False

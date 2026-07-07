@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ROMA SaaS MVP Architecture — Complete Product Specification."""
+
 print("=== ROMA SaaS MVP Architecture ===")
 print()
 print("PRODUCT LAYER (SaaS-specific, not in core system)")
@@ -24,7 +25,7 @@ print()
 print("LAUNCH SEQUENCE (8-week MVP)")
 print("─" * 50)
 print("Week 1-2:  Web landing page + waitlist (notion → mailchimp)")
-print("Week 3-4:  SaaS control plane (org + API keys + Stripe)")  
+print("Week 3-4:  SaaS control plane (org + API keys + Stripe)")
 print("Week 5-6:  Connect existing execution engine to SaaS auth")
 print("Week 7-8:  First 10 beta users on GPU cluster")
 print("Week 8+:   Dashboard + plugin marketplace")

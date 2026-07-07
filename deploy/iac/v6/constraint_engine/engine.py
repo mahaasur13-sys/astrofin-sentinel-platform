@@ -92,11 +92,7 @@ class ConstraintEngine:
         # --- HARD CONSTRAINTS ---
         # 1. Node state
         if self._node_state.get(nid, "up") != "up":
-            violations.append(
-                ConstraintViolation(
-                    ViolationType.NODE_DRAINED, nid, placement.job_id, f"Node {nid} is {self._node_state[nid]}, not up"
-                )
-            )
+            violations.append(ConstraintViolation(ViolationType.NODE_DRAINED, nid, placement.job_id, f"Node {nid} is {self._node_state[nid]}, not up"))
         # 2. Partition match
         if placement.partition not in self._node_partitions.get(nid, []):
             violations.append(
@@ -131,11 +127,7 @@ class ConstraintEngine:
             )
         # 5. Network partition (check if node isolated)
         if self._is_node_partitioned(nid):
-            violations.append(
-                ConstraintViolation(
-                    ViolationType.NETWORK_PARTITION, nid, placement.job_id, f"Node {nid} is network-partitioned"
-                )
-            )
+            violations.append(ConstraintViolation(ViolationType.NETWORK_PARTITION, nid, placement.job_id, f"Node {nid} is network-partitioned"))
         return violations
 
     def validate_batch(self, placements: list[PlacementContext]) -> dict[str, list[ConstraintViolation]]:

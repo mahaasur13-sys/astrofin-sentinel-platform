@@ -114,18 +114,14 @@ def test_awg_events_written_to_eventlog():
 
     events = log.get_trace("eventlog-test")
     ok = len(events) == 1 and events[0].event_type.value == "TUNNEL_UP"
-    print(
-        f"  [OK{'=' if ok else '!'}] INV-AWG6 — Events in EventLog: count={len(events)}, type={events[0].event_type.value}"
-    )
+    print(f"  [OK{'=' if ok else '!'}] INV-AWG6 — Events in EventLog: count={len(events)}, type={events[0].event_type.value}")
     return ok
 
 
 def test_awg_tunnel_state_enum():
     """INV-AWG7: TunnelState enum has valid values."""
     valid = {TunnelState.DOWN, TunnelState.UP, TunnelState.RECONNECTING, TunnelState.FAILED}
-    ok = all(
-        s in valid for s in [TunnelState("DOWN"), TunnelState("UP"), TunnelState("RECONNECTING"), TunnelState("FAILED")]
-    )
+    ok = all(s in valid for s in [TunnelState("DOWN"), TunnelState("UP"), TunnelState("RECONNECTING"), TunnelState("FAILED")])
     print(f"  [OK{'=' if ok else '!'}] INV-AWG7 — TunnelState enum: {list(valid)}")
     return ok
 
@@ -136,9 +132,7 @@ def test_awg_trace_id_required():
     mgr1 = AmneziaWGManager(log, trace_id="explicit-trace")
     mgr2 = AmneziaWGManager(log, trace_id=None)  # Uses default
     ok = mgr1._trace_id == "explicit-trace" and mgr2._trace_id is not None
-    print(
-        f"  [OK{'=' if ok else '!'}] INV-AWG8 — trace_id required: explicit={mgr1._trace_id}, default={mgr2._trace_id}"
-    )
+    print(f"  [OK{'=' if ok else '!'}] INV-AWG8 — trace_id required: explicit={mgr1._trace_id}, default={mgr2._trace_id}")
     return ok
 
 

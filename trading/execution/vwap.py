@@ -304,9 +304,7 @@ class VWAPExecutor:
         report.remaining_qty = qty - filled_qty_total
 
         filled = [s for s in report.slices if s.filled]
-        report.avg_price = (
-            sum(s.exec_price * s.actual_qty for s in filled) / filled_qty_total if filled_qty_total > 0 else 0
-        )
+        report.avg_price = sum(s.exec_price * s.actual_qty for s in filled) / filled_qty_total if filled_qty_total > 0 else 0
         report.vwap = report.avg_price
 
         # VWAP benchmark: sum(price * volume) / sum(volume) for filled slices
@@ -342,12 +340,6 @@ if __name__ == "__main__":
     print(f"  {report.summary()}")
     for s in report.slices:
         status = "FILLED" if s.filled else "ABORTED"
-        print(
-            f"    Slice {s.slice_num}: {status} | "
-            f"qty={s.actual_qty:.4f} | "
-            f"@${s.exec_price:.2f} | "
-            f"mkt_vol={s.market_volume:.2f} | "
-            f"participation={s.participation_rate:.1f}%"
-        )
+        print(f"    Slice {s.slice_num}: {status} | qty={s.actual_qty:.4f} | @${s.exec_price:.2f} | mkt_vol={s.market_volume:.2f} | participation={s.participation_rate:.1f}%")
     print(f"  VWAP benchmark: ${report.vwap:.2f}")
     print(f"  Participation violations: {report.participation_violations}")

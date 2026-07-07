@@ -98,9 +98,7 @@ def patch_engine_pre_execute(engine_self, dag: dict, context: dict, trace_id: st
     # Check tunnel before executing
     violations = validate_network_requirements(dag, tunnel_manager)
     if violations:
-        engine_self._log.emit(
-            trace_id, "DAG_REJECTED", {"reason": "tunnel_down", "violations": [v.message for v in violations]}
-        )
+        engine_self._log.emit(trace_id, "DAG_REJECTED", {"reason": "tunnel_down", "violations": [v.message for v in violations]})
         return False
 
     # Ensure tunnel is up

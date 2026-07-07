@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Healthcheck для AstroFinSentinelV5 — проверка окружения и сервисов."""
+
 from __future__ import annotations
 
 import json
@@ -87,11 +88,7 @@ def run_all_checks() -> dict:
 def main():
     results = run_all_checks()
     # exit code 1 если есть хотя бы одна проблема (но не критическая)
-    has_issues = (
-        not results["checks"]["venv"]["active"]
-        or not results["checks"]["postgresql"]["available"]
-        or not results["checks"]["ollama"]["available"]
-    )
+    has_issues = not results["checks"]["venv"]["active"] or not results["checks"]["postgresql"]["available"] or not results["checks"]["ollama"]["available"]
     json.dump(results, sys.stdout, indent=2)
     sys.exit(1 if has_issues else 0)
 

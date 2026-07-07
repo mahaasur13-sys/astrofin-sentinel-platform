@@ -82,9 +82,7 @@ class TopologyVisualizer:
         for sw in self.topo.switch_nodes:
             sw_color = self.NODE_COLORS.get("switch", "#FF9800")
             cond = (sw.condition or "always")[:30]
-            lines.append(
-                f'    {sw.id} [label="{sw.id}\\n{cond}", shape=diamond, fillcolor="{sw_color}40", color="{sw_color}"];'
-            )
+            lines.append(f'    {sw.id} [label="{sw.id}\\n{cond}", shape=diamond, fillcolor="{sw_color}40", color="{sw_color}"];')
 
         lines.append("")
         lines.append("    /* Connections */")

@@ -1,4 +1,5 @@
 """backtest/atom_014_stress_test.py — ATOM-014: KARL Stress Test"""
+
 from __future__ import annotations
 
 import asyncio
@@ -195,9 +196,7 @@ async def run_karl_mode(bars, interval=24):
                 "reward": round(reward, 4),
                 "passed": synth.get("metadata", {}).get("amre_passed", True) if synth.get("metadata") else True,
                 "karl_confidence": synth.get("confidence", 50),
-                "uncertainty": synth.get("metadata", {}).get("uncertainty", {}).get("total", 0.5)
-                if synth.get("metadata")
-                else 0.5,
+                "uncertainty": synth.get("metadata", {}).get("uncertainty", {}).get("total", 0.5) if synth.get("metadata") else 0.5,
             }
         )
     return {
@@ -264,19 +263,13 @@ async def main():
     print("[2/4] Running BASE mode (SynthesisAgent only)...")
     base_results = await run_base_mode(bars)
     base_metrics = compute_metrics(base_results["decisions"])
-    print(
-        f"      {base_metrics['total_decisions']} decisions | Win Rate: {base_metrics['win_rate']:.2%} | Sharpe: {base_metrics['sharpe_ratio']:.4f}"
-    )
+    print(f"      {base_metrics['total_decisions']} decisions | Win Rate: {base_metrics['win_rate']:.2%} | Sharpe: {base_metrics['sharpe_ratio']:.4f}")
     print()
     print("[3/4] Running KARL mode (SynthesisAgent + AMRE)...")
     karl_results = await run_karl_mode(bars)
     karl_metrics = compute_metrics(karl_results["decisions"])
-    print(
-        f"      {karl_metrics['total_decisions']} decisions | Win Rate: {karl_metrics['win_rate']:.2%} | Sharpe: {karl_metrics['sharpe_ratio']:.4f}"
-    )
-    print(
-        f"      Audit: {karl_results['audit_total']} | Cal: {karl_results['calibration_n']} | DD: {karl_results['dd_trades']}"
-    )
+    print(f"      {karl_metrics['total_decisions']} decisions | Win Rate: {karl_metrics['win_rate']:.2%} | Sharpe: {karl_metrics['sharpe_ratio']:.4f}")
+    print(f"      Audit: {karl_results['audit_total']} | Cal: {karl_results['calibration_n']} | DD: {karl_results['dd_trades']}")
     print()
     print("[4/4] Analyzing audit drift...")
     from agents._impl.amre import get_audit_log
@@ -352,9 +345,7 @@ async def main():
     if karl_metrics.get("sharpe_ratio", 0) > base_metrics.get("sharpe_ratio", 0):
         improvements.append(f"Sharpe Ratio: +{karl_metrics['sharpe_ratio'] - base_metrics['sharpe_ratio']:.4f}")
     if karl_metrics.get("calibration_error", 999) < base_metrics.get("calibration_error", 999):
-        improvements.append(
-            f"Calibration Error reduced by {base_metrics.get('calibration_error', 0) - karl_metrics.get('calibration_error', 0):.4f}"
-        )
+        improvements.append(f"Calibration Error reduced by {base_metrics.get('calibration_error', 0) - karl_metrics.get('calibration_error', 0):.4f}")
     print("Conclusions:")
     if improvements:
         print("  ✅ IMPROVEMENTS:", "; ".join(improvements))

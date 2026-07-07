@@ -38,9 +38,7 @@ class StateProjection:
 
         # 1. node_graph_resolution — from DAG node order
         dag_nodes = state.get("dag", {}).get("nodes", [])
-        node_graph_resolution = [
-            n.get("id", n.get("name", str(n))) if isinstance(n, dict) else str(n) for n in dag_nodes
-        ]
+        node_graph_resolution = [n.get("id", n.get("name", str(n))) if isinstance(n, dict) else str(n) for n in dag_nodes]
 
         # 2. execution_order — from NODE_SCHEDULED/NODE_EXECUTED events
         events = self._log.get_trace(trace_id)

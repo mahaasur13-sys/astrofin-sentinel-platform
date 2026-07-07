@@ -112,9 +112,7 @@ class MetricsCollector:
             # Latency quantiles
             r = client.get(
                 f"{self.prometheus_url}/api/v1/query",
-                params={
-                    "query": "histogram_quantile(0.50, sum(rate(acos_scheduler_latency_seconds_bucket[5m])) by (le))"
-                },
+                params={"query": "histogram_quantile(0.50, sum(rate(acos_scheduler_latency_seconds_bucket[5m])) by (le))"},
             )
             if r.status_code == 200:
                 result = r.json().get("data", {}).get("result", [])
@@ -124,9 +122,7 @@ class MetricsCollector:
             # P99
             r = client.get(
                 f"{self.prometheus_url}/api/v1/query",
-                params={
-                    "query": "histogram_quantile(0.99, sum(rate(acos_scheduler_latency_seconds_bucket[5m])) by (le))"
-                },
+                params={"query": "histogram_quantile(0.99, sum(rate(acos_scheduler_latency_seconds_bucket[5m])) by (le))"},
             )
             if r.status_code == 200:
                 result = r.json().get("data", {}).get("result", [])
@@ -202,9 +198,7 @@ class MetricsCollector:
         if metrics.failure_rate > self._thresholds.failure_rate:
             breaches.append(f"failure_rate={metrics.failure_rate:.3f} > {self._thresholds.failure_rate}")
         if metrics.rollback_success_rate < self._thresholds.rollback_success_rate:
-            breaches.append(
-                f"rollback_success={metrics.rollback_success_rate:.3f} < {self._thresholds.rollback_success_rate}"
-            )
+            breaches.append(f"rollback_success={metrics.rollback_success_rate:.3f} < {self._thresholds.rollback_success_rate}")
         if metrics.drift_alignment_error > self._thresholds.drift_error:
             breaches.append(f"drift_error={metrics.drift_alignment_error:.3f} > {self._thresholds.drift_error}")
         if metrics.admission_reject_rate > self._thresholds.reject_rate:

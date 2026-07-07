@@ -148,8 +148,7 @@ def build_convergence_chart(gen_stats: list[dict]) -> dict:
     fig.add_trace(
         go.Scatter(
             x=gens + gens[::-1],
-            y=[m + s for m, s in zip(mean_rw, std_rw, strict=False)]
-            + [m - s for m, s in zip(mean_rw[::-1], std_rw[::-1], strict=False)],
+            y=[m + s for m, s in zip(mean_rw, std_rw, strict=False)] + [m - s for m, s in zip(mean_rw[::-1], std_rw[::-1], strict=False)],
             fill="toself",
             opacity=0.15,
             fillcolor="#ffd600",

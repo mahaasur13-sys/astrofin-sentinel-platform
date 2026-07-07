@@ -110,11 +110,7 @@ class PrometheusCollector:
                 value = float(value)
             except ValueError:
                 continue
-            points.append(
-                MetricPoint(
-                    timestamp=datetime.now(timezone.utc), metric=metric, node_id=node_id, value=value, labels=labels
-                )
-            )
+            points.append(MetricPoint(timestamp=datetime.now(timezone.utc), metric=metric, node_id=node_id, value=value, labels=labels))
         return points
 
     def scrape_exporter(self, url: str, node_id: str):

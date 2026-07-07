@@ -72,11 +72,7 @@ def load_api_keys() -> APIKeyConfig:
     # Validation
     if not sandbox and not is_production:
         if not api_key or not api_secret:
-            logger.warning(
-                f"[SECURITY] Live mode requested but CCXT_API_KEY/CCXT_API_SECRET "
-                f"not set. Falling back to sandbox. "
-                f"Keys present: KEY={bool(api_key)}, SECRET={bool(api_secret)}"
-            )
+            logger.warning(f"[SECURITY] Live mode requested but CCXT_API_KEY/CCXT_API_SECRET not set. Falling back to sandbox. Keys present: KEY={bool(api_key)}, SECRET={bool(api_secret)}")
             sandbox = True
             is_production = False
 
@@ -90,12 +86,7 @@ def load_api_keys() -> APIKeyConfig:
         is_production=is_production,
     )
 
-    logger.info(
-        f"[SECURITY] CCXT Config loaded: "
-        f"exchange={exchange} mode={'SANDBOX' if sandbox else 'LIVE'} "
-        f"keys={'YES(production)' if is_production else 'NO'} "
-        f"rate_limit={rate_limit}ms"
-    )
+    logger.info(f"[SECURITY] CCXT Config loaded: exchange={exchange} mode={'SANDBOX' if sandbox else 'LIVE'} keys={'YES(production)' if is_production else 'NO'} rate_limit={rate_limit}ms")
 
     return config
 

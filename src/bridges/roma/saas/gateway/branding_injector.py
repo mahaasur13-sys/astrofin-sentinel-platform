@@ -1,4 +1,5 @@
 """Response branding injection — headers + optional HTML."""
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
@@ -17,10 +18,10 @@ class BrandingInjectorMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         response: Response = await call_next(request)
-        
+
         tenant_id = getattr(request.state, "tenant_id", "default")
         cfg = self.tenant_config.get(tenant_id)
-        
+
         if not cfg:
             return response
 
@@ -50,9 +51,7 @@ class BrandingInjectorMiddleware(BaseHTTPMiddleware):
 
         return response
 
-    def _inject_html(
-        self, request: Request, tenant_id: str, body: str, branding
-    ) -> str:
+    def _inject_html(self, request: Request, tenant_id: str, body: str, branding) -> str:
         meta_tags = f"""
         <meta name="tenant-id" content="{tenant_id}">
         <meta name="generated-by" content="ROMA Gateway">

@@ -57,9 +57,7 @@ class DatasetBuilder:
         end_time = end_time or datetime.utcnow()
         start_time = start_time or (end_time - timedelta(days=7))
 
-        logger.info(
-            f"Building dataset: start={start_time}, end={end_time}, " f"horizon={horizon_minutes}m, nodes={node_ids}"
-        )
+        logger.info(f"Building dataset: start={start_time}, end={end_time}, horizon={horizon_minutes}m, nodes={node_ids}")
 
         # Pull raw feature vectors from TimescaleDB
         features_df = self._builder.build_batch(
@@ -111,9 +109,7 @@ class DatasetBuilder:
         valid_nodes = node_counts[node_counts >= min_samples].index
         df = df[df["node_id"].isin(valid_nodes)]
 
-        logger.info(
-            f"Dataset built: {len(df)} rows, {df['label_failure'].sum()} failures, " f"{len(valid_nodes)} nodes"
-        )
+        logger.info(f"Dataset built: {len(df)} rows, {df['label_failure'].sum()} failures, {len(valid_nodes)} nodes")
         return df
 
     def _label_from_timescale(
@@ -130,11 +126,7 @@ class DatasetBuilder:
             logger.warning("psycopg2 not available — returning empty labels")
             return pd.DataFrame()
 
-        conn_str = (
-            f"host={self._builder._tsdb_host} port={self._builder._tsdb_port} "
-            f"dbname={self._builder._tsdb_db} user={self._builder._tsdb_user} "
-            f"password={self._builder._tsdb_password}"
-        )
+        conn_str = f"host={self._builder._tsdb_host} port={self._builder._tsdb_port} dbname={self._builder._tsdb_db} user={self._builder._tsdb_user} password={self._builder._tsdb_password}"
         try:
             conn = psycopg2.connect(conn_str)
         except Exception:

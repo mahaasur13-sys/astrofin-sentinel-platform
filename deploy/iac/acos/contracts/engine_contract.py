@@ -20,6 +20,4 @@ def validate_engine_contract(obj: Any) -> None:
     required = ["execute", "get_state"]
     for method in required:
         if not hasattr(obj, method):
-            raise RuntimeError(
-                f"ExecutionEngine contract violation: missing method '{method}()'. " f"Object: {type(obj).__name__}"
-            )
+            raise RuntimeError(f"ExecutionEngine contract violation: missing method '{method}()'. Object: {type(obj).__name__}")

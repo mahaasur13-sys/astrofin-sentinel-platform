@@ -265,9 +265,7 @@ def detect_split_brain(status: CephStatus) -> tuple[bool, str]:
 
     # 5. OSDs down while PGs still active (partition symptom)
     if status.osds_down and (status.pgs_activating or status.pgs_deep):
-        reasons.append(
-            f"OSDs {status.osds_down} are DOWN while {len(status.pgs_activating) + len(status.pgs_deep)} PGs still active/being recovered"
-        )
+        reasons.append(f"OSDs {status.osds_down} are DOWN while {len(status.pgs_activating) + len(status.pgs_deep)} PGs still active/being recovered")
 
     if reasons:
         return True, "; ".join(reasons)
@@ -333,7 +331,7 @@ def get_recovery_priority(status: CephStatus) -> list[dict]:
                 "action": "alert_nearfull",
                 "target": "osd",
                 "priority": 5,
-                "reason": f"Storage {int(status.usage_ratio*100)}% used (nearfull threshold)",
+                "reason": f"Storage {int(status.usage_ratio * 100)}% used (nearfull threshold)",
                 "auto": False,
             }
         )

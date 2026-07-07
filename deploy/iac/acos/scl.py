@@ -34,9 +34,7 @@ def test_invariant_2():
     log.emit("t2", EventType.GOVERNANCE_APPROVED, {"reason": "ok"})
     state = reducer.rebuild("t2")
     ok = state["governance_decision"] == "APPROVED"
-    print(
-        f"  [{'OK' if ok else 'FAIL'}] INV2 — Governance decision derived from events: {state['governance_decision']}"
-    )
+    print(f"  [{'OK' if ok else 'FAIL'}] INV2 — Governance decision derived from events: {state['governance_decision']}")
     return ok
 
 
@@ -108,9 +106,7 @@ def test_full_trace():
     log.emit(t, EventType.TRACE_RECORDED, {"final_state": {"status": "COMPLETED"}})
     state = StateReducer(log).rebuild(t)
     ok = state["status"] == "COMPLETED" and state["scheduled_count"] == 2 and state["executed_count"] == 2
-    print(
-        f"  [{'OK' if ok else 'FAIL'}] FULL TRACE — {state['status']}, scheduled={state['scheduled_count']}, executed={state['executed_count']}"
-    )
+    print(f"  [{'OK' if ok else 'FAIL'}] FULL TRACE — {state['status']}, scheduled={state['scheduled_count']}, executed={state['executed_count']}")
     return ok
 
 

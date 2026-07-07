@@ -24,6 +24,7 @@ Usage
   python3 graphify-out/recall_test.py --keyword scheduler
   python3 graphify-out/recall_test.py --json          # machine-readable
 """
+
 from __future__ import annotations
 
 import argparse
@@ -43,9 +44,7 @@ def load_edges():
     runnable as a one-shot ranking tool without manual orchestration.
     """
     if not INGEST.exists():
-        raise SystemExit(
-            f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first"
-        )
+        raise SystemExit(f"missing {INGEST} — run `python3 graphify-out/infer_edges.py` first")
     edges = []
     needs_enrichment = False
     for line in INGEST.read_text(encoding="utf-8").splitlines():
@@ -57,10 +56,10 @@ def load_edges():
             needs_enrichment = True
     if needs_enrichment:
         import subprocess
+
         out_path = INGEST.with_suffix(".enriched.jsonl")
         subprocess.run(
-            [sys.executable, str(REPO_ROOT / "graphify-out" / "infer_edges.py"),
-             "-o", str(out_path)],
+            [sys.executable, str(REPO_ROOT / "graphify-out" / "infer_edges.py"), "-o", str(out_path)],
             check=True,
         )
         edges = []
@@ -88,13 +87,7 @@ def apply_filters(edges, args):
         out = [e for e in out if e["override_applied"]]
     if args.keyword:
         needle = args.keyword.lower()
-        out = [
-            e for e in out
-            if needle in e["source_path"].lower()
-            or needle in e["target_path"].lower()
-            or needle in e["source_node_id"].lower()
-            or needle in e["target_node_id"].lower()
-        ]
+        out = [e for e in out if needle in e["source_path"].lower() or needle in e["target_path"].lower() or needle in e["source_node_id"].lower() or needle in e["target_node_id"].lower()]
     if args.min_score is not None:
         out = [e for e in out if e["recall_score"] >= args.min_score]
 
@@ -104,14 +97,16 @@ def apply_filters(edges, args):
     # Final tie-break stays on (source_path, target_path, source_node_id,
     # target_node_id) so non-tied output is deterministic and identical to the
     # previous ranking modulo override promotion.
-    out.sort(key=lambda e: (
-        -int(e.get("override_applied", False)),
-        -e["recall_score"],
-        e["source_path"],
-        e["target_path"],
-        e["source_node_id"],
-        e["target_node_id"],
-    ))
+    out.sort(
+        key=lambda e: (
+            -int(e.get("override_applied", False)),
+            -e["recall_score"],
+            e["source_path"],
+            e["target_path"],
+            e["source_node_id"],
+            e["target_node_id"],
+        )
+    )
     return out
 
 
@@ -119,7 +114,7 @@ def _short(path: str, maxlen: int = 50) -> str:
     """Compact file path for table display (no leading repo prefix)."""
     if len(path) <= maxlen:
         return path
-    return "…" + path[-(maxlen - 1):]
+    return "…" + path[-(maxlen - 1) :]
 
 
 def _short_node(node_id: str, maxlen: int = 40) -> str:
@@ -132,14 +127,17 @@ def _short_node(node_id: str, maxlen: int = 40) -> str:
 
 def render_table(edges, args):
     """Render a compact ASCII table to stdout."""
-    rows = sorted(edges, key=lambda e: (
-        -int(e.get("override_applied", False)),
-        -e["recall_score"],
-        e["source_path"],
-        e["target_path"],
-        e["source_node_id"],
-        e["target_node_id"],
-    ))
+    rows = sorted(
+        edges,
+        key=lambda e: (
+            -int(e.get("override_applied", False)),
+            -e["recall_score"],
+            e["source_path"],
+            e["target_path"],
+            e["source_node_id"],
+            e["target_node_id"],
+        ),
+    )
     if args.limit:
         rows = rows[: args.limit]
 
@@ -194,9 +192,7 @@ def render_summary(edges, total_population):
 
     scores = [e["recall_score"] for e in edges]
     scores_sorted = sorted(scores, reverse=True)
-    print(f"  score range:   min={min(scores):.4f}  "
-          f"median={scores_sorted[len(scores_sorted) // 2]:.4f}  "
-          f"max={max(scores):.4f}")
+    print(f"  score range:   min={min(scores):.4f}  median={scores_sorted[len(scores_sorted) // 2]:.4f}  max={max(scores):.4f}")
 
 
 def main():

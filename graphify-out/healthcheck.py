@@ -9,6 +9,7 @@ Verifies internal consistency of inferred_clean.enriched.jsonl:
   c5: tiers present (T1, T2, T3) and T1 has recall_score spread
   c6: recall_score range [0, 1]
 """
+
 import json
 import os
 import sys
@@ -109,8 +110,7 @@ def check_recall_score_range():
     return True, f"recall_score in [0,1] (min={min(scores):.3f}, max={max(scores):.3f})"
 
 
-def filter_sample_by_existing_paths(in_path: Path, out_path: Path,
-                                  dropped_path: Path) -> tuple:
+def filter_sample_by_existing_paths(in_path: Path, out_path: Path, dropped_path: Path) -> tuple:
     """Filter edges whose source_path/target_path exist as files in repo.
 
     Returns (n_in, n_out, n_drop, drop_reasons_counter, kept_relations_counter).
@@ -157,12 +157,15 @@ def _parse_validate_report(report: Path) -> dict:
         return {}
     for line in report.read_text().splitlines()[:15]:
         line = line.strip()
-        if (line.lower().startswith("verdict summary") or
-            line.lower().startswith("verdict breakdown") or
-            line.lower().lstrip("*").strip().startswith("verdict summary") or
-            line.lower().lstrip("*").strip().startswith("verdict breakdown")):
+        if (
+            line.lower().startswith("verdict summary")
+            or line.lower().startswith("verdict breakdown")
+            or line.lower().lstrip("*").strip().startswith("verdict summary")
+            or line.lower().lstrip("*").strip().startswith("verdict breakdown")
+        ):
             # Try parenthesized form first: "valid=X (Y%), ambiguous=..."
             import re
+
             m = re.findall(r"`(\w+)`\s*=\s*(\d+)", line)
             if m:
                 return {k: int(v) for k, v in m}
@@ -173,21 +176,18 @@ def check_validation_verdicts():
     # Ensure clean sample is up-to-date
     if not SAMPLE_BALANCED.exists():
         return False, "balanced sample missing (run build_sample.py first)"
-    n_in, n_out, n_drop, reasons, kept = filter_sample_by_existing_paths(
-        SAMPLE_BALANCED, SAMPLE_CLEAN, SAMPLE_DROPPED
-    )
+    n_in, n_out, n_drop, reasons, kept = filter_sample_by_existing_paths(SAMPLE_BALANCED, SAMPLE_CLEAN, SAMPLE_DROPPED)
     if n_out < SAMPLE_MIN:
-        return False, (
-            f"clean sample too small: {n_out} < {SAMPLE_MIN} "
-            f"(in={n_in}, drop={n_drop}, reasons={dict(reasons)})"
-        )
+        return False, (f"clean sample too small: {n_out} < {SAMPLE_MIN} (in={n_in}, drop={n_drop}, reasons={dict(reasons)})")
     # Run validate_inferred.py
     import subprocess
+
     try:
         proc = subprocess.run(
-            ["python3", str(REPO / "graphify-out" / "validate_inferred.py"),
-             str(SAMPLE_CLEAN)],
-            capture_output=True, text=True, timeout=300,
+            ["python3", str(REPO / "graphify-out" / "validate_inferred.py"), str(SAMPLE_CLEAN)],
+            capture_output=True,
+            text=True,
+            timeout=300,
         )
     except subprocess.TimeoutExpired:
         return False, "validate_inferred.py timed out (>300s)"
@@ -203,12 +203,7 @@ def check_validation_verdicts():
     valid_rate = verdicts.get("valid", 0) / total
     false_rate = verdicts.get("false", 0) / total
     ok = valid_rate >= VALID_RATE_MIN and false_rate < FALSE_RATE_MAX
-    msg = (
-        f"verdicts={verdicts}, "
-        f"valid_rate={valid_rate:.1%} (>= {VALID_RATE_MIN:.0%}), "
-        f"false_rate={false_rate:.1%} (< {FALSE_RATE_MAX:.0%}), "
-        f"sample={n_out}/{n_in}, types={len(kept)}"
-    )
+    msg = f"verdicts={verdicts}, valid_rate={valid_rate:.1%} (>= {VALID_RATE_MIN:.0%}), false_rate={false_rate:.1%} (< {FALSE_RATE_MAX:.0%}), sample={n_out}/{n_in}, types={len(kept)}"
     return ok, msg
 
 

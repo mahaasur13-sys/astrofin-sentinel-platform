@@ -146,9 +146,7 @@ class StateStore:
             return None
         return JobState(**row)
 
-    def update_job_status(
-        self, job_id: str, status: JobStatus, error_message: str = None, slurm_job_id: int = None
-    ) -> bool:
+    def update_job_status(self, job_id: str, status: JobStatus, error_message: str = None, slurm_job_id: int = None) -> bool:
         with self._cursor() as cur:
             if slurm_job_id is not None:
                 cur.execute(
@@ -342,9 +340,7 @@ class StateStore:
     # -------------------------------------------------------------------------
     # Failure recoveries
     # -------------------------------------------------------------------------
-    def write_failure_recovery(
-        self, job_id: str, hostname: str, failure_type: str, recovery_action: str, attempt: int, success: bool
-    ) -> None:
+    def write_failure_recovery(self, job_id: str, hostname: str, failure_type: str, recovery_action: str, attempt: int, success: bool) -> None:
         with self._cursor() as cur:
             cur.execute(
                 """INSERT INTO failure_recoveries

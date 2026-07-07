@@ -62,9 +62,7 @@ class RiskEngineV2:
         self._return_history: list = []
 
     def update_position(self, pos: AssetPosition) -> None:
-        pos.unrealized_pnl = pos.notional_value - pos.entry_price * abs(pos.notional_value) / max(
-            pos.current_price, 1e-10
-        )
+        pos.unrealized_pnl = pos.notional_value - pos.entry_price * abs(pos.notional_value) / max(pos.current_price, 1e-10)
         self._positions[pos.symbol] = pos
 
     def update_equity(self, equity: float) -> None:

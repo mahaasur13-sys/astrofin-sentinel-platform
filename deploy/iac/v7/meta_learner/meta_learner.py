@@ -56,9 +56,7 @@ class MetaLearner:
         """
         Return ranked policy recommendations given current context.
         """
-        relevant = [
-            t for t in self._trials if t.workload_type == workload_type and t.cluster_state_class == cluster_state_class
-        ]
+        relevant = [t for t in self._trials if t.workload_type == workload_type and t.cluster_state_class == cluster_state_class]
 
         if len(relevant) < self.min_trials:
             # Fallback: use all-time best

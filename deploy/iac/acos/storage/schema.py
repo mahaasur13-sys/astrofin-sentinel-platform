@@ -34,9 +34,7 @@ class TraceRecord:
         return {
             "trace_id": self.trace_id,
             "metadata": self.metadata,
-            "created_at": (
-                self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at)
-            ),
+            "created_at": (self.created_at.isoformat() if isinstance(self.created_at, datetime) else str(self.created_at)),
         }
 
     @classmethod

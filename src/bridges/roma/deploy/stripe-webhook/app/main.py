@@ -1,4 +1,5 @@
 """Stripe Webhook Microservice — FastAPI app."""
+
 from fastapi import FastAPI, Request, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -33,6 +34,7 @@ STREAM_KEY = "stripe:events"
 
 _redis: Optional[aioredis.Redis] = None
 
+
 @app.on_event("startup")
 async def startup():
     global _redis
@@ -42,6 +44,7 @@ async def startup():
         logger.info(f"Redis connected: {REDIS_URL}")
     except Exception as e:
         logger.warning(f"Redis unavailable: {e}. Running without deduplication.")
+
 
 def _verify(payload: bytes, sig: str, secret: str) -> bool:
     if not sig or not secret:
@@ -54,10 +57,12 @@ def _verify(payload: bytes, sig: str, secret: str) -> bool:
     except Exception:
         return False
 
+
 async def _enqueue_event(event: dict) -> None:
     if _redis:
         payload = json.dumps(event)
         await _redis.xadd(STREAM_KEY, {"data": payload}, maxlen=10000)
+
 
 async def _sync_tenant(tenant_id: str, event_type: str) -> None:
     try:
@@ -72,11 +77,13 @@ async def _sync_tenant(tenant_id: str, event_type: str) -> None:
     except Exception as e:
         logger.error(f"Tenant sync failed: tenant={tenant_id} error={e}")
 
+
 class WebhookResponse(BaseModel):
     received: bool
     event_id: Optional[str] = None
     processed: bool = False
     error: Optional[str] = None
+
 
 @app.post("/webhook/stripe", response_model=WebhookResponse)
 async def stripe_webhook(
@@ -119,6 +126,7 @@ async def stripe_webhook(
 
     return WebhookResponse(received=True, event_id=eid, processed=True)
 
+
 @app.get("/health")
 async def health():
     redis_ok = False
@@ -130,6 +138,8 @@ async def health():
             pass
     return {"status": "ok", "redis": redis_ok}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8080)

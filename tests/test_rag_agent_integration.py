@@ -3,6 +3,7 @@
 Covers the contract introduced in P2-03d: BaseAgent owns a lazy
 `_retriever` whose `retrieve()` is async; `_build_prompt` is async too.
 """
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, patch
@@ -12,6 +13,7 @@ from core.base_agent import AgentResponse, BaseAgent, SignalDirection, _Degraded
 
 
 import pytest
+
 
 class MockAgent(BaseAgent):
     """Concrete agent for testing."""
@@ -40,9 +42,8 @@ def test_build_prompt_includes_rag_results():
     with patch.object(agent._retriever, "retrieve", new_callable=AsyncMock) as mock_retrieve:
         mock_retrieve.return_value = fake_chunks
         import asyncio
-        prompt = asyncio.get_event_loop().run_until_complete(
-            agent._build_prompt("Should I trade now?", use_rag=True)
-        )
+
+        prompt = asyncio.get_event_loop().run_until_complete(agent._build_prompt("Should I trade now?", use_rag=True))
         assert "Muhurta trading rule" in prompt
         assert "Test Rule" in prompt
         assert "RAG источники" in prompt
@@ -53,9 +54,8 @@ def test_build_prompt_no_rag_when_disabled():
     agent = MockAgent(name="TestAgent", domain="astrology")
     with patch.object(agent._retriever, "retrieve", new_callable=AsyncMock) as mock_retrieve:
         import asyncio
-        asyncio.get_event_loop().run_until_complete(
-            agent._build_prompt("Task", use_rag=False)
-        )
+
+        asyncio.get_event_loop().run_until_complete(agent._build_prompt("Task", use_rag=False))
         mock_retrieve.assert_not_called()
 
 
@@ -66,8 +66,7 @@ def test_build_prompt_works_with_degraded_retriever():
     # Принудительно подменяем реальный ретривер на _DegradedRetriever.
     agent._retriever = _DegradedRetriever()
     import asyncio
-    prompt = asyncio.get_event_loop().run_until_complete(
-        agent._build_prompt("Task", use_rag=True)
-    )
+
+    prompt = asyncio.get_event_loop().run_until_complete(agent._build_prompt("Task", use_rag=True))
     assert "нет релевантных источников" in prompt
     assert "RAG" in prompt

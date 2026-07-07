@@ -179,17 +179,14 @@ class RAGRetriever:
 
                 # Cache the result for future calls
                 self._query_cache[cache_key] = deduped[:top_k]
-                RAG_QUERIES_TOTAL.labels(
-                    status="ok", backend=backend_label, domain=domain_label
-                ).inc()
+                RAG_QUERIES_TOTAL.labels(status="ok", backend=backend_label, domain=domain_label).inc()
                 return deduped[:top_k]
         except Exception as exc:
             from tools.metrics_server import RAG_ERRORS_TOTAL
+
             kind = type(exc).__name__
             RAG_ERRORS_TOTAL.labels(stage="retrieve", kind=kind).inc()
-            RAG_QUERIES_TOTAL.labels(
-                status="error", backend=backend_label, domain=domain_label
-            ).inc()
+            RAG_QUERIES_TOTAL.labels(status="error", backend=backend_label, domain=domain_label).inc()
             raise
 
 
@@ -220,12 +217,7 @@ def retrieve_knowledge(
     for i, chunk in enumerate(chunks, 1):
         pct = chunk["relevance_score"]
         bar = "█" * int(pct * 10) + "░" * (10 - int(pct * 10))
-        lines.append(
-            f"**[{i}]** {chunk['source']} — {chunk['title']}  "
-            f"`{bar}` {pct:.1%}\n\n"
-            f"{chunk['content'][:400]}"
-            f"{'…' if len(chunk['content']) > 400 else ''}\n"
-        )
+        lines.append(f"**[{i}]** {chunk['source']} — {chunk['title']}  `{bar}` {pct:.1%}\n\n{chunk['content'][:400]}{'…' if len(chunk['content']) > 400 else ''}\n")
 
     return "\n---\n".join(lines)
 

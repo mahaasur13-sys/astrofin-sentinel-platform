@@ -348,7 +348,7 @@ class ACOSGovernanceKernel:
         }
 
 
-ACOSGovernanceKernel.__init__ = lambda self: (setattr(self, "violations", []) or None)
+ACOSGovernanceKernel.__init__ = lambda self: setattr(self, "violations", []) or None
 
 from datetime import datetime, timezone
 

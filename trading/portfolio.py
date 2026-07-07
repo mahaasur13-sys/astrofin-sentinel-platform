@@ -133,10 +133,7 @@ class Portfolio:
     def _sharpe(self) -> float:
         if len(self.equity_curve) < 2:
             return 0.0
-        returns = [
-            (self.equity_curve[i] - self.equity_curve[i - 1]) / self.equity_curve[i - 1]
-            for i in range(1, len(self.equity_curve))
-        ]
+        returns = [(self.equity_curve[i] - self.equity_curve[i - 1]) / self.equity_curve[i - 1] for i in range(1, len(self.equity_curve))]
         if not returns:
             return 0.0
         import statistics

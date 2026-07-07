@@ -340,9 +340,7 @@ class DigestAnalyzer:
             return max(scores, key=scores.get)
         return Category.OTHER
 
-    def _generate_implications(
-        self, title: str, description: str, category: Category, relevance: float
-    ) -> tuple[list, list]:
+    def _generate_implications(self, title: str, description: str, category: Category, relevance: float) -> tuple[list, list]:
         apps = []
         risks = []
         text = f"{title} {description}".lower()

@@ -223,9 +223,7 @@ class AstroFinConstraintCompiler:
                 continue
 
             if not c.evaluate(val):
-                failures.append(
-                    f"CONSTRAINT_FAIL [{c.severity}] {c.ctype.value} " f"{c.op.name} {c.threshold}: got={val}"
-                )
+                failures.append(f"CONSTRAINT_FAIL [{c.severity}] {c.ctype.value} {c.op.name} {c.threshold}: got={val}")
 
         return len(failures) == 0, failures
 

@@ -131,7 +131,7 @@ class SyntheticScheduler:
             p50_runtime_sec=float(sorted(runtimes)[len(runtimes) // 2]) if runtimes else 0,
             p99_runtime_sec=float(sorted(runtimes)[int(len(runtimes) * 0.99)]) if len(runtimes) > 10 else 0,
             queue_depth_peak=max_queue,
-            node_states={k: v for k, v in self.nodes.items()},
+            node_states=dict(self.nodes.items()),
         )
 
     def _try_schedule(self, job: Job) -> bool:

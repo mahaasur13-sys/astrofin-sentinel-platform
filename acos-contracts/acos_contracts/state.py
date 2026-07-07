@@ -14,6 +14,7 @@ Two cross-repo Surprising Connections close here:
 
 See ADR-0002 for the full rationale.
 """
+
 from __future__ import annotations
 
 from enum import Enum
@@ -88,4 +89,4 @@ __all__ = [
 
 
 # Legacy alias.
-StateStore = StateStoreProtocol     # type: ignore[misc, assignment]
+StateStore = StateStoreProtocol  # type: ignore[misc, assignment]

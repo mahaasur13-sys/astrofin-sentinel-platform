@@ -225,9 +225,7 @@ def register_callbacks(app, get_engine_ref):
             ev.get("win_rate", 0),
             min(ev.get("trades", 0) / 30, 1),
             max(0, 1 - ev.get("max_drawdown", 0)),
-            max(0, min((ev.get("risk_adjusted_pnl", 0) + 1) / 2, 1))
-            if ev.get("risk_adjusted_pnl") is not None
-            else 0.5,
+            max(0, min((ev.get("risk_adjusted_pnl", 0) + 1) / 2, 1)) if ev.get("risk_adjusted_pnl") is not None else 0.5,
         ]
         fig = go.Figure(
             go.Scatterpolar(
@@ -943,9 +941,7 @@ def register_callbacks(app, get_engine_ref):
             for k, v in sorted(chrom.items())
         ]
         chrom_html = dbc.Table(
-            [html.Thead(html.Tr([html.Th("Parameter"), html.Th("Value")]))] + [html.Tbody(rows)]
-            if rows
-            else [html.Tbody()],
+            [html.Thead(html.Tr([html.Th("Parameter"), html.Th("Value")]))] + [html.Tbody(rows)] if rows else [html.Tbody()],
             bordered=False,
             size="sm",
         )

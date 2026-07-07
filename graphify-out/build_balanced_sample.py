@@ -22,6 +22,7 @@ Usage:
       --max-per-bucket 50 \\
       --seed 42
 """
+
 from __future__ import annotations
 
 import argparse
@@ -82,9 +83,7 @@ def main() -> None:
         "--anchor-pairs",
         action="store_true",
         default=False,
-        help="Reserve (source_node_id, target_node_id) pairs listed in "
-             "config/memory_overrides.json in the output regardless of "
-             "--max-per-bucket cap. Preserves ADR-0004 contract.",
+        help="Reserve (source_node_id, target_node_id) pairs listed in config/memory_overrides.json in the output regardless of --max-per-bucket cap. Preserves ADR-0004 contract.",
     )
     args = ap.parse_args()
 
@@ -94,10 +93,7 @@ def main() -> None:
         ov_path = Path("/home/workspace/config/memory_overrides.json")
         if ov_path.exists():
             ov = json.loads(ov_path.read_text(encoding="utf-8"))
-            anchored = {
-                (e["source_node_id"], e["target_node_id"])
-                for e in ov.get("overrides", [])
-            }
+            anchored = {(e["source_node_id"], e["target_node_id"]) for e in ov.get("overrides", [])}
             print(f"[anchor] reserved {len(anchored)} override pairs")
 
     inp = Path(args.inp)
@@ -127,8 +123,7 @@ def main() -> None:
     for key, edges in buckets.items():
         rng.shuffle(edges)
         if anchored:
-            kept_here = [e for e in edges
-                          if (e.get("source_node_id"), e.get("target_node_id")) in anchored]
+            kept_here = [e for e in edges if (e.get("source_node_id"), e.get("target_node_id")) in anchored]
             skipped_here = [e for e in edges if e not in kept_here]
             edges = skipped_here
             anchored_kept.extend(kept_here)
@@ -156,10 +151,7 @@ def main() -> None:
         "total_sampled": len(sampled),
         "max_per_bucket": args.max_per_bucket,
         "seed": args.seed,
-        "buckets": {
-            f"{rel}|same={sf}": stats
-            for (rel, sf), stats in sorted(bucket_stats.items())
-        },
+        "buckets": {f"{rel}|same={sf}": stats for (rel, sf), stats in sorted(bucket_stats.items())},
     }
     print("---SAMPLE_STATS---")
     print(json.dumps(summary, ensure_ascii=False, indent=2))

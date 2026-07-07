@@ -9,6 +9,7 @@ The retriever does NOT mutate the input chunks — scored results are
 returned as new Chunk objects via dataclasses.replace with a populated
 `bm25_score` field.
 """
+
 from __future__ import annotations
 
 import math
@@ -58,9 +59,7 @@ class BM25Retriever:
 
         self._tokenized: List[List[str]] = [self._tokenize(c.content) for c in self.chunks]
         n = len(self.chunks)
-        self._avgdl = (
-            sum(len(toks) for toks in self._tokenized) / n if n else 0.0
-        )
+        self._avgdl = sum(len(toks) for toks in self._tokenized) / n if n else 0.0
         self._idf: dict = self._compute_idf()
 
     @staticmethod

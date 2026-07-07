@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """GPU Lock Manager — prevents double execution on same GPU"""
+
 import threading
 from typing import Optional, Dict, List
 from dataclasses import dataclass
 from datetime import datetime
+
 
 @dataclass
 class GPULock:
@@ -11,6 +13,7 @@ class GPULock:
     job_id: str
     acquired_at: datetime
     ttl_seconds: int
+
 
 class GPULockManager:
     """
@@ -39,12 +42,7 @@ class GPULockManager:
                 if age < ttl:
                     return False  # still locked
                 # Lock expired, allow re-acquire
-            self._locks[gpu_id] = GPULock(
-                gpu_id=gpu_id,
-                job_id=job_id,
-                acquired_at=datetime.utcnow(),
-                ttl_seconds=ttl
-            )
+            self._locks[gpu_id] = GPULock(gpu_id=gpu_id, job_id=job_id, acquired_at=datetime.utcnow(), ttl_seconds=ttl)
             return True
 
     def release(self, gpu_id: str):
@@ -82,10 +80,7 @@ class GPULockManager:
         """Remove expired locks."""
         with self._mu:
             now = datetime.utcnow()
-            expired = [
-                gpu_id for gpu_id, lock in self._locks.items()
-                if (now - lock.acquired_at).total_seconds() >= lock.ttl_seconds
-            ]
+            expired = [gpu_id for gpu_id, lock in self._locks.items() if (now - lock.acquired_at).total_seconds() >= lock.ttl_seconds]
             for gpu_id in expired:
                 del self._locks[gpu_id]
             return expired
@@ -107,11 +102,7 @@ class GPULockManager:
             return {
                 "total_locks": len(self._locks),
                 "locked_gpus": list(self._locks.keys()),
-                "lock_details": [
-                    {"gpu_id": l.gpu_id, "job_id": l.job_id,
-                     "age_s": (datetime.utcnow() - l.acquired_at).total_seconds()}
-                    for l in self._locks.values()
-                ]
+                "lock_details": [{"gpu_id": l.gpu_id, "job_id": l.job_id, "age_s": (datetime.utcnow() - l.acquired_at).total_seconds()} for l in self._locks.values()],
             }
 
 

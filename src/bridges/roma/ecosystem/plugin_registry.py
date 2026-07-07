@@ -1,6 +1,8 @@
 """ROMA Plugin Registry — Discovery, versioning, dependency resolution."""
+
 from dataclasses import dataclass, field
 from typing import Dict, List, Set, Optional
+
 
 @dataclass
 class PluginMetadata:
@@ -11,6 +13,7 @@ class PluginMetadata:
     dependencies: List[str] = field(default_factory=list)
     hash_sha256: str = ""
     published_at: float = 0.0
+
 
 class PluginRegistry:
     def __init__(self):
@@ -48,10 +51,11 @@ class PluginRegistry:
             resolved.append(f"{dep}@{dep_ver}" if dep_ver else dep)
         return resolved
 
+
 if __name__ == "__main__":
     reg = PluginRegistry()
-    reg.register(PluginMetadata(name="ml_training", version="1.0.0", capabilities=["GPU_ENABLED","DISTRIBUTED"], resource_requirements={"gpu":True,"vram":"8GB"}, dependencies=[]))
-    reg.register(PluginMetadata(name="inference", version="1.0.0", capabilities=["GPU_ENABLED"], resource_requirements={"gpu":True,"vram":"4GB"}, dependencies=["ml_training"]))
+    reg.register(PluginMetadata(name="ml_training", version="1.0.0", capabilities=["GPU_ENABLED", "DISTRIBUTED"], resource_requirements={"gpu": True, "vram": "8GB"}, dependencies=[]))
+    reg.register(PluginMetadata(name="inference", version="1.0.0", capabilities=["GPU_ENABLED"], resource_requirements={"gpu": True, "vram": "4GB"}, dependencies=["ml_training"]))
     print("Registry size:", len(reg.plugins))
     print("Latest versions:", {n: reg.get_latest_version(n) for n in reg.plugins})
     print("Search ml:", reg.search("ml"))

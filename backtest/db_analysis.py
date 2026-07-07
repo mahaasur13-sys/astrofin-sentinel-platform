@@ -3,6 +3,7 @@
 AstroFin Sentinel V5 — Database Analysis Script
 Run: python backtest/db_analysis.py
 """
+
 from __future__ import annotations
 
 import json
@@ -44,9 +45,7 @@ def print_table(headers, rows, title=""):
     if not rows:
         print("  (no data)")
         return
-    col_widths = [
-        max(len(str(h)), max(len(str(r[i])) for r in rows)) if i < len(headers) else 10 for i, h in enumerate(headers)
-    ]
+    col_widths = [max(len(str(h)), max(len(str(r[i])) for r in rows)) if i < len(headers) else 10 for i, h in enumerate(headers)]
     sep = "  "
     header_line = sep.join(f"{h:<w}" for h, w in zip(headers, col_widths, strict=False))
     print(f"  {header_line}")

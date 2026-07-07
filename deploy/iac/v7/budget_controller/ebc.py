@@ -84,9 +84,7 @@ class ExecutionBudgetController:
             timed_out = True
             output = e
         elapsed_ms = (time.monotonic() - start) * 1000.0
-        result = StageResult(
-            stage=stage_name, elapsed_ms=elapsed_ms, budget_ms=budget_ms, timed_out=timed_out, output=output
-        )
+        result = StageResult(stage=stage_name, elapsed_ms=elapsed_ms, budget_ms=budget_ms, timed_out=timed_out, output=output)
         self._current_cycle.stages.append(result)
         if timed_out:
             self._trigger_fallback(stage_name)
@@ -107,9 +105,7 @@ class ExecutionBudgetController:
             timed_out = True
             output = e
         elapsed_ms = (time.monotonic() - start) * 1000.0
-        result = StageResult(
-            stage=stage_name, elapsed_ms=elapsed_ms, budget_ms=budget_ms, timed_out=timed_out, output=output
-        )
+        result = StageResult(stage=stage_name, elapsed_ms=elapsed_ms, budget_ms=budget_ms, timed_out=timed_out, output=output)
         self._current_cycle.stages.append(result)
         if timed_out:
             self._trigger_fallback(stage_name)

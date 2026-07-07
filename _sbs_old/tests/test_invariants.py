@@ -19,11 +19,12 @@ import pytest
 
 from sbs.boundary_spec import SystemBoundarySpec
 from sbs.global_invariant_engine import GlobalInvariantEngine, LayerState
-from sbs.system_contract import SYSTEM_CONTRACT, InvariantType
+from sbs.system_contract import SYSTEM_CONTRACT
 from sbs.failure_classifier import FailureClassifier, FailureCategory, FailureSeverity
 
 
 # ── SystemBoundarySpec tests ─────────────────────────────────────────────────
+
 
 class TestSystemBoundarySpec:
     """Unit tests for SystemBoundarySpec.validate()."""
@@ -97,6 +98,7 @@ class TestSystemBoundarySpec:
 
 
 # ── GlobalInvariantEngine tests ─────────────────────────────────────────────
+
 
 class TestGlobalInvariantEngine:
     """Cross-layer invariant tests."""
@@ -177,6 +179,7 @@ class TestGlobalInvariantEngine:
 
 # ── SYSTEM_CONTRACT tests ─────────────────────────────────────────────────────
 
+
 class TestSystemContract:
     """SYSTEM_CONTRACT hard constraints tests."""
 
@@ -217,6 +220,7 @@ class TestSystemContract:
 
 
 # ── FailureClassifier tests ───────────────────────────────────────────────────
+
 
 class TestFailureClassifier:
     """FailureClassifier taxonomy tests."""
@@ -296,22 +300,26 @@ class TestFailureClassifier:
 
 # ── LayerState tests ──────────────────────────────────────────────────────────
 
+
 class TestLayerState:
     """LayerState normalization tests."""
 
     def test_from_dict_full(self):
         """All fields populated → all fields set correctly."""
-        state = LayerState.from_dict("DRL", {
-            "leader": "node-1",
-            "term": 7,
-            "commit_index": 42,
-            "partitions": 0,
-            "quorum_ratio": 0.9,
-            "stale_reads": 0,
-            "duplicate_ack": False,
-            "clock_skew_ms": 12.5,
-            "event_sequence_gaps": 0,
-        })
+        state = LayerState.from_dict(
+            "DRL",
+            {
+                "leader": "node-1",
+                "term": 7,
+                "commit_index": 42,
+                "partitions": 0,
+                "quorum_ratio": 0.9,
+                "stale_reads": 0,
+                "duplicate_ack": False,
+                "clock_skew_ms": 12.5,
+                "event_sequence_gaps": 0,
+            },
+        )
         assert state.name == "DRL"
         assert state.leader == "node-1"
         assert state.term == 7

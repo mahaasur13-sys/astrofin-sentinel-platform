@@ -1,4 +1,5 @@
 """backtest/engine.py — G-01/G-03 Backtesting Engine (with real agent support + metrics)"""
+
 from __future__ import annotations
 
 import asyncio
@@ -184,11 +185,7 @@ async def generate_synthetic_signal(price, prev_price, timestamp):
     momentum = (price - prev_price) / prev_price if prev_price else 0
     h = timestamp.hour + timestamp.minute / 60
     d = timestamp.day + h / 24
-    astro = (
-        math.sin(2 * math.pi * h / 4) * 0.010
-        + math.sin(2 * math.pi * d / 28) * 0.015
-        + math.sin(2 * math.pi * d / 7) * 0.008
-    )
+    astro = math.sin(2 * math.pi * h / 4) * 0.010 + math.sin(2 * math.pi * d / 28) * 0.015 + math.sin(2 * math.pi * d / 7) * 0.008
     comb = momentum + astro
     if comb > 0.003:
         sig = "LONG"
@@ -364,9 +361,7 @@ class BacktestEngine:
                     synth_result = await synthesis_agent.run(state_for_synth)
                     final_signal = synth_result.signal if hasattr(synth_result, "signal") else "NEUTRAL"
                     final_confidence = synth_result.confidence if hasattr(synth_result, "confidence") else 50
-                    final_reasoning = (
-                        synth_result.reasoning if hasattr(synth_result, "reasoning") else "Synthesis complete"
-                    )
+                    final_reasoning = synth_result.reasoning if hasattr(synth_result, "reasoning") else "Synthesis complete"
                     signals = [
                         {
                             "time": candles[-1].dt if candles else datetime.now(timezone.utc),

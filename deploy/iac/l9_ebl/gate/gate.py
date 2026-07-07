@@ -53,17 +53,13 @@ class ExecutionGate:
         rule = self.cg.get_guard(action)
 
         if not rule:
-            decision = GateDecision(
-                action=ActionResult.DENY, trace_id=trace_id, reason=f"No guard rule for action={action}"
-            )
+            decision = GateDecision(action=ActionResult.DENY, trace_id=trace_id, reason=f"No guard rule for action={action}")
             self._log_decision(decision)
             return decision
 
         violations = rule.validate(params)
         if violations:
-            decision = GateDecision(
-                action=ActionResult.DENY, trace_id=trace_id, reason=f"Constraint violations: {violations}"
-            )
+            decision = GateDecision(action=ActionResult.DENY, trace_id=trace_id, reason=f"Constraint violations: {violations}")
             self._log_decision(decision)
             return decision
 

@@ -115,9 +115,7 @@ class Predictor:
             if vectors.empty:
                 return {}
             row = vectors.sort_values("time", ascending=False).iloc[0]
-            return {
-                c: float(row[c]) for c in row.index if c not in ("time", "node_id") and isinstance(row[c], (int, float))
-            }
+            return {c: float(row[c]) for c in row.index if c not in ("time", "node_id") and isinstance(row[c], (int, float))}
         except Exception as e:
             logger.warning(f"Feature fetch failed for {node_id}: {e}")
             return {}
@@ -126,11 +124,7 @@ class Predictor:
         """Compute composite risk score from predictions."""
         w = self.risk_coefficients
         load_penalty = min(1.0, (load_forecast["gpu"] + load_forecast["queue"] / 10.0) / 2.0)
-        risk = (
-            w["failure_weight"] * failure_prob
-            + w["load_weight"] * load_penalty
-            + w["queue_weight"] * min(1.0, load_forecast["queue"] / 10.0)
-        )
+        risk = w["failure_weight"] * failure_prob + w["load_weight"] * load_penalty + w["queue_weight"] * min(1.0, load_forecast["queue"] / 10.0)
         return min(1.0, max(0.0, risk))
 
     def _recommend(self, risk_score: float, load_forecast: dict[str, float]) -> str:

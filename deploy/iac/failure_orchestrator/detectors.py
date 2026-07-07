@@ -123,9 +123,7 @@ def node_unreachable(host: str, port: int = 22, timeout: int = 3) -> tuple[bool,
 def gpu_available() -> tuple[bool, str, str]:
     """Check if GPU is accessible and not in failure state."""
     try:
-        out = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=gpu_name,temperature.gpu,utilization.gpu", "--format=csv,noheader"], timeout=5
-        ).decode()
+        out = subprocess.check_output(["nvidia-smi", "--query-gpu=gpu_name,temperature.gpu,utilization.gpu", "--format=csv,noheader"], timeout=5).decode()
         temp = int(out.strip().split(",")[1].strip())
         if temp > 90:
             return True, f"gpu_overheat_{temp}c", "critical"

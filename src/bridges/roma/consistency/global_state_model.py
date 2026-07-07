@@ -15,24 +15,27 @@ class TruthSource(str, Enum):
     K8s is the physical truth. Redis is the logical cache.
     Event Store is the historical truth.
     """
-    KUBERNETES = "k8s"          # Physical execution truth (always authoritative for running jobs)
-    REDIS = "redis"              # Logical state cache (queues, scheduling)
+
+    KUBERNETES = "k8s"  # Physical execution truth (always authoritative for running jobs)
+    REDIS = "redis"  # Logical state cache (queues, scheduling)
     EVENT_STORE = "event_store"  # Historical truth (append-only log)
     STATE_SNAPSHOT = "snapshot"  # Derived truth (from replay)
 
 
 class ConflictResolution(str, Enum):
     """Rules for resolving state conflicts between sources."""
-    K8S_WINS = "k8s_wins"           # K8s job state overrides all
+
+    K8S_WINS = "k8s_wins"  # K8s job state overrides all
     LAST_WRITE_WINS = "last_write"  # Most recent timestamp wins
-    SOURCE_PRIORITY = "source"       # Follow TruthSource hierarchy
-    MERGE = "merge"                  # Merge states (union of truth)
-    BLOCK = "block"                  # Reject conflicting update
+    SOURCE_PRIORITY = "source"  # Follow TruthSource hierarchy
+    MERGE = "merge"  # Merge states (union of truth)
+    BLOCK = "block"  # Reject conflicting update
 
 
 @dataclass
 class GlobalStateRecord:
     """Single record in the global state model."""
+
     job_id: str
     field: str
     value: Any
@@ -51,16 +54,16 @@ class GlobalStateRecord:
 class GlobalStateModel:
     """
     Single source of truth contract.
-    
+
     Truth hierarchy:
     1. K8s (running job state) — highest priority
-    2. Redis (queued/scheduled state) — medium priority  
+    2. Redis (queued/scheduled state) — medium priority
     3. Event Store (historical log) — replay source
     4. State Snapshots (derived) — for fast recovery
-    
+
     Key invariant:
     ∀ job: consistent(job) = (k8s_state == redis_state == event_store_replay)
-    
+
     When invariant breaks → ReconciliationEngine.trigger_repair()
     """
 
@@ -82,26 +85,17 @@ class GlobalStateModel:
         # 1. Check K8s (physical truth)
         k8s_val = self._get_k8s_field(job_id, field)
         if k8s_val is not None:
-            return GlobalStateRecord(
-                job_id=job_id, field=field, value=k8s_val,
-                source=TruthSource.KUBERNETES
-            )
+            return GlobalStateRecord(job_id=job_id, field=field, value=k8s_val, source=TruthSource.KUBERNETES)
 
         # 2. Check Redis (logical cache)
         redis_val = self._get_redis_field(job_id, field)
         if redis_val is not None:
-            return GlobalStateRecord(
-                job_id=job_id, field=field, value=redis_val,
-                source=TruthSource.REDIS
-            )
+            return GlobalStateRecord(job_id=job_id, field=field, value=redis_val, source=TruthSource.REDIS)
 
         # 3. Reconstruct from Event Store
         event_val = self._reconstruct_from_event_store(job_id, field)
         if event_val is not None:
-            return GlobalStateRecord(
-                job_id=job_id, field=field, value=event_val,
-                source=TruthSource.EVENT_STORE
-            )
+            return GlobalStateRecord(job_id=job_id, field=field, value=event_val, source=TruthSource.EVENT_STORE)
 
         return None
 
@@ -167,7 +161,7 @@ class GlobalStateModel:
         """
         Queue admission control.
         Returns (admit: bool, reason: str)
-        
+
         Reject if:
         - GPU saturation > 90%
         - Queue depth > threshold (100 jobs default)

@@ -18,12 +18,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="ML Inference API", version="5.0.0")
 
-FAILURE_MODEL_PATH = os.environ.get(
-    "FAILURE_MODEL_PATH", "/home/workspace/home-cluster-iac/ml_engine/registry/models/failure_model.pkl"
-)
-LOAD_MODEL_PATH = os.environ.get(
-    "LOAD_MODEL_PATH", "/home/workspace/home-cluster-iac/ml_engine/registry/models/load_model.pkl"
-)
+FAILURE_MODEL_PATH = os.environ.get("FAILURE_MODEL_PATH", "/home/workspace/home-cluster-iac/ml_engine/registry/models/failure_model.pkl")
+LOAD_MODEL_PATH = os.environ.get("LOAD_MODEL_PATH", "/home/workspace/home-cluster-iac/ml_engine/registry/models/load_model.pkl")
 
 _predictor = None
 

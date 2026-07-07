@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """ROMA Billing Ledger — append-only ledger of all billing state changes."""
+
 from typing import Optional
 import time
 import json
 
+
 class BillingLedger:
     """Append-only ledger — every billing event is recorded, never mutated."""
+
     def __init__(self):
         self._entries: list[dict] = []
 
@@ -16,8 +19,8 @@ class BillingLedger:
             "tenant_id": tenant_id,
             "type": entry_type,
             "amount": amount,
-    "partner_id": partner_id or "platform",
-    "revenue_share_percent_applied": revenue_share_percent,
+            "partner_id": partner_id or "platform",
+            "revenue_share_percent_applied": revenue_share_percent,
             "currency": currency,
             "metadata": metadata or {},
         }
@@ -56,31 +59,42 @@ class BillingLedger:
         for t in by_tenant:
             by_tenant[t]["net"] = by_tenant[t]["credits"] - by_tenant[t]["debits"]
         return by_tenant
+
     # ─── Revenue-Share Extension ─────────────────────────────────────────────
-    def record_revenue_share(self, tenant_id: str, amount_cents: int,
-                            source_invoice: str, rate: float) -> None:
+    def record_revenue_share(self, tenant_id: str, amount_cents: int, source_invoice: str, rate: float) -> None:
         now = int(time.time())
         period = time.strftime("%Y-%m")
-        self._cur.execute("""
+        self._cur.execute(
+            """
             INSERT OR IGNORE INTO revenue_share
                 (tenant_id, amount_cents, source_invoice, rate, period_month, created_at, paid_out)
             VALUES (?, ?, ?, ?, ?, ?, 0)
-        """, (tenant_id, amount_cents, source_invoice, rate, period, now))
+        """,
+            (tenant_id, amount_cents, source_invoice, rate, period, now),
+        )
         self._conn.commit()
+
     def get_monthly_revenue(self, tenant_id: str, month: Optional[str] = None) -> float:
         if month is None:
             month = time.strftime("%Y-%m")
-        self._cur.execute("""
+        self._cur.execute(
+            """
             SELECT COALESCE(SUM(amount_cents), 0)
             FROM billing_ledger
             WHERE tenant_id = ? AND strftime('%%Y-%%m', datetime(timestamp, 'unixepoch')) = ?
-        """, (tenant_id, month))
+        """,
+            (tenant_id, month),
+        )
         return self._cur.fetchone()[0] / 100.0
+
     def get_pending_revenue_share(self, tenant_id: str) -> int:
-        self._cur.execute("""
+        self._cur.execute(
+            """
             SELECT COALESCE(SUM(amount_cents), 0)
             FROM revenue_share WHERE tenant_id = ? AND paid_out = 0
-        """, (tenant_id,))
+        """,
+            (tenant_id,),
+        )
         return self._cur.fetchone()[0]
 
 
@@ -95,6 +109,7 @@ def simulate_ledger() -> None:
     print("Tenant XYZ balance:", f"${ledger.get_tenant_balance('tenant-xyz'):.2f}")
     summary = ledger.ledger_summary()
     print("Summary:", json.dumps(summary, indent=2))
+
 
 if __name__ == "__main__":
     simulate_ledger()

@@ -49,9 +49,7 @@ class MLRiskIgnoredScenario:
             "result_after_fix": None,
         }
         if failure:
-            result["correction_applied"] = (
-                "correction_applied: final_score=base_score-risk_penalty enforced, risk_threshold gating added"
-            )
+            result["correction_applied"] = "correction_applied: final_score=base_score-risk_penalty enforced, risk_threshold gating added"
             result["result_after_fix"] = {"high_risk_selected_expected": 0}
         return result
 

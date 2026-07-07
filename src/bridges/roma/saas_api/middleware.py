@@ -1,8 +1,10 @@
 """ROMA SaaS API — Middleware (auth + logging)"""
+
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from saas_api.auth import verify_api_key, QuotaExceeded, RateLimitExceeded
 import time
+
 
 class LogRequestMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -12,8 +14,10 @@ class LogRequestMiddleware(BaseHTTPMiddleware):
         print(f"[ROMA] {request.method} {request.url.path} → {response.status_code} ({duration_ms:.1f}ms)")
         return response
 
+
 def log_request(app):
     app.middleware("http")(LogRequestMiddleware)
+
 
 def auth_middleware(request: Request) -> dict:
     """Extract and verify API key from Authorization header. Returns tenant context."""

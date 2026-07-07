@@ -198,7 +198,5 @@ if __name__ == "__main__":
     print(f"  {report.summary()}")
     for s in report.slices:
         status = "FILLED" if s.filled else "ABORTED"
-        print(
-            f"    Slice {s.slice_num}: {status} @ ${s.exec_price:.2f}, slip={s.slippage_bps:.2f}bps, cost=${s.slippage_cost:.2f}"
-        )
+        print(f"    Slice {s.slice_num}: {status} @ ${s.exec_price:.2f}, slip={s.slippage_bps:.2f}bps, cost=${s.slippage_cost:.2f}")
     print(f"  Total cost: ${report.total_cost:.2f} (commissions ${report.total_commission:.2f})")

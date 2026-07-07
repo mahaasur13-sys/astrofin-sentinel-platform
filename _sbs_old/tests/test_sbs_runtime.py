@@ -44,7 +44,7 @@ class TestSBSRuntimeEnforcer:
         state = {
             "drl": {"leader": "n1", "term": 1, "partitions": 0, "quorum_ratio": 0.9},
             "ccl": {"leader": "n1", "term": 1, "stale_reads": 0},
-            "f2":  {"leader": "n1", "term": 1, "quorum_ratio": 0.9, "commit_index": 5},
+            "f2": {"leader": "n1", "term": 1, "quorum_ratio": 0.9, "commit_index": 5},
             "desc": {"leader": "n1", "term": 1, "commit_index": 5},
             "quorum_ratio": 0.9,  # top-level for spec.validate()
             "partitions": 0,
@@ -62,7 +62,7 @@ class TestSBSRuntimeEnforcer:
         state = {
             "drl": {"partitions": 2, "quorum_ratio": 0.9},
             "ccl": {},
-            "f2":  {"quorum_ratio": 0.9},
+            "f2": {"quorum_ratio": 0.9},
             "desc": {},
             "partitions": 2,
             "quorum_ratio": 0.9,
@@ -82,7 +82,7 @@ class TestSBSRuntimeEnforcer:
         state = {
             "drl": {"partitions": 2, "quorum_ratio": 0.9},
             "ccl": {},
-            "f2":  {"quorum_ratio": 0.9},
+            "f2": {"quorum_ratio": 0.9},
             "desc": {},
             "partitions": 2,
             "quorum_ratio": 0.9,
@@ -115,7 +115,7 @@ class TestSBSRuntimeEnforcer:
         state = {
             "drl": {"partitions": 0, "quorum_ratio": 0.3},
             "ccl": {},
-            "f2":  {"quorum_ratio": 0.3},
+            "f2": {"quorum_ratio": 0.3},
             "desc": {},
             "quorum_ratio": 0.3,
             "partitions": 0,
@@ -134,7 +134,7 @@ class TestSBSRuntimeEnforcer:
         state = {
             "drl": {"leader": "node-1", "term": 3, "partitions": 0},
             "ccl": {"leader": "node-2", "term": 3},
-            "f2":  {"leader": "node-1", "term": 3, "quorum_ratio": 0.9},
+            "f2": {"leader": "node-1", "term": 3, "quorum_ratio": 0.9},
             "desc": {"leader": "node-1", "term": 3, "commit_index": 10},
             "partitions": 0,
             "quorum_ratio": 0.9,
@@ -152,8 +152,7 @@ class TestSBSRuntimeEnforcer:
         policy = ViolationPolicy(level=ViolationPolicy.Level.WARNING)
         enforcer = SBSRuntimeEnforcer(spec, engine, mode=SBS_MODE.ENFORCED, default_policy=policy)
 
-        state = {"drl": {"partitions": 2, "quorum_ratio": 0.9}, "ccl": {}, "f2": {}, "desc": {},
-                 "partitions": 2, "quorum_ratio": 0.9}
+        state = {"drl": {"partitions": 2, "quorum_ratio": 0.9}, "ccl": {}, "f2": {}, "desc": {}, "partitions": 2, "quorum_ratio": 0.9}
         result = enforcer.enforce(ExecutionStage.PRE_DRL, state)
         assert result is False
 
@@ -167,8 +166,7 @@ class TestSBSRuntimeEnforcer:
             ExecutionStage.PRE_DRL,
             ViolationPolicy(level=ViolationPolicy.Level.WARNING),
         )
-        state = {"drl": {"partitions": 2, "quorum_ratio": 0.9}, "ccl": {}, "f2": {}, "desc": {},
-                 "partitions": 2, "quorum_ratio": 0.9}
+        state = {"drl": {"partitions": 2, "quorum_ratio": 0.9}, "ccl": {}, "f2": {}, "desc": {}, "partitions": 2, "quorum_ratio": 0.9}
         result = enforcer.enforce(ExecutionStage.PRE_DRL, state)
         assert result is False
 
@@ -184,7 +182,7 @@ class TestSBSRuntimeEnforcer:
         healthy = {
             "drl": {"leader": "n1", "term": 1, "partitions": 0},
             "ccl": {},
-            "f2":  {},
+            "f2": {},
             "desc": {},
             "partitions": 0,
             "quorum_ratio": 0.9,
@@ -219,8 +217,7 @@ class TestSBSRuntimeEnforcer:
         policy = ViolationPolicy(level=ViolationPolicy.Level.RECOVERABLE, reconcile_fn=reconcile)
         enforcer = SBSRuntimeEnforcer(spec, engine, mode=SBS_MODE.ENFORCED, default_policy=policy)
 
-        state = {"drl": {"partitions": 2, "quorum_ratio": 0.9}, "ccl": {}, "f2": {}, "desc": {},
-                 "partitions": 2, "quorum_ratio": 0.9}
+        state = {"drl": {"partitions": 2, "quorum_ratio": 0.9}, "ccl": {}, "f2": {}, "desc": {}, "partitions": 2, "quorum_ratio": 0.9}
         result = enforcer.enforce(ExecutionStage.PRE_EXECUTE, state)
         assert result is False
         assert len(reconcile_called) == 1
@@ -259,10 +256,17 @@ class TestExecutionLoopSBS:
         """execute_with_sbs() with healthy layers → plan returned, no violation."""
         loop = self._make_loop()
 
-        def drl(): return {"leader": "n1", "term": 1, "partitions": 0, "quorum_ratio": 0.9}
-        def ccl(): return {}
-        def f2():  return {"quorum_ratio": 0.9}
-        def desc(): return {"commit_index": 5}
+        def drl():
+            return {"leader": "n1", "term": 1, "partitions": 0, "quorum_ratio": 0.9}
+
+        def ccl():
+            return {}
+
+        def f2():
+            return {"quorum_ratio": 0.9}
+
+        def desc():
+            return {"commit_index": 5}
 
         loop.set_layers(drl, ccl, f2, desc)
         plan, violation = loop.execute_with_sbs("read system status")
@@ -274,10 +278,17 @@ class TestExecutionLoopSBS:
         """execute_with_sbs() with bad state → InvariantViolation raised."""
         loop = self._make_loop()
 
-        def bad_drl(): return {"partitions": 2}  # SPLIT_BRAIN
-        def ccl(): return {}
-        def f2():  return {"quorum_ratio": 0.9}
-        def desc(): return {}
+        def bad_drl():
+            return {"partitions": 2}  # SPLIT_BRAIN
+
+        def ccl():
+            return {}
+
+        def f2():
+            return {"quorum_ratio": 0.9}
+
+        def desc():
+            return {}
 
         loop.set_layers(bad_drl, ccl, f2, desc)
 
@@ -288,10 +299,17 @@ class TestExecutionLoopSBS:
         """collect_state() returns dict with all 4 layer keys."""
         loop = self._make_loop()
 
-        def drl(): return {"drl_key": "drl_val"}
-        def ccl(): return {"ccl_key": "ccl_val"}
-        def f2():  return {"f2_key": "f2_val"}
-        def desc(): return {"desc_key": "desc_val"}
+        def drl():
+            return {"drl_key": "drl_val"}
+
+        def ccl():
+            return {"ccl_key": "ccl_val"}
+
+        def f2():
+            return {"f2_key": "f2_val"}
+
+        def desc():
+            return {"desc_key": "desc_val"}
 
         loop.set_layers(drl, ccl, f2, desc)
         state = loop.collect_state()
@@ -308,11 +326,13 @@ class TestExecutionLoopSBS:
     def test_sbs_is_available__true(self):
         """sbs_is_available() returns True when SBS is loaded."""
         from atomos.core.execution_loop import ExecutionLoop
+
         assert ExecutionLoop.sbs_is_available() is True
 
     def test_get_sbs_mode_enum__returns_mode_object(self):
         """get_sbs_mode_enum() returns the SBS_MODE object."""
         from atomos.core.execution_loop import ExecutionLoop
+
         mode = ExecutionLoop.get_sbs_mode_enum()
         assert mode is not None
         assert mode.ENFORCED == 2
@@ -323,15 +343,29 @@ class TestExecutionLoopSBS:
         """set_layers() called twice updates the references."""
         loop = self._make_loop()
 
-        def first_drl(): return {"version": 1}
-        def first_ccl(): return {}
-        def first_f2():  return {}
-        def first_desc(): return {}
+        def first_drl():
+            return {"version": 1}
 
-        def second_drl(): return {"version": 2}
-        def second_ccl(): return {"ccl_v2": True}
-        def second_f2():  return {}
-        def second_desc(): return {}
+        def first_ccl():
+            return {}
+
+        def first_f2():
+            return {}
+
+        def first_desc():
+            return {}
+
+        def second_drl():
+            return {"version": 2}
+
+        def second_ccl():
+            return {"ccl_v2": True}
+
+        def second_f2():
+            return {}
+
+        def second_desc():
+            return {}
 
         loop.set_layers(first_drl, first_ccl, first_f2, first_desc)
         assert loop.collect_state()["drl"]["version"] == 1

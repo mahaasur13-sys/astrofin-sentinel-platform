@@ -98,9 +98,7 @@ def schedule(req: ScheduleRequest):
         engine = get_engine()
 
         # Step 1: Submit + admission check
-        submitted, job_id, reason = engine.submit_job(
-            name=req.name, job_type=req.job_type, memory_gb=req.memory_gb, priority=req.priority, script_path=req.script
-        )
+        submitted, job_id, reason = engine.submit_job(name=req.name, job_type=req.job_type, memory_gb=req.memory_gb, priority=req.priority, script_path=req.script)
 
         if not submitted:
             SCHEDULER_REQUESTS.labels(job_type=req.job_type, decision="rejected").inc()

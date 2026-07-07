@@ -6,6 +6,7 @@ Supports: k8s_job (default) | ray_job fallback
 
 import copy
 
+
 class K8sCompiler:
     """Transforms ROMA DAG into K8s Job manifest."""
 
@@ -28,8 +29,6 @@ class K8sCompiler:
 
     def _compile_k8s_job(self, task_id: str, dag: list, gpu_required: bool, resources: dict) -> dict:
         steps = []
-        dependencies = []
-        init_containers = []
 
         for i, node in enumerate(dag):
             step_name = f"step-{i}-{node['id']}"
@@ -43,10 +42,7 @@ class K8sCompiler:
 
             # GPU handling
             if gpu_required or node.get("gpu", False):
-                container["resources"] = {
-                    "limits": {"nvidia.com/gpu": "1"},
-                    "requests": {"nvidia.com/gpu": "1"}
-                }
+                container["resources"] = {"limits": {"nvidia.com/gpu": "1"}, "requests": {"nvidia.com/gpu": "1"}}
 
             # CPU/RAM handling
             node_res = node.get("resources", {})
@@ -57,11 +53,7 @@ class K8sCompiler:
             container["resources"].setdefault("requests", {})["cpu"] = f"{cpu}"
             container["resources"]["requests"]["memory"] = f"{mem}Gi"
 
-            step = {
-                "name": step_name,
-                "container": container,
-                "depends_on": deps if deps else None
-            }
+            step = {"name": step_name, "container": container, "depends_on": deps if deps else None}
             steps.append(step)
 
         # Build K8s Job (single-pod with init containers for DAG)
@@ -93,28 +85,13 @@ class K8sCompiler:
         job_manifest = {
             "apiVersion": "batch/v1",
             "kind": "Job",
-            "metadata": {
-                "name": f"roma-{task_id[:8]}",
-                "namespace": "roma-system",
-                "labels": {
-                    "app": "roma-executor",
-                    "task_id": task_id
-                }
-            },
-            "spec": {
-                "backoffLimit": 2,
-                "template": {
-                    "metadata": {"labels": {"app": "roma-executor", "task_id": task_id}},
-                    "spec": pod_spec
-                }
-            }
+            "metadata": {"name": f"roma-{task_id[:8]}", "namespace": "roma-system", "labels": {"app": "roma-executor", "task_id": task_id}},
+            "spec": {"backoffLimit": 2, "template": {"metadata": {"labels": {"app": "roma-executor", "task_id": task_id}}, "spec": pod_spec}},
         }
 
         if gpu_required:
             job_manifest["spec"]["template"]["spec"]["nodeSelector"] = self.GPU_NODE_SELECTOR
-            job_manifest["spec"]["template"]["spec"]["tolerations"] = [
-                {"key": "gpu", "operator": "Exists", "effect": "NoSchedule"}
-            ]
+            job_manifest["spec"]["template"]["spec"]["tolerations"] = [{"key": "gpu", "operator": "Exists", "effect": "NoSchedule"}]
 
         return job_manifest
 
@@ -123,10 +100,7 @@ class K8sCompiler:
         ray_job = {
             "apiVersion": "ray.io/v1alpha1",
             "kind": "RayJob",
-            "metadata": {
-                "name": f"roma-{task_id[:8]}",
-                "namespace": "roma-system"
-            },
+            "metadata": {"name": f"roma-{task_id[:8]}", "namespace": "roma-system"},
             "spec": {
                 "rayVersion": "2.9",
                 "Entrypoint": dag[0]["command"] if dag else "echo done",
@@ -134,17 +108,11 @@ class K8sCompiler:
                     "headGroupSpec": {
                         "replicas": 1,
                         "template": {
-                            "spec": {
-                                "containers": [{
-                                    "name": "ray-head",
-                                    "image": "rayproject/ray:latest-gpu",
-                                    "resources": {"limits": {"gpu": "1" if gpu_required else "0"}, "memory": "8Gi"}
-                                }]
-                            }
-                        }
+                            "spec": {"containers": [{"name": "ray-head", "image": "rayproject/ray:latest-gpu", "resources": {"limits": {"gpu": "1" if gpu_required else "0"}, "memory": "8Gi"}}]}
+                        },
                     }
-                }
-            }
+                },
+            },
         }
         return ray_job
 

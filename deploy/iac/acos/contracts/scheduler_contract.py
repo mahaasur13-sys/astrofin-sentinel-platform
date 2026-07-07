@@ -20,6 +20,4 @@ def validate_scheduler_contract(obj: Any) -> None:
     required = ["schedule", "route"]
     for method in required:
         if not hasattr(obj, method):
-            raise RuntimeError(
-                f"Scheduler contract violation: missing method '{method}()'. " f"Object: {type(obj).__name__}"
-            )
+            raise RuntimeError(f"Scheduler contract violation: missing method '{method}()'. Object: {type(obj).__name__}")

@@ -121,20 +121,14 @@ class FailureIsolator:
         metric = trigger.metric
 
         if "slurm" in metric:
-            actions.append(
-                RollbackAction(target_layer="L4", action="restart_service", target_id="slurmctld", priority=1)
-            )
+            actions.append(RollbackAction(target_layer="L4", action="restart_service", target_id="slurmctld", priority=1))
         elif "ceph" in metric:
-            actions.append(
-                RollbackAction(target_layer="L3", action="restore_snapshot", target_id="ceph_osd", priority=2)
-            )
+            actions.append(RollbackAction(target_layer="L3", action="restore_snapshot", target_id="ceph_osd", priority=2))
             actions.append(RollbackAction(target_layer="L3", action="fence_node", target_id="ceph_mon", priority=1))
         elif "gpu" in metric:
             actions.append(RollbackAction(target_layer="L0", action="drain_node", target_id="gpu_node", priority=1))
         elif "ml" in metric:
-            actions.append(
-                RollbackAction(target_layer="L5", action="restore_snapshot", target_id="ml_model", priority=3)
-            )
+            actions.append(RollbackAction(target_layer="L5", action="restore_snapshot", target_id="ml_model", priority=3))
 
         return sorted(actions, key=lambda a: a.priority)
 
@@ -154,19 +148,12 @@ class FailureIsolator:
             if existing.severity.value >= IncidentSeverity.SEVERE.value:
                 shared_layers = set(existing.affected_layers) & set(incident.affected_layers)
                 if shared_layers:
-                    warnings.append(
-                        f"CASCADE_RISK: incident={incident.incident_id} shares layers {shared_layers} "
-                        f"with active incident={existing.incident_id} (severity={existing.severity.name})"
-                    )
+                    warnings.append(f"CASCADE_RISK: incident={incident.incident_id} shares layers {shared_layers} with active incident={existing.incident_id} (severity={existing.severity.name})")
         return warnings
 
     def incident_summary(self) -> dict[str, Any]:
         return {
             "active": len(self.active_incidents),
             "history": len(self.incident_history),
-            "by_severity": {
-                s.name: sum(1 for i in self.active_incidents.values() if i.severity == s)
-                for s in IncidentSeverity
-                if s != IncidentSeverity.NONE
-            },
+            "by_severity": {s.name: sum(1 for i in self.active_incidents.values() if i.severity == s) for s in IncidentSeverity if s != IncidentSeverity.NONE},
         }

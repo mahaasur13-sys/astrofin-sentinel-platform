@@ -118,13 +118,7 @@ class TelegramAlerter:
         dd = f"{getattr(ev, 'max_drawdown', 0):.2%}" if ev else "N/A"
         trades = str(getattr(ev, "trades", 0)) if ev else "N/A"
 
-        msg = (
-            f"🟢 *Strategy Alert*\n"
-            f"`Reward: {reward:+.4f}`\n"
-            f"Gen: {generation} | ID: `{sid}`\n"
-            f"Sharpe: {sharpe} | Win: {wr} | DD: {dd}\n"
-            f"Trades: {trades}"
-        )
+        msg = f"🟢 *Strategy Alert*\n`Reward: {reward:+.4f}`\nGen: {generation} | ID: `{sid}`\nSharpe: {sharpe} | Win: {wr} | DD: {dd}\nTrades: {trades}"
         if extra:
             msg += f"\n_{extra}_"
 
@@ -193,12 +187,7 @@ class TelegramAlerter:
         deg = getattr(overfit_report, "mean_degradation", 0)
 
         msg = (
-            f"⚠️ *Overfit Detected*\n"
-            f"Strategy: `{sid}`\n"
-            f"Gen: {generation}\n"
-            f"OOS failed: {splits}/{n_splits} splits\n"
-            f"Sharpe degradation: {deg:+.3f}\n"
-            f"Action: Reduce complexity or increase regularization"
+            f"⚠️ *Overfit Detected*\nStrategy: `{sid}`\nGen: {generation}\nOOS failed: {splits}/{n_splits} splits\nSharpe degradation: {deg:+.3f}\nAction: Reduce complexity or increase regularization"
         )
 
         ok = self._send(msg)
@@ -215,12 +204,7 @@ class TelegramAlerter:
         if isinstance(top_q, float):
             top_q = f"{top_q:.4f}"
 
-        msg = (
-            f"🧠 *KARL Update*\n"
-            f"Gen: {generation}\n"
-            f"Q* (top): {top_q}\n"
-            f"Generation: {karl_state.get('generation', generation)}"
-        )
+        msg = f"🧠 *KARL Update*\nGen: {generation}\nQ* (top): {top_q}\nGeneration: {karl_state.get('generation', generation)}"
 
         ok = self._send(msg)
         return ok

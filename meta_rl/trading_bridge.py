@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 META_RL_TRADING_ENABLED = False  # F821 fix (TODO: move to config)
 """meta_rl/trading_bridge.py — Live/Paper Trading Bridge for Meta-RL"""
 
@@ -68,9 +69,7 @@ class MetaRLTradingBridge:
                     reason=sanity.get("reason", "Sanity check failed"),
                 )
             # 5) Log
-            logger.info(
-                f"[META-RL-TRADING] {mode} approved: {order_req['symbol']} signal={order_req['direction']} size={order_req['size_pct']:.2%}"
-            )
+            logger.info(f"[META-RL-TRADING] {mode} approved: {order_req['symbol']} signal={order_req['direction']} size={order_req['size_pct']:.2%}")
             return TradingExecutionResult(status="APPROVED", reason=f"{mode} approved", adjusted_signal=order_req)
         except Exception as e:
             logger.error(f"[META-RL-TRADING] Execution failed: {e}")

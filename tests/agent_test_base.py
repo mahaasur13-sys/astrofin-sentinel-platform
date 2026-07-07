@@ -75,9 +75,7 @@ class AgentTestContract:
     @pytest.fixture
     def agent(self):
         """Fresh agent per-test (no shared state)."""
-        assert self.agent_class is not None, (
-            f"{self.__class__.__name__} must set `agent_class`"
-        )
+        assert self.agent_class is not None, f"{self.__class__.__name__} must set `agent_class`"
         return self.agent_class()
 
     @pytest.fixture
@@ -178,6 +176,7 @@ class AgentTestContract:
     async def test_hot_latency_under_budget(self, agent, happy_state):
         """First call must return within HOT_LATENCY_BUDGET_S."""
         import time
+
         t0 = time.perf_counter()
         await agent.run(happy_state)
         dt = time.perf_counter() - t0
@@ -222,6 +221,7 @@ class DegradedContract:
     async def test_degraded_returns_neutral_zero_confidence(self, agent):
         """_degraded() must return NEUTRAL with confidence=0."""
         from core.base_agent import EPHEMERIS_UNAVAILABLE
+
         response = agent._degraded(EPHEMERIS_UNAVAILABLE, "sweph not installed")
         assert response.agent_name == agent.name
         assert response.signal == SignalDirection.NEUTRAL
@@ -233,6 +233,7 @@ class DegradedContract:
     async def test_degraded_runs_under_budget(self, agent):
         """_degraded() must be fast — orchestrator's last-resort path."""
         import time
+
         t0 = time.perf_counter()
         for _ in range(100):
             agent._degraded("UNKNOWN", "test")

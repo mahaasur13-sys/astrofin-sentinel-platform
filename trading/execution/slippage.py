@@ -167,10 +167,7 @@ class AdaptiveSlippageModel:
         )
 
     def __repr__(self) -> str:
-        return (
-            f"AdaptiveSlippageModel(base={self.base_slippage_bps}bps, "
-            f"vol={self.vol_coefficient}, size={self.size_coefficient})"
-        )
+        return f"AdaptiveSlippageModel(base={self.base_slippage_bps}bps, vol={self.vol_coefficient}, size={self.size_coefficient})"
 
 
 if __name__ == "__main__":
@@ -178,10 +175,7 @@ if __name__ == "__main__":
     m = SlippageModel(slippage_bps=5, spread_bps=2.5)
     for side, qty in [("buy", 100), ("sell", 100)]:
         r = m.calculate(side, qty, 50000)
-        print(
-            f"  {side.upper()} {qty} units: {r.slippage_bps:.2f}bps, "
-            f"cost=${r.slippage_cost:.2f}, exec=${r.exec_price:.2f}"
-        )
+        print(f"  {side.upper()} {qty} units: {r.slippage_bps:.2f}bps, cost=${r.slippage_cost:.2f}, exec=${r.exec_price:.2f}")
 
     print("\n=== AdaptiveSlippageModel ===")
     a = AdaptiveSlippageModel()
@@ -192,8 +186,4 @@ if __name__ == "__main__":
         ("extreme", 500, 500),
     ]:
         r = a.calculate("buy", qty, 50000, volatility_bps=vol, market_regime=regime)
-        print(
-            f"  [{regime.upper():8s}] vol={vol:4d}bps, qty={qty}: "
-            f"{r.slippage_bps:.2f}bps, cost=${r.slippage_cost:.2f}, "
-            f"exec=${r.exec_price:.2f}"
-        )
+        print(f"  [{regime.upper():8s}] vol={vol:4d}bps, qty={qty}: {r.slippage_bps:.2f}bps, cost=${r.slippage_cost:.2f}, exec=${r.exec_price:.2f}")

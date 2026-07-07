@@ -101,8 +101,7 @@ def dashboard_tab():
                     dbc.Col(
                         [
                             html.Small(
-                                f"AstroFinSentinelV5 • Meta-RL Dashboard • "
-                                f"Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                                f"AstroFinSentinelV5 • Meta-RL Dashboard • Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
                                 className="text-muted",
                             )
                         ],

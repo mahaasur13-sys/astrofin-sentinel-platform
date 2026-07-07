@@ -27,6 +27,7 @@ Feature flags (env):
   OPENAI_API_KEY   = sk-...    (required if RAG_PROVIDER=openai)
   OLLAMA_HOST      = http://localhost:11434                    (default: localhost:11434)
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -52,7 +53,7 @@ class EmbeddingConfig(BaseModel):
     dimension: int = 1536
     cache_enabled: bool = True
     cache_ttl_seconds: int = 3600  # 1h
-    max_batch_size: int = 32       # OpenAI safe chunk
+    max_batch_size: int = 32  # OpenAI safe chunk
     ollama_host: str = "http://localhost:11434"
 
     @classmethod
@@ -100,23 +101,14 @@ class EmbeddingClient:
 
     def _validate_config(self) -> None:
         if self.config.provider == "ollama" and self.config.dimension != 768:
-            raise ValueError(
-                f"Ollama does not support dimension {self.config.dimension}. "
-                "Use 768 (nomic-embed-text) or switch provider."
-            )
+            raise ValueError(f"Ollama does not support dimension {self.config.dimension}. Use 768 (nomic-embed-text) or switch provider.")
         if self.config.provider == "openai" and self.config.dimension not in (1536, 3072):
             # text-embedding-3-small = 1536, text-embedding-3-large = 3072.
             # 512 and 256 are also valid for 3-small/3-large per OpenAI, but we
             # don't use them — keep validation strict to catch typos.
-            raise ValueError(
-                f"OpenAI dimension must be 1536 or 3072, got {self.config.dimension}. "
-                "Use RAG_EMBEDDING_DIM=1536 with RAG_PROVIDER=openai."
-            )
+            raise ValueError(f"OpenAI dimension must be 1536 or 3072, got {self.config.dimension}. Use RAG_EMBEDDING_DIM=1536 with RAG_PROVIDER=openai.")
         if self.config.provider not in ("openai", "ollama", "stub"):
-            raise ValueError(
-                f"Unknown RAG_PROVIDER: {self.config.provider!r}. "
-                "Use one of: openai, ollama, stub."
-            )
+            raise ValueError(f"Unknown RAG_PROVIDER: {self.config.provider!r}. Use one of: openai, ollama, stub.")
 
     # ─── Cache helpers ───────────────────────────────────────────────────────
 
@@ -184,10 +176,7 @@ class EmbeddingClient:
             return result  # type: ignore[return-value]
 
         # Step 2: chunk by max_batch_size
-        chunks: list[list[str]] = [
-            to_embed[i : i + self.config.max_batch_size]
-            for i in range(0, len(to_embed), self.config.max_batch_size)
-        ]
+        chunks: list[list[str]] = [to_embed[i : i + self.config.max_batch_size] for i in range(0, len(to_embed), self.config.max_batch_size)]
 
         # Step 3: dispatch to provider
         all_embedded: list[list[float]] = []
@@ -220,10 +209,7 @@ class EmbeddingClient:
         except RuntimeError:
             loop = None
         if loop is not None and loop.is_running():
-            raise RuntimeError(
-                "embed_sync() called from a running event loop. "
-                "Use `await embedding_client.embed(texts)` instead."
-            )
+            raise RuntimeError("embed_sync() called from a running event loop. Use `await embedding_client.embed(texts)` instead.")
         return asyncio.run(self.embed(texts))
 
     # ─── Provider implementations ───────────────────────────────────────────
@@ -232,10 +218,7 @@ class EmbeddingClient:
         if self._openai_client is None:
             api_key = os.getenv("OPENAI_API_KEY")
             if not api_key:
-                raise ValueError(
-                    "OPENAI_API_KEY is required for RAG_PROVIDER=openai. "
-                    "Set the env var or switch to RAG_PROVIDER=stub (tests) / ollama (dev)."
-                )
+                raise ValueError("OPENAI_API_KEY is required for RAG_PROVIDER=openai. Set the env var or switch to RAG_PROVIDER=stub (tests) / ollama (dev).")
             self._openai_client = openai.AsyncOpenAI(api_key=api_key, timeout=30.0)
         return self._openai_client
 
@@ -254,7 +237,7 @@ class EmbeddingClient:
             except openai.RateLimitError as e:
                 # 429 — wait and retry
                 last_exc = e
-                wait = 0.5 * (3 ** attempt)  # 0.5s, then 1.5s
+                wait = 0.5 * (3**attempt)  # 0.5s, then 1.5s
                 logger.warning("OpenAI rate-limited, retrying in %.1fs (attempt %d)", wait, attempt + 1)
                 await asyncio.sleep(wait)
             except openai.AuthenticationError as e:
@@ -266,7 +249,7 @@ class EmbeddingClient:
             except (openai.APIConnectionError, openai.APITimeoutError) as e:
                 # Network — retry
                 last_exc = e
-                wait = 0.5 * (3 ** attempt)
+                wait = 0.5 * (3**attempt)
                 logger.warning("OpenAI connection error, retrying in %.1fs: %s", wait, e)
                 await asyncio.sleep(wait)
         # Both attempts failed on transient errors — do NOT silently fall back to stub.
@@ -298,8 +281,7 @@ class EmbeddingClient:
             if os.getenv("OLLAMA_REQUIRED", "0") == "1":
                 raise
             logger.warning(
-                "Ollama unavailable (%s) — falling back to stub. "
-                "Set OLLAMA_REQUIRED=1 to fail loudly.",
+                "Ollama unavailable (%s) — falling back to stub. Set OLLAMA_REQUIRED=1 to fail loudly.",
                 type(e).__name__,
             )
             return [self._deterministic_vector(t) for t in texts]
@@ -326,10 +308,7 @@ class _LazySingleton:
         return getattr(get_embedding_client(), name)
 
     def __call__(self, *args, **kwargs):  # in case someone does embedding_client(...)
-        raise TypeError(
-            "embedding_client is a lazy proxy. Use `get_embedding_client()` "
-            "or instantiate `EmbeddingClient(...)` directly."
-        )
+        raise TypeError("embedding_client is a lazy proxy. Use `get_embedding_client()` or instantiate `EmbeddingClient(...)` directly.")
 
 
 embedding_client = _LazySingleton()

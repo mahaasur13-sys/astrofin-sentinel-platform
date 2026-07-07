@@ -187,9 +187,7 @@ def test_patch2_idempotent_engine():
 
     # Events should NOT increase on second call
     ok = (t1 == t2 == "idemo") and (events_after_first == events_after_second)
-    print(
-        f"  [{'OK' if ok else 'FAIL'}] PATCH2 — Idempotent: trace_id={t1}, events unchanged: {events_after_first}=={events_after_second}"
-    )
+    print(f"  [{'OK' if ok else 'FAIL'}] PATCH2 — Idempotent: trace_id={t1}, events unchanged: {events_after_first}=={events_after_second}")
     return ok
 
 

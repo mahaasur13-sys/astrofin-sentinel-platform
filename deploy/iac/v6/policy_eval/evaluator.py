@@ -69,11 +69,7 @@ class PolicyEvaluator:
         if policy_id not in self.trials or not self.trials[policy_id]:
             return {"status": "no_data"}
         trials = self.trials[policy_id]
-        recent = [
-            t
-            for t in trials
-            if t.end_time and (datetime.now() - t.end_time) < timedelta(hours=self._regret_window_hours)
-        ]
+        recent = [t for t in trials if t.end_time and (datetime.now() - t.end_time) < timedelta(hours=self._regret_window_hours)]
         if not recent:
             recent = trials[-10:]
         return {

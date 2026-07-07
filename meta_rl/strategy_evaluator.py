@@ -94,11 +94,7 @@ class StrategyEvaluator:
                     adjusted_drawdown=result.max_drawdown,
                     equity_curve=result.equity_curve,
                 )
-            logger.debug(
-                f"[META-RL] Evaluated: pnl={result.pnl:+.3f} "
-                f"risk_adj={result.risk_adjusted_pnl:+.3f} "
-                f"reason={result.risk_adjustment_reason} trades={result.trades}"
-            )
+            logger.debug(f"[META-RL] Evaluated: pnl={result.pnl:+.3f} risk_adj={result.risk_adjusted_pnl:+.3f} reason={result.risk_adjustment_reason} trades={result.trades}")
             return result
         except Exception as e:
             logger.warning(f"[META-RL] Evaluation failed: {e}")
@@ -214,11 +210,7 @@ class StrategyEvaluator:
             execution_cost=float(np.mean([r.execution_cost for r in valid])),
             risk_adjusted_pnl=float(np.mean([r.risk_adjusted_pnl for r in valid])),
             risk_adjustment_reason="AGGREGATE",
-            adjusted_drawdown=(
-                float(np.mean([r.adjusted_drawdown for r in valid]))
-                if all(r.adjusted_drawdown is not None for r in valid)
-                else None
-            ),
+            adjusted_drawdown=(float(np.mean([r.adjusted_drawdown for r in valid])) if all(r.adjusted_drawdown is not None for r in valid) else None),
             equity_curve=None,
         )
 

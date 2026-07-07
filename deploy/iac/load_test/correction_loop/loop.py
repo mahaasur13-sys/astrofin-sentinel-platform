@@ -122,9 +122,7 @@ class CorrectionLoop:
             elapsed = (datetime.utcnow() - self._last_fix_time).total_seconds()
             if elapsed < self._fix_cooldown_sec:
                 self._suppression_count += 1
-                self._correction_log.info(
-                    f"[Cycle {cycle_id}] Suppressed (cooldown {elapsed:.0f}s < {self._fix_cooldown_sec}s)"
-                )
+                self._correction_log.info(f"[Cycle {cycle_id}] Suppressed (cooldown {elapsed:.0f}s < {self._fix_cooldown_sec}s)")
                 return CorrectionCycleResult(
                     cycle_id=cycle_id,
                     timestamp=datetime.utcnow(),
@@ -359,9 +357,7 @@ class CorrectionLoop:
         if total == 0:
             return {"cycles": 0}
 
-        fixes = [
-            r for r in self._history if r.decision and r.decision.primary_action != CorrectionAction.ADJUST_QUEUE_DEPTH
-        ]
+        fixes = [r for r in self._history if r.decision and r.decision.primary_action != CorrectionAction.ADJUST_QUEUE_DEPTH]
         escalations = sum(1 for r in self._history if r.escalation_required)
         return {
             "total_cycles": total,

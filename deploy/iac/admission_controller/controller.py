@@ -59,7 +59,7 @@ class AdmissionController:
                     self.state.write_admission_decision(
                         job.get("id"),
                         "REJECT",
-                        f"GPU saturated {avg_gpu:.1f}% >= {GPU_SATURATION_THRESHOLD*100:.0f}%",
+                        f"GPU saturated {avg_gpu:.1f}% >= {GPU_SATURATION_THRESHOLD * 100:.0f}%",
                         cluster_util,
                     )
                     log.warning("REJECT GPU job %s: GPU saturated %.1f%%", job.get("id"), avg_gpu)
@@ -69,9 +69,7 @@ class AdmissionController:
         queue_depth = cluster_util.get("total_queue_depth", 0)
         if queue_depth >= QUEUE_DEPTH_THRESHOLD:
             wait_time = min(queue_depth * 10, 300)  # max 5 min
-            self.state.write_admission_decision(
-                job.get("id"), "QUEUED", f"Queue depth {queue_depth} >= {QUEUE_DEPTH_THRESHOLD}", cluster_util
-            )
+            self.state.write_admission_decision(job.get("id"), "QUEUED", f"Queue depth {queue_depth} >= {QUEUE_DEPTH_THRESHOLD}", cluster_util)
             log.warning("QUEUE GPU job %s: queue depth %d (wait %ds)", job.get("id"), queue_depth, wait_time)
             return AdmitResult(
                 AdmitDecision.QUEUED,
@@ -87,13 +85,11 @@ class AdmissionController:
                 self.state.write_admission_decision(
                     job.get("id"),
                     "REJECT",
-                    f"Low priority throttled: load {avg_load:.1f}% >= {LOAD_THRESHOLD_LOW_PRI*100:.0f}%",
+                    f"Low priority throttled: load {avg_load:.1f}% >= {LOAD_THRESHOLD_LOW_PRI * 100:.0f}%",
                     cluster_util,
                 )
                 log.info("REJECT low-priority job %s: load %.1f%%", job.get("id"), avg_load)
-                return AdmitResult(
-                    AdmitDecision.REJECT, f"Low priority throttled (load={avg_load:.1f}%)", job_id=job.get("id")
-                )
+                return AdmitResult(AdmitDecision.REJECT, f"Low priority throttled (load={avg_load:.1f}%)", job_id=job.get("id"))
 
         # Rule 4: Memory check (per-node)
         job_mem_gb = job.get("memory_gb", 8)

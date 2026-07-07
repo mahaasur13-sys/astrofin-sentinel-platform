@@ -3,6 +3,7 @@
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 # 1. GPU Worker server module
@@ -13,6 +14,7 @@ print("  Endpoints: /execute, /health, /status, /metrics")
 # 2. GPU Connector
 print("\n=== GPU Connector ===")
 from gpu_worker.connector import get_gpu_connector
+
 connector = get_gpu_connector()
 metrics = connector.get_metrics()
 print(f"  Available: {metrics['connector_available']}")
@@ -43,30 +45,18 @@ gpu_job = {
     "memory": "8GB",
     "timeout": 30,
     "tenant_tier": "PRO",
-    "plan_tier": "PRO"
+    "plan_tier": "PRO",
 }
 
 route = scheduler.route_job(gpu_job)
 print(f"  GPU job route: {route['status']} → {route.get('execution_target')}")
 
 # Test 2: Cost gate check
-gate = scheduler.cost_gate.evaluate(
-    task="ml_training",
-    gpu_required=True,
-    tenant_id="tenant_test",
-    plugin_type="PRO"
-)
+gate = scheduler.cost_gate.evaluate(task="ml_training", gpu_required=True, tenant_id="tenant_test", plugin_type="PRO")
 print(f"  Cost gate: {gate.get('decision')}, quota: ${gate.get('quota_remaining', 0):.4f}")
 
 # Test 3: Local fallback job
-local_job = {
-    "job_id": "test-local-001",
-    "task_type": "data_prep",
-    "command": "echo 'ROM A local execution'",
-    "gpu_required": False,
-    "tenant_tier": "FREE",
-    "plan_tier": "FREE"
-}
+local_job = {"job_id": "test-local-001", "task_type": "data_prep", "command": "echo 'ROM A local execution'", "gpu_required": False, "tenant_tier": "FREE", "plan_tier": "FREE"}
 
 local_route = scheduler.route_job(local_job)
 print(f"  Local job route: {local_route['status']} → {local_route.get('execution_target')}")
@@ -80,7 +70,7 @@ rejected_job = {
     "memory": "64GB",
     "timeout": 7200,
     "tenant_tier": "FREE",
-    "plan_tier": "FREE"
+    "plan_tier": "FREE",
 }
 
 rejected_route = scheduler.route_job(rejected_job)

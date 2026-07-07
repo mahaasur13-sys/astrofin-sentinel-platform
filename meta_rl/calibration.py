@@ -11,11 +11,11 @@ Public API:
     tracker.record_outcome(pid, actual_label=1, observed_at=..., pnl=...)
     report = tracker.get_calibration(agent="macro_agent", window_days=30)
 """
+
 from __future__ import annotations
 
 import json
 import logging
-import math
 import sqlite3
 import threading
 from contextlib import contextmanager
@@ -168,8 +168,7 @@ class CalibrationTracker:
         ctx_json = json.dumps(context or {}, default=str, ensure_ascii=False)
         with self._cursor() as cur:
             cur.execute(
-                "INSERT INTO predictions (agent, signal, confidence, predicted_at, context_json) "
-                "VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO predictions (agent, signal, confidence, predicted_at, context_json) VALUES (?, ?, ?, ?, ?)",
                 (agent, signal, conf, ts, ctx_json),
             )
             new_id = int(cur.lastrowid)
@@ -189,8 +188,7 @@ class CalibrationTracker:
         ts = self._ts(observed_at)
         with self._cursor() as cur:
             cur.execute(
-                "INSERT INTO outcomes (prediction_id, actual_label, observed_at, pnl) "
-                "VALUES (?, ?, ?, ?)",
+                "INSERT INTO outcomes (prediction_id, actual_label, observed_at, pnl) VALUES (?, ?, ?, ?)",
                 (int(prediction_id), int(actual_label), ts, float(pnl)),
             )
             outcome_id = int(cur.lastrowid)
@@ -218,23 +216,17 @@ class CalibrationTracker:
         with self._cursor() as cur:
             if agent is None:
                 cur.execute(
-                    "SELECT confidence, actual_label FROM predictions p "
-                    "JOIN outcomes o ON p.outcome_id = o.id "
-                    "WHERE p.predicted_at >= ? AND p.predicted_at <= ?",
+                    "SELECT confidence, actual_label FROM predictions p JOIN outcomes o ON p.outcome_id = o.id WHERE p.predicted_at >= ? AND p.predicted_at <= ?",
                     (start_iso, end_iso),
                 )
-                cur.execute("SELECT COUNT(*) FROM predictions WHERE predicted_at >= ? AND predicted_at <= ?",
-                            (start_iso, end_iso))
+                cur.execute("SELECT COUNT(*) FROM predictions WHERE predicted_at >= ? AND predicted_at <= ?", (start_iso, end_iso))
             else:
                 cur.execute(
-                    "SELECT confidence, actual_label FROM predictions p "
-                    "JOIN outcomes o ON p.outcome_id = o.id "
-                    "WHERE p.agent = ? AND p.predicted_at >= ? AND p.predicted_at <= ?",
+                    "SELECT confidence, actual_label FROM predictions p JOIN outcomes o ON p.outcome_id = o.id WHERE p.agent = ? AND p.predicted_at >= ? AND p.predicted_at <= ?",
                     (agent, start_iso, end_iso),
                 )
                 cur.execute(
-                    "SELECT COUNT(*) FROM predictions "
-                    "WHERE agent = ? AND predicted_at >= ? AND predicted_at <= ?",
+                    "SELECT COUNT(*) FROM predictions WHERE agent = ? AND predicted_at >= ? AND predicted_at <= ?",
                     (agent, start_iso, end_iso),
                 )
 
@@ -297,10 +289,7 @@ class CalibrationTracker:
     ) -> CalibrationReport:
         n_resolved = len(pairs)
         if n_resolved == 0:
-            empty_bins = [
-                ReliabilityBin(BIN_EDGES[i], BIN_EDGES[i + 1], 0, 0.0, 0.0)
-                for i in range(N_BINS)
-            ]
+            empty_bins = [ReliabilityBin(BIN_EDGES[i], BIN_EDGES[i + 1], 0, 0.0, 0.0) for i in range(N_BINS)]
             return CalibrationReport(
                 agent=agent,
                 n_predictions=n_predictions,

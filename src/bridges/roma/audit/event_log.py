@@ -1,8 +1,10 @@
 """ROMA Audit Log — Immutable append-only event log."""
+
 import time
 import json
 import csv
 import io
+
 
 class AuditLog:
     def __init__(self):
@@ -11,19 +13,10 @@ class AuditLog:
 
     def log_event(self, user_id: str, org_id: str, event_type: str, metadata: dict):
         self._counter += 1
-        entry = {
-            "entry_id": f"ae_{self._counter:06d}",
-            "timestamp": time.time(),
-            "user_id": user_id,
-            "org_id": org_id,
-            "event_type": event_type,
-            "metadata": metadata,
-            "immutable": True
-        }
+        entry = {"entry_id": f"ae_{self._counter:06d}", "timestamp": time.time(), "user_id": user_id, "org_id": org_id, "event_type": event_type, "metadata": metadata, "immutable": True}
         self._events.append(entry)
 
-    def query_events(self, org_id: str = None, user_id: str = None,
-                     event_type: str = None, limit: int = 100) -> list:
+    def query_events(self, org_id: str = None, user_id: str = None, event_type: str = None, limit: int = 100) -> list:
         results = self._events
         if org_id:
             results = [e for e in results if e["org_id"] == org_id]
@@ -50,12 +43,12 @@ class AuditLog:
         events = self.query_events(org_id=org_id, limit=10000)
         return {
             "org_id": org_id,
-            "period": {"from": events[0]["timestamp"] if events else None,
-                       "to": events[-1]["timestamp"] if events else None},
+            "period": {"from": events[0]["timestamp"] if events else None, "to": events[-1]["timestamp"] if events else None},
             "total_events": len(events),
             "event_types": list(set(e["event_type"] for e in events)),
-            "report_url": f"/audit/org/{org_id}/report.pdf"
+            "report_url": f"/audit/org/{org_id}/report.pdf",
         }
+
 
 if __name__ == "__main__":
     log = AuditLog()

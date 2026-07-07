@@ -1,12 +1,15 @@
 """ROMA RBAC Engine — Role-based permissions."""
+
 from enum import Enum
 from typing import Optional
+
 
 class Role(Enum):
     OWNER = "owner"
     ADMIN = "admin"
     DEVELOPER = "developer"
     VIEWER = "viewer"
+
 
 ROLE_PERMISSIONS = {
     Role.OWNER: {"billing:*", "job:*", "plugin:*", "tenant:*", "org:*", "audit:*", "member:*"},
@@ -15,10 +18,11 @@ ROLE_PERMISSIONS = {
     Role.VIEWER: {"job:read", "plugin:read"},
 }
 
+
 class RBACEngine:
     def __init__(self):
-        self._orgs = {}   # org_id -> {user_id: role}
-        self._keys = {}   # key_id -> {org_id, permissions}
+        self._orgs = {}  # org_id -> {user_id: role}
+        self._keys = {}  # key_id -> {org_id, permissions}
 
     def create_org(self, org_id: str):
         self._orgs[org_id] = {}

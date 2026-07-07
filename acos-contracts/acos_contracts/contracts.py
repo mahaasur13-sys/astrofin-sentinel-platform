@@ -7,6 +7,7 @@ same data shape without importing each other.
 Backward compat: `AsurDev.acos.storage.schema` still re-exports
 `TraceRecord` from this module.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

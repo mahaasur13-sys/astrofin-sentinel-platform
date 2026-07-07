@@ -19,6 +19,7 @@ Adapter contract: both retrievers must expose a method called `retrieve`
 that returns a list of `Chunk` (or any object with `.id`). Vector side is
 async (matches RAGClient); BM25 side is sync (pure-Python, no I/O).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -133,12 +134,14 @@ class HybridRetriever:
             if chunk is None:
                 # Should be unreachable: we just iterated over these lists.
                 continue
-            fused.append(HybridScore(
-                chunk=chunk,
-                hybrid_score=score,
-                vector_rank=v_rank,
-                bm25_rank=b_rank,
-            ))
+            fused.append(
+                HybridScore(
+                    chunk=chunk,
+                    hybrid_score=score,
+                    vector_rank=v_rank,
+                    bm25_rank=b_rank,
+                )
+            )
 
         fused.sort(key=lambda x: x.hybrid_score, reverse=True)
         return fused[:top_k]

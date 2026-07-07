@@ -1,4 +1,5 @@
 """strategies/generator.py — ATOM-STEP-11: Strategy Generator (Genetic Programming)"""
+
 from __future__ import annotations
 
 import random
@@ -149,11 +150,7 @@ class GeneratedStrategy(BaseStrategy):
             signal = Signal.NEUTRAL
             conf = 50.0 - abs(score) * 0.5
 
-        reasoning = (
-            f"Generated strategy [{self.generation}]: "
-            f"bullish={bullish_score:.2f} bearish={bearish_score:.2f} "
-            f"momentum={momentum:.2f} rev={mean_reversion:.2f}"
-        )
+        reasoning = f"Generated strategy [{self.generation}]: bullish={bullish_score:.2f} bearish={bearish_score:.2f} momentum={momentum:.2f} rev={mean_reversion:.2f}"
 
         return StrategyResult(
             signal=signal,
@@ -221,9 +218,7 @@ class GeneratedStrategy(BaseStrategy):
             import logging
 
             logger = logging.getLogger(__name__)
-            logger.warning(
-                f"[META-RL-SERIAL] Failed to deserialize strategy, generating random: {d.get('generation', '?')}"
-            )
+            logger.warning(f"[META-RL-SERIAL] Failed to deserialize strategy, generating random: {d.get('generation', '?')}")
             return cls(chromosome=random_chromosome(), generation=1, parent_fitness=0.0)
 
 
@@ -271,9 +266,7 @@ def evolve(
     history = [best_ever[1]]
 
     for gen in range(1, n_generations + 1):
-        sorted_strategies = [
-            s for s, f in sorted(zip(pop.strategies, pop.fitnesses, strict=False), key=lambda x: x[1], reverse=True)
-        ]
+        sorted_strategies = [s for s, f in sorted(zip(pop.strategies, pop.fitnesses, strict=False), key=lambda x: x[1], reverse=True)]
         new_pop = list(sorted_strategies[:elite_size])
         current_gen = sorted_strategies[0].generation
 
@@ -295,10 +288,7 @@ def evolve(
         history.append(best_ever[1])
 
         if gen % 5 == 0 or gen == n_generations or pop.avg_fitness == pop.best[1]:
-            print(
-                f"  Gen {gen:3d}: avg={pop.avg_fitness:8.2f}  best={pop.best[1]:8.2f}  "
-                f"spread={max(pop.fitnesses) - min(pop.fitnesses):8.2f}"
-            )
+            print(f"  Gen {gen:3d}: avg={pop.avg_fitness:8.2f}  best={pop.best[1]:8.2f}  spread={max(pop.fitnesses) - min(pop.fitnesses):8.2f}")
 
     print(f"\n  Best strategy fitness: {best_ever[1]:.2f}")
     return [s for s, f in sorted(zip(pop.strategies, pop.fitnesses, strict=False), key=lambda x: x[1], reverse=True)]

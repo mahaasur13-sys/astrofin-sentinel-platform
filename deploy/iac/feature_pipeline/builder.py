@@ -34,9 +34,7 @@ class FeatureBuilder:
         prometheus_url: str = "http://localhost:9090",
     ):
         self.backend = backend
-        self.tsdb_dsn = tsdb_dsn or os.environ.get(
-            "CLUSTER_DSN", "postgresql://cluster:password@localhost:5432/cluster_metrics"
-        )
+        self.tsdb_dsn = tsdb_dsn or os.environ.get("CLUSTER_DSN", "postgresql://cluster:password@localhost:5432/cluster_metrics")
         self.prometheus_url = prometheus_url
         self._conn = None
         self._prom_client = None
@@ -117,9 +115,7 @@ class FeatureBuilder:
             metrics = self._query_tsdb(node_id)
         else:
             raw = self._query_prometheus(node_id)
-            metrics = {
-                k: {"avg": v, "min": v, "max": v, "stddev": 0, "p50": v, "p95": v, "p99": v} for k, v in raw.items()
-            }
+            metrics = {k: {"avg": v, "min": v, "max": v, "stddev": 0, "p50": v, "p95": v, "p99": v} for k, v in raw.items()}
 
         from feature_pipeline import build_features
 

@@ -15,6 +15,7 @@ class" fan-out the Graphify audit flagged as the main coupling source.
 
 See ADR-0002 for the full rationale.
 """
+
 from __future__ import annotations
 
 from typing import Any, Protocol, runtime_checkable
@@ -103,7 +104,7 @@ __all__ = [
 
 
 # Legacy aliases.
-MarketState = MarketStateProtocol             # type: ignore[misc, assignment]
-RiskConfigV2 = RiskConfigProtocol             # type: ignore[misc, assignment]
-RiskEngineV2 = RiskEngineProtocol             # type: ignore[misc, assignment]
+MarketState = MarketStateProtocol  # type: ignore[misc, assignment]
+RiskConfigV2 = RiskConfigProtocol  # type: ignore[misc, assignment]
+RiskEngineV2 = RiskEngineProtocol  # type: ignore[misc, assignment]
 StrategyEvaluator = StrategyEvaluatorProtocol  # type: ignore[misc, assignment]

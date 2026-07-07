@@ -39,9 +39,7 @@ ROLE_CAPABILITIES: dict[str, CapabilitySet] = {}
 
 
 def register_role(name: str, caps: list[str], description: str = "", tags: list[str] = None) -> CapabilitySet:
-    cap_set = CapabilitySet(
-        name=name, capabilities={Capability(c) for c in caps}, description=description, tags=tags or []
-    )
+    cap_set = CapabilitySet(name=name, capabilities={Capability(c) for c in caps}, description=description, tags=tags or [])
     ROLE_CAPABILITIES[name] = cap_set
     return cap_set
 

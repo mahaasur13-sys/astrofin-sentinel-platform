@@ -5,6 +5,7 @@ Property tests for core/kepler.py using Hypothesis.
 Covers: orbital mechanics invariants, convergence, periodicity, no NaN across
         wide JD ranges, Swiss Ephemeris boundary conditions, edge cases.
 """
+
 from __future__ import annotations
 
 import math
@@ -157,9 +158,7 @@ def test_period_motion_consistency(jd):
         assert not math.isnan(computed_period), f"{body}: computed period is NaN"
         assert not math.isinf(computed_period), f"{body}: computed period is Inf"
         err = abs(computed_period - elements.orbital_period) / elements.orbital_period
-        assert err < 0.001, (
-            f"{body}: P={computed_period:.2f} differs from stored P={elements.orbital_period} by {err * 100:.2f}%"
-        )
+        assert err < 0.001, f"{body}: P={computed_period:.2f} differs from stored P={elements.orbital_period} by {err * 100:.2f}%"
 
 
 # ─── Property 5: Newton-Raphson Convergence ≤ 20 iterations ────────────────────
@@ -220,9 +219,7 @@ def test_validate_returns_all_keys(body, jd):
     assert "status" in result, "result must contain 'status'"
     assert "message" in result, "result must contain 'message'"
     assert "kepler_lon" in result, "result must contain 'kepler_lon'"
-    assert result["status"] in ("PASS", "WARN", "FAIL", "SKIP", "ERROR"), (
-        f"status must be PASS|WARN|FAIL|SKIP|ERROR, got {result['status']}"
-    )
+    assert result["status"] in ("PASS", "WARN", "FAIL", "SKIP", "ERROR"), f"status must be PASS|WARN|FAIL|SKIP|ERROR, got {result['status']}"
 
 
 # ─── Property 8: No NaN across ±300 years from J2000 ─────────────────────────
@@ -333,9 +330,7 @@ def test_longitude_periodic_real_bodies():
         delta = abs(lon1 - lon0) % 360.0
         delta = min(delta, 360.0 - delta)
 
-        assert delta < 0.5, (
-            f"{name}: longitude changed by {delta}° after exactly one period (P={elements.orbital_period:.2f}d)"
-        )
+        assert delta < 0.5, f"{name}: longitude changed by {delta}° after exactly one period (P={elements.orbital_period:.2f}d)"
 
 
 if __name__ == "__main__":

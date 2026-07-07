@@ -216,11 +216,7 @@ def main():
         sys.exit(0 if ok == len(results) else 1)
 
     elif args.cmd == "submit":
-        job = (
-            json.loads(args.job_json)
-            if args.job_json
-            else {"type": args.job_type, "agent_type": args.agent_type, "priority": args.priority}
-        )
+        job = json.loads(args.job_json) if args.job_json else {"type": args.job_type, "agent_type": args.agent_type, "priority": args.priority}
         result = cli.submit(job)
         print(json.dumps(result, indent=2, default=str))
 

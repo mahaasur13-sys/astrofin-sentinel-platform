@@ -1,4 +1,5 @@
 """tests/test_risk_integration.py — ATOM-INTEGRATION-001: SafetyGate Integration Tests"""
+
 from __future__ import annotations
 
 import os
@@ -167,9 +168,7 @@ class TestNormalizeSignal:
             symbol="BTCUSDT",
             suggested_position_pct=0.05,
         )
-        assert result.status.value in ("APPROVED", "REJECTED", "REDUCED"), (
-            f"Should handle dict signal, got {result.status}"
-        )
+        assert result.status.value in ("APPROVED", "REJECTED", "REDUCED"), f"Should handle dict signal, got {result.status}"
 
     def test_none_signal_defaults(self, safety_gate, minimal_state):
         """None signal → defaults NEUTRAL 50, no crash."""
@@ -180,9 +179,7 @@ class TestNormalizeSignal:
             symbol="BTCUSDT",
             suggested_position_pct=0.05,
         )
-        assert result.status.value in ("APPROVED", "REJECTED", "REDUCED"), (
-            f"Should handle None signal, got {result.status}"
-        )
+        assert result.status.value in ("APPROVED", "REJECTED", "REDUCED"), f"Should handle None signal, got {result.status}"
 
 
 class TestSafetyDisabled:

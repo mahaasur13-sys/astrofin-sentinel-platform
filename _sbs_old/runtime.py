@@ -13,7 +13,6 @@ Usage
     enforcer.enforce("post_quorum", state)
 """
 
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -31,11 +30,14 @@ __all__ = [
 
 # ── SBS_MODE (plain class — avoids Flag/auto bug in Python 3.12.1) ─────────────
 
+
 class _SBS_MODE_TYPE:
     """SBS enforcement mode — controls how invariants are applied."""
-    OFF = 0       # SBS disabled; no overhead
-    AUDIT = 1     # Async validation; log but do not block
+
+    OFF = 0  # SBS disabled; no overhead
+    AUDIT = 1  # Async validation; log but do not block
     ENFORCED = 2  # Synchronous enforcement; block on violation
+
 
 SBS_MODE = _SBS_MODE_TYPE()
 
@@ -56,11 +58,7 @@ class InvariantViolation(Exception):
         self.failed_invariants = failed_invariants
         self.state_snapshot = state_snapshot
         self.policy = policy
-        msg = (
-            f"[{stage}] InvariantViolation — "
-            f"{len(failed_invariants)} invariant(s) violated: "
-            f"{failed_invariants}"
-        )
+        msg = f"[{stage}] InvariantViolation — {len(failed_invariants)} invariant(s) violated: {failed_invariants}"
         super().__init__(msg)
 
 

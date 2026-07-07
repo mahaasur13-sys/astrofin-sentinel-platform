@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Replicated Event Store — 3-node write quorum."""
+
 import threading
 from dataclasses import dataclass
 from typing import List
+
 
 @dataclass
 class Replica:
@@ -10,6 +12,7 @@ class Replica:
     committed_index: int = 0
     last_heartbeat: float = 0.0
     alive: bool = True
+
 
 class ReplicatedEventStore:
     def __init__(self, cluster_size: int = 3):
@@ -44,6 +47,7 @@ class ReplicatedEventStore:
                 "quorum": self.write_quorum,
                 "ready": self.commit_index == self.local_index,
             }
+
 
 if __name__ == "__main__":
     store = ReplicatedEventStore(3)

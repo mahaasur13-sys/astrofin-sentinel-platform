@@ -111,15 +111,11 @@ def get_node_metrics_prometheus(hostname: str, ip: str) -> NodeMetrics:
 
     gpu_util = get_prometheus_metric(f"DCGM_FI_DEV_GPU_UTIL{labels}", 0.0)
     gpu_mem = get_prometheus_metric(f"DCGM_FI_DEV_FB_USED{labels}", 0.0) / 12.0  # normalize to %
-    cpu_util = get_prometheus_metric(
-        f'100 - (avg by (instance) (irate({{__name__=~"node_cpu.*",{labels}}}[5m])) * 100)', 0.0
-    )
+    cpu_util = get_prometheus_metric(f'100 - (avg by (instance) (irate({{__name__=~"node_cpu.*",{labels}}}[5m])) * 100)', 0.0)
     mem_util = get_prometheus_metric(f"node_memory_MemAvailable{{{labels}}}", 0.0)
     mem_total = get_prometheus_metric(f"node_memory_MemTotal{{{labels}}}", 1.0)
     memory_util = ((mem_total - mem_util) / mem_total * 100) if mem_total > 0 else 50.0
-    disk_util = get_prometheus_metric(
-        f"100 - (node_filesystem_avail{{{labels}}}) / (node_filesystem_size{{{labels}}}) * 100", 0.0
-    )
+    disk_util = get_prometheus_metric(f"100 - (node_filesystem_avail{{{labels}}}) / (node_filesystem_size{{{labels}}}) * 100", 0.0)
     latency = get_prometheus_metric(f"probe_duration_seconds{{{labels}}}*1000", 1.0)
 
     return NodeMetrics(
@@ -214,8 +210,7 @@ def route_job(job: JobRequest) -> ScheduleResponse:
         target=best.hostname,
         partition=partition,
         score=round(best.score, 2),
-        reason=f"score={best.score:.1f} GPU={best.gpu_util:.0f}% CPU={best.cpu_util:.0f}% "
-        f"MEM={best.memory_util:.0f}% LAT={best.network_latency:.0f}ms",
+        reason=f"score={best.score:.1f} GPU={best.gpu_util:.0f}% CPU={best.cpu_util:.0f}% MEM={best.memory_util:.0f}% LAT={best.network_latency:.0f}ms",
         metrics={
             "gpu_util": best.gpu_util,
             "cpu_util": best.cpu_util,

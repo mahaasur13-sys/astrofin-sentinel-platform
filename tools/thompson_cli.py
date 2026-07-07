@@ -12,6 +12,7 @@ Usage:
     python tools/thompson_cli.py daily-brief --list          # list all briefs
     python tools/thompson_cli.py daily-brief --ideas         # generate ATOM ideas
 """
+
 from __future__ import annotations
 
 import argparse
@@ -68,11 +69,7 @@ def cmd_scores(args):
 
     for name, score, belief in results:
         if belief:
-            print(
-                f"  {name:<20} {score:>8.4f}  "
-                f"{belief.alpha:>6.2f}  {belief.beta:>6.2f}  "
-                f"{belief.mean:>7.4f}  {belief.total_sessions}"
-            )
+            print(f"  {name:<20} {score:>8.4f}  {belief.alpha:>6.2f}  {belief.beta:>6.2f}  {belief.mean:>7.4f}  {belief.total_sessions}")
         else:
             bonus_note = f"+{args.exploration_bonus:.1f}" if args.exploration_bonus else ""
             print(f"  {name:<20} {score:>8.4f}  (unseen, Beta(1{bonus_note},1))")
@@ -104,11 +101,7 @@ def cmd_leaderboard(args):
 
     for rank, row in enumerate(rows, 1):
         ci = row["ci_95"]
-        print(
-            f"  {rank:<3} {row['agent_name']:<22} {row['mean_accuracy']:>7.4f}  "
-            f"[{ci[0]:.3f}, {ci[1]:.3f}]  {row['total_sessions']:>9}  "
-            f"{row['alpha']:>5.1f}  {row['beta']:>5.1f}"
-        )
+        print(f"  {rank:<3} {row['agent_name']:<22} {row['mean_accuracy']:>7.4f}  [{ci[0]:.3f}, {ci[1]:.3f}]  {row['total_sessions']:>9}  {row['alpha']:>5.1f}  {row['beta']:>5.1f}")
 
 
 def cmd_simulate(args):

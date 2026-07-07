@@ -109,7 +109,7 @@ class DAGCompiler:
         nodes, edges = [], []
         prev_id = None
         for i, task in enumerate(tasks):
-            node = DAGNode(name=f"task:{i}:{task.get('name','unnamed')}", node_type=NodeType.COMPUTE)
+            node = DAGNode(name=f"task:{i}:{task.get('name', 'unnamed')}", node_type=NodeType.COMPUTE)
             nodes.append(node.to_dict())
             if prev_id:
                 edges.append({"from": prev_id, "to": node.node_id})

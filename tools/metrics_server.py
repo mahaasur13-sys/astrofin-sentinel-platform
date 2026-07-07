@@ -3,6 +3,7 @@
 
 Optional authentication via METRICS_AUTH_ENABLED / METRICS_API_KEY.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -20,7 +21,8 @@ OLLAMA_STATUS = Gauge("astrofin_ollama_status", "Ollama service status (1=health
 # active backend's index). Distinct from RAG_CHUNKS_RETURNED below, which
 # tracks the per-query returned chunk count as a distribution.
 RAG_CHUNK_COUNT = Gauge(
-    "astrofin_rag_chunk_count", "Number of chunks in the RAG index",
+    "astrofin_rag_chunk_count",
+    "Number of chunks in the RAG index",
 )
 RAG_CHUNKS_RETURNED = Histogram(
     "astrofin_rag_chunks_returned",
@@ -51,7 +53,8 @@ RAG_LATENCY_SECONDS = Histogram(
 # is now a Histogram; we keep its name so dashboards don't break, and we add a
 # separate Gauge for the per-query average.
 RAG_RELEVANCE_SCORE = Histogram(
-    "astrofin_rag_relevance_score", "Relevance score distribution of RAG chunks",
+    "astrofin_rag_relevance_score",
+    "Relevance score distribution of RAG chunks",
     buckets=(0.1, 0.3, 0.5, 0.7, 0.9, 1.0),
 )
 RAG_RELEVANCE_AVG = Gauge(
@@ -76,9 +79,7 @@ RAG_QUERY_CACHE_MISSES = Counter(
     "astrofin_rag_query_cache_misses_legacy",
     "DEPRECATED: use astrofin_rag_queries_total{status='error'} instead",
 )
-AGENT_DURATION = Histogram(
-    "astrofin_agent_duration_seconds", "Agent execution duration", buckets=(0.1, 0.5, 1, 2, 5, 10, 30)
-)
+AGENT_DURATION = Histogram("astrofin_agent_duration_seconds", "Agent execution duration", buckets=(0.1, 0.5, 1, 2, 5, 10, 30))
 from meta_rl.metrics import *  # re-export
 
 METRICS_AUTH_ENABLED = os.getenv("METRICS_AUTH_ENABLED", "false").lower() == "true"

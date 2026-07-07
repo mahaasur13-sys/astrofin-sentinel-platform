@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """ROMA Raft Consensus Layer — True distributed consensus implementation."""
+
 import time
 import threading
 import random
 from dataclasses import dataclass, field
 from typing import List, Optional, Set, Dict
+
 
 @dataclass
 class LogEntry:
@@ -12,6 +14,7 @@ class LogEntry:
     term: int
     command: dict
     committed: bool = False
+
 
 @dataclass
 class NodeState:
@@ -24,6 +27,7 @@ class NodeState:
     last_applied: int = 0
     last_contact: float = field(default_factory=time.time)
     alive: bool = True
+
 
 class ROMARaftNode:
     """True Raft consensus node — leader election + log replication + membership."""

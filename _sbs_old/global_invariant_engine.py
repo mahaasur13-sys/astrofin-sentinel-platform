@@ -117,9 +117,7 @@ class GlobalInvariantEngine:
         leaders = [s.leader for s in [drl, ccl, f2, desc] if s.leader is not None]
         unique_leaders = set(leaders)
         if len(unique_leaders) > 1:
-            violations.append(
-                f"LEADER_UNIQUENESS_VIOLATION: multiple_leaders={sorted(unique_leaders)}"
-            )
+            violations.append(f"LEADER_UNIQUENESS_VIOLATION: multiple_leaders={sorted(unique_leaders)}")
 
         # ── Invariant 2: Term monotonicity ───────────────────────────────────
         terms = [s.term for s in [drl, ccl, f2, desc]]
@@ -135,58 +133,39 @@ class GlobalInvariantEngine:
                 max_seen = max(max_seen, term_val)
                 continue
             if term_val > 0 and term_val < max_seen:
-                violations.append(
-                    f"TERM_ORDER_VIOLATION: terms={terms} (must be monotonic)"
-                )
+                violations.append(f"TERM_ORDER_VIOLATION: terms={terms} (must be monotonic)")
 
         # ── Invariant 3: Monotonic commit index (DESC) ───────────────────────
         prev = self.last_result.get("desc_commit_index", 0)
         curr = desc.commit_index
         if curr < prev:
-            violations.append(
-                f"COMMIT_INDEX_REGRESSION: prev={prev}, curr={curr} "
-                "(DESC commit index MUST be monotonic)"
-            )
+            violations.append(f"COMMIT_INDEX_REGRESSION: prev={prev}, curr={curr} (DESC commit index MUST be monotonic)")
 
         # ── Invariant 4: Quorum safety ─────────────────────────────────────────
         for layer, state in [("F2", f2), ("CCL", ccl), ("DRL", drl)]:
             if state.quorum_ratio > 0 and state.quorum_ratio < self.spec.quorum_threshold:
-                violations.append(
-                    f"QUORUM_VIOLATION [{layer}]: ratio={state.quorum_ratio:.3f} "
-                    f"(required={self.spec.quorum_threshold:.3f})"
-                )
+                violations.append(f"QUORUM_VIOLATION [{layer}]: ratio={state.quorum_ratio:.3f} (required={self.spec.quorum_threshold:.3f})")
 
         # ── Invariant 5: Split-brain detection ────────────────────────────────
         total_partitions = sum(s.partitions for s in [drl, ccl, f2])
         if total_partitions > self.spec.max_partitions and not self.spec.allow_split_brain:
-            violations.append(
-                f"SPLIT_BRAIN: total_partitions={total_partitions} "
-                f"(max={self.spec.max_partitions})"
-            )
+            violations.append(f"SPLIT_BRAIN: total_partitions={total_partitions} (max={self.spec.max_partitions})")
 
         # ── Invariant 6: Duplicate ACK → Byzantine ────────────────────────────
         for layer, state in [("F2", f2), ("CCL", ccl)]:
             if state.duplicate_ack and not self.spec.allow_duplicate_ack:
-                violations.append(
-                    f"BYZANTINE_SIGNAL [{layer}]: duplicate ACK detected"
-                )
+                violations.append(f"BYZANTINE_SIGNAL [{layer}]: duplicate ACK detected")
 
         # ── Invariant 7: Temporal drift ───────────────────────────────────────
         if self.spec.enable_temporal_strictness:
             max_skew = max(s.clock_skew_ms for s in [drl, ccl, f2])
             if max_skew > self.spec.clock_skew_threshold_ms:
-                violations.append(
-                    f"TEMPORAL_DRIFT: max_skew={max_skew:.1f}ms "
-                    f"(threshold={self.spec.clock_skew_threshold_ms:.1f}ms)"
-                )
+                violations.append(f"TEMPORAL_DRIFT: max_skew={max_skew:.1f}ms (threshold={self.spec.clock_skew_threshold_ms:.1f}ms)")
 
         # ── Invariant 8: Event sequence gaps ──────────────────────────────────
         total_gaps = sum(s.event_sequence_gaps for s in [drl, f2, desc])
         if total_gaps > 0 and not self.spec.allow_event_reorder:
-            violations.append(
-                f"SEQUENCE_VIOLATION: total_gaps={total_gaps} "
-                "(event reorder detected)"
-            )
+            violations.append(f"SEQUENCE_VIOLATION: total_gaps={total_gaps} (event reorder detected)")
 
         # Store result
         self.last_result = {

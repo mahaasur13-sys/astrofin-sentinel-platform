@@ -105,9 +105,7 @@ class SYSTEM_CONTRACT:
                 continue
             expected = SYSTEM_CONTRACT.INVARIANTS[name]
             if expected != value:
-                violations.append(
-                    f"CONTRACT_VIOLATION: {name} — expected {expected}, got {value}"
-                )
+                violations.append(f"CONTRACT_VIOLATION: {name} — expected {expected}, got {value}")
         return len(violations) == 0, violations
 
     @staticmethod

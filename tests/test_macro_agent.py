@@ -1,8 +1,9 @@
 """Tests for MacroAgent — VIX, DXY, geopolitical risk."""
+
 from __future__ import annotations
 
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock
 from agents._impl.macro_agent import MacroAgent
 from core.base_agent import SignalDirection
 
@@ -51,9 +52,7 @@ class TestMacroAgentGeopolitical:
     @pytest.mark.asyncio
     async def test_rag_returns_bearish_on_conflict(self, agent):
         mock_rag = MagicMock()
-        mock_rag.search = AsyncMock(
-            return_value=[MagicMock(page_content="war and conflict in region causing instability")]
-        )
+        mock_rag.search = AsyncMock(return_value=[MagicMock(page_content="war and conflict in region causing instability")])
         agent.rag = mock_rag
         sig, conf, reason = await agent._analyze_geopolitical({})
         assert sig == SignalDirection.SHORT

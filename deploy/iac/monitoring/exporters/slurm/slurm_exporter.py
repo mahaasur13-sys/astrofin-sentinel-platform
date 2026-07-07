@@ -90,9 +90,7 @@ def build_metrics() -> str:
         labels = f'node="{name}"'
         lines.append(f"slurm_node_available{{{labels}}} {1 if info['available'] else 0}")
         lines.append(f"slurm_node_gpus{{{labels}}} {info['gpus']}")
-        lines.append(
-            f"slurm_node_state{{{labels}}} 1" if info["state"] == "alloc" else f"slurm_node_state{{{labels}}} 0"
-        )
+        lines.append(f"slurm_node_state{{{labels}}} 1" if info["state"] == "alloc" else f"slurm_node_state{{{labels}}} 0")
 
     return "\n".join(lines) + "\n"
 

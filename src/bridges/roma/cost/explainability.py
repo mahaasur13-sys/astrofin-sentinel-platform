@@ -1,8 +1,10 @@
 """ROMA Cost Explainability Engine — Why this costs what it costs."""
+
 from cost.predictor import CostPredictor
 from plugins.plugin_api import PluginCapability
 
 GPU_RATE = 0.000086  # $ per GPU-second (PRO tier)
+
 
 class CostExplainabilityEngine:
     def explain(self, task: str) -> dict:
@@ -50,7 +52,7 @@ class CostExplainabilityEngine:
             {"phase": "validation", "description": "Input contract + security gate"},
             {"phase": "cost_check", "description": f"Estimate: ${pred['estimated_cost']:.2f}"},
             {"phase": "plugin_load", "description": f"Load {plugin['name']} plugin"},
-            {"phase": "scheduling", "description": f"Duration ~{gpu_seconds/60:.0f}m"},
+            {"phase": "scheduling", "description": f"Duration ~{gpu_seconds / 60:.0f}m"},
             {"phase": "execution", "description": f"GPU node: {pred.get('decision', 'APPROVED')}"},
             {"phase": "completion", "description": "Event store + billing ledger update"},
         ]

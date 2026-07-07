@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """saas.tenants.cli — Tenant management CLI."""
+
 import argparse
 import json
 import sys

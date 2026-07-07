@@ -153,8 +153,7 @@ class AtomProposer:
             prop = self._create_crosscut_proposal(
                 title="Усилить RL/OAP контур в KARL",
                 category="RL_OAP_REWARD",
-                description="Несколько находок связаны с reinforcement learning и reward shaping. "
-                "Нужно усилить OAP optimizer и reward calibration.",
+                description="Несколько находок связаны с reinforcement learning и reward shaping. Нужно усилить OAP optimizer и reward calibration.",
                 priority="P1",
             )
             proposals.append(prop)
@@ -163,8 +162,7 @@ class AtomProposer:
             prop = self._create_crosscut_proposal(
                 title="Добавить Agent Workflow Visualization",
                 category="VISUALIZATION",
-                description="Найдены инструменты визуализации. Предложить интеграцию "
-                "с MAS Factory visualizer для debugging.",
+                description="Найдены инструменты визуализации. Предложить интеграцию с MAS Factory visualizer для debugging.",
                 priority="P2",
             )
             proposals.append(prop)
@@ -219,8 +217,7 @@ class AtomProposer:
             "но pressure field может улучшить emergent coordination. "
             "Проблема: Sharpe Ratio 0.71 < 1.0 —需要一个更好的 coordination mechanism.",
             complexity="MEDIUM",
-            expected_effect="Улучшение agent coordination без явного hierarchical overhead. "
-            "Ожидаем impact на WIN rate и Sharpe Ratio.",
+            expected_effect="Улучшение agent coordination без явного hierarchical overhead. Ожидаем impact на WIN rate и Sharpe Ratio.",
             related_findings=[finding.title],
         )
 
@@ -233,14 +230,10 @@ class AtomProposer:
             summary="CrewAI v2.3 представил hierarchical agent teams и flow visualization. "
             "Использовать эти концепции для улучшения Astro Council — "
             "организовать agents как команды с явными role hierarchies.",
-            why_now="CrewAI now supports dynamic agent addition и memory management. "
-            "Это может заменить текущую простую agent pool архитектуру.",
-            project_context="Текущий Astro Council использует parallel agent execution. "
-            "CrewAI hierarchical teams могут улучшить coordination. "
-            "Связано с ATOM-R-028 (MAS Factory).",
+            why_now="CrewAI now supports dynamic agent addition и memory management. Это может заменить текущую простую agent pool архитектуру.",
+            project_context="Текущий Astro Council использует parallel agent execution. CrewAI hierarchical teams могут улучшить coordination. Связано с ATOM-R-028 (MAS Factory).",
             complexity="MEDIUM",
-            expected_effect="Более structured agent workflows, easier debugging, "
-            "potential improvement in signal quality.",
+            expected_effect="Более structured agent workflows, easier debugging, potential improvement in signal quality.",
             related_findings=[finding.title],
         )
 
@@ -253,14 +246,12 @@ class AtomProposer:
             summary="AutoGen 0.4 представил universal agent communication protocol. "
             "Реализовать similar protocol в AstroFinSentinelV5 для стандартизации "
             "agent-to-agent messaging между MAS Factory components.",
-            why_now="Community discussion on HN показывает тренд на standardization. "
-            "Early adoption даст конкурентное преимущество.",
+            why_now="Community discussion on HN показывает тренд на standardization. Early adoption даст конкурентное преимущество.",
             project_context="Связано с ATOM-R-028 (MAS Factory), ATOM-R-031 (Agent Registry). "
             "Текущие agent communications используют ad-hoc JSON formats. "
             "Standardization упростит debugging и extension.",
             complexity="MEDIUM",
-            expected_effect="Standardized inter-agent communication, easier integration "
-            "of new agents, better maintainability.",
+            expected_effect="Standardized inter-agent communication, easier integration of new agents, better maintainability.",
             related_findings=[finding.title],
         )
 
@@ -273,13 +264,10 @@ class AtomProposer:
             summary="Улучшить Thompson Sampling agent selection, учитывая epistemic uncertainty. "
             "Добавить temperature scaling based on UncertaintyEngine output — "
             "когда uncertainty высокий, использовать более exploratory policy.",
-            why_now="Current Thompson Sampling использует fixed temperature. "
-            "Интеграция с KARL UncertaintyEngine может улучшить exploration/exploitation tradeoff.",
-            project_context="Связано с ATOM-R-014 (Thompson Sampling), ATOM-R-023 (UncertaintyEngine). "
-            "Проблема: Sharpe Ratio 0.71 — uncertainty-aware selection может помочь.",
+            why_now="Current Thompson Sampling использует fixed temperature. Интеграция с KARL UncertaintyEngine может улучшить exploration/exploitation tradeoff.",
+            project_context="Связано с ATOM-R-014 (Thompson Sampling), ATOM-R-023 (UncertaintyEngine). Проблема: Sharpe Ratio 0.71 — uncertainty-aware selection может помочь.",
             complexity="LOW",
-            expected_effect="Better balance between exploitation (high confidence signals) "
-            "and exploration (trying under-explored agent combinations).",
+            expected_effect="Better balance between exploitation (high confidence signals) and exploration (trying under-explored agent combinations).",
             related_findings=[finding.title],
         )
 
@@ -289,12 +277,9 @@ class AtomProposer:
             atom_id=f"ATOM-{self._get_next_id()}",
             title=f"Интеграция находки: {finding.title[:50]}",
             priority="P2",
-            summary=f"Исследовать и potentially adopt: {finding.title}. "
-            f"Применение: {'; '.join(finding.potential_applications[:2])}",
-            why_now=f"Relevance score {finding.relevance_score:.2f} indicates "
-            f"direct applicability to AstroFinSentinelV5.",
-            project_context="Найдено в ежедневном дайджесте. Требует further research "
-            "для определения точного применения.",
+            summary=f"Исследовать и potentially adopt: {finding.title}. Применение: {'; '.join(finding.potential_applications[:2])}",
+            why_now=f"Relevance score {finding.relevance_score:.2f} indicates direct applicability to AstroFinSentinelV5.",
+            project_context="Найдено в ежедневном дайджесте. Требует further research для определения точного применения.",
             complexity="MEDIUM",
             expected_effect="TBD after further research",
             related_findings=[finding.title],
@@ -308,8 +293,7 @@ class AtomProposer:
             priority=priority,
             summary=description,
             why_now="Multiple findings in this category suggest a trend or gap that AstroFinSentinelV5 should address.",
-            project_context="Cross-cutting improvement based on digest analysis. "
-            "Review required to determine specific implementation steps.",
+            project_context="Cross-cutting improvement based on digest analysis. Review required to determine specific implementation steps.",
             complexity="MEDIUM",
             expected_effect="TBD",
             related_findings=[f"Category: {category}"],

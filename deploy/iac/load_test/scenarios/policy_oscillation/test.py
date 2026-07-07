@@ -89,9 +89,7 @@ class PolicyOscillationScenario:
             if self.job_count % self.retrain_interval == 0:
                 old_version = self.ml_version
                 self.ml_version = f"v5.{self.job_count // self.retrain_interval}.0"
-                results["observed_behavior"]["workload_profile"].append(
-                    f"job={self.job_count} ml_retrain {old_version}→{self.ml_version} workload={self.current_workload}"
-                )
+                results["observed_behavior"]["workload_profile"].append(f"job={self.job_count} ml_retrain {old_version}→{self.ml_version} workload={self.current_workload}")
 
             # Simulate policy decision
             state = self._make_decision()
@@ -136,7 +134,7 @@ class PolicyOscillationScenario:
         # Record switch
         prev_version = self.policy_version
         if random.random() < 0.1:  # 10% chance of policy version change
-            self.policy_version = f"v7.{random.randint(1,9)}.{random.randint(0,99)}"
+            self.policy_version = f"v7.{random.randint(1, 9)}.{random.randint(0, 99)}"
             if self.policy_version != prev_version:
                 self.total_switches += 1
 
@@ -173,8 +171,8 @@ class PolicyOscillationScenario:
             "switch_rate_per_min": round(switch_rate, 3),
             "utility_variance": round(variance, 4),
             "total_decisions": len(self.policy_history),
-            "policy_versions_seen": len(set(s.version for s in self.policy_history)),
-            "ml_versions_seen": len(set(s.ml_version for s in self.policy_history)),
+            "policy_versions_seen": len({s.version for s in self.policy_history}),
+            "ml_versions_seen": len({s.ml_version for s in self.policy_history}),
         }
 
     def _check_failure(self, metrics: dict) -> bool:
@@ -187,11 +185,7 @@ class PolicyOscillationScenario:
         old_alpha = self.ema_alpha
         self.ema_alpha = max(0.05, self.ema_alpha * 0.5)  # halve alpha → more smoothing
 
-        return (
-            f"correction_applied: alpha {old_alpha:.2f}→{self.ema_alpha:.2f} "
-            f"(increased EMA smoothing), rate_limit={self.rate_limit}, "
-            f"confidence_threshold={self.confidence_threshold}"
-        )
+        return f"correction_applied: alpha {old_alpha:.2f}→{self.ema_alpha:.2f} (increased EMA smoothing), rate_limit={self.rate_limit}, confidence_threshold={self.confidence_threshold}"
 
     def _simulate_after_fix(self, fix: str) -> dict:
         """Simulate behavior after fix."""

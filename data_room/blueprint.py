@@ -1,9 +1,10 @@
 """Data Room Blueprint — fallback chain for data access."""
+
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 logger = logging.getLogger("data_room.blueprint")
 
@@ -11,6 +12,7 @@ logger = logging.getLogger("data_room.blueprint")
 @dataclass(frozen=True)
 class PriceTick:
     """A point-in-time price observation."""
+
     symbol: str
     price: float
     asof: str = ""
@@ -27,6 +29,7 @@ class PriceTick:
 @runtime_checkable
 class Resolver(Protocol):
     """Anything that has an async resolve() method."""
+
     id: str
     freshness_sla_seconds: int
 
@@ -63,7 +66,7 @@ class Blueprint:
         if name not in self._named:
             return []
         primary = self._named[name]
-        primary_id = getattr(primary[0], "id", None) if primary else None
+        getattr(primary[0], "id", None) if primary else None
         # The chain attribute is on the FIRST registered resolver under that name.
         chain_ids = list(getattr(primary[0], "_chain", [])) if primary else []
         ordered: list[Resolver] = []
@@ -84,7 +87,9 @@ class Blueprint:
             except Exception as exc:  # noqa: BLE001
                 logger.warning(
                     "blueprint: resolver %s failed for %s: %s",
-                    getattr(resolver, "id", "?"), symbol, exc,
+                    getattr(resolver, "id", "?"),
+                    symbol,
+                    exc,
                 )
                 continue
         return None

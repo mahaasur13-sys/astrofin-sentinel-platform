@@ -64,10 +64,7 @@ def _get_exchange():
         logger.info(f"[LIVE-DATA] {CCXT_EXCHANGE} sandbox mode")
     else:
         if not CCXT_API_KEY or not CCXT_API_SECRET:
-            raise ValueError(
-                "CCXT_SANDBOX_MODE=false but CCXT_API_KEY / CCXT_API_SECRET not set. "
-                "Set them via environment variables."
-            )
+            raise ValueError("CCXT_SANDBOX_MODE=false but CCXT_API_KEY / CCXT_API_SECRET not set. Set them via environment variables.")
         exchange_class = getattr(ccxt, CCXT_EXCHANGE, None)
         if exchange_class is None:
             raise ValueError(f"Unknown exchange: {CCXT_EXCHANGE}")
@@ -187,10 +184,7 @@ class LiveDataProvider:
                     }
                 )
 
-            logger.info(
-                f"[LIVE-DATA] Fetched {len(result)} bars {sym} {interval} "
-                f"from {self.exchange_name} (total requests: {self._total_requests})"
-            )
+            logger.info(f"[LIVE-DATA] Fetched {len(result)} bars {sym} {interval} from {self.exchange_name} (total requests: {self._total_requests})")
             return result
 
         except Exception as e:
@@ -381,10 +375,7 @@ class LiveDataProvider:
             )
             price = c
 
-        logger.debug(
-            f"[LIVE-DATA] Sandbox: generated {limit} bars {symbol} {interval} "
-            f"(base_price={base_prices.get(symbol, 1000)})"
-        )
+        logger.debug(f"[LIVE-DATA] Sandbox: generated {limit} bars {symbol} {interval} (base_price={base_prices.get(symbol, 1000)})")
         return ohlcv
 
     def get_latest_bars(
@@ -416,11 +407,7 @@ class LiveDataProvider:
 
         market_data = self.to_market_data(ohlcv)
         market_data["symbol"] = sym
-        logger.info(
-            f"[LIVE-DATA] Market bundle: {sym} {timeframe} "
-            f"{len(ohlcv)} bars | regime={market_data.get('regime', 'unknown')} "
-            f"price={market_data.get('last_price', 0):,.2f}"
-        )
+        logger.info(f"[LIVE-DATA] Market bundle: {sym} {timeframe} {len(ohlcv)} bars | regime={market_data.get('regime', 'unknown')} price={market_data.get('last_price', 0):,.2f}")
         return market_data
 
     def health_check(self) -> dict:

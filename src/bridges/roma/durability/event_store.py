@@ -189,7 +189,7 @@ class EventStore:
         }
 
         for event in events:
-            if event.event_type in (EventType.JOB_COMPLETED.value, EventType.JOB_SUCCEEDED.value if hasattr(EventType, 'JOB_SUCCEEDED') else "job.completed"):
+            if event.event_type in (EventType.JOB_COMPLETED.value, EventType.JOB_SUCCEEDED.value if hasattr(EventType, "JOB_SUCCEEDED") else "job.completed"):
                 state["status"] = "completed"
             elif event.event_type == EventType.JOB_FAILED.value:
                 state["status"] = "failed"

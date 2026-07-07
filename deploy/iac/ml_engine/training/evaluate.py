@@ -39,9 +39,7 @@ def evaluate_regressor(model, X_test, y_queue_test, y_gpu_test=None) -> dict[str
     return metrics
 
 
-def detect_drift(
-    train_metrics: dict[str, float], current_metrics: dict[str, float], drift_threshold: float = 0.1
-) -> bool:
+def detect_drift(train_metrics: dict[str, float], current_metrics: dict[str, float], drift_threshold: float = 0.1) -> bool:
     """
     Detect if model performance has drifted significantly.
     Returns True if drift detected.

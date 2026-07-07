@@ -122,12 +122,7 @@ class CompositeRankingEngine:
         scored.sort(key=lambda x: x.composite_score, reverse=True)
         top = scored[0] if scored else None
         if top:
-            logger.info(
-                f"[RANKING] Top: score={top.composite_score:.3f} "
-                f"sharpe={top.sharpe_score:.2f} "
-                f"win={top.win_rate_score:.2f} "
-                f"dd={top.dd_penalty_score:.2f}"
-            )
+            logger.info(f"[RANKING] Top: score={top.composite_score:.3f} sharpe={top.sharpe_score:.2f} win={top.win_rate_score:.2f} dd={top.dd_penalty_score:.2f}")
         return scored
 
     def top_n(self, strategies: list, n: int = 5) -> list[StrategyScore]:

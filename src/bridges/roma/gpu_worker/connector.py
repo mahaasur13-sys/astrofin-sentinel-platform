@@ -35,13 +35,7 @@ class GPUWorkerPool:
         for url in worker_urls.split(","):
             url = url.strip()
             if url:
-                self.workers.append({
-                    "url": url,
-                    "id": f"worker-{url.split('://')[1].split(':')[0]}",
-                    "available": True,
-                    "gpu_name": "unknown",
-                    "load": 0
-                })
+                self.workers.append({"url": url, "id": f"worker-{url.split('://')[1].split(':')[0]}", "available": True, "gpu_name": "unknown", "load": 0})
 
     def discover_workers(self) -> list[dict]:
         """Discover available GPU workers via health check."""
@@ -86,45 +80,23 @@ class GPUWorkerPool:
                 "memory": job.get("memory", "8GB"),
                 "timeout": job.get("timeout", 3600),
                 "environment": job.get("environment", {}),
-                "mount_paths": job.get("mount_paths", {})
+                "mount_paths": job.get("mount_paths", {}),
             }
 
             loop = asyncio.get_event_loop()
-            resp = await loop.run_in_executor(
-                None,
-                lambda: requests.post(
-                    f"{worker['url']}/execute",
-                    json=payload,
-                    timeout=ROMA_GPU_TIMEOUT
-                )
-            )
+            resp = await loop.run_in_executor(None, lambda: requests.post(f"{worker['url']}/execute", json=payload, timeout=ROMA_GPU_TIMEOUT))
 
             if resp.status_code == 200:
                 result = resp.json()
                 result["worker_id"] = worker_id
                 return result
             else:
-                return {
-                    "status": "worker_error",
-                    "job_id": job_id,
-                    "worker_id": worker_id,
-                    "error": f"HTTP {resp.status_code}"
-                }
+                return {"status": "worker_error", "job_id": job_id, "worker_id": worker_id, "error": f"HTTP {resp.status_code}"}
 
         except requests.exceptions.Timeout:
-            return {
-                "status": "timeout",
-                "job_id": job_id,
-                "worker_id": worker_id,
-                "error": "Job timed out on GPU worker"
-            }
+            return {"status": "timeout", "job_id": job_id, "worker_id": worker_id, "error": "Job timed out on GPU worker"}
         except Exception as e:
-            return {
-                "status": "failed",
-                "job_id": job_id,
-                "worker_id": worker_id,
-                "error": str(e)
-            }
+            return {"status": "failed", "job_id": job_id, "worker_id": worker_id, "error": str(e)}
         finally:
             worker["load"] = max(0, worker["load"] - 1)
             self.active_jobs.pop(job_id, None)
@@ -148,11 +120,7 @@ class ROMAGPUConnector:
     async def execute(self, job: dict) -> dict:
         """Execute a job on GPU worker pool."""
         if not self.is_available():
-            return {
-                "status": "no_gpu_available",
-                "job_id": job.get("job_id"),
-                "message": "No GPU workers available in pool"
-            }
+            return {"status": "no_gpu_available", "job_id": job.get("job_id"), "message": "No GPU workers available in pool"}
 
         result = await self.pool.submit_job(job)
 
@@ -170,13 +138,7 @@ class ROMAGPUConnector:
             "connector_available": self.is_available(),
             "worker_count": len(workers),
             "available_workers": len([w for w in workers if w.get("available")]),
-            "workers": [{
-                "id": w["id"],
-                "url": w["url"],
-                "available": w.get("available", False),
-                "gpu": w.get("gpu_name", "unknown"),
-                "load": w.get("load", 0)
-            } for w in workers]
+            "workers": [{"id": w["id"], "url": w["url"], "available": w.get("available", False), "gpu": w.get("gpu_name", "unknown"), "load": w.get("load", 0)} for w in workers],
         }
 
 
@@ -204,6 +166,7 @@ async def execute_on_gpu(job: dict) -> dict:
 # Demo / test
 # =============================================================================
 if __name__ == "__main__":
+
     async def demo():
         connector = get_gpu_connector()
         metrics = connector.get_metrics()
@@ -214,12 +177,7 @@ if __name__ == "__main__":
         print(f"URL: {ROMA_GPU_WORKER_URL}")
 
         # Test job
-        test_job = {
-            "job_id": f"test-{uuid.uuid4().hex[:8]}",
-            "command": "echo 'ROM A GPU working!' && nvidia-smi --query-gpu=name --format=csv,noheader",
-            "memory": "4GB",
-            "timeout": 30
-        }
+        test_job = {"job_id": f"test-{uuid.uuid4().hex[:8]}", "command": "echo 'ROM A GPU working!' && nvidia-smi --query-gpu=name --format=csv,noheader", "memory": "4GB", "timeout": 30}
 
         print(f"\n--- Test job: {test_job['job_id']} ---")
         result = await connector.execute(test_job)

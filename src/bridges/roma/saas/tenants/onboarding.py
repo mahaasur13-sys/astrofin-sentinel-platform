@@ -1,4 +1,5 @@
 """saas.tenants.onboarding — Tenant onboarding wizard."""
+
 from __future__ import annotations
 
 import re
@@ -119,7 +120,9 @@ class OnboardingSession:
         return self, tenant
 
     def start_stripe_onboarding(self, return_url: str = "https://dashboard.roma.ai/stripe/return", refresh_url: str = "https://dashboard.roma.ai/stripe/refresh") -> OnboardingSession:
-        self.stripe_onboarding_url = f"https://connect.stripe.com/oauth/authorize?response_type=code&client_id={{ROM_A_STOR E_CLIENT_ID}}&scope=read_write&redirect_uri={return_url}&state={self.tenant_id}"
+        self.stripe_onboarding_url = (
+            f"https://connect.stripe.com/oauth/authorize?response_type=code&client_id={{ROM_A_STOR E_CLIENT_ID}}&scope=read_write&redirect_uri={return_url}&state={self.tenant_id}"
+        )
         self.step = OnboardingStep.STRIPE_CONNECT
         return self
 

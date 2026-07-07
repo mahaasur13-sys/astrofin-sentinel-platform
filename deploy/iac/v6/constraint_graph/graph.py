@@ -64,26 +64,16 @@ class ConstraintGraph:
 
     def add_capacity_constraint(self, node_id: str, resource: str, limit: float):
         """GPU/CPU/memory capacity: sum(assigned) <= limit."""
-        self.add_edge(
-            Constraint(ctype=ConstraintType.CAPACITY, source=node_id, params={"resource": resource, "limit": limit})
-        )
+        self.add_edge(Constraint(ctype=ConstraintType.CAPACITY, source=node_id, params={"resource": resource, "limit": limit}))
 
     def add_affinity_constraint(self, job_id: str, allowed_nodes: list[str]):
         """Job can only run on specific nodes."""
         for node_id in allowed_nodes:
-            self.add_edge(
-                Constraint(
-                    ctype=ConstraintType.AFFINITY, source=job_id, target=node_id, params={"allowed": allowed_nodes}
-                )
-            )
+            self.add_edge(Constraint(ctype=ConstraintType.AFFINITY, source=job_id, target=node_id, params={"allowed": allowed_nodes}))
 
     def add_anti_affinity_constraint(self, job_id: str, forbidden_node: str, reason: str = ""):
         """Job cannot run on specific node."""
-        self.add_edge(
-            Constraint(
-                ctype=ConstraintType.ANTI_AFFINITY, source=job_id, target=forbidden_node, params={"reason": reason}
-            )
-        )
+        self.add_edge(Constraint(ctype=ConstraintType.ANTI_AFFINITY, source=job_id, target=forbidden_node, params={"reason": reason}))
 
     def add_temporal_constraint(self, job_id: str, earliest_start: float, migration_delay: float = 0.0):
         """Job start time >= earliest_start + migration_delay."""
@@ -97,11 +87,7 @@ class ConstraintGraph:
 
     def add_sla_constraint(self, job_id: str, max_latency: float, target_p: float = 0.05):
         """P(latency > max_latency) < target_p."""
-        self.add_edge(
-            Constraint(
-                ctype=ConstraintType.SLA, source=job_id, params={"max_latency": max_latency, "target_p": target_p}
-            )
-        )
+        self.add_edge(Constraint(ctype=ConstraintType.SLA, source=job_id, params={"max_latency": max_latency, "target_p": target_p}))
 
     def get_node_constraints(self, node_id: str) -> list[Constraint]:
         """All constraints involving a specific node."""
@@ -131,11 +117,7 @@ class ConstraintGraph:
             violations.append("affinity:not_allowed")
 
         # 3. Anti-affinity constraint
-        anti_edges = [
-            c
-            for c in self.edges
-            if c.ctype == ConstraintType.ANTI_AFFINITY and c.source == job_id and c.target == node_id
-        ]
+        anti_edges = [c for c in self.edges if c.ctype == ConstraintType.ANTI_AFFINITY and c.source == job_id and c.target == node_id]
         if anti_edges:
             violations.append("anti_affinity:forbidden")
 

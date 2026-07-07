@@ -1,5 +1,8 @@
 """ROMA Developer Onboarding — 0-to-job in 30 seconds."""
-import sys; sys.path.insert(0, '/home/workspace/roma-execution-bridge')
+
+import sys
+
+sys.path.insert(0, "/home/workspace/roma-execution-bridge")
 from auth.api_keys import APIKeyManager
 from cost.predictor import CostPredictor
 
@@ -10,8 +13,7 @@ print("=" * 55)
 # Step 1: signup → API key
 akm = APIKeyManager()
 org_id = "org_dev"
-key = akm.create_key(org_id=org_id, project_id="default",
-                     permissions=["job:submit", "job:read", "cost:estimate"])
+key = akm.create_key(org_id=org_id, project_id="default", permissions=["job:submit", "job:read", "cost:estimate"])
 print("\n[1/3] SIGNUP        org_created")
 print(f"           org: {org_id}")
 print(f"           key: {key[:50]}...")

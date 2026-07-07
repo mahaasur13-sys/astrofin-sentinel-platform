@@ -45,9 +45,7 @@ def _safe(metric_cls: type[_T], name: str, *args, **kwargs) -> _T:
 
 
 ## Gauge: current number of active strategies in the pool
-strategies_active = _safe(
-    Gauge, "astrofin_strategies_active", "Current number of active strategies in the pool"
-)
+strategies_active = _safe(Gauge, "astrofin_strategies_active", "Current number of active strategies in the pool")
 
 
 ## Histogram: duration of one generation of evolution (seconds)
@@ -62,9 +60,7 @@ evolution_duration_seconds = _safe(
 EVOLUTION_RUNS = _safe(Counter, "astrofin_evolution_runs", "Total evolution runs started")
 STRATEGIES_EVALUATED = _safe(Counter, "astrofin_strategies_evaluated", "Total strategies evaluated")
 GENERATION_CURRENT = _safe(Gauge, "astrofin_generation_current", "Current generation number")
-STRATEGY_EVALUATED_TOTAL = _safe(
-    Counter, "astrofin_strategy_evaluated_total", "Total strategies evaluated across all runs"
-)
+STRATEGY_EVALUATED_TOTAL = _safe(Counter, "astrofin_strategy_evaluated_total", "Total strategies evaluated across all runs")
 
 # ── Additional metrics for EvolutionEngine ────────────────────────────────────
 BEST_REWARD = _safe(Gauge, "astrofin_best_reward", "Best reward in current generation")

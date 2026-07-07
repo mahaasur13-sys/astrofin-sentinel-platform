@@ -11,11 +11,11 @@ Validates that the new labeled metrics fire at the right call sites:
 These tests mock pgvector and the embedding client so they run without a live
 database.
 """
+
 from __future__ import annotations
 
 import asyncio
-import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -26,7 +26,6 @@ from tools.metrics_server import (
     RAG_LATENCY_SECONDS,
     RAG_QUERIES_TOTAL,
     RAG_RELEVANCE_AVG,
-    RAG_RELEVANCE_SCORE,
 )
 
 
@@ -99,11 +98,17 @@ async def test_rag_client_retrieve_increments_queries_total_ok():
     client._pg_pool = _make_async_pool([fake_row])
 
     before = _label_value(
-        RAG_QUERIES_TOTAL, status="ok", backend="pgvector", domain="trading",
+        RAG_QUERIES_TOTAL,
+        status="ok",
+        backend="pgvector",
+        domain="trading",
     )
     chunks = await client.retrieve("q", top_k=1, domain="trading")
     after = _label_value(
-        RAG_QUERIES_TOTAL, status="ok", backend="pgvector", domain="trading",
+        RAG_QUERIES_TOTAL,
+        status="ok",
+        backend="pgvector",
+        domain="trading",
     )
 
     assert len(chunks) == 1
@@ -133,22 +138,23 @@ async def test_rag_client_retrieve_on_error_bumps_errors_and_queries():
 
     before_errors = _label_value(RAG_ERRORS_TOTAL, stage="retrieve", kind="RuntimeError")
     before_queries = _label_value(
-        RAG_QUERIES_TOTAL, status="error", backend="pgvector", domain="trading",
+        RAG_QUERIES_TOTAL,
+        status="error",
+        backend="pgvector",
+        domain="trading",
     )
     with pytest.raises(RuntimeError):
         await client.retrieve("q", top_k=1, domain="trading")
     after_errors = _label_value(RAG_ERRORS_TOTAL, stage="retrieve", kind="RuntimeError")
     after_queries = _label_value(
-        RAG_QUERIES_TOTAL, status="error", backend="pgvector", domain="trading",
+        RAG_QUERIES_TOTAL,
+        status="error",
+        backend="pgvector",
+        domain="trading",
     )
 
-    assert after_errors > before_errors, (
-        f"RAG_ERRORS_TOTAL{{stage=retrieve,kind=RuntimeError}} should rise: "
-        f"{before_errors} -> {after_errors}"
-    )
-    assert after_queries > before_queries, (
-        f"RAG_QUERIES_TOTAL error should rise: {before_queries} -> {after_queries}"
-    )
+    assert after_errors > before_errors, f"RAG_ERRORS_TOTAL{{stage=retrieve,kind=RuntimeError}} should rise: {before_errors} -> {after_errors}"
+    assert after_queries > before_queries, f"RAG_QUERIES_TOTAL error should rise: {before_queries} -> {after_queries}"
 
 
 # ─── PersistentBM25Retriever ────────────────────────────────────────────────
@@ -196,9 +202,7 @@ async def test_bm25_refresh_records_latency_histogram():
     before = _histogram_count(RAG_LATENCY_SECONDS)
     await retriever.refresh()
     after = _histogram_count(RAG_LATENCY_SECONDS)
-    assert after > before, (
-        f"RAG_LATENCY_SECONDS._count should rise: {before} -> {after}"
-    )
+    assert after > before, f"RAG_LATENCY_SECONDS._count should rise: {before} -> {after}"
 
 
 # ─── Static checks on metric declarations ──────────────────────────────────
@@ -224,8 +228,11 @@ def test_metrics_have_no_name_collisions():
 def test_legacy_aliases_still_importable():
     """Old code (e.g. external scripts) can still import RAG_QUERY_CACHE_HITS."""
     from tools.metrics_server import (
-        RAG_QUERY_CACHE_HITS, RAG_QUERY_CACHE_MISSES, RAG_CHUNK_COUNT,
+        RAG_QUERY_CACHE_HITS,
+        RAG_QUERY_CACHE_MISSES,
+        RAG_CHUNK_COUNT,
     )
+
     # They are now labeled Counters / a Gauge, but they must be importable.
     assert RAG_QUERY_CACHE_HITS is not None
     assert RAG_QUERY_CACHE_MISSES is not None

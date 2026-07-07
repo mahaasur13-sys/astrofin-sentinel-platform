@@ -3,6 +3,7 @@ from db.engine import Base
 import uuid
 from datetime import datetime, timezone
 
+
 class Job(Base):
     __tablename__ = "jobs"
 

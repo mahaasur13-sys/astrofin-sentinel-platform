@@ -105,15 +105,8 @@ def test_projection_split():
     raw_events = raw.get_trace_events("ps")
     state_dict = state.get_trace("ps")
 
-    ok = (
-        len(raw_events) == 2
-        and state_dict["status"] == "CREATED"
-        and "dag" not in raw_events[0]
-        or raw_events[0].get("dag") == {}
-    )
-    print(
-        f"  [{'OK' if ok else 'FAIL'}] INV7 — Projection split: raw={len(raw_events)} events, state={state_dict['status']}"
-    )
+    ok = len(raw_events) == 2 and state_dict["status"] == "CREATED" and "dag" not in raw_events[0] or raw_events[0].get("dag") == {}
+    print(f"  [{'OK' if ok else 'FAIL'}] INV7 — Projection split: raw={len(raw_events)} events, state={state_dict['status']}")
     return ok
 
 
@@ -131,12 +124,7 @@ def test_full_flow():
     state = state_proj.get_trace("full-flow")
 
     # VERIFY: engine returned string, state derived from events
-    ok = (
-        returned == "full-flow"
-        and state["status"] == "COMPLETED"
-        and state["scheduled_count"] == 2
-        and state["executed_count"] == 2
-    )
+    ok = returned == "full-flow" and state["status"] == "COMPLETED" and state["scheduled_count"] == 2 and state["executed_count"] == 2
     print(f"  [{'OK' if ok else 'FAIL'}] INV8 — Full separation: returned={returned}, state={state['status']}")
     print(f"       Engine type returned: {type(returned).__name__} (must be str)")
     print("       State source: derived via StateProjection (NOT engine)")

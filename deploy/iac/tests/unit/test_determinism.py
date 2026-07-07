@@ -117,9 +117,7 @@ def test_low_priority_throttled():
         }
     )
 
-    assert (
-        result.decision == AdmitDecision.REJECT
-    ), f"Expected REJECT for low-priority under load, got {result.decision}"
+    assert result.decision == AdmitDecision.REJECT, f"Expected REJECT for low-priority under load, got {result.decision}"
 
 
 def test_failure_penalty_affects_score():

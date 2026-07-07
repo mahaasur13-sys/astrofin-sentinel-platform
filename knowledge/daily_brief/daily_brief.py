@@ -76,8 +76,7 @@ def generate_ideas(brief_content: str) -> list:
         ideas.append(
             {
                 "category": "TOOL_ADOPTION",
-                "prompt": "Рассмотреть возможность интеграции нового инструмента из сводки в AstroFinSentinelV5. "
-                "Проверить: совместимость с существующей архитектурой, необходимость ATOM-карточки.",
+                "prompt": "Рассмотреть возможность интеграции нового инструмента из сводки в AstroFinSentinelV5. Проверить: совместимость с существующей архитектурой, необходимость ATOM-карточки.",
             }
         )
 
@@ -85,9 +84,7 @@ def generate_ideas(brief_content: str) -> list:
         ideas.append(
             {
                 "category": "RESEARCH_INTEGRATION",
-                "prompt": "Найдены новые исследования. Оценить применимость для: "
-                "(1) улучшения reward function, (2) новых фичей в агентах, "
-                "(3) оптимизации KARL-цикла.",
+                "prompt": "Найдены новые исследования. Оценить применимость для: (1) улучшения reward function, (2) новых фичей в агентах, (3) оптимизации KARL-цикла.",
             }
         )
 
@@ -95,9 +92,7 @@ def generate_ideas(brief_content: str) -> list:
         ideas.append(
             {
                 "category": "COMMUNITY_SENTIMENT",
-                "prompt": "Обсуждения сообщества указывают на тренды. "
-                "Проанализировать sentiment: какие проблемы пользователей "
-                "можно решить через новые ATOM-карточки?",
+                "prompt": "Обсуждения сообщества указывают на тренды. Проанализировать sentiment: какие проблемы пользователей можно решить через новые ATOM-карточки?",
             }
         )
 
@@ -105,8 +100,7 @@ def generate_ideas(brief_content: str) -> list:
     ideas.append(
         {
             "category": "CONTINUOUS_IMPROVEMENT",
-            "prompt": "Использовать данные сводки для обновления ATOM-KARL backlog. "
-            "Добавить новые ideas в knowledge/ATOM_BACKLOG.md.",
+            "prompt": "Использовать данные сводки для обновления ATOM-KARL backlog. Добавить новые ideas в knowledge/ATOM_BACKLOG.md.",
         }
     )
 

@@ -92,9 +92,7 @@ class EvolutionEngine:
             )
 
         cycles = self._generation_cycles
-        fixes = sum(
-            1 for c in cycles if c.decision and c.decision.primary_action != CorrectionAction.ADJUST_QUEUE_DEPTH
-        )
+        fixes = sum(1 for c in cycles if c.decision and c.decision.primary_action != CorrectionAction.ADJUST_QUEUE_DEPTH)
         escalations = sum(1 for c in cycles if c.escalation_required)
 
         # Check convergence

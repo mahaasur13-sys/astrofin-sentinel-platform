@@ -24,6 +24,7 @@ Outputs:
     delta_days, decay_factor, weight, relation, source/target, etc.
   - JSON summary: counts of T1 / T2 / T3 and category breakdown.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -80,8 +81,7 @@ def _exists(path: str) -> bool:
     return val
 
 
-def compute_recall_score(tier: str, decay: float, confidence: float,
-                         relation_weight: float, formula: str = "v1_baseline") -> float:
+def compute_recall_score(tier: str, decay: float, confidence: float, relation_weight: float, formula: str = "v1_baseline") -> float:
     """Recall score по одной из 4 формул (ADR-0006 A/B calibration).
 
     v1_baseline         : tier * decay * conf * rel_w
@@ -99,6 +99,8 @@ def compute_recall_score(tier: str, decay: float, confidence: float,
     if formula == "v4_relation_primary":
         return 0.4 * relation_weight * decay * confidence + 0.6 * tier_w
     raise ValueError(f"Unknown --score-formula: {formula}")
+
+
 # --- end of formula block ---
 
 # ADR-0005: relation-level weights. These reflect *semantic strength* of each
@@ -136,11 +138,11 @@ _SUBMODULE_PREFIXES = (
     #      needed but cheap insurance.
     #   3. "legacy_" canonical names mark paths that physically exist only
     #      inside _archived/ or are virtual (in graph.json but not on disk).
-    "astrofin-sentinel-v5/",     # live lower-case → astrofin-sentinel-v5
-    "AstroFinSentinelV5/",       # legacy CamelCase → archived/ only; canonical = legacy_astrofin_v5
-    "asurdev/",                  # live lower-case → asurdev
-    "AsurDev/",                  # legacy capitalized; canonical = legacy_asurdev
-    "asurdev_legacy/",           # legacy AsurDev shim directory; canonical = asurdev_legacy
+    "astrofin-sentinel-v5/",  # live lower-case → astrofin-sentinel-v5
+    "AstroFinSentinelV5/",  # legacy CamelCase → archived/ only; canonical = legacy_astrofin_v5
+    "asurdev/",  # live lower-case → asurdev
+    "AsurDev/",  # legacy capitalized; canonical = legacy_asurdev
+    "asurdev_legacy/",  # legacy AsurDev shim directory; canonical = asurdev_legacy
     "home-cluster-iac/",
     "atom-federation-os/",
     "roma-execution-bridge/",
@@ -160,24 +162,24 @@ _SUBMODULE_PREFIXES = (
 # in _SUBMODULE_PREFIXES exactly (after rstrip("/")). The two are kept
 # together here so future renames touch one place only.
 _SUBMODULE_NAMES = {
-    "AstroFinSentinelV5":   "legacy_astrofin_v5",
+    "AstroFinSentinelV5": "legacy_astrofin_v5",
     "astrofin-sentinel-v5": "astrofin-sentinel-v5",
-    "home-cluster-iac":     "home-cluster-iac",
-    "atom-federation-os":   "atom-federation-os",
-    "roma-execution-bridge":"roma-execution-bridge",
-    "local-ai-stack":       "local-ai-stack",
-    "audit_repo":           "audit_repo",
-    "agent-runtime":        "agent-runtime",
-    "acos-contracts":       "acos-contracts",
-    "acos-core":            "acos-core",
-    "sbs":                  "sbs",
-    "push":                 "push",
-    "tests":                "tests",
-    "knowledge":            "knowledge",
-    "AsurDev":              "AsurDev",
-    "asurdev_legacy":       "asurdev_legacy",
-    "pop-os-setup":         "pop-os-setup",
-    "_sbs_old":             "_sbs_old",
+    "home-cluster-iac": "home-cluster-iac",
+    "atom-federation-os": "atom-federation-os",
+    "roma-execution-bridge": "roma-execution-bridge",
+    "local-ai-stack": "local-ai-stack",
+    "audit_repo": "audit_repo",
+    "agent-runtime": "agent-runtime",
+    "acos-contracts": "acos-contracts",
+    "acos-core": "acos-core",
+    "sbs": "sbs",
+    "push": "push",
+    "tests": "tests",
+    "knowledge": "knowledge",
+    "AsurDev": "AsurDev",
+    "asurdev_legacy": "asurdev_legacy",
+    "pop-os-setup": "pop-os-setup",
+    "_sbs_old": "_sbs_old",
 }
 # Canonical prefix -> submodule display name. Derived from _SUBMODULE_PREFIXES
 # so the two stay in lockstep. Used by _submodule_of() to attach
@@ -185,11 +187,27 @@ _SUBMODULE_NAMES = {
 # the filesystem (ADR-0004 + locality enrichment).
 _CORE_PREFIXES = (
     # AstroFin V5 core (excludes asurdev — moved to submodules)
-    "core/", "agents/", "orchestration/", "meta_rl/", "ragservice/",
-    "astra/", "astrology/", "domain/", "atom-core/",
+    "core/",
+    "agents/",
+    "orchestration/",
+    "meta_rl/",
+    "ragservice/",
+    "astra/",
+    "astrology/",
+    "domain/",
+    "atom-core/",
     # AstroFin V5 trading/infra (added for locality coverage)
-    "trading/", "web/", "tools/", "db/", "data_room/", "strategies/",
-    "backtest/", "mas_factory/", "deploy/", "integrations/", "scripts/",
+    "trading/",
+    "web/",
+    "tools/",
+    "db/",
+    "data_room/",
+    "strategies/",
+    "backtest/",
+    "mas_factory/",
+    "deploy/",
+    "integrations/",
+    "scripts/",
     # atom-federation-os core
     "alignment/",
 )
@@ -293,10 +311,7 @@ def _git_mtime_days(path: str, as_of) -> int | None:
     if not path:
         return None
     try:
-        ts = subprocess.check_output(
-            ["git", "-C", str(REPO_ROOT), "log", "-1", "--format=%ct", "--", path],
-            stderr=subprocess.DEVNULL, text=True
-        ).strip()
+        ts = subprocess.check_output(["git", "-C", str(REPO_ROOT), "log", "-1", "--format=%ct", "--", path], stderr=subprocess.DEVNULL, text=True).strip()
         if not ts:
             return None
         delta = (as_of - datetime.fromtimestamp(int(ts), tz=timezone.utc)).days
@@ -343,7 +358,9 @@ def run_validator(sample_path: str = "/tmp/inferred_sample.json"):
     env["INFERRED_SAMPLE"] = str(sample_path)
     proc = subprocess.run(
         [sys.executable, str(VALIDATOR)],
-        capture_output=True, text=True, env=env,
+        capture_output=True,
+        text=True,
+        env=env,
     )
     if proc.returncode != 0:
         raise SystemExit(f"validator failed: {proc.stderr}")
@@ -396,6 +413,7 @@ def _clean(s: str) -> str:
 
 def split_source_target(row: dict):
     """Split 'file:L :: node_id' strings into (path, line, node_id)."""
+
     def _split(s: str):
         path_line, _, node_id = s.partition("::")
         node_id = node_id.strip()
@@ -404,6 +422,7 @@ def split_source_target(row: dict):
         else:
             path, line = path_line, ""
         return path.strip(), line.strip(), node_id
+
     return _split(row["source"]), _split(row["target"])
 
 
@@ -415,9 +434,7 @@ def main():
     ap.add_argument(
         "--relation-weights",
         default=str(DEFAULT_RELATION_WEIGHTS_PATH),
-        help="Path to JSON file with relation-weight variants. "
-             "Each key is a variant name, each value is a {relation: weight} dict. "
-             f"Default: {DEFAULT_RELATION_WEIGHTS_PATH}",
+        help=f"Path to JSON file with relation-weight variants. Each key is a variant name, each value is a {{relation: weight}} dict. Default: {DEFAULT_RELATION_WEIGHTS_PATH}",
     )
     ap.add_argument(
         "--relation-variant",
@@ -438,41 +455,34 @@ def main():
     run_validator("/tmp/inferred_sample.json")
     kept = parse_report()
     overrides = load_overrides()
-    as_of = (datetime.fromisoformat(args.as_of) if args.as_of
-             else datetime.now(timezone.utc))
+    as_of = datetime.fromisoformat(args.as_of) if args.as_of else datetime.now(timezone.utc)
 
     # Apply CLI-selected relation-weight variant.
     if args.relation_weights and Path(args.relation_weights).exists():
         try:
             variants = json.loads(Path(args.relation_weights).read_text(encoding="utf-8"))
-            chosen = (variants.get("variants", {}) or {}).get(
-                args.relation_variant, variants.get(args.relation_variant, {})
-            )
+            chosen = (variants.get("variants", {}) or {}).get(args.relation_variant, variants.get(args.relation_variant, {}))
             if chosen and isinstance(chosen, dict):
                 # Mutate in place so the rest of main() sees the active set.
                 RELATION_WEIGHTS.clear()
                 RELATION_WEIGHTS.update({k: float(v) for k, v in chosen.items()})
                 print(
-                    f"[relation-weights] variant={args.relation_variant} "
-                    f"src={args.relation_weights} keys={len(RELATION_WEIGHTS)}",
+                    f"[relation-weights] variant={args.relation_variant} src={args.relation_weights} keys={len(RELATION_WEIGHTS)}",
                     file=sys.stderr,
                 )
             else:
                 print(
-                    f"[relation-weights] WARN variant '{args.relation_variant}' "
-                    f"not found in {args.relation_weights}; using built-in defaults",
+                    f"[relation-weights] WARN variant '{args.relation_variant}' not found in {args.relation_weights}; using built-in defaults",
                     file=sys.stderr,
                 )
         except Exception as e:
             print(
-                f"[relation-weights] WARN failed to load {args.relation_weights}: {e}; "
-                f"using built-in defaults",
+                f"[relation-weights] WARN failed to load {args.relation_weights}: {e}; using built-in defaults",
                 file=sys.stderr,
             )
     else:
         print(
-            f"[relation-weights] no file at {args.relation_weights}; "
-            f"using built-in defaults (variant={args.relation_variant})",
+            f"[relation-weights] no file at {args.relation_weights}; using built-in defaults (variant={args.relation_variant})",
             file=sys.stderr,
         )
 
@@ -514,9 +524,7 @@ def main():
             cat = ov.get("category", "submodule")
             override_hits += 1
             print(
-                f"[override] {src_node} -> {tgt_node} "
-                f"tier={ov.get('tier')} hl={ov.get('half_life')}d "
-                f"author={ov.get('author')} reason={ov.get('reason', '')[:60]}",
+                f"[override] {src_node} -> {tgt_node} tier={ov.get('tier')} hl={ov.get('half_life')}d author={ov.get('author')} reason={ov.get('reason', '')[:60]}",
                 file=sys.stderr,
             )
         else:
@@ -546,41 +554,37 @@ def main():
 
         tier_weight = TIER_WEIGHT[tier]
         rel_weight = RELATION_WEIGHTS.get(row["relation"], DEFAULT_RELATION_WEIGHT)
-        recall_score = round(
-            compute_recall_score(tier, decay, conf, rel_weight, args.score_formula), 4
-        )
+        recall_score = round(compute_recall_score(tier, decay, conf, rel_weight, args.score_formula), 4)
 
-        enriched.append({
-            "source_node_id": src_node,
-            "source_path": src_path,
-            "source_line": _normalize_line(src_line),
-            "target_node_id": tgt_node,
-            "target_path": tgt_path,
-            "target_line": _normalize_line(tgt_line),
-            "confidence": conf,
-            "weight": w,
-            "relation": row["relation"],
-            "verdict": row["verdict"],
-            "tier": tier,
-            "category": cat,
-            "half_life_days": half_life,
-            "delta_days": delta,
-            "decay_factor": round(decay, 4),
-            "tier_weight": tier_weight,
-            "relation_weight": rel_weight,
-            "recall_score": recall_score,
-            "override_applied": key in overrides,
-            "submodule_source": _submodule_of(src_path) or "",
-            "submodule_target": _submodule_of(tgt_path) or "",
-            "locality": _locality_of(_submodule_of(src_path), _submodule_of(tgt_path)),
-            "is_cross_submodule": (
-                _submodule_of(src_path) is not None
-                and _submodule_of(tgt_path) is not None
-                and _submodule_of(src_path) != _submodule_of(tgt_path)
-            ),
-            "source_path_exists": _exists(src_path),
-            "target_path_exists": _exists(tgt_path),
-        })
+        enriched.append(
+            {
+                "source_node_id": src_node,
+                "source_path": src_path,
+                "source_line": _normalize_line(src_line),
+                "target_node_id": tgt_node,
+                "target_path": tgt_path,
+                "target_line": _normalize_line(tgt_line),
+                "confidence": conf,
+                "weight": w,
+                "relation": row["relation"],
+                "verdict": row["verdict"],
+                "tier": tier,
+                "category": cat,
+                "half_life_days": half_life,
+                "delta_days": delta,
+                "decay_factor": round(decay, 4),
+                "tier_weight": tier_weight,
+                "relation_weight": rel_weight,
+                "recall_score": recall_score,
+                "override_applied": key in overrides,
+                "submodule_source": _submodule_of(src_path) or "",
+                "submodule_target": _submodule_of(tgt_path) or "",
+                "locality": _locality_of(_submodule_of(src_path), _submodule_of(tgt_path)),
+                "is_cross_submodule": (_submodule_of(src_path) is not None and _submodule_of(tgt_path) is not None and _submodule_of(src_path) != _submodule_of(tgt_path)),
+                "source_path_exists": _exists(src_path),
+                "target_path_exists": _exists(tgt_path),
+            }
+        )
         tier_counts[tier] += 1
         cat_counts[cat] = cat_counts.get(cat, 0) + 1
 
@@ -594,11 +598,7 @@ def main():
         "override_hits": override_hits,
         "locality_counts": dict(Counter(e["locality"] for e in enriched)),
         "cross_submodule_edges": sum(1 for e in enriched if e["is_cross_submodule"]),
-        "submodule_pair_counts": dict(Counter(
-            f"{e['submodule_source']}->{e['submodule_target']}"
-            for e in enriched
-            if e["is_cross_submodule"]
-        )),
+        "submodule_pair_counts": dict(Counter(f"{e['submodule_source']}->{e['submodule_target']}" for e in enriched if e["is_cross_submodule"])),
         "total_edges": len(enriched),
     }
 
@@ -609,8 +609,7 @@ def main():
         out = "\n".join(json.dumps(r, ensure_ascii=False) for r in enriched)
 
     if args.out:
-        Path(args.out).write_text(out + ("\n" if out and not out.endswith("\n") else ""),
-                                  encoding="utf-8")
+        Path(args.out).write_text(out + ("\n" if out and not out.endswith("\n") else ""), encoding="utf-8")
         print(args.out)
     else:
         print(out)

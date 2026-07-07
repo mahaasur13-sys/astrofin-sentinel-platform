@@ -182,9 +182,7 @@ def run():
                 dynamic_findings.append(f.replace(str(BASE) + "/", ""))
 
     violations, reachability = compute_violations(layer_edges)
-    adv_score, adv_find = adversarial_analysis(
-        violations, reachability, layer_edges, dynamic_findings, lt_side_effects, fp_impure
-    )
+    adv_score, adv_find = adversarial_analysis(violations, reachability, layer_edges, dynamic_findings, lt_side_effects, fp_impure)
 
     static_conf = 0.95 if not violations else 0.7
     runtime_conf = 0.8 if len(dynamic_findings) < 3 else 0.4
@@ -219,9 +217,7 @@ def run():
         "STATUS": status,
         "PRIMARY_CAUSE": {
             "layer": primary["from"] if primary else "none",
-            "description": (
-                f"{primary['type']} {primary['from']}→{primary['to']}" if primary else "No violations detected"
-            ),
+            "description": (f"{primary['type']} {primary['from']}→{primary['to']}" if primary else "No violations detected"),
         },
         "SECONDARY_CAUSE": {
             "layer": secondary["from"] if secondary else None,
@@ -249,13 +245,7 @@ def run():
             "fp_impurities": fp_impure,
         },
         "ADVERSARIAL_SIMULATION": {"score": adv_score, "findings": adv_find[:5]},
-        "DECISION": {
-            "action": (
-                "block"
-                if status == "BLOCK"
-                else "allow" if status == "PASS" else "warn" if status == "WARN" else "escalate"
-            )
-        },
+        "DECISION": {"action": ("block" if status == "BLOCK" else "allow" if status == "PASS" else "warn" if status == "WARN" else "escalate")},
         "ESCALATION_MODE": overall < 0.65,
         "REQUIRES_HUMAN_REVIEW": overall < 0.65,
         "AUTO_FIX": "DISABLED" if overall < 0.65 else None,

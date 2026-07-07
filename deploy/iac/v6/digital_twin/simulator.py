@@ -157,9 +157,7 @@ class DigitalTwin:
 
             # Resource decay: GPU util reverts toward baseline (0.3) at rate 0.05/step
             baseline_util = 0.30
-            completion_delta = 0.02 * len(
-                [j for j in state.jobs.values() if j.allocated_node == node_id and j.state == "running"]
-            )
+            completion_delta = 0.02 * len([j for j in state.jobs.values() if j.allocated_node == node_id and j.state == "running"])
             load_increase = lf * 0.01 * dt_minutes
 
             node.gpu_util_pct = np.clip(node.gpu_util_pct + load_increase - completion_delta, 0.0, 1.0)

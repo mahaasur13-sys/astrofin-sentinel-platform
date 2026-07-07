@@ -84,11 +84,7 @@ class AggregateConfidenceAdapter(ContextAdapter):
         # Weighted average based on agent weights in context
         weights = context.get("agent_weights", {})
         if weights:
-            weighted_sum = sum(
-                confs[i] * weights.get(data[i].get("agent_name", ""), 1.0)
-                for i in range(len(data))
-                if isinstance(data[i], dict)
-            )
+            weighted_sum = sum(confs[i] * weights.get(data[i].get("agent_name", ""), 1.0) for i in range(len(data)) if isinstance(data[i], dict))
             total_weight = sum(weights.values())
             avg_conf = weighted_sum / total_weight if total_weight > 0 else sum(confs) / len(confs)
         else:

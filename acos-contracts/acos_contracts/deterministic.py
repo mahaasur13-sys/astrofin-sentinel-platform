@@ -9,6 +9,7 @@ Long-term, all consumers will depend on `acos-contracts` only.
 Until then, `common/deterministic.py` re-exports the same names from
 `acos_contracts.deterministic` for backward compatibility.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -93,10 +94,7 @@ class DeterministicContext:
         rng: "DeterministicRNG | None" = None,
         clock: "DeterministicClock | None" = None,
     ) -> "DeterministicContext":
-        derived_seed = (
-            seed if isinstance(seed, int)
-            else DeterministicRNG.from_seed(seed).seed
-        )
+        derived_seed = seed if isinstance(seed, int) else DeterministicRNG.from_seed(seed).seed
         return cls(
             clock=clock or DeterministicClockImpl(frozen_at=frozen_at),
             rng=rng or DeterministicRNG.from_seed(seed),
@@ -176,11 +174,7 @@ class DeterministicRNG:
         return cls(seed)
 
     def uuid4(self) -> str:
-        seed_bytes = b"".join(
-            self._state.randbytes(4) if hasattr(self._state, "randbytes")
-            else self._state.getrandbits(32).to_bytes(4, "big")
-            for _ in range(4)
-        )
+        seed_bytes = b"".join(self._state.randbytes(4) if hasattr(self._state, "randbytes") else self._state.getrandbits(32).to_bytes(4, "big") for _ in range(4))
         digest = hashlib.sha1(seed_bytes).hexdigest()
         return str(_uuid.UUID(digest[:32]))
 

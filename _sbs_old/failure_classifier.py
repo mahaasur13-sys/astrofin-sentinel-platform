@@ -56,10 +56,7 @@ class ClassifiedFailure:
     raw_event: dict[str, Any]
 
     def __str__(self) -> str:
-        return (
-            f"[{self.severity.value}] {self.category.value} "
-            f"(from {self.source_layer}): {self.description}"
-        )
+        return f"[{self.severity.value}] {self.category.value} (from {self.source_layer}): {self.description}"
 
 
 # ── Severity matrix: category → default severity ────────────────────────────
@@ -117,9 +114,7 @@ class FailureClassifier:
             raw_event=failure_event,
         )
 
-    def classify_batch(
-        self, failure_events: list[dict[str, Any]]
-    ) -> list[ClassifiedFailure]:
+    def classify_batch(self, failure_events: list[dict[str, Any]]) -> list[ClassifiedFailure]:
         """Classify multiple failure events."""
         return [self.classify(e) for e in failure_events]
 

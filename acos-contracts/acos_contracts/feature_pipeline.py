@@ -11,10 +11,11 @@ closes once both sides depend on this contract.
 
 See ADR-0002 for the full rationale.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -80,4 +81,4 @@ __all__ = [
 
 
 # Legacy alias.
-WindowEngine = WindowEngineProtocol     # type: ignore[misc, assignment]
+WindowEngine = WindowEngineProtocol  # type: ignore[misc, assignment]

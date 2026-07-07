@@ -1,6 +1,7 @@
 """
 saas/branding/middleware.py
 """
+
 from fastapi import Request, HTTPException, status
 from .service import BrandingService
 from .models import TenantBranding

@@ -1,6 +1,7 @@
 """db/karl_replay.py — PostgresReplayBuffer (ATOM-019)
 Stores KARL trajectories in PostgreSQL + TimescaleDB.
 """
+
 from __future__ import annotations
 
 
@@ -47,24 +48,12 @@ class PostgresReplayBuffer:
 
     def get_by_symbol(self, symbol: str, limit: int = 100) -> list[dict]:
         with pg_session() as s:
-            rows = (
-                s.query(KARLTrajectory)
-                .filter(KARLTrajectory.symbol == symbol)
-                .order_by(KARLTrajectory.created_at.desc())
-                .limit(limit)
-                .all()
-            )
+            rows = s.query(KARLTrajectory).filter(KARLTrajectory.symbol == symbol).order_by(KARLTrajectory.created_at.desc()).limit(limit).all()
             return [self._row_to_dict(r) for r in rows]
 
     def get_similar(self, regime: str, action: str, limit: int = 10) -> list[dict]:
         with pg_session() as s:
-            rows = (
-                s.query(KARLTrajectory)
-                .filter(KARLTrajectory.regime == regime)
-                .order_by(KARLTrajectory.outcome.desc())
-                .limit(limit)
-                .all()
-            )
+            rows = s.query(KARLTrajectory).filter(KARLTrajectory.regime == regime).order_by(KARLTrajectory.outcome.desc()).limit(limit).all()
             return [self._row_to_dict(r) for r in rows]
 
     def size(self) -> int:

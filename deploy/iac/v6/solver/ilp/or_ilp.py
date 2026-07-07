@@ -42,8 +42,8 @@ class ILPSolver:
 
         t0 = time.time()
 
-        jobs = list(set(c.job_id for c in candidates))
-        nodes = list(set(c.node_id for c in candidates if c.node_id != "REJECT"))
+        jobs = list({c.job_id for c in candidates})
+        nodes = list({c.node_id for c in candidates if c.node_id != "REJECT"})
         n_jobs, n_nodes = len(jobs), len(nodes)
 
         if n_jobs * n_nodes > self.max_vars:
