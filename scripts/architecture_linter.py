@@ -136,23 +136,38 @@ SECRET_REGEXES = [
 # ─── R1: inheritance from BaseAgent ─────────────────────────────────────────
 
 
+# Classes that intentionally do NOT inherit BaseAgent[AgentResponse].
+# Each entry: (file, class_name) — kept short; the file holds the rationale.
+R1_ALLOWLIST: set[tuple[str, str]] = {
+    ("agents/karl_synthesis.py", "KARLSynthesisAgent"),
+    # KARLSynthesisAgent is a deliberate non-BaseAgent facade over
+    # SynthesisAgent + AMRE/KARL control loop. It is runtime-mocked
+    # in tests (test_synthesis.py::test_karl_synthesis_smoke).
+}
+
+
 def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> None:
-    """Every class in agents/_impl/* must inherit from BaseAgent."""
+    """Every class in agents/_impl/* must inherit from BaseAgent.
+
+    Recognised exclusions:
+      - classes whose (file, name) is in R1_ALLOWLIST (intentional facades)
+      - BaseAgent subclasses / mixins
+    """
     if "_archived" in src.parts:
         return
+    rel = _rel(src)
     for node in ast.walk(tree):
         if isinstance(node, ast.ClassDef):
             base_names: list[str] = []
             for b in node.bases:
                 base_names.append(ast.unparse(b))
-            # Allow BaseAgent subclass or a recognized mixin.
             is_agent = any(re.match(r"BaseAgent\[.*\]", n) or n.endswith("BaseAgent") for n in base_names)
             if not is_agent:
-                # Not every class has to be an agent; only flag the *file*
-                # if the class name ends in "Agent".
                 if node.name.endswith("Agent") and not node.name.endswith("BaseAgent"):
+                    if (rel, node.name) in R1_ALLOWLIST:
+                        continue
                     report.fail(
-                        _rel(src),
+                        rel,
                         node.lineno,
                         "R1",
                         f"class {node.name} should inherit BaseAgent[AgentResponse]; got {base_names}",
