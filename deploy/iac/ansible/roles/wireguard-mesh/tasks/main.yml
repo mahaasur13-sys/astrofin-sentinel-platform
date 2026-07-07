@@ -1,0 +1,48 @@
+---
+- name: Install wireguard
+  ansible.builtin.apt:
+    name: wireguard
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Generate WireGuard keypair for node
+  ansible.builtin.shell: |
+    wg genkey | tee /etc/wireguard/$(hostname -s).private | wg pubkey > /etc/wireguard/$(hostname -s).public
+    creates="/etc/wireguard/$(hostname -s).private"
+  register: wg_keys
+
+- name: Read node private key
+  ansible.builtin.slurp:
+    src: "/etc/wireguard/$(ansible_hostname).private"
+  register: node_private_key
+  no_log: true
+
+- name: Read node public key
+  ansible.builtin.slurp:
+    src: "/etc/wireguard/$(ansible_hostname).public"
+  register: node_public_key
+
+- name: Assemble WireGuard peer list (exclude self)
+  ansible.builtin.set_fact:
+    wg_peers: "{{ groups['mesh_nodes'] | map('extract', hostvars) | json_query('[?!equals(hostname, ansible_hostname)]') }}"
+
+- name: Configure WireGuard interface
+  ansible.builtin.template:
+    src: wg0.conf.j2
+    dest: /etc/wireguard/wg0.conf
+    mode: "0600"
+  notify: restart wireguard
+
+- name: Enable IP forwarding
+  ansible.builtin.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    reload: true
+
+- name: Start and enable WireGuard
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    state: started
+    enabled: true

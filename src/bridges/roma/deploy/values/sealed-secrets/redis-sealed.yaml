@@ -1,0 +1,17 @@
+# =============================================================================
+# SealedSecret — Redis Credentials
+# =============================================================================
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: roma-redis
+  namespace: roma-system
+spec:
+  encryptedData:
+    password: ENCRYPTED_VALUE
+  template:
+    type: Opaque
+    metadata:
+      labels:
+        app.kubernetes.io/name: roma
+        app.kubernetes.io/component: cache

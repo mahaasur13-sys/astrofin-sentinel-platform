@@ -1,0 +1,43 @@
+# ============================================================
+# Role: ray — Distributed AI runtime
+# ============================================================
+
+- name: Install Ray
+  ansible.builtin.pip:
+    name: ray[default]
+    executable: pip3
+    state: present
+    extra_args: --upgrade
+
+# ── Ray head ────────────────────────────────────────────────
+- name: Start Ray head
+  ansible.builtin.shell: |
+    ray start --head --port 6379 --num-cpus {{ ansible_processor_vcpus | default(4) }}
+             --num-gpus {{ ansible_gpu_count | default(0) }}
+             --memory {{ ansible_memory_total_mb | default(16000) }}
+             --dashboard-host 0.0.0.0
+  when: "'ray_head' in group_names"
+  notify: Ray restart
+
+- name: Ray head service
+  ansible.builtin.systemd_service:
+    name: ray-head
+    enabled: true
+    state: started
+  when: "'ray_head' in group_names"
+
+# ── Ray workers ─────────────────────────────────────────────
+- name: Start Ray worker
+  ansible.builtin.shell: |
+    ray start --address={{ hostvars[groups['ray_head'][0]]['ansible_host'] }}:6379
+             --num-cpus {{ ansible_processor_vcpus | default(4) }}
+             --memory {{ ansible_memory_total_mb | default(8000) }}
+  when: "'ray_workers' in group_names"
+  notify: Ray restart
+
+- name: Ray worker service
+  ansible.builtin.systemd_service:
+    name: ray-worker
+    enabled: true
+    state: started
+  when: "'ray_workers' in group_names"

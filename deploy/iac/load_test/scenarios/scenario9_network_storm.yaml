@@ -1,0 +1,23 @@
+name: Network storm on WireGuard interface
+description: UDP flood on WireGuard mesh — measure Slurm job submit latency
+duration: 120
+steps:
+  - name: start_udp_flood
+    type: exec
+    command: hping3 --udp --flood --rand-source 10.0.0.2 || true
+    target: any-node
+  - name: measure_slurm_latency
+    type: measure
+    metric: job_submit_time
+    threshold: 5000
+    interval: 5
+  - name: stop_flood
+    type: exec
+    command: pkill -f hping3
+    target: any-node
+  - name: verify_recovery
+    type: exec
+    command: squeue
+    expect_contains:
+      - STATE
+      - TIME

@@ -1,0 +1,26 @@
+# =============================================================================
+# ROMA Tenant Operator — Dockerfile
+# kopf-based operator, watches RomaTenant CRs
+# =============================================================================
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install operator dependencies
+COPY pyproject.toml .
+RUN pip install --no-cache-dir \
+    kopf==1.37.2 \
+    kubernetes==31.0.0 \
+    cert-manager==1.14.4 \
+    asyncio \
+    logging
+
+COPY config/crd/controller/operator.py .
+
+# Non-root
+RUN useradd -m -u 1000 operator && chown -R operator:operator /app
+USER operator
+
+# kopf，自动检测并在 home 目录寻找 kopf.handle 处理器
+CMD ["kopf", "run", "--standalone", "operator.py"]

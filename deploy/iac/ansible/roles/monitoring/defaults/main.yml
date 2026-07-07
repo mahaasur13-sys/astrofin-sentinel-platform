@@ -1,0 +1,7 @@
+---
+# ansible/roles/monitoring/defaults/main.yml
+
+prometheus_retention_days: 15
+grafana_admin_password: "admin123"
+slurm_controller_host: "192.168.1.10"
+monitoring_metrics_port: 9090

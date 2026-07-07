@@ -1,0 +1,29 @@
+{
+  "title": "ACOS Overview",
+  "tags": ["acos", "amneziawg", "scl"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "title": "Tunnel Status",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "awg_tunnel_up", "refId": "A"}
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}}}, {"type": "value", "options": {"1": {"text": "UP", "color": "green"}}}],
+          "thresholds": {"mode": "absolute", "steps": [{"value": 0, "color": "red"}, {"value": 1, "color": "green"}]}
+        }
+      }
+    },
+    {
+      "title": "Peers Connected",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "targets": [{"expr": "awg_peers_connected", "refId": "A"}]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38
+}

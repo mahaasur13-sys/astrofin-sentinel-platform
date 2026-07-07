@@ -1,0 +1,107 @@
+# file: ansible/roles/argocd/templates/argocd-values.yaml.j2
+# ArgoCD Helm Chart Values
+
+server:
+  replicas: {{ argocd_replicas }}
+  shards: {{ argocd_shards }}
+
+  image:
+    repository: quay.io/argoproj/argocd
+    tag: "{{ argocd_version }}"
+    pullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: {{ argocd_server_cpu_req }}
+      memory: {{ argocd_server_mem_req }}
+    limits:
+      cpu: {{ argocd_server_cpu_limit }}
+      memory: {{ argocd_server_mem_limit }}
+
+  extraArgs:
+    - --insecure
+    - --enable-gzip
+
+  ingress:
+    enabled: false  # We manage Ingress via Ansible
+
+  service:
+    type: ClusterIP
+
+  # Security
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+    fsGroup: 999
+
+  config:
+    # Resource tracking
+    resource.customizations: |
+      apiVersion: v1
+      kind: Deployment
+      health.lua: |
+        hs = {}
+        hs.status = "Progressing"
+        hs.message = ""
+        if obj.status.availableReplicas ~= obj.spec.replicas then
+          hs.status = "Healthy"
+          hs.message = "Waiting for rollout"
+        end
+        return hs
+
+controller:
+  replicas: {{ argocd_replicas }}
+
+  image:
+    repository: quay.io/argoproj/argocd
+    tag: "{{ argocd_version }}"
+
+  resources:
+    limits:
+      cpu: {{ argocd_controller_cpu_limit }}
+      memory: {{ argocd_controller_mem_limit }}
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+
+repoServer:
+  replicas: {{ argocd_replicas }}
+
+  image:
+    repository: quay.io/argoproj/argocd
+    tag: "{{ argocd_version }}"
+
+  resources:
+    limits:
+      cpu: {{ argocd_repo_server_cpu_limit }}
+      memory: {{ argocd_repo_server_mem_limit }}
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+
+redis:
+  replicas: 2
+
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+
+# HA mode
+ha:
+  enabled: true
+  replicaCount: {{ argocd_replicas }}
+
+# Notifications (optional)
+notifications:
+  enabled: false
+
+# Dex (external IdP - disabled by default)
+dex:
+  enabled: false

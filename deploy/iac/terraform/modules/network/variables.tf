@@ -1,0 +1,14 @@
+variable "mesh_vpn_subnet"  { type = string }
+variable "vlan_segments"    { type = any }
+variable "wireguard_port"  { type = number }
+variable "mikrotik_host"   { type = string }
+variable "mikrotik_user"   { type = string }
+variable "mikrotik_password" { type = string }
+variable "home_wg_pubkey"   { type = string }
+variable "edge_wg_pubkey"   { type = string }
+variable "home_private_key" { type = string }
+variable "edge_private_key"  { type = string }
+variable "home_endpoint"   { type = string }
+variable "edge_endpoint"    { type = string }
+variable "upstream_gateway" { type = string }
+variable "dns_server"       { type = string }

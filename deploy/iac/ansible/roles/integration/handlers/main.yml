@@ -1,0 +1,13 @@
+---
+- name: Restart job-router
+  ansible.builtin.systemd:
+    name: job-router
+    state: restarted
+
+- name: Restart slurmctld
+  ansible.builtin.systemd:
+    name: slurmctld
+    state: restarted
+
+- name: Remount ceph
+  ansible.builtin.command: mount -a
