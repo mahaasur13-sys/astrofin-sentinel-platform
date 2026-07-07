@@ -73,4 +73,4 @@ exclude = ["tests*", "docs*", "bench*"]
 line-length = 250
 
 [tool.ruff.lint]
-ignore = ["E", "F", "C", "I", "W", "UP", "N", "B", "A", "COM", 'invalid-syntax', 'F402', 'E701', 'E722', 'C901', 'E402', 'E501', 'E741', 'E702', 'F401', 'F821', 'F811', 'F403']
+ignore = ["E", "F", "C", "I", "W", "UP", "N", "B", "A", "COM", 'F402', 'E701', 'E722', 'C901', 'E402', 'E501', 'E741', 'E702', 'F401', 'F821', 'F811', 'F403']
