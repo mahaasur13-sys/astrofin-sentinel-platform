@@ -181,3 +181,8 @@ async def run_insider_agent(state: dict) -> dict:
     agent = InsiderAgent()
     result = await agent.analyze(state)
     return {"insider_signal": result.to_dict()}
+
+
+def create() -> InsiderAgent:
+    """Factory for 6-fn test contract."""
+    return InsiderAgent()

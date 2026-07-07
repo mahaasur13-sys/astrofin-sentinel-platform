@@ -70,7 +70,7 @@ services:
   ml-engine:
     build:
       context: ./AsurDev
-      dockerfile: ./AsurDev/ml_engine/Dockerfile
+      dockerfile: ml_engine/Dockerfile
     image: acos/ml-engine:6.0.0
     container_name: acos-ml-engine
     ports:
@@ -102,7 +102,7 @@ services:
   feature-pipeline:
     build:
       context: ./deploy/iac
-      dockerfile: ./deploy/iac/feature_pipeline/Dockerfile
+      dockerfile: feature_pipeline/Dockerfile
     image: acos/feature-pipeline:6.0.0
     container_name: acos-feature-pipeline
     ports:
@@ -131,7 +131,7 @@ services:
   gpu-worker:
     build:
       context: ./src/bridges/roma
-      dockerfile: ./src/bridges/roma/gpu_worker/Dockerfile
+      dockerfile: gpu_worker/Dockerfile
     image: roma/gpu-worker:1.0.0
     container_name: roma-gpu-worker
     # Profile: only runs when GPU profile is activated:  docker compose --profile gpu up

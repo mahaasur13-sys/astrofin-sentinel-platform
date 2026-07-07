@@ -308,3 +308,8 @@ async def run_compromise_agent(state: dict[str, Any]) -> dict:
 
 
 __all__ = ["CompromiseAgent", "run_compromise_agent"]
+
+
+def create() -> CompromiseAgent:
+    """Factory for 6-fn test contract."""
+    return CompromiseAgent()

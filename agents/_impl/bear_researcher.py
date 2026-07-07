@@ -252,3 +252,8 @@ async def run_bear_researcher(state: dict) -> dict:
     agent = BearResearcherAgent()
     result = await agent.analyze(state)
     return {"bear_signal": result.to_dict()}
+
+
+def create() -> BearResearcherAgent:
+    """Factory for 6-fn test contract."""
+    return BearResearcherAgent()

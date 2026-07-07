@@ -254,3 +254,8 @@ async def run_cycle_agent(state: dict) -> dict:
     agent = CycleAgent()
     result = await agent.analyze(state)
     return {"cycle_signal": result.to_dict()}
+
+
+def create() -> CycleAgent:
+    """Factory for 6-fn test contract."""
+    return CycleAgent()

@@ -236,3 +236,8 @@ async def run_market_analyst(state: dict) -> dict:
     agent = MarketAnalystAgent()
     result = await agent.run(state)
     return {"market_analyst_signal": result.to_dict()}
+
+
+def create() -> MarketAnalystAgent:
+    """Factory for 6-fn test contract."""
+    return MarketAnalystAgent()

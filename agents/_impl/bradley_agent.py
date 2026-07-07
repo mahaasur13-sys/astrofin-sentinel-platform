@@ -218,3 +218,8 @@ async def run_bradley_agent(state: dict) -> dict:
     agent = BradleyAgent()
     result = await agent.analyze(state)
     return {"bradley_signal": result.to_dict()}
+
+
+def create() -> BradleyAgent:
+    """Factory for 6-fn test contract."""
+    return BradleyAgent()

@@ -249,3 +249,8 @@ async def run_gann_agent(state: dict) -> dict:
     agent = GannAgent()
     result = await agent.analyze(state)
     return {"gann_signal": result.to_dict()}
+
+
+def create() -> GannAgent:
+    """Factory for 6-fn test contract."""
+    return GannAgent()

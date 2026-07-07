@@ -234,3 +234,8 @@ async def run_fundamental_agent(state: dict) -> dict:
     agent = FundamentalAgent()
     result = await agent.analyze(state)
     return {"fundamental_signal": result.to_dict()}
+
+
+def create() -> FundamentalAgent:
+    """Factory for 6-fn test contract."""
+    return FundamentalAgent()

@@ -176,3 +176,8 @@ async def run_options_flow_agent(state: dict) -> dict:
     agent = OptionsFlowAgent()
     result = await agent.analyze(state)
     return {"options_flow_signal": result.to_dict()}
+
+
+def create() -> OptionsFlowAgent:
+    """Factory for 6-fn test contract."""
+    return OptionsFlowAgent()

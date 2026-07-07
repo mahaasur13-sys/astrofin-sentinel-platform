@@ -167,3 +167,8 @@ async def run_electoral_agent(state: dict) -> dict:
     agent = ElectoralAgent()
     result = await agent.run(state)
     return {"electoral_signal": result.to_dict()}
+
+
+def create() -> ElectoralAgent:
+    """Factory for 6-fn test contract."""
+    return ElectoralAgent()

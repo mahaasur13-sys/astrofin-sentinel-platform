@@ -264,3 +264,8 @@ async def run_time_window_agent(state: dict) -> dict:
     agent = TimeWindowAgent()
     result = await agent.analyze(state)
     return {"time_window_signal": result.to_dict()}
+
+
+def create() -> TimeWindowAgent:
+    """Factory for 6-fn test contract."""
+    return TimeWindowAgent()
