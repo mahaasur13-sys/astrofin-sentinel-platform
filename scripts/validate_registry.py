@@ -44,11 +44,7 @@ def main() -> int:
         return 0  # OK: change in _impl/ is accompanied by an update
 
     impls = "\n    ".join(impl_changed)
-    msg = (
-        f"⚠  You changed files under {_IMPL}/:\n    {impls}\n"
-        f"  but did not change {_REGISTRY} or {_DOCS}.\n"
-        f"  Did you forget to update AGENT_AGENTS or docs/STATUS.md?"
-    )
+    msg = f"⚠  You changed files under {_IMPL}/:\n    {impls}\n  but did not change {_REGISTRY} or {_DOCS}.\n  Did you forget to update AGENT_AGENTS or docs/STATUS.md?"
     if sys.stdout.isatty():
         msg = f"\033[33;1m{msg}\033[0m"
     print(msg)

@@ -475,9 +475,7 @@ def main():
         print(__doc__)
         sys.exit(1)
 
-    logger.info(
-        f"[Run] metric={args.metric}, window={args.window}, blend=[{args.blend_min}, {args.blend_max}] step={args.blend_step}, data={data_label}"
-    )
+    logger.info(f"[Run] metric={args.metric}, window={args.window}, blend=[{args.blend_min}, {args.blend_max}] step={args.blend_step}, data={data_label}")
 
     results, best = run_optimization(
         df=df,

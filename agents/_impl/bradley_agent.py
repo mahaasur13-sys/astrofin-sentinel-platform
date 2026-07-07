@@ -68,9 +68,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 40
 
-        reasoning = (
-            f"Bradley seasonality: {seasonality['summary']}. Planetary aspects: {planetary_aspects['summary']}. Bradley score: {bradley_score:.2f}"
-        )
+        reasoning = f"Bradley seasonality: {seasonality['summary']}. Planetary aspects: {planetary_aspects['summary']}. Bradley score: {bradley_score:.2f}"
 
         return AgentResponse(
             agent_name="BradleyAgent",

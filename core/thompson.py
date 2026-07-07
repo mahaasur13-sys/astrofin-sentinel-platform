@@ -1,20 +1,19 @@
+from __future__ import annotations
+import logging
+import random
+import threading
+from dataclasses import dataclass
+import numpy as np
+from core.belief import get_belief_tracker
+
 """
 AstroFin Sentinel v5 — Thompson Sampling Agent Selector
 FIXED: thread-safe singleton, guaranteed minimum agents, structured logging
 """
 
-from __future__ import annotations
-
-import logging
-import random
-import threading
-from dataclasses import dataclass
-
-import numpy as np
 
 logger = logging.getLogger(__name__)
 
-from core.belief import get_belief_tracker
 
 # ═════════════════════════════════════════════════
 # Agent Pools

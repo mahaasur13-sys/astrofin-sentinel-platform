@@ -1,11 +1,11 @@
-"""amre/karl_diagnostics.py - ATOM-021: Enhanced KARL Diagnostics"""
-
 from __future__ import annotations
-
-"""Extended diagnostics for KARL self-improvement loop."""
-
 from dataclasses import asdict, dataclass
 from typing import Any
+
+"""amre/karl_diagnostics.py - ATOM-021: Enhanced KARL Diagnostics"""
+
+
+"""Extended diagnostics for KARL self-improvement loop."""
 
 
 @dataclass

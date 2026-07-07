@@ -1,12 +1,7 @@
-"""amre/__init__.py - ATOM-KARL AMRE Control Loop"""
-
 from __future__ import annotations
-
-
 from .audit import (
     AuditLog,
     DecisionRecord,
-    build_decision_record,
     get_audit_log,
     record_decision,
 )
@@ -79,6 +74,9 @@ from .trajectory import (
 )
 from .uncertainty import estimate_uncertainty
 
+"""amre/__init__.py - ATOM-KARL AMRE Control Loop"""
+
+
 AMRE_ENABLED = True
 __all__ = [
     "AMRE_ENABLED",
@@ -134,7 +132,6 @@ __all__ = [
     "DelistFallback",
     "AMREOutput",
 ]
-
 
 
 __all__ += ["RewardState", "EMA_ALPHA", "update_reward_ema"]

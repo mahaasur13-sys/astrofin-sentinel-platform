@@ -54,12 +54,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 45
 
-        reasoning = (
-            f"Fear & Greed: {fear_greed['summary']}. "
-            f"Funding rate: {funding_rate['summary']}. "
-            f"Price momentum: {price_momentum['summary']}. "
-            f"Sentiment score: {sentiment_score:.2f}"
-        )
+        reasoning = f"Fear & Greed: {fear_greed['summary']}. Funding rate: {funding_rate['summary']}. Price momentum: {price_momentum['summary']}. Sentiment score: {sentiment_score:.2f}"
 
         return AgentResponse(
             agent_name="SentimentAgent",

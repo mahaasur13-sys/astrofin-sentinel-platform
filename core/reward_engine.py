@@ -150,13 +150,7 @@ if __name__ == "__main__":
     uncertainties = [0.2, 0.6]
     rewards = engine.batch_compute(outcomes, astro_alignments, uncertainties)
     for i, r in enumerate(rewards):
-        print(
-            f"Trade {i + 1}: reward={r.total_reward:.4f}  "
-            f"pnl={r.pnl_reward:.4f}  "
-            f"astro={r.astro_bonus:.4f}  "
-            f"risk={r.risk_penalty:.4f}  "
-            f"unc={r.uncertainty_penalty:.4f}"
-        )
+        print(f"Trade {i + 1}: reward={r.total_reward:.4f}  pnl={r.pnl_reward:.4f}  astro={r.astro_bonus:.4f}  risk={r.risk_penalty:.4f}  unc={r.uncertainty_penalty:.4f}")
     stats = engine.summary_stats(rewards)
     print(f"\nSummary: {stats}")
     print(f"Discounted (γ=0.95): {engine.discounted_reward(rewards):.4f}")

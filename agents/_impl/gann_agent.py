@@ -76,11 +76,7 @@ class GannAgent(BaseAgent[AgentResponse]):
             confidence = 40
 
         reasoning = (
-            f"Gann angles: {angles['summary']}. "
-            f"Price square: {price_square['summary']}. "
-            f"Time clusters: {time_clusters['summary']}. "
-            f"Astro dates: {astro_dates['summary']}. "
-            f"Gann score: {gann_score:.2f}"
+            f"Gann angles: {angles['summary']}. Price square: {price_square['summary']}. Time clusters: {time_clusters['summary']}. Astro dates: {astro_dates['summary']}. Gann score: {gann_score:.2f}"
         )
 
         return AgentResponse(

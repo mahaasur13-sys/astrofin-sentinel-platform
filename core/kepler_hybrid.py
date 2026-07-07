@@ -1,4 +1,11 @@
 import logging
+from __future__ import annotations
+import math
+from dataclasses import dataclass
+from pathlib import Path
+import joblib
+from core.kepler import OrbitalElementsDB, propagate_kepler
+
 logger = logging.getLogger(__name__)
 """
 core/kepler_hybrid.py — ATOM-STEP-4: Kepler + ML Hybrid Model
@@ -10,15 +17,6 @@ Architecture:
   3. hybrid_propagate(Elements, jd) → Kepler + ML correction
 """
 
-from __future__ import annotations
-
-import math
-from dataclasses import dataclass
-from pathlib import Path
-
-import joblib
-
-from core.kepler import OrbitalElementsDB, propagate_kepler
 
 # ─── Types ─────────────────────────────────────────────────────────────────────
 

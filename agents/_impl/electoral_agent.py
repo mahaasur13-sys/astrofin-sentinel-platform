@@ -111,15 +111,7 @@ class ElectoralAgent(BaseAgent[AgentResponse]):
         else:
             recommendation = SignalDirection.NEUTRAL
             confidence = 45
-            bw_info = (
-                (
-                    f"Best available: {best_window['choghadiya']['name']} "
-                    f"at {best_window['start'].strftime('%H:%M')} "
-                    f"(score: {best_window['score']:.1f}/10)"
-                )
-                if best_window
-                else "No window found"
-            )
+            bw_info = (f"Best available: {best_window['choghadiya']['name']} at {best_window['start'].strftime('%H:%M')} (score: {best_window['score']:.1f}/10)") if best_window else "No window found"
             reasoning = f"No strong muhurta in next 24h. {bw_info}."
 
         return AgentResponse(

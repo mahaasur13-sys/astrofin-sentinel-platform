@@ -1,22 +1,9 @@
 from __future__ import annotations
-
 import logging
-
-logger = logging.getLogger(__name__)
-"""agents/karl_synthesis.py — KARL-013: SynthesisAgent + AMRE Integration
-Оборачивает SynthesisAgent в AMRE-контур:
-  DecisionRecord → OAP update → Backtest sample → Sync audit
-
-Использование:
-    from agents.karl_synthesis import KARLSynthesisAgent
-    result = await karl_agent.run(state)
-"""
-
 import hashlib
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
-
 from agents._impl.amre import (
     SelfQuestioningEngine,
     # Audit
@@ -45,6 +32,21 @@ from agents._impl.amre.reward import (
 )
 from agents._impl.synthesis_agent import SynthesisAgent
 from agents.base_agent import AgentResponse
+from agents._impl.amre.lag_windowing import get_lag_window
+from agents._impl.amre.risk_control import apply_position_lag_risk
+from agents._impl.amre.trajectory import MarketState, market_state_hash
+
+
+logger = logging.getLogger(__name__)
+"""agents/karl_synthesis.py — KARL-013: SynthesisAgent + AMRE Integration
+Оборачивает SynthesisAgent в AMRE-контур:
+  DecisionRecord → OAP update → Backtest sample → Sync audit
+
+Использование:
+    from agents.karl_synthesis import KARLSynthesisAgent
+    result = await karl_agent.run(state)
+"""
+
 
 # ATOM-019: PostgreSQL integration
 try:
@@ -62,9 +64,6 @@ except Exception:
     AgentSignalRepository = None
     AstroPositionRepository = None
 # ATOM-KARL-015 Phase 5: Lag Windowing
-from agents._impl.amre.lag_windowing import get_lag_window
-from agents._impl.amre.risk_control import apply_position_lag_risk
-from agents._impl.amre.trajectory import MarketState, market_state_hash
 
 # ─── KARL Synthesis Agent ────────────────────────────────────────────────────────
 
@@ -433,25 +432,13 @@ class KARLSynthesisAgent:
 
         # Log for observability
         if self.reward_state.count % 10 == 0:
-            print(
-                f"[REWARD EMA] count={self.reward_state.count} "
-                f"market={market_reward:.3f} astro={astro_reward:.3f} "
-                f"raw={raw_reward:.3f} ema={smoothed:.3f}"
-            )
+            print(f"[REWARD EMA] count={self.reward_state.count} market={market_reward:.3f} astro={astro_reward:.3f} raw={raw_reward:.3f} ema={smoothed:.3f}")
 
         return smoothed
 
     def _compute_state_hash(self, state: dict, signal: str, confidence: int, regime: str) -> str:
         """Compute reproducible state hash."""
-        data = (
-            f"{state.get('symbol', '')}:"
-            f"{state.get('current_price', 0)}:"
-            f"{state.get('timeframe_requested', 'SWING')}:"
-            f"{len(state.get('all_signals', []))}:"
-            f"{regime}:"
-            f"{signal}:"
-            f"{confidence}"
-        )
+        data = f"{state.get('symbol', '')}:{state.get('current_price', 0)}:{state.get('timeframe_requested', 'SWING')}:{len(state.get('all_signals', []))}:{regime}:{signal}:{confidence}"
         return hashlib.md5(data.encode()).hexdigest()[:12]
 
     # ── Phase 5: Lag Windowing ─────────────────────────────────────────────────

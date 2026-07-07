@@ -76,9 +76,7 @@ class ResidualModel:
         print("-" * 66)
         for body in bodies:
             rc = self.predict_correction(body, jd)
-            print(
-                f"{body:<10} {rc.kepler_lon_deg:>8.3f} {rc.swiss_lon_deg:>8.3f} {rc.correction_deg:>8.4f} {rc.correction_arcmin:>10.2f} {self.mode}"
-            )
+            print(f"{body:<10} {rc.kepler_lon_deg:>8.3f} {rc.swiss_lon_deg:>8.3f} {rc.correction_deg:>8.4f} {rc.correction_arcmin:>10.2f} {self.mode}")
 
 
 def main():

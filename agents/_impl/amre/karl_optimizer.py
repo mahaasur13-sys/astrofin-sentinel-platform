@@ -1,15 +1,15 @@
-"""amre/karl_optimizer.py - ATOM-021: KARL Optimization & Parallelism"""
-
 from __future__ import annotations
-
-"""Optimizations for KARL loop: parallel processing, TTC depth, reduced overhead."""
-
 import asyncio
 import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Optional
+
+"""amre/karl_optimizer.py - ATOM-021: KARL Optimization & Parallelism"""
+
+
+"""Optimizations for KARL loop: parallel processing, TTC depth, reduced overhead."""
 
 
 @dataclass

@@ -111,11 +111,7 @@ class LagWindow:
         self._count: int = 0
         self._position_history: list[float] = []
 
-        logger.debug(
-            f"[LagWindow] init: adaptive={self.adaptive_enabled} "
-            f"window={self.window_size} alpha={self.alpha:.4f} "
-            f"vol_thresh=[{self.vol_low}, {self.vol_high}]"
-        )
+        logger.debug(f"[LagWindow] init: adaptive={self.adaptive_enabled} window={self.window_size} alpha={self.alpha:.4f} vol_thresh=[{self.vol_low}, {self.vol_high}]")
 
     # ─── Alpha recalculation ──────────────────────────────────────────────────
 
@@ -148,9 +144,7 @@ class LagWindow:
             self.window_size = new_size
             self._update_alpha()
 
-            logger.info(
-                f"[LagWindow] adaptive window changed: {old_size} → {new_size} (alpha {old_alpha:.4f} → {self.alpha:.4f}, vol={volatility:.4f})"
-            )
+            logger.info(f"[LagWindow] adaptive window changed: {old_size} → {new_size} (alpha {old_alpha:.4f} → {self.alpha:.4f}, vol={volatility:.4f})")
 
     # ─── Main entry point ────────────────────────────────────────────────────
 
@@ -236,9 +230,7 @@ class LagWindow:
             "count": self._count,
         }
 
-        logger.debug(
-            f"[LagWindow] {result['raw_confidence']} → {result['final_confidence']} (ema={result['ema']:.2f}, lag_adj={result['lag_adj']:+.3f})"
-        )
+        logger.debug(f"[LagWindow] {result['raw_confidence']} → {result['final_confidence']} (ema={result['ema']:.2f}, lag_adj={result['lag_adj']:+.3f})")
 
         return result
 

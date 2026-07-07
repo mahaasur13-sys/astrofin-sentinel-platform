@@ -76,12 +76,7 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
 
         confidence = int(sum(scores) / len(scores) * 100) if scores else 50
 
-        reasoning = (
-            f"Valuation: {valuation['summary']}. "
-            f"Earnings: {earnings['summary']}. "
-            f"Growth: {growth['summary']}. "
-            f"MVRV: {onchain_data.get('mvrv_ratio', 'N/A')}"
-        )
+        reasoning = f"Valuation: {valuation['summary']}. Earnings: {earnings['summary']}. Growth: {growth['summary']}. MVRV: {onchain_data.get('mvrv_ratio', 'N/A')}"
 
         return AgentResponse(
             agent_name="FundamentalAgent",

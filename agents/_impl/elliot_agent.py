@@ -73,12 +73,7 @@ class ElliotAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 40
 
-        reasoning = (
-            f"Wave structure: {wave_count['summary']}. "
-            f"Fib targets: {fib_targets['summary']}. "
-            f"Corrective phase: {corrective['summary']}. "
-            f"Elliot score: {elliot_score:.2f}"
-        )
+        reasoning = f"Wave structure: {wave_count['summary']}. Fib targets: {fib_targets['summary']}. Corrective phase: {corrective['summary']}. Elliot score: {elliot_score:.2f}"
 
         return AgentResponse(
             agent_name="ElliotAgent",
