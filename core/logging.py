@@ -7,6 +7,8 @@ import sys
 import structlog
 from opentelemetry import trace as otel_trace
 
+from core.logging_utils import scrub_pii
+
 
 def _add_trace_context(logger, method, event_dict):
     span = otel_trace.get_current_span()
@@ -53,6 +55,7 @@ def setup_logging():
             structlog.processors.add_log_level,
             _add_trace_context,
             _add_correlation_id,
+            scrub_pii,
             structlog.processors.TimeStamper(fmt="iso"),
             renderer,
         ],
