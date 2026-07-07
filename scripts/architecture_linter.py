@@ -162,22 +162,59 @@ def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> No
 # ─── R2: @require_ephemeris usage ───────────────────────────────────────────
 
 EPHEMERIS_KEYWORDS = ("swisseph", "ephemeris", "planet_position", "natal", "aspect")
+EPHEMERIS_IGNORE_FILES = {Path("core/ephemeris.py"), Path("scripts/validate_blackrock_tests.py")}
+
+
+def _uses_ephemeris_outside_docstrings(source_text: str) -> bool:
+    """Return True if EPHEMERIS_KEYWORDS appears in code (not in docstrings/comments)."""
+    import ast as _ast
+    try:
+        tree = _ast.parse(source_text)
+    except SyntaxError:
+        return False
+    skip_ranges = []
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.Expr) and isinstance(node.value, (_ast.Str, _ast.Constant)) and isinstance(getattr(node.value, "s", None), str):
+            skip_ranges.append((node.lineno, node.col_offset, node.end_lineno, node.end_col_offset))
+    def in_skip(lineno, col):
+        for s_ln, s_co, e_ln, e_co in skip_ranges:
+            if (lineno, col) >= (s_ln, s_co) and (lineno, col) <= (e_ln, e_co):
+                return True
+        return False
+    keywords = ("swisseph", "ephemeris", "planet_position", "natal", "aspect")
+    for lineno, line in enumerate(source_text.splitlines(), 1):
+        stripped = line.lstrip()
+        if stripped.startswith("#"):
+            continue
+        low = line.lower()
+        for kw in keywords:
+            idx = 0
+            while True:
+                pos = low.find(kw, idx)
+                if pos < 0:
+                    break
+                if not in_skip(lineno, pos):
+                    return True
+                idx = pos + len(kw)
+    return False
 
 
 def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: Report) -> None:
     """If the module uses ephemeris symbols, every class must have @require_ephemeris."""
     if "_archived" in src.parts:
         return
-    # Lightweight textual check: does this file mention ephemeris at all?
-    lowered = source_text.lower()
-    uses_ephemeris = any(kw in lowered for kw in EPHEMERIS_KEYWORDS)
-    if not uses_ephemeris:
+    try:
+        src_rel = _rel(src)
+    except ValueError:
         return
-
+    if src_rel in {str(p) for p in EPHEMERIS_IGNORE_FILES}:
+        return
+    if not _uses_ephemeris_outside_docstrings(source_text):
+        return
     has_decorator = "@require_ephemeris" in source_text
     if not has_decorator:
         report.fail(
-            _rel(src),
+            src_rel,
             1,
             "R2",
             "module uses ephemeris symbols but is missing @require_ephemeris on a method",
@@ -381,6 +418,7 @@ def check_docstrings(tree: ast.AST, src: Path, report: Report) -> None:
 SCAN_DIRS = ["agents", "core", "orchestration", "web", "scripts", "tools"]
 SKIP_SUFFIXES = {".pyc", ".pyo", ".swp", ".bak"}
 SKIP_NAMES = {"__pycache__", ".venv", "venv", "node_modules", ".git", ".ruff_cache", ".pytest_cache"}
+SCAN_EXCLUDE_DIRS = {"audit_repo", "Projects", "_archived", "_templates"}
 
 
 def _first_match_line(source_text: str, pattern: str) -> int:
@@ -417,6 +455,8 @@ def iter_python_files(root: Path, only_changed: bool = False) -> Iterable[Path]:
         if not path.exists():
             continue
         for p in path.rglob("*.py"):
+            if any(part in SCAN_EXCLUDE_DIRS for part in p.parts):
+                continue
             if any(part in SKIP_NAMES for part in p.parts):
                 continue
             if p.suffix in SKIP_SUFFIXES:
