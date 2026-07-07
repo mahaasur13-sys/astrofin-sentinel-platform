@@ -23,7 +23,7 @@ async def gateway_config(request: Request):
     """Expose non-sensitive gateway config for the current tenant."""
     tenant_id = getattr(request.state, "tenant_id", "default")
     cfg: TenantGatewayConfig = getattr(request.state, "tenant_config", {})
-    
+
     return {
         "tenant_id": tenant_id,
         "rate_limit": {
@@ -42,7 +42,7 @@ async def tenant_info(request: Request):
     """Public tenant metadata (safe to expose)."""
     tenant_id = getattr(request.state, "tenant_id", "unknown")
     cfg: TenantGatewayConfig = getattr(request.state, "tenant_config", {})
-    
+
     return {
         "tenant_id": tenant_id,
         "display_name": cfg.display_name if cfg else "ROMA",
@@ -54,12 +54,12 @@ def mount_gateway_routes(app, gateway_config: GatewayConfig = None):
     """Mount gateway router and wire per-tenant configs."""
     if gateway_config:
         app.state.gateway_config = gateway_config
-        
+
         for tenant_id, tenant_cfg in gateway_config.tenants.items():
-            rate_dep = rate_limit_dependency(
+            rate_limit_dependency(
                 requests_per_minute=tenant_cfg.rate_limit.requests_per_minute,
                 burst_size=tenant_cfg.rate_limit.burst_size,
                 use_redis=tenant_cfg.rate_limit.use_redis,
             )
-    
+
     app.include_router(gateway_router)

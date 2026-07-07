@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock
 from agents._impl.macro_agent import MacroAgent
 from core.base_agent import SignalDirection
 

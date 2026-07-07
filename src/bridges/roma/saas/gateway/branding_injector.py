@@ -17,10 +17,10 @@ class BrandingInjectorMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         response: Response = await call_next(request)
-        
+
         tenant_id = getattr(request.state, "tenant_id", "default")
         cfg = self.tenant_config.get(tenant_id)
-        
+
         if not cfg:
             return response
 

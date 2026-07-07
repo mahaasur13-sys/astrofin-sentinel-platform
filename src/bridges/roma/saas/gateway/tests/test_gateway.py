@@ -31,7 +31,7 @@ def full_gateway_app():
 
     app = FastAPI()
     gateway_cfg = GatewayConfig(tenants=tenant_configs)
-    
+
     setup_gateway_middleware(
         app,
         tenant_config=tenant_configs,

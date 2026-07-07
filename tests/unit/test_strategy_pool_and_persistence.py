@@ -416,13 +416,13 @@ class TestPersistenceScoredAndVersions:
             # Version A: weaker pool (mean reward 0.3).
             weak_pool = [
                 _make_scored(reward=0.2, sid=f"a_{i}") for i in range(3)
-            ] + [_make_scored(reward=0.4, sid=f"a_3")]
+            ] + [_make_scored(reward=0.4, sid="a_3")]
             assert persistence.save_version(weak_pool, tags[0]) is True
 
             # Version B: stronger pool (mean reward 0.8).
             strong_pool = [
                 _make_scored(reward=0.7, sid=f"b_{i}") for i in range(3)
-            ] + [_make_scored(reward=1.0, sid=f"b_3")]
+            ] + [_make_scored(reward=1.0, sid="b_3")]
             assert persistence.save_version(strong_pool, tags[1]) is True
 
             # Both versions are listed in the index.

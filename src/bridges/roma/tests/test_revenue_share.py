@@ -1,5 +1,6 @@
 """Tests for RevenueShareCalculator + Stripe Webhook."""
-import sys; sys.path.insert(0, '.')
+import sys
+sys.path.insert(0, '.')
 
 class MockLedger:
     def get_monthly_revenue(self, tid):
@@ -39,8 +40,8 @@ def test_response_model():
 
 def test_signature_skip_on_empty():
     from saas.webhooks.stripe_webhook import _verify
-    assert _verify(b"payload", "sig", "") == True
-    assert _verify(b"payload", "", "secret") == True
+    assert _verify(b"payload", "sig", "")
+    assert _verify(b"payload", "", "secret")
     print("PASS: signature_skip_on_empty")
 
 def test_ledger_revenue_share_ext():

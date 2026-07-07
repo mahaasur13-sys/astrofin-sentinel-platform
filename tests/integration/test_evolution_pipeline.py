@@ -30,9 +30,8 @@ from meta_rl import evolution as evolution_mod
 from meta_rl.evolution import EvolutionEngine, EvolutionStats
 from meta_rl.meta_agent import EvolutionConfig, MetaAgent
 from meta_rl.persistence import MetaRLPersistence, SESSIONS
-from meta_rl.strategy import Strategy
 from meta_rl.strategy_evaluator import EvaluationResult, StrategyEvaluator
-from meta_rl.strategy_pool import ScoredStrategy, StrategyPool
+from meta_rl.strategy_pool import ScoredStrategy
 
 
 # ── Fixtures ────────────────────────────────────────────────────────────────

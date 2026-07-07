@@ -174,7 +174,7 @@ def main() -> None:
             lines.append(f"- **Target:** `{tgt_file}:{tnode.get('source_location', '?')} :: {e['target']}`")
             lines.append(f"- **Confidence:** {e.get('confidence_score', 0):.3f}  **Weight:** {e.get('weight', 0):.2f}  **Relation:** `{e['relation']}`")
             lines.append(f"- **Verdict:** **{verdict}**")
-            lines.append(f"- **Evidence:**")
+            lines.append("- **Evidence:**")
             for ev in evidence:
                 lines.append(f"    ```\n    {ev}\n    ```")
             lines.append("")

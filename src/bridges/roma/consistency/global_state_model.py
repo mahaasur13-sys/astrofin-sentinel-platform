@@ -51,16 +51,16 @@ class GlobalStateRecord:
 class GlobalStateModel:
     """
     Single source of truth contract.
-    
+
     Truth hierarchy:
     1. K8s (running job state) — highest priority
-    2. Redis (queued/scheduled state) — medium priority  
+    2. Redis (queued/scheduled state) — medium priority
     3. Event Store (historical log) — replay source
     4. State Snapshots (derived) — for fast recovery
-    
+
     Key invariant:
     ∀ job: consistent(job) = (k8s_state == redis_state == event_store_replay)
-    
+
     When invariant breaks → ReconciliationEngine.trigger_repair()
     """
 
@@ -167,7 +167,7 @@ class GlobalStateModel:
         """
         Queue admission control.
         Returns (admit: bool, reason: str)
-        
+
         Reject if:
         - GPU saturation > 90%
         - Queue depth > threshold (100 jobs default)

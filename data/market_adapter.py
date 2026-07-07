@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 import requests
-from prometheus_client import Counter, Gauge, Histogram, REGISTRY
+from prometheus_client import Counter, Histogram
 
 
 logger = logging.getLogger(__name__)

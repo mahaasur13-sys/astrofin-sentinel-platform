@@ -31,7 +31,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         from starlette.responses import JSONResponse
-        
+
         try:
             origin = request.headers.get("origin", "")
             if self._cors_origin_match(origin):
