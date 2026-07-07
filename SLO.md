@@ -26,8 +26,11 @@ yet (pre-revenue).
 | 2 — submit p95 | `http_request_duration_seconds_bucket{path="/api/v1/submit"}` | `histogram_quantile(0.95, rate(...[5m]))` |
 | 3 — success rate | `http_requests_total{job="astrofin-*",code=~"2xx"}` | `sum(rate(http_requests_total{code=~"2xx"}[30d])) / sum(rate(http_requests_total[30d]))` |
 
-Recording rules are not yet in `deploy/prometheus/rules/` — issue #129
-tracks adding them.
+Recording rules are defined in
+[`deploy/monitoring/recording_rules.yml`](./deploy/monitoring/recording_rules.yml)
+(group `astrofin_slo`); burn-rate and SLO alerts live in
+[`deploy/monitoring/alert_rules.yml`](./deploy/monitoring/alert_rules.yml)
+under groups `astrofin_slo` and `astrofin_service_health`.
 
 ## Burn-rate alerts
 
