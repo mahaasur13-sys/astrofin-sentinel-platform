@@ -23,7 +23,7 @@
 11. [Риски и Mitigation](#10-%E2%9A%A0%EF%B8%8F-%D1%80%D0%B8%D1%81%D0%BA%D0%B8-%D0%B8-mitigation)
 12. [Сводная таблица по фазам](#11-%F0%9F%93%8A-%D1%81%D0%B2%D0%BE%D0%B4%D0%BD%D0%B0%D1%8F-%D1%82%D0%B0%D0%B1%D0%BB%D0%B8%D1%86%D0%B0-%D0%BF%D0%BE-%D1%84%D0%B0%D0%B7%D0%B0%D0%BC)
 13. [Топ-15 задач первой недели](#12-%F0%9F%8F%81-%D1%82%D0%BE%D0%BF-15-%D0%B7%D0%B0%D0%B4%D0%B0%D1%87-%D0%BF%D0%B5%D1%80%D0%B2%D0%BE%D0%B9-%D0%BD%D0%B5%D0%B4%D0%B5%D0%BB%D0%B8)
-14. [Рекомендуемый порядок выполнения](#13-%F0%9F%93%8C-%D1%80%D0%B5%D0%BA%D0%BE%D0%BC%D0%B5%D0%BD%D0%B4%D1%83%D0%B5%D0%BC%D1%8B%D0%B9-%D0%BF%D0%BE%D1%80%D1%8F%D0%B4%D0%BE%D0%BA-%D0%B2%D1%8B%D0%BF%D0%BE%D0%BB%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F)
+14. [Рекомендуемый порядок выполнения](#13-%F0%9F%93%8C-%D1%80%D0%B5%D0%BA%D0%BE%D0%BC%D0%B5%D0%BD%D1%83%D0%B5%D0%BC%D1%8B%D0%B9-%D0%BF%D0%BE%D1%80%D1%8F%D0%B4%D0%BE%D0%BA-%D0%B2%D1%8B%D0%BF%D0%BE%D0%BB%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F)
 15. [Итоговая оценка](#14-%F0%9F%92%B0-%D0%B8%D1%82%D0%BE%D0%B3%D0%BE%D0%B2%D0%B0%D1%8F-%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B0)
 
 ---
@@ -305,18 +305,20 @@ TOTAL: 24.5 дня ≈ 5 недель (1 FTE) / 3 недели (1.5 FTE)
 
 > 🎯 Пройтись по security review, написать недостающие compliance docs, обучить второй эшелон поддержки.
 
+**Статус (2026-07-07):** ✅ P4-01 (THREAT_MODEL.md), P4-07 (SECURITY.md), P4-08 (PRIVACY.md), P4-09 (SOC2 readiness checklist), P4-10 (MAINTAINERS.md) — merged in PR docs/security-compliance-phase-4. PII scrubber (P3b) уже замержен в master (PR #133).
+
 | ID | Название | Приоритет | Часы | Зависимости | Owner | Метки |
 | --- | --- | --- | --- | --- | --- | --- |
-| **P4-01** | **Внутренний security audit (threat model STRIDE)**: по основным сервисам (web/api, orchestrator, ml-engine, gpu-worker). Результат → `file docs/security/THREAT_MODEL.md` | 🟥 Critical | 6 | — | Security Engineer | security, threat-model |
+| ✅ **P4-01** | **Внутренний security audit (threat model STRIDE)**: по основным сервисам (web/api, orchestrator, ml-engine, gpu-worker). Результат → `file docs/security/THREAT_MODEL.md` | 🟥 Critical | 6 | — | Security Engineer | security, threat-model |
 | **P4-02** | **Pen-test baseline** (если возможно — привлечь 1 фрилансера на 1 день): `file tests/security/pen_test_report.md`, исправить top-3 | 🟧 High | 8 | P4-01 | Security Engineer | security, pentest |
 | **P4-03** | **SAST/DAST в CI**: добавить `semgrep` (ruleset: p/security-audit, p/python, p/secrets) + OWASP ZAP baseline scan в `file quality-gate.yml`. Блокировать merge при high | 🟧 High | 4 | P0-01 | Security Engineer | security, ci, sast, dast |
 | **P4-04** | **Dependency vulnerability scan**: `pip-audit` + `osv-scanner` в `file ci.yml`. Авто-PR через Dependabot/Renovate | 🟧 High | 3 | — | DevOps | security, deps, ci |
 | **P4-05** | **Container image scan**: `trivy image --severity HIGH,CRITICAL` в `file deploy.yml`. Cosign keyless signing с SLSA L3 provenance (G9) | 🟧 High | 4 | — | DevOps | security, container, slsa |
 | **P4-06** | **SLSA Level 3 provenance** (G9): `slsa-github-generator` в `file deploy.yml`, публикация `.attestation` в GHCR, верификация при pull | 🟨 Medium | 5 | P4-05 | DevOps | security, slsa, supply-chain |
-| **P4-07** | **SECURITY.md** (G8): политика disclosure, контакты, scope, bounty (если будет), CVE-история | 🟧 High | 2 | — | Tech Writer | security, docs |
-| **P4-08** | **PRIVACY.md / Data Processing Addendum** (G8): GDPR-совместимый, перечень данных, retention, права субъекта, контакт DPO | 🟧 High | 4 | — | Tech Writer | compliance, privacy, gdpr |
-| **P4-09** | **SOC2 Type 1 readiness checklist**: `file docs/compliance/SOC2_READINESS.md` — маппинг Trust Services Criteria, gaps, plan | 🟨 Medium | 6 | — | Security Engineer | compliance, soc2 |
-| **P4-10** | **BUS factor (G15)**: назначить `mahaasur13-sys` вторым maintainer в CODEOWNERS, провести pair-programming на критических модулях (orchestrator, security, db), создать `file docs/MAINTAINERS.md` с зонами ответственности | 🟥 Critical | 4 | — | Tech Lead | bus-factor, process |
+| ✅ **P4-07** | **SECURITY.md** (G8): политика disclosure, контакты, scope, bounty (если будет), CVE-история | 🟧 High | 2 | — | Tech Writer | security, docs |
+| ✅ **P4-08** | **PRIVACY.md / Data Processing Addendum** (G8): GDPR-совместимый, перечень данных, retention, права субъекта, контакт DPO | 🟧 High | 4 | — | Tech Writer | compliance, privacy, gdpr |
+| ✅ **P4-09** | **SOC2 Type 1 readiness checklist**: `file docs/compliance/SOC2_READINESS.md` — маппинг Trust Services Criteria, gaps, plan | 🟨 Medium | 6 | — | Security Engineer | compliance, soc2 |
+| ✅ **P4-10** | **BUS factor (G15)**: назначить `mahaasur13-sys` вторым maintainer в CODEOWNERS, провести pair-programming на критических модулях (orchestrator, security, db), создать `file docs/MAINTAINERS.md` с зонами ответственности | 🟥 Critical | 4 | — | Tech Lead | bus-factor, process |
 | **P4-11** | **Runbook для on-call** (G16): `file docs/RUNBOOK.md` — top-15 алертов с диагностикой, ссылками на dashboard, командами. Скрипты `file tools/diag/*.sh` для быстрой диагностики | 🟧 High | 6 | P3-04 | DevOps | runbook, on-call |
 | **P4-12** | **Architecture Decision Records (G21)**: `file docs/adr/0001-hybrid-agents.md`, `file 0002-pgvector-rag.md`, `file 0003-tempo-tracing.md`, `file 0004-jwt-auth.md`, `file 0005-sops-secrets.md` (последние — по факту реализации в Phase 1–3) | 🟨 Medium | 5 | Phase 1–3 | Tech Writer | docs, adr |
 | **P4-13** | **API documentation site** (публичный): на базе `file openapi.json` поднять Mintlify/Docusaurus/starlight на `docs.api.astrofin`. Секции: Quickstart, Auth, Endpoints, Errors, SDKs (Python, JS) | 🟧 High | 6 | P1-10 | Tech Writer | docs, api |
