@@ -16,6 +16,7 @@ Public surface preserved verbatim for callers in:
   core/kepler_calibrator.py
   tests/*
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -94,9 +95,7 @@ class EphemerisProtocol(Protocol):
 
     def calculate_planet(self, name: str, jd: float, flags: int = 1) -> "PlanetPosition": ...
 
-    def calculate_houses(
-        self, jd: float, latitude: float, longitude: float, hsys: str = "P"
-    ) -> "HouseCusps": ...
+    def calculate_houses(self, jd: float, latitude: float, longitude: float, hsys: str = "P") -> "HouseCusps": ...
 
     def get_planetary_positions(
         self,
@@ -144,9 +143,7 @@ class SwissEphemerisProvider:
         lon, speed = _simple_position(name, jd)
         return PlanetPosition(planet=name, longitude=lon, speed=speed, retrograde=speed < 0)
 
-    def calculate_houses(
-        self, jd: float, latitude: float, longitude: float, hsys: str = "P"
-    ) -> HouseCusps:
+    def calculate_houses(self, jd: float, latitude: float, longitude: float, hsys: str = "P") -> HouseCusps:
         if not self._available or self._swe is None:
             return self._fallback.calculate_houses(jd, latitude, longitude, hsys)
         try:
@@ -194,9 +191,7 @@ class SimpleEphemerisProvider:
         lon, speed = _simple_position(name, jd)
         return PlanetPosition(planet=name, longitude=lon, speed=speed, retrograde=speed < 0)
 
-    def calculate_houses(
-        self, jd: float, latitude: float, longitude: float, hsys: str = "P"
-    ) -> HouseCusps:
+    def calculate_houses(self, jd: float, latitude: float, longitude: float, hsys: str = "P") -> HouseCusps:
         sun_pos = self.calculate_planet("sun", jd)
         houses = [(sun_pos.longitude + 30 * i) % 360 for i in range(12)]
         return HouseCusps(houses=houses, ascendant=houses[0], mc=houses[9], vertex=0.0)
@@ -225,9 +220,7 @@ def set_provider(provider: EphemerisProtocol) -> None:
     """Swap the active provider. Used by tests / shadow-runs."""
     global _default_provider
     if not isinstance(provider, EphemerisProtocol):
-        raise TypeError(
-            f"provider must satisfy EphemerisProtocol, got {type(provider).__name__}"
-        )
+        raise TypeError(f"provider must satisfy EphemerisProtocol, got {type(provider).__name__}")
     _default_provider = provider
 
 
@@ -310,10 +303,7 @@ def calculate_natal_chart(
             swe.set_sid_mode(ayanamsha)
         except Exception:
             pass
-    planets = {
-        name: _default_provider.calculate_planet(name, jd, flags)
-        for name in PLANETS
-    }
+    planets = {name: _default_provider.calculate_planet(name, jd, flags) for name in PLANETS}
     houses = _default_provider.calculate_houses(jd, latitude, longitude)
     return NatalChart(
         planets=planets,
@@ -324,9 +314,7 @@ def calculate_natal_chart(
     )
 
 
-def get_current_positions(
-    latitude: float = 55.7558, longitude: float = 37.6173, use_sidereal: bool = False
-) -> NatalChart:
+def get_current_positions(latitude: float = 55.7558, longitude: float = 37.6173, use_sidereal: bool = False) -> NatalChart:
     """Get current planetary positions for electional astrology.
 
     Now uses `common.deterministic.utc_now_deterministic()` so that

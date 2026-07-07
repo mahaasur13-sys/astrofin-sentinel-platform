@@ -1,4 +1,5 @@
 """core/astro_rl_engine.py - ATOM-STEP-6: Astro RL Engine"""
+
 from __future__ import annotations
 
 import sys as _sys
@@ -193,9 +194,7 @@ if __name__ == "__main__":
             ][day % 8],
         )
         obs = rl.observe(state)
-        print(
-            f"  Day {day + 1}: moon={obs['moon_longitude']:.1f}  nak={obs['nakshatra']}  choghadiya={obs['choghadiya']}"
-        )
+        print(f"  Day {day + 1}: moon={obs['moon_longitude']:.1f}  nak={obs['nakshatra']}  choghadiya={obs['choghadiya']}")
         if day % 2 == 0:
             d = rl.decide(signal_strength=65.0, uncertainty=0.3, regime="NORMAL")
             print(f"    Decision: pos={d['position_pct']:.4f}  astro={d['astro_alignment']:+.3f}")

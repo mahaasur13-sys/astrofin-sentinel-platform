@@ -2,6 +2,7 @@
 AstroFin Sentinel v5 — Base Agent
 RAG-first agent implementation with knowledge retrieval.
 """
+
 from __future__ import annotations
 
 import logging
@@ -10,7 +11,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Generic, Optional, TypeVar
+from typing import Generic, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -27,14 +28,16 @@ RAG_UNAVAILABLE: str = "RAG_UNAVAILABLE"
 TIMEOUT: str = "TIMEOUT"
 UNKNOWN: str = "UNKNOWN"
 
-VALID_DEGRADATION_REASONS: frozenset[str] = frozenset({
-    EPHEMERIS_UNAVAILABLE,
-    DATA_ROOM_TIMEOUT,
-    DATA_ROOM_ERROR,
-    RAG_UNAVAILABLE,
-    TIMEOUT,
-    UNKNOWN,
-})
+VALID_DEGRADATION_REASONS: frozenset[str] = frozenset(
+    {
+        EPHEMERIS_UNAVAILABLE,
+        DATA_ROOM_TIMEOUT,
+        DATA_ROOM_ERROR,
+        RAG_UNAVAILABLE,
+        TIMEOUT,
+        UNKNOWN,
+    }
+)
 
 
 class SignalDirection(str, Enum):

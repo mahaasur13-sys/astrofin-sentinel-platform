@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 """
 core/kepler_hybrid.py — ATOM-STEP-4: Kepler + ML Hybrid Model
 ==============================================================
@@ -173,7 +175,12 @@ def print_hybrid_comparison(jd_start: float = 2451545.0, jd_end: float = 2460000
     bodies = ["earth", "jupiter", "saturn"]
     logger.info(
         "\n%-10s %10s %8s %10s %12s %s",
-        "BODY", "JD", "KEPLER", "CORRECTED", "CORR_ARCMIN", "METHOD",
+        "BODY",
+        "JD",
+        "KEPLER",
+        "CORRECTED",
+        "CORR_ARCMIN",
+        "METHOD",
     )
     logger.info("%s", "-" * 70)
 

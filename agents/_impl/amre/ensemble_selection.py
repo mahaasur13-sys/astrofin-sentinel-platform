@@ -1,6 +1,6 @@
 """amre/ensemble_selection.py — Ensemble diversity selection"""
-from __future__ import annotations
 
+from __future__ import annotations
 
 from typing import Any
 

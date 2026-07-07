@@ -1,8 +1,8 @@
 """amre/oap_optimizer.py — OAP + KPI Control Loop (ATOM-KARL-010)
 Оптимизация позиций + адаптивный control loop на основе KPI.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum

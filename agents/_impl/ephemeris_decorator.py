@@ -1,8 +1,8 @@
 """
 require_ephemeris decorator and ephemeris utilities.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import functools
 from collections.abc import Callable
@@ -37,9 +37,7 @@ def require_ephemeris(func: Callable[P, T]) -> Callable[P, T]:
     @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         if not HAS_SWISS_EPHEMERIS:
-            raise EphemerisUnavailableError(
-                f"Agent '{args[0].__class__.__name__}' requires Swiss Ephemeris. Install with: pip install pyswisseph"
-            )
+            raise EphemerisUnavailableError(f"Agent '{args[0].__class__.__name__}' requires Swiss Ephemeris. Install with: pip install pyswisseph")
         return await func(*args, **kwargs)
 
     return wrapper

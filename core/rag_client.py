@@ -27,6 +27,7 @@ Public API:
 Related: SPRINT_3.md §4 (W3A), §5 (P2-02d). Tools/embedding_client.py is the
 embedder; this module is the storage + retrieval layer.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -36,7 +37,7 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, Optional, List
+from typing import List, Literal, Optional
 
 import asyncpg
 import faiss
@@ -51,8 +52,8 @@ from tools.metrics_server import (  # type: ignore[import-not-found]
     RAG_LATENCY_SECONDS,
     RAG_QUERIES_TOTAL,
     RAG_RELEVANCE_AVG,
-    RAG_RELEVANCE_SCORE,
 )
+
 logger = logging.getLogger(__name__)
 
 # ─── Configuration ──────────────────────────────────────────────────────────
@@ -117,14 +118,11 @@ class RAGConfig(BaseModel):
         if backend not in ("pgvector", "faiss"):
             raise ValueError(f"RAG_BACKEND must be 'pgvector' or 'faiss', got {backend!r}")
         if backend == "pgvector" and not os.getenv("AFS_PG_DSN"):
-            logger.warning(
-                "RAG_BACKEND=pgvector but no AFS_PG_DSN; auto-falling back to faiss"
-            )
+            logger.warning("RAG_BACKEND=pgvector but no AFS_PG_DSN; auto-falling back to faiss")
             backend = "faiss"
         return cls(
             backend=backend,
-            legacy_fallback=os.getenv("RAG_LEGACY_FALLBACK", "true").lower()
-            in ("true", "1", "yes", "on"),
+            legacy_fallback=os.getenv("RAG_LEGACY_FALLBACK", "true").lower() in ("true", "1", "yes", "on"),
             pg_dsn=os.getenv("AFS_PG_DSN"),
             faiss_dir=os.getenv("RAG_FAISS_DIR", "knowledge/indexes"),
             # Hybrid env knobs (P2-03b). Defensive parsing: bad ints/floats
@@ -197,10 +195,7 @@ class RAGClient:
 
     def _check_config(self) -> None:
         if self.config.backend == "pgvector" and not self.config.pg_dsn:
-            raise ValueError(
-                "AFS_PG_DSN is required when RAG_BACKEND=pgvector. "
-                "Set the env var, or switch to RAG_BACKEND=faiss."
-            )
+            raise ValueError("AFS_PG_DSN is required when RAG_BACKEND=pgvector. Set the env var, or switch to RAG_BACKEND=faiss.")
 
     # ─── Lifecycle ──────────────────────────────────────────────────────────
 
@@ -240,9 +235,7 @@ class RAGClient:
                 logger.error("rag_store_failed: backend=%s, error=%s", self.config.backend, str(e))
                 raise
 
-    async def get_all_chunks(
-        self, domain: Optional[str] = None
-    ) -> List["RetrievedChunk"]:
+    async def get_all_chunks(self, domain: Optional[str] = None) -> List["RetrievedChunk"]:
         """Return every chunk in `documents` (pgvector backend) as RetrievedChunk.
 
         Used by PersistentBM25Retriever (P2-03c) to build a lexical index over
@@ -317,8 +310,10 @@ class RAGClient:
                         logger.exception("store: failed for doc %s", doc.source)
         RAG_CHUNK_COUNT.set(inserted)
         return StoreResult(
-            inserted=inserted, failed=len(docs) - inserted,
-            backend="pgvector", errors=errors,
+            inserted=inserted,
+            failed=len(docs) - inserted,
+            backend="pgvector",
+            errors=errors,
         )
 
     async def _store_faiss(self, docs: list[Document]) -> StoreResult:
@@ -331,10 +326,7 @@ class RAGClient:
         # which corrupted retrieval. Reject explicitly so callers can split the batch.
         domains_in_batch = {d.domain for d in docs}
         if len(domains_in_batch) > 1:
-            raise ValueError(
-                f"_store_faiss requires a single domain per batch; got "
-                f"{sorted(domains_in_batch)}. Group docs by domain before calling."
-            )
+            raise ValueError(f"_store_faiss requires a single domain per batch; got {sorted(domains_in_batch)}. Group docs by domain before calling.")
 
         async with _FAISS_WRITE_LOCK:
             vectors = await self.embedding.embed([d.content for d in docs])
@@ -360,13 +352,15 @@ class RAGClient:
             np.divide(arr, norms, out=arr, where=norms > 0)
             index.add(arr)
             for doc in docs:
-                chunks.append({
-                    "id": doc.doc_id or str(uuid.uuid4())[:12],
-                    "content": doc.content,
-                    "source": doc.source,
-                    "title": doc.title or doc.source,
-                    "domain": doc.domain,
-                })
+                chunks.append(
+                    {
+                        "id": doc.doc_id or str(uuid.uuid4())[:12],
+                        "content": doc.content,
+                        "source": doc.source,
+                        "title": doc.title or doc.source,
+                        "domain": doc.domain,
+                    }
+                )
             faiss.write_index(index, str(index_path))
             meta_path.write_text(json.dumps(chunks, ensure_ascii=False, indent=2), encoding="utf-8")
         RAG_CHUNK_COUNT.set(len(docs))
@@ -412,22 +406,30 @@ class RAGClient:
             except Exception as e:  # noqa: BLE001
                 if not self.config.legacy_fallback or self.config.backend == "faiss":
                     RAG_ERRORS_TOTAL.labels(
-                        stage="retrieve", kind=type(e).__name__,
+                        stage="retrieve",
+                        kind=type(e).__name__,
                     ).inc()
                     RAG_QUERIES_TOTAL.labels(
-                        status="error", backend=backend_label, domain=domain_label,
+                        status="error",
+                        backend=backend_label,
+                        domain=domain_label,
                     ).inc()
                     logger.error(
                         "rag_retrieve_failed: backend=%s, domain=%s, error=%s, error_type=%s",
-                        backend_label, domain_label, str(e), type(e).__name__,
+                        backend_label,
+                        domain_label,
+                        str(e),
+                        type(e).__name__,
                     )
                     raise
                 logger.warning(
                     "primary backend %s failed (%s) — falling back to FAISS",
-                    self.config.backend, type(e).__name__,
+                    self.config.backend,
+                    type(e).__name__,
                 )
                 RAG_ERRORS_TOTAL.labels(
-                    stage="retrieve_fallback", kind=type(e).__name__,
+                    stage="retrieve_fallback",
+                    kind=type(e).__name__,
                 ).inc()
                 backend_label = "faiss"
                 results = await self._retrieve_faiss(query, k, domain, threshold)
@@ -435,21 +437,29 @@ class RAGClient:
         if threshold > 0.0:
             results = [r for r in results if r.relevance_score >= threshold]
         RAG_QUERIES_TOTAL.labels(
-            status="ok", backend=backend_label, domain=domain_label,
+            status="ok",
+            backend=backend_label,
+            domain=domain_label,
         ).inc()
         RAG_CHUNKS_RETURNED.observe(len(results))
         if results:
-            RAG_RELEVANCE_AVG.set(
-                sum(r.relevance_score for r in results) / len(results)
-            )
+            RAG_RELEVANCE_AVG.set(sum(r.relevance_score for r in results) / len(results))
         logger.info(
             "rag_retrieve: backend=%s, domain=%s, top_k=%d, returned=%d, min_score=%f",
-            backend_label, domain_label, k, len(results), threshold,
+            backend_label,
+            domain_label,
+            k,
+            len(results),
+            threshold,
         )
         return results
 
     async def _retrieve_pgvector(
-        self, query: str, k: int, domain: Optional[str], threshold: float,
+        self,
+        query: str,
+        k: int,
+        domain: Optional[str],
+        threshold: float,
     ) -> list[RetrievedChunk]:
         pool = await self._get_pg_pool()
         qvec = await self.embedding.embed_one(query)
@@ -485,16 +495,18 @@ class RAGClient:
         return results
 
     async def _retrieve_faiss(
-        self, query: str, k: int, domain: Optional[str], threshold: float,
+        self,
+        query: str,
+        k: int,
+        domain: Optional[str],
+        threshold: float,
     ) -> list[RetrievedChunk]:
         qvec = await self.embedding.embed_one(query)
         q = np.array([qvec], dtype="float32")
         # L2-normalize so IndexFlatIP gives cosine similarity
         q = q / np.linalg.norm(q, axis=1, keepdims=True)
 
-        domains = [domain] if domain else [
-            p.stem for p in Path(self.config.faiss_dir).glob("*.index")
-        ]
+        domains = [domain] if domain else [p.stem for p in Path(self.config.faiss_dir).glob("*.index")]
         all_results: list[RetrievedChunk] = []
         for d in domains:
             index, chunks = self._load_faiss_domain(d)
@@ -506,14 +518,16 @@ class RAGClient:
                 if idx < 0:
                     continue
                 c = chunks[idx]
-                all_results.append(RetrievedChunk(
-                    content=c["content"],
-                    source=c["source"],
-                    title=c.get("title", ""),
-                    domain=c.get("domain", d),
-                    relevance_score=float(score),
-                    backend="faiss",
-                ))
+                all_results.append(
+                    RetrievedChunk(
+                        content=c["content"],
+                        source=c["source"],
+                        title=c.get("title", ""),
+                        domain=c.get("domain", d),
+                        relevance_score=float(score),
+                        backend="faiss",
+                    )
+                )
 
         all_results.sort(key=lambda x: x.relevance_score, reverse=True)
         # Dedupe by (source, title), keep top-k above threshold.

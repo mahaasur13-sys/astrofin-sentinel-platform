@@ -8,8 +8,8 @@ import logging
 
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
-
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+
 logger = logging.getLogger(__name__)
 
 
@@ -63,12 +63,7 @@ class GannAgent(BaseAgent[AgentResponse]):
         astro_dates = await self._check_astro_time_dates(state)
 
         # Combine signals
-        gann_score = (
-            angles["score"] * 0.40
-            + price_square["score"] * 0.25
-            + time_clusters["score"] * 0.20
-            + astro_dates["score"] * 0.15
-        )
+        gann_score = angles["score"] * 0.40 + price_square["score"] * 0.25 + time_clusters["score"] * 0.20 + astro_dates["score"] * 0.15
 
         if gann_score >= 0.60:
             signal = SignalDirection.LONG
@@ -106,8 +101,8 @@ class GannAgent(BaseAgent[AgentResponse]):
     @track_agent_metrics
     async def run(self, state: dict) -> AgentResponse:
         """Public entry point. Wraps analyze() with the latency histogram
-        and defensive error handling so a single agent can never crash
-the orchestrator."""
+                and defensive error handling so a single agent can never crash
+        the orchestrator."""
         try:
             return await self.analyze(state)
         except EphemerisUnavailableError as e:

@@ -1,8 +1,10 @@
 """Shared async HTTP client for agent data fetching."""
+
 from __future__ import annotations
 
-import httpx
 import logging
+
+import httpx
 
 logger = logging.getLogger(__name__)
 

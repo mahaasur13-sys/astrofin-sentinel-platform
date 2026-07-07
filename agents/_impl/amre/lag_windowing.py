@@ -16,8 +16,8 @@
     result = lw.add(confidence=85, position_pct=0.15, volatility=0.008)
     # result = {final_confidence: int, ema: float, lag_adj: float, ...}
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import logging
 import os
@@ -97,28 +97,12 @@ class LagWindow:
         volatility_high_threshold: float | None = None,
     ):
         # Env-driven defaults with constructor overrides
-        self.adaptive_enabled = (
-            adaptive_window_enabled if adaptive_window_enabled is not None else _env_bool("LAG_ADAPTIVE_WINDOW", "true")
-        )
-        self.base_window_size = (
-            base_window_size if base_window_size is not None else _env_int("LAG_BASE_WINDOW_SIZE", DEFAULT_BASE_WINDOW)
-        )
-        self.min_window_size = (
-            min_window_size if min_window_size is not None else _env_int("LAG_MIN_WINDOW_SIZE", DEFAULT_MIN_WINDOW)
-        )
-        self.max_window_size = (
-            max_window_size if max_window_size is not None else _env_int("LAG_MAX_WINDOW_SIZE", DEFAULT_MAX_WINDOW)
-        )
-        self.vol_low = (
-            volatility_low_threshold
-            if volatility_low_threshold is not None
-            else _env_float("LAG_VOL_LOW_THRESH", DEFAULT_VOL_LOW)
-        )
-        self.vol_high = (
-            volatility_high_threshold
-            if volatility_high_threshold is not None
-            else _env_float("LAG_VOL_HIGH_THRESH", DEFAULT_VOL_HIGH)
-        )
+        self.adaptive_enabled = adaptive_window_enabled if adaptive_window_enabled is not None else _env_bool("LAG_ADAPTIVE_WINDOW", "true")
+        self.base_window_size = base_window_size if base_window_size is not None else _env_int("LAG_BASE_WINDOW_SIZE", DEFAULT_BASE_WINDOW)
+        self.min_window_size = min_window_size if min_window_size is not None else _env_int("LAG_MIN_WINDOW_SIZE", DEFAULT_MIN_WINDOW)
+        self.max_window_size = max_window_size if max_window_size is not None else _env_int("LAG_MAX_WINDOW_SIZE", DEFAULT_MAX_WINDOW)
+        self.vol_low = volatility_low_threshold if volatility_low_threshold is not None else _env_float("LAG_VOL_LOW_THRESH", DEFAULT_VOL_LOW)
+        self.vol_high = volatility_high_threshold if volatility_high_threshold is not None else _env_float("LAG_VOL_HIGH_THRESH", DEFAULT_VOL_HIGH)
 
         # Internal state
         self.window_size = self.base_window_size
@@ -165,9 +149,7 @@ class LagWindow:
             self._update_alpha()
 
             logger.info(
-                f"[LagWindow] adaptive window changed: "
-                f"{old_size} → {new_size} "
-                f"(alpha {old_alpha:.4f} → {self.alpha:.4f}, vol={volatility:.4f})"
+                f"[LagWindow] adaptive window changed: {old_size} → {new_size} (alpha {old_alpha:.4f} → {self.alpha:.4f}, vol={volatility:.4f})"
             )
 
     # ─── Main entry point ────────────────────────────────────────────────────

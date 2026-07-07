@@ -1,4 +1,5 @@
 """core/coordination — ATOM-COORD-001: Agent Coordination Layer"""
+
 from __future__ import annotations
 
 from core.coordination.pressure_field import (

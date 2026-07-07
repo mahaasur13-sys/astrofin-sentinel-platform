@@ -13,8 +13,8 @@ Usage:
         get_buffer_entries_for_idea,
     )
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 from core.idea_model import Idea, IdeaStatus
 
@@ -201,9 +201,7 @@ def ideas_to_self_questioning_prompts(
 
     prompts = []
     for idea in scored[:max_ideas]:
-        prompts.append(
-            f"Does this improve system performance? {idea.text} (source={idea.source}, category={idea.category})"
-        )
+        prompts.append(f"Does this improve system performance? {idea.text} (source={idea.source}, category={idea.category})")
 
     return prompts
 

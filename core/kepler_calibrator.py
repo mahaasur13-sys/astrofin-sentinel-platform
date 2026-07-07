@@ -382,11 +382,7 @@ def main():
     print(f"{'=' * 60}")
     for body, result in results.items():
         status = "✅" if result.converged else "⚠️ "
-        print(
-            f"  {status} {body:<10} "
-            f"MAE: {result.original_mae_deg:7.4f}° → {result.final_mae_deg:7.4f}° "
-            f"({result.improvement_pct:+.1f}%)"
-        )
+        print(f"  {status} {body:<10} MAE: {result.original_mae_deg:7.4f}° → {result.final_mae_deg:7.4f}° ({result.improvement_pct:+.1f}%)")
     print(f"{'=' * 60}\n")
 
 

@@ -8,7 +8,6 @@ import logging
 
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
-
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 
 logger = logging.getLogger(__name__)
@@ -62,9 +61,7 @@ class RiskAgent(BaseAgent[AgentResponse]):
         avg_win = state.get("avg_win_pct", 0.03)
         avg_loss = state.get("avg_loss_pct", 0.015)
 
-        position_size = self._calc_position_size(
-            volatility=volatility, win_rate=win_rate, avg_win=avg_win, avg_loss=avg_loss
-        )
+        position_size = self._calc_position_size(volatility=volatility, win_rate=win_rate, avg_win=avg_win, avg_loss=avg_loss)
 
         # Stop-loss calculation
         stop_distance = atr * 1.5
@@ -115,8 +112,8 @@ class RiskAgent(BaseAgent[AgentResponse]):
     @track_agent_metrics
     async def run(self, state: dict) -> AgentResponse:
         """Public entry point. Wraps analyze() with the latency histogram
-        and defensive error handling so a single agent can never crash
-the orchestrator."""
+                and defensive error handling so a single agent can never crash
+        the orchestrator."""
         try:
             return await self.analyze(state)
         except EphemerisUnavailableError as e:

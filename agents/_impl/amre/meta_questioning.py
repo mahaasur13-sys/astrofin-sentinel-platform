@@ -1,8 +1,8 @@
 """amre/meta_questioning.py - ATOM-022: Meta-Questioning Engine
 Self-Improvement: Agent generates + refines questions.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any

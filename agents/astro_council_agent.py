@@ -8,6 +8,7 @@ AstroFin Sentinel v5 — AstroCouncil Agent
 """
 
 from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import datetime
@@ -18,7 +19,7 @@ from agents._impl.synthesis_agent import AGENT_WEIGHTS, CATEGORY_WEIGHTS
 from agents._impl.types import TradingSignal
 from agents.base_agent import AgentResponse, BaseAgent
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, SignalDirection
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN
 
 logger = logging.getLogger(__name__)
 

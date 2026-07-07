@@ -2,8 +2,8 @@
 Воспроизводимая трассировка всех решений для дебага OAP drift,
 анализа ошибок и backtest не только результатов, но и решений.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import hashlib
 import json

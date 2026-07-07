@@ -9,6 +9,7 @@ Architecture (DEDUP-001):
 """
 
 from __future__ import annotations
+
 from agents._impl.bear_researcher import BearResearcherAgent, run_bear_researcher
 from agents._impl.bradley_agent import BradleyAgent, run_bradley_agent
 from agents._impl.bull_researcher import BullResearcherAgent, run_bull_researcher

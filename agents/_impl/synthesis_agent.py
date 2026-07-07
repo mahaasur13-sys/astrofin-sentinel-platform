@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 from core.volatility import VolatilityEngine, VolatilityRegime
@@ -50,10 +50,7 @@ def _load_weights() -> dict:
         # Runtime validation: sum must be 1.0 (within epsilon)
         actual = sum(normalized.values())
         if abs(actual - 1.0) > 0.001:
-            raise ValueError(
-                f"{name} sum = {actual:.4f} (expected 1.0). "
-                f"Check config/agent_weights.yaml — all weight values must sum to 1.0."
-            )
+            raise ValueError(f"{name} sum = {actual:.4f} (expected 1.0). Check config/agent_weights.yaml — all weight values must sum to 1.0.")
         return normalized
 
     if "category_weights" in data:
@@ -145,11 +142,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
         """
         all_signals = state.get("all_signals", [])
         thompson_selections = state.get("thompson_selections", {})
-        called_agents = (
-            thompson_selections.get("technical", [])
-            + thompson_selections.get("astro", [])
-            + thompson_selections.get("electoral", [])
-        )
+        called_agents = thompson_selections.get("technical", []) + thompson_selections.get("astro", []) + thompson_selections.get("electoral", [])
 
         symbol = state.get("symbol", "BTCUSDT")
         current_price = state.get("current_price", 50000)
@@ -220,9 +213,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
             if compromise_meta.get("compromise_active") and compromise_response.confidence >= 60:
                 compromise_signal = compromise_response
         except Exception as e:  # noqa: BLE001 — non-fatal
-            logger.warning(
-                "[SYNTHESIS] CompromiseAgent failed, falling back: %r", e
-            )
+            logger.warning("[SYNTHESIS] CompromiseAgent failed, falling back: %r", e)
 
         # ─── 3. Считаем взвешенные оценки ───────────────────────────────
         direction, confidence, reasoning = self._synthesize(categories, conflicts, symbol)
@@ -295,7 +286,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                 metadata={"symbol": symbol, "timeframe": timeframe},
             )
         except Exception as amre_err:
-            amre_fallback = {"enabled": False, "error": str(amre_err)}
+            {"enabled": False, "error": str(amre_err)}
 
         # ─── 4. Формируем breakdown ────────────────────────────────────
         breakdown = self._format_breakdown(categories)
@@ -336,12 +327,8 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                         "reason_code": compromise_signal.metadata.get("reason_code"),
                         "top1": compromise_signal.metadata.get("top1"),
                         "top2": compromise_signal.metadata.get("top2"),
-                        "expected_utility": compromise_signal.metadata.get(
-                            "expected_utility"
-                        ),
-                        "drift_triggers": compromise_signal.metadata.get(
-                            "drift_triggers", []
-                        ),
+                        "expected_utility": compromise_signal.metadata.get("expected_utility"),
+                        "drift_triggers": compromise_signal.metadata.get("drift_triggers", []),
                     }
                     if compromise_signal is not None
                     else None

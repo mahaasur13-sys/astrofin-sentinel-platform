@@ -11,8 +11,8 @@ Tests:
 Запуск:
     pytest agents/_impl/amre/test_lag_windowing.py -v
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import math
 

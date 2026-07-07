@@ -2,8 +2,8 @@
 Self-questioning: agent asks itself hard questions before committing to a decision.
 Meta-questioning: agent reflects on whether its own questions are good enough.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -283,7 +283,6 @@ class SelfQuestioningEngine:
 # PHASE 4: SelfQ Triple Trigger (ATOM-KARL-015)
 # ============================================================================
 import os
-from typing import Any
 
 # Feature flag (можно переопределить через env)
 SELFQ_TRIPLE_TRIGGER_ENABLED = os.getenv("SELFQ_TRIPLE_TRIGGER_ENABLED", "true").lower() == "true"

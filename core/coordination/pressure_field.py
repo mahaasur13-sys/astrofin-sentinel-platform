@@ -9,6 +9,7 @@ Sandbox-безопасная версия: никаких embeddings, тольк
 - k_neighbors ≤ 5
 - БЕЗ embeddings
 """
+
 from __future__ import annotations
 
 import logging
@@ -203,7 +204,14 @@ def apply_pressure_field(
             top_names = [n for _, n, _, _ in top]
             _logger.info(
                 "[PF] %s(%s): %.2f -> %.2f (delta=%+.2f, regime=%s, consensus=%.0f%%, from=%s)",
-                agent_i.name, agent_i.signal, raw_eff, new_eff, delta, agent_i.regime, consensus_pct * 100, top_names,
+                agent_i.name,
+                agent_i.signal,
+                raw_eff,
+                new_eff,
+                delta,
+                agent_i.regime,
+                consensus_pct * 100,
+                top_names,
             )
 
         updated.append(

@@ -1,6 +1,6 @@
 """amre/karl_optimizer.py - ATOM-021: KARL Optimization & Parallelism"""
-from __future__ import annotations
 
+from __future__ import annotations
 
 """Optimizations for KARL loop: parallel processing, TTC depth, reduced overhead."""
 

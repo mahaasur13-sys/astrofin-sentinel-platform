@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import datetime
 import os
 import re
@@ -177,9 +178,7 @@ def main():
             if attempt == MAX_RETRIES:
                 print("⛔ Исчерпаны все попытки.")
                 with open(PROGRESS_FILE, "a") as pf:
-                    pf.write(
-                        f"\n## {task}\n- Статус: BLOCKED\n- Причина: не прошла проверки после {MAX_RETRIES} попыток\n"
-                    )
+                    pf.write(f"\n## {task}\n- Статус: BLOCKED\n- Причина: не прошла проверки после {MAX_RETRIES} попыток\n")
                 sys.exit(1)
     else:
         print("Задача не выполнена.")

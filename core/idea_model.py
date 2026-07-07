@@ -6,7 +6,6 @@ from __future__ import annotations
 # Idea must import from here. No dict/dataclass divergence.
 #
 # Lifecycle: proposed -> scored -> injected -> tested -> accepted/rejected
-
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum

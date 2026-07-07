@@ -3,6 +3,7 @@
 Validate that all alert rules reference existing metrics.
 Known metrics list should be updated when new metrics are added.
 """
+
 from __future__ import annotations
 
 import re

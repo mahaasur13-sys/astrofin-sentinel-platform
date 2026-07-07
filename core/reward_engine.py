@@ -3,6 +3,7 @@ core/reward_engine.py — ATOM-STEP-6: Reward Engine for Online RL
 ===============================================================
 Computes trading rewards from market outcomes.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -95,9 +96,7 @@ class RewardEngine:
         uncertainties: list[float],
     ) -> list[RewardSignal]:
         """Compute rewards for a batch of trades."""
-        return [
-            self.compute_reward(o, a, u) for o, a, u in zip(outcomes, astro_alignments, uncertainties, strict=False)
-        ]
+        return [self.compute_reward(o, a, u) for o, a, u in zip(outcomes, astro_alignments, uncertainties, strict=False)]
 
     def discounted_reward(self, rewards: list[RewardSignal], gamma: float = 0.95) -> float:
         """Compute discounted cumulative reward."""

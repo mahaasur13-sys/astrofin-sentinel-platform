@@ -8,7 +8,6 @@ import logging
 
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
-
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 
 logger = logging.getLogger(__name__)
@@ -66,12 +65,7 @@ class BullResearcherAgent(BaseAgent[AgentResponse]):
         astro_signal = await self._check_astro_bullish(state)
 
         # Aggregate bullish score
-        bullish_score = (
-            patterns["score"] * 0.30
-            + volume_profile["score"] * 0.25
-            + support_zones["score"] * 0.20
-            + astro_signal["score"] * 0.25
-        )
+        bullish_score = patterns["score"] * 0.30 + volume_profile["score"] * 0.25 + support_zones["score"] * 0.20 + astro_signal["score"] * 0.25
 
         if bullish_score >= 0.65:
             signal = SignalDirection.LONG
@@ -111,8 +105,8 @@ class BullResearcherAgent(BaseAgent[AgentResponse]):
     @track_agent_metrics
     async def run(self, state: dict) -> AgentResponse:
         """Public entry point. Wraps analyze() with the latency histogram
-        and defensive error handling so a single agent can never crash
-the orchestrator."""
+                and defensive error handling so a single agent can never crash
+        the orchestrator."""
         try:
             return await self.analyze(state)
         except EphemerisUnavailableError as e:

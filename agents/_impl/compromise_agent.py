@@ -105,9 +105,7 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
             )
 
         if len(valid) < 2:
-            return self._neutral_no_conflict(
-                symbol=symbol, current_price=current_price, n_signals=len(signals)
-            )
+            return self._neutral_no_conflict(symbol=symbol, current_price=current_price, n_signals=len(signals))
 
         valid.sort(key=lambda x: x["confidence"], reverse=True)
         top1, top2 = valid[0], valid[1]
@@ -125,13 +123,9 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
         # E[U] = p·gain − (1−p)·loss. VolatilityEngine gives us the
         # stop_distance_pct (≈ loss) and a 2R target distance (≈ gain).
         try:
-            vol = VolatilityEngine.from_regime(VolatilityRegime.NORMAL).analyze(
-                symbol=symbol, price=current_price
-            )
+            vol = VolatilityEngine.from_regime(VolatilityRegime.NORMAL).analyze(symbol=symbol, price=current_price)
         except Exception as e:  # noqa: BLE001 — fallback path
-            logger.warning(
-                "[COMPROMISE] VolatilityEngine failed, using defaults: %r", e
-            )
+            logger.warning("[COMPROMISE] VolatilityEngine failed, using defaults: %r", e)
             vol = None
 
         if vol is not None:
@@ -147,25 +141,15 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
             p = entry["confidence"] / 100.0
             return p * gain_pct - (1.0 - p) * loss_pct
 
-        eu_long = (
-            expected_utility({**_next_long(valid), "confidence": 100})
-            if any(v["value"] == 1 for v in valid)
-            else -1e9
-        )
-        eu_short = (
-            expected_utility({**_next_short(valid), "confidence": 100})
-            if any(v["value"] == -1 for v in valid)
-            else -1e9
-        )
+        eu_long = expected_utility({**_next_long(valid), "confidence": 100}) if any(v["value"] == 1 for v in valid) else -1e9
+        eu_short = expected_utility({**_next_short(valid), "confidence": 100}) if any(v["value"] == -1 for v in valid) else -1e9
 
         # Build explicit reasoning with both outcomes + drift triggers.
         winner = top1 if top1["value"] == (1 if eu_long > eu_short else -1) else top2
 
         triggers: list[str] = []
         if winner["confidence"] < FLIP_BELOW:
-            triggers.append(
-                f"{winner['agent']}_conf<{FLIP_BELOW}"
-            )
+            triggers.append(f"{winner['agent']}_conf<{FLIP_BELOW}")
         if vol is not None and regime == VolatilityRegime.HIGH:
             triggers.append("regime=HIGH_VOL")
         if eu_long >= 0 and eu_short >= 0:
@@ -221,9 +205,7 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
                 "drift_triggers": triggers,
                 "compromise_active": True,
                 "reason_code": "MULTI_CATEGORY_CONFLICT",
-                "compromise_direction": (
-                    "LONG" if eu_long > eu_short else "SHORT"
-                ),
+                "compromise_direction": ("LONG" if eu_long > eu_short else "SHORT"),
                 "compromise_preferred_agent": winner["agent"],
             },
         )
@@ -240,9 +222,7 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
         except EphemerisUnavailableError as e:
             return self._degraded(EPHEMERIS_UNAVAILABLE, str(e))
         except Exception as e:  # noqa: BLE001 — last-resort guard
-            logger.exception(
-                "agent_run_unhandled", extra={"agent": self.name}
-            )
+            logger.exception("agent_run_unhandled", extra={"agent": self.name})
             return self._degraded(UNKNOWN, repr(e))
 
     # ── helpers ──────────────────────────────────────────────────────────────
@@ -294,10 +274,7 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
             agent_name=self.name,
             signal=SignalDirection.NEUTRAL,
             confidence=MIN_CONFIDENCE,
-            reasoning=(
-                f"No resolvable conflict among {n_signals} signal(s); "
-                "CompromiseAgent abstains."
-            ),
+            reasoning=(f"No resolvable conflict among {n_signals} signal(s); CompromiseAgent abstains."),
             sources=[],
             metadata=meta,
         )

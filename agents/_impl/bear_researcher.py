@@ -60,12 +60,7 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
         resistance_zones = self._find_resistance_zones(price_data)
         astro_signal = await self._check_astro_bearish(state)
 
-        bearish_score = (
-            patterns["score"] * 0.30
-            + volume_profile["score"] * 0.25
-            + resistance_zones["score"] * 0.20
-            + astro_signal["score"] * 0.25
-        )
+        bearish_score = patterns["score"] * 0.30 + volume_profile["score"] * 0.25 + resistance_zones["score"] * 0.20 + astro_signal["score"] * 0.25
 
         if bearish_score >= 0.65:
             signal = SignalDirection.SHORT
