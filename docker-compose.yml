@@ -119,7 +119,7 @@ services:
       redis:
         condition: service_started
     volumes:
-      - ./home-cluster-iac/feature_pipeline:/app/feature_pipeline:ro
+      - ./deploy/iac/feature_pipeline:/app/feature_pipeline:ro
       - feature-data:/app/data
     restart: unless-stopped
     networks:
