@@ -1,0 +1,22 @@
+---
+- name: Day 6 — Ceph distributed storage
+  hosts: all
+  become: true
+  tasks:
+    - name: Bootstrap Ceph (primary node only)
+      shell: |
+        cephadm bootstrap --mon-ip=192.168.10.11 \
+          --cluster-network=192.168.30.0/24 \
+          --public-network=192.168.20.0/24 \
+          --initial-dashboard-user=admin \
+          --initial-dashboard-password=admin \
+          --yes-i-know-minimum-version-needs-ssh \
+          --skip-pull
+      args:
+        creates: /etc/ceph/ceph.conf
+      when: inventory_hostname == groups['primary'][0]
+
+    - name: Add OSD (all nodes)
+      shell: |
+        ceph orch host add {{ hostvars[inventory_hostname].ansible_host }}
+      when: inventory_hostname != groups['primary'][0]

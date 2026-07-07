@@ -1,0 +1,9 @@
+[Unit]
+Description=Cluster Self-Healing Watchdog
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart={{ cluster_root }}/self_healing/systemd_watchdog.sh
+StandardOutput=journal
+StandardError=journal

@@ -1,0 +1,28 @@
+---
+# Network
+mesh_vpn_subnet: "10.66.0.0/16"
+wireguard_port: 51820
+mesh_interface: wg0
+
+# Ceph
+ceph_cluster_network: "192.168.1.0/24"
+ceph_public_network: "192.168.1.0/24"
+ceph_osd_pool_size: 2
+
+# Slurm
+slurm_partitions:
+  - name: gpu
+    nodes: gpu-node
+    gres: gpu:1
+  - name: compute
+    nodes: edge-node
+
+# Ray
+ray_head_ip: "192.168.1.10"
+ray_worker_ips:
+  - "192.168.1.20"
+ray_version: "2.9.0"
+
+# Cluster identity
+cluster_name: home-gpu-cluster
+cluster_owner: asur

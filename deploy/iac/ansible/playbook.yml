@@ -1,0 +1,100 @@
+# ============================================================
+# home-cluster-iac — Main Ansible Playbook
+# Full Day 1-7 cluster deployment
+# ============================================================
+
+- name: Phase 0 — Bootstrap (all nodes)
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    cluster_name: home-cluster
+    wireguard_port: 51820
+    ceph_replicas: 2
+    nvidia_driver_version: "535"
+  tags: [bootstrap, day0]
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+    - name: Install base packages
+      ansible.builtin.apt:
+        name:
+          - python3, python3-pip, python3-venv
+          - curl, wget, git, htop, tmux
+          - apt-transport-https, ca-certificates, gnupg
+          - software-properties-common
+        state: present
+
+    - name: Enable NVIDIA persistence mode (if GPU present)
+      ansible.builtin.command: nvidia-smi -pm 1
+      when: ansible_nvidia_runtime is defined and ansible_nvidia_runtime == "yes"
+      failed_when: false
+
+- name: Phase 1 — Network + VPN Mesh (Day 1-2)
+  hosts: mesh_vpn
+  become: true
+  roles:
+    - role: wireguard
+      tags: [network, vpn, day1]
+  tags: [network, day1]
+
+- name: Phase 2 — Compute nodes (Day 3)
+  hosts: all
+  become: true
+  roles:
+    - role: common
+      tags: [compute, day3]
+  tags: [compute, day3]
+
+- name: Phase 3 — Slurm cluster (Day 4)
+  hosts: slurm_controller,slurm_compute
+  become: true
+  roles:
+    - role: slurm-cluster
+      tags: [scheduler, slurm, day4]
+  tags: [slurm, day4]
+
+- name: Phase 4 — Ray AI runtime (Day 5)
+  hosts: ray_head,ray_workers
+  become: true
+  roles:
+    - role: ray
+      tags: [ai, ray, day5]
+  tags: [ray, day5]
+
+- name: Phase 5 — Ceph storage (Day 6)
+  hosts: ceph_mon,ceph_osd
+  become: true
+  roles:
+    - role: ceph-storage
+      tags: [storage, ceph, day6]
+  tags: [ceph, day6]
+
+- name: Phase 6 — Kubernetes layer (optional)
+  hosts: k8s_control,k8s_worker
+  become: true
+  roles:
+    - role: kubernetes
+      tags: [k8s, kubernetes, optional]
+  tags: [k8s, optional]
+
+- name: Phase 7 — Monitoring stack
+  hosts: monitoring
+  become: true
+  roles:
+    - role: monitoring
+      tags: [monitoring, observability, day7]
+  tags: [monitoring, day7]
+
+- name: Phase 8 — Integration layer (Day 7)
+  hosts: all
+  become: true
+  roles:
+    - role: integration
+      tags: [integration, day7]
+  tags: [integration, day7]

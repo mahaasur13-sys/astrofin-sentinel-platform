@@ -1,0 +1,13 @@
+[Unit]
+Description=Job Router Daemon — routes Slurm↔Ray workloads
+After=network.target slurmctld.service ray-head.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/cluster/integration/job_router.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

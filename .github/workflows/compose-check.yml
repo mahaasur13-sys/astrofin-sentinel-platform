@@ -12,14 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: false
 
       - name: Validate docker-compose syntax
         run: docker compose -f docker-compose.yml config --quiet
 
       - name: Verify referenced Dockerfiles exist
         run: |
-          # Extract all 'dockerfile:' paths from compose config
           docker compose -f docker-compose.yml config | grep -E '^\s+dockerfile:' | awk '{print $2}' | while read df; do
             if [ ! -f "$df" ]; then
               echo "ERROR: Dockerfile not found: $df"

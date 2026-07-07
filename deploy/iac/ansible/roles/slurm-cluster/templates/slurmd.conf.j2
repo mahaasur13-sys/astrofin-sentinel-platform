@@ -1,0 +1,16 @@
+# slurmd.conf.j2 — Slurm compute node configuration
+
+ClusterName={{ cluster_name | default('home-gpu-cluster') }}
+MachineName={{ ansible_hostname }}
+SlurmctldAddr={{ hostvars[groups['slurm_controller'][0]]['ansible_host'] | default('192.168.1.10') }}
+SlurmctldPort=6817
+SlurmdPort=6818
+AuthType=auth/munge
+StateSaveLocation=/var/spool/slurm/d
+SlurmdSpoolDir=/var/spool/slurm/d
+TmpFS=/tmp
+LogFile=/var/log/slurm/slurmd.log
+DebugLevel=info
+
+# GPU resource definition
+GresTypes=gpu
