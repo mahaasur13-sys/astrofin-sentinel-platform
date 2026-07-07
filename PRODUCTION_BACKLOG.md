@@ -711,3 +711,55 @@ Week 5 (Mon-Fri):
 ---
 
 > 📌 **Этот бэклог — живой документ.** После Phase 0 создать `file BACKLOG_STATUS.md` (burndown chart) и обновлять еженедельно. После Phase 5 — перенести в `file ROADMAP_v1.1.md` для следующего релиза.
+---
+
+## 15. ✅ Phase 5 — Deploy & GA Status (2026-07-07)
+
+> **Ветка:** `release/phase-5-deploy-ga`
+> **Тег:** `v1.0.0` (локально, push после мержа PR)
+
+### 15.1 Что закрыто в рамках Phase 5 PR
+
+| ID | Статус | Артефакт | Комментарий |
+|---|---|---|---|
+| P5-01 (частично) | 🟡 | Argo Rollouts manifest `home-cluster-iac/k8s/30-astrofin-rollout.yaml` (см. DEPLOYMENT.md §4) | Базовая canary-стратегия задокументирована; полный auto-promote ждёт Argo Rollouts install в кластере |
+| P5-02 (частично) | 🟡 | SLOErrorBudgetBurn alert в `deploy/monitoring/prometheus/alerts.yml` | Burn-rate алерт срабатывает; auto-rollback шаблон — follow-up |
+| P5-03 | 🟢 | `alembic upgrade head` в `Dockerfile` ENTRYPOINT; pre-upgrade job описан в DEPLOYMENT.md §5 | Реализовано |
+| P5-04 | 🟡 | DR-процедура в `RUNBOOK.md` §"Disaster recovery" | Вторая инсталляция не развёрнута, RTO/RPO задокументированы |
+| P5-05 | 🟡 | Redis cache для RAG (cachetools) уже в `pyproject.toml`; full perf optimization — follow-up | Базовый кеш есть, p95 baseline зафиксирован в #129 backlog |
+| P5-06 | 🟡 | Capacity numbers в DEPLOYMENT.md §0 (4 vCPU / 16 GB / 80 GB) | Минимум задан, прогноз ×3 — follow-up |
+| P5-07 | 🟡 | `unleash` / `posthog` не интегрированы | Kill-switch для risk-agent — follow-up |
+| P5-08 | 🟡 | On-call документирован в `RUNBOOK.md`; PagerDuty интеграция — follow-up | Shadow on-call не начат (bus factor = 1) |
+| P5-09 | 🟡 | Postmortem template в `docs/postmortems/TEMPLATE.md` (см. PR #131 ADR структуру) | Реальные postmortems — после первого инцидента |
+| P5-10 | 🟢 | PRR чек-лист: DEPLOYMENT.md, RUNBOOK.md, SLO.md, SECURITY.md, PRIVACY.md | Все ключевые артефакты на месте, go-live подпись = merge PR #135 |
+| P5-11 | 🟡 | `astrofin-sentinel-v5` submodule остаётся; полная subtree-миграция — post-1.0.0 | Риск G24 сохранён в known-issues |
+| P5-12 | 🟡 | Telegram bot не реализован | Следующая итерация |
+| P5-13 | 🟢 | `.gitmodules` cleanup (PR #115 follow-up): 4 из 5 submodules дропнуты | Submodule crisis (R1) закрыт |
+| **P5-14** | 🟢 | **Tag v1.0.0 + CHANGELOG.md + DEPLOYMENT.md** | Этот PR |
+| P5-15 | 🟡 | `agents/_archived/` оставлен для истории; LOC audit в #130 | Post-1.0.0 |
+
+**Итог Phase 5:** 4 задачи 🟢 полностью, 10 задач 🟡 частично (документированы, требуют ops-усилий после GA), 1 не начата (P5-12).
+
+### 15.2 Definition of Done для v1.0.0 (актуальный статус)
+
+| Категория | Критерий | Статус | Где |
+|---|---|---|---|
+| Функциональная | Версия 1.0.0 зафиксирована | ✅ | `pyproject.toml` |
+| Функциональная | CHANGELOG.md с историей | ✅ | этот PR |
+| Безопасность | SECURITY.md, PRIVACY.md, THREAT_MODEL.md, SOC2 checklist | ✅ | PR #134 |
+| Compliance | MAINTAINERS.md, RUNBOOK.md, SLO.md | ✅ | PR #131 |
+| Observability | Prometheus recording rules, alert rules, SLO config | ✅ | PR #132 |
+| Observability | PII scrubber | ✅ | PR #133 |
+| Deploy | docker-compose production-grade | ✅ | PR #124 |
+| Deploy | Cosign + SLSA provenance | 🟡 | Backlog P4-05/06 |
+| Deploy | Canary + auto-rollback | 🟡 | Документировано, не реализовано end-to-end |
+| Deploy | DEPLOYMENT.md | ✅ | этот PR |
+| CI | Master green на всех блокирующих джобах (после recovery) | ✅ | PR #123, #124 |
+| CI | Tests + Coverage зелёный | 🟡 | Issue #125 (known-issue) |
+| CI | Architecture Lint + Code Quality зелёный | 🟡 | Issue #126 (known-issue) |
+| Release | v1.0.0 tag | ✅ | этот PR (push после merge) |
+| Release | GitHub Release notes | 🟡 | Post-merge step |
+
+### 15.3 Post-1.0.0 backlog (Phase 6 — Tech Debt & Hardening)
+
+См. issue #125, #126, #129, #130, #81. Отдельный план будет создан после GA-merge.
