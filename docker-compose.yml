@@ -101,7 +101,7 @@ services:
   # -----------------------------------------------------------------------
   feature-pipeline:
     build:
-      context: ./home-cluster-iac
+      context: ./deploy/iac
       dockerfile: feature_pipeline/Dockerfile
     image: acos/feature-pipeline:6.0.0
     container_name: acos-feature-pipeline
@@ -130,7 +130,7 @@ services:
   # -----------------------------------------------------------------------
   gpu-worker:
     build:
-      context: ./roma-execution-bridge
+      context: ./src/bridges/roma
       dockerfile: gpu_worker/Dockerfile
     image: roma/gpu-worker:1.0.0
     container_name: roma-gpu-worker
@@ -151,7 +151,7 @@ services:
       redis:
         condition: service_started
     volumes:
-      - ./roma-execution-bridge/gpu_worker:/app/gpu_worker:ro
+      - ./src/bridges/roma/gpu_worker:/app/gpu_worker:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
