@@ -33,6 +33,8 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
+from core.http_client import get_json
+
 logger = logging.getLogger(__name__)
 
 
@@ -318,10 +320,8 @@ def calculate_atr(highs_lows_closes: list[list[float]], period: int = 14) -> flo
 def atr_from_binance(symbol: str, interval: str = "1d", limit: int = 30) -> float:
     """Fetch Binance klines and compute ATR."""
     try:
-        import requests
-
         url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}&interval={interval}&limit={limit}"
-        data = requests.get(url, timeout=10).json()
+        data = get_json(url)
         klines = [[float(x[2]), float(x[3]), float(x[4])] for x in data]  # high, low, close
         atr = calculate_atr(klines)
         return atr

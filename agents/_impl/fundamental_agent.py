@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 
-import requests
+from core.http_client import get_json
 
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
@@ -111,9 +111,9 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             # CoinGecko free API
             coin_id = symbol.replace("USDT", "").lower()
             url = f"https://api.coingecko.com/api/v3/coins/{coin_id}"
-            resp = requests.get(url, timeout=10)
-            if resp.status_code == 200:
-                data = resp.json()
+            resp = get_json(url)
+            if resp:
+                data = resp
                 return {
                     "name": data.get("name", ""),
                     "market_cap_rank": data.get("market_cap_rank", 999),
@@ -133,9 +133,8 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             # Alternative: use public APIs
             coin_id = symbol.replace("USDT", "").lower()
             url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart?vs_currency=usd&days=30"
-            resp = requests.get(url, timeout=10)
-            if resp.status_code == 200:
-                data = resp.json()
+            data = get_json(url)
+            if data:
                 prices = data.get("prices", [])
                 if len(prices) > 1:
                     current = prices[-1][1]
