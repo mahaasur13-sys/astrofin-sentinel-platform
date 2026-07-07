@@ -129,7 +129,7 @@ jobs:
       - name: pip-audit (requirements + requirements-dev)
         run: |
           set +e
-          pip-audit -r requirements.txt -f json --disable-pip > /tmp/pip-audit.json 2>/tmp/pip-audit.err
+          pip-audit -r requirements.txt -f json  > /tmp/pip-audit.json 2>/tmp/pip-audit.err
           rc=$?
           cat /tmp/pip-audit.err
           python -c "import json,sys; d=json.load(open('/tmp/pip-audit.json')); d=[x for x in d if x.get('vulns')]; open('/tmp/pip-audit.final.json','w').write(json.dumps(d,indent=2))"
