@@ -30,7 +30,7 @@ class AstroState:
 
     def _compute_hash(self) -> str:
         data = f"{self.timestamp.isoformat()}:{self.jd:.4f}:{self.moon_longitude:.2f}:{self.jupiter_longitude:.2f}:{self.saturn_longitude:.2f}"
-        return hashlib.md5(data.encode()).hexdigest()[:8]
+        return hashlib.md5(data.encode()).hexdigest()[:8]  # nosec B324 — content hash for astro state, not security
 
 
 @dataclass

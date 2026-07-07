@@ -123,3 +123,8 @@ class AstroCouncilAgent(BaseAgent[AgentResponse]):
             confidence=confidence,
             reasoning=reasoning,
         )
+
+
+def create() -> AstroCouncilAgent:
+    """Factory for 6-fn test contract."""
+    return AstroCouncilAgent()

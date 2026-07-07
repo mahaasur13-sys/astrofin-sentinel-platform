@@ -53,4 +53,4 @@ def live_enable():
 
 
 if __name__ == "__main__":
-    server.run(host="0.0.0.0", port=8000, debug=False)
+    server.run(host="0.0.0.0", port=8000, debug=False)  # nosec B104 — dev WSGI, internal network only

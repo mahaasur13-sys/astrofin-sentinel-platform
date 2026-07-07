@@ -240,3 +240,8 @@ async def run_quant_agent(state: dict) -> dict:
     agent = QuantAgent()
     result = await agent.analyze(state)
     return {"quant_signal": result.to_dict()}
+
+
+def create() -> QuantAgent:
+    """Factory for 6-fn test contract."""
+    return QuantAgent()

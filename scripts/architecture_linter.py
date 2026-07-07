@@ -474,6 +474,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="AstroFin architecture linter")
     parser.add_argument("paths", nargs="*", help="specific files to lint")
     parser.add_argument("--changed", action="store_true", help="only git-changed files")
+    parser.add_argument(
+        "--fail-on",
+        choices=["error", "warning", "never"],
+        default="error",
+        help="exit non-zero on 'error' (hard rules), 'warning' (hard+soft), or 'never'",
+    )
     args = parser.parse_args(argv)
 
     report = Report()
@@ -493,9 +499,11 @@ def main(argv: list[str] | None = None) -> int:
     check_registry_coverage(report)
 
     render_report(report)
-    if report.has_failures:
+    if args.fail_on == "error" and report.has_failures:
         return 1
-    if report.has_warnings:
+    if args.fail_on == "warning" and (report.has_failures or report.has_warnings):
+        return 1
+    if args.fail_on == "never":
         return 0
     return 0
 

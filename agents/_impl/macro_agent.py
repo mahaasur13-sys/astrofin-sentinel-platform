@@ -276,3 +276,8 @@ async def run_macro_agent(state: dict) -> dict:
     agent = MacroAgent()
     resp = await agent.analyze(state)
     return {"macro_agent_signal": resp.to_dict()}
+
+
+def create() -> MacroAgent:
+    """Factory for 6-fn test contract."""
+    return MacroAgent()

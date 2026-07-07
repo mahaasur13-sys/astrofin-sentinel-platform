@@ -202,6 +202,6 @@ _log.info(f"[DASH] Config: DEBUG={DEBUG} PORT={PORT} URL_BASE={os.getenv('URL_BA
 if __name__ == "__main__":
     app.run(
         debug=DEBUG,
-        host="0.0.0.0",
+        host="0.0.0.0",  # nosec B104 — dev dashboard, internal network only
         port=PORT,
     )

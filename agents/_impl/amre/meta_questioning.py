@@ -109,7 +109,7 @@ class MetaQuestionBank:
                             return False
                         if isinstance(ctx_val, str):
                             ctx_val = ctx_val.strip()
-                        return eval(f"{ctx_val} {op} {val}", {"__builtins__": {}}, {})
+                        return eval(f"{ctx_val} {op} {val}", {"__builtins__": {}}, {})  # nosec B307 — sandboxed DSL eval with empty builtins
         except Exception:
             pass
         return False

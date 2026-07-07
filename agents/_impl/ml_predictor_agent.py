@@ -208,3 +208,8 @@ async def run_ml_predictor_agent(state: dict) -> dict:
     agent = MLPredictorAgent()
     result = await agent.analyze(state)
     return {"ml_predictor_signal": result.to_dict()}
+
+
+def create() -> MLPredictorAgent:
+    """Factory for 6-fn test contract."""
+    return MLPredictorAgent()

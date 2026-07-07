@@ -245,3 +245,8 @@ async def run_elliot_agent(state: dict) -> dict:
     agent = ElliotAgent()
     result = await agent.analyze(state)
     return {"elliot_signal": result.to_dict()}
+
+
+def create() -> ElliotAgent:
+    """Factory for 6-fn test contract."""
+    return ElliotAgent()

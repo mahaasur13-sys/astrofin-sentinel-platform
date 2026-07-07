@@ -262,3 +262,8 @@ async def run_bull_researcher(state: dict) -> dict:
     agent = BullResearcherAgent()
     result = await agent.analyze(state)
     return {"bull_signal": result.to_dict()}
+
+
+def create() -> BullResearcherAgent:
+    """Factory for 6-fn test contract."""
+    return BullResearcherAgent()

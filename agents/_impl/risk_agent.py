@@ -204,3 +204,8 @@ async def run_risk_agent(state: dict) -> dict:
     agent = RiskAgent()
     result = await agent.analyze(state)
     return {"risk_signal": result.to_dict()}
+
+
+def create() -> RiskAgent:
+    """Factory for 6-fn test contract."""
+    return RiskAgent()

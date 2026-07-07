@@ -590,3 +590,8 @@ async def run_synthesis_agent(state: dict) -> dict:
     agent = SynthesisAgent()
     result = await agent.run(state)
     return {"synthesis_signal": result.to_dict()}
+
+
+def create() -> SynthesisAgent:
+    """Factory for 6-fn test contract."""
+    return SynthesisAgent()

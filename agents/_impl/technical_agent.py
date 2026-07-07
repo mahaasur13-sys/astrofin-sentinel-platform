@@ -291,3 +291,8 @@ async def run_technical_agent(state: dict) -> dict:
     agent = TechnicalAgent()
     result = await agent.run(state)
     return {"technical_signal": result.to_dict()}
+
+
+def create() -> TechnicalAgent:
+    """Factory for 6-fn test contract."""
+    return TechnicalAgent()

@@ -194,3 +194,8 @@ async def run_sentiment_agent(state: dict) -> dict:
     agent = SentimentAgent()
     result = await agent.analyze(state)
     return {"sentiment_signal": result.to_dict()}
+
+
+def create() -> SentimentAgent:
+    """Factory for 6-fn test contract."""
+    return SentimentAgent()
