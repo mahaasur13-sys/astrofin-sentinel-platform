@@ -240,3 +240,9 @@ Everything else (observability, security, AMRE, KARL) is already ✅.
 - **What fails:** `Security (Bandit + Docker)` CI job runs `scripts/validate_docker_security.py` against `deploy/docker/docker-compose.yml`. 15 hardcoded issues: missing `security_opt: no-new-privileges:true` and `cap_drop: ALL` on 6 services, Redis no `--requirepass`, Grafana default `admin` password, Prometheus 0.0.0.0:9090 binding.
 - **Why not blocking:** These are dev infra compose issues. Production deployment uses hardened manifests. Tracked separately in #128.
 - **Fix plan:** Standalone hardening PR — update `deploy/docker/docker-compose.yml` with full `security_opt`/`cap_drop` matrix, env-driven passwords, loopback bindings.
+
+## KI-021: docker-compose security hardening (waiver)
+
+- **Status:** script `scripts/validate_docker_security.py` reports 14 hardening issues (Redis requirepass, Grafana default password, prometheus port binding, security_opt/cap_drop across 6 services).
+- **Reason:** these are infra-level fixes that need deployment review (DNS, secrets, network topology). Out of scope for #81 (JWT auth).
+- **Follow-up:** tracked in #127. CI will be green once `docker-compose.yml` is updated to add `--requirepass`, env-driven GRAFANA password, `127.0.0.1:` prefix on monitoring ports, and `security_opt: no-new-privileges:true` + `cap_drop: ALL` on all services.

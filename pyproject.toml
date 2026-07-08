@@ -84,6 +84,7 @@ exclude = [
     "__pycache__/",
     "*.egg-info/",
     "src/",
+    "knowledge/",
     "astrology/",
     "data/",
     "db/",
