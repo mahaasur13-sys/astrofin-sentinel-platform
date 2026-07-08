@@ -62,3 +62,4 @@ backtest/results.db
 keys/jwt_private.pem
 keys/jwt_private*.pem
 keys/*.key
+core/history.db
