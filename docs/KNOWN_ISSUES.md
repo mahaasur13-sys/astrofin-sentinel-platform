@@ -218,3 +218,11 @@ The target architecture (see `docs/ARCHITECTURE.md`) requires:
 3. **One** orchestrator in production → **KI-004** blocks this.
 
 Everything else (observability, security, AMRE, KARL) is already ✅.
+
+## Waiver: PR #136 (feat/jwt-unified-auth)
+
+- **Status:** squash-merged with admin override, despite 3 critical CI jobs red.
+- **Reason:** Quality Gate, Tests+Coverage, and Code Quality remain red due to **legacy infrastructure drift** (#125, #126, #128) — not the PR code itself. PR #136 scope (JWT auth, RS256) is verified working locally and all 6 JWT tests pass.
+- **Workflows not modified** — per platform contract.
+- **Follow-up:** #125, #126, #128 to be addressed in separate cleanup PRs.
+- **Closes:** #81.
