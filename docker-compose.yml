@@ -61,6 +61,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    security_opt:
+      - "no-new-privileges:true"
+    cap_drop:
+      - "ALL"
     networks:
       - astrofin
 
@@ -93,6 +97,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 15s
+    security_opt:
+      - "no-new-privileges:true"
+    cap_drop:
+      - "ALL"
     networks:
       - astrofin
 
@@ -122,6 +130,10 @@ services:
       - ./deploy/iac/feature_pipeline:/app/feature_pipeline:ro
       - feature-data:/app/data
     restart: unless-stopped
+    security_opt:
+      - "no-new-privileges:true"
+    cap_drop:
+      - "ALL"
     networks:
       - astrofin
 
@@ -159,6 +171,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    security_opt:
+      - "no-new-privileges:true"
+    cap_drop:
+      - "ALL"
     networks:
       - astrofin
 
@@ -182,6 +198,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    security_opt:
+      - "no-new-privileges:true"
+    cap_drop:
+      - "ALL"
     networks:
       - astrofin
 
@@ -195,11 +215,16 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-changeme}"]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
+    security_opt:
+      - "no-new-privileges:true"
+    cap_drop:
+      - "ALL"
     networks:
       - astrofin
 
@@ -210,7 +235,7 @@ services:
     image: prom/prometheus:latest
     container_name: astrofin-prometheus
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
@@ -220,6 +245,10 @@ services:
       - "--web.enable-lifecycle"
     depends_on:
       - app
+    security_opt:
+      - "no-new-privileges:true"
+    cap_drop:
+      - "ALL"
     networks:
       - astrofin
 
