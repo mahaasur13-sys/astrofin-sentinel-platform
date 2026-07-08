@@ -1,29 +1,10 @@
+# After ADR-0001 migration (closes #100, #102):
+# - AsurDev is now a subtree (history preserved via git subtree squash-merge).
+# - All other submodule entries (home-cluster-iac, roma-execution-bridge,
+#   astrofin-sentinel-v5, atom-federation-os, integrations/gitagent) are
+#   either ghost (no working-tree presence) or embedded as plain dirs.
+#   See docs/ADR-0001-submodule-to-subtree.md.
 [submodule "AsurDev"]
 	path = AsurDev
 	url = git@github.com:mahaasur13-sys/AsurDev.git
 	branch = master
-
-[submodule "home-cluster-iac"]
-	path = home-cluster-iac
-	url = git@github.com:mahaasur13-sys/home-cluster-iac.git
-	branch = master
-
-[submodule "roma-execution-bridge"]
-	path = roma-execution-bridge
-	url = git@github.com:mahaasur13-sys/roma-execution-bridge.git
-	branch = master
-
-[submodule "astrofin-sentinel-v5"]
-	path = astrofin-sentinel-v5
-	url = git@github.com:mahaasur13-sys/astrofin-sentinel-v5.git
-	branch = main
-
-[submodule "atom-federation-os"]
-	path = atom-federation-os
-	url = git@github.com:mahaasur13-sys/atom-federation-os.git
-	branch = master
-
-[submodule "integrations/gitagent"]
-	path = integrations/gitagent
-	url = git@github.com:mahaasur13-sys/integrations-gitagent.git
-
