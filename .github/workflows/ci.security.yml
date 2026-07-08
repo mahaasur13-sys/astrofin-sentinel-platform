@@ -156,7 +156,7 @@ jobs:
                       vulns.append(entry)
           pathlib.Path('/tmp/pip-audit.final.json').write_text(json.dumps(vulns, indent=2))
           PY
-          if [ "$rc" -ne 0 ] || [ -s /tmp/pip-audit.final.json ]; then
+          if [ "$rc" -ne 0 ] || [ "$(cat /tmp/pip-audit.final.json)" != "[]" ]; then
             echo "::error::pip-audit reported vulnerabilities"
             cat /tmp/pip-audit.final.json
             exit 1
