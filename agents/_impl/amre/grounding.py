@@ -98,7 +98,9 @@ def validate_with_grounding(
         adjusted_confidence = max(30, round(raw_confidence * grounding_factor))
         confidence_adjustment = adjusted_confidence - raw_confidence  # e.g. -10
 
-        logger.debug(f"[Grounding] failed={failed_count} factor={grounding_factor:.3f} conf {raw_confidence} → {adjusted_confidence} (Δ={confidence_adjustment:+d})")
+        logger.debug(
+            f"[Grounding] failed={failed_count} factor={grounding_factor:.3f} conf {raw_confidence} → {adjusted_confidence} (Δ={confidence_adjustment:+d})"
+        )
     else:
         # Backward-compatible additive degrade (old behaviour)
         confidence_adjustment = -failed_count * 5 if failed_count > 0 else 0

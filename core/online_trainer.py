@@ -344,7 +344,9 @@ if __name__ == "__main__":
         result = trainer.run_episode(n_trades=20)
         update = result["update"]
         if update["updated"]:
-            print(f"  Ep {ep:2d}: reward={result['mean_reward']:+.4f}  base={trainer.params.base_position_pct:.4f}  best={trainer.state.best_reward:.4f}")
+            print(
+                f"  Ep {ep:2d}: reward={result['mean_reward']:+.4f}  base={trainer.params.base_position_pct:.4f}  best={trainer.state.best_reward:.4f}"
+            )
 
     print(f"\n  Best reward: {trainer.state.best_reward:.4f}")
     print(f"  Final params: {trainer._snapshot()}")

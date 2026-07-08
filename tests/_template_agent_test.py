@@ -21,6 +21,7 @@ Run it:
     pytest -q tests/_template_agent_test.py
     pytest -q tests/_template_agent_test.py --cov=agents._impl._template_agent --cov-report=term-missing
 """
+
 from __future__ import annotations
 
 import sys

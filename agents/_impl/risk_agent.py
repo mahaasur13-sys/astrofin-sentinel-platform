@@ -61,7 +61,9 @@ class RiskAgent(BaseAgent[AgentResponse]):
         avg_win = state.get("avg_win_pct", 0.03)
         avg_loss = state.get("avg_loss_pct", 0.015)
 
-        position_size = self._calc_position_size(volatility=volatility, win_rate=win_rate, avg_win=avg_win, avg_loss=avg_loss)
+        position_size = self._calc_position_size(
+            volatility=volatility, win_rate=win_rate, avg_win=avg_win, avg_loss=avg_loss
+        )
 
         # Stop-loss calculation
         stop_distance = atr * 1.5

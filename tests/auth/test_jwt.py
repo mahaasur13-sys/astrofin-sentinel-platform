@@ -4,6 +4,7 @@ All third-party imports (PyJWT, FastAPI) are deferred to the test bodies
 so that pytest collection of ``tests/`` does not fail in environments
 where those packages are missing.
 """
+
 from __future__ import annotations
 
 import time

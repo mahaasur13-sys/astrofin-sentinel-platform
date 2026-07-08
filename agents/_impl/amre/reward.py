@@ -145,7 +145,9 @@ class RewardCalibrator:
             "ece": round(self.metrics.calibration_error, 4),
             "slope": round(self.slope, 4),
             "intercept": round(self.intercept, 4),
-            "reliability_diagram": [{"bin": round(c, 3), "accuracy": round(a, 3)} for c, a in self.metrics.reliability_diagram if c > 0],
+            "reliability_diagram": [
+                {"bin": round(c, 3), "accuracy": round(a, 3)} for c, a in self.metrics.reliability_diagram if c > 0
+            ],
         }
 
 
@@ -319,12 +321,23 @@ def compute_trajectory_reward(
         return default
 
     # Base signal score
-    signal_score = sum((1.0 if _get(s, "signal", "NEUTRAL") in ("LONG", "BUY") else -0.5 if _get(s, "signal") in ("SHORT", "SELL") else 0) * _get(s, "confidence", 50) / 100 for s in signals) / len(
-        signals
-    )
+    signal_score = sum(
+        (
+            1.0
+            if _get(s, "signal", "NEUTRAL") in ("LONG", "BUY")
+            else -0.5
+            if _get(s, "signal") in ("SHORT", "SELL")
+            else 0
+        )
+        * _get(s, "confidence", 50)
+        / 100
+        for s in signals
+    ) / len(signals)
 
     # Regime multiplier
-    regime_multiplier = {"LOW": 1.2, "NORMAL": 1.0, "HIGH": 0.7, "EXTREME": 0.3}.get(getattr(state, "regime", "NORMAL"), 1.0)
+    regime_multiplier = {"LOW": 1.2, "NORMAL": 1.0, "HIGH": 0.7, "EXTREME": 0.3}.get(
+        getattr(state, "regime", "NORMAL"), 1.0
+    )
 
     raw_reward = signal_score * regime_multiplier
 

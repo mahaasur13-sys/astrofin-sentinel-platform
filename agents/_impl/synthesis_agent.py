@@ -50,7 +50,9 @@ def _load_weights() -> dict:
         # Runtime validation: sum must be 1.0 (within epsilon)
         actual = sum(normalized.values())
         if abs(actual - 1.0) > 0.001:
-            raise ValueError(f"{name} sum = {actual:.4f} (expected 1.0). Check config/agent_weights.yaml — all weight values must sum to 1.0.")
+            raise ValueError(
+                f"{name} sum = {actual:.4f} (expected 1.0). Check config/agent_weights.yaml — all weight values must sum to 1.0."
+            )
         return normalized
 
     if "category_weights" in data:
@@ -142,7 +144,11 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
         """
         all_signals = state.get("all_signals", [])
         thompson_selections = state.get("thompson_selections", {})
-        called_agents = thompson_selections.get("technical", []) + thompson_selections.get("astro", []) + thompson_selections.get("electoral", [])
+        called_agents = (
+            thompson_selections.get("technical", [])
+            + thompson_selections.get("astro", [])
+            + thompson_selections.get("electoral", [])
+        )
 
         symbol = state.get("symbol", "BTCUSDT")
         current_price = state.get("current_price", 50000)

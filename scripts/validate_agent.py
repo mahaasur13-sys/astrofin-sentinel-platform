@@ -118,7 +118,9 @@ def parse_registry() -> dict[str, dict]:
     for node in ast.walk(tree):
         # Handle both `AGENT_AGENTS = {...}` and `AGENT_AGENTS: dict[str, dict] = {...}`
         assign_value: ast.AST | None = None
-        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "AGENT_AGENTS" for t in node.targets):
+        if isinstance(node, ast.Assign) and any(
+            isinstance(t, ast.Name) and t.id == "AGENT_AGENTS" for t in node.targets
+        ):
             assign_value = node.value
         elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == "AGENT_AGENTS":
             assign_value = node.value
@@ -227,14 +229,18 @@ def check_A4_ephemeris_decorator(
                 break
     if has_dec:
         return Check("A4", "@require_ephemeris decorator", True, "present on a method")
-    return Check("A4", "@require_ephemeris decorator", False, "agent uses ephemeris symbols but no method has @require_ephemeris")
+    return Check(
+        "A4", "@require_ephemeris decorator", False, "agent uses ephemeris symbols but no method has @require_ephemeris"
+    )
 
 
 def check_A5_runner_function(tree: ast.AST, agent_name: str) -> Check:
     fn = find_runner_function(tree, agent_name)
     if fn is None:
         expected = f"run_{_camel_to_snake(agent_name)}"
-        return Check("A5", f"exports run_<{agent_name}>(state)", False, f"expected a top-level `{expected}` async function")
+        return Check(
+            "A5", f"exports run_<{agent_name}>(state)", False, f"expected a top-level `{expected}` async function"
+        )
     if not isinstance(fn, ast.AsyncFunctionDef):
         return Check("A5", f"exports run_<{agent_name}>(state)", False, f"function `{fn.name}` should be async")
     return Check("A5", f"exports run_<{agent_name}>(state)", True, f"function `{fn.name}` is async")
@@ -381,7 +387,11 @@ def iter_agent_files(target: Path) -> list[Path]:
     if target.is_file():
         return [target]
     if target.is_dir():
-        return [p for p in sorted(target.rglob("*.py")) if "_archived" not in p.parts and "_templates" not in p.parts and p.name != "__init__.py"]
+        return [
+            p
+            for p in sorted(target.rglob("*.py"))
+            if "_archived" not in p.parts and "_templates" not in p.parts and p.name != "__init__.py"
+        ]
     return []
 
 
@@ -389,7 +399,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate a single AstroFin agent file")
     parser.add_argument("target", nargs="?", default="agents/_impl", help="agent file or directory")
     parser.add_argument("--with-tests", action="store_true", help="also run the corresponding test file")
-    parser.add_argument("--list-recommended-fixes", action="store_true", help="only print recommended fixes for failed checks")
+    parser.add_argument(
+        "--list-recommended-fixes", action="store_true", help="only print recommended fixes for failed checks"
+    )
     args = parser.parse_args(argv)
 
     target = Path(args.target)

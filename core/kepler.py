@@ -311,7 +311,9 @@ def validate_vs_swiss_ephemeris(
         message = f"✅ Keplerian agrees with Swiss Ephemeris within {tolerance_deg}° (Δ={delta:.4f}°)"
     elif delta <= tolerance_deg * 5:
         status = "WARN"
-        message = f"⚠️  Keplerian deviates from Swiss Ephemeris by {delta:.4f}° (> {tolerance_deg}°, ≤ {tolerance_deg * 5}°)"
+        message = (
+            f"⚠️  Keplerian deviates from Swiss Ephemeris by {delta:.4f}° (> {tolerance_deg}°, ≤ {tolerance_deg * 5}°)"
+        )
     else:
         status = "FAIL"
         message = f"❌ Keplerian differs from Swiss Ephemeris by {delta:.4f}° (>{tolerance_deg * 5}°) — check orbital elements"

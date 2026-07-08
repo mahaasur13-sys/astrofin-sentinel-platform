@@ -169,7 +169,9 @@ class KARLSynthesisAgent:
                 sq_result = self.self_questioner.ask(all_signals, state)
                 if sq_result.confidence_adjustment != 0:
                     confidence = max(30, min(92, confidence + sq_result.confidence_adjustment))
-                    synth_dict["reasoning"] = f"[SelfQ] {sq_result.question} → {sq_result.answer}. {synth_dict.get('reasoning', '')}"
+                    synth_dict["reasoning"] = (
+                        f"[SelfQ] {sq_result.question} → {sq_result.answer}. {synth_dict.get('reasoning', '')}"
+                    )
             else:
                 # Логируем пропуск не чаще чем раз в 5 вызовов
                 if self.decision_counter % 5 == 0:
@@ -202,7 +204,9 @@ class KARLSynthesisAgent:
             if new_pos != position_pct:
                 position_pct = new_pos
                 risk_adjusted = True
-                print(f"[RiskControl] position adjusted: lag={lag_meta.get('position_lag', 0.0):+.3f} → {position_pct:.4f}")
+                print(
+                    f"[RiskControl] position adjusted: lag={lag_meta.get('position_lag', 0.0):+.3f} → {position_pct:.4f}"
+                )
 
         # Store lag metrics in synth_dict for observability
         synth_dict["lag_metrics"] = lag_meta
@@ -307,7 +311,9 @@ class KARLSynthesisAgent:
             risk_adjusted_pnl=0.0,  # ATOM-META-RL-005: set by Meta-RL backtest path
         )
         if record.risk_adjusted_pnl != 0.0:
-            logger.debug(f"[META-RL-KARL-BIDIR] DecisionRecord {record.decision_id}: risk_adj_pnl={record.risk_adjusted_pnl:+.4f}")
+            logger.debug(
+                f"[META-RL-KARL-BIDIR] DecisionRecord {record.decision_id}: risk_adj_pnl={record.risk_adjusted_pnl:+.4f}"
+            )
 
         # ── Step 8: Record to audit log ──────────────────────────────────────
         audit_log = get_audit_log()
@@ -432,7 +438,9 @@ class KARLSynthesisAgent:
 
         # Log for observability
         if self.reward_state.count % 10 == 0:
-            print(f"[REWARD EMA] count={self.reward_state.count} market={market_reward:.3f} astro={astro_reward:.3f} raw={raw_reward:.3f} ema={smoothed:.3f}")
+            print(
+                f"[REWARD EMA] count={self.reward_state.count} market={market_reward:.3f} astro={astro_reward:.3f} raw={raw_reward:.3f} ema={smoothed:.3f}"
+            )
 
         return smoothed
 
@@ -492,7 +500,9 @@ class KARLSynthesisAgent:
 
         # Log when lag adjustment is non-zero
         if metrics["lag_adj"] != 0:
-            print(f"[LagWindow] conf {confidence} → {adjusted_conf} (adj={metrics['lag_adj']:+.3f}, pos_lag={metrics['position_lag']:+.3f})")
+            print(
+                f"[LagWindow] conf {confidence} → {adjusted_conf} (adj={metrics['lag_adj']:+.3f}, pos_lag={metrics['position_lag']:+.3f})"
+            )
 
         return adjusted_conf, position_pct, lag_meta
 

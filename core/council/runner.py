@@ -72,4 +72,6 @@ def run_council(
 if __name__ == "__main__":
     result = run_council("BTCUSDT")
     logger.info(result.deliberation)
-    logger.info("SUMMARY: %s confidence=%.3f consensus=%.3f", result.final_signal.value, result.confidence, result.consensus)
+    logger.info(
+        "SUMMARY: %s confidence=%.3f consensus=%.3f", result.final_signal.value, result.confidence, result.consensus
+    )

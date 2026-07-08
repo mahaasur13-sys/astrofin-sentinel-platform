@@ -195,7 +195,9 @@ class RAGClient:
 
     def _check_config(self) -> None:
         if self.config.backend == "pgvector" and not self.config.pg_dsn:
-            raise ValueError("AFS_PG_DSN is required when RAG_BACKEND=pgvector. Set the env var, or switch to RAG_BACKEND=faiss.")
+            raise ValueError(
+                "AFS_PG_DSN is required when RAG_BACKEND=pgvector. Set the env var, or switch to RAG_BACKEND=faiss."
+            )
 
     # ─── Lifecycle ──────────────────────────────────────────────────────────
 
@@ -326,7 +328,9 @@ class RAGClient:
         # which corrupted retrieval. Reject explicitly so callers can split the batch.
         domains_in_batch = {d.domain for d in docs}
         if len(domains_in_batch) > 1:
-            raise ValueError(f"_store_faiss requires a single domain per batch; got {sorted(domains_in_batch)}. Group docs by domain before calling.")
+            raise ValueError(
+                f"_store_faiss requires a single domain per batch; got {sorted(domains_in_batch)}. Group docs by domain before calling."
+            )
 
         async with _FAISS_WRITE_LOCK:
             vectors = await self.embedding.embed([d.content for d in docs])

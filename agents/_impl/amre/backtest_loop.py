@@ -164,7 +164,9 @@ class ContinuousBacktest:
             decision = agent_fn(state)
 
             # Reward evaluation через horizon шагов вперёд
-            reward_actual, reward_predicted = self._evaluate_reward(historical_data, split_idx + i, horizon=self.horizon)
+            reward_actual, reward_predicted = self._evaluate_reward(
+                historical_data, split_idx + i, horizon=self.horizon
+            )
 
             step_error = abs(reward_actual - reward_predicted)
             all_train_rewards.append(reward_actual)

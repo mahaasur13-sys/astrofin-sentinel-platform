@@ -11,6 +11,7 @@ deferred to inside the keypair fixture; if it ever fails the failure is
 scoped to the JWT tests, not to the whole ``tests/`` collect (which would
 mask unrelated issues).
 """
+
 from __future__ import annotations
 
 import os
