@@ -71,6 +71,18 @@ exclude = ["tests*", "docs*", "bench*"]
 [tool.ruff]
 target-version = "py310"
 line-length = 120
+exclude = [
+    "_sbs_old/",
+    "_pr_logs/",
+    "acos-contracts/",
+    "data_room/",
+    "bench/",
+    "deploy/iac/",
+    ".venv/",
+    ".git/",
+    "__pycache__/",
+    "*.egg-info/",
+]
 
 [tool.ruff.format]
 quote-style = "double"
