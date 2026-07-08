@@ -17,6 +17,7 @@ Run:
 
 from __future__ import annotations
 import logging
+import signal
 import os
 import sys
 from datetime import datetime
@@ -68,10 +69,24 @@ app.secret_key = SECRET_KEY
 # Flask server for Gunicorn
 server = app.server
 
+# ── Security middleware (CORS + headers + request-id) ──────────────────────────
+from core.security_middleware import (
+    install_security_middleware,
+    add_security_headers_to_server,
+)
+install_security_middleware(
+    server,
+    allowed_origins=ALLOWED_ORIGINS.split(",") if ALLOWED_ORIGINS else ["*"],
+)
+add_security_headers_to_server(server)
+
 # Register Flask blueprints
 server.register_blueprint(data_room_bp)
 
-_log = logging.getLogger("werkzeug")
+import logging as _logging
+_log = _logging.getLogger(__name__)
+_log.addHandler(_logging.NullHandler())
+werkzeug_log = _logging.getLogger("werkzeug")
 _log.setLevel(logging.WARNING if not DEBUG else logging.INFO)
 
 
@@ -199,7 +214,29 @@ _log.info(f"[DASH] AstroFinSentinelV5 ready → http://0.0.0.0:{PORT}")
 _log.info(f"[DASH] Config: DEBUG={DEBUG} PORT={PORT} URL_BASE={os.getenv('URL_BASE_PATHNAME', '/')}")
 
 
+
+
+# ── Graceful shutdown (SIGTERM) ────────────────────────────────────────────────
+def _graceful_shutdown(signum, frame):  # noqa: ARG001
+    _log.info("[DASH] Received signal %s — shutting down gracefully", signum)
+    try:
+        # Dash/Flask doesn't expose a clean shutdown; rely on host supervisor
+        # (gunicorn / supervisord / Zo service manager) to reap the process.
+        sys.exit(0)
+    except SystemExit:
+        raise
+    except Exception as exc:  # pragma: no cover — defensive
+        _log.error("[DASH] Shutdown error: %s", exc)
+        sys.exit(1)
+
+
+signal.signal(signal.SIGTERM, _graceful_shutdown)
+try:
+    signal.signal(signal.SIGINT, _graceful_shutdown)
+except Exception:  # pragma: no cover — SIGINT may be unavailable on Windows
+    pass
 if __name__ == "__main__":
+
     app.run(
         debug=DEBUG,
         host="0.0.0.0",  # nosec B104 — dev dashboard, internal network only
