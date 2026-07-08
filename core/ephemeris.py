@@ -314,7 +314,9 @@ def calculate_natal_chart(
     )
 
 
-def get_current_positions(latitude: float = 55.7558, longitude: float = 37.6173, use_sidereal: bool = False) -> NatalChart:
+def get_current_positions(
+    latitude: float = 55.7558, longitude: float = 37.6173, use_sidereal: bool = False
+) -> NatalChart:
     """Get current planetary positions for electional astrology.
 
     Now uses `common.deterministic.utc_now_deterministic()` so that

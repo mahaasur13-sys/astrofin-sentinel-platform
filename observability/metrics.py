@@ -17,6 +17,7 @@ Naming convention follows Prometheus best practices:
   - histograms end in `_seconds`
   - gauges are nouns (e.g. `agent_confidence`)
 """
+
 from __future__ import annotations
 
 import logging
@@ -103,11 +104,11 @@ SIGNAL_CONSENSUS_QUALITY = (
 
 # ─── Helpers ───────────────────────────────────────────────────────────
 
+
 def record_agent_run(agent: str, signal: str, latency_s: float, confidence: int) -> None:
     """Idempotent: records a single agent run, including latency and confidence."""
     if not _HAS_PROM:
-        logger.debug("metrics stub: agent=%s signal=%s conf=%d lat=%.3fs",
-                     agent, signal, confidence, latency_s)
+        logger.debug("metrics stub: agent=%s signal=%s conf=%d lat=%.3fs", agent, signal, confidence, latency_s)
         return
     AGENT_RUNS_TOTAL.labels(agent=agent, signal=signal, ttc="false").inc()
     AGENT_LATENCY_SECONDS.labels(agent=agent, ttc="false").observe(latency_s)
@@ -116,8 +117,7 @@ def record_agent_run(agent: str, signal: str, latency_s: float, confidence: int)
 
 def record_data_room_resolve(resolver: str, status: str, latency_s: float) -> None:
     if not _HAS_PROM:
-        logger.debug("metrics stub: resolver=%s status=%s lat=%.3fs",
-                     resolver, status, latency_s)
+        logger.debug("metrics stub: resolver=%s status=%s lat=%.3fs", resolver, status, latency_s)
         return
     DATA_ROOM_RESOLVE_TOTAL.labels(resolver=resolver, status=status).inc()
     DATA_ROOM_LATENCY.labels(resolver=resolver).observe(latency_s)
@@ -141,8 +141,9 @@ def time_block(metric_name: str = "default") -> Any:
             AGENT_LATENCY_SECONDS.labels(agent=metric_name, ttc="false").observe(elapsed)
 
 
-def with_agent_timing(agent: str, signal_getter: Callable[[Any], str],
-                      confidence_getter: Callable[[Any], int]) -> Callable:
+def with_agent_timing(
+    agent: str, signal_getter: Callable[[Any], str], confidence_getter: Callable[[Any], int]
+) -> Callable:
     """Decorator: record latency + confidence of an agent's run() method.
 
     Usage:
@@ -151,6 +152,7 @@ def with_agent_timing(agent: str, signal_getter: Callable[[Any], str],
                            confidence_getter=lambda r: r.confidence)
         async def run(self, state): ...
     """
+
     def deco(fn: Callable) -> Callable:
         async def wrapper(*args, **kwargs):
             start = time.perf_counter()
@@ -163,7 +165,9 @@ def with_agent_timing(agent: str, signal_getter: Callable[[Any], str],
             except Exception as exc:  # noqa: BLE001
                 logger.warning("with_agent_timing: %s", exc)
             return result
+
         return wrapper
+
     return deco
 
 

@@ -47,7 +47,13 @@ def main():
         ports = svc.get("ports", [])
         for port_map in ports:
             port_str = str(port_map)
-            if "9090" in port_str or "3001" in port_str or "16686" in port_str or "9187" in port_str or "9121" in port_str:
+            if (
+                "9090" in port_str
+                or "3001" in port_str
+                or "16686" in port_str
+                or "9187" in port_str
+                or "9121" in port_str
+            ):
                 if not port_str.startswith("127.0.0.1:"):
                     errors.append(f"{svc_name}: port {port_str} is not bound to 127.0.0.1")
 

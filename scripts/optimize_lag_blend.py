@@ -342,7 +342,9 @@ def save_json(
         "metric": metric,
         "window_size": window_size,
         "best_blend": best.blend,
-        "best_value": (best.reversals if metric == "reversals" else best.stability if metric == "stability" else best.sharpe),
+        "best_value": (
+            best.reversals if metric == "reversals" else best.stability if metric == "stability" else best.sharpe
+        ),
         "results": [asdict(r) for r in results],
     }
 
@@ -475,7 +477,9 @@ def main():
         print(__doc__)
         sys.exit(1)
 
-    logger.info(f"[Run] metric={args.metric}, window={args.window}, blend=[{args.blend_min}, {args.blend_max}] step={args.blend_step}, data={data_label}")
+    logger.info(
+        f"[Run] metric={args.metric}, window={args.window}, blend=[{args.blend_min}, {args.blend_max}] step={args.blend_step}, data={data_label}"
+    )
 
     results, best = run_optimization(
         df=df,
@@ -500,7 +504,9 @@ def main():
 
     # Summary
     metric_key = args.metric
-    best_val = best.reversals if args.metric == "reversals" else best.stability if args.metric == "stability" else best.sharpe
+    best_val = (
+        best.reversals if args.metric == "reversals" else best.stability if args.metric == "stability" else best.sharpe
+    )
     print(f"Optimal blend for metric '{args.metric}': {best.blend} ({metric_key}={best_val})")
 
 

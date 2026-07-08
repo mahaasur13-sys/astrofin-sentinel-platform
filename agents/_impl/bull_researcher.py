@@ -65,7 +65,12 @@ class BullResearcherAgent(BaseAgent[AgentResponse]):
         astro_signal = await self._check_astro_bullish(state)
 
         # Aggregate bullish score
-        bullish_score = patterns["score"] * 0.30 + volume_profile["score"] * 0.25 + support_zones["score"] * 0.20 + astro_signal["score"] * 0.25
+        bullish_score = (
+            patterns["score"] * 0.30
+            + volume_profile["score"] * 0.25
+            + support_zones["score"] * 0.20
+            + astro_signal["score"] * 0.25
+        )
 
         if bullish_score >= 0.65:
             signal = SignalDirection.LONG

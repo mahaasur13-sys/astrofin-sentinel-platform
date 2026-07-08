@@ -12,6 +12,7 @@ This is a defense-in-depth measure, not a substitute for not logging
 secrets in the first place. Track coverage in `docs/slo.md` and
 `SLO.md` (PII scrubber uptime is an internal quality gate).
 """
+
 from __future__ import annotations
 
 import re
@@ -29,11 +30,11 @@ _AWS_KEY_RE = re.compile(r"\b(?:AKIA|ASIA)[A-Z0-9]{12,}\b")
 # Slack, GitHub, Stripe style "x"-prefixed API keys.
 _PREFIXED_KEY_RE = re.compile(
     r"\b(?:"
-    r"xox[bopasr]-[A-Za-z0-9-]{10,}"   # Slack
-    r"|ghp_[A-Za-z0-9]{20,}"            # GitHub PAT
+    r"xox[bopasr]-[A-Za-z0-9-]{10,}"  # Slack
+    r"|ghp_[A-Za-z0-9]{20,}"  # GitHub PAT
     r"|sk_(?:live|test)_[A-Za-z0-9]{16,}"  # Stripe live/test
-    r"|sk-[A-Za-z0-9_-]{16,}"           # OpenAI / generic
-    r"|AIza[A-Za-z0-9_-]{15,}"          # Google API key
+    r"|sk-[A-Za-z0-9_-]{16,}"  # OpenAI / generic
+    r"|AIza[A-Za-z0-9_-]{15,}"  # Google API key
     r")\b"
 )
 

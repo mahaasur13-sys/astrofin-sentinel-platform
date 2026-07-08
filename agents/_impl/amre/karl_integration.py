@@ -219,7 +219,12 @@ def process_amre(
         price=state.get("current_price", 0),
         timeframe=state.get("timeframe_requested", "SWING"),
         regime=state.get("regime", "NORMAL"),
-        state_hash=hashlib.md5(f"{symbol}:{state.get('current_price', 0)}:{state.get('regime', 'NORMAL')}".encode()).hexdigest()[:12] if "hashlib" in dir() else "0" * 12,  # nosec B324 — content hash for cache key, not security
+        state_hash=hashlib.md5(
+            f"{symbol}:{state.get('current_price', 0)}:{state.get('regime', 'NORMAL')}".encode(),
+            usedforsecurity=False,
+        ).hexdigest()[:12]
+        if "hashlib" in dir()
+        else "0" * 12,  # nosec B324 — content hash for cache key, not security
         top_trajectories=top_trajectories_dicts,
         selected_ensemble=ensemble_dicts,
         q_values=[reward],

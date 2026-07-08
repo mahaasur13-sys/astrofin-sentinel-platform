@@ -3,6 +3,7 @@
 We test the fusion algorithm itself: ranking, weighting, dedup, edge cases.
 Real RAGClient integration is covered in P2-03c.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -45,8 +46,8 @@ def _sync(items: list[Chunk]):
 async def test_rrf_fuses_two_ranks_and_sorts_desc():
     """Chunk present in both lists must outrank a chunk present in only one."""
     a, b, c = _chunk("1", "apple"), _chunk("2", "banana"), _chunk("3", "cherry")
-    vec = _async([a, c])      # vec ranks: a=1, c=2
-    bm = _sync([b, a])       # bm ranks:  b=1, a=2
+    vec = _async([a, c])  # vec ranks: a=1, c=2
+    bm = _sync([b, a])  # bm ranks:  b=1, a=2
     h = HybridRetriever(vec, bm)
     out = await h.retrieve("anything", top_k=3)
 
@@ -88,8 +89,8 @@ async def test_rrf_score_formula_matches_definition():
 async def test_vector_weight_dominates_when_bm25_weight_zero():
     """With bm25_weight=0, fusion reduces to pure vector ranking."""
     a, b, c = _chunk("1", "x"), _chunk("2", "y"), _chunk("3", "z")
-    vec = _async([a, b, c])           # a=1, b=2, c=3
-    bm = _sync([c, b, a])            # c=1, b=2, a=3  (opposite order)
+    vec = _async([a, b, c])  # a=1, b=2, c=3
+    bm = _sync([c, b, a])  # c=1, b=2, a=3  (opposite order)
     h = HybridRetriever(vec, bm, vector_weight=1.0, bm25_weight=0.0)
     out = await h.retrieve("q", top_k=3)
     # Only vector contributes → a first
@@ -100,8 +101,8 @@ async def test_vector_weight_dominates_when_bm25_weight_zero():
 async def test_higher_bm25_weight_promotes_bm25_only_hits():
     """Heavy bm25_weight should bump a bm25-only chunk above a vector-only one."""
     a, b, c = _chunk("1", "x"), _chunk("2", "y"), _chunk("3", "z")
-    vec = _async([a, b])              # a=1, b=2
-    bm = _sync([c, a])               # c=1, a=2
+    vec = _async([a, b])  # a=1, b=2
+    bm = _sync([c, a])  # c=1, a=2
     # With default weights (1.0, 1.0):
     #   a (1,2): 1/61 + 1/62 ≈ 0.0326
     #   b (2,_): 1/62 ≈ 0.0161
@@ -171,7 +172,7 @@ async def test_top_k_caps_results_after_fusion():
     """Even if both retrievers return many chunks, we cap at top_k."""
     chunks = [_chunk(str(i), f"text {i}") for i in range(10)]
     vec = _async(chunks[:8])  # 1..8
-    bm = _sync(chunks[2:])   # 3..10
+    bm = _sync(chunks[2:])  # 3..10
     h = HybridRetriever(vec, bm)
     out = await h.retrieve("q", top_k=3)
     assert len(out) == 3

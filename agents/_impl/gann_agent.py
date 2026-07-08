@@ -63,7 +63,12 @@ class GannAgent(BaseAgent[AgentResponse]):
         astro_dates = await self._check_astro_time_dates(state)
 
         # Combine signals
-        gann_score = angles["score"] * 0.40 + price_square["score"] * 0.25 + time_clusters["score"] * 0.20 + astro_dates["score"] * 0.15
+        gann_score = (
+            angles["score"] * 0.40
+            + price_square["score"] * 0.25
+            + time_clusters["score"] * 0.20
+            + astro_dates["score"] * 0.15
+        )
 
         if gann_score >= 0.60:
             signal = SignalDirection.LONG
@@ -75,9 +80,7 @@ class GannAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 40
 
-        reasoning = (
-            f"Gann angles: {angles['summary']}. Price square: {price_square['summary']}. Time clusters: {time_clusters['summary']}. Astro dates: {astro_dates['summary']}. Gann score: {gann_score:.2f}"
-        )
+        reasoning = f"Gann angles: {angles['summary']}. Price square: {price_square['summary']}. Time clusters: {time_clusters['summary']}. Astro dates: {astro_dates['summary']}. Gann score: {gann_score:.2f}"
 
         return AgentResponse(
             agent_name="GannAgent",

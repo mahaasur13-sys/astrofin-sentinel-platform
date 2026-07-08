@@ -1,4 +1,5 @@
 """Unit tests for knowledge.bm25_retriever."""
+
 from __future__ import annotations
 
 import pytest

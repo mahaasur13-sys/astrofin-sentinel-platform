@@ -5,6 +5,7 @@ standalone ``acos_contracts`` package (v0.1.0+). This module re-exports
 them for callers that still import from ``common.interfaces`` during
 the migration window and will be removed in a future release.
 """
+
 from __future__ import annotations
 
 from acos_contracts.interfaces import (

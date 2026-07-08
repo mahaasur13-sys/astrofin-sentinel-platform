@@ -261,7 +261,11 @@ def check_registry_coverage(report: Report) -> None:
 
     registry_text = REGISTRY_PATH.read_text(encoding="utf-8")
     # All .py files under _impl/ (skip __init__, _archived, _templates).
-    impl_files = [p for p in AGENT_IMPL_DIR.rglob("*.py") if "_archived" not in p.parts and "_templates" not in p.parts and p.name != "__init__.py"]
+    impl_files = [
+        p
+        for p in AGENT_IMPL_DIR.rglob("*.py")
+        if "_archived" not in p.parts and "_templates" not in p.parts and p.name != "__init__.py"
+    ]
 
     for impl in impl_files:
         # The registry references paths as "agents._impl.<module>".
@@ -457,7 +461,9 @@ def render_report(report: Report) -> None:
         return
     fails = [f for f in report.findings if f.severity == "FAIL"]
     warns = [f for f in report.findings if f.severity == "WARN"]
-    print(BOLD(f"\nArchitecture linter — {len(fails)} FAIL, {len(warns)} WARN (scanned {report.files_scanned} files)\n"))
+    print(
+        BOLD(f"\nArchitecture linter — {len(fails)} FAIL, {len(warns)} WARN (scanned {report.files_scanned} files)\n")
+    )
     for finding in report.findings:
         icon = RED("✖") if finding.severity == "FAIL" else YELLOW("⚠")
         loc = f"{finding.file}:{finding.line}"

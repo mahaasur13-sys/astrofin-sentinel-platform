@@ -141,8 +141,14 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
             p = entry["confidence"] / 100.0
             return p * gain_pct - (1.0 - p) * loss_pct
 
-        eu_long = expected_utility({**_next_long(valid), "confidence": 100}) if any(v["value"] == 1 for v in valid) else -1e9
-        eu_short = expected_utility({**_next_short(valid), "confidence": 100}) if any(v["value"] == -1 for v in valid) else -1e9
+        eu_long = (
+            expected_utility({**_next_long(valid), "confidence": 100}) if any(v["value"] == 1 for v in valid) else -1e9
+        )
+        eu_short = (
+            expected_utility({**_next_short(valid), "confidence": 100})
+            if any(v["value"] == -1 for v in valid)
+            else -1e9
+        )
 
         # Build explicit reasoning with both outcomes + drift triggers.
         winner = top1 if top1["value"] == (1 if eu_long > eu_short else -1) else top2

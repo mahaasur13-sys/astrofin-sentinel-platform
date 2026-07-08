@@ -357,7 +357,11 @@ def record_meta_rl_decision(
         risk_adj_reason = getattr(ev, "risk_adjustment_reason", None)
 
         # Strategy metadata
-        strategy_name = (getattr(scored.strategy, "config", None) and getattr(scored.strategy.config, "name", None)) or getattr(scored.strategy, "name", "unknown") or "unknown"
+        strategy_name = (
+            (getattr(scored.strategy, "config", None) and getattr(scored.strategy.config, "name", None))
+            or getattr(scored.strategy, "name", "unknown")
+            or "unknown"
+        )
 
         record = MetaRLDecisionRecord(
             decision_id=f"METARL_{uuid.uuid4().hex[:12].upper()}",

@@ -3,6 +3,7 @@
 Mocks RAGClient.get_all_chunks (added in P2-03c) so the retriever
 can be exercised without a real Postgres connection.
 """
+
 from __future__ import annotations
 
 import time  # noqa: F401  -- kept for debugging hooks
@@ -19,6 +20,7 @@ from knowledge.persistent_bm25_retriever import PersistentBM25Retriever
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _make_chunk(content: str, doc_id: str | None = None) -> RetrievedChunk:
     return RetrievedChunk(
@@ -42,13 +44,16 @@ def _make_rag_client(chunks: List[RetrievedChunk]) -> MagicMock:
 # Core: refresh + retrieve
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_first_retrieve_triggers_refresh():
     """If index is empty, retrieve() must build it before searching."""
-    client = _make_rag_client([
-        _make_chunk("inflation rising across emerging markets"),
-        _make_chunk("central bank raises rates to fight inflation"),
-    ])
+    client = _make_rag_client(
+        [
+            _make_chunk("inflation rising across emerging markets"),
+            _make_chunk("central bank raises rates to fight inflation"),
+        ]
+    )
     r = PersistentBM25Retriever(rag_client=client, ttl_seconds=300.0)
 
     assert not r.is_indexed
@@ -74,11 +79,13 @@ async def test_explicit_refresh_rebuilds_index():
     assert r._chunk_count == 1
 
     # Replace corpus without TTL expiring
-    client.get_all_chunks = AsyncMock(return_value=[
-        _make_chunk("new content 1"),
-        _make_chunk("new content 2"),
-        _make_chunk("new content 3"),
-    ])
+    client.get_all_chunks = AsyncMock(
+        return_value=[
+            _make_chunk("new content 1"),
+            _make_chunk("new content 2"),
+            _make_chunk("new content 3"),
+        ]
+    )
     await r.refresh()
     assert r._chunk_count == 3
 
@@ -120,10 +127,12 @@ async def test_ttl_triggers_refresh_on_stale_index():
     assert r._chunk_count == 1
 
     # Change corpus + force staleness
-    client.get_all_chunks = AsyncMock(return_value=[
-        _make_chunk("v2 chunk A"),
-        _make_chunk("v2 chunk B"),
-    ])
+    client.get_all_chunks = AsyncMock(
+        return_value=[
+            _make_chunk("v2 chunk A"),
+            _make_chunk("v2 chunk B"),
+        ]
+    )
     r._indexed_at -= 1.0  # > ttl_seconds
 
     results = await r.retrieve("v2")
