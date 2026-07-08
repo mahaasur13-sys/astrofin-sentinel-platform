@@ -100,6 +100,7 @@ class Check:
     label: str
     passed: bool
     detail: str = ""
+    severity: str = "warning"  # "error" or "warning" — threshold for --fail-on
 
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
@@ -333,7 +334,7 @@ def validate(src: Path) -> list[Check]:
     ]
 
 
-def render(checks: list[Check], src: Path) -> int:
+def render(checks: list[Check], src: Path, fail_on: str = "warning") -> int:
     try:
         label = str(src.relative_to(REPO_ROOT))
     except ValueError:
@@ -344,6 +345,16 @@ def render(checks: list[Check], src: Path) -> int:
         return 0
     passed = sum(1 for c in checks if c.passed)
     failed = [c for c in checks if not c.passed]
+    # Map --fail-on to severity threshold
+    # fail_on="error"   → only fail exit if any check has severity=="error" and not passed
+    # fail_on="warning" → fail exit on any failed check (default for backward compat)
+    # fail_on="never"   → always exit 0
+    blocking = []
+    if fail_on == "error":
+        blocking = [c for c in failed if c.severity == "error"]
+    elif fail_on == "warning":
+        blocking = list(failed)
+    # fail_on == "never" → blocking = []
     max_label = max(len(c.label) for c in checks)
     for c in checks:
         icon = GREEN("✔") if c.passed else RED("✖")
@@ -357,7 +368,7 @@ def render(checks: list[Check], src: Path) -> int:
         print(RED(f"  {len(failed)} failed."))
     else:
         print(GREEN("  Ready to ship."))
-    return 0 if not failed else 1
+    return 0 if not blocking else 1
 
 
 def recommend_fixes(checks: list[Check]) -> None:
@@ -402,6 +413,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--list-recommended-fixes", action="store_true", help="only print recommended fixes for failed checks"
     )
+    parser.add_argument(
+        "--fail-on",
+        choices=["error", "warning", "never"],
+        default="warning",
+        help="exit non-zero on this severity or higher (default: warning). "
+        "Compatibility flag — used by .github/workflows/quality-gate.yml.",
+    )
     args = parser.parse_args(argv)
 
     target = Path(args.target)
@@ -422,7 +440,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.list_recommended_fixes:
             recommend_fixes(checks)
         else:
-            overall |= render(checks, src)
+            overall |= render(checks, src, fail_on=args.fail_on)
         if args.with_tests:
             test = find_test_file(src)
             if test:
