@@ -69,22 +69,11 @@ jobs:
           python scripts/architecture_linter.py > /tmp/lint.out 2>&1
           rc=$?
           set -e
-          cat /tmp/lint.out
+          cat /tmp/lint.out || true
           echo 'lint-exit-code='$rc >> $GITHUB_OUTPUT
-          # Skip violations linked to KI-xxx entries (Phase 6).
-          ki=${{ needs.known-issues.outputs.json }}
-          echo "$ki" | python -c "import json,sys,re;" \
-            "items=json.load(sys.stdin);\n" \
-            "import os;\n" \
-            "src=open('/tmp/lint.out').read();\n" \
-            "out=src;\n" \
-            "for it in items:\n" \
-            "  paths=it.get('paths',[]);\n" \
-            "  for p in paths:\n" \
-            "    out=re.sub(r'(?m)^.*'+re.escape(p)+r'.*R\d+.*$','',out);\n" \
-            "open('/tmp/lint.filtered.out','w').write(out)"
           # Hard fail (exit 1) blocks merge. Soft (exit 2) does not.
-          if [ $rc -eq 1 ]; then exit 1; fi
+          # Force the step to exit 0 for soft warnings; hard fail is the only blocker.
+          [ $rc -eq 1 ] && exit 1 || true
           exit 0
       - name: Upload lint output
         if: always()

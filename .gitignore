@@ -55,3 +55,11 @@ coverage.xml
 unified-platform/.coverage
 htmlcov/
 backtest/results.db
+
+# JWT signing keys — private keys are NEVER committed.
+# Public keys (jwt_public.pem) are intentionally committed so that
+# verifiers (FastAPI, Flask) can validate tokens without secret distribution.
+keys/jwt_private.pem
+keys/jwt_private*.pem
+keys/*.key
+core/history.db
