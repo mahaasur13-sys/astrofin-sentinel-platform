@@ -223,7 +223,17 @@ AGENT_AGENTS: dict[str, dict] = {
         "ttc": True,
         "selfq": False,
         "path": "agents._impl.synthesis_agent",
-        "method": "SynthesisAgent",
+        "method": "run_synthesis_agent",
+    },
+    "CompromiseAgent": {
+        "name": "CompromiseAgent",
+        "domain": "synthesis",
+        "weight": 0.00,
+        "karl": False,
+        "ttc": False,
+        "selfq": False,
+        "path": "agents._impl.compromise_agent",
+        "method": "run_compromise_agent",
     },
 }
 

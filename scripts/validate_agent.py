@@ -159,10 +159,18 @@ def find_run_method(klass: ast.ClassDef) -> ast.FunctionDef | ast.AsyncFunctionD
 
 
 def find_runner_function(tree: ast.AST, agent_name: str) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+    # Prefer the conventional name: run_<agent_name>.
     expected = f"run_{_camel_to_snake(agent_name)}"
     for node in tree.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == expected:
             return node
+    # Fallback: some modules use run_<name> instead of run_<name>_agent.
+    # Try the bare snake_case (e.g. run_synthesis for SynthesisAgent).
+    bare = f"run_{_camel_to_snake(agent_name).rstrip('_agent')}"
+    if bare != expected:
+        for node in tree.body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == bare:
+                return node
     return None
 
 

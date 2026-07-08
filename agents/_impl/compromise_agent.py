@@ -28,6 +28,7 @@ import logging
 from typing import Any
 
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError
+from agents._impl.ephemeris_decorator import require_ephemeris
 from agents.metrics import track_agent_metrics
 from core.base_agent import (
     EPHEMERIS_UNAVAILABLE,
@@ -82,6 +83,7 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
             weight=0.0,
         )
 
+    @require_ephemeris
     async def analyze(self, state: dict[str, Any]) -> AgentResponse:
         signals = state.get("all_signals", []) or []
         symbol = state.get("symbol", "BTCUSDT")
