@@ -246,3 +246,9 @@ Everything else (observability, security, AMRE, KARL) is already ✅.
 - **Status:** script `scripts/validate_docker_security.py` reports 14 hardening issues (Redis requirepass, Grafana default password, prometheus port binding, security_opt/cap_drop across 6 services).
 - **Reason:** these are infra-level fixes that need deployment review (DNS, secrets, network topology). Out of scope for #81 (JWT auth).
 - **Follow-up:** tracked in #127. CI will be green once `docker-compose.yml` is updated to add `--requirepass`, env-driven GRAFANA password, `127.0.0.1:` prefix on monitoring ports, and `security_opt: no-new-privileges:true` + `cap_drop: ALL` on all services.
+
+## 2026-07-08: Final CI Stabilisation
+- ✅ Quality Gate, Tests+Coverage, Code Quality, Security (Bandit+Docker) – green after PR #136 follow-up fixes (commit dbbb2c8).
+- ⚠️ Architecture Lint (R1-R9) – 472 soft warnings (missing docstrings). Allowed by merge contract (exit code 2 → if [ $rc -eq 1 ]; then exit 1; fi). No hard violations.
+- ⚠️ Dependency Vulnerability Scan – requires SAFETY_API_KEY secret (not a code issue).
+- Known issues #125, #126, #128 remain open for legacy clean-up but are no longer release blockers.
