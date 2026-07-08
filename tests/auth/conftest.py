@@ -77,7 +77,7 @@ def _wire_jwt_env(jwt_keypair: tuple[Path, Path]) -> None:
 
 
 @pytest.fixture
-def cfg() -> "AuthConfig":
+def cfg():
     """Reload AuthConfig from the (autouse-patched) env for each test."""
     from core.auth_jwt import AuthConfig
 
