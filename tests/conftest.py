@@ -74,9 +74,7 @@ SKIP_LIST_KI_125A = {
 
 def pytest_collection_modifyitems(config, items):
     """Skip pre-existing failing tests tracked by KI-125a (issue #149)."""
-    _ki125a = pytest.mark.skip(
-        reason="KI-125a: pre-existing failure, tracked in issue #149"
-    )
+    _ki125a = pytest.mark.skip(reason="KI-125a: pre-existing failure, tracked in issue #149")
     for item in items:
         if item.nodeid in SKIP_LIST_KI_125A:
             item.add_marker(_ki125a)
