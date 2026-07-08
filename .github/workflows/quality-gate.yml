@@ -31,11 +31,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install
-        run: |
-          pip install --break-system-packages \
-            pytest pytest-asyncio pytest-cov httpx structlog \
-            prometheus-client pydantic redis faiss-cpu numpy pandas \
-            ruff bandit detect-secrets
+        run: pip install --break-system-packages -r requirements-dev.txt
 
       - name: Detect changes in agents/_impl/
         id: changed
