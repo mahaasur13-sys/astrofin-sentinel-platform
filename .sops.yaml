@@ -1,0 +1,11 @@
+# SOPS configuration for AstroFin Sentinel Platform
+# See docs/SECURITY.md §SOPS-Encryption for full key-rotation policy.
+creation_rules:
+  - path_regex: \.env\.prod\.enc\.yaml$
+    key_groups:
+      - age:
+          - "age1placeholderreplacewithrealpublickeyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  - path_regex: secrets/.*\.enc\.yaml$
+    key_groups:
+      - age:
+          - "age1placeholderreplacewithrealpublickeyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
