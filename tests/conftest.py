@@ -30,7 +30,7 @@ SKIP_LIST_KI_125A = {
     "tests/test_logging.py::test_orchestrator_sets_correlation_id",
     "tests/test_meta_rl.py::TestEvolutionEngine::test_reward_improves_after_evolution",
     # --- http_client (1) — fixture lifecycle drift surfaced by skip list ---
-    "tests/test_http_client.py::test_http_client_returns_async_client",
+    "tests/test_http_client.py::test_get_http_client_returns_async_client",
     # --- imports (1) — missing hypothesis dep ---
     "tests/test_imports.py::test_hypothesis_importable",
     # --- macro_agent / metrics (3) — _StubMethod type errors ---
