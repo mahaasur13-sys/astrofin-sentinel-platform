@@ -19,6 +19,20 @@ from pathlib import Path
 import pytest
 
 
+@pytest.fixture
+def lazy_jwt():
+    """Deferred ``jwt`` resolver.
+
+    Some CI images install ``pyjwt`` lazily; importing it at module
+    collection time would crash the whole ``tests/`` discovery. Callers
+    that need the module should request this fixture instead of writing
+    ``import jwt`` at the top of the test file.
+    """
+    import jwt as pyjwt  # noqa: WPS433 — deferred by design
+
+    return pyjwt
+
+
 def _generate_rsa_keypair(tmp_dir: Path) -> tuple[Path, Path]:
     """Create a fresh RS256 keypair under ``tmp_dir`` and return (priv, pub)."""
     # Defer the import — cryptography is a transitive dep of pyjwt, but the
