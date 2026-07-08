@@ -14,6 +14,7 @@ from pathlib import Path
 import yaml
 
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError
+from agents._impl.ephemeris_decorator import require_ephemeris
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 from core.volatility import VolatilityEngine, VolatilityRegime
@@ -132,6 +133,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
             logger.exception("agent_run_unhandled", extra={"agent": self.name})
             return self._degraded(UNKNOWN, repr(e))
 
+    @require_ephemeris
     async def analyze(self, state: dict) -> AgentResponse:
         """
         Финальный синтез всех агентов.
