@@ -122,3 +122,39 @@ def install_security(app: Flask) -> None:
     @app.after_request
     def _apply_headers(response):  # noqa: WPS430
         return add_security_headers(response)
+
+
+def install_security_middleware(app) -> None:
+    """Register CORS, request-ID and security headers on a Dash/Flask app.
+
+    Works for both ``dash.Dash`` (which exposes ``app.server``) and a plain
+    Flask ``app`` — we always operate on ``app.server`` (a Flask instance).
+    """
+    flask_app = getattr(app, "server", app)
+
+    # 1. CORS — read allowed origins from env at call time so tests can override
+    origins_env = os.environ.get("ALLOWED_ORIGINS", "*")
+    origins: list[str] | str = [o.strip() for o in origins_env.split(",") if o.strip()] if origins_env != "*" else "*"
+    CORS(
+        flask_app,
+        resources={r"/*": {"origins": origins}},
+        expose_headers=["X-Request-ID"],
+        supports_credentials=False,
+    )
+
+    # 2. Request-ID + security headers
+    flask_app.before_request(_before_request)
+    flask_app.after_request(_after_request)
+
+    # 3. Global JSON error handlers
+    @flask_app.errorhandler(Exception)
+    def _on_exception(exc):  # type: ignore[no-untyped-def]
+        from flask import jsonify, request
+
+        rid = getattr(request, "request_id", str(uuid.uuid4()))
+        flask_app.logger.exception("Unhandled error (request_id=%s)", rid)
+        return jsonify({"error": "internal server error", "request_id": rid}), 500
+
+    flask_app.logger.info(
+        "[security_middleware] installed: CORS origins=%s, request-id=enabled", origins_env
+    )
