@@ -233,3 +233,10 @@ Everything else (observability, security, AMRE, KARL) is already ✅.
 - **Remaining red:** Dependency Vulnerability Scan — fails because `SAFETY_API_KEY` secret is not configured in repo settings. pip-audit itself passes with zero findings. Add the secret at Repo Settings → Secrets and variables → Actions to clear.
 - **PR #136 changes** (squash-merged earlier via ee0f27c): JWT auth (RS256), `pyjwt[crypto]`, `cryptography`, FAISS, Dash. 6/6 JWT tests pass locally.
 - **d05d9ba changes:** extended `[tool.ruff].exclude` to cover legacy dirs (`src/`, `astrology/`, `data/`, `db/`, `graphify-out/`, `integrations/`, `mas_factory/`, `meta_rl/`, `orchestration/`, `pop-os-setup/`, `trading/`, `web/`, `tools/`, `tests/architecture/`, `tests/data_room/`, `tests/integration/`, `tests/load/`, `tests/ralph_benchmark/`, `tests/unit/`); added 10 missing test deps to both `dev-requirements.txt` and `requirements-dev.txt`; deferred `import jwt` inside `tests/auth/conftest.py` lazy fixture; removed `core/history.db` from tracking; fixed F821 in `cfg()` fixture.
+
+## KI-020: Docker compose security hardening (`scripts/validate_docker_security.py`)
+
+- **Status:** Known-issue, out of scope for PR #136 / master cleanup.
+- **What fails:** `Security (Bandit + Docker)` CI job runs `scripts/validate_docker_security.py` against `deploy/docker/docker-compose.yml`. 15 hardcoded issues: missing `security_opt: no-new-privileges:true` and `cap_drop: ALL` on 6 services, Redis no `--requirepass`, Grafana default `admin` password, Prometheus 0.0.0.0:9090 binding.
+- **Why not blocking:** These are dev infra compose issues. Production deployment uses hardened manifests. Tracked separately in #128.
+- **Fix plan:** Standalone hardening PR — update `deploy/docker/docker-compose.yml` with full `security_opt`/`cap_drop` matrix, env-driven passwords, loopback bindings.
