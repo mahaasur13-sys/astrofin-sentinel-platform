@@ -1,24 +1,22 @@
 # SOPS configuration for AstroFin Sentinel Platform
-# See docs/SOPS.md §Key-Rotation for full key-rotation policy.
+# See docs/SOPS.md §Key Rotation for full key-rotation policy.
 #
-# Recipients: `&prod_recipients` is the YAML anchor for the production age
-# recipient set (primary + backup). Reused in both creation_rules so any future
-# key-rotation stays synchronized across `.env.prod.enc.yaml` and `secrets/`.
+# All path_regex entries are anchored (^) to the start of the path so first-match
+# routing cannot pick up archive/ tmp-prefixed files into a more permissive
+# recipient set.
 #
-# Key rotation:
-#   1. Generate a new age key:    age-keygen -o keys/age-new.key
-#   2. Add the new public key to the `age:` list below (keep old for decrypt).
-#   3. Re-encrypt:                sops updatekeys -y .env.prod.enc.yaml secrets/*.enc.yaml
-#   4. Remove the retired public key from this file once decryption is confirmed.
-#   5. Bump the rotation date in docs/SOPS.md.
-.anchors:  # internal — stripped by PyYAML
-  prod_recipients: &prod_recipients
-    - "age1primaryoperator1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"
-    - "age1backupoperator2qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"
+# prod_recipients: YAML anchor (line ~10) — both creation_rules reference it so
+# the same recipient pair is reused everywhere. Add new recipients there once and
+# both rules pick them up.
+
+.prod_recipients: &prod_recipients
+  - age1primaryoperator1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+  - age1backupoperator2qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+
 creation_rules:
-  - path_regex: \.env\.prod\.enc\.yaml$
+  - path_regex: ^\.env\.prod\.enc\.yaml$
     key_groups:
       - age: *prod_recipients
-  - path_regex: secrets/.*\.enc\.yaml$
+  - path_regex: ^secrets/.*\.enc\.yaml$
     key_groups:
       - age: *prod_recipients
