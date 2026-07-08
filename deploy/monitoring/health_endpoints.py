@@ -1,89 +1,132 @@
 from __future__ import annotations
+
 import logging
 import os
-from typing import Any
+import time
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
 
-log = logging.getLogger(__name__)
-
+_log = logging.getLogger(__name__)
 app = FastAPI()
 
+# Cache for dependency probes — protects against flapping and excessive
+# connection churn on every readiness call. A 5-second cache is short
+# enough to react to outages but long enough to absorb probe storms
+# from k8s/load-balancers.
+_PROBE_CACHE_TTL_S = 5.0
+_probe_cache: dict[str, tuple[float, bool, str]] = {}
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
 
-def _check_redis() -> tuple[bool, str | None]:
-    """Best-effort Redis liveness probe (timeout 0.5s)."""
+def _cached_probe(name: str, probe):
+    """Run ``probe`` with a 5-second TTL cache; return ``(ok, detail)``."""
+    now = time.monotonic()
+    cached = _probe_cache.get(name)
+    if cached and (now - cached[0]) < _PROBE_CACHE_TTL_S:
+        return cached[1], cached[2]
     try:
-        import redis  # type: ignore
-        url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-        client = redis.Redis.from_url(url, socket_connect_timeout=0.5, socket_timeout=0.5)
-        return bool(client.ping()), None
-    except Exception as exc:  # noqa: BLE001 — health probe, swallow
-        return False, f"redis: {type(exc).__name__}: {exc}"
+        ok, detail = probe()
+    except Exception as exc:  # noqa: BLE001 — probe may raise anything
+        ok, detail = False, f"{type(exc).__name__}: {exc}"
+    _probe_cache[name] = (now, ok, detail)
+    return ok, detail
 
 
-def _check_db() -> tuple[bool, str | None]:
-    """Best-effort DB liveness probe (SQLite file presence)."""
+def _check_redis() -> tuple[bool, str]:
+    """Probe Redis if REDIS_URL is set. Returns (ok, detail)."""
+    url = os.environ.get("REDIS_URL")
+    if not url:
+        return True, "skipped (no REDIS_URL)"
     try:
-        db_path = os.getenv("HISTORY_DB_PATH", "core/history.db")
-        # SQLite is the dev backend; absence is non-fatal, lock/error is fatal.
-        if not os.path.exists(db_path):
-            return True, "history.db not yet created (cold start)"
-        import sqlite3
-        with sqlite3.connect(db_path, timeout=0.5) as conn:
-            conn.execute("SELECT 1").fetchone()
-        return True, None
-    except Exception as exc:  # noqa: BLE001 — health probe, swallow
-        return False, f"db: {type(exc).__name__}: {exc}"
+        import redis  # type: ignore[import-not-found]
+
+        client = redis.Redis.from_url(url, socket_connect_timeout=1, socket_timeout=1)
+        client.ping()
+        return True, "ok"
+    except ImportError:
+        return True, "skipped (redis lib not installed)"
+    except Exception as exc:  # noqa: BLE001
+        return False, f"{type(exc).__name__}: {exc}"
 
 
-# ── Endpoints ───────────────────────────────────────────────────────────────
+def _check_db() -> tuple[bool, str]:
+    """Probe the SQLite/Postgres DB if DATABASE_URL is set."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        return True, "skipped (no DATABASE_URL)"
+    if url.startswith("sqlite:///"):
+        path = url[len("sqlite:///") :]
+        return (os.path.exists(path), f"sqlite path={path}")
+    try:
+        import asyncpg  # type: ignore[import-not-found]
 
-@app.get("/health")
-def health() -> dict[str, Any]:
-    """Aggregated health: combines liveness + readiness."""
-    return {"status": "ok"}
+        async def _probe_pg() -> tuple[bool, str]:
+            conn = await asyncpg.connect(url, timeout=1.0)
+            try:
+                await conn.fetchval("SELECT 1")
+            finally:
+                await conn.close()
+            return True, "ok"
+
+        import asyncio
+
+        return asyncio.run(_probe_pg())
+    except ImportError:
+        return True, "skipped (asyncpg not installed)"
+    except Exception as exc:  # noqa: BLE001
+        return False, f"{type(exc).__name__}: {exc}"
 
 
 @app.get("/livez")
-def livez() -> dict[str, str]:
-    """Liveness — process is up."""
-    return {"status": "ok"}
+def livez():
+    """Liveness probe — the process is up and the event loop is responsive.
+
+    No external dependencies are checked here. Use ``/readyz`` for that.
+    """
+    return {"status": "alive"}
 
 
 @app.get("/readyz")
-def readyz() -> JSONResponse:
-    """Readiness — process can serve real traffic."""
-    checks: dict[str, Any] = {}
-    overall_ok = True
-    for name, ok, err in (
-        ("redis", *_check_redis()),
-        ("db", *_check_db()),
-    ):
-        checks[name] = {"ok": ok, "error": err}
-        overall_ok = overall_ok and ok
-    payload: dict[str, Any] = {"status": "ok" if overall_ok else "error", "checks": checks}
-    return JSONResponse(payload, status_code=200 if overall_ok else 503)
+def readyz():
+    """Readiness probe — all critical dependencies are reachable.
+
+    Aggregates liveness + readiness by probing Redis and the database
+    (when configured). The response always includes the per-check detail
+    so operators can see exactly which dependency is unhealthy.
+    """
+    redis_ok, redis_detail = _cached_probe("redis", _check_redis)
+    db_ok, db_detail = _cached_probe("db", _check_db)
+    ready = redis_ok and db_ok
+    body = {
+        "status": "ready" if ready else "not_ready",
+        "checks": {
+            "redis": {"ok": redis_ok, "detail": redis_detail},
+            "db": {"ok": db_ok, "detail": db_detail},
+        },
+    }
+    return body if ready else _with_status_code(body, 503)
+
+
+def _with_status_code(body: dict, code: int):  # pragma: no cover — JSONResponse path
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(body, status_code=code)
+
+
+@app.get("/health")
+def health():
+    """Legacy /health — kept for compatibility.
+
+    Returns ``200 {"status": "ok"}`` if the process is alive. For real
+    dependency checks use ``/readyz``; for liveness use ``/livez``.
+    """
+    return {"status": "ok"}
 
 
 @app.get("/metrics")
-def metrics() -> str:
+def metrics():
     return "metrics_placeholder"
 
 
 @app.get("/secure")
-def secure() -> dict[str, str]:
+def secure():
     return {"secret": "data"}
-
-
-@app.exception_handler(Exception)
-async def global_error_handler(request: Request, exc: Exception) -> JSONResponse:  # noqa: ARG001
-    """Catch-all 500 handler — never leak stack traces to clients."""
-    log.exception("unhandled error on %s %s", request.method, request.url.path)
-    request_id = request.headers.get("x-request-id", "")
-    return JSONResponse(
-        status_code=500,
-        content={"error": "internal server error", "request_id": request_id},
-    )

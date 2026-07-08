@@ -238,7 +238,6 @@ except Exception:  # pragma: no cover — SIGINT may be unavailable on Windows
 # ── Global exception handler ─────────────────────────────────────────────────────
 def _log_uncaught(exc_type, exc_value, exc_tb):
     """Log uncaught exceptions with full traceback instead of swallowing them."""
-    import traceback
     _log.critical(
         "Uncaught exception",
         exc_info=(exc_type, exc_value, exc_tb),
