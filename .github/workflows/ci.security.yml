@@ -27,7 +27,7 @@ jobs:
     name: Secret Scan (detect-secrets)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -57,7 +57,7 @@ jobs:
     name: Security (Bandit + Docker)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/python-setup
         with: { install-dev: 'false' }
       - name: Install bandit
@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/python-setup
         with: { install-dev: 'true' }
       - name: Ruff lint (github format)
@@ -91,7 +91,7 @@ jobs:
     name: Tests + Coverage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/python-setup
         with: { install-dev: 'true' }
       - name: Pytest (with coverage)
@@ -109,7 +109,7 @@ jobs:
     name: BlackRock Six Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -120,7 +120,7 @@ jobs:
     name: Dependency Vulnerability Scan (pip-audit + safety)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
