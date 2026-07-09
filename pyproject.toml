@@ -122,7 +122,7 @@ markers = [
 ]
 
 [tool.ruff.lint]
-select = ["E", "F", "W"]
+select = ["E", "F", "W", "BLE001"]
 # E501 disabled: 162 pre-existing long lines in src/bridges/roma/saas/* and tests
 # originated before migration/v1-unification. Auto-fix is unsafe (touches SQL/strings).
 # TODO: fix long lines post-stabilization — see ROADMAP §CI Cleanup.
