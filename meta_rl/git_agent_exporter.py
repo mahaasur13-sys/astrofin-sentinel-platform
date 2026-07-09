@@ -24,8 +24,8 @@ def _validate_agent_yaml(agent_yaml: dict[str, Any]) -> tuple[bool, str | None]:
     """
     try:
         from integrations.gitagent.validators.agent_validator import AgentYamlValidator
-    except Exception as e:  # noqa: BLE001
-        return True, None  # validator unavailable -> skip validation (best-effort)
+    except ImportError:  # validator unavailable -> skip validation (best-effort)
+        return True, None
     try:
         validator = AgentYamlValidator()
         if not validator.validate(agent_yaml):
