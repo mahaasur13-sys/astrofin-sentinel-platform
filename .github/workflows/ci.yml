@@ -51,7 +51,7 @@ jobs:
           echo "$json" >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
       - name: Upload ki.json artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: known-issues, path: /tmp/ki.json, retention-days: 7 }
 
   # ---- Phase 2 Job 1: architecture linter (R1-R9 hard, soft warnings exit 2). ----
@@ -77,7 +77,7 @@ jobs:
           exit 0
       - name: Upload lint output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: architecture-lint, path: /tmp/lint.out, retention-days: 14 }
 
   # ---- Phase 2 Job 2: validate each changed agent (A1-A9). ----
@@ -126,7 +126,7 @@ jobs:
           exit $fail
       - name: Upload validation log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: validate-agents-log, path: /tmp/validate.out, retention-days: 14 }
 
   # ---- Phase 2 Job 3: registry-coverage check (CI version, hard fail). ----
@@ -176,7 +176,7 @@ jobs:
           fi
       - name: Upload audit output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: security-audit, path: /tmp/audit.out, retention-days: 14 }
 
   # ---- Phase 5: write summary to $GITHUB_STEP_SUMMARY. ----
