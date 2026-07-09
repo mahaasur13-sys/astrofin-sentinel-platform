@@ -1,0 +1,9 @@
+{
+  "name": "TechnicalAgent",
+  "module": "unified-platform.domain.astrofin.agents.registry",
+  "acos_job_type": "astrofin_technical",
+  "acos_layer": "L6",
+  "description": "Technical chart analysis - Patterns, indicators, volume analysis",
+  "tools": ["chart_patterns", "indicators", "volume_analysis", "trend_lines"],
+  "instructions": "Analyze price charts for patterns, technical indicators, volume anomalies. Provide entry/exit signals based on technical analysis methodologies."
+}
