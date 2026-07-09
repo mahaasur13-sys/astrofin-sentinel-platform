@@ -50,7 +50,7 @@ jobs:
           fi
       - name: Upload secret scan log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: secret-scan-log, path: /tmp/secrets.out, retention-days: 7 }
 
   security-scan:
@@ -102,7 +102,7 @@ jobs:
             -v --tb=short
       - name: Upload coverage.xml
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: coverage-report, path: coverage.xml, retention-days: 14 }
 
   blackrock-tests:
@@ -205,13 +205,13 @@ jobs:
           echo "Safety scan skipped: SAFETY_API_KEY is not configured. This is non-blocking."
       - name: Upload pip-audit JSON
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: pip-audit-report, path: /tmp/pip-audit.final.json, retention-days: 14 }
       - name: Upload safety JSON report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: safety-report-json, path: /tmp/safety.json, retention-days: 14 }
       - name: Upload safety HTML report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: safety-report-html, path: /tmp/safety.html, retention-days: 14 }
