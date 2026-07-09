@@ -213,7 +213,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Post/update PR comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const marker = '<!-- astrofin-ci-bot -->';
