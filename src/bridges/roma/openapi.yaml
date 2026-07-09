@@ -1,3 +1,6 @@
+# Deprecated: use canonical spec at docs/api/openapi.yaml
+# This file is kept only for archaeology; see PR audit/doc04-openapi.
+
 # ROMA Platform — OpenAPI Specification
 # Standardizes ROMA as API-first execution kernel
 
