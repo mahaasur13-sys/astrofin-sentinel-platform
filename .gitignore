@@ -63,3 +63,14 @@ keys/jwt_private.pem
 keys/jwt_private*.pem
 keys/*.key
 core/history.db
+
+# Legacy snapshots and archives (cleaned 2026-07-09)
+as/
+audit_repo/
+audit-astro/
+audit-astrofin/
+backups/
+push_backup/
+archive/
+_sbs_old/
+_pr_logs/
