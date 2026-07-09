@@ -21,10 +21,13 @@ Unified monorepo aggregating three production-grade projects under one CI/CD:
 ```bash
 git clone https://github.com/mahaasur13-sys/astrofin-sentinel-platform.git
 cd astrofin-sentinel-platform
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-pip install -r requirements.all.txt
+
+# Recommended (uses uv.lock)
+uv sync --all-extras
+
+# Alternative (pip + pyproject)
+# pip install -e ".[dev,web]"
+
 pytest -q
 ```
 
