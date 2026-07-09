@@ -91,12 +91,21 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Coverage on changed files
+      - name: Coverage on changed files (KI-127)
         if: steps.changed.outputs.changed_files != ''
         run: |
-          python -m pytest tests/ -q --tb=short \
-            --cov=agents --cov=core \
-            --cov-report=term --no-header \
+          # KI-127: `pytest-cov` lives in [project.optional-dependencies.dev] and the
+          # coverage addopts are configured in pyproject.toml. Previously this job
+          # invoked `python -m pytest` without first running `uv sync --extra dev`,
+          # which left the runtime env without pytest-cov and produced
+          # `unrecognized arguments: --cov=...` even though the flags were also
+          # passed explicitly. Install dev extras and let addopts own the flags.
+          uv sync --frozen --extra dev
+          echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+          uv run python -m pytest tests/ -q --tb=short \
+            --no-header \
+            --cov-report=term \
             --cov-fail-under=${{ env.COVERAGE_FAIL_UNDER }}
 
       - name: Doc-touch warning (informational)
