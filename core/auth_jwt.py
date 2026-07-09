@@ -356,11 +356,20 @@ def verify_token(
         raise
 
     if decoded.get("typ") != expected_type:
+        logger.warning(
+            "auth.token_type_mismatch",
+            extra={"expected": expected_type, "actual": decoded.get("typ")},
+        )
         raise JWTError(f"token type mismatch: expected {expected_type!r}, got {decoded.get('typ')!r}")
 
     if _REVOCATION.is_revoked(decoded["jti"]):
+        logger.warning("auth.token_revoked", extra={"jti": decoded["jti"]})
         raise RevokedError(f"token jti revoked: {decoded['jti']}")
 
+    logger.info(
+        "auth.token_verified",
+        extra={"sub": decoded["sub"], "typ": expected_type, "jti": decoded["jti"]},
+    )
     return Claims(
         sub=decoded["sub"],
         role=decoded.get("role", "user"),

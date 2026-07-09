@@ -25,10 +25,15 @@ from typing import Any
 from flask import Flask, jsonify, request
 
 from core.auth import require_api_key
+from core.error_schema import BadRequest, InternalError
+from web.middleware import install_error_handling
 
 _log = logging.getLogger("wsgi.shutdown")
 
 server = Flask(__name__)
+
+# Standardised error envelope (ERR-01): correlation-id + JSON schema.
+install_error_handling(server)
 
 # ── Graceful-shutdown state ────────────────────────────────────────────────────
 _state_lock = threading.Lock()
@@ -116,7 +121,7 @@ def ab_compare():
     sid_a = request.args.get("sid_a", "")
     sid_b = request.args.get("sid_b", "")
     if not sid_a or not sid_b:
-        return jsonify({"status": "ERROR", "error": "sid_a and sid_b required"}), 400
+        raise BadRequest("sid_a and sid_b required", details={"sid_a": sid_a, "sid_b": sid_b})
 
     try:
         result = {
@@ -128,8 +133,8 @@ def ab_compare():
             "winner": "TIE",
         }
         return jsonify(result)
-    except Exception as e:
-        return jsonify({"status": "ERROR", "error": str(e)}), 500
+    except Exception:
+        raise InternalError("ab_compare failed")
 
 
 @server.route("/api/live/enable", methods=["POST"])
@@ -139,7 +144,7 @@ def live_enable():
     data = request.get_json(silent=True) or {}
     confirmed = data.get("confirmed", False)
     if not confirmed:
-        return jsonify({"error": "Confirmation required"}), 400
+        raise BadRequest("Confirmation required", details={"field": "confirmed"})
     return jsonify({"status": "live_enabled", "mode": "live"})
 
 

@@ -10,6 +10,8 @@ from pathlib import Path
 
 from flask import Blueprint, jsonify
 
+from core.error_schema import InternalError, NotFound
+
 data_room_bp = Blueprint("data_room", __name__)
 
 CONFLICT_JOURNAL = Path("data_room/conflict_journal.json")
@@ -22,13 +24,10 @@ def list_conflicts():
     """
 
     if not CONFLICT_JOURNAL.exists():
-        return jsonify(
-            {
-                "status": "error",
-                "message": f"{CONFLICT_JOURNAL} not found",
-                "conflicts": [],
-            }
-        ), 404
+        raise NotFound(
+            f"{CONFLICT_JOURNAL} not found",
+            details={"path": str(CONFLICT_JOURNAL)},
+        )
 
     try:
         with CONFLICT_JOURNAL.open("r", encoding="utf-8") as f:
@@ -36,20 +35,8 @@ def list_conflicts():
 
         return jsonify(data)
 
-    except json.JSONDecodeError:
-        return jsonify(
-            {
-                "status": "error",
-                "message": "Invalid JSON in conflict journal",
-                "conflicts": [],
-            }
-        ), 500
+    except json.JSONDecodeError as exc:
+        raise InternalError("Invalid JSON in conflict journal") from exc
 
     except Exception as exc:
-        return jsonify(
-            {
-                "status": "error",
-                "message": str(exc),
-                "conflicts": [],
-            }
-        ), 500
+        raise InternalError(str(exc)) from exc
