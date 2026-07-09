@@ -60,7 +60,7 @@ jobs:
       sbom:    ${{ steps.sbom.outputs.path }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -185,7 +185,7 @@ jobs:
       url: ${{ vars.STAGING_HEALTH_URL }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
@@ -267,7 +267,7 @@ jobs:
       url: ${{ vars.PROD_HEALTH_URL }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
