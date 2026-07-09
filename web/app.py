@@ -83,6 +83,10 @@ add_security_headers_to_server(server)
 # Register Flask blueprints
 server.register_blueprint(data_room_bp)
 
+# ── Standardised error handling (ERR-01) ──────────────────────────────────────
+from web.middleware import install_error_handling
+install_error_handling(server)
+
 import logging as _logging
 _log = _logging.getLogger(__name__)
 _log.addHandler(_logging.NullHandler())
