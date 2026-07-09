@@ -1,9 +1,16 @@
 # syntax=docker/dockerfile:1.7
 # Multi-stage production build for AstroFin Sentinel V5.
-# Stage 1 (builder): resolve and install all Python wheels.
+# Stage 1 (builder): resolve and install all Python wheels via uv.
 # Stage 2 (runtime): slim image, non-root user, minimal surface.
+#
+# This Dockerfile uses uv for dependency management. The lockfile (uv.lock)
+# is the single source of truth for transitive resolution. See ADR-0010.
 
 ARG PYTHON_VERSION=3.12
+ARG UV_VERSION=0.6.14
+
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+# Pure multi-stage importer; no runtime cost.
 
 FROM python:${PYTHON_VERSION}-slim AS builder
 WORKDIR /build
@@ -16,9 +23,17 @@ RUN apt-get update \
         libpq-dev \
  && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt requirements-dev.txt ./
-RUN pip install --no-cache-dir --upgrade pip wheel \
- && pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt -r requirements-dev.txt
+# Copy uv from official image (smaller than installing it ourselves).
+COPY --from=uv /usr/local/bin/uv /usr/local/bin/uv
+
+# Copy project metadata + lockfile first for better Docker layer caching.
+COPY pyproject.toml uv.lock ./
+
+# Export the lock-resolved wheel set so the runtime stage can install offline.
+RUN uv export --frozen --no-hashes --format requirements-txt \
+        --extra dev \
+        -o /tmp/requirements.txt \
+ && uv pip wheel --no-cache-dir --wheel-dir /wheels -r /tmp/requirements.txt
 
 
 FROM python:${PYTHON_VERSION}-slim AS runtime
@@ -26,6 +41,7 @@ FROM python:${PYTHON_VERSION}-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
+    UV_LINK_MODE=copy \
     PORT=8050
 
 # OS-level runtime deps only.
@@ -43,14 +59,13 @@ RUN groupadd --system --gid 1001 appuser \
 
 WORKDIR /app
 
-# Copy requirements.txt for runtime dependency installation.
-COPY requirements.txt .
-
-# Install pre-built wheels from the builder stage.
+# Install pre-built wheels from the builder stage. --no-deps is safe because
+# /wheels already contains every transitive package (uv export + uv pip wheel).
 COPY --from=builder /wheels /wheels
-RUN pip install --no-index --find-links=/wheels \
-        -r requirements.txt \
- && rm -rf /wheels
+COPY --from=builder /tmp/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir --no-index --find-links=/wheels \
+        -r /tmp/requirements.txt \
+ && rm -rf /wheels /tmp/requirements.txt
 
 # Copy only the runtime tree (use .dockerignore to exclude .git, __pycache__, tests, etc.).
 COPY --chown=appuser:appuser . /app
