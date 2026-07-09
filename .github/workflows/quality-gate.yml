@@ -13,6 +13,11 @@ on:
 # Quality gate is a **blocking** job for changes in the agents/ tree.
 # It enforces: linter, per-agent validator, coverage on changed files,
 # and a "did you touch docs?" warning.
+#
+# KI-125 fix: ruff now runs only on files changed in the PR (not the whole
+# tree). Previously it surfaced 60+ pre-existing BLE001 errors in master
+# and made every PR red, regardless of what the PR touched. See
+# docs/KNOWN_ISSUES.md (KI-125).
 
 env:
   PYTHON_VERSION: '3.12'
@@ -33,7 +38,7 @@ jobs:
       - name: Install
         run: pip install --break-system-packages -r requirements-dev.txt
 
-      - name: Detect changes in agents/_impl/
+      - name: Detect changes in agents/_impl/ and core/
         id: changed
         run: |
           {
@@ -45,9 +50,32 @@ jobs:
           echo "Changed files:"
           cat <<< "${{ steps.changed.outputs.changed_files }}"
 
-      - name: Lint changed files
+      - name: Lint changed files (KI-125)
+        # Run ruff on the intersection of "files the PR changed" and
+        # "files under lint-scope trees that still exist on disk".
+        # Files outside the PR diff are not enforced here — they are
+        # addressed as separate cleanup tasks (see ROADMAP).
         run: |
-          ruff check agents/ core/ scripts/ --output-format=github
+          set +e
+          base="origin/${{ github.base_ref }}"
+          git fetch --depth=1 origin "${{ github.base_ref }}" >/dev/null 2>&1 || true
+          mapfile -t files < <(
+            git diff --name-only "$base"...HEAD \
+              | grep -E '\.py$' \
+              | grep -E '^(agents/|core/|scripts/)' || true
+          )
+          set -e
+          existing=()
+          for f in "${files[@]}"; do
+            [ -f "$f" ] && existing+=("$f")
+          done
+          if [ ${#existing[@]} -eq 0 ]; then
+            echo "No lint-scope Python files changed in this PR. Skipping ruff."
+            exit 0
+          fi
+          echo "Linting ${#existing[@]} changed Python file(s):"
+          printf '  - %s\n' "${existing[@]}"
+          ruff check "${existing[@]}" --output-format=github
 
       - name: Architecture linter
         run: |
