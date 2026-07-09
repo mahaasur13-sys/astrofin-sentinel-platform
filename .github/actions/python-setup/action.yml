@@ -49,5 +49,11 @@ runs:
         else
           uv sync --frozen
         fi
-        echo "VIRTUAL_ENV=$(uv venv --relocatable 2>/dev/null || echo .venv)" >> $GITHUB_ENV
-        uv run python -c 'import sys; print(sys.executable)' >> "$GITHUB_PATH"
+        # KI-125/126: explicitly point VIRTUAL_ENV at the project .venv so
+        # subsequent `uv run` invocations reuse the dev dependencies that
+        # `uv sync --extra dev` just installed here. The previous
+        # `uv venv --relocatable` form was a no-op (flag does not exist on
+        # `uv venv`), which left VIRTUAL_ENV empty and made `uv run` spin
+        # up an ephemeral env that did not contain pytest.
+        echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
+        echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"

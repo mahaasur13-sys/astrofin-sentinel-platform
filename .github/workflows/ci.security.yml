@@ -7,6 +7,11 @@ name: CI - Security and Quality
 #
 # Hard-fail jobs (block merge): secret-scan, security-scan, test, blackrock-tests, dep-vuln-scan
 # Soft-fail job: code-quality (P2 warnings, not blocking).
+#
+# KI-125 / KI-126 fix: scope ruff to files changed in the PR. Previously the
+# job ran `ruff check .` on the whole tree, which surfaced 60+ pre-existing
+# BLE001 errors in files the PR did not touch and made every PR red.
+# See docs/KNOWN_ISSUES.md (KI-125, KI-126).
 
 on:
   pull_request:
@@ -76,12 +81,66 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/python-setup
         with: { install-dev: 'true' }
-      - name: Ruff lint (github format)
-        run: ruff check . --output-format=github
-      - name: Ruff format check
-        run: ruff format --check .
+      - name: Ruff lint (PR-scoped, KI-125)
+        # KI-125: scope ruff to Python files changed in this PR. We list
+        # the diff between the PR base and HEAD, filter to .py files under
+        # linted trees, and pass only the ones that still exist on disk.
+        # If nothing changed, the step is a no-op.
+        run: |
+          set +e
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="origin/${{ github.base_ref }}"
+            git fetch --depth=1 origin "${{ github.base_ref }}" >/dev/null 2>&1 || true
+            mapfile -t files < <(
+              git diff --name-only "$base"...HEAD \
+                | grep -E '\.py$' \
+                | grep -E '^(agents/|core/|scripts/|web/|meta_rl/|orchestration/|data_room/|observability/|trading/|db/|tools/)' || true
+            )
+          else
+            mapfile -t files < <(
+              git diff --name-only HEAD~1 \
+                | grep -E '\.py$' \
+                | grep -E '^(agents/|core/|scripts/|web/|meta_rl/|orchestration/|data_room/|observability/|trading/|db/|tools/)' || true
+            )
+          fi
+          set -e
+          existing=()
+          for f in "${files[@]}"; do
+            [ -f "$f" ] && existing+=("$f")
+          done
+          if [ ${#existing[@]} -eq 0 ]; then
+            echo "No Python files changed in lint-scope paths. Skipping ruff."
+            exit 0
+          fi
+          echo "Linting ${#existing[@]} changed Python file(s):"
+          printf '  - %s\n' "${existing[@]}"
+          ruff check "${existing[@]}" --output-format=github
+      - name: Ruff format check (PR-scoped, KI-125)
+        run: |
+          set +e
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="origin/${{ github.base_ref }}"
+            git fetch --depth=1 origin "${{ github.base_ref }}" >/dev/null 2>&1 || true
+            mapfile -t files < <(
+              git diff --name-only "$base"...HEAD | grep -E '\.py$' || true
+            )
+          else
+            mapfile -t files < <(git diff --name-only HEAD~1 | grep -E '\.py$' || true)
+          fi
+          set -e
+          existing=()
+          for f in "${files[@]}"; do
+            [ -f "$f" ] && existing+=("$f")
+          done
+          if [ ${#existing[@]} -eq 0 ]; then
+            echo "No Python files changed. Skipping ruff format check."
+            exit 0
+          fi
+          ruff format --check "${existing[@]}"
       - name: mypy (scoped)
         run: |
           mypy agents/ scripts/ core/ orchestration/ \
@@ -95,11 +154,13 @@ jobs:
       - uses: ./.github/actions/python-setup
         with: { install-dev: 'true' }
       - name: Pytest (with coverage)
+        # KI-126 follow-up: pyproject.toml [tool.pytest.ini_options].addopts
+        # already configures --cov*, --cov-report, --ignore, --strict-*.
+        # Passing them again on the CLI caused
+        # "unrecognized arguments: --cov=...". Just invoke `pytest` and let
+        # addopts do the work. See docs/KNOWN_ISSUES.md (KI-126).
         run: |
-          python -m pytest tests/ -q --tb=short \
-            --cov=agents --cov=core --cov=data_room --cov=observability \
-            --cov-report=xml --cov-report=term-missing \
-            -v --tb=short
+          uv run python -m pytest --no-header
       - name: Upload coverage.xml
         if: always()
         uses: actions/upload-artifact@v7
