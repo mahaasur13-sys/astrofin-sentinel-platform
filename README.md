@@ -1,11 +1,16 @@
 # AstroFin Sentinel Platform — Monorepo
 
-[![CI](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/ci.yml)
-[![Nightly](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/nightly.yml/badge.svg)](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/nightly.yml)
-[![Release](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/release.yml/badge.svg)](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/release.yml)
-[![Security](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/security.yml/badge.svg)](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/security.yml)
-[![PR Checks](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/pr-checks.yml)
-[![License: All Rights Reserved](https://img.shields.io/badge/license-All%20Rights%20Reserved-red.svg)](LICENSE)
+![CI](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/ci.yml/badge.svg)
+
+![Nightly](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/nightly.yml/badge.svg)
+
+![Release](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/release.yml/badge.svg)
+
+![Security](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/security.yml/badge.svg)
+
+![PR Checks](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/actions/workflows/pr-checks.yml/badge.svg)
+
+![License: All Rights Reserved](https://img.shields.io/badge/license-All%20Rights%20Reserved-red.svg)
 
 Unified monorepo aggregating three production-grade projects under one CI/CD:
 
@@ -33,7 +38,7 @@ pytest -q
 
 ## Layout
 
-```
+```markdown
 astrofin-sentinel-platform/
 ├── agents/                       # KARL/AMRE agent implementations (active: agents/_impl/)
 ├── orchestration/                # Sentinel V5 orchestrator + meta-RL pipeline
@@ -86,13 +91,17 @@ cd bridge/roma && uvicorn roma_execution_bridge.main:app --reload
 
 ## Documentation
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — full architecture overview
-- [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) — dev workflow (or see [`CONTRIBUTING.md`](CONTRIBUTING.md))
-- [`LICENSE`](LICENSE) — usage terms
-- [`docs/AGENT_REGISTRY.md`](docs/AGENT_REGISTRY.md) — agent roster & weights (KARL/AMRE)
+- `file docs/ARCHITECTURE.md` — full architecture overview
+- `file docs/CONTRIBUTING.md` — dev workflow (or see [`file CONTRIBUTING.md`](CONTRIBUTING.md))
+- `LICENSE` — usage terms
+- `file docs/AGENT_REGISTRY.md` — agent roster & weights (KARL/AMRE)
 
 ## License
 
 All Rights Reserved. See [LICENSE](LICENSE) for full terms.
 
-See `docs/ARCHITECTURE.md` for deeper context.
+See `file docs/ARCHITECTURE.md` for deeper context.
+
+## Error Handling
+
+All HTTP errors return a uniform JSON envelope. See `file docs/api_errors.md` for the schema, codes, examples, and correlation-id propagation rules.

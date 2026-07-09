@@ -264,3 +264,5 @@ CI will **warn** (not block) if:
 - Open a GitHub Discussion.
 - Ping `#astrofin-dev` on Slack.
 - Or just open a draft PR — the CI failure messages are usually the best docs.
+
+> **Note (ERR-01):** "structured JSON error" means the standard envelope from `core.error_schema` — see `docs/api_errors.md`. Use `from core.error_schema import BadRequest, NotFound, …` and let `web.middleware.install_error_handling` format the response.
