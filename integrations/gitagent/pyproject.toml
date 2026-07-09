@@ -1,0 +1,38 @@
+[project]
+name = "gitagent-integration"
+version = "0.1.0"
+description = "GitAgent integration — MCP adapter, agent export/import, orchestration"
+requires-python = ">=3.10"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "UP",
+]
+ignore = [
+    "E501",
+    "B008",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# argparse subparsers: переменные нужны для цепочки .add_argument()
+# ruff F841 не понимает side-effect добавления парсера.
+"adapters/cli.py" = ["F841"]
+# Тесты: assert и unbound-locals — это норма
+"tests/*" = ["B011", "F401", "F811"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["adapters", "validators", "tests"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
