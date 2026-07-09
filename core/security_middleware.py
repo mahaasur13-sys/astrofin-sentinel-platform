@@ -130,7 +130,7 @@ def install_cors(app, allowed_origins: Iterable[str] | str | None = None) -> Non
         from flask_cors import CORS  # type: ignore[import-not-found]
     except ImportError:  # pragma: no cover — defensive
         _log.warning(
-            "flask-cors is not installed; CORS headers will not be set. " "Install flask-cors>=4.0.0 to enable CORS."
+            "flask-cors is not installed; CORS headers will not be set. Install flask-cors>=4.0.0 to enable CORS."
         )
         return
 
