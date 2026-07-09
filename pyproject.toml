@@ -37,6 +37,9 @@ dependencies = [
   "psutil>=5.9.0,<8.0",
   "prometheus-client>=0.19.0,<1.0",
 
+  # OpenTelemetry (used by core.logging for trace context enrichment)
+  "opentelemetry-api>=1.27.0,<2.0",
+
   # CLI & UI
   "rich>=13.7.0,<16.0",
   "click>=8.1.0,<9.0",
