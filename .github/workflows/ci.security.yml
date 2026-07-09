@@ -154,15 +154,13 @@ jobs:
       - uses: ./.github/actions/python-setup
         with: { install-dev: 'true' }
       - name: Pytest (with coverage)
-        # KI-126: the composite python-setup action exposes `uv run` in PATH,
-        # but `python` in subsequent steps is the system Python without
-        # pytest installed. Use `uv run` so the venv (with dev deps) is
-        # activated. See docs/KNOWN_ISSUES.md (KI-126).
+        # KI-126 follow-up: pyproject.toml [tool.pytest.ini_options].addopts
+        # already configures --cov*, --cov-report, --ignore, --strict-*.
+        # Passing them again on the CLI caused
+        # "unrecognized arguments: --cov=...". Just invoke `pytest` and let
+        # addopts do the work. See docs/KNOWN_ISSUES.md (KI-126).
         run: |
-          uv run python -m pytest tests/ -q --tb=short \
-            --cov=agents --cov=core --cov=data_room --cov=observability \
-            --cov-report=xml --cov-report=term-missing \
-            -v --tb=short
+          uv run python -m pytest --no-header
       - name: Upload coverage.xml
         if: always()
         uses: actions/upload-artifact@v7
