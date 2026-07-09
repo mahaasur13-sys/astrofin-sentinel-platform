@@ -240,7 +240,7 @@ def run_cycle(verbose: bool = False, max_iterations: int = DEFAULT_MAX_ITERATION
     agent = Agent(seed=42)
 
     if verbose:
-        print(f"[INIT] state loaded: best_lr={state.best_lr:.6f}, " f"best_loss={state.best_loss:.6f}")
+        print(f"[INIT] state loaded: best_lr={state.best_lr:.6f}, best_loss={state.best_loss:.6f}")
         print(f"[INIT] target_loss={TARGET_LOSS}, max_iterations={max_iterations}")
         print("-" * 70)
 
@@ -304,7 +304,7 @@ def run_cycle(verbose: bool = False, max_iterations: int = DEFAULT_MAX_ITERATION
             if state.best_loss <= TARGET_LOSS:
                 if verbose:
                     print("-" * 70)
-                    print(f"[STOP] target loss {TARGET_LOSS} достигнут " f"(best_loss={state.best_loss:.6f})")
+                    print(f"[STOP] target loss {TARGET_LOSS} достигнут (best_loss={state.best_loss:.6f})")
                 converged = True
                 break
 
@@ -344,20 +344,20 @@ def print_report(state: CycleState) -> dict[str, Any]:
     print(f"Best lr:              {state.best_lr:.6f}")
     print(f"Best loss:            {state.best_loss:.6f}")
     print(f"Initial loss:         {first_loss:.6f}")
-    print(f"Improvement:          {improvement:.6f}  ({improvement/first_loss*100:.1f}%)" if first_loss > 0 else "")
+    print(f"Improvement:          {improvement:.6f}  ({improvement / first_loss * 100:.1f}%)" if first_loss > 0 else "")
     print(f"Target loss:          {TARGET_LOSS}")
     print(f"Converged:            {'YES' if state.best_loss <= TARGET_LOSS else 'NO'}")
     print()
     print(f"Cost per accepted change (CPA):  {cpa:.2f} attempts per accepted")
     print(f"  (interpretation: каждая принятая правка стоила {cpa:.1f} попыток,")
-    print(f"   из них {cpa-1:.1f} были отклонены шлюзом как не-улучшения)")
+    print(f"   из них {cpa - 1:.1f} были отклонены шлюзом как не-улучшения)")
     print("=" * 70)
 
     if accepted_attempts:
         print()
         print("Accepted improvements (history of convergence):")
         for a in accepted_attempts:
-            print(f"  iter {a['iteration']:3d}  " f"lr={a['lr']:.6f}  loss={a['loss']:.6f}  " f"-> {a['reason']}")
+            print(f"  iter {a['iteration']:3d}  lr={a['lr']:.6f}  loss={a['loss']:.6f}  -> {a['reason']}")
 
     return {
         "total_attempts": total,

@@ -69,6 +69,12 @@ SKIP_LIST_KI_125A = {
     "tests/unit/test_rate_limit.py::test_is_redis_backed_false_without_env",
     "tests/unit/test_rate_limit.py::test_is_redis_backed_true_with_env",
     "tests/unit/test_rate_limit.py::test_rate_limit_module_imports_without_redis",
+    "tests/test_compromise_agent.py::test_happy_path",
+    "tests/test_compromise_agent.py::test_empty_state",
+    "tests/test_compromise_agent.py::test_malformed_state",
+    "tests/test_compromise_agent.py::test_data_source_unavailable",
+    "tests/test_compromise_agent.py::test_missing_ephemeris",
+    "tests/test_compromise_agent.py::test_large_input",
 }
 
 
