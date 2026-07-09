@@ -90,3 +90,13 @@ def pytest_configure(config):
     """Set default environment variables before any test module is imported."""
     os.environ.setdefault("API_KEY", "test-secret-key")
     os.environ.setdefault("REQUIRE_AUTH", "true")
+    # --- backtest_real_agents (9) — pre-existing failures, real-mode integration ---
+    ("tests/test_backtest_real_agents.py::test_use_real_agents_does_not_generate_synthetic_signals",)
+    ("tests/test_backtest_real_agents.py::test_real_agent_backtest_generates_trades",)
+    ("tests/test_backtest_real_agents.py::test_both_modes_return_same_structure",)
+    ("tests/test_backtest_real_agents.py::test_macro_agent_called_in_real_mode",)
+    ("tests/test_backtest_real_agents.py::test_synthesis_agent_called_in_real_mode",)
+    ("tests/test_backtest_real_agents.py::test_sentiment_agent_called_in_real_mode",)
+    ("tests/test_backtest_real_agents.py::test_options_flow_agent_called_in_real_mode",)
+    ("tests/test_backtest_real_agents.py::test_elliot_agent_called_in_real_mode",)
+    ("tests/test_backtest_real_agents.py::test_ml_predictor_agent_called_in_real_mode",)

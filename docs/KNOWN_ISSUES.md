@@ -261,3 +261,25 @@ Everything else (observability, security, AMRE, KARL) is already ✅.
   - `tests/unit/test_strategy_pool_and_persistence.py::TestStrategyPoolUnit::test_diversity_filter_threshold_one_filters_only_identical` — numpy precision drift, environment-flake (passes locally, fails in CI).
 - **Total in `SKIP_LIST_KI_125A`:** 47 node ids. All in `tests/conftest.py` under reason `KI-125a: pre-existing failure, tracked in issue #149`.
 - **Reverse plan:** when the underlying test failures are fixed (issue #149), the SKIP_LIST must be emptied in a follow-up PR.
+
+## KI-126 — uv.lock drift after extending dev extras (PR #179)
+
+- **Status:** 🔧 Resolved on 2026-07-09 by PR #179 (`uv lock` refresh).
+- **Component:** `pyproject.toml [project.optional-dependencies] dev`,
+  `uv.lock`, `ci.security.yml` Tests + Coverage job.
+- **Symptom:** When dev extras gain new packages
+  (`pytest-cov`, `pytest-flask`, `ruff`, `mypy`, `dash`, `flask`,
+  `structlog`, `faiss-cpu`, `pyjwt[crypto]`, `cryptography`),
+  `uv.lock` is regenerated and `uv sync --frozen --extra dev`
+  inside CI silently fails the *Tests + Coverage* job with
+  `unrecognized arguments: --cov=agents --cov=core --cov=data_room
+  --cov=observability --cov-report=term-missing --cov-report=xml
+  --cov-fail-under=3` because `pytest-cov` is no longer part of
+  the resolved venv.
+- **Resolution (this PR):** run `uv lock` locally and commit the
+  regenerated `uv.lock` together with the source changes.
+- **Acceptance for un-parking:** Tests + Coverage job turns green
+  on PR #179.
+- **Owner:** see PR #179.
+
+---
