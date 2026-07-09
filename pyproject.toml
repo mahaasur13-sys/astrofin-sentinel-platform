@@ -113,7 +113,7 @@ indent-style = "space"
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
-addopts = "-q --tb=short --strict-markers --strict-config --cov=agents --cov=core --cov=data_room --cov=observability --cov-report=term-missing --cov-report=xml --cov-fail-under=0 --ignore=tests/test_kepler_differential.py --ignore=tests/test_kepler_property.py --ignore=tests/test_validator.py"
+addopts = "-q --tb=short --strict-markers --strict-config --cov=agents --cov=core --cov=data_room --cov=observability --cov-report=term-missing --cov-report=xml --cov-fail-under=3 --ignore=tests/test_kepler_differential.py --ignore=tests/test_kepler_property.py --ignore=tests/test_validator.py"
 asyncio_mode = "auto"
 markers = [
   "unit: fast unit tests with no external deps (default)",
