@@ -133,7 +133,7 @@ def ab_compare():
             "winner": "TIE",
         }
         return jsonify(result)
-    except Exception:
+    except Exception:  # noqa: BLE001
         raise InternalError("ab_compare failed")
 
 

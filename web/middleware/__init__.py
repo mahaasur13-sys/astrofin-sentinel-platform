@@ -72,7 +72,7 @@ def install_flask(app: Flask) -> None:
                         legacy = json.loads(raw)
                     else:
                         legacy = {"message": raw or "error"}
-                except Exception:  # pragma: no cover — defensive
+                except Exception:  # pragma: no cover — defensive  # noqa: BLE001
                     legacy = {"message": "error"}
 
                 msg = legacy.get("error") or legacy.get("message") or "error"
@@ -94,7 +94,7 @@ def install_flask(app: Flask) -> None:
             else:
                 try:
                     data = response.get_json()
-                except Exception:
+                except Exception:  # noqa: BLE001
                     data = None
                 if isinstance(data, dict):
                     data.setdefault("correlation_id", cid)
