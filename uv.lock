@@ -325,10 +325,7 @@ requires-dist = [
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=2.2.0,<3.0" },
     { name = "numpy", specifier = ">=1.26.0,<3.0" },
     { name = "openai", specifier = ">=1.0.0,<3.0" },
-<<<<<<< HEAD
     { name = "opentelemetry-api", specifier = ">=1.27.0,<2.0" },
-=======
->>>>>>> 02997f8 (fix(ci): refresh uv.lock + extend KI-125a skip list (KI-126, ref #149))
     { name = "pandas", specifier = ">=2.0.0,<3.0" },
     { name = "prometheus-client", specifier = ">=0.19.0,<1.0" },
     { name = "psutil", specifier = ">=5.9.0,<8.0" },
