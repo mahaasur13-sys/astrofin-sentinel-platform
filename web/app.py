@@ -229,7 +229,7 @@ def _graceful_shutdown(signum, frame):  # noqa: ARG001
         sys.exit(0)
     except SystemExit:
         raise
-    except Exception as exc:  # pragma: no cover — defensive
+    except Exception as exc:  # pragma: no cover — defensive  # noqa: BLE001
         _log.error("[DASH] Shutdown error: %s", exc)
         sys.exit(1)
 
@@ -237,7 +237,7 @@ def _graceful_shutdown(signum, frame):  # noqa: ARG001
 signal.signal(signal.SIGTERM, _graceful_shutdown)
 try:
     signal.signal(signal.SIGINT, _graceful_shutdown)
-except Exception:  # pragma: no cover — SIGINT may be unavailable on Windows
+except Exception:  # pragma: no cover — SIGINT may be unavailable on Windows  # noqa: BLE001
     pass
 # ── Global exception handler ─────────────────────────────────────────────────────
 def _log_uncaught(exc_type, exc_value, exc_tb):
