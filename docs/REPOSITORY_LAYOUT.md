@@ -220,6 +220,7 @@ were older versions; root has newer equivalents.
 | Date         | Commit    | Summary                                                                |
 | ------------ | --------- | ---------------------------------------------------------------------- |
 | 2026-07-09   | `7f7e32a` | Removed 8 legacy/archived directories (~600 MB untracked + 17 tracked); added block-rules to `.gitignore`; pushed to `master`. See `/tmp/cleanup_log.txt` for full action log. |
+| 2026-07-09   | final-docs | Полная очистка репозитория, миграция на uv, стабилизация CI, coverage gate 3%, удаление safety, консолидация openapi, SKIP_REGISTER. |
 
 Earlier housekeeping: `chore(g1): unify SOPS secrets` (#143),
 `feat: unified JWT auth` (#136), K8s probes (#140), graceful
