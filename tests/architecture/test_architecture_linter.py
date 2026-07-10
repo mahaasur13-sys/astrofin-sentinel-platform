@@ -15,7 +15,7 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
-
+  # noqa: E402
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
