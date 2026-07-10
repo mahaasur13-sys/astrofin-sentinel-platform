@@ -129,6 +129,7 @@ indent-style = "space"
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
+addopts = "-q --tb=short --strict-markers --strict-config --cov=agents --cov=core --cov=orchestration --cov=backtest --cov=meta_rl --cov=trading --cov=web --cov=db --cov=knowledge --cov-report=xml --cov-fail-under=3 --ignore=tests/test_core_aspects.py"
 asyncio_mode = "auto"
 markers = [
   "unit: fast unit tests with no external deps (default)",
