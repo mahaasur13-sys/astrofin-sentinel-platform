@@ -42,37 +42,37 @@ async def test_1_imports():
 
     try:
         results.append(print_test("orchestration.sentinel_v5", True))
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         results.append(print_test("orchestration.sentinel_v5", False, str(e)[:50]))
 
     try:
         results.append(print_test("sentinel_v5_mas", True))
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         results.append(print_test("sentinel_v5_mas", False, str(e)[:50]))
 
     try:
         results.append(print_test("KARLSynthesisAgent", True))
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         results.append(print_test("KARLSynthesisAgent", False, str(e)[:50]))
 
     try:
         results.append(print_test("ProductionMASEngine", True))
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         results.append(print_test("ProductionMASEngine", False, str(e)[:50]))
 
     try:
         results.append(print_test("MetaQuestioningEngine", True))
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         results.append(print_test("MetaQuestioningEngine", False, str(e)[:50]))
 
     try:
         results.append(print_test("OAPOptimizer", True))
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         results.append(print_test("OAPOptimizer", False, str(e)[:50]))
 
     try:
         results.append(print_test("estimate_uncertainty", True))
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         results.append(print_test("estimate_uncertainty", False, str(e)[:50]))
 
     return all(results)
@@ -108,7 +108,7 @@ async def test_2_basic_signal():
         print_test("Result has breakdown", "breakdown" in synth.get("metadata", {}), "")
 
         return valid_signal and valid_confidence
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         print_test("Basic signal", False, str(e)[:80])
         return False
 
@@ -144,7 +144,7 @@ async def test_3_mas_factory():
         print_test("Nodes executed", nodes_executed > 0, f"nodes={nodes_executed}")
 
         return valid_signal and nodes_executed > 0
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         print_test("MAS Factory", False, str(e)[:80])
         return False
 
@@ -185,7 +185,7 @@ async def test_4_karl_loop():
         print_test("Decision recorded", has_record, "")
 
         return has_uncertainty and has_record
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         print_test("KARL loop", False, str(e)[:80])
         return False
 
@@ -219,7 +219,7 @@ async def test_5_meta_questioning():
         print_test("Verdict reached", has_verdict, f"verdict={analysis.get('verdict')}")
 
         return has_analysis
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         print_test("Meta-questioning", False, str(e)[:80])
         return False
 
@@ -251,7 +251,7 @@ async def test_6_uncertainty():
         print_test("Values in range [0,1]", valid_values, "")
 
         return has_result and valid_values
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         print_test("Uncertainty engine", False, str(e)[:80])
         return False
 
@@ -281,7 +281,7 @@ async def test_7_oap_optimizer():
         print_test("Confidence in range", valid_conf, f"confidence={result.confidence}")
 
         return has_result and valid_conf
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         print_test("OAP optimizer", False, str(e)[:80])
         return False
 
@@ -309,7 +309,7 @@ async def test_8_mas_topology():
         print_test("Has SwitchNode", has_switch, "")
 
         return has_nodes and has_roles
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         print_test("MAS topology", False, str(e)[:80])
         return False
 
@@ -335,7 +335,7 @@ async def test_9_visualization():
         print_test("Contains nodes", has_nodes, "")
 
         return has_mermaid
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         print_test("Topology visualization", False, str(e)[:80])
         return False
 
@@ -359,7 +359,7 @@ async def test_10_thompson_sampling():
         print_test("Valid agent names", valid_names, "")
 
         return has_selection and valid_names
-    except Exception as e:
+    except BaseException as e:  # noqa: BLE001
         print_test("Thompson sampling", False, str(e)[:80])
         return False
 
@@ -388,7 +388,7 @@ async def main():
         try:
             result = await test_fn()
             results.append(result)
-        except Exception as e:
+        except BaseException as e:  # noqa: BLE001
             print_test(name, False, f"Exception: {str(e)[:60]}")
             results.append(False)
 
