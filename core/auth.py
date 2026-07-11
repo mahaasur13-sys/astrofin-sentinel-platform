@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import asyncio
 import inspect
 import logging
 import os
 import secrets
 from functools import wraps
 
-from fastapi import HTTPException, Request
+from fastapi import Request
 from flask import request as flask_request
 
 from core.error_schema import Forbidden, Unauthorized, format_error
@@ -18,6 +17,15 @@ logger = logging.getLogger(__name__)
 
 REQUIRE_AUTH = os.getenv("REQUIRE_AUTH", "true").lower() == "true"
 API_KEY = os.getenv("API_KEY", "")
+
+
+def validate_startup() -> None:
+    """Validate auth config at process start.
+
+    Kept as a stable public symbol for ``web.app``/``web.wsgi`` startup hooks
+    and existing tests; delegates to :func:`_ensure_key_configured`.
+    """
+    _ensure_key_configured()
 
 
 def _ensure_key_configured() -> None:
