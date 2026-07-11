@@ -248,7 +248,7 @@ class MCPAdapter:
                             results.extend(api_results["data"])
                     elif isinstance(api_results, list):
                         results.extend(api_results)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
         # If no results from API or CLI, use fallback mock data for common queries
@@ -349,10 +349,10 @@ class MCPAdapter:
                     "config": config or {},
                 }
                 self._save_installed()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 result["status"] = "failed"
                 result["error"] = str(e)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             result["status"] = "failed"
             result["error"] = str(e)
 
@@ -389,7 +389,7 @@ class MCPAdapter:
                         tools.extend(server_tools)
                     except json.JSONDecodeError:
                         pass
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
 
             # Also check for server manifest
@@ -419,7 +419,7 @@ class MCPAdapter:
             subprocess.run(
                 ["npx", "@smithery/cli", "remove", server_name], capture_output=True, timeout=30
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
         del self.installed_servers[install_id]

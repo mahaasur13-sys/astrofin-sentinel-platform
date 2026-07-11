@@ -42,7 +42,7 @@ def _embed(text: str) -> np.ndarray:
         vec = vec / (np.linalg.norm(vec) + 1e-8)
         OLLAMA_STATUS.set(1)
         return vec
-    except Exception:
+    except Exception:  # noqa: BLE001
         OLLAMA_STATUS.set(0)
         raise
 

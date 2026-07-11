@@ -44,7 +44,7 @@ def welch_t_test(a, b):
         df_b = (vb / nb_) ** 2 / max(nb_ - 1, 1)
         df = num / max(df_a + df_b, 1e-12)
         p_value = 2.0 * (1.0 - t_dist.cdf(abs(t_stat), df))
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
     return float(t_stat), float(p_value)
 
@@ -149,7 +149,7 @@ class ABTest:
                     res = ev.evaluate(strat, mdata)
                     reward = getattr(res, "risk_adjusted_pnl", getattr(res, "pnl", 0.0))
                     out_list.append(reward)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.warning(f"[META-RL-AB] Evaluation failed for chromosome: {e}")
         if len(ma) < self.config.min_samples or len(mb) < self.config.min_samples:
             logger.warning(f"[META-RL-AB] Insufficient samples: A={len(ma)} B={len(mb)}")

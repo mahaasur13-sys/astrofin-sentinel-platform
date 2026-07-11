@@ -25,7 +25,7 @@ def load_state() -> dict:
     if Path(STATE_FILE).exists():
         try:
             return json.loads(Path(STATE_FILE).read_text())
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
     return {}
 
@@ -39,7 +39,7 @@ def load_escalation() -> dict:
     if Path(ESCALATION_FILE).exists():
         try:
             return json.loads(Path(ESCALATION_FILE).read_text())
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
     return {}
 
@@ -107,7 +107,7 @@ def escalate(message: str, severity: str):
                 json={"chat_id": telegram_chat_id, "text": f"[{severity.upper()}] {message}"},
                 timeout=10,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             log.error(f"Telegram escalation failed: {e}")
 
     slack_webhook = os.environ.get("SLACK_WEBHOOK_URL")
@@ -116,7 +116,7 @@ def escalate(message: str, severity: str):
             import requests
 
             requests.post(slack_webhook, json={"text": f"[{severity.upper()}] {message}"}, timeout=10)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             log.error(f"Slack escalation failed: {e}")
 
 
@@ -178,7 +178,7 @@ def main(interval: int = 30):
     while True:
         try:
             run_cycle()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             log.error(f"Cycle error: {e}")
         time.sleep(interval)
 

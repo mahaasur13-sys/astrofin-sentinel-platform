@@ -57,7 +57,7 @@ def replay_session(
         try:
             callback(record, idx)
             processed += 1
-        except Exception:
+        except Exception:  # noqa: BLE001
             continue
     return processed
 

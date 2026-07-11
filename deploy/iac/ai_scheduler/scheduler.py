@@ -100,7 +100,7 @@ def get_prometheus_metric(query: str, default: float = 0.0) -> float:
             results = data.get("data", {}).get("result", [])
             if results:
                 return float(results[0]["value"][1])
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
     return default
 
@@ -175,7 +175,7 @@ def route_job(job: JobRequest) -> ScheduleResponse:
         ip = info["ip"]
         try:
             metrics = get_node_metrics_prometheus(hostname, ip)
-        except Exception:
+        except Exception:  # noqa: BLE001
             metrics = get_node_metrics_fallback(hostname, ip)
 
         # Filter by capability
@@ -251,7 +251,7 @@ def list_nodes() -> dict:
                 "memory_util": m.memory_util,
                 "score": m.score,
             }
-        except Exception:
+        except Exception:  # noqa: BLE001
             result[hostname] = {"alive": False}
     return result
 
@@ -262,7 +262,7 @@ def health_check() -> dict:
     try:
         subprocess.run(["curl", "-s", "--max-time", "2", f"{PROMETHEUS_URL}/-/healthy"], capture_output=True, timeout=3)
         prom_status = "ok"
-    except Exception:
+    except Exception:  # noqa: BLE001
         prom_status = "unreachable"
 
     return {"status": "ok", "prometheus": prom_status}

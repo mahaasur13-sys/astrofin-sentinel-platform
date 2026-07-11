@@ -81,7 +81,7 @@ async def check_postgres() -> bool:
         )
         await conn.close()
         return True
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -92,7 +92,7 @@ async def check_redis() -> bool:
         await r.ping()
         await r.close()
         return True
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -163,7 +163,7 @@ async def karl_status(request: Request):  # добавлен параметр re
 
         agent = get_karl_agent()
         return agent.get_status()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=503, detail=str(e))
 
 
@@ -222,7 +222,7 @@ async def karl_metrics():
             max_drawdown=diag.get("max_drawdown", 0.0),
             total_trades=diag.get("total_trades", 0),
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=503, detail=str(e))
 
 

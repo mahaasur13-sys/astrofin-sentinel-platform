@@ -22,7 +22,7 @@ def slurm_controller_down() -> tuple[bool, str, str]:
         return True, "slurm_not_installed", "critical"
     except subprocess.CalledProcessError as e:
         return True, f"slurm_error_{e.returncode}", "critical"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return True, f"slurm_unknown_{e}", "warning"
 
 
@@ -37,7 +37,7 @@ def slurm_worker_down(node: str = "rk3576") -> tuple[bool, str, str]:
                     return True, f"slurm_node_{state.strip().lower()}_{node}", "critical"
                 return False, "", "ok"
         return True, f"slurm_node_not_found_{node}", "warning"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return True, f"slurm_worker_check_failed_{e}", "warning"
 
 
@@ -56,7 +56,7 @@ def ceph_health_degraded() -> tuple[bool, str, str]:
         return True, "ceph_not_installed", "critical"
     except subprocess.CalledProcessError as e:
         return True, f"ceph_command_failed_{e.returncode}", "critical"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return True, f"ceph_check_failed_{e}", "critical"
 
 
@@ -70,7 +70,7 @@ def ceph_osd_down(osd_id: str = "0") -> tuple[bool, str, str]:
         if data.get("up", "0") == "0":
             return True, f"ceph_osd_{osd_id}_down", "critical"
         return False, "", "ok"
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False, "", "ok"
 
 
@@ -87,7 +87,7 @@ def ray_head_down() -> tuple[bool, str, str]:
         return True, "ray_not_running", "critical"
     except FileNotFoundError:
         return True, "ray_not_installed", "critical"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return True, f"ray_check_failed_{e}", "warning"
 
 
@@ -102,7 +102,7 @@ def wireguard_peer_down(peer: str = "wg0") -> tuple[bool, str, str]:
         return True, "wg_not_installed", "warning"
     except subprocess.CalledProcessError:
         return True, f"wg_{peer}_interface_missing", "warning"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return True, f"wg_check_failed_{e}", "warning"
 
 
@@ -116,7 +116,7 @@ def node_unreachable(host: str, port: int = 22, timeout: int = 3) -> tuple[bool,
         if result == 0:
             return False, "", "ok"
         return True, f"node_{host}_port_{port}_unreachable", "warning"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return True, f"node_{host}_unreachable_{e}", "warning"
 
 
@@ -134,7 +134,7 @@ def gpu_available() -> tuple[bool, str, str]:
         return True, "nvidia_smi_missing", "critical"
     except subprocess.CalledProcessError:
         return True, "nvidia_smi_failed", "critical"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return True, f"gpu_check_failed_{e}", "warning"
 
 

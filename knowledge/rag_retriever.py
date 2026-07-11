@@ -48,7 +48,7 @@ def _embed(text: str) -> np.ndarray:
         vec = vec / (np.linalg.norm(vec) + 1e-8)
         OLLAMA_STATUS.set(1)
         return vec
-    except Exception:
+    except Exception:  # noqa: BLE001
         OLLAMA_STATUS.set(0)
         raise
 
@@ -183,7 +183,7 @@ class RAGRetriever:
                     status="ok", backend=backend_label, domain=domain_label
                 ).inc()
                 return deduped[:top_k]
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             from tools.metrics_server import RAG_ERRORS_TOTAL
             kind = type(exc).__name__
             RAG_ERRORS_TOTAL.labels(stage="retrieve", kind=kind).inc()

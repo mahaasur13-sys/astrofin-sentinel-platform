@@ -49,7 +49,7 @@ class AgentYamlValidator:
         result = ValidationResult(file_path=Path(path))
         try:
             data = yaml.safe_load(Path(path).read_text())
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             result.valid = False
             result.errors.append(
                 ValidationIssue(

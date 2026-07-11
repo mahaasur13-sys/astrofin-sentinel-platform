@@ -37,7 +37,7 @@ def format_code_black(code: str) -> str:
         formatted = Path(tmp_path).read_text(encoding="utf-8")
         Path(tmp_path).unlink(missing_ok=True)
         return formatted
-    except Exception:
+    except Exception:  # noqa: BLE001
         return code
 
 
@@ -73,6 +73,6 @@ def safe_write_code_file(path: str, content: str) -> bool:
     try:
         write_code_file(path, content)
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception("[CODE WRITE ERROR] %s", e)
         return False

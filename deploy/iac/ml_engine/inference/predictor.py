@@ -77,7 +77,7 @@ class Predictor:
         if self._failure_model is not None:
             try:
                 failure_prob = float(self._failure_model.predict_proba(X)[0])
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failure prediction failed: {e}")
 
         load_forecast = {"queue": 0.0, "gpu": 0.0}
@@ -86,7 +86,7 @@ class Predictor:
                 load_pred = self._load_model.predict(X)
                 load_forecast["queue"] = float(load_pred.get("queue_depth", [0.0])[0])
                 load_forecast["gpu"] = float(load_pred.get("gpu_util", [0.0])[0])
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Load prediction failed: {e}")
 
         risk_score = self._compute_risk(failure_prob, load_forecast)
@@ -118,7 +118,7 @@ class Predictor:
             return {
                 c: float(row[c]) for c in row.index if c not in ("time", "node_id") and isinstance(row[c], (int, float))
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Feature fetch failed for {node_id}: {e}")
             return {}
 

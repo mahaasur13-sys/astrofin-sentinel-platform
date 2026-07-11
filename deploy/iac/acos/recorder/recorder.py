@@ -68,7 +68,7 @@ class DeterministicTraceRecorder:
             try:
                 result = self._storage.fetch(trace_id)
                 return result if result else None
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return None
 
     def list_traces(self, filters: dict | None = None) -> list[dict]:
@@ -84,7 +84,7 @@ class DeterministicTraceRecorder:
         with self._lock:
             try:
                 return self._storage.query(filters or {})
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return []
 
     def update_trace(self, trace_id: str, patch: dict) -> None:

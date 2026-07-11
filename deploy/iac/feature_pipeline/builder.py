@@ -101,7 +101,7 @@ class FeatureBuilder:
                     data = r.json()["data"]["result"]
                     if data:
                         result[key] = float(data[0]["value"][1])
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
         return result
 

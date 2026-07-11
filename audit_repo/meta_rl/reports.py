@@ -143,7 +143,7 @@ class HTMLReportGenerator:
             </table>
             <div class='alert alert-{cls}'>Status: {status} | OOS={mean_oos} | IS={mean_is} | deg={deg} | overfit splits={splits}/{n_splits}</div>
             """
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return f"<tr><td colspan='4' class='text-muted'>WFA error: {e}</td></tr>"
 
     def _format_karl(self, state: dict | None) -> str:
@@ -155,7 +155,7 @@ class HTMLReportGenerator:
                 val = f"{v:.4f}" if isinstance(v, float) else str(v)
                 lines.append(f"<li><strong>{k}</strong>: {val}</li>")
             return f"<ul>{''.join(lines)}</ul>"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return f"<p class='text-muted'>KARL state error: {e}</p>"
 
     def _strategies_table(self, elites: list[Any]) -> str:

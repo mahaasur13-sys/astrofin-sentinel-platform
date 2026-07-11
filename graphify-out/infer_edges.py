@@ -301,7 +301,7 @@ def _git_mtime_days(path: str, as_of) -> int | None:
             return None
         delta = (as_of - datetime.fromtimestamp(int(ts), tz=timezone.utc)).days
         return max(delta, 0)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
 
 
@@ -463,7 +463,7 @@ def main():
                     f"not found in {args.relation_weights}; using built-in defaults",
                     file=sys.stderr,
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(
                 f"[relation-weights] WARN failed to load {args.relation_weights}: {e}; "
                 f"using built-in defaults",
@@ -490,7 +490,7 @@ def main():
                 try:
                     dt = datetime.fromisoformat(n["last_modified"].replace("Z", "+00:00"))
                     node_age_days[n["id"]] = (as_of - dt).days
-                except Exception:
+                except Exception:  # noqa: BLE001
                     pass
 
     for row in kept:
@@ -499,11 +499,11 @@ def main():
             continue
         try:
             conf = float(row["confidence"])
-        except Exception:
+        except Exception:  # noqa: BLE001
             conf = 0.0
         try:
             w = float(row["weight"])
-        except Exception:
+        except Exception:  # noqa: BLE001
             w = 0.0
 
         key = (src_node, tgt_node)

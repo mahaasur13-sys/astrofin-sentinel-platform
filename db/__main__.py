@@ -56,7 +56,7 @@ def _show_status():
             print("\n  Connection Pool:")
             for k, v in pool.items():
                 print(f"    {k}: {v}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"\n  Stats error: {e}")
 
     print(f"\n{'=' * 50}\n")
@@ -93,7 +93,7 @@ def _migrate():
         for table, count in migrated.items():
             if table != "total":
                 print(f"     {table}: {count}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"  ❌ Migration failed: {e}")
         sys.exit(1)
 
@@ -137,7 +137,7 @@ def _reset(force=False):
                 DROP TABLE IF EXISTS karl_trajectory_steps CASCADE;
             """)
         print("✅ Schema reset complete. Run without --reset to reinitialize.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"❌ Reset failed: {e}")
         sys.exit(1)
 

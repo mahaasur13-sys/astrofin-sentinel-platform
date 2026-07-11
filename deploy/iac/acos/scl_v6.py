@@ -133,7 +133,7 @@ def test_inv10():
     try:
         e.event_hash = "x"
         ok = False
-    except Exception:
+    except Exception:  # noqa: BLE001
         ok = True
     print(f"  [{'OK' if ok else 'FAIL'}] INV10 — Event immutability: {ok}")
     return ok
@@ -234,7 +234,7 @@ def main():
     for name, fn in tests:
         try:
             results.append((name, fn()))
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             print(f"  [ERROR] {name}: {ex}")
             results.append((name, False))
     print()

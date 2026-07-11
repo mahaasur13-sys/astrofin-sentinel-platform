@@ -38,7 +38,7 @@ try:
     from db.session import init_db_if_needed
 
     PG_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     PG_AVAILABLE = False
 
 from agents._impl.amre.oap_optimizer import get_oap_optimizer
@@ -73,7 +73,7 @@ def _compute_oap_adjustments(oap_state, agents: list) -> dict:
             agent_score = entropy * 0.4 + sharpe * 0.4 + recent_q * 0.2
             adjustment = max(-0.25, min(0.25, (agent_score - 0.5) * 0.5))
             adjustments[agent_name] = adjustment
-        except Exception:
+        except Exception:  # noqa: BLE001
             adjustments[agent_name] = 0.0
     return adjustments
 
@@ -189,7 +189,7 @@ async def _fetch_price(symbol: str, fallback_price: float = 50000.0) -> float:
                     return price
                 else:
                     logger.warning(f"[Price] Invalid price for {symbol}: {price}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"[Price] Attempt {attempt + 1}/{max_retries} error: {e}")
             if attempt < max_retries - 1:
                 await asyncio.sleep(2**attempt)
@@ -282,7 +282,7 @@ async def run_sentinel_v5(
     synthesis_agent = SynthesisAgent()
     try:
         synthesis_result = await synthesis_agent.run(state)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"[SynthesisAgent] Skipped — agent unavailable: {e}")
         synthesis_result = None
 
@@ -340,7 +340,7 @@ async def run_karl_sentinel_v5(
                 logger.info("[DB] PostgreSQL connected")
             else:
                 logger.info("[DB] PostgreSQL not available, using SQLite")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[DB] Init failed: {e}, using SQLite")
     else:
         logger.info("[DB] PostgreSQL not configured, using SQLite")
@@ -376,7 +376,7 @@ async def run_karl_sentinel_v5(
             oap_state = get_oap_optimizer().kpi_state
             all_agents = list(TECHNICAL_POOL.agents) + list(MACRO_POOL.agents) + list(ASTRO_POOL.agents)
             oap_adjustments = _compute_oap_adjustments(oap_state, all_agents)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[OAP] disabled due to error: {e}")
             oap_adjustments = None
 
@@ -442,7 +442,7 @@ async def run_karl_sentinel_v5(
         amre_output = karl_result.get("amre_output")
         decision_record = karl_result.get("decision_record")
         karl_diagnostics_result = karl_result.get("karl_diagnostics")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"[KARLSynthesisAgent] Fell back to base synthesis: {e}")
         synthesis_agent = SynthesisAgent()
         synthesis_result = await synthesis_agent.run(state)

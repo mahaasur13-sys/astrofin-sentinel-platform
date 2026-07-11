@@ -71,7 +71,7 @@ class MetaRLTradingBridge:
                 f"[META-RL-TRADING] {mode} approved: {order_req['symbol']} signal={order_req['direction']} size={order_req['size_pct']:.2%}"
             )
             return TradingExecutionResult(status="APPROVED", reason=f"{mode} approved", adjusted_signal=order_req)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"[META-RL-TRADING] Execution failed: {e}")
             return TradingExecutionResult(status="ERROR", reason=str(e))
 

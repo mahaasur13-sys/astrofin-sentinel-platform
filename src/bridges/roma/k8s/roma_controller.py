@@ -111,7 +111,7 @@ def update_romatask_status(api: client.ApiClient, romatask: Dict[str, Any], phas
             name=romatask["metadata"]["name"],
             body=body
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         log.error(f"Failed to update status: {e}")
 
 # =============================================================================
@@ -154,7 +154,7 @@ def run_controller(dry_run: bool = False):
                 except ApiException as e:
                     log.error(f"K8s API error: {e}")
                     update_romatask_status(api, romatask, "Failed", error=str(e))
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     log.error(f"Dispatch error: {e}")
                     update_romatask_status(api, romatask, "Failed", error=str(e))
 
@@ -171,7 +171,7 @@ def run_controller(dry_run: bool = False):
                     elif job.status.failed:
                         update_romatask_status(api, romatask, "Failed", error="Job failed")
                         log.info(f"Task failed: {name}")
-                except Exception:
+                except Exception:  # noqa: BLE001
                     pass
 
         elif event_type == "DELETED":

@@ -29,7 +29,7 @@ def test_orchestrator_sets_correlation_id(capsys):
 
     try:
         asyncio.run(run_sentinel_v5("Analyze BTC", "BTCUSDT", "SWING"))
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
     captured = capsys.readouterr()
     assert captured.out, "No log output from orchestrator"

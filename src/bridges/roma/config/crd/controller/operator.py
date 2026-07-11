@@ -389,7 +389,7 @@ def reconcile_tenant(meta, spec, status, namespace, name, **kwargs):
     try:
         from cert_manager_client import CertManagerV1Api
         cert_client = CertManagerV1Api()
-    except Exception:
+    except Exception:  # noqa: BLE001
         # Fallback: use dynamic client for cert-manager
         import kubernetes
         cert_client = kubernetes.client.CustomObjectsApi()
@@ -475,7 +475,7 @@ def reconcile_tenant(meta, spec, status, namespace, name, **kwargs):
             body=patch
         )
         logger.info(f"Status updated: {name} → Ready")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Failed to update status: {e}")
 
     logger.info(f"[DONE] tenant={tenant_id} phase=Ready endpoint=https://{subdomain}.{domain}")

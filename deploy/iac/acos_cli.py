@@ -38,7 +38,7 @@ try:
     from v8.safety_kernel.engine import SafetyKernel
 
     HAS_SAFETY = True
-except Exception:
+except Exception:  # noqa: BLE001
     HAS_SAFETY = False
 
 
@@ -51,7 +51,7 @@ def validate_all_contracts():
         assert hasattr(r, "get_trace") and callable(r.get_trace)
         assert r.get_trace("nonexistent") is None
         print("[OK] TraceRecorder contract: PASS")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         errors.append(f"TraceRecorder: {e}")
 
     if HAS_ETE:
@@ -59,13 +59,13 @@ def validate_all_contracts():
             s = SchedulerAdapter()
             validate_scheduler_contract(s)
             print("[OK] Scheduler contract: PASS")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             errors.append(f"Scheduler: {e}")
         try:
             e2 = EE()
             validate_engine_contract(e2)
             print("[OK] ExecutionEngine contract: PASS")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             errors.append(f"ExecutionEngine: {e}")
 
     if errors:
@@ -117,7 +117,7 @@ class ACOSCLI:
                         }
                         self._record(result, dag)
                         return result
-                except Exception:
+                except Exception:  # noqa: BLE001
                     pass  # Safety kernel optional
 
             # 4. Scheduling
@@ -143,11 +143,11 @@ class ACOSCLI:
             self._record(result, dag)
             return result
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             result = {"status": "ERROR", "trace_id": trace_id, "error": str(e)}
             try:
                 self._record(result, {"dag_id": trace_id, "nodes": [], "edges": []})
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
             return result
 

@@ -58,7 +58,7 @@ try:
     )
 
     PG_AVAILABLE = is_postgres_available()
-except Exception:
+except Exception:  # noqa: BLE001
     PG_AVAILABLE = False
     DecisionRecordRepository = None
     AgentSignalRepository = None
@@ -334,7 +334,7 @@ class KARLSynthesisAgent:
                             reasoning=_sig_get(s, "reasoning", "")[:500],
                             metadata=_sig_get(s, "metadata", {}),
                         )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 print(f"[KARL] PostgreSQL save failed: {e}")
 
         # ── Step 8: Update OAP optimizer ─────────────────────────────────────────
@@ -353,7 +353,7 @@ class KARLSynthesisAgent:
                     reward=reward,
                     signals=all_signals,
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass  # Non-fatal
 
         # ── Step 12: Periodic recalibration ───────────────────────────────────
@@ -423,7 +423,7 @@ class KARLSynthesisAgent:
                 base_reward=market_reward,
             )
             astro_reward = astro_dict.get("final_reward", 0.0)
-        except Exception:
+        except Exception:  # noqa: BLE001
             astro_reward = 0.0  # Fallback: no astro data
 
         # Combined raw reward: 70% market + 30% astro

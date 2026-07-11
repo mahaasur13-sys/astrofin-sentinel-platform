@@ -136,7 +136,7 @@ def main():
                 temperature=0.2,
             )
             answer = response.choices[0].message.content
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             log_audit(AUDIT_LOG, task, "LLM_ERROR", "ERROR", error=str(e))
             print(f"❌ Ошибка LLM: {e}")
             sys.exit(1)

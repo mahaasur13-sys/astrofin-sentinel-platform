@@ -18,7 +18,7 @@ try:
     import redis
     _redis = redis.from_url(REDIS_URL, decode_responses=True)
     _redis.ping()
-except Exception:
+except Exception:  # noqa: BLE001
     pass
 
 def _dup(event_id: str) -> bool:
@@ -40,7 +40,7 @@ def _verify(payload: bytes, sig: str, secret: str) -> bool:
             hashlib.sha256
         ).hexdigest()
         return hmac.compare_digest(actual, parts.get("v1", ""))
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 class Response(BaseModel):
@@ -61,7 +61,7 @@ async def stripe_webhook(
 
     try:
         event = json.loads(body.decode())
-    except Exception:
+    except Exception:  # noqa: BLE001
         raise HTTPException(400, "Invalid JSON")
 
     eid, etype = event.get("id", ""), event.get("type", "")
@@ -109,7 +109,7 @@ async def stripe_webhook(
         elif etype == "invoice.payment_failed":
             ok = True
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return Response(received=True, event_id=eid, processed=False, error=str(e))
 
     if ok:

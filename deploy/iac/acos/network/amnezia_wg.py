@@ -127,7 +127,7 @@ class AmneziaWGManager:
                     self._emit("TUNNEL_DOWN", f"{binary} down {self._iface}")
                     self._started = False
                     return True
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
         self._started = False
         return True
@@ -144,7 +144,7 @@ class AmneziaWGManager:
                         if "transfer:" in line:
                             result["transfer_bytes"] = line.split("transfer:")[1].strip()
                     break
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
         return result
 

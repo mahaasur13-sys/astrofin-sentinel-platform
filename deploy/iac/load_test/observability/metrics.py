@@ -81,19 +81,19 @@ class MetricsCollector:
         # Try Prometheus first
         try:
             metrics = self._collect_from_prometheus()
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
         # Enrich with state store data
         try:
             metrics = self._enrich_from_state_store(metrics)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
         # Enrich with scheduler API
         try:
             metrics = self._enrich_from_scheduler_api(metrics)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
         # Fallback: synthetic metrics from system state
@@ -161,7 +161,7 @@ class MetricsCollector:
                     metrics.queue_depth = data.get("queue_depth", 0)
                     metrics.admission_reject_rate = data.get("reject_rate", 0.0)
                     metrics.degraded_mode = data.get("mode") != "normal"
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
         return metrics
 

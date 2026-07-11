@@ -193,7 +193,7 @@ class GlobalStateModel:
         if self.redis_client:
             try:
                 return self.redis_client.zcard("roma:queue")
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return 0
         return 0
 
@@ -212,7 +212,7 @@ class GlobalStateModel:
             try:
                 key = f"roma:job:{job_id}:{field}"
                 return self.redis_client.get(key)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return None
         return None
 

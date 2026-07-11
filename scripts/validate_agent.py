@@ -135,7 +135,7 @@ def parse_registry() -> dict[str, dict]:
                         if isinstance(kk, ast.Constant):
                             try:
                                 entry[kk.value] = ast.literal_eval(vv)
-                            except Exception:
+                            except Exception:  # noqa: BLE001
                                 entry[kk.value] = ast.unparse(vv)
                     registry[k.value] = entry
     return registry

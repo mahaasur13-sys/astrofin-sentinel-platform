@@ -44,7 +44,7 @@ def get_counts():
                 dist = dict(cur.fetchall())
             con.close()
             rows.append((name, count, dist))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             rows.append((name, f"ERROR: {e}", 0))
     return rows
 
@@ -74,7 +74,7 @@ def save_snapshot(rows):
             )
         con.commit()
         con.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"  [monitor] snapshot failed: {e}")
 
 
@@ -112,7 +112,7 @@ def main():
                 delta = mx - mn
                 print(f"    {src}: min={mn} max={mx} delta=+{delta} ({n} snapshots)")
             con.close()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"  [monitor] trend query failed: {e}")
 
     print()

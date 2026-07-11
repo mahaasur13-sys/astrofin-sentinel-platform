@@ -31,7 +31,7 @@ class FeedbackCollector:
 
         try:
             conn = psycopg2.connect(self.state_store_dsn)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Cannot connect to state_store: {e}")
             return 0
 
@@ -79,7 +79,7 @@ class FeedbackCollector:
                 user="postgres",
                 password="postgres",
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
         cursor = conn.cursor()
@@ -96,7 +96,7 @@ class FeedbackCollector:
             cursor.close()
             conn.close()
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to record outcome: {e}")
             conn.close()
             return False

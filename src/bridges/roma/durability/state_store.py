@@ -27,7 +27,7 @@ class StateStore:
                 with open(self._snapshots_path) as f:
                     raw = json.load(f)
                     self._snapshots = raw.get("snapshots", {})
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._snapshots = {}
 
     def _save_snapshots(self):

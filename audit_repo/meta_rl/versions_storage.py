@@ -28,7 +28,7 @@ def _vindex_path():
 def _load_index():
     try:
         return _json.loads(_vindex_path().read_text())
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {"versions": [], "by_tag": {}}
 
 
@@ -71,7 +71,7 @@ class VersionedEliteStorage:
             return []
         try:
             return _json.loads(vpath.read_text()) or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"[META-RL-VERSION] Load error {tag}: {e}")
             return []
 

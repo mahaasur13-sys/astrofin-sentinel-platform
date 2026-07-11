@@ -66,7 +66,7 @@ class BacktestEngineAdapter:
             # 5. Convert to EvaluationResult
             return self._to_evaluation_result(result)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-INTEGRATION] Backtester failed: {e}")
             return EvaluationResult.fail()
 
@@ -171,7 +171,7 @@ class BacktestEngineAdapter:
                 if sanity.status.value == "REJECTED":
                     logger.warning(f"[META-RL-INTEGRATION] Trade rejected by sanity: {sanity.reason}")
             return result
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-INTEGRATION] Sanity check failed: {e}")
             return result
 
@@ -211,7 +211,7 @@ class BacktestEngineAdapter:
                 execution_cost=execution_cost,
                 equity_curve=equity_arr,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-INTEGRATION] Conversion failed: {e}")
             return EvaluationResult.fail()
 

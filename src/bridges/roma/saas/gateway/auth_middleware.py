@@ -73,7 +73,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return response
         except HTTPException:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return JSONResponse({"detail": f"Auth error: {str(e)}"}, status_code=401)
 
     def _get_api_key(self, request: Request) -> Optional[str]:
@@ -103,7 +103,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 if tenant:
                     stored_key = tenant.get("api_key", "")
                     return stored_key == key
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
         return True
 

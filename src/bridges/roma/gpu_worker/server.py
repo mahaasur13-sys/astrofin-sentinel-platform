@@ -68,7 +68,7 @@ class WorkerState:
                 capture_output=True, timeout=5
             )
             return result.returncode == 0
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def register_job(self, job_id: str) -> None:
@@ -182,7 +182,7 @@ def execute_job_sync(job: JobRequest) -> JobResult:
             gpu_used=GPU_DEVICE,
             execution_context={"timeout": job.timeout}
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         duration = asyncio.get_event_loop().time() - start_time
         return JobResult(
             job_id=job.job_id,

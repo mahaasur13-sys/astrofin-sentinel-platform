@@ -26,7 +26,7 @@ class RedisCache:
                 else:
                     CACHE_MISSES.inc()
                     return None
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass  # fallback
         # In‑memory fallback
         if key in self.fallback:
@@ -44,7 +44,7 @@ class RedisCache:
             try:
                 await self.redis.setex(key, ttl, str(value))
                 return
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
         # fallback
         self.fallback[key] = value
@@ -55,7 +55,7 @@ class RedisCache:
         if self.redis:
             try:
                 await self.redis.delete(key)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
         self.fallback.pop(key, None)
         self._fallback_ttl.pop(key, None)
@@ -65,7 +65,7 @@ class RedisCache:
         if self.redis:
             try:
                 await self.redis.flushdb()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
         self.fallback.clear()
         self._fallback_ttl.clear()

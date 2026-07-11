@@ -245,7 +245,7 @@ class SafetyGate:
                 status=SafetyStatus.APPROVED,
                 reason=f"ModeEnforcer: {mode.value} — {msg}",
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # Fail-open: allow on error
             return SafetyDecision(
                 status=SafetyStatus.APPROVED,
@@ -307,7 +307,7 @@ class SafetyGate:
                         reason=f"RiskEngineV2: {kill_msg}",
                         blocked_reason=f"kill_switch:{kill_msg[:40]}",
                     )
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass  # skip kill switch on error
 
             # 2. Exposure check
@@ -319,7 +319,7 @@ class SafetyGate:
                         reason=f"RiskEngineV2: {msg}",
                         blocked_reason=f"exposure:{msg[:40]}",
                     )
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass  # skip exposure check on error
 
             # 3. Correlation check (only if we have enough history)
@@ -332,7 +332,7 @@ class SafetyGate:
                             reason=f"RiskEngineV2: {msg}",
                             blocked_reason=f"correlation:{msg[:40]}",
                         )
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass  # skip correlation on error
 
             # 4. Volume check (confidence-based)
@@ -349,7 +349,7 @@ class SafetyGate:
                 status=SafetyStatus.APPROVED,
                 reason="RiskEngineV2: all checks passed",
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return SafetyDecision(
                 status=SafetyStatus.APPROVED,
                 reason=f"RiskEngineV2 error={e} — fail-open",
@@ -387,7 +387,7 @@ class SafetyGate:
                 status=SafetyStatus.APPROVED,
                 reason=f"ExecutionSanity: {sanity.reason}",
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return SafetyDecision(
                 status=SafetyStatus.APPROVED,
                 reason=f"ExecutionSanityChecker error={e} — fail-open",

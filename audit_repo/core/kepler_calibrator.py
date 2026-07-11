@@ -87,7 +87,7 @@ def _mae_loss(elements: OrbitalElements, body: str, jd_samples: np.ndarray) -> f
         try:
             planet_pos = eph.calculate_planet(body, jd)
             mean_lon_swiss = planet_pos.longitude % 360.0
-        except Exception:
+        except Exception:  # noqa: BLE001
             continue
 
         # Angular difference (handle wrap-around)

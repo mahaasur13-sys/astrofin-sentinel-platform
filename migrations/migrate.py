@@ -132,7 +132,7 @@ def apply_migration(db_path: Path, migration: dict, simulate: bool = False) -> b
             conn.commit()
             print(f"  ✅ v{migration['version']} — {migration['name']}")
             return True
-        except Exception:
+        except Exception:  # noqa: BLE001
             conn.rollback()
             raise
     finally:

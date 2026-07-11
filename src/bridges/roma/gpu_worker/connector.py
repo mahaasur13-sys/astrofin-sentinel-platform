@@ -54,7 +54,7 @@ class GPUWorkerPool:
                     worker["available"] = data.get("gpu_available", False)
                     worker["gpu_name"] = data.get("gpu_device", "unknown")
                     discovered.append(worker)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 worker["available"] = False
         return discovered
 
@@ -118,7 +118,7 @@ class GPUWorkerPool:
                 "worker_id": worker_id,
                 "error": "Job timed out on GPU worker"
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {
                 "status": "failed",
                 "job_id": job_id,

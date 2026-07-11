@@ -44,7 +44,7 @@ class ResidualModel:
         if self.MODEL_PATH.exists():
             try:
                 self._ml = joblib.load(self.MODEL_PATH)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._ml = None
 
     def is_trained(self) -> bool:
@@ -58,7 +58,7 @@ class ResidualModel:
         try:
             swiss = eph.calculate_planet(body_lower, jd)
             swiss_lon = swiss.longitude % 360.0
-        except Exception:
+        except Exception:  # noqa: BLE001
             swiss_lon = kepler_lon
         delta = (swiss_lon - kepler_lon + 180) % 360 - 180
         return ResidualCorrection(body_lower, jd, kepler_lon, swiss_lon, delta, delta * 60.0)

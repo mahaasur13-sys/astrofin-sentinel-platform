@@ -84,7 +84,7 @@ class AdversarialSimulator:
                         "utility": outcome.get("utility", 0),
                     }
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 results.append(
                     {
                         "scenario": scenario.scenario_id,

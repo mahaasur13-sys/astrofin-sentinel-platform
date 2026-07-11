@@ -258,7 +258,7 @@ else:
             try:
                 save_session(record)
                 return record["decision_id"]
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"[SQLite] DecisionRecordRepository.save failed: {e}")
                 return record["decision_id"]
 
@@ -267,7 +267,7 @@ else:
             try:
                 sessions = list_sessions(limit=limit)
                 return [s for s in sessions if "decision_id" in s]
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return []
 
         @staticmethod
@@ -275,7 +275,7 @@ else:
             try:
                 sessions = list_sessions(limit=limit)
                 return [s for s in sessions if s.get("symbol") == symbol]
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return []
 
         @staticmethod
@@ -417,7 +417,7 @@ def is_postgres_available() -> bool:
         from db.session import is_postgres_available as _check
 
         return _check()
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -431,6 +431,6 @@ def get_all_stats() -> dict:
                 stats["agent_signals"] = s.query(AgentSignal).count()
                 stats["astro_positions"] = s.query(AstroPosition).count()
                 stats["audit_records"] = s.query(AuditLogRecord).count()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         stats["error"] = str(e)
     return stats

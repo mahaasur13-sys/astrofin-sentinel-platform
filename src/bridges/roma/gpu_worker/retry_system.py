@@ -121,7 +121,7 @@ class JobRetryManager:
                 if self._on_retry_callback:
                     try:
                         self._on_retry_callback(job_id, job.retries, backoff)
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         pass
             else:
                 job.state = JobState.FAILED
@@ -129,7 +129,7 @@ class JobRetryManager:
                 if self._on_fail_callback:
                     try:
                         self._on_fail_callback(job_id, error)
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         pass
             return action
 

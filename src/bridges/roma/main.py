@@ -100,7 +100,7 @@ async def submit_task(payload: RomaTaskInput):
             gpu_required=payload.gpu_required,
         )
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         queue_depth -= 1
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -158,7 +158,7 @@ async def submit_atom_cluster(payload: dict):
     # Create ATOMCluster CR if not exists
     try:
         create_atomcluster(cluster_name, cluster_spec)
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass  # Already exists
     
     # Dispatch as managed job

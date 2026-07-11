@@ -92,7 +92,7 @@ def grep_evidence(pattern: str, *, glob: str = "*.py", limit: int = 5) -> list[s
         out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
         lines = [ln for ln in out.stdout.splitlines() if ln.strip()]
         return lines[:limit]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return [f"<<rg error: {e}>>"]
 
 

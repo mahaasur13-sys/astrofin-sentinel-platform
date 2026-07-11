@@ -41,7 +41,7 @@ class RuntimeEstimator:
             from durability.event_store import EventStore
             store = EventStore()
             return store.get_all_events()
-        except Exception:
+        except Exception:  # noqa: BLE001
             return []
 
     def estimate(self, plugin_type: str, gpu_class: str = "RTX3060", batch_size: int = 1, **kwargs) -> dict:

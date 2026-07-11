@@ -56,7 +56,7 @@ def correlation_penalty_matrix(returns_dict: dict[str, list[float]]) -> float:
         if count == 0:
             return 0.0
         return total_corr / count
-    except Exception:
+    except Exception:  # noqa: BLE001
         return 0.0
 
 
@@ -140,7 +140,7 @@ class BasketEvaluator:
 
             try:
                 eval_result = self.strategy_evaluator.evaluate(strategy, sym_data)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"[META-RL-BASKET] Evaluation failed for {symbol}: {e}")
                 continue
 

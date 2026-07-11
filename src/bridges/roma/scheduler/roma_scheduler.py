@@ -94,7 +94,7 @@ class ROMAGPUScheduler:
                 "stdout": result.stdout, "stderr": result.stderr,
                 "returncode": result.returncode, "execution_target": "local", "duration_seconds": 0
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"status": "failed", "error": str(e), "execution_target": "local"}
 
     def get_status(self) -> dict:

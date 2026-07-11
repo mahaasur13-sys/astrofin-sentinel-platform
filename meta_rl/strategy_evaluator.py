@@ -62,7 +62,7 @@ class StrategyEvaluator:
                     backtest_adapter=self.backtest_adapter,
                     risk_engine=self.risk_engine,
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._basket_evaluator = None
         return self._basket_evaluator
 
@@ -100,7 +100,7 @@ class StrategyEvaluator:
                 f"reason={result.risk_adjustment_reason} trades={result.trades}"
             )
             return result
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL] Evaluation failed: {e}")
             return EvaluationResult.fail()
 
@@ -133,7 +133,7 @@ class StrategyEvaluator:
             if be is None:
                 raise RuntimeError("BasketEvaluator unavailable")
             return be.evaluate_basket(strategy, market_data_dict)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-BASKET] Basket evaluation failed: {e}")
             return BasketMetrics(symbols=["BTCUSDT", "ETHUSDT", "SPY"])
 
@@ -179,7 +179,7 @@ class StrategyEvaluator:
             agg = self._aggregate_results(valid_results)
             agg.overfit_report = report
             return agg
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL] Walk-forward failed: {e}")
             return self.evaluate(strategy, market_data)
 

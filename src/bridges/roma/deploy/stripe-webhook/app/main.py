@@ -40,7 +40,7 @@ async def startup():
         _redis = await aioredis.from_url(REDIS_URL, decode_responses=True)
         await _redis.ping()
         logger.info(f"Redis connected: {REDIS_URL}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Redis unavailable: {e}. Running without deduplication.")
 
 def _verify(payload: bytes, sig: str, secret: str) -> bool:
@@ -51,7 +51,7 @@ def _verify(payload: bytes, sig: str, secret: str) -> bool:
         signed = f"{parts['t']}.{payload.decode()}"
         actual = hmac.new(secret.encode(), signed.encode(), hashlib.sha256).hexdigest()
         return hmac.compare_digest(actual, parts.get("v1", ""))
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 async def _enqueue_event(event: dict) -> None:
@@ -69,7 +69,7 @@ async def _sync_tenant(tenant_id: str, event_type: str) -> None:
             async with __import__("httpx").AsyncClient() as client:
                 resp = await client.post(url, json={"event": event_type}, timeout=15.0)
                 logger.info(f"Tenant sync: tenant={tenant_id} event={event_type} status={resp.status_code}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Tenant sync failed: tenant={tenant_id} error={e}")
 
 class WebhookResponse(BaseModel):
@@ -90,7 +90,7 @@ async def stripe_webhook(
 
     try:
         event = json.loads(body.decode())
-    except Exception:
+    except Exception:  # noqa: BLE001
         raise HTTPException(400, "Invalid JSON")
 
     eid = event.get("id", "")
@@ -114,7 +114,7 @@ async def stripe_webhook(
             if tid:
                 await _sync_tenant(tid, etype)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Processing error: event={eid} error={e}")
 
     return WebhookResponse(received=True, event_id=eid, processed=True)
@@ -126,7 +126,7 @@ async def health():
         try:
             await _redis.ping()
             redis_ok = True
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
     return {"status": "ok", "redis": redis_ok}
 

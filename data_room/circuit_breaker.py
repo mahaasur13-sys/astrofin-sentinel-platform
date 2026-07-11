@@ -17,7 +17,7 @@ Usage:
         try:
             result = await call_resolver(...)
             breaker.record_success()
-        except Exception:
+        except Exception:  # noqa: BLE001
             breaker.record_failure()
             raise
 """
@@ -89,7 +89,7 @@ def call_with_breaker(
         raise CircuitBreakerOpen("CircuitBreakerOpen: circuit is OPEN, refusing call")
     try:
         result = fn()
-    except Exception:
+    except Exception:  # noqa: BLE001
         breaker.record_failure()
         raise
     else:

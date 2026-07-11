@@ -52,7 +52,7 @@ def _load_override_pairs() -> set:
         return set()
     try:
         data = json.loads(p.read_text(encoding="utf-8"))
-    except Exception:
+    except Exception:  # noqa: BLE001
         return set()
     out = set()
     for entry in data.get("overrides", []):

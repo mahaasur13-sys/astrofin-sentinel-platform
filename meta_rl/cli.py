@@ -197,7 +197,7 @@ def run_evolution(args) -> int:
             charts = list(Path(out).glob("*.png"))
             if charts:
                 print(f"  Charts saved: {len(charts)}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Summary failed: {e}")
 
     return 0

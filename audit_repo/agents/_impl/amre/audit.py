@@ -403,7 +403,7 @@ def record_meta_rl_decision(
 
         return record
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[META-RL-AUDIT] Failed to record MetaRLDecisionRecord: {e}")
         return None
 

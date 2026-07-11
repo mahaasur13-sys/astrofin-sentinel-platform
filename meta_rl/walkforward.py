@@ -250,13 +250,13 @@ class WalkForwardValidator:
 
         try:
             train_result = ev.evaluate(strategy, train_data) if ev else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[WFA] Train eval failed (split {split_index}): {e}")
             train_result = None
 
         try:
             test_result = ev.evaluate(strategy, test_data) if ev else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[WFA] Test eval failed (split {split_index}): {e}")
             test_result = None
 
@@ -377,7 +377,7 @@ def run_walkforward_on_elites(
                 scored.evaluation.overfit_report = report
 
             results[strategy_id] = report
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[WFA] Elite {strategy_id} failed: {e}")
 
     return results

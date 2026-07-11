@@ -348,7 +348,7 @@ def main():
     for name, fn in all_tests:
         try:
             results.append((name, fn()))
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             print(f"  [ERROR] {name}: {ex}")
             results.append((name, False))
 

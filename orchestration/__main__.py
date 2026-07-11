@@ -41,7 +41,7 @@ def main():
             logger.info("masfactory.completed_successfully")
             logger.info("masfactory.result", result=str(result))
             return
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error("masfactory.error", error=str(e))
             logger.info("masfactory.falling_back_to_legacy")
             logger.debug(traceback.format_exc())

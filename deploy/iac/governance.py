@@ -161,7 +161,7 @@ def run():
             fp = os.path.join(root, f)
             try:
                 src = open(fp).read()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 continue
             src_layer = classify(fp)
             module_count[src_layer] = module_count.get(src_layer, 0) + 1

@@ -375,7 +375,7 @@ def register_callbacks(app, get_engine_ref):
                 empty_fig,
                 empty_fig,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"[DASH] Evolution start failed: {e}\n{traceback.format_exc()}")
             empty_fig = go.Figure().update_layout(template="plotly_dark", height=220)
             return (
@@ -663,7 +663,7 @@ def register_callbacks(app, get_engine_ref):
             sessions = p.list_sessions()
             opts = [{"label": s, "value": s} for s in sessions[-50:]]
             return opts, (opts[-1]["value"] if opts else None)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return [], None
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -707,7 +707,7 @@ def register_callbacks(app, get_engine_ref):
                 "Deploy Success",
                 "success",
             ), True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return make_toast(f"Deploy error: {e}", "Deploy Failed", "danger"), dash.no_update
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -1098,5 +1098,5 @@ def render_live_status() -> html.Div:
             ],
             className="d-flex align-items-center",
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return html.Div(dbc.Badge(f"Live Data Error: {e}", color="danger"))

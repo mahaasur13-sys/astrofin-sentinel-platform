@@ -55,7 +55,7 @@ class ConditionEvaluator:
             ns["true"] = True
             ns["false"] = False
             return bool(eval(condition, {"__builtins__": {}}, ns))
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
 
@@ -280,7 +280,7 @@ class TopologyUpdater:
             )
             self.current_topology = new_topo
             return new_topo
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self._rollback_last()
             raise RuntimeError(f"Topology change failed: {e}") from e
 

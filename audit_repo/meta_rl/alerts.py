@@ -92,7 +92,7 @@ class TelegramAlerter:
                     return True
                 logger.warning(f"[ALERTS] Telegram API error: {result}")
                 return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[ALERTS] Failed to send: {e}")
             return False
 

@@ -138,7 +138,7 @@ class SwissEphemerisProvider:
                     speed=speed,
                     retrograde=speed < 0,
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
         lon, speed = _simple_position(name, jd)
         return PlanetPosition(planet=name, longitude=lon, speed=speed, retrograde=speed < 0)
@@ -154,7 +154,7 @@ class SwissEphemerisProvider:
                 mc=ascmc[1] % 360,
                 vertex=ascmc[3] % 360 if len(ascmc) > 3 else 0.0,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             return self._fallback.calculate_houses(jd, latitude, longitude, hsys)
 
     def get_planetary_positions(
@@ -169,7 +169,7 @@ class SwissEphemerisProvider:
             flags |= 256
             try:
                 self._swe.set_sid_mode(1)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
         return {name: self.calculate_planet(name, self.julian_day(dt), flags) for name in PLANETS}
 
@@ -301,7 +301,7 @@ def calculate_natal_chart(
         flags |= 256
         try:
             swe.set_sid_mode(ayanamsha)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
     planets = {name: _default_provider.calculate_planet(name, jd, flags) for name in PLANETS}
     houses = _default_provider.calculate_houses(jd, latitude, longitude)

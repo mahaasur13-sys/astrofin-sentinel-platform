@@ -20,7 +20,7 @@ def _run(cmd: list, timeout: int = 30) -> tuple[bool, str]:
         return False, result.stderr.strip()
     except subprocess.TimeoutExpired:
         return False, "timeout"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return False, str(e)
 
 

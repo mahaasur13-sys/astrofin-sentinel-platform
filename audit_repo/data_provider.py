@@ -220,7 +220,7 @@ def _fetch_yahoo_v8(symbol: str, interval: str = "1d", range_: str = "60d", limi
             candles = candles[-limit:]
         return candles
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise ValueError(f"Yahoo v8 failed for {symbol}: {e}")
 
 
@@ -281,7 +281,7 @@ def _fetch_metals_api(symbol: str, interval: str = "1d", limit: int = 500) -> li
                     )
             return result
         raise ValueError("metals-api returned no rates")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise ValueError(f"metals-api failed: {e}")
 
 
@@ -329,7 +329,7 @@ def _fetch_twelve_data(symbol: str, interval: str = "1d", limit: int = 500) -> l
                 )
             return result
         raise ValueError("Twelve Data returned no values")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise ValueError(f"Twelve Data failed: {e}")
 
 
@@ -361,27 +361,27 @@ def fetch_ohlcv(
     # 1. Yahoo Finance v8 (handles JJN and other delisted symbols)
     try:
         return _fetch_yahoo_v8(symbol, interval, period, limit)
-    except Exception as yv8_err:
+    except Exception as yv8_err:  # noqa: BLE001
         print(f"[data_provider] Yahoo v8 failed for {symbol}: {yv8_err}")
 
     # 2. yfinance library fallback
     try:
         return _fetch_yfinance_lib(symbol, interval, period, limit)
-    except Exception as yf_err:
+    except Exception as yf_err:  # noqa: BLE001
         print(f"[data_provider] yfinance lib failed for {symbol}: {yf_err}")
 
     # 3. Twelve Data
     if TWELVE_DATA_KEY:
         try:
             return _fetch_twelve_data(symbol, interval, limit)
-        except Exception as td_err:
+        except Exception as td_err:  # noqa: BLE001
             print(f"[data_provider] Twelve Data failed for {symbol}: {td_err}")
 
     # 4. metals-api
     if METALS_API_KEY and symbol in METALS_API_SYMBOLS:
         try:
             return _fetch_metals_api(symbol, interval, limit)
-        except Exception as ma_err:
+        except Exception as ma_err:  # noqa: BLE001
             print(f"[data_provider] metals-api failed for {symbol}: {ma_err}")
 
     raise ValueError(f"All providers failed for {symbol}")
@@ -402,7 +402,7 @@ def fetch_current_price(symbol: str) -> float:
         data = fetch_ohlcv(symbol, "1d", limit=1)
         if data:
             return float(data[-1].close)
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
 
     # Fallback to v8 price endpoint
@@ -418,7 +418,7 @@ def fetch_current_price(symbol: str) -> float:
         result = data.get("chart", {}).get("result", [{}])
         if result and result[0]:
             return float(result[0]["meta"]["regularMarketPrice"])
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
 
     raise ValueError(f"fetch_current_price failed for {symbol}")
@@ -434,7 +434,7 @@ def fetch_multi_ohlcv(
     for sym in symbols:
         try:
             result[sym] = fetch_ohlcv(sym, interval, period)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"[data_provider] Failed {sym}: {e}")
             result[sym] = []
     return result

@@ -37,7 +37,7 @@ async def main():
         assert len(topo.roles) >= 2, f"Need 2+ roles, got {len(topo.roles)}"
         p("  ✅ Architect OK", "g")
         results.append(("Architect", True))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         p(f"  ❌ FAILED: {e}", "r")
         results.append(("Architect", False))
         return False
@@ -50,7 +50,7 @@ async def main():
             p(f"    - {sw.id}: strategy={sw.strategy.value}, k={sw.k}", "y")
         p("  ✅ SwitchNodes OK", "g")
         results.append(("SwitchNodes", True))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         p(f"  ❌ FAILED: {e}", "r")
         results.append(("SwitchNodes", False))
 
@@ -62,7 +62,7 @@ async def main():
         p(f"  TopologyUpdater: {len(updater.current_topology.roles)} roles", "y")
         p("  ✅ TopologyUpdater OK", "g")
         results.append(("TopologyUpdater", True))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         p(f"  ❌ FAILED: {e}", "r")
         results.append(("TopologyUpdater", False))
 
@@ -87,7 +87,7 @@ async def main():
         assert isinstance(res, dict), f"Expected dict, got {type(res)}"
         p("  ✅ Executor OK (returns dict)", "g")
         results.append(("Executor", True))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         p(f"  ⚠️  EXECUTOR: {e}", "y")
         results.append(("Executor", False))
 
@@ -101,7 +101,7 @@ async def main():
         assert len(out) > 50, "Too short"
         p("  ✅ Visualizer OK", "g")
         results.append(("Visualizer", True))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         p(f"  ❌ FAILED: {e}", "r")
         results.append(("Visualizer", False))
 
@@ -124,7 +124,7 @@ async def main():
         )
         p("  ✅ Legacy OK", "g")
         results.append(("Legacy", True))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         p(f"  ❌ FAILED: {e}", "r")
         results.append(("Legacy", False))
 
@@ -133,7 +133,7 @@ async def main():
         p(f"  Dual-mode: MAS hash={topo.hash[:8]} | KARLSynthesisAgent", "y")
         p("  ✅ Dual-Mode OK", "g")
         results.append(("DualMode", True))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         p(f"  ❌ FAILED: {e}", "r")
         results.append(("DualMode", False))
 

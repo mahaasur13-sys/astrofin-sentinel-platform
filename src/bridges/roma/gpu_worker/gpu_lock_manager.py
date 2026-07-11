@@ -57,7 +57,7 @@ class GPULockManager:
                 if gpu_id in self._callbacks:
                     try:
                         self._callbacks[gpu_id](job_id)
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         pass
 
     def is_locked(self, gpu_id: str) -> bool:

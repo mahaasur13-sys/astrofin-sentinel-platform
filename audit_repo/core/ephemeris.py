@@ -93,7 +93,7 @@ def calculate_planet(
                 xx = result
             lon = xx[0] % 360
             speed = xx[3]
-        except Exception:
+        except Exception:  # noqa: BLE001
             lon, speed = _simple_position(planet_name, jd)
     else:
         lon, speed = _simple_position(planet_name, jd)
@@ -157,7 +157,7 @@ def calculate_houses(
             mc=ascmc[1] % 360,
             vertex=ascmc[3] % 360 if len(ascmc) > 3 else 0.0,
         )
-    except Exception:
+    except Exception:  # noqa: BLE001
         sun_pos = calculate_planet("sun", jd)
         houses = [(sun_pos.longitude + 30 * i) % 360 for i in range(12)]
         return HouseCusps(houses=houses, ascendant=houses[0], mc=houses[9], vertex=0.0)
@@ -178,7 +178,7 @@ def calculate_natal_chart(
         flags |= 256  # SEFLG_SIDEREAL
         try:
             swe.set_sid_mode(ayanamsha)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
     # Calculate planets

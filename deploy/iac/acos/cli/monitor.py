@@ -49,7 +49,7 @@ def get_tunnel_status() -> dict:
         result = subprocess.run(["ip", "addr", "show", "wg0"], capture_output=True, text=True, timeout=5)
         up = result.returncode == 0 and "inet " in result.stdout
         return {"interface": "wg0", "up": up}
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {"interface": "wg0", "up": False}
 
 
@@ -68,7 +68,7 @@ def cmd_status() -> int:
 
         req = urllib.request.urlopen(f"{victoria_url}/health", timeout=3)
         vm_up = req.status == 200
-    except Exception:
+    except Exception:  # noqa: BLE001
         vm_up = False
     print(f"  {'✅' if vm_up else '❌'} VictoriaMetrics: {victoria_url} [{'up' if vm_up else 'DOWN'}]")
     # Backends
@@ -105,7 +105,7 @@ def cmd_switch(backend: str) -> int:
         log = EventLog()
         log.emit("acos-monitor", EventType.DAG_CREATED, {"action": "MONITOR_SWITCH", "from": old, "to": backend})
         print("  ✅ Event logged to EventLog")
-    except Exception:
+    except Exception:  # noqa: BLE001
         print("  ⚠️  EventLog unavailable")
     return 0
 

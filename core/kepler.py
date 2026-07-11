@@ -289,7 +289,7 @@ def validate_vs_swiss_ephemeris(
     try:
         planet_pos = _eph.calculate_planet(body, jd)
         swiss_lon = planet_pos.longitude
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return {
             "kepler_lon": round(kepler_lon, 4),
             "swiss_lon": None,

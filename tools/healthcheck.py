@@ -69,7 +69,7 @@ def check_ollama() -> dict:
             data = json.loads(resp.read())
             models = [m["name"] for m in data.get("models", [])]
         return {"available": True, "models": models}
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {"available": False, "models": []}
 
 

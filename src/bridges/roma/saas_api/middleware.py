@@ -28,5 +28,5 @@ def auth_middleware(request: Request) -> dict:
         raise HTTPException(429, {"error": {"code": "QUOTA_EXCEEDED", "message": str(e)}})
     except RateLimitExceeded as e:
         raise HTTPException(429, {"error": {"code": "RATE_LIMITED", "message": str(e)}})
-    except Exception:
+    except Exception:  # noqa: BLE001
         raise HTTPException(401, {"error": {"code": "INVALID_KEY", "message": "Invalid API key"}})
