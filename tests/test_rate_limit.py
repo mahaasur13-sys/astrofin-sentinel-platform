@@ -5,7 +5,7 @@ import os
 from fastapi.testclient import TestClient
 
 import pytest
-os.environ["REQUIRE_AUTH"] = "true"
+os.environ["API_KEY_AUTH_DISABLED"] = "false"
 os.environ["API_KEY"] = "test-key-123"
 
 from deploy.monitoring.health_endpoints import app

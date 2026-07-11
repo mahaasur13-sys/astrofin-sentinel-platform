@@ -88,5 +88,5 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_configure(config):
     """Set default environment variables before any test module is imported."""
-    os.environ.setdefault("API_KEY", "test-secret-key")
-    os.environ.setdefault("REQUIRE_AUTH", "true")
+    os.environ.setdefault("API_KEY", "test-key-123")
+    os.environ.setdefault("API_KEY_AUTH_DISABLED", "false")

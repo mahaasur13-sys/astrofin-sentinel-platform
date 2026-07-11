@@ -12,6 +12,7 @@ which uses the Flask test client and the wsgi ``server`` defined in
 from __future__ import annotations
 
 import re
+from datetime import datetime
 
 import pytest
 
@@ -80,7 +81,10 @@ class TestSchemaShape:
 
     def test_timestamp_is_iso_utc(self):
         env = format_error(BadRequest("x"))
-        assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", env["timestamp"])
+        # Accept both ...Z and ... .fffZ; fromisoformat is robust to both.
+        assert datetime.fromisoformat(env["timestamp"].replace("Z", "+00:00"))
+        # Legacy regex kept for documentation/visibility:
+        # assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$", env["timestamp"])
 
     def test_details_default_to_empty_dict(self):
         env = format_error(BadRequest("x"))

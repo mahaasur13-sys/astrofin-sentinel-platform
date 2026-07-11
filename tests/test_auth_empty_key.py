@@ -15,8 +15,8 @@ def test_empty_api_key_returns_500(monkeypatch):
         return jsonify({"status": "ok"})
 
     # Симулируем пустой ключ при включённой аутентификации
-    monkeypatch.setattr("core.auth.API_KEY", "")
-    monkeypatch.setattr("core.auth.REQUIRE_AUTH", True)
+    monkeypatch.setenv("API_KEY", "")
+    monkeypatch.setenv("API_KEY_AUTH_DISABLED", "false")
 
     with app.test_client() as client:
         resp = client.get("/test", headers={"X-API-Key": "anything"})

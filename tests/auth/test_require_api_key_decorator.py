@@ -5,7 +5,7 @@ These tests exercise the decorator end-to-end through Flask's test_client
 shared :func:`core.error_schema.format_error` envelope.
 
 We **do not** re-import :mod:`core.auth` here — its module-level constants
-(``REQUIRE_AUTH``, ``API_KEY``) are read from the environment at import
+(``API_KEY_AUTH_DISABLED``, ``API_KEY``) are read from the environment at import
 time, and ``web.wsgi`` imports it eagerly. So we control auth by setting
 the env vars *before* importing ``web.wsgi``.
 """
@@ -21,7 +21,11 @@ import pytest
 def wsgi_app(monkeypatch: pytest.MonkeyPatch):
     """Reload ``web.wsgi`` with a fresh API_KEY for each test."""
     monkeypatch.setenv("API_KEY", "test-key-123")
-    monkeypatch.setenv("REQUIRE_AUTH", "true")
+    # ``API_KEY_AUTH_DISABLED`` is the new env var. When unset, the legacy
+    # ``REQUIRE_AUTH`` shim is consulted; here we just don't set either so
+    # auth stays ON by default.
+    monkeypatch.delenv("API_KEY_AUTH_DISABLED", raising=False)
+    monkeypatch.delenv("REQUIRE_AUTH", raising=False)
 
     # Drop cached modules so env vars are read at import time.
     for mod in list(importlib.sys.modules):
@@ -34,9 +38,7 @@ def wsgi_app(monkeypatch: pytest.MonkeyPatch):
 
 
 def test_missing_api_key_returns_401(wsgi_app):
-    r = wsgi_app.test_client().get(
-        "/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"}
-    )
+    r = wsgi_app.test_client().get("/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"})
     assert r.status_code == 401
     body = r.get_json()
     assert body["code"] == "UNAUTHORIZED"
@@ -74,9 +76,9 @@ def test_health_endpoint_is_unprotected(wsgi_app):
 
 
 def test_auth_disabled_allows_request(monkeypatch: pytest.MonkeyPatch):
-    """When ``REQUIRE_AUTH=false`` the decorator must not block the request."""
+    """When ``API_KEY_AUTH_DISABLED=true`` the decorator must not block the request."""
     monkeypatch.setenv("API_KEY", "ignored-when-disabled")
-    monkeypatch.setenv("REQUIRE_AUTH", "false")
+    monkeypatch.setenv("API_KEY_AUTH_DISABLED", "true")
 
     for mod in list(importlib.sys.modules):
         if mod == "web.wsgi" or mod == "core.auth":
@@ -84,9 +86,7 @@ def test_auth_disabled_allows_request(monkeypatch: pytest.MonkeyPatch):
 
     from web.wsgi import server
 
-    r = server.test_client().get(
-        "/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"}
-    )
+    r = server.test_client().get("/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"})
     assert r.status_code == 200
 
 
@@ -103,7 +103,7 @@ def test_constant_time_compare_used(monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr(_secrets, "compare_digest", spy)
     monkeypatch.setenv("API_KEY", "real-key")
-    monkeypatch.setenv("REQUIRE_AUTH", "true")
+    monkeypatch.setenv("API_KEY_AUTH_DISABLED", "false")
 
     for mod in list(importlib.sys.modules):
         if mod == "web.wsgi" or mod == "core.auth":
