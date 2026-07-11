@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/amre/backtest_loop.py
-# hypothesis_version: 6.151.10
-
-[0.0, 0.2, 0.5, 100, '1D', 'NEUTRAL', 'NORMAL', 'UNKNOWN', 'avg_confidence', 'avg_error', 'backtest_runs', 'buffer_size', 'confidence', 'continuous', 'count', 'decision', 'end_date', 'latest', 'max_drawdown', 'n_signals', 'oos', 'oos_avg_error', 'oos_steps', 'oos_win_rate', 'position_pct', 'price', 'q_star', 'q_star_final', 'q_star_history', 'q_star_improvement', 'q_star_initial', 'q_star_trend', 'regime', 'retrain', 'runs', 'session_id', 'sharpe_ratio', 'signal', 'start_date', 'symbol', 'timeframe', 'timestamp', 'total_return', 'total_runs', 'total_steps', 'volatility', 'walk_forward', 'win_rate']

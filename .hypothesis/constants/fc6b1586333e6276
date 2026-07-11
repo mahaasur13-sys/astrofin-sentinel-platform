@@ -1,4 +1,0 @@
-# file: /home/workspace/meta_rl/strategy_pool.py
-# hypothesis_version: 6.155.3
-
-[0.0, 1e-08, 0.7, 1.0, 100, 1000, '_chromosome_hash', '_reward', 'brute', 'chromosome', 'chromosome_hash', 'cosine', 'equity_curve', 'evaluation', 'fallback', 'generation', 'generations', 'hash_error', 'id', 'max_reward', 'mean_reward', 'min_reward', 'no_chromosome', 'parent_ids', 'reward', 'reward_history', 'size', 'sklearn', 'std_reward', 'strategy', 'strategy_params', 'to_dict', 'utf-8']

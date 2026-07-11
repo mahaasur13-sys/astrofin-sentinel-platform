@@ -1,4 +1,0 @@
-# file: /home/workspace/core/council/agents.py
-# hypothesis_version: 6.151.10
-
-[-0.3, -0.01, 0.0, 0.01, 0.1, 0.2, 0.3, 0.99, 1.0, 1.01, 18.0, 100, 200, 3000, 'AstroAgent', 'FundamentalAgent', 'MacroAgent', 'OptionsFlowAgent', 'QuantAgent', 'SentimentAgent', 'TechnicalAgent', 'astro', 'bearish astro', 'bullish astro', 'fundamental', 'macro', 'negative flow', 'neutral astro', 'neutral flow', 'optionsflow', 'positive flow', 'quant', 'sentiment', 'technical']

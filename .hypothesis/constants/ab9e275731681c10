@@ -1,4 +1,0 @@
-# file: /home/workspace/db/session.py
-# hypothesis_version: 6.151.10
-
-[2.0, 3600, 'SELECT 1', 'SQL_ECHO', 'available', 'backend', 'checked_in', 'checked_out', 'connect', 'error', 'overflow', 'postgresql', 'size', 'unknown']

@@ -1,4 +1,0 @@
-# file: /home/workspace/meta_rl/git_agent_exporter.py
-# hypothesis_version: 6.151.10
-
-[0.0, 2.0, 15.0, 60.0, '-', '--+', 'ALL', 'BEAR-RESTRICTED', 'BEAR_ONLY', 'BULL-RESTRICTED', 'BULL_ONLY', 'DUTIES.md', 'README.md', 'RULES.md', 'SKILL.md', 'SOUL.md', 'agent.yaml', 'atr_multiplier', 'capabilities', 'chromosome', 'compliance', 'confidence_base', 'confidence_threshold', 'description', 'evaluate', 'evaluation', 'generation', 'manifest.yaml', 'meta-rl-strategy', 'model', 'name', 'position_size_pct', 'regime_filter', 'risk_adjusted_pnl', 'risk_level', 'sharpe', 'strategy', 'strategy_params.json', 'sub_agents', 'to_dict', 'tools', 'utf-8', 'version', 'w', 'workflows']

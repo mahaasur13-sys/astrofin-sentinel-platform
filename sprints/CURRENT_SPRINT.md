@@ -7,14 +7,13 @@
 
 ## KI-127 — Стандартизация ошибок и auth decorator
 
-- **Статус:** 🟡 Done локально, **заблокировано** на merge — Quality Gate не запустился
+- **Статус:** Done
 - **Ветка:** `feat/err-01-improve-error-handling`
 - **PR:** [#176](https://github.com/mahaasur13-sys/astrofin-sentinel-platform/pull/176)
-- **Tip commit:** `7d43ac9` (было `a1e6c72`, +2 коммита)
+- **Коммит:** `a1e6c72`
 - **Acceptance criteria:** выполнены
 - **Техдолг:** минимальный (shim для `REQUIRE_AUTH` — удалить после переходного
   периода, см. `docs/TECH_DEBT.md`).
-- **Аудит:** `docs/audits/AUDIT_2026-07-11_DAILY.md` (74% → 79% readiness)
 
 ### Что сделано
 
@@ -31,9 +30,7 @@
 
 ### Следующие шаги
 
-1. **[B1 блокер]** Применить патч KI-128 (`ki-128-workflow-triggers.patch`)
-   локально, чтобы Quality Gate запустился на #176.
+1. Дождаться зелёного Quality Gate на `a1e6c72`.
 2. Закрыть треды CodeRabbit (или ответить на оставшиеся комментарии).
-3. Дождаться зелёного Quality Gate на `7d43ac9`.
-4. Merge PR #176.
-5. Перейти к следующей задаче бэклога.
+3. Merge PR #176.
+4. Перейти к следующей задаче бэклога.

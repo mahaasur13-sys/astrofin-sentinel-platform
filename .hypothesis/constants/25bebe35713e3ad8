@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/amre/counterfactual.py
-# hypothesis_version: 6.151.10
-
-['BUY', 'EXTREME', 'LONG', 'NORMAL', 'SELL', 'SHORT', 'confidence', 'issues', 'passed', 'price', 'regime', 'signal', 'symbol']

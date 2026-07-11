@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/sentiment_agent.py
-# hypothesis_version: 6.151.10
-
-[-0.05, -0.02, -0.0005, 0.0, 0.001, 0.02, 0.05, 0.3, 0.35, 0.4, 0.42, 0.43, 0.5, 0.57, 0.58, 0.65, 0.7, 100.0, 100, 200, 50000, 'BTCUSDT', 'SentimentAgent', '_price_data', 'current_price', 'data', 'fear_greed', 'fundingRate', 'funding_rate', 'list', 'momentum', 'price_momentum', 'raw_rate', 'raw_value', 'result', 'score', 'sentiment_score', 'sentiment_signal', 'summary', 'symbol', 'trading', 'trading/sentiment.md', 'value', 'value_classification']

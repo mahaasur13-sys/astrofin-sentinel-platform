@@ -1,4 +1,0 @@
-# file: /home/workspace/orchestration/router.py
-# hypothesis_version: 6.151.10
-
-[0.5, 'BNBUSDT', 'BTCUSDT', 'ETHUSDT', 'INTRADAY', 'MONTHLY', 'POSITIONAL', 'QQQ', 'SOLUSDT', 'SPY', 'SWING', 'astro_only', 'birth_data', 'bitcoin', 'bnb', 'bollinger', 'btc', 'buy', 'choghadiya', 'confidence_threshold', 'election', 'electional_only', 'eth', 'ethereum', 'full_analysis', 'gann', 'include_astro', 'include_electional', 'intraday', 'long', 'macd', 'market_scan', 'monthly', 'muhurta', 'muhurta_query', 'multi_symbol', 'nasdaq', 'qqq', 'rsi', 's&p', 'scan', 'sell', 'short', 'signal', 'single_symbol', 'sol', 'solana', 'sp500', 'technical_only', 'when', 'анализ', 'благоприятн', 'волны', 'запустить', 'интрадей', 'когда начать', 'лучшее время', 'месяц', 'мухурта', 'начать бизнес', 'позиционн', 'прогноз', 'сканиров', 'технич', 'элекция', 'эллиотт']

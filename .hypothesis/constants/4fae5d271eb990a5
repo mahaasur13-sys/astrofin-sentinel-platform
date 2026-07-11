@@ -1,4 +1,0 @@
-# file: /home/workspace/db/repositories.py
-# hypothesis_version: 6.151.10
-
-[0.5, 100, 'BTCUSDT', 'DB_BACKEND', 'NEUTRAL', 'NORMAL', 'SWING', 'action', 'advantage', 'agent_name', 'agent_signals', 'astro_positions', 'audit_records', 'backend', 'confidence', 'confidence_final', 'confidence_raw', 'core', 'created_at', 'decision_id', 'decision_records', 'details', 'error', 'final_action', 'history.db', 'id', 'kpi_snapshot', 'latitude', 'longitude', 'metadata', 'nakshatra', 'planet', 'position_pct', 'postgres_available', 'postgresql', 'price', 'q_star', 'q_values', 'rashi', 'reasoning', 'regime', 'selected_ensemble', 'session_id', 'signal', 'signal_id', 'speed', 'sqlite', 'state_hash', 'symbol', 'timeframe', 'top_trajectories', 'uncertainty_total', '{}']

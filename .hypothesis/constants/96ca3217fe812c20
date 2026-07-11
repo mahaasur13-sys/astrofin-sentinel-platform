@@ -1,4 +1,0 @@
-# file: /home/workspace/meta_rl/persistence.py
-# hypothesis_version: 6.155.3
-
-[0.0, 1.0, 1000, '-', '/', ':', '_', '_meta.json', '_strategies.json', 'a', 'a_count', 'a_mean', 'b', 'b_count', 'b_mean', 'best_reward', 'chromosome', 'config', 'current_generation', 'data', 'error', 'evaluation', 'generation', 'history', 'id', 'karl_state', 'max_drawdown', 'max_reward', 'mean_reward', 'meta_rl', 'metadata', 'parent_fitness', 'parent_ids', 'reward', 'reward_history', 'risk_adjusted_pnl', 'saved_at', 'session_id', 'sessions', 'sharpe', 'strategies.json', 'strategy', 'symbol', 'to_dict', 'total_sessions', 'total_strategies', 'trades', 'utf-8', 'version not found', 'versions', 'versions_index.json', 'win_rate', 'winner']

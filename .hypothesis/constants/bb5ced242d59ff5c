@@ -1,4 +1,0 @@
-# file: /home/workspace/data_room/blueprint.py
-# hypothesis_version: 6.151.10
-
-[1.0, '?', 'Blueprint', 'PriceTick', 'Resolver', '_chain', 'data_room.blueprint', 'id', 'metadata', 'price', 'unknown']

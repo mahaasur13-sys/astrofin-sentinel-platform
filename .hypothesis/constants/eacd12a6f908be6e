@@ -1,4 +1,0 @@
-# file: /home/workspace/strategies/base.py
-# hypothesis_version: 6.151.10
-
-[25.0, 50.0, '1.0.0', 'BEAR', 'BULL', 'BaseStrategy', 'LONG', 'NEUTRAL', 'PerformanceRecord', 'Regime', 'SHORT', 'Signal', 'StrategyConfig', 'StrategyResult', 'VOLATILE']

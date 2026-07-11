@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/amre/grounding.py
-# hypothesis_version: 6.151.10
-
-[1.0, '0.13', '0.65', 'AVOID', 'GROUNDING_MIN_FACTOR', 'NEUTRAL', 'avoid', 'but', 'confidence', 'grounding_factor', 'issues', 'neutral', 'passed', 'signal', 'true']

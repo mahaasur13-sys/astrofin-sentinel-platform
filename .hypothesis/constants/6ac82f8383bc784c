@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/__init__.py
-# hypothesis_version: 6.151.10
-
-['AgentResponse', 'AstroCouncilAgent', 'BaseAgent', 'BearResearcherAgent', 'BradleyAgent', 'BullResearcherAgent', 'CycleAgent', 'ElectoralAgent', 'ElliotAgent', 'FundamentalAgent', 'GannAgent', 'InsiderAgent', 'KARLSynthesisAgent', 'MLPredictorAgent', 'MacroAgent', 'MarketAnalystAgent', 'OptionsFlowAgent', 'QuantAgent', 'RiskAgent', 'SentimentAgent', 'SignalDirection', 'SynthesisAgent', 'TechnicalAgent', 'TimeWindowAgent', 'run_bear_researcher', 'run_bradley_agent', 'run_bull_researcher', 'run_cycle_agent', 'run_electoral_agent', 'run_elliot_agent', 'run_gann_agent', 'run_insider_agent', 'run_macro_agent', 'run_market_analyst', 'run_quant_agent', 'run_risk_agent', 'run_sentiment_agent', 'run_technical_agent']

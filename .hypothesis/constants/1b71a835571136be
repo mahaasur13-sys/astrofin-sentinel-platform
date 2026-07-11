@@ -1,4 +1,0 @@
-# file: /home/workspace/core/base_agent.py
-# hypothesis_version: 6.151.10
-
-[0.0, 100, 'AVOID', 'LONG', 'NEUTRAL', 'SHORT', 'T', 'agent_name', 'confidence', 'content', 'metadata', 'reasoning', 'session_id', 'signal', 'sources', 'timestamp', 'utf-8', 'value', '• RAG источники:']

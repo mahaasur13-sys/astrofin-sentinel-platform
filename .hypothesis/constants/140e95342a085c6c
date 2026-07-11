@@ -1,4 +1,0 @@
-# file: /home/workspace/meta_rl/reward.py
-# hypothesis_version: 6.151.10
-
-[-1000.0, -5.0, 0.0, 0.01, 0.1, 0.2, 0.3, 0.45, 0.5, 1.0, 2.0, 2.5, 5.0, 20.0, 1000.0, 'cost_penalty', 'dd_penalty', 'pnl_comp', 'risk_adj_pnl_used', 'sharpe_comp', 'stability_bonus', 'total']

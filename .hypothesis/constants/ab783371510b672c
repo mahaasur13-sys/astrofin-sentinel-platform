@@ -1,4 +1,0 @@
-# file: /home/workspace/core/council/types.py
-# hypothesis_version: 6.151.10
-
-[0.1, 0.15, 0.2, 'LONG', 'NEUTRAL', 'SHORT', 'astro', 'fundamental', 'macro', 'optionsflow', 'quant', 'sentiment', 'technical']

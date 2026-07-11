@@ -1,4 +1,0 @@
-# file: /home/workspace/data_room/observability.py
-# hypothesis_version: 6.151.10
-
-[0.0, 0.3, 0.5, 1.0, 1000, 'MetricsStore', 'MetricsStore | None', 'access_count', 'accesses', 'degraded', 'error_count', 'error_rate', 'errors', 'healthy', 'last_quality', 'latency_sum', 'latency_sum_ms', 'source_breakdown', 'status']

@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/astro_council_agent.py
-# hypothesis_version: 6.151.10
-
-[0.1, 1.0, 100.0, 100, 330, 360, 'AstroCouncil', 'BTC', 'BearResearcher', 'BullResearcher', 'Fundamental', 'Macro', 'NEUTRAL', 'OptionsFlow', 'Quant', 'Sentiment', 'Technical', 'astro_council_signal', 'astro_score', 'astro_yoga', 'current_price', 'datetime', 'ephemeris', 'error', 'final_signal', 'fundamental', 'jupiter', 'jupiter_moon_square', 'jupiter_moon_trine', 'macro', 'mars', 'mercury', 'moon', 'neutral', 'options', 'price', 'quant', 'run', 'saturn', 'score', 'sentiment', 'symbol', 'technical', 'total_agents', 'unknown', 'venus', 'weights', 'yoga']

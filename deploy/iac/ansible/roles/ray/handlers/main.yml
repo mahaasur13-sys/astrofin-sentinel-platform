@@ -1,3 +1,0 @@
-- name: Ray restart
-  ansible.builtin.shell: |
-    ray stop && ray start --head --port 6379

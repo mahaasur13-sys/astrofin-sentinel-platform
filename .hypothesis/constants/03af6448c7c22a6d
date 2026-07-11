@@ -1,4 +1,0 @@
-# file: /home/workspace/db/karl_replay.py
-# hypothesis_version: 6.151.10
-
-[1.0, 100, 1000, 10000, 'BTCUSDT', 'NORMAL', '[]', 'avg_confidence', 'created_at', 'id', 'max_drawdown', 'metadata', 'outcome', 'regime', 'regime_stability', 'sharpe_ratio', 'steps', 'symbol', 'total_reward', 'trade_count', 'trajectory_id', 'unknown', 'win_rate', '{}']

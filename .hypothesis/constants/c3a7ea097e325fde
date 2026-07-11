@@ -1,4 +1,0 @@
-# file: /home/workspace/mas_factory/engine.py
-# hypothesis_version: 6.151.10
-
-[30.0, 1000, 'ANALYZE', 'BTCUSDT', 'NEUTRAL', 'SWING', '_meta_warning', 'avg_duration_ms', 'bias_detected', 'cache_hit', 'cache_hit_rate', 'confidence', 'duration_ms', 'error', 'errors', 'fallback', 'hash', 'intention', 'meta_questions_asked', 'metrics', 'nodes_executed', 'query_type', 'reason', 'reasoning', 'result', 'signal', 'signal_count', 'signals', 'status', 'success', 'symbol', 'timeframe', 'timestamp', 'top_question', 'topology_hash', 'total_errors', 'total_runs', 'uncertainty', 'unknown']

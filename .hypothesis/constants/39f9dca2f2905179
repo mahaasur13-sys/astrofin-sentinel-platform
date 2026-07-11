@@ -1,4 +1,0 @@
-# file: /home/workspace/integrations/gitagent/adapters/gitagent_adapter.py
-# hypothesis_version: 6.151.10
-
-[100, 30000, '.', '1.0.0', 'BTCUSDT', 'DUTIES.md', 'GitAgentManifest', 'MASFactoryEngine', 'RULES.md', 'SKILL.md', 'SOUL.md', 'SWING', 'Topology', 'agent.yaml', 'aggregate', 'compliance', 'description', 'gitagent', 'manifest.yaml', 'model', 'name', 'route', 'skills', 'source', 'sub_agents', 'synthesize', 'tools', 'version', 'w', 'workflows']

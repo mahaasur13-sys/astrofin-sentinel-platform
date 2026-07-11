@@ -1,4 +1,0 @@
-# file: /home/workspace/meta_rl/metrics.py
-# hypothesis_version: 6.151.10
-
-[120, 300, 600, 1800, 3600, 'signal']

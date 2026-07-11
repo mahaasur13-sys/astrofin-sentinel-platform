@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/amre/meta_questioning.py
-# hypothesis_version: 6.151.10
-
-[0.5, 0.8, 0.9, 1.0, '!', '!=', '<', '<=', '==', '>', '>=', '? (Double-check)', 'Appropriate', 'EXTREME', 'High uncertainty', 'Justified', 'Manageable', 'NORMAL', 'No bias', 'Overconfident', 'Processed', '__builtins__', 'adjustment', 'answer', 'bias', 'bias_001', 'calib_001', 'calib_002', 'calibration', 'confidence', 'confidence > 70', 'confidence > 75', 'confidence > 80', 'contra_001', 'contradiction', 'evolutions', 'pass_rate', 'passed', 'question', 'question_id', 'questions', 'regime', 'regime == EXTREME', 'regime_001', 'text', 'total', 'total_sessions', 'uncert_001', 'uncertainty']

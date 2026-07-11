@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/bradley_agent.py
-# hypothesis_version: 6.151.10
-
-[-0.1, 0.03, 0.1, 0.3, 0.35, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 100, 120, 180, 360, 365, '1d', 'BTCUSDT', 'BradleyAgent', 'agent', 'agent_run_unhandled', 'aspects', 'avg_return', 'bradley_score', 'data', 'jupiter', 'neptune', 'planetary_aspects', 'saturn', 'score', 'seasonality', 'summary', 'symbol', 'technical', 'uranus']

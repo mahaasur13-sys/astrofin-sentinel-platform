@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/types.py
-# hypothesis_version: 6.151.10
-
-[100, 'BUY', 'HOLD', 'NEUTRAL', 'SELL', 'STRONG_BUY', 'STRONG_SELL']

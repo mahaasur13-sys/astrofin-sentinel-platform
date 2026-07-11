@@ -1,4 +1,0 @@
-# file: /home/workspace/core/belief.py
-# hypothesis_version: 6.151.10
-
-[0.0, 0.95, 1.0, 1.96, 2.576, 100, 'BUY', 'BearResearcher', 'BradleyAgent', 'BullResearcher', 'CycleAgent', 'ElectionAgent', 'ElliotAgent', 'FundamentalAgent', 'GannAgent', 'LONG', 'MacroAgent', 'MarketAnalyst', 'MuhurtaAgent', 'OptionsFlowAgent', 'QuantAgent', 'SELL', 'SHORT', 'STRONG_BUY', 'STRONG_SELL', 'SentimentAgent', 'SystemFallback', 'TechnicalAgent', 'TimeWindowAgent', 'agent_name', 'all_signals', 'alpha', 'astro', 'belief.db', 'beta', 'ci_95', 'ci_width', 'core', 'final_recommendation', 'macro', 'mean', 'mean_accuracy', 'mode_accuracy', 'session_id', 'signal', 'std', 'technical', 'total_sessions', 'unknown']

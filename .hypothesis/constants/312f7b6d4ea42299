@@ -1,4 +1,0 @@
-# file: /home/workspace/observability/metrics.py
-# hypothesis_version: 6.151.10
-
-[0.0, 0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 'AGENT_CONFIDENCE', 'AGENT_RUNS_TOTAL', 'DATA_ROOM_LATENCY', 'agent', 'default', 'elapsed', 'false', 'observability', 'record_agent_run', 'resolver', 'signal', 'status', 'symbol', 'time_block', 'timeframe', 'ttc', 'with_agent_timing']

@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/amre/self_question.py
-# hypothesis_version: 6.151.10
-
-[-0.15, -0.1, 0.1, 0.3, 0.4, 0.5, 0.7, 0.8, 1.0, 1.5, '0.35', '0.85', 'EXTREME', 'HIGH', 'LONG', 'NORMAL', 'Question processed', 'Regime is stable', 'SHORT', 'accuracy', 'action', 'agree', 'analyzed', 'avg_question_score', 'best_questions', 'bias', 'cherry', 'confidence', 'consistent', 'correct', 'incorrect', 'insufficient_data', 'justified', 'legacy_mode', 'n', 'n_history', 'new information', 'no_trigger', 'position size', 'question', 'questions_to_evict', 'regime', 'score', 'signal', 'status', 'true', 'worst_questions', 'wrong']

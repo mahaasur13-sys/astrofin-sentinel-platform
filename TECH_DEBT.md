@@ -17,23 +17,6 @@
 
 ---
 
-## KI-128 — Workflow triggers не включают `feat/**`
-
-- [ ] Применить `ki-128-workflow-triggers.patch` локально и смерджить.
-      **Оценка:** 15 мин (apply + push + merge).
-      **Срок:** сегодня (2026-07-11), до мержа #176.
-      **Контекст:** CI/Quality Gate не запускаются на PR из feature-веток.
-      См. `docs/CHANGE_REQUESTS/CR-2026-07-11-KI-128-workflow-triggers.md`.
-
-## AUDIT-2026-07-11 — Production Readiness 79%
-
-- [ ] Повысить readiness 79% → 85% (Phase 1/2/3, см. аудит).
-      **Оценка:** 5–7 дней.
-      **Срок:** конец июля 2026.
-      **Контекст:** 13/87 KI выполнено, 1 в работе, 73 в бэклоге.
-
----
-
 ## Шаблон новой записи
 
 ```markdown

@@ -1,4 +1,0 @@
-# file: /home/workspace/backtest/engine.py
-# hypothesis_version: 6.151.10
-
-[-0.003, 0.0, 0.003, 0.008, 0.01, 0.015, 0.02, 0.5, 10000.0, 50000.0, 100, 252, 500, 1000, 3600, 5000, '1h', '2025-01-01', '2025-03-25', 'AgentResponse', 'AstroCouncilAgent', 'BTCUSDT', 'EOD', 'FLIP', 'LONG', 'MacroAgent', 'NEUTRAL', 'SHORT', 'SL', 'Synthesis complete', 'TP', 'TechnicalAgent', '__main__', 'all_signals', 'astro_council_signal', 'close', 'conf', 'confidence', 'current_price', 'datetime', 'dir', 'endTime', 'entry', 'high', 'interval', 'limit', 'low', 'open', 'price', 'price_data', 'reasoning', 'results.db', 'signal', 'startTime', 'symbol', 'time', 'timeframe_requested', 'timestamp', 'volume']

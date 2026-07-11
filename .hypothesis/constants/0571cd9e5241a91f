@@ -1,4 +1,0 @@
-# file: /home/workspace/core/logging.py
-# hypothesis_version: 6.151.10
-
-['%(message)s', '016x', '032x', 'aiohttp', 'iso', 'opentelemetry', 'span_id', 'trace_id']

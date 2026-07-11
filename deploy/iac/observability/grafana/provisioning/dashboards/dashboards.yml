@@ -1,8 +1,0 @@
-apiVersion: 1
-providers:
-  - name: 'ACOS Dashboards'
-    orgId: 1
-    folder: 'ACOS'
-    type: file
-    options:
-      path: /etc/grafana/provisioning/dashboards

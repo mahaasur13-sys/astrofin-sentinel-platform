@@ -1,4 +1,0 @@
-# file: /home/workspace/meta_rl/evolution.py
-# hypothesis_version: 6.151.10
-
-[0.0, 0.5, 100, ' [KARL-UPDATED]', 'BTCUSDT', '_final_elites', 'baseline_reward', 'best_overall', 'best_reward', 'converged', 'crossover_rate', 'current_generation', 'drop_pct', 'elapsed_seconds', 'final_mean', 'first_half_avg', 'generation', 'generations', 'improvement', 'improvement_rate', 'improving', 'inf', 'insufficient_data', 'karl_state', 'karl_updated', 'karl_updates', 'max_reward', 'mean_reward', 'min_reward', 'mutation_rate', 'no_session', 'ohlcv', 'pool_size', 'population_size', 'reason', 'reward', 'reward_history', 'second_half_avg', 'status', 'std_reward', 'symbol', 'test_ohlcv', 'top_strategy_id', 'total_generations']

@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/elliot_agent.py
-# hypothesis_version: 6.151.10
-
-[0.03, 0.05, 0.2, 0.3, 0.382, 0.4, 0.45, 0.5, 0.6, 0.618, 0.65, 0.786, 1.0, 1.272, 1.618, 100, 120, 50000, '1d', 'BTCUSDT', 'ElliotAgent', 'agent', 'agent_run_unhandled', 'corrective', 'current_level', 'current_price', 'data', 'elliot_score', 'fib_targets', 'insufficient data', 'long', 'neutral', 'no range', 'num_swings', 'score', 'short', 'suggestion', 'summary', 'symbol', 'technical', 'wave_count']

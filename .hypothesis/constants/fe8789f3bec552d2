@@ -1,4 +1,0 @@
-# file: /home/workspace/trading/backtester.py
-# hypothesis_version: 6.151.10
-
-[0.05, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 10000.0, 100, '  BACKTEST RESULTS', '=', 'LONG', 'NEUTRAL', 'SHORT', 'confidence', 'max_position_pct', 'signal', 'symbol', 'timestamp']

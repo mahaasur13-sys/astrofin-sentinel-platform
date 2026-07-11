@@ -1,4 +1,0 @@
-# file: /home/workspace/meta_rl/config.py
-# hypothesis_version: 6.151.10
-
-[0.001, 0.01, 0.02, 0.15, 1.0, 100000.0, 100, '*', ',', '0.01', '0.10', '0.20', '0.25', '0.3', '0.35', '0.5', '0.8', '0.95', '10', '1h', '3', '5', '50', '8050', 'ALLOWED_ORIGINS', 'BTC/USDT', 'CCXT_API_KEY', 'CCXT_API_SECRET', 'CCXT_EXCHANGE', 'CCXT_LIVE_MODE', 'CCXT_RATE_LIMIT', 'CCXT_SANDBOX_MODE', 'CW_DIVERSITY', 'CW_PNL', 'CW_SHARPE', 'CW_STABILITY', 'CW_WIN_RATE', 'DEBUG_MODE', 'DECAY_KILL_THRESHOLD', 'HTML_REPORTS_ENABLED', 'LIVE_DATA_ENABLED', 'META_RL_ENABLED', 'META_RL_MODE', 'META_RL_SYMBOL', 'META_RL_TIMEFRAME', 'REPORTS_BASE_URL', 'REPORTS_OUTPUT_DIR', 'SECRET_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'WALK_FORWARD_ENABLED', 'WEB_DASHBOARD_URL', 'ZO_DASHBOARD_ENABLED', 'ZO_DASHBOARD_PORT', 'ZO_SPACE_ENABLED', 'binance', 'data/meta_rl/reports', 'diversity', 'false', 'historical', 'live', 'paper', 'risk_adjusted_pnl', 'sharpe', 'stability', 'true', 'win_rate']

@@ -1,4 +1,0 @@
-# file: /home/workspace/trading/execution/vwap.py
-# hypothesis_version: 6.151.10
-
-[0.0, 0.0003, 0.01, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5, 0.7, 0.8, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 50.0, 100, 390, 500, 1000, 3600, 10000, 50000, 'ABORTED', 'BTC/USDT', 'FILLED', 'VWAP', '__main__', 'buy', 'default', 'normal']

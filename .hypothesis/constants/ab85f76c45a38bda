@@ -1,4 +1,0 @@
-# file: /home/workspace/core/ephemeris.py
-# hypothesis_version: 6.151.10
-
-[0.0, 27.32, 30.6001, 37.6173, 50.1, 53.2, 55.7558, 87.97, 224.7, 365.25, 686.98, 1524.5, 4332.59, 10759.22, 100, 180, 220, 256, 290, 320, 360, 1440, 4716, 86400, 2451545, 'HAS_SWISS_EPHEMERIS', 'HouseCusps', 'NatalChart', 'P', 'PlanetPosition', 'calculate_houses', 'calculate_planet', 'chiron', 'jupiter', 'mars', 'mercury', 'moon', 'neptune', 'north_node', 'pluto', 'saturn', 'sun', 'uranus', 'venus']

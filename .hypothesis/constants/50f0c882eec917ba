@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/amre/hierarchical_policy.py
-# hypothesis_version: 6.151.10
-
-[0.3, 0.5, 0.6, 0.65, 0.7, 1.0, 1.5, 'EXTREME', 'HIGH', 'HOLD_OR_ADD', 'LOW', 'MAINTAIN', 'NORMAL', 'REDUCE_SIZE', 'SCALE_IN', 'STAND_ASIDE', 'action', 'confidence', 'confidence_boost', 'n_signals', 'position_multiplier', 'price', 'q_star', 'signals', 'total', 'uncertainty']

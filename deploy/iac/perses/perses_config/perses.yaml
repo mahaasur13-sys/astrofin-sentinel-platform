@@ -1,9 +1,0 @@
-apiVersion: perses.dev/v1alpha1
-kind: GlobalSpec
-dashboardFolders:
-  - path: /etc/perses/dashboards
-datasources:
-  - name: VictoriaMetrics
-    type: PrometheusHTTP
-    endpoint: http://rtx3060:8428
-    isDefault: true

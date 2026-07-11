@@ -1,4 +1,0 @@
-# file: /home/workspace/meta_rl/strategy_evaluator.py
-# hypothesis_version: 6.151.10
-
-[0.0, 0.3, 0.8, 1.0, 'AGGREGATE', 'BTCUSDT', 'ETHUSDT', 'NORMAL', 'NO_RISK_ENGINE', 'SPY', 'WALK_FORWARD_OOS', 'adjust_pnl', 'bars and strategy', 'binance', 'equity_curve', 'ohlcv', 'volatility_regime']

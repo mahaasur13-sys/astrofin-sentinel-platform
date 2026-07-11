@@ -1,9 +1,0 @@
-{
-  "name": "SynthesisAgent",
-  "module": "unified-platform.domain.astrofin.agents.registry",
-  "acos_job_type": "astrofin_synthesis",
-  "acos_layer": "L7",
-  "description": "Multi-source synthesis - Combine all agent analyses into unified recommendations",
-  "tools": ["data_synthesis", "cross_analysis", "consensus_scoring", "final_recommendation"],
-  "instructions": "Synthesize analyses from all other agents into coherent trading recommendations. Weight factors, resolve conflicts, produce final actionable signals."
-}

@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/amre/karl_optimizer.py
-# hypothesis_version: 6.151.10
-
-[-0.05, 0.0, 0.02, 0.05, 0.1, 0.25, 0.3, 0.4, 0.6, 0.8, 1.5, 60.0, 100, 1000, 'KARLOptimizer', 'avg_overhead_pct', 'avg_total_ms', 'elapsed_ms', 'exploration_rate', 'grounding', 'no_data', 'reward', 'samples', 'status', 'ttc_depth', 'uncertainty']

@@ -1,4 +1,0 @@
-# file: /home/workspace/core/kepler.py
-# hypothesis_version: 6.151.10
-
-[0.0, 1e-10, 5e-05, 0.01, 0.01671022, 0.03344414, 0.04839266, 0.0541506, 0.08308529, 0.98564735, 1.0, 1.00000011, 1.3033, 2.0, 2.48446, 5.20336301, 9.53707032, 14.72847, 34.39644001, 49.94432, 92.59887, 100.46435, 100.46444, 102.94719, 113.66544, 115.19287, 206.26431, 360.0, 365.256363, 4332.589, 10759.22, 86400.0, 2451545.0, 100, 2000, '=', 'ERROR', 'Earth', 'FAIL', 'Jupiter', 'KeplerOrbit', 'KeplerResult', 'OrbitalElements', 'PASS', 'SKIP', 'Saturn', 'WARN', '__main__', 'delta_lon', 'earth', 'jupiter', 'kepler_lon', 'kepler_result', 'message', 'propagate_kepler', 'saturn', 'status', 'swiss_lon']

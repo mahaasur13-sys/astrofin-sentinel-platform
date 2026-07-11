@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/gann_agent.py
-# hypothesis_version: 6.151.10
-
-[0.03, 0.15, 0.2, 0.25, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 100, 120, 180, 270, 365, 50000, '1d', 'BTCUSDT', 'GannAgent', 'agent', 'agent_run_unhandled', 'angles', 'astro_dates', 'current_price', 'data', 'distance_pct', 'gann_score', 'hits', 'insufficient data', 'jupiter', 'mars', 'mercury', 'moon', 'no range data', 'position', 'price_square', 'saturn', 'score', 'summary', 'sun', 'symbol', 'technical', 'time_clusters', 'venus']

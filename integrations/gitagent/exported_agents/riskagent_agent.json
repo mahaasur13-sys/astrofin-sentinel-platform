@@ -1,9 +1,0 @@
-{
-  "name": "RiskAgent",
-  "module": "unified-platform.domain.astrofin.agents.registry",
-  "acos_job_type": "astrofin_risk",
-  "acos_layer": "L8",
-  "description": "Portfolio risk assessment - VaR, drawdown enforcement, risk metrics",
-  "tools": ["var_calculation", "drawdown_monitoring", "risk_scoring", "portfolio_risk"],
-  "instructions": "Perform comprehensive portfolio risk analysis. Calculate VaR, monitor drawdowns, enforce risk limits. Requires L8+L9 governance approval before execution."
-}

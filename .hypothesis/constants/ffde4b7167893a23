@@ -1,4 +1,0 @@
-# file: /home/workspace/core/history_db.py
-# hypothesis_version: 6.151.10
-
-[0.0, 500, ' AND symbol = ?', 'AND final_signal = ?', 'AND symbol = ?', 'BTCUSDT', 'DELETE FROM sessions', 'IMMEDIATE', 'LONG', 'NEUTRAL', 'SHORT', 'SWING', 'VACUUM', 'agent_count', 'avg_conf', 'avg_confidence', 'cnt', 'confidence', 'core', 'current_price', 'final_output', 'final_recommendation', 'final_report', 'final_signal', 'flows_run', 'history.db', 'id', 'max_conf', 'max_confidence', 'min_conf', 'min_confidence', 'query_type', 'reasoning', 'recent_trend', 'session_id', 'signal', 'signal_distribution', 'started_at', 'symbol', 'timeframe', 'timestamp', 'total', 'total_sessions', 'unknown', 'win_rate_long', '{}']

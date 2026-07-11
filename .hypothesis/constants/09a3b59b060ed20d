@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/amre/similarity.py
-# hypothesis_version: 6.151.10
-
-[0.0, 1e-10, 0.3, 0.5, 1.0, 100.0, 'sharpe', 'simple', 'sortino']

@@ -1,4 +1,0 @@
-# file: /home/workspace/agents/_impl/amre/karl_diagnostics.py
-# hypothesis_version: 6.151.10
-
-[0.0, 0.05, 0.1, 0.3, 0.4, 0.5, 1.0, '?', 'Confidence degrading', 'DEGRADING', 'HEALTHY', 'Low astro alignment', 'STABLE', 'color', 'confidence_final', 'green', 'issues', 'recommendations', 'red', 'score', 'status', 'yellow', '~', '✓', '✗']

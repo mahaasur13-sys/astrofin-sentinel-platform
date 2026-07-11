@@ -1,4 +1,0 @@
-# file: /home/workspace/integrations/gitagent/validators/agent_validator.py
-# hypothesis_version: 6.151.10
-
-[100, 200, '\x1b[0m', '\x1b[1m', '\x1b[91m', '\x1b[92m', '\x1b[93m', '\x1b[94m', '\x1b[96m', '--all', '--dir', '--strict', '-a', '-d', '-s', '.', '<file>', '<root>', '<schema>', 'ERROR', 'INFO', 'Verbose output', 'WARNING', '^[a-z0-9_\\-]+$', '^\\d+\\.\\d+(\\.\\d+)?$', '__main__', 'agent.schema.json', 'agent.yaml', 'array', 'capabilities', 'capabilities[]', 'compliance', 'compliance.karllike', 'confidence', 'description', 'exported_agents', 'karllike', 'minItems=1', 'minLength=10', 'model', 'model.temperature', 'name', 'non-empty array', 'object', 'output_schema', 'present', 'provider', 'reasoning', 'rules', 'schema', 'signal', 'store_true', 'string', 'string minLength=3', 'temperature', 'tools', 'tools[]', 'uniqueItems', 'valid YAML', 'valid schema', 'version', '═', '✅', '❌']
