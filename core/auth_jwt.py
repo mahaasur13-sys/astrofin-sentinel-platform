@@ -368,7 +368,11 @@ def verify_token(
 
     logger.debug(
         "auth.token_verified",
-        extra={"sub": (decoded["sub"][:8] + "...") if isinstance(decoded.get("sub"), str) else decoded.get("sub"), "typ": expected_type, "jti": decoded["jti"][:8]},
+        extra={
+            "sub": (decoded["sub"][:8] + "...") if isinstance(decoded.get("sub"), str) else decoded.get("sub"),
+            "typ": expected_type,
+            "jti": decoded["jti"][:8],
+        },
     )
     return Claims(
         sub=decoded["sub"],

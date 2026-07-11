@@ -38,7 +38,7 @@ install_error_handling(server)
 # ── Graceful-shutdown state ────────────────────────────────────────────────────
 _state_lock = threading.Lock()
 _state: dict[str, Any] = {
-    "ready": True,            # False during drain → 503 from /health
+    "ready": True,  # False during drain → 503 from /health
     "draining_started_at": 0.0,  # epoch seconds
     "shutdown_started_at": 0.0,
 }
@@ -73,9 +73,7 @@ def _graceful_shutdown(signum: int, _frame: Any) -> None:
         if _state["shutdown_started_at"] == 0.0:
             _state["shutdown_started_at"] = time.time()
     _begin_drain()
-    _log.info(
-        "[graceful-shutdown] signal %s received; in-flight requests will drain", signum
-    )
+    _log.info("[graceful-shutdown] signal %s received; in-flight requests will drain", signum)
 
 
 # Install signal handlers. Gunicorn replaces these in its worker loop,

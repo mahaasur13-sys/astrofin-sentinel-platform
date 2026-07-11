@@ -18,6 +18,7 @@ Verdict categories:
 
 Each verdict is recorded with grep evidence (line of proof).
 """
+
 from __future__ import annotations
 import json
 import os
@@ -29,9 +30,9 @@ from pathlib import Path
 
 WORKSPACE = Path("/home/workspace")
 GRAPH = WORKSPACE / "graphify-out" / "graph.json"
-SAMPLE = Path(os.environ.get("INFERRED_SAMPLE") or
-              (sys.argv[1] if len(sys.argv) > 1 else
-               "/tmp/inferred_sample_500.json"))
+SAMPLE = Path(
+    os.environ.get("INFERRED_SAMPLE") or (sys.argv[1] if len(sys.argv) > 1 else "/tmp/inferred_sample_500.json")
+)
 REPORT = WORKSPACE / "docs" / "VALIDATION_REPORT.md"
 
 EXCLUDE_DIRS = ("Trash/", "node_modules/", "graphify-out/cache/")
@@ -83,10 +84,15 @@ def grep_evidence(pattern: str, *, glob: str = "*.py", limit: int = 5) -> list[s
     excl = [f"--glob=!{d}**" for d in EXCLUDE_DIRS]
     cmd = [
         "rg",
-        "--no-heading", "--line-number", "--max-count", str(limit),
-        "--glob", glob,
+        "--no-heading",
+        "--line-number",
+        "--max-count",
+        str(limit),
+        "--glob",
+        glob,
         *excl,
-        pattern, str(WORKSPACE),
+        pattern,
+        str(WORKSPACE),
     ]
     try:
         out = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
@@ -105,13 +111,12 @@ def judge(edge: dict, tnode: dict) -> tuple[str, list[str]]:
     """Return (verdict, evidence_lines) for an INFERRED edge."""
     src_file = edge["source_file"]
     tgt_file = (tnode or {}).get("source_file", "")
-    src_label = edge["source"].rsplit("_", 1)[-1]   # last segment of node id
+    src_label = edge["source"].rsplit("_", 1)[-1]  # last segment of node id
     tgt_label = edge["target"].rsplit("_", 1)[-1]
 
     # 1. target file missing entirely
     if tgt_file and not file_exists(tgt_file):
-        return ("outdated" if "_archived/" in tgt_file else "false"), \
-            [f"file_not_found: {tgt_file}"]
+        return ("outdated" if "_archived/" in tgt_file else "false"), [f"file_not_found: {tgt_file}"]
 
     # 2. archived or known-dead submodule
     if "_archived/" in tgt_file or "/_archived/" in tgt_file:
@@ -148,7 +153,9 @@ def main() -> None:
     lines.append("# VALIDATION_REPORT.md")
     lines.append("")
     total = sum(len(edges) for edges in buckets.values())
-    lines.append(f"Stratified validation of N={total} INFERRED edges from `graphify-out/graph.json` (snapshot 2026-06-17).")
+    lines.append(
+        f"Stratified validation of N={total} INFERRED edges from `graphify-out/graph.json` (snapshot 2026-06-17)."
+    )
     lines.append("")
     lines.append("**Verdict legend:**")
     lines.append("- `valid` — link is real and current")
@@ -172,7 +179,9 @@ def main() -> None:
             lines.append(f"- **Source:** `{e['source_file']}:L{e['source_location']} :: {e['source']}`")
             tgt_file = (tnode or {}).get("source_file", "") or "(empty)"
             lines.append(f"- **Target:** `{tgt_file}:{tnode.get('source_location', '?')} :: {e['target']}`")
-            lines.append(f"- **Confidence:** {e.get('confidence_score', 0):.3f}  **Weight:** {e.get('weight', 0):.2f}  **Relation:** `{e['relation']}`")
+            lines.append(
+                f"- **Confidence:** {e.get('confidence_score', 0):.3f}  **Weight:** {e.get('weight', 0):.2f}  **Relation:** `{e['relation']}`"
+            )
             lines.append(f"- **Verdict:** **{verdict}**")
             lines.append(f"- **Evidence:**")
             for ev in evidence:
@@ -184,9 +193,11 @@ def main() -> None:
     # Summary block
     total = sum(stats.values())
     lines.insert(7, "")
-    lines.insert(7, f"**Verdict summary (N={total}):** " + ", ".join(
-        f"`{k}`={v} ({v*100/total:.0f}%)" for k, v in sorted(stats.items(), key=lambda x: -x[1])
-    ))
+    lines.insert(
+        7,
+        f"**Verdict summary (N={total}):** "
+        + ", ".join(f"`{k}`={v} ({v * 100 / total:.0f}%)" for k, v in sorted(stats.items(), key=lambda x: -x[1])),
+    )
     lines.insert(7, "")
 
     REPORT.parent.mkdir(parents=True, exist_ok=True)

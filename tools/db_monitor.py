@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """DB Row Count Monitor — AstroFin Sentinel V5"""
+
 from __future__ import annotations
 
 import sqlite3

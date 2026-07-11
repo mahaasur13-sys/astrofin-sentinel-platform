@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """ROMA Job Retry System with Persistent Execution Guarantee"""
+
 import threading
 import uuid
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional, Dict, List, Callable
 from datetime import datetime
+
 
 class JobState(Enum):
     QUEUED = "queued"
@@ -14,6 +16,7 @@ class JobState(Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     COMMITTED = "committed"  # event store committed = job is done
+
 
 @dataclass
 class Job:
@@ -28,15 +31,14 @@ class Job:
     error: Optional[str] = None
     result: Optional[dict] = None
 
+
 class JobRetryManager:
     """
     Handles job retry logic with exponential backoff.
     Job is only considered done after COMMITTED state (event store commit).
     """
 
-    def __init__(self, max_retries: int = 3,
-                 base_backoff: float = 2.0,
-                 max_backoff: float = 60.0):
+    def __init__(self, max_retries: int = 3, base_backoff: float = 2.0, max_backoff: float = 60.0):
         self.max_retries = max_retries
         self.base_backoff = base_backoff
         self.max_backoff = max_backoff
@@ -46,9 +48,9 @@ class JobRetryManager:
         self._on_retry_callback: Optional[Callable] = None
         self._on_fail_callback: Optional[Callable] = None
 
-    def enqueue(self, plugin_type: str, payload: dict,
-                job_id: Optional[str] = None,
-                max_retries: Optional[int] = None) -> Job:
+    def enqueue(
+        self, plugin_type: str, payload: dict, job_id: Optional[str] = None, max_retries: Optional[int] = None
+    ) -> Job:
         job_id = job_id or f"job-{uuid.uuid4().hex[:12]}"
         max_retries = max_retries if max_retries is not None else self.max_retries
         job = Job(
@@ -59,7 +61,7 @@ class JobRetryManager:
             retries=0,
             max_retries=max_retries,
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
         with self._mu:
             self._jobs[job_id] = job
@@ -113,7 +115,7 @@ class JobRetryManager:
             if job.retries < job.max_retries:
                 job.state = JobState.RETRYING
                 job.retries += 1
-                backoff = min(self.base_backoff ** job.retries, self.max_backoff)
+                backoff = min(self.base_backoff**job.retries, self.max_backoff)
                 job.updated_at = datetime.utcnow()
                 # Re-enqueue for retry
                 self._retry_queue.append(job_id)
@@ -157,10 +159,7 @@ class JobRetryManager:
                 "total_jobs": total,
                 "by_state": by_state,
                 "retry_queue_depth": len(self._retry_queue),
-                "success_rate": (
-                    by_state[JobState.COMMITTED.value] / total * 100
-                    if total > 0 else 0
-                )
+                "success_rate": (by_state[JobState.COMMITTED.value] / total * 100 if total > 0 else 0),
             }
 
     def on_retry(self, cb: Callable):
@@ -183,10 +182,7 @@ class PersistentExecutionGuarantee:
 
     def begin_execution(self, job_id: str) -> bool:
         """Mark job as started (in execution log)"""
-        self._execution_log[job_id] = {
-            "started_at": datetime.utcnow().isoformat(),
-            "state": "started"
-        }
+        self._execution_log[job_id] = {"started_at": datetime.utcnow().isoformat(), "state": "started"}
         return self.retry_mgr.mark_running(job_id)
 
     def complete_execution(self, job_id: str, result: dict) -> bool:

@@ -58,7 +58,7 @@ class DatasetBuilder:
         start_time = start_time or (end_time - timedelta(days=7))
 
         logger.info(
-            f"Building dataset: start={start_time}, end={end_time}, " f"horizon={horizon_minutes}m, nodes={node_ids}"
+            f"Building dataset: start={start_time}, end={end_time}, horizon={horizon_minutes}m, nodes={node_ids}"
         )
 
         # Pull raw feature vectors from TimescaleDB
@@ -111,9 +111,7 @@ class DatasetBuilder:
         valid_nodes = node_counts[node_counts >= min_samples].index
         df = df[df["node_id"].isin(valid_nodes)]
 
-        logger.info(
-            f"Dataset built: {len(df)} rows, {df['label_failure'].sum()} failures, " f"{len(valid_nodes)} nodes"
-        )
+        logger.info(f"Dataset built: {len(df)} rows, {df['label_failure'].sum()} failures, {len(valid_nodes)} nodes")
         return df
 
     def _label_from_timescale(

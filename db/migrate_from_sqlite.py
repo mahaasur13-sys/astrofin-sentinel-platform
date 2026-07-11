@@ -12,6 +12,7 @@ Prerequisites:
     2. DB_BACKEND=postgresql
     3. All tables created via init_db_if_needed()
 """
+
 from __future__ import annotations
 
 

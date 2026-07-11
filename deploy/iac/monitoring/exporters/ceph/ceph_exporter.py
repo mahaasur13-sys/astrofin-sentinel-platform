@@ -62,7 +62,7 @@ def build_metrics() -> str:
     lines = [
         "# HELP ceph_cluster_health Cluster health status",
         "# TYPE ceph_cluster_health gauge",
-        f'ceph_cluster_health{{status="{health.get("status","UNKNOWN")}"}} 1',
+        f'ceph_cluster_health{{status="{health.get("status", "UNKNOWN")}"}} 1',
         "# HELP ceph_mon_quorum_size MON quorum count",
         "# TYPE ceph_mon_quorum_size gauge",
         f"ceph_mon_quorum_size {len(mon_quorum)}",

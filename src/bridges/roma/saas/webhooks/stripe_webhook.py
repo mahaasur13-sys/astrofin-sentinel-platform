@@ -1,4 +1,5 @@
 """ROMA SaaS — Stripe Webhook Handler + Revenue-Share."""
+
 from fastapi import APIRouter, Request, HTTPException, Header
 from pydantic import BaseModel
 from typing import Optional
@@ -16,17 +17,21 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 _redis = None
 try:
     import redis
+
     _redis = redis.from_url(REDIS_URL, decode_responses=True)
     _redis.ping()
 except Exception:  # noqa: BLE001
     pass
 
+
 def _dup(event_id: str) -> bool:
     return _redis is not None and _redis.exists(f"stripe:event:{event_id}") > 0
+
 
 def _mark(event_id: str) -> None:
     if _redis:
         _redis.setex(f"stripe:event:{event_id}", 86400, str(time.time()))
+
 
 def _verify(payload: bytes, sig: str, secret: str) -> bool:
     if not sig or not secret:
@@ -34,20 +39,18 @@ def _verify(payload: bytes, sig: str, secret: str) -> bool:
     try:
         parts = dict(p.split("=") for p in sig.split(","))
         signed = f"{parts['t']}.{payload.decode()}"
-        actual = hmac.new(
-            secret.encode(),
-            signed.encode(),
-            hashlib.sha256
-        ).hexdigest()
+        actual = hmac.new(secret.encode(), signed.encode(), hashlib.sha256).hexdigest()
         return hmac.compare_digest(actual, parts.get("v1", ""))
     except Exception:  # noqa: BLE001
         return False
+
 
 class Response(BaseModel):
     received: bool
     event_id: Optional[str] = None
     processed: bool = False
     error: Optional[str] = None
+
 
 @router.post("/stripe", response_model=Response)
 async def stripe_webhook(
@@ -76,6 +79,7 @@ async def stripe_webhook(
 
         if etype in ("checkout.session.completed", "customer.subscription.created"):
             from billing.ledger import BillingLedger
+
             ledger = BillingLedger()
             amount = obj.get("amount_total", 0) or obj.get("amount_paid", 0)
             currency = obj.get("currency", "usd")
@@ -87,16 +91,17 @@ async def stripe_webhook(
         elif etype == "invoice.paid":
             from billing.ledger import BillingLedger
             from saas.webhooks.revenue_share import RevenueShareCalculator
+
             ledger = BillingLedger()
             calc = RevenueShareCalculator(ledger)
             amount = obj.get("amount_paid", 0)
-            ledger.record_usage(tid, amount, obj.get("currency", "usd"),
-                               f"Invoice {obj.get('id')}", obj.get("period_end", 0))
+            ledger.record_usage(
+                tid, amount, obj.get("currency", "usd"), f"Invoice {obj.get('id')}", obj.get("period_end", 0)
+            )
             share = calc.calculate(tid, amount)
             if share["revenue_share_cents"] > 0:
                 ledger.record_revenue_share(
-                    tid, share["revenue_share_cents"],
-                    obj.get("id"), share["revenue_share_percent"]
+                    tid, share["revenue_share_cents"], obj.get("id"), share["revenue_share_percent"]
                 )
             ok = True
 

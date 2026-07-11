@@ -74,6 +74,7 @@ from core.security_middleware import (  # noqa: E402
     install_security_middleware,
     add_security_headers_to_server,
 )
+
 install_security_middleware(
     server,
     allowed_origins=ALLOWED_ORIGINS.split(",") if ALLOWED_ORIGINS else ["*"],
@@ -85,9 +86,11 @@ server.register_blueprint(data_room_bp)
 
 # ── Standardised error handling (ERR-01) ──────────────────────────────────────
 from web.middleware import install_error_handling  # noqa: E402
+
 install_error_handling(server)
 
 import logging as _logging  # noqa: E402
+
 _log = _logging.getLogger(__name__)
 _log.addHandler(_logging.NullHandler())
 werkzeug_log = _logging.getLogger("werkzeug")
@@ -218,8 +221,6 @@ _log.info(f"[DASH] AstroFinSentinelV5 ready → http://0.0.0.0:{PORT}")
 _log.info(f"[DASH] Config: DEBUG={DEBUG} PORT={PORT} URL_BASE={os.getenv('URL_BASE_PATHNAME', '/')}")
 
 
-
-
 # ── Graceful shutdown (SIGTERM) ────────────────────────────────────────────────
 def _graceful_shutdown(signum, frame):  # noqa: ARG001
     _log.info("[DASH] Received signal %s — shutting down gracefully", signum)
@@ -239,6 +240,8 @@ try:
     signal.signal(signal.SIGINT, _graceful_shutdown)
 except Exception:  # pragma: no cover — SIGINT may be unavailable on Windows  # noqa: BLE001
     pass
+
+
 # ── Global exception handler ─────────────────────────────────────────────────────
 def _log_uncaught(exc_type, exc_value, exc_tb):
     """Log uncaught exceptions with full traceback instead of swallowing them."""
@@ -252,7 +255,6 @@ sys.excepthook = _log_uncaught
 
 
 if __name__ == "__main__":
-
     app.run(
         debug=DEBUG,
         host="0.0.0.0",  # nosec B104 — dev dashboard, internal network only

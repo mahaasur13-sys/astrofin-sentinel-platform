@@ -26,6 +26,7 @@ WORKER_ID = os.getenv("WORKER_ID", f"gpu-worker-{uuid.uuid4().hex[:8]}")
 # =============================================================================
 app = FastAPI(title="ROMA GPU Worker", version="1.0.0")
 
+
 # =============================================================================
 # Models
 # =============================================================================
@@ -64,8 +65,7 @@ class WorkerState:
     def _check_gpu(self) -> bool:
         try:
             result = subprocess.run(
-                ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
-                capture_output=True, timeout=5
+                ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"], capture_output=True, timeout=5
             )
             return result.returncode == 0
         except Exception:  # noqa: BLE001
@@ -76,7 +76,7 @@ class WorkerState:
             "job_id": job_id,
             "worker_id": WORKER_ID,
             "started_at": datetime.utcnow().isoformat(),
-            "status": "running"
+            "status": "running",
         }
 
     def complete_job(self, job_id: str, result: dict) -> None:
@@ -93,10 +93,13 @@ state = WorkerState()
 def build_docker_command(job: JobRequest) -> list:
     """Build Docker command for GPU job."""
     base_cmd = [
-        "docker", "run",
+        "docker",
+        "run",
         "--rm",
-        "--gpus", f'"device={GPU_DEVICE}"',
-        "-e", f"CUDA_VISIBLE_DEVICES={GPU_DEVICE}",
+        "--gpus",
+        f'"device={GPU_DEVICE}"',
+        "-e",
+        f"CUDA_VISIBLE_DEVICES={GPU_DEVICE}",
     ]
 
     # Memory limit
@@ -139,13 +142,10 @@ def execute_job_sync(job: JobRequest) -> JobResult:
     try:
         if job.image:
             cmd = build_docker_command(job)
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=job.timeout
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=job.timeout)
         else:
             result = subprocess.run(
-                job.command, shell=True, capture_output=True, text=True,
-                timeout=job.timeout, cwd="/workspace"
+                job.command, shell=True, capture_output=True, text=True, timeout=job.timeout, cwd="/workspace"
             )
 
         duration = asyncio.get_event_loop().time() - start_time
@@ -165,8 +165,8 @@ def execute_job_sync(job: JobRequest) -> JobResult:
                 "image": job.image,
                 "command": job.command,
                 "timeout": job.timeout,
-                "memory": job.memory
-            }
+                "memory": job.memory,
+            },
         )
 
     except subprocess.TimeoutExpired:
@@ -180,7 +180,7 @@ def execute_job_sync(job: JobRequest) -> JobResult:
             returncode=-1,
             duration_seconds=duration,
             gpu_used=GPU_DEVICE,
-            execution_context={"timeout": job.timeout}
+            execution_context={"timeout": job.timeout},
         )
     except Exception as e:  # noqa: BLE001
         duration = asyncio.get_event_loop().time() - start_time
@@ -193,7 +193,7 @@ def execute_job_sync(job: JobRequest) -> JobResult:
             returncode=-2,
             duration_seconds=duration,
             gpu_used=GPU_DEVICE,
-            execution_context={"error": str(e)}
+            execution_context={"error": str(e)},
         )
 
 
@@ -208,17 +208,13 @@ def root():
         "worker_id": WORKER_ID,
         "gpu_available": state.gpu_available,
         "gpu_device": GPU_DEVICE,
-        "jobs_processed": len(state.jobs)
+        "jobs_processed": len(state.jobs),
     }
 
 
 @app.get("/health")
 def health():
-    return {
-        "status": "healthy",
-        "worker_id": WORKER_ID,
-        "gpu_available": state.gpu_available
-    }
+    return {"status": "healthy", "worker_id": WORKER_ID, "gpu_available": state.gpu_available}
 
 
 @app.post("/execute", response_model=JobResult)
@@ -259,7 +255,7 @@ def metrics():
         "total_jobs": total_jobs,
         "completed_jobs": completed,
         "active_jobs": total_jobs - completed,
-        "jobs": list(state.jobs.values())
+        "jobs": list(state.jobs.values()),
     }
 
 
@@ -268,6 +264,7 @@ def metrics():
 # =============================================================================
 if __name__ == "__main__":
     import uvicorn
+
     print("=== ROMA GPU Worker ===")
     print(f"Worker ID: {WORKER_ID}")
     print(f"GPU Device: {GPU_DEVICE}")
