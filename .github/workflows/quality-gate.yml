@@ -91,6 +91,11 @@ jobs:
             echo "::endgroup::"
           done
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
       - name: Coverage on changed files (KI-127)
         if: steps.changed.outputs.changed_files != ''
         run: |
