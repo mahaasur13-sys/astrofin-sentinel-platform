@@ -175,13 +175,13 @@ class LiveDataProvider:
 
             result = []
             for bar in raw:
-                ts, o, h, l, c, v = bar
+                ts, o, h, lo, c, v = bar
                 result.append(
                     {
                         "timestamp": ts,
                         "open": float(o),
                         "high": float(h),
-                        "low": float(l),
+                        "low": float(lo),
                         "close": float(c),
                         "volume": float(v),
                     }
@@ -266,8 +266,8 @@ class LiveDataProvider:
         # ATR (Average True Range) — 14-bar
         trs = []
         for i in range(1, len(ohlcv)):
-            h, l, pc = highs[i], lows[i], closes[i - 1]
-            tr = max(h - l, abs(h - pc), abs(l - pc))
+            h, lo, pc = highs[i], lows[i], closes[i - 1]
+            tr = max(h - lo, abs(h - pc), abs(lo - pc))
             trs.append(tr)
         atr = float(np.mean(trs[-14:])) if len(trs) >= 14 else float(np.mean(trs))
 
@@ -366,7 +366,7 @@ class LiveDataProvider:
             o = price
             c = price * (1 + ret)
             h = max(o, c) * (1 + abs(ret) * np.random.uniform(0.1, 0.5))
-            l = min(o, c) * (1 - abs(ret) * np.random.uniform(0.1, 0.5))
+            lo = min(o, c) * (1 - abs(ret) * np.random.uniform(0.1, 0.5))
             v = np.random.uniform(500, 5000) * (1 + abs(ret) / vol)
 
             ohlcv.append(
@@ -374,7 +374,7 @@ class LiveDataProvider:
                     "timestamp": ts,
                     "open": round(o, 4),
                     "high": round(h, 4),
-                    "low": round(l, 4),
+                    "low": round(lo, 4),
                     "close": round(c, 4),
                     "volume": round(v, 2),
                 }

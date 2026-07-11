@@ -6,10 +6,11 @@ import sys
 import threading
 from pathlib import Path
 
+import click
+
 try:
     from rich.console import Console
     from rich.panel import Panel
-    from rich.table import Table
     from rich.text import Text
 
     RICH = True
@@ -116,9 +117,6 @@ def print_topology_viz(topology_dict=None, session_id=None):
 async def visualize_current_topology(session_id=None):
     print("[INFO] Topology visualization placeholder")
 
-
-# ── CLI (Click) ─────────────────────────────────────────────────
-import click
 
 
 @click.group()

@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import logging
+import os
+import time
+from contextlib import contextmanager
+
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 """db/session.py — PostgreSQL Session Management (ATOM-DB-MIGRATION)
@@ -11,10 +16,6 @@ Features:
 - Connection pool stats
 """
 
-import logging
-import os
-import time
-from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
 
