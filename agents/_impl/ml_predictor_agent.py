@@ -119,7 +119,7 @@ class MLPredictorAgent(BaseAgent[AgentResponse]):
             resp = requests.get(url, timeout=10)
             data = resp.json()
             return [float(x[4]) for x in data]  # close prices
-        except Exception:
+        except Exception:  # noqa: BLE001
             return []
 
     def _predict_direction(self, prices: list) -> dict:

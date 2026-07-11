@@ -123,7 +123,7 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
                     "ath": data.get("market_data", {}).get("ath", {}).get("usd", 0),
                     "atl": data.get("market_data", {}).get("atl", {}).get("usd", 0),
                 }
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
         return {"market_cap_rank": 999}
 
@@ -150,7 +150,7 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
                             1,
                         ),
                     }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[FundamentalAgent] Failed to fetch onchain data for {symbol}: {e}")
         return {"mvrv_ratio": 1.0, "ath_distance_pct": 50.0, "volatility_30d": 10.0}
 

@@ -195,7 +195,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                         vol_engine = VolatilityEngine.from_price_atr(current_price, meta["atr"])
                         break
                 vol_risk = vol_engine.analyze(symbol=symbol, price=current_price)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
 
         regime = vol_risk.regime if vol_risk else VolatilityRegime.NORMAL
@@ -293,7 +293,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                 issues=oap_result.issues,
                 metadata={"symbol": symbol, "timeframe": timeframe},
             )
-        except Exception as amre_err:
+        except Exception as amre_err:  # noqa: BLE001
             {"enabled": False, "error": str(amre_err)}
 
         # ─── 4. Формируем breakdown ────────────────────────────────────

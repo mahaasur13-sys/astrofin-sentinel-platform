@@ -67,7 +67,7 @@ class AstroCouncilAgent(BaseAgent[AgentResponse]):
                 if isinstance(resp, dict):
                     resp = AgentResponse(**resp)
                 responses[name] = resp
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning("AstroCouncil: agent %s failed: %s", name, e)
                 responses[name] = AgentResponse(
                     agent_name=name,

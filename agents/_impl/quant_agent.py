@@ -141,7 +141,7 @@ class QuantAgent(BaseAgent[AgentResponse]):
             resp = await get_http_client().get(url)
             data = resp.json()
             return [[float(x[4]), float(x[5]), float(x[2]), float(x[3])] for x in data]
-        except Exception:
+        except Exception:  # noqa: BLE001
             return []
 
     def _momentum_analysis(self, data: list) -> dict:

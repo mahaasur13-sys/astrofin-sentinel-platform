@@ -48,7 +48,7 @@ class MacroAgent(BaseAgent[AgentResponse]):
         if self.rag is None:
             try:
                 self.rag = RAGRetriever()  # index_name removed in P2-02 RAGClient (G12)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning("Failed to init RAG for MacroAgent: %s", e)
         return self.rag
 
@@ -232,7 +232,7 @@ class MacroAgent(BaseAgent[AgentResponse]):
             else:
                 return None, 0, "Geopolitical signals balanced"
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning("Geopolitical analysis failed: %s", e)
             return None, 0, f"Geopolitical analysis error: {str(e)}"
 

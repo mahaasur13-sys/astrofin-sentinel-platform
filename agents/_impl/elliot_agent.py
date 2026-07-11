@@ -113,7 +113,7 @@ class ElliotAgent(BaseAgent[AgentResponse]):
                 resp.raise_for_status()
                 data = resp.json()
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}")
             return []
 
