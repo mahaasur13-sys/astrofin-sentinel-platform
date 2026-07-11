@@ -145,9 +145,9 @@ def format_error(
     return {
         "code": code,
         "message": message,
-        "trace_id": trace_id or "",
+        "trace_id": trace_id or "unknown",
         "correlation_id": correlation_id or get_correlation_id(),
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.", time.gmtime()) + f"{int((time.time() % 1) * 1000):03d}Z",  # ISO-8601 UTC with ms, RFC 3339
         "status": status,
         "details": merged_details,
     }
@@ -159,7 +159,7 @@ def error_response(
     trace_id: str | None = None,
     correlation_id: str | None = None,
     details: dict[str, Any] | None = None,
-) -> tuple[dict[str, int]]:
+) -> tuple[dict[str, Any], int]:
     """Return (envelope, status) — convenient tuple for Flask/FastAPI handlers."""
     envelope = format_error(
         exc,
