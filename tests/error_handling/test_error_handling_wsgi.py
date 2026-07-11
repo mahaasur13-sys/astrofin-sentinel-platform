@@ -75,19 +75,18 @@ class TestStandardisedErrors:
             "/data-room/conflicts",
             headers={"X-API-Key": "test-key"},
         )
-        if r.status_code == 404:
-            body = r.get_json()
-            assert body["code"] == "NOT_FOUND"
-            assert _envelope_keys().issubset(body.keys())
-        else:
-            assert r.status_code == 200
+        assert r.status_code == 404
+        body = r.get_json()
+        assert isinstance(body, dict)
+        assert body["code"] == "NOT_FOUND"
+        assert _envelope_keys().issubset(body.keys())
 
     def test_unknown_route_returns_404_envelope(self, client):
         r = client.get("/api/does-not-exist")
         assert r.status_code == 404
         body = r.get_json()
-        if body is not None and isinstance(body, dict):
-            assert _envelope_keys().issubset(body.keys())
+        assert isinstance(body, dict)
+        assert _envelope_keys().issubset(body.keys())
 
 
 class TestCorrelationIdPropagation:
