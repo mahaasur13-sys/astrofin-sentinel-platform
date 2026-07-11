@@ -21,6 +21,7 @@ Backwards compatibility:
   (no `__init__` signature changes), so existing `except JWTError` clauses still
   match.
 """
+
 from __future__ import annotations
 
 import time
@@ -147,7 +148,8 @@ def format_error(
         "message": message,
         "trace_id": trace_id or "unknown",
         "correlation_id": correlation_id or get_correlation_id(),
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.", time.gmtime()) + f"{int((time.time() % 1) * 1000):03d}Z",  # ISO-8601 UTC with ms, RFC 3339
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.", time.gmtime())
+        + f"{int((time.time() % 1) * 1000):03d}Z",  # ISO-8601 UTC with ms, RFC 3339
         "status": status,
         "details": merged_details,
     }
