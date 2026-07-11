@@ -25,12 +25,24 @@ from typing import Any
 from flask import Flask, jsonify, request
 
 from core.auth import require_api_key
-from core.error_schema import BadRequest, InternalError
+from core.error_schema import BadRequest, InternalError, error_response, error_response
 from web.middleware import install_error_handling
 
 _log = logging.getLogger("wsgi.shutdown")
 
 server = Flask(__name__)
+
+# Register error envelope handlers
+@server.errorhandler(InternalError)
+@server.errorhandler(BadRequest)
+def handle_known_errors(error):
+    return error_response(error)
+
+# Register error envelope handlers
+@server.errorhandler(InternalError)
+@server.errorhandler(BadRequest)
+def handle_known_errors(error):
+    return error_response(error)
 
 # Standardised error envelope (ERR-01): correlation-id + JSON schema.
 install_error_handling(server)
