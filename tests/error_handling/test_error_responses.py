@@ -46,6 +46,7 @@ def _envelope_keys() -> set[str]:
 def _reset_correlation_id():
     """Reset the ContextVar before and after each test."""
     from core.error_schema import _correlation_id_var
+
     token = _correlation_id_var.set("unknown")
     try:
         yield

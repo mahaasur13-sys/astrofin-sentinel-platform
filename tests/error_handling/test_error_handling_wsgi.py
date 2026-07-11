@@ -6,6 +6,7 @@ These tests exercise the Flask server defined in web/wsgi.py and verify that:
   * The X-Correlation-ID response header echoes the request id.
   * Legacy 200 responses (success) are unaffected.
 """
+
 from __future__ import annotations
 
 import os

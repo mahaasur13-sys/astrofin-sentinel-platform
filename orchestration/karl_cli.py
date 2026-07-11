@@ -118,7 +118,6 @@ async def visualize_current_topology(session_id=None):
     print("[INFO] Topology visualization placeholder")
 
 
-
 @click.group()
 def cli():
     """AstroFin Sentinel V5 — KARL CLI"""

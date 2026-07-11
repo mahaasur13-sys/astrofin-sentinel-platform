@@ -186,6 +186,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
     try:
         # FAISS: enumerate files in faiss_dir
         from pathlib import Path
+
         faiss_dir = Path(client.config.faiss_dir)
         if not faiss_dir.exists():
             _warn(f"FAISS dir does not exist: {faiss_dir}")
@@ -198,6 +199,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                 n = 0
                 if meta_path.exists():
                     import json
+
                     try:
                         n = len(json.loads(meta_path.read_text(encoding="utf-8")))
                     except Exception:  # noqa: BLE001
@@ -243,10 +245,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
 
         _header("FAISS (legacy)")
         if domains_faiss:
-            rows = [
-                [d, str(v["chunks"]), _format_size(v["size"])]
-                for d, v in sorted(domains_faiss.items())
-            ]
+            rows = [[d, str(v["chunks"]), _format_size(v["size"])] for d, v in sorted(domains_faiss.items())]
             _print_table(["domain", "chunks", "size"], rows)
         else:
             _warn("no FAISS indexes found")
@@ -288,6 +287,7 @@ async def cmd_retrieve(args: argparse.Namespace) -> int:
         elapsed_ms = (time.perf_counter() - t0) * 1000
     except Exception as e:  # noqa: BLE001
         import traceback
+
         tb = traceback.format_exc()
         _err(f"retrieve() raised: {e!r}\n{tb}")
         await client.aclose()
@@ -459,8 +459,7 @@ async def cmd_reindex_faiss(args: argparse.Namespace) -> int:
         # Fetch all docs for the domain from pgvector
         async with client._pg_pool.acquire() as conn:  # type: ignore[union-attr]
             rows = await conn.fetch(
-                "SELECT doc_id, content, source, title, domain "
-                "FROM documents WHERE domain = $1",
+                "SELECT doc_id, content, source, title, domain FROM documents WHERE domain = $1",
                 args.domain,
             )
         if not rows:
@@ -513,22 +512,31 @@ def build_parser() -> argparse.ArgumentParser:
     # Global options (added to every subparser below)
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument(
-        "--backend", default=None,
+        "--backend",
+        default=None,
         help="override RAG backend (default: from RAG_BACKEND env or pgvector)",
     )
     common.add_argument(
-        "--legacy-fallback", type=lambda v: v.lower() in ("1", "true", "yes"),
-        default=None, help="enable/disable FAISS fallback when pgvector is down",
+        "--legacy-fallback",
+        type=lambda v: v.lower() in ("1", "true", "yes"),
+        default=None,
+        help="enable/disable FAISS fallback when pgvector is down",
     )
     common.add_argument(
-        "--faiss-dir", default=None, help="override FAISS index directory",
+        "--faiss-dir",
+        default=None,
+        help="override FAISS index directory",
     )
     common.add_argument(
-        "--min-score", type=float, default=None,
+        "--min-score",
+        type=float,
+        default=None,
         help="minimum relevance score for retrieved chunks",
     )
     common.add_argument(
-        "--provider", default=None, choices=["openai", "ollama", "stub"],
+        "--provider",
+        default=None,
+        choices=["openai", "ollama", "stub"],
         help="override embedding provider",
     )
 
@@ -544,12 +552,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("list-domains", parents=[common], help="list all known domains")
     sub.add_parser(
-        "migrate-status", parents=[common],
+        "migrate-status",
+        parents=[common],
         help="compare FAISS vs pgvector counts per domain",
     )
 
     p_reidx = sub.add_parser(
-        "reindex-faiss", parents=[common],
+        "reindex-faiss",
+        parents=[common],
         help="rebuild FAISS index for a domain from pgvector",
     )
     p_reidx.add_argument("--domain", required=True)
