@@ -133,7 +133,7 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
                     ]
                     for x in data.get("data", [])
                 ]
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT on {interval} with limit {limit}")
             return []
 
