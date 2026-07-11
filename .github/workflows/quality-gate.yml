@@ -2,7 +2,7 @@ name: Quality Gate
 
 on:
   pull_request:
-    branches: [ master, develop ]
+    branches: [master, develop, "feat/**", "fix/**"]
     paths:
       - 'agents/_impl/**'
       - 'core/**'
@@ -18,6 +18,10 @@ on:
 # tree). Previously it surfaced 60+ pre-existing BLE001 errors in master
 # and made every PR red, regardless of what the PR touched. See
 # docs/KNOWN_ISSUES.md (KI-125).
+#
+# KI-128 fix: trigger list extended from [master, develop] to also include
+# "feat/**" and "fix/**" so feature/fix branch PRs receive a Quality Gate
+# run. See docs/CHANGE_REQUESTS/CR-2026-07-11-KI-128-workflow-triggers.md.
 
 env:
   PYTHON_VERSION: '3.12'
@@ -51,10 +55,6 @@ jobs:
           cat <<< "${{ steps.changed.outputs.changed_files }}"
 
       - name: Lint changed files (KI-125)
-        # Run ruff on the intersection of "files the PR changed" and
-        # "files under lint-scope trees that still exist on disk".
-        # Files outside the PR diff are not enforced here — they are
-        # addressed as separate cleanup tasks (see ROADMAP).
         run: |
           set +e
           base="origin/${{ github.base_ref }}"
@@ -91,20 +91,9 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-
       - name: Coverage on changed files (KI-127)
         if: steps.changed.outputs.changed_files != ''
         run: |
-          # KI-127: `pytest-cov` lives in [project.optional-dependencies.dev] and the
-          # coverage addopts are configured in pyproject.toml. Previously this job
-          # invoked `python -m pytest` without first running `uv sync --extra dev`,
-          # which left the runtime env without pytest-cov and produced
-          # `unrecognized arguments: --cov=...` even though the flags were also
-          # passed explicitly. Install dev extras and let addopts own the flags.
           uv sync --frozen --extra dev
           echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
           echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
