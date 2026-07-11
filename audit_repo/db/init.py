@@ -37,7 +37,7 @@ def apply_raw_sql_schema(engine) -> bool:
                     continue
                 try:
                     conn.exec_driver_cmds(stmt)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     # Some statements like CREATE EXTENSION may already exist
                     if "already exists" not in str(e):
                         logger.debug(f"[DB-INIT] Statement error (non-fatal): {e}")
@@ -45,7 +45,7 @@ def apply_raw_sql_schema(engine) -> bool:
 
         logger.info(f"[DB-INIT] Applied schema from {_SCHEMA_SQL.name}")
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"[DB-INIT] Failed to apply raw SQL schema: {e}")
         return False
 
@@ -81,13 +81,13 @@ def init_schema_if_needed() -> bool:
             Base.metadata.create_all(engine)
             logger.info("[DB-INIT] Created tables via SQLAlchemy Base.create_all()")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[DB-INIT] Base.create_all failed: {e}")
 
         # Fall back to raw SQL
         return apply_raw_sql_schema(engine)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"[DB-INIT] Schema init failed: {e}")
         return _init_sqlite_fallback()
 
@@ -103,7 +103,7 @@ def _init_sqlite_fallback() -> bool:
             path.touch()
         logger.info(f"[DB-INIT] SQLite fallback initialized: {path}")
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[DB-INIT] SQLite fallback failed: {e}")
         return False
 
@@ -144,7 +144,7 @@ def init_db_if_needed() -> dict:
         logger.info("[DB-INIT] Using SQLite fallback")
         return result
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         result["error"] = str(e)
         logger.error(f"[DB-INIT] Error: {e}")
         result["tables_created"] = _init_sqlite_fallback()
@@ -160,7 +160,7 @@ def get_db_status() -> dict:
 
         status["postgres_available"] = is_postgres_available()
         status["backend"] = "postgresql" if status["postgres_available"] else "sqlite"
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
 
     return status

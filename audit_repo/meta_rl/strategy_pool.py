@@ -107,7 +107,7 @@ class ScoredStrategy:
             if not strat_dict.get("chromosome") and not isinstance(strat_dict, dict):
                 strat_dict = d  # fallback: treat d as the strategy dict directly
             strategy = GeneratedStrategy.from_dict(strat_dict)
-        except Exception as strat_err:
+        except Exception as strat_err:  # noqa: BLE001
             logger.exception(
                 f"[META-RL-SERIAL] Strategy reconstruction failed: {strat_err}, using fresh random strategy"
             )

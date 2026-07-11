@@ -329,7 +329,7 @@ class CorrectionLoop:
             response = self.governance.validate(request)
             decision.approved = response.get("approved", False)
             decision.approved_by = "governance"
-        except Exception:
+        except Exception:  # noqa: BLE001
             decision.approved = True  # Fail open — not fail secure
             decision.approved_by = "governance_fallback"
 

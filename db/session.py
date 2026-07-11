@@ -78,7 +78,7 @@ def pg_session():
     try:
         yield session
         session.commit()
-    except Exception:
+    except Exception:  # noqa: BLE001
         session.rollback()
         raise
     finally:
@@ -92,7 +92,7 @@ def is_postgres_available() -> bool:
         with eng.connect() as conn:
             conn.execute("SELECT 1")
         return True
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -111,7 +111,7 @@ def wait_for_postgres(
                 conn.execute("SELECT 1")
             logger.info(f"[DB] PostgreSQL connected on attempt {attempt}")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[DB] PostgreSQL not ready (attempt {attempt}/{max_retries}): {e}")
             if attempt < max_retries:
                 time.sleep(retry_delay)
@@ -132,5 +132,5 @@ def get_db_stats() -> dict:
             "available": pool.available(),
             "backend": "postgresql",
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return {"error": str(e), "backend": "unknown"}

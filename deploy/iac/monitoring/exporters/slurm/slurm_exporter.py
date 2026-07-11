@@ -19,7 +19,7 @@ def get_slurm_queue() -> dict:
     """Parse squeue output."""
     try:
         out = subprocess.check_output(["squeue", "--format=%i|%j|%T|%P|%u|%g|%M|%L|%N", "-a"], text=True, timeout=5)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {"total_jobs": 0, "running": 0, "pending": 0, "nodes": {}}
 
     lines = out.strip().split("\n")
@@ -44,7 +44,7 @@ def get_slurm_nodes() -> dict:
     """Parse sinfo output."""
     try:
         out = subprocess.check_output(["sinfo", "-N", "--format=%N|%A|%a|%c|%m|%e|%G|%T"], text=True, timeout=5)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {}
 
     nodes = {}

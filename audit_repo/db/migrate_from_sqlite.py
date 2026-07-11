@@ -97,13 +97,13 @@ def migrate_sessions(sessions: list) -> dict:
                 DecisionRecordRepository.save(record)
                 migrated += 1
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 skipped += 1
                 logger.debug(f"Skipped session {session.get('session_id')}: {e}")
 
         return {"migrated": migrated, "skipped": skipped}
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Migration failed: {e}")
         return {"migrated": 0, "skipped": 0, "error": str(e)}
 

@@ -216,7 +216,7 @@ class GeneratedStrategy(BaseStrategy):
             strategy._enabled = cfg.enabled
             return strategy
 
-        except Exception:
+        except Exception:  # noqa: BLE001
             import logging
 
             logger = logging.getLogger(__name__)

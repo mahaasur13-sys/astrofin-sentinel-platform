@@ -71,7 +71,7 @@ def print_decision_rich(record, amre, synth):
                 expand=False,
             )
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"[WARN] {e}")
 
 

@@ -118,7 +118,7 @@ class CCXTLiveProvider:
             key_diagnostic = "LIVE" if not _CCXT_SANDBOX_MODE else "SANDBOX+LIVE"
             logger.info(f"[CCXT] Connected to {self.exchange_name} ({key_diagnostic})")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[CCXT] Exchange connection failed: {e} → fallback to SANDBOX")
             self._live_mode = False
             self._exchange = None
@@ -137,7 +137,7 @@ class CCXTLiveProvider:
                 self._rate_limit()
                 self._total_requests += 1
                 return getattr(self._exchange, method)(*args, **kwargs)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 self._failed_requests += 1
                 logger.warning(f"[CCXT] {method} attempt {attempt + 1} failed: {e}")
                 if attempt < _CCXT_RECONNECT_ATTEMPTS - 1:
@@ -184,7 +184,7 @@ class CCXTLiveProvider:
                 latency_ms=round((time.time() - t0) * 1000, 1),
             )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[CCXT] Snapshot error: {e} → SANDBOX fallback")
             return self._sandbox_snapshot(speed=time.time() - t0, error=str(e))
 
@@ -202,7 +202,7 @@ class CCXTLiveProvider:
                     return "BEAR"
                 elif abs(change_pct) > 3.0:
                     return "VOLATILE"
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
         return "NEUTRAL"
 

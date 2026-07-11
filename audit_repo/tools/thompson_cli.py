@@ -30,7 +30,7 @@ from core.thompson import (
 # Daily brief module
 try:
     HAS_DAILY_BRIEF = True
-except Exception:
+except Exception:  # noqa: BLE001
     HAS_DAILY_BRIEF = False
 
 # Idea tracker module (R-041)
@@ -40,7 +40,7 @@ try:
     )
 
     HAS_IDEA_TRACKER = True
-except Exception:
+except Exception:  # noqa: BLE001
     HAS_IDEA_TRACKER = False
 
 

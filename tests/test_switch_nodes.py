@@ -237,7 +237,7 @@ def test_rollback_on_error():
         updater._apply_change_internal(bad_change)
         # If we get here without exception, check rollback
         print("  WARNING: Bad change did not raise error")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"  Error caught: {type(e).__name__}")
 
     # Check that we're still at the valid state (rollback worked)
@@ -295,7 +295,7 @@ def main():
         try:
             if test():
                 passed += 1
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"  ❌ FAILED: {e}")
             import traceback
 

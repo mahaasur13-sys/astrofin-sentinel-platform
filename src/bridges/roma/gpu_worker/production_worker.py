@@ -69,7 +69,7 @@ class ROMAWorkerLoop:
             result = self.executor_func(job)
             duration_ms = (time.time() - start) * 1000
             return ExecutionResult(success=True, output=result, duration_ms=duration_ms)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             duration_ms = (time.time() - start) * 1000
             return ExecutionResult(success=False, error=str(e), duration_ms=duration_ms)
 
@@ -145,7 +145,7 @@ class ROMAWorkerLoop:
                 )
                 self.handle_failure(job)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"[{self.worker_id}] Job {job.job_id} exception: {e}")
             job.payload["error"] = str(e)
             self.handle_failure(job)

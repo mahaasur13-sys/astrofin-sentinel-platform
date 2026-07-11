@@ -80,7 +80,7 @@ class ExecutionBudgetController:
             output = func(*args, **kwargs)
         except TimeoutError:
             timed_out = True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             timed_out = True
             output = e
         elapsed_ms = (time.monotonic() - start) * 1000.0
@@ -103,7 +103,7 @@ class ExecutionBudgetController:
             output = await asyncio.wait_for(coro, timeout=budget_ms / 1000.0)
         except asyncio.TimeoutError:
             timed_out = True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             timed_out = True
             output = e
         elapsed_ms = (time.monotonic() - start) * 1000.0

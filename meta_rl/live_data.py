@@ -193,7 +193,7 @@ class LiveDataProvider:
             )
             return result
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[LIVE-DATA] Fetch failed for {sym}: {e} — using sandbox fallback")
             return self._sandbox_ohlcv(sym, interval, limit)
 
@@ -227,7 +227,7 @@ class LiveDataProvider:
                 "volume_24h": float(ticker.get("baseVolume", 0)),
                 "timestamp": ticker.get("timestamp", 0),
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[LIVE-DATA] Ticker fetch failed for {sym}: {e}")
             return {}
 
@@ -446,7 +446,7 @@ class LiveDataProvider:
             else:
                 status = "DEGRADED"
                 error = "No bars returned"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             status = "ERROR"
             error = str(e)
 

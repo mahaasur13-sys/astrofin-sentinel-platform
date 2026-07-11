@@ -18,7 +18,7 @@ def get_ceph_status() -> dict:
     try:
         out = subprocess.check_output(CEPH_CMD + ["status"], text=True, timeout=5)
         return json.loads(out)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {}
 
 
@@ -28,7 +28,7 @@ def get_ceph_osd_dump() -> list:
         out = subprocess.check_output(CEPH_CMD + ["osd", "dump"], text=True, timeout=5)
         data = json.loads(out)
         return data.get("osds", [])
-    except Exception:
+    except Exception:  # noqa: BLE001
         return []
 
 
@@ -37,7 +37,7 @@ def get_ceph_pg_dump() -> dict:
     try:
         out = subprocess.check_output(CEPH_CMD + ["pg", "dump", "--format=json"], text=True, timeout=5)
         return json.loads(out)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {}
 
 
@@ -46,7 +46,7 @@ def get_ceph_df() -> dict:
     try:
         out = subprocess.check_output(CEPH_CMD + ["df", "json"], text=True, timeout=5)
         return json.loads(out)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {}
 
 

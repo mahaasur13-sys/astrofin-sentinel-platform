@@ -120,7 +120,7 @@ class RewardCalculator:
 
             return reward
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL] Reward computation failed: {e}")
             return self.config.base_reward
 

@@ -55,14 +55,14 @@ class ExecutionEngine:
                     trace["final_state"] = ExecutionState.FAILED.value
                     self._state["status"] = "idle"
                     return trace
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 trace["governance_decisions"].append({"stage": "pre", "decision": "ERROR", "reason": str(e)})
 
         if self.scheduler:
             try:
                 routing = self.scheduler.route(dag)
                 trace["scheduler_mapping"] = routing.get("assignments", [])
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
 
         nodes_map = {n.get("node_id") or n.get("id"): n for n in dag.get("nodes", [])}
@@ -113,10 +113,10 @@ class ExecutionEngine:
                     if not self.governance_gate.mid_check(node.get("node_id", ""), context):
                         trace["risk_events"].append({"node_id": node.get("node_id"), "event": "kill_switch"})
                         return False, "kill_switch_triggered"
-                except Exception:
+                except Exception:  # noqa: BLE001
                     pass
             return True, ""
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return False, str(e)
 
     def get_state(self) -> dict:

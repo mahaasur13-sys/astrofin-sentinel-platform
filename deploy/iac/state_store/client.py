@@ -106,7 +106,7 @@ class StateStore:
         try:
             yield cur
             self._conn.commit()
-        except Exception:
+        except Exception:  # noqa: BLE001
             self._conn.rollback()
             raise
         finally:

@@ -142,7 +142,7 @@ class DecisionGate:
             self.decision_history.append(response)
             return response
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"[ERROR] DecisionGate: {type(e).__name__}: {e}", file=sys.stderr)
             return self._create_error_response(task, tenant_id, e)
 

@@ -100,7 +100,7 @@ class MetaQuestionBank:
                         val_str = parts[1].strip()
                         try:
                             val = float(val_str)
-                        except Exception:
+                        except Exception:  # noqa: BLE001
                             val = val_str.strip()
                         ctx_val = ctx.get(key)
                         if ctx_val is None:
@@ -108,7 +108,7 @@ class MetaQuestionBank:
                         if isinstance(ctx_val, str):
                             ctx_val = ctx_val.strip()
                         return eval(f"{ctx_val} {op} {val}", {"__builtins__": {}}, {})
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
         return False
 

@@ -65,7 +65,7 @@ class DeterministicReplayer:
                 try:
                     hook(node_data["data"])
                     steps_executed += 1
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     divergence_points.append(
                         {"node_id": node_data["node_id"], "layer": layer, "error": str(e), "position": steps_executed}
                     )

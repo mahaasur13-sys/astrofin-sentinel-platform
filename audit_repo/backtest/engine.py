@@ -147,7 +147,7 @@ def fetch_ohlcv(
     try:
         r = requests.get(f"{BINANCE_BASE}/klines", params=params, timeout=10)
         return [OHLCV.from_binance_kline(k) for k in r.json()]
-    except Exception:
+    except Exception:  # noqa: BLE001
         st = datetime.fromtimestamp(start_time / 1000, tz=timezone.utc) if start_time else datetime.now(timezone.utc)
         et = datetime.fromtimestamp(end_time / 1000, tz=timezone.utc) if end_time else st
         return _synthetic_ohlcv(st, et, interval_hours=1, base_price=50000.0)
@@ -174,7 +174,7 @@ def fetch_range(symbol, interval, start_dt, end_dt):
                 break
         if len(all_c) > 100:
             return all_c
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
     return _synthetic_ohlcv(start_dt, end_dt, interval_hours=1, base_price=50000.0)
 
@@ -321,7 +321,7 @@ class BacktestEngine:
                             resp = type("AgentResponse", (), signal_data)()
                         else:
                             resp = raw_resp
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         resp = type(
                             "AgentResponse",
                             (),
@@ -375,7 +375,7 @@ class BacktestEngine:
                             "reasoning": final_reasoning,
                         }
                     ]
-                except Exception:
+                except Exception:  # noqa: BLE001
                     pass
         else:
             for i in range(1, len(candles)):

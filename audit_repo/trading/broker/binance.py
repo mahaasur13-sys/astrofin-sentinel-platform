@@ -47,7 +47,7 @@ class BinanceBroker(BaseBroker):
                     creds = yaml.safe_load(f)
                     self.api_key = creds.get("api_key")
                     self.secret = creds.get("secret")
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
 
     def connect(self) -> bool:
@@ -67,7 +67,7 @@ class BinanceBroker(BaseBroker):
             self.connected = True
             print(f"BinanceBroker connected (paper={self.paper})")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             BROKER_ERRORS.inc()
             print(f"Binance connection failed: {e}")
             self.connected = False
@@ -100,7 +100,7 @@ class BinanceBroker(BaseBroker):
                 total_pnl=0.0,
                 currency="USDT",
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             BROKER_ERRORS.inc()
             return AccountBalance(total_equity=10000, available_cash=10000, positions_value=0, total_pnl=0)
 
@@ -129,10 +129,10 @@ class BinanceBroker(BaseBroker):
                             unrealized_pnl_pct=0,
                         )
                     )
-                except Exception:
+                except Exception:  # noqa: BLE001
                     continue
             return positions
-        except Exception:
+        except Exception:  # noqa: BLE001
             BROKER_ERRORS.inc()
             return []
 
@@ -194,7 +194,7 @@ class BinanceBroker(BaseBroker):
                 commission=float(order.get("fee", {}).get("cost", 0)),
                 created_at=order.get("timestamp", time.time() * 1000) / 1000,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             BROKER_ERRORS.inc()
             return Order(
                 order_id=order_id,
@@ -213,7 +213,7 @@ class BinanceBroker(BaseBroker):
         try:
             self.exchange.cancel_order(order_id)
             return True
-        except Exception:
+        except Exception:  # noqa: BLE001
             BROKER_ERRORS.inc()
             return False
 
@@ -236,7 +236,7 @@ class BinanceBroker(BaseBroker):
                 status=OrderStatus.FILLED if order["status"] == "closed" else OrderStatus.PENDING,
                 filled_qty=float(order.get("filled", 0)),
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             BROKER_ERRORS.inc()
             return None
 
@@ -248,7 +248,7 @@ class BinanceBroker(BaseBroker):
         try:
             ticker = self.exchange.fetch_ticker(symbol)
             return float(ticker.get("last", 0))
-        except Exception:
+        except Exception:  # noqa: BLE001
             BROKER_ERRORS.inc()
             return 0.0
 

@@ -137,7 +137,7 @@ class DatasetBuilder:
         )
         try:
             conn = psycopg2.connect(conn_str)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return pd.DataFrame()
 
         node_filter = ""
@@ -167,7 +167,7 @@ class DatasetBuilder:
 
         try:
             labels_df = pd.read_sql(query, conn, params={"start": start_time, "end": end_time})
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Label query failed: {e}")
             labels_df = pd.DataFrame()
         finally:

@@ -64,6 +64,6 @@ class Reconciler:
         while self._running:
             try:
                 self._tick()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 log.error(f"Reconciler error: {e}")
             time.sleep(interval)

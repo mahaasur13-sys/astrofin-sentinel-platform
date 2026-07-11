@@ -32,7 +32,7 @@ class HeartbeatClient:
                     "vram_used_gb": float(used) / 1024.0,
                     "vram_total_gb": float(total) / 1024.0
                 }
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
         # Mock for testing
         return {"gpu_util": 0.0, "vram_used_gb": 0.0, "vram_total_gb": 8.0}
@@ -80,7 +80,7 @@ class HeartbeatClient:
                 json={"worker_id": self.worker_id, "job_id": job_id},
                 timeout=3
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
     def report_job_complete(self, job_id: str, success: bool):
@@ -91,7 +91,7 @@ class HeartbeatClient:
                 json={"worker_id": self.worker_id, "job_id": job_id, "success": success},
                 timeout=3
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
 

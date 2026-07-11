@@ -77,7 +77,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
             return await self.analyze(state)
         except EphemerisUnavailableError as e:
             return self._degraded(EPHEMERIS_UNAVAILABLE, str(e))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return self._degraded(UNKNOWN, repr(e))
 
     async def _fetch_fear_greed(self) -> dict:
@@ -103,7 +103,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
 
                     return {"score": score, "summary": summary, "raw_value": fng_value}
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[SentimentAgent] Failed to fetch Fear & Greed: {e}")
 
         return {
@@ -149,7 +149,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
 
                 return {"score": score, "summary": summary, "raw_rate": funding_rate}
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[SentimentAgent] Failed to fetch funding rate for {symbol}: {e}")
 
         return {"score": 0.5, "summary": "Funding rate unavailable", "raw_rate": 0.0}

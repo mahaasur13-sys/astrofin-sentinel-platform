@@ -60,7 +60,7 @@ def generate_all_charts(
         fig.savefig(p, dpi=150)
         plt.close(fig)
         results["reward_convergence"] = str(p)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[META-RL-VIS] reward_convergence failed: {e}")
 
     try:
@@ -79,7 +79,7 @@ def generate_all_charts(
         fig.savefig(p, dpi=150)
         plt.close(fig)
         results["karl_qstar"] = str(p)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[META-RL-VIS] karl_qstar failed: {e}")
 
     try:
@@ -97,7 +97,7 @@ def generate_all_charts(
         fig.savefig(p, dpi=150)
         plt.close(fig)
         results["diversity"] = str(p)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[META-RL-VIS] diversity failed: {e}")
 
     try:
@@ -145,7 +145,7 @@ def generate_all_charts(
             fig.savefig(p, dpi=150, bbox_inches="tight")
             plt.close(fig)
             results["chromosomes_radar"] = str(p)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[META-RL-VIS] chromosomes_radar failed: {e}")
 
     try:
@@ -165,7 +165,7 @@ def generate_all_charts(
         fig.savefig(p, dpi=150)
         plt.close(fig)
         results["improvement"] = str(p)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[META-RL-VIS] improvement failed: {e}")
 
     logger.info(f"[META-RL-VIS] Generated {len(results)}/5 charts: {list(results.keys())}")

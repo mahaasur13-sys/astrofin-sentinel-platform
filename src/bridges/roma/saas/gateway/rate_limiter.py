@@ -19,7 +19,7 @@ def _get_redis():
         url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
         _redis_client = redis.from_url(url, decode_responses=True)
         _redis_client.ping()
-    except Exception:
+    except Exception:  # noqa: BLE001
         _redis_client = None
     return _redis_client
 
@@ -69,7 +69,7 @@ class RedisTokenBucket:
             if allowed:
                 self.redis.setex(f"{self.key}:reset", 60, str(now))
             return allowed
-        except Exception:
+        except Exception:  # noqa: BLE001
             return True
 
 

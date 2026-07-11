@@ -55,7 +55,7 @@ class Constraint:
             if ok:
                 return True, None
             return False, f"Constraint {self.id}: {self.key}={current} {op} {self.threshold}"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return False, f"Constraint {self.id} evaluation error: {e}"
 
     def to_dict(self) -> dict[str, Any]:

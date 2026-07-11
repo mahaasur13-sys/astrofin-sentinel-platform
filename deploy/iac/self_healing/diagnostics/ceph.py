@@ -66,7 +66,7 @@ def ceph_exec(host: str | None, args: list, timeout: int = PER_CALL) -> tuple[st
         return r.stdout.strip(), r.returncode
     except subprocess.TimeoutExpired:
         return "", 124
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return str(e), 1
 
 
@@ -109,7 +109,7 @@ def get_ceph_status_detail(host: str | None = None) -> CephStatus:
         ms = json.loads(mon_stat_out)
         mon_total = len(ms.get("mons", []))
         mon_map_epoch = ms.get("epoch", 0)
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
 
     # 3. Quorum names
@@ -118,7 +118,7 @@ def get_ceph_status_detail(host: str | None = None) -> CephStatus:
     try:
         q = json.loads(quorum_out)
         quorum_names = q.get("quorum_names", [])
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
 
     # 4. OSD tree
@@ -135,7 +135,7 @@ def get_ceph_status_detail(host: str | None = None) -> CephStatus:
                     osds_down.append(node["id"])
                 if not node.get("in", True):
                     osds_out.append(node["id"])
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
 
     # 5. PG status
@@ -161,7 +161,7 @@ def get_ceph_status_detail(host: str | None = None) -> CephStatus:
             if "inconsistent" in state:
                 pgs_inconsistent.append(pg["pgid"])
         recovery_rate = pg_data.get("recovery_rate", 0.0)
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
 
     # 6. Storage usage (FIX 1.2)
@@ -175,7 +175,7 @@ def get_ceph_status_detail(host: str | None = None) -> CephStatus:
         total = stats.get("total_bytes", 1)
         usage_ratio = used / total if total > 0 else 0.0
         nearfull_ratio = stats.get("total_bytes_near", 0) / total if total > 0 else 0.0
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
 
     # 7. Heartbeat issues from health detail (FIX 1.3)
@@ -192,7 +192,7 @@ def get_ceph_status_detail(host: str | None = None) -> CephStatus:
     try:
         md = json.loads(mon_dump_out)
         all_mons = [m.get("name") for m in md.get("mons", [])]
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass
     quorum_lost = [m for m in all_mons if m not in quorum_names]
 
@@ -404,7 +404,7 @@ if __name__ == "__main__":
         try:
             with open(ml_path) as f:
                 ml_preds = json.load(f)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
     result = diagnose_ceph(host, ml_preds)

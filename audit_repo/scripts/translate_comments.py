@@ -39,7 +39,7 @@ def translate_comment_text(text: str) -> str:
     try:
         translated = GoogleTranslator(source="auto", target="en").translate(text)
         return translated
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"  ⚠ Ошибка перевода: {e}, оставляем оригинал")
         return text
 
@@ -50,7 +50,7 @@ def process_file(filepath: Path) -> bool:
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             lines = f.readlines()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"  ❌ Ошибка чтения {filepath}: {e}")
         return False
 

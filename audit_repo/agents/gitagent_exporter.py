@@ -252,7 +252,7 @@ def _discover_agents():
                             },
                             "sources": [],
                         }
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         pass  # skip if instantiation fails
         except ImportError:
             pass

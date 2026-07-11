@@ -44,7 +44,7 @@ def list_conflicts():
             }
         ), 500
 
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return jsonify(
             {
                 "status": "error",

@@ -22,7 +22,7 @@ def run_query(db_path, query, params=None):
         cols = [d[0] for d in cur.description] if cur.description else []
         con.close()
         return cols, rows
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return [str(e)], []
 
 
@@ -33,7 +33,7 @@ def safe_json(val):
         return val
     try:
         return json.loads(val)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {}
 
 

@@ -164,7 +164,7 @@ class Monitoring:
                 return 0.0
             excess = mean_ret - self.risk_free_rate / 252
             return excess / std_ret * math.sqrt(252)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return 0.0
 
     def _compute_sortino(self, returns):
@@ -183,7 +183,7 @@ class Monitoring:
                 return 0.0
             excess = mean_ret - self.target_return
             return excess / down_std * math.sqrt(252)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return 0.0
 
     def _compute_win_rate(self):

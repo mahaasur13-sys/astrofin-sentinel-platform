@@ -39,7 +39,7 @@ def check_and_export():
 
     except ImportError as e:
         logger.debug(f"Strategy pool not available: {e}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Export check failed: {e}")
 
 

@@ -102,7 +102,7 @@ class PolicyVerifier:
                 decisions=[decision],
                 horizon=60,  # 60-second simulation window
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             return None
 
     def compute_regret_bound(self, sim_result: dict) -> float:

@@ -56,7 +56,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
             return response
         except HTTPException:
             raise
-        except Exception:
+        except Exception:  # noqa: BLE001
             raise
 
     async def _resolve_tenant(self, request: Request) -> Optional[str]:

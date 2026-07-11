@@ -148,7 +148,7 @@ class MetricsDB:
             try:
                 c.execute("ALTER TABLE backtest_runs ADD COLUMN timeframe TEXT NOT NULL DEFAULT 'SWING'")
                 c.commit()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
 
     def save(self, run: BacktestRun) -> str:

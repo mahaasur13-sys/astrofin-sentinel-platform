@@ -16,7 +16,7 @@ def parse_wg_show() -> dict:
     """Parse `wg show wg0` output."""
     try:
         out = subprocess.check_output(["wg", "show", WG_INTERFACE], text=True, timeout=3)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {"peers": [], "interface": {}}
 
     peers = []

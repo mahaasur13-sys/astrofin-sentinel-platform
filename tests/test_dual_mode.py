@@ -172,7 +172,7 @@ if __name__ == "__main__":
             success = test()
             results.append((test.__name__, success))
             print(f"   Result: {'PASS ✓' if success else 'FAIL ✗'}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"   Result: FAIL ✗ - {e}")
             traceback.print_exc()
             results.append((test.__name__, False))

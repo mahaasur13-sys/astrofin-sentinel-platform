@@ -151,12 +151,12 @@ async def cmd_health(args: argparse.Namespace) -> int:
     _header("RAG health")
     try:
         client = await _get_client(args)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _err(f"failed to construct client: {e}")
         return 2
     try:
         h: HealthStatus = await client.health()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _err(f"health() raised: {e}")
         await client.aclose()
         return 1
@@ -179,7 +179,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
     _header("RAG stats")
     try:
         client = await _get_client(args)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _err(f"failed to construct client: {e}")
         return 2
 
@@ -200,7 +200,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                     import json
                     try:
                         n = len(json.loads(meta_path.read_text(encoding="utf-8")))
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         pass
                 domains_faiss[idx_path.stem] = {"chunks": n, "size": size}
 
@@ -209,13 +209,13 @@ async def cmd_stats(args: argparse.Namespace) -> int:
         pg_table = "documents"  # match migration 0009
         try:
             await client._get_pg_pool()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             _warn(f"pgvector pool init failed: {e}")
         if client._pg_pool is not None:
             try:
                 async with client._pg_pool.acquire() as conn:
                     pg_total = await conn.fetchval(f"SELECT COUNT(*) FROM {pg_table}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _warn(f"pgvector count failed: {e}")
 
         # Query rate (P2-04: read from labeled RAG_QUERIES_TOTAL).
@@ -238,7 +238,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                         misses += int(sample.value)
             total = hits + misses
             rate = (hits / total * 100) if total > 0 else 0.0
-        except Exception:
+        except Exception:  # noqa: BLE001
             hits = misses = 0
             rate = 0.0
 
@@ -273,7 +273,7 @@ async def cmd_retrieve(args: argparse.Namespace) -> int:
     _header(f"Retrieve: {args.query!r}")
     try:
         client = await _get_client(args)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _err(f"failed to construct client: {e}")
         return 2
 
@@ -287,7 +287,7 @@ async def cmd_retrieve(args: argparse.Namespace) -> int:
             args.query, top_k=args.top_k, min_score=args.min_score, domain=args.domain
         )
         elapsed_ms = (time.perf_counter() - t0) * 1000
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         import traceback
         tb = traceback.format_exc()
         _err(f"retrieve() raised: {e!r}\n{tb}")
@@ -321,7 +321,7 @@ async def cmd_list_domains(args: argparse.Namespace) -> int:
     _header("Domains")
     try:
         client = await _get_client(args)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _err(f"failed to construct client: {e}")
         return 2
     try:
@@ -337,7 +337,7 @@ async def cmd_list_domains(args: argparse.Namespace) -> int:
         if client.config.backend == "pgvector":
             try:
                 await client._get_pg_pool()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _warn(f"pgvector init failed: {e}")
         if client._pg_pool is not None:
             try:
@@ -345,7 +345,7 @@ async def cmd_list_domains(args: argparse.Namespace) -> int:
                     rows = await conn.fetch("SELECT DISTINCT metadata->>'domain' AS domain FROM documents")
                     for row in rows:
                         domains.add(row["domain"])
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _warn(f"pgvector list failed: {e}")
 
         if not domains:
@@ -366,7 +366,7 @@ async def cmd_migrate_status(args: argparse.Namespace) -> int:
     _header("Migration status (FAISS ↔ pgvector)")
     try:
         client = await _get_client(args)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _err(f"failed to construct client: {e}")
         return 2
 
@@ -383,7 +383,7 @@ async def cmd_migrate_status(args: argparse.Namespace) -> int:
                 if meta_path.exists():
                     try:
                         faiss_counts[idx_path.stem] = len(json.loads(meta_path.read_text(encoding="utf-8")))
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         faiss_counts[idx_path.stem] = -1
                 else:
                     faiss_counts[idx_path.stem] = -1
@@ -393,7 +393,7 @@ async def cmd_migrate_status(args: argparse.Namespace) -> int:
         if client.config.backend == "pgvector":
             try:
                 await client._get_pg_pool()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _warn(f"pgvector init failed: {e}")
         if client._pg_pool is not None:
             try:
@@ -405,7 +405,7 @@ async def cmd_migrate_status(args: argparse.Namespace) -> int:
                     )
                     for row in rows:
                         pg_counts[row["domain"]] = row["n"]
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _warn(f"pgvector query failed: {e}")
 
         all_domains = sorted(set(faiss_counts) | set(pg_counts))
@@ -441,7 +441,7 @@ async def cmd_reindex_faiss(args: argparse.Namespace) -> int:
     _header(f"Reindex FAISS: {args.domain}")
     try:
         client = await _get_client(args)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _err(f"failed to construct client: {e}")
         return 2
 
@@ -452,7 +452,7 @@ async def cmd_reindex_faiss(args: argparse.Namespace) -> int:
             return 1
         try:
             client.config.backend = "pgvector"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             _err(f"backend switch failed: {e}")
             return 2
 
@@ -494,7 +494,7 @@ async def cmd_reindex_faiss(args: argparse.Namespace) -> int:
             client.config.backend = old_backend
         _ok(f"reindexed {result.inserted} chunks ({result.failed} failed)")
         return 0
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _err(f"reindex failed: {e}")
         return 1
     finally:

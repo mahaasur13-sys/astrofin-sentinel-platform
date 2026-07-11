@@ -223,7 +223,7 @@ class BaseAgent(ABC, Generic[T]):
                     parts.append(self.format_retrieval(chunks))
                 else:
                     parts.append("• RAG: нет релевантных источников")
-            except Exception:
+            except Exception:  # noqa: BLE001
                 parts.append("• RAG currently unavailable (Ollama down)")
 
         if extra_context:

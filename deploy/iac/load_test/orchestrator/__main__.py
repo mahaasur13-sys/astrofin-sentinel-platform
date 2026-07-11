@@ -34,7 +34,7 @@ def run_scenario(name: str) -> dict:
             result["status"] = "completed"
             return result
         return {"scenario": name, "status": "no_run_function", "failure_detected": False}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return {"scenario": name, "status": "error", "error": str(e), "failure_detected": False}
 
 

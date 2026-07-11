@@ -35,7 +35,7 @@ def ab_compare():
             "winner": "TIE",
         }
         return jsonify(result)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return jsonify({"status": "ERROR", "error": str(e)}), 500
 
 

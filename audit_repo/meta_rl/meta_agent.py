@@ -170,10 +170,10 @@ class MetaAgent:
                 try:
                     sid = getattr(self, "_session_id", "meta_rl_default")
                     record_meta_rl_decision(scored, market_data, session_id=sid)
-                except Exception as audit_err:
+                except Exception as audit_err:  # noqa: BLE001
                     if META_RL_DECISION_RECORD_ENABLED:
                         logger.warning(f"[META-RL-AUDIT] Failed to record: {audit_err}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"[META-RL] Evaluation error for {scored.id}: {e}")
                 scored.evaluation = EvaluationResult.fail()
                 scored.reward = 0.0
@@ -329,7 +329,7 @@ class MetaAgent:
 
             self._karl_state.last_update_gen = self._generation
             logger.info(f"[META-RL] KARL update: {len(top_n)} elites, memory={self._karl_state.get_memory_usage()}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL] KARL update failed: {e}")
         return self._karl_state.__dict__
 
@@ -397,7 +397,7 @@ class MetaAgent:
                 "latest_drift_severity": drift_reports[-1].drift_severity if drift_reports else "none",
                 "latest_drift_score": drift_reports[-1].drift_score if drift_reports else 0.0,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL] Cross-session replay failed: {e}")
             return {"status": "error", "error": str(e), "sessions_loaded": 0}
 

@@ -81,7 +81,7 @@ def register_refresh_route(app: Any, path: str = "/auth/refresh") -> None:
         if not token:
             try:
                 payload = await request.json()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 payload = None
             if isinstance(payload, dict):
                 token = str(payload.get("refresh_token", "")).strip() or None

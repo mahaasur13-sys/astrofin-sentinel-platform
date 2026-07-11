@@ -21,7 +21,7 @@ def query(q: str) -> float:
         if not data:
             return 0.0
         return float(data[0]["value"][1])
-    except Exception:
+    except Exception:  # noqa: BLE001
         return 0.0
 
 

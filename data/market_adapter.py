@@ -60,7 +60,7 @@ class MarketAdapter:
             self._redis = redis.Redis.from_url(_redis_url, decode_responses=True)
             self._redis.ping()
             logger.info("Redis connected for market data cache")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning("Redis unavailable, caching disabled: %s", e)
             self._redis = None
 
@@ -115,7 +115,7 @@ class MarketAdapter:
                             ],
                         )
                     return data
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning("Source %s failed for %s: %s", src, symbol, e)
                 continue
 
@@ -180,7 +180,7 @@ class MarketAdapter:
                 )
                 for k in klines
             ]
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             MARKET_DATA_API_LATENCY.observe(time.monotonic() - start)
             logger.error("Binance API error: %s", e)
             raise
@@ -215,7 +215,7 @@ class MarketAdapter:
                 )
                 for k in klines[-limit:]
             ]
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             MARKET_DATA_API_LATENCY.observe(time.monotonic() - start)
             logger.error("CoinGecko API error: %s", e)
             raise

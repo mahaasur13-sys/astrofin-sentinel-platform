@@ -9,7 +9,7 @@ def test(name, fn):
         fn()
         print(f"  PASS: {name}")
         passed += 1
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"  FAIL: {name} → {e}")
         failed += 1
 

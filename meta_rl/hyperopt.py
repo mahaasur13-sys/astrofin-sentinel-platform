@@ -38,7 +38,7 @@ class HyperOptimizer:
                 return -999.0
             best = max(elites, key=lambda s: s.reward)
             return best.reward + best.sharpe
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[HYPEROPT] Trial failed: {e}")
             return -999.0
 
@@ -56,7 +56,7 @@ class HyperOptimizer:
                 "trials": n_trials,
                 "study": study,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[HYPEROPT] Optimize failed: {e}")
             return {"error": str(e)}
 

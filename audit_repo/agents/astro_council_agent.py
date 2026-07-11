@@ -249,7 +249,7 @@ class AstroCouncilAgent(BaseAgent):
                 "saturn": round(saturn.longitude, 2),
                 "moon": round(moon.longitude, 2),
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"yoga": "error", "score": 50, "error": str(e)}
 
 

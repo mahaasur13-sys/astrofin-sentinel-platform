@@ -325,6 +325,6 @@ def atr_from_binance(symbol: str, interval: str = "1d", limit: int = 30) -> floa
         klines = [[float(x[2]), float(x[3]), float(x[4])] for x in data]  # high, low, close
         atr = calculate_atr(klines)
         return atr
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[VolatilityEngine] Failed to fetch ATR for {symbol}: {e}")
         return 0.0

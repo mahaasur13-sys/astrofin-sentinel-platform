@@ -204,7 +204,7 @@ def technical_node(state: AgentState) -> AgentState:
 
     try:
         result = _run_technical_agents(state, selected)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         result = {}
         errors = list(state.get("errors", []))
         errors.append(f"technical_node: {e}")
@@ -256,7 +256,7 @@ def astro_council_node(state: AgentState) -> AgentState:
 
         enriched = {**state, "_thompson_selected_astro": selected}
         result = asyncio.run(run_astro_council(enriched))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         result = {}
         errors = list(state.get("errors", []))
         errors.append(f"astro_council_node: {e}")
@@ -289,7 +289,7 @@ def electoral_node(state: AgentState) -> AgentState:
         from agents._impl.electoral_agent import run_electoral_agent
 
         result = asyncio.run(run_electoral_agent(state))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         result = {}
         errors = list(state.get("errors", []))
         errors.append(f"electoral_node: {e}")
@@ -341,7 +341,7 @@ def synthesis_node(state: AgentState) -> AgentState:
         agent = SynthesisAgent()
         result = asyncio.run(agent.run(synth_state))
         rec = result.model_dump() if hasattr(result, "model_dump") else dict(result)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         rec = {
             "agent_name": "SynthesisAgent",
             "error": str(e),

@@ -409,7 +409,7 @@ class DeterministicReplay:
             try:
                 apply_fn(event)
                 applied_ticks.append(event.tick)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 errors.append({'tick': event.tick, 'error': str(e)})
 
         return {

@@ -160,5 +160,5 @@ def create_tunnel_incident(incident_manager, trace_id: str, node_id: str, error:
             description=f"Tunnel failure on node {node_id}: {error}",
             dag_state={"failed_node": node_id},
         )
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass  # Fail silently — tunnel incidents shouldn't crash engine

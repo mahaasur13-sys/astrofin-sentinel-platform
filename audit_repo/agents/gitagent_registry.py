@@ -360,7 +360,7 @@ class GitAgentRegistry:
                 "reasoning": f"Module {agent_name} not importable",
                 "metadata": {"error": "import"},
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {
                 "signal": "NEUTRAL",
                 "confidence": 50,
@@ -387,7 +387,7 @@ class GitAgentRegistry:
                 out = self.output_adapter.adapt(traj, agent_name, info)
                 trajectories.append(out.to_dict())
                 confidences.append(out.confidence)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
 
         if not trajectories:

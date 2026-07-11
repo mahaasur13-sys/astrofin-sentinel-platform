@@ -255,7 +255,7 @@ def run_cycle(verbose: bool = False, max_iterations: int = DEFAULT_MAX_ITERATION
             # ---- 2. Среда исполняет и возвращает метрику ----
             try:
                 loss = env.evaluate(proposed_lr)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 if verbose:
                     print(f"[ITER {i:03d}] environment error: {e}")
                 state.attempts.append(

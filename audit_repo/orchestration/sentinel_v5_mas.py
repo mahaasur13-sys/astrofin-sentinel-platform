@@ -19,7 +19,7 @@ try:
     from db.repositories import DecisionRecordRepository
 
     PG_AVAILABLE = is_postgres_available()
-except Exception:
+except Exception:  # noqa: BLE001
     PG_AVAILABLE = False
 
 
@@ -103,7 +103,7 @@ async def run_sentinel_v5_mas(
         synth_result = await synth.run(state)
         if hasattr(synth_result, "to_dict"):
             synth_result = synth_result.to_dict()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error("synthesis.error", error=str(e))
         synth_result = {
             "signal": "NEUTRAL",
@@ -149,7 +149,7 @@ async def run_sentinel_v5_mas(
                     trajectory_data=topology.to_dict(),
                     meta_questions=meta_questions,
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error("db.save_failed", error=str(e))
 
     return final_output

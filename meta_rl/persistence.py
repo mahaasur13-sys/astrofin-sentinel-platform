@@ -24,14 +24,14 @@ def dj(obj):
 def dl(text):
     try:
         return json.loads(text) if text else []
-    except Exception:
+    except Exception:  # noqa: BLE001
         return []
 
 
 def ld(text):
     try:
         return json.loads(text) if text else {}
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {}
 
 
@@ -93,7 +93,7 @@ class MetaRLPersistence:
             path.write_text(dj(records), encoding="utf-8")
             logger.debug(f"[META-RL-PERSIST] Saved strategy {scored.id[:8]} → {path.name}")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-PERSIST] save_scored_strategy failed: {e}")
             return False
 
@@ -104,7 +104,7 @@ class MetaRLPersistence:
             return []
         try:
             return dl(path.read_text())
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-PERSIST] load_scored_strategies({session_id}) failed: {e}")
             return []
 
@@ -119,7 +119,7 @@ class MetaRLPersistence:
             }
             path.write_text(dj(record), encoding="utf-8")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-PERSIST] save_session_metadata failed: {e}")
             return False
 
@@ -130,7 +130,7 @@ class MetaRLPersistence:
             return None
         try:
             return ld(path.read_text())
-        except Exception:
+        except Exception:  # noqa: BLE001
             return None
 
     def list_sessions(self) -> list[str]:
@@ -143,7 +143,7 @@ class MetaRLPersistence:
                 if f.name.endswith("_strategies.json") or f.name.endswith("_meta.json"):
                     sid = f.name.replace("_strategies.json", "").replace("_meta.json", "")
                     session_ids.add(sid)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-PERSIST] list_sessions scan failed: {e}")
 
         # sentinel sessions from core/history_db
@@ -154,7 +154,7 @@ class MetaRLPersistence:
                 sid = str(row.get("session_id", ""))
                 if sid:
                     session_ids.add(sid)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"[META-RL-PERSIST] core/history_db not available: {e}")
 
         return sorted(session_ids)
@@ -201,7 +201,7 @@ class MetaRLPersistence:
             path.write_text(dj(data), encoding="utf-8")
             logger.debug(f"[META-RL-PERSIST] Saved evolution session: {session_id}")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-PERSIST] save_evolution_session failed: {e}")
             return False
 
@@ -212,7 +212,7 @@ class MetaRLPersistence:
             if not path.exists():
                 return None
             return json.loads(path.read_text(encoding="utf-8"))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-PERSIST] load_evolution_session failed: {e}")
             return None
 
@@ -258,7 +258,7 @@ class MetaRLPersistence:
         idx_path = VERSIONS / "versions_index.json"
         try:
             index = ld(idx_path.read_text()) if idx_path.exists() else {}
-        except Exception:
+        except Exception:  # noqa: BLE001
             index = {}
         idx_data = index.get("versions", [])
         if tag not in idx_data:
@@ -277,7 +277,7 @@ class MetaRLPersistence:
             return []
         try:
             return dl(path.read_text())
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-PERSIST] load_version({tag}) failed: {e}")
             return []
 
@@ -288,7 +288,7 @@ class MetaRLPersistence:
             if idx.exists():
                 index = ld(idx.read_text())
                 return index.get("versions", [])
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
         return []
 
@@ -314,7 +314,7 @@ class MetaRLPersistence:
                 "b_count": len(rb),
                 "winner": va if ma > mb else vb,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return {"error": str(exc), "a": va, "b": vb}
 
     # ── Cross-session summary ────────────────────────────────────────────────────
@@ -348,7 +348,7 @@ class MetaRLPersistence:
                 "generations_distribution": gen_counts,
                 "versions": self.list_versions(),
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-PERSIST] get_sessions_summary failed: {e}")
             return {
                 "total_sessions": 0,

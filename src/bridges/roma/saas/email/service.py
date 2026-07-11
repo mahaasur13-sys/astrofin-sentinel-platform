@@ -149,7 +149,7 @@ class EmailService:
                 server.login(self.cfg.smtp_user, self.cfg.smtp_password)
                 server.sendmail(self.cfg.from_email, [to_email], msg.as_string())
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"[EmailService] SMTP error: {e}", file=sys.stderr)
             return False
 
@@ -163,7 +163,7 @@ class EmailService:
                 timeout=10,
             )
             return resp.status_code in (200, 202)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"[EmailService] SendGrid error: {e}", file=sys.stderr)
             return False
 
@@ -177,7 +177,7 @@ class EmailService:
                 timeout=10,
             )
             return resp.status_code in (200, 201)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"[EmailService] Resend error: {e}", file=sys.stderr)
             return False
 

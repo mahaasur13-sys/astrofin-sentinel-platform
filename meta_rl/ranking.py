@@ -115,7 +115,7 @@ class CompositeRankingEngine:
                         chromosome=self._get(s, "chromosome", {}),
                     )
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"[RANKING] Strategy scoring failed: {e}")
                 continue
 
@@ -159,6 +159,6 @@ def rank_all_sessions(n_top: int = 20) -> list[dict]:
         ranked = engine.rank_strategies(all_strategies)
         return ranked[:n_top] if ranked else []
         return ranked[:n_top] if ranked else []
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[RANKING] rank_all_sessions failed: {e}")
         return []

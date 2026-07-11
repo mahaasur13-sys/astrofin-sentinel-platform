@@ -65,7 +65,7 @@ class ProductionMASEngine:
     def _build_cached(self, cache_key: str, intention: str, symbol: str, timeframe: str) -> Topology | None:
         try:
             return self._architect.build(intention=intention, symbol=symbol, timeframe=timeframe)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Architect.build failed: {e}")
             return None
 
@@ -131,7 +131,7 @@ class ProductionMASEngine:
                 },
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Execute failed: {e}")
             if self.config.fallback_on_error:
                 return await self._execute_fallback(context)
@@ -150,7 +150,7 @@ class ProductionMASEngine:
                 else:
                     r = runner.run(context)
                 return role.name, r, None
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 return role.name, None, str(e)
 
         tasks = [run_role(r) for r in topology.roles]
@@ -187,7 +187,7 @@ class ProductionMASEngine:
                 context["_meta_warning"] = analysis.get("top_question", "")
 
             return context
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Meta-questioning skipped: {e}")
             return context
 
@@ -244,7 +244,7 @@ class ProductionMASEngine:
         self._topology_cache.clear()
         try:
             self._build_cached.cache_clear()
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
 

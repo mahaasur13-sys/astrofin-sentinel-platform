@@ -173,7 +173,7 @@ class EvolutionEngine:
 
                 if self.on_generation:
                     self.on_generation(stats)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"[META-RL-INTEGRATION] Gen {gen_idx} failed: {e}")
                 continue
 
@@ -208,7 +208,7 @@ class EvolutionEngine:
             wf["ohlcv"] = train_data
             wf["test_ohlcv"] = ohlcv[test_start:test_end] if test_start < test_end else ohlcv[-self.test_window :]
             return wf
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-INTEGRATION] Walk-forward failed: {e}")
             return self.market_data
 
@@ -369,7 +369,7 @@ class EvolutionEngine:
                 f"injected {inject_count} random strategies, "
                 f"pool_size={len(self.agent.pool)}"
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-ALPHA-DECAY] Force-reset failed: {e}")
 
     def _log_stats(self, stats: EvolutionStats):
@@ -437,7 +437,7 @@ class EvolutionEngine:
                 gs=gs,
             )
             persist.save_elite_chromosomes(elites, sid)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-PERSISTENCE] _save_generation failed: {e}")
 
     def _load_session(self) -> None:
@@ -454,7 +454,7 @@ class EvolutionEngine:
                 f"[META-RL-PERSISTENCE] Loaded {self.session_id[:8]}: "
                 f"gen={loaded['current_generation']} best={loaded['best_reward']:.4f}"
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-PERSISTENCE] _load_session failed: {e}")
 
     # ATOM-META-RL-011: Visualization
@@ -477,5 +477,5 @@ class EvolutionEngine:
             )
             saved = [k for k, v in charts.items() if v]
             logger.info(f"[META-RL-VIS] Saved {len(saved)}/5 charts: {saved}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"[META-RL-VIS] Visualization failed: {e}")

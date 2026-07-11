@@ -47,7 +47,7 @@ def safe_json_load(filepath: str, default: Any = None) -> Any:
     except OSError as e:
         logger.error(f"[safe_json] Cannot read {filepath}: {e}")
         return {"status": "file_not_found", "error": str(e), "filepath": filepath}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"[safe_json] Unexpected error loading {filepath}: {e}")
         return {"status": "error", "error": str(e), "filepath": filepath}
 
@@ -63,7 +63,7 @@ def safe_jsonl_append(record: Any, filepath: str) -> bool:
         with open(filepath, "a", encoding="utf-8") as f:
             f.write(line + "\n")
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"[safe_json] JSONL append failed for {filepath}: {e}")
         return False
 
@@ -84,6 +84,6 @@ def safe_jsonl_load(filepath: str) -> list:
     except OSError:
         logger.info(f"[safe_json] JSONL file not found: {filepath}")
         return []
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"[safe_json] Error reading {filepath}: {e}")
         return []

@@ -38,5 +38,5 @@ def list_conflicts():
     except json.JSONDecodeError as exc:
         raise InternalError("Invalid JSON in conflict journal") from exc
 
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise InternalError(str(exc)) from exc

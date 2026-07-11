@@ -65,7 +65,7 @@ class ResidualModel:
         if self.MODEL_PATH.exists():
             try:
                 self.model = joblib.load(self.MODEL_PATH)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self.model = None
 
     def is_trained(self) -> bool:
@@ -101,7 +101,7 @@ class ResidualModel:
                 confidence = float(max(conf))
             else:
                 confidence = 0.7
-        except Exception:
+        except Exception:  # noqa: BLE001
             return 0.0, 0.0
 
         return float(max(0.0, float(pred))), confidence

@@ -63,7 +63,7 @@ def generate_training_data(
             try:
                 swiss = eph.calculate_planet(body, jd)
                 swiss_lon = swiss.longitude % 360.0
-            except Exception:
+            except Exception:  # noqa: BLE001
                 continue
 
             # Signed angular difference (handle wrap-around)

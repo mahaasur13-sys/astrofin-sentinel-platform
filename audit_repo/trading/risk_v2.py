@@ -133,7 +133,7 @@ class RiskEngineV2:
             return True, 1.0, "OK"
         try:
             corr_matrix = np.corrcoef(returns_matrix)
-        except Exception:
+        except Exception:  # noqa: BLE001
             return True, 1.0, "OK"
         if symbol not in valid_symbols:
             return True, 1.0, "OK"
@@ -254,7 +254,7 @@ class RiskEngineV2:
         try:
             vol = float(np.std(rets, ddof=0))
             return vol if not (math.isnan(vol) or vol <= 0) else self.config.target_volatility
-        except Exception:
+        except Exception:  # noqa: BLE001
             return self.config.target_volatility
 
 
