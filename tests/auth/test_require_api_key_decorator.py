@@ -13,7 +13,6 @@ the env vars *before* importing ``web.wsgi``.
 from __future__ import annotations
 
 import importlib
-import os
 
 import pytest
 
