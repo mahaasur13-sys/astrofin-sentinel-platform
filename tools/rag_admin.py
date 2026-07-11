@@ -220,7 +220,6 @@ async def cmd_stats(args: argparse.Namespace) -> int:
 
         # Query rate (P2-04: read from labeled RAG_QUERIES_TOTAL).
         try:
-            from tools.metrics_server import RAG_QUERIES_TOTAL
             from prometheus_client import REGISTRY
 
             hits = 0

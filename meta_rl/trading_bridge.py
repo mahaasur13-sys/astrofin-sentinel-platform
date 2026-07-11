@@ -1,6 +1,4 @@
 from __future__ import annotations
-META_RL_TRADING_ENABLED = False  # F821 fix (TODO: move to config)
-"""meta_rl/trading_bridge.py — Live/Paper Trading Bridge for Meta-RL"""
 
 import logging
 from dataclasses import dataclass
@@ -12,6 +10,9 @@ from meta_rl.config import (
 from trading.execution.sanity import ExecutionSanityChecker
 from trading.mode import ModeEnforcer
 from trading.risk_v2 import RiskEngineV2
+
+META_RL_TRADING_ENABLED = False  # F821 fix (TODO: move to config)
+"""meta_rl/trading_bridge.py — Live/Paper Trading Bridge for Meta-RL"""
 
 logger = logging.getLogger(__name__)
 
