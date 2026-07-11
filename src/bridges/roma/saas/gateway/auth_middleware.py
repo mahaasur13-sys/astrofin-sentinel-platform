@@ -1,4 +1,5 @@
 """Unified auth middleware — API Key + optional JWT."""
+
 import jwt
 import os
 from typing import Optional
@@ -31,7 +32,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         from starlette.responses import JSONResponse
-        
+
         try:
             origin = request.headers.get("origin", "")
             if self._cors_origin_match(origin):
@@ -41,7 +42,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
             if tenant_id and tenant_id in self.tenant_config:
                 cfg = self.tenant_config[tenant_id]
-                auth_cfg = cfg.auth if hasattr(cfg, 'auth') else None
+                auth_cfg = cfg.auth if hasattr(cfg, "auth") else None
             else:
                 auth_cfg = None
 
@@ -97,6 +98,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return False
         if tenant_id:
             from saas.tenants.manager import TenantManager
+
             try:
                 manager = TenantManager()
                 tenant = manager.get_tenant(tenant_id)

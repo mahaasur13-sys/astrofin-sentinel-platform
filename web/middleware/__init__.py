@@ -84,11 +84,7 @@ def install_flask(app: Flask) -> None:
                     "correlation_id": cid,
                     "timestamp": _utcnow_iso(),
                     "status": status,
-                    "details": {
-                        k: v
-                        for k, v in legacy.items()
-                        if k not in {"error", "message", "trace_id", "status"}
-                    },
+                    "details": {k: v for k, v in legacy.items() if k not in {"error", "message", "trace_id", "status"}},
                 }
                 response = jsonify(envelope)
             else:

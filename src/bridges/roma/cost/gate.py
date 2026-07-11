@@ -26,6 +26,7 @@ from tenancy.manager import TenantManager
 
 class GateResponse(TypedDict, total=False):
     """Стандартизированный ответ DecisionGate."""
+
     task: str
     tenant_id: str
     tier: str
@@ -65,9 +66,14 @@ class DecisionGate:
         self.tenancy = TenantManager()
         self.decision_history: List[GateResponse] = []
 
-    def decide(self, task: str, plugin_type: str = "default",
-               gpu_required: bool = False, tenant_id: str = "default-tenant",
-               **kwargs) -> Dict[str, Any]:
+    def decide(
+        self,
+        task: str,
+        plugin_type: str = "default",
+        gpu_required: bool = False,
+        tenant_id: str = "default-tenant",
+        **kwargs,
+    ) -> Dict[str, Any]:
         """
         Основной метод, который должен вызываться из CLI и API.
         Возвращает упрощённый словарь для удобства использования.
@@ -84,8 +90,9 @@ class DecisionGate:
             "full_response": result,
         }
 
-    def evaluate(self, task: str, gpu_required: bool, plugin_type: str,
-                 tenant_id: str = "default-tenant", **kwargs) -> GateResponse:
+    def evaluate(
+        self, task: str, gpu_required: bool, plugin_type: str, tenant_id: str = "default-tenant", **kwargs
+    ) -> GateResponse:
         """Основная логика оценки стоимости и принятия решения."""
         if not task or not isinstance(task, str):
             raise ValueError("Параметр 'task' обязателен и должен быть непустой строкой.")
@@ -97,15 +104,20 @@ class DecisionGate:
 
             # Фильтруем только разрешённые аргументы для CostPredictor
             allowed_kwargs = {
-                "custom_duration", "duration_sec", "epochs", "batch_size",
-                "dataset_size", "model_size", "image_count", "gpu_seconds", "steps"
+                "custom_duration",
+                "duration_sec",
+                "epochs",
+                "batch_size",
+                "dataset_size",
+                "model_size",
+                "image_count",
+                "gpu_seconds",
+                "steps",
             }
             clean_kwargs = {k: v for k, v in kwargs.items() if k in allowed_kwargs}
 
             # Вызываем предиктор (ВАЖНО: без параметра tier!)
-            prediction: Dict[str, Any] = self.predictor.predict(
-                task, gpu_required, plugin_type, **clean_kwargs
-            )
+            prediction: Dict[str, Any] = self.predictor.predict(task, gpu_required, plugin_type, **clean_kwargs)
 
             cost: float = float(prediction.get("estimated_cost", 0.0))
             decision: str = prediction.get("decision", "UNKNOWN")
@@ -117,7 +129,7 @@ class DecisionGate:
                 limit = self.TIER_LIMITS.get(tier, self.DEFAULT_LIMIT)
                 if cost > limit:
                     decision = "REJECTED"
-                elif cost == 0.0 or cost > limit * 0.7:   # $0.00 считаем как "требует подтверждения"
+                elif cost == 0.0 or cost > limit * 0.7:  # $0.00 считаем как "требует подтверждения"
                     decision = "REQUIRES_CONFIRMATION"
                 else:
                     decision = "APPROVED"
@@ -197,10 +209,7 @@ class DecisionGate:
 if __name__ == "__main__":
     gate = DecisionGate()
     result = gate.evaluate(
-        task="train model on GPU",
-        gpu_required=True,
-        plugin_type="default",
-        tenant_id="default-tenant"
+        task="train model on GPU", gpu_required=True, plugin_type="default", tenant_id="default-tenant"
     )
 
     print("=== DecisionGate Test ===")

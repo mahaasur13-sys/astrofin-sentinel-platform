@@ -38,7 +38,7 @@ class TunnelEvent:
     def _compute_hash(self) -> str:
         import hashlib
 
-        data = f"{self.trace_id}{self.event_type}{self.timestamp}" "" f"{''}{self.prev_hash}"
+        data = f"{self.trace_id}{self.event_type}{self.timestamp}{''}{self.prev_hash}"
         return hashlib.sha256(data.encode()).hexdigest()
 
     def to_dict(self) -> dict[str, Any]:
@@ -156,13 +156,13 @@ class AmneziaWGManager:
 
     def reconnect_with_backoff(self, attempt: int = 0) -> bool:
         delay = self._deterministic_delay(attempt)
-        logger.info(f"[{self._iface}] reconnect attempt {attempt+1}, delay={delay:.2f}s (deterministic)")
+        logger.info(f"[{self._iface}] reconnect attempt {attempt + 1}, delay={delay:.2f}s (deterministic)")
         time.sleep(delay)
-        self._emit("TUNNEL_FAILOVER", f"Reconnecting, attempt={attempt+1}, delay={delay:.2f}s")
+        self._emit("TUNNEL_FAILOVER", f"Reconnecting, attempt={attempt + 1}, delay={delay:.2f}s")
         self._started = False
         ok = self.start()
         if ok:
-            self._emit("TUNNEL_UP", f"Reconnected after attempt {attempt+1}")
+            self._emit("TUNNEL_UP", f"Reconnected after attempt {attempt + 1}")
         return ok
 
     def ensure_up(self) -> bool:

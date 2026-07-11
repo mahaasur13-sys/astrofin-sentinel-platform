@@ -179,17 +179,14 @@ class RAGRetriever:
 
                 # Cache the result for future calls
                 self._query_cache[cache_key] = deduped[:top_k]
-                RAG_QUERIES_TOTAL.labels(
-                    status="ok", backend=backend_label, domain=domain_label
-                ).inc()
+                RAG_QUERIES_TOTAL.labels(status="ok", backend=backend_label, domain=domain_label).inc()
                 return deduped[:top_k]
         except Exception as exc:  # noqa: BLE001
             from tools.metrics_server import RAG_ERRORS_TOTAL
+
             kind = type(exc).__name__
             RAG_ERRORS_TOTAL.labels(stage="retrieve", kind=kind).inc()
-            RAG_QUERIES_TOTAL.labels(
-                status="error", backend=backend_label, domain=domain_label
-            ).inc()
+            RAG_QUERIES_TOTAL.labels(status="error", backend=backend_label, domain=domain_label).inc()
             raise
 
 

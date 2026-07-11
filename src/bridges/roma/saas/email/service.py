@@ -1,4 +1,5 @@
 """saas.email.service — EmailService with template rendering + real sending."""
+
 from __future__ import annotations
 
 import smtplib
@@ -10,6 +11,7 @@ from typing import Any
 
 try:
     import jinja2
+
     _HAS_JINJA2 = True
 except ImportError:
     _HAS_JINJA2 = False
@@ -119,8 +121,31 @@ TEMPLATES = {
 
 
 class EmailService:
-    def __init__(self, provider=EmailProvider.CONSOLE, smtp_host="smtp.gmail.com", smtp_port=587, smtp_user="", smtp_password="", from_email="noreply@roma.ai", from_name="ROMA Platform", sendgrid_api_key="", resend_api_key="", resend_domain=""):
-        self.cfg = EmailConfig(provider=provider, smtp_host=smtp_host, smtp_port=smtp_port, smtp_user=smtp_user, smtp_password=smtp_password, from_email=from_email, from_name=from_name, sendgrid_api_key=sendgrid_api_key, resend_api_key=resend_api_key, resend_domain=resend_domain)
+    def __init__(
+        self,
+        provider=EmailProvider.CONSOLE,
+        smtp_host="smtp.gmail.com",
+        smtp_port=587,
+        smtp_user="",
+        smtp_password="",
+        from_email="noreply@roma.ai",
+        from_name="ROMA Platform",
+        sendgrid_api_key="",
+        resend_api_key="",
+        resend_domain="",
+    ):
+        self.cfg = EmailConfig(
+            provider=provider,
+            smtp_host=smtp_host,
+            smtp_port=smtp_port,
+            smtp_user=smtp_user,
+            smtp_password=smtp_password,
+            from_email=from_email,
+            from_name=from_name,
+            sendgrid_api_key=sendgrid_api_key,
+            resend_api_key=resend_api_key,
+            resend_domain=resend_domain,
+        )
         if _HAS_JINJA2:
             self._env = jinja2.Environment()
             self._templates = {name: self._env.from_string(src) for name, src in TEMPLATES.items()}
@@ -156,10 +181,16 @@ class EmailService:
     def _send_sendgrid(self, to_email: str, subject: str, html_body: str) -> bool:
         try:
             import requests
+
             resp = requests.post(
                 "https://api.sendgrid.com/v3/mail/send",
                 headers={"Authorization": f"Bearer {self.cfg.sendgrid_api_key}", "Content-Type": "application/json"},
-                json={"personalizations": [{"to": [{"email": to_email}]}], "from": {"email": self.cfg.from_email, "name": self.cfg.from_name}, "subject": subject, "content": [{"type": "text/html", "value": html_body}]},
+                json={
+                    "personalizations": [{"to": [{"email": to_email}]}],
+                    "from": {"email": self.cfg.from_email, "name": self.cfg.from_name},
+                    "subject": subject,
+                    "content": [{"type": "text/html", "value": html_body}],
+                },
                 timeout=10,
             )
             return resp.status_code in (200, 202)
@@ -170,10 +201,16 @@ class EmailService:
     def _send_resend(self, to_email: str, subject: str, html_body: str) -> bool:
         try:
             import requests
+
             resp = requests.post(
                 "https://api.resend.com/emails",
                 headers={"Authorization": f"Bearer {self.cfg.resend_api_key}", "Content-Type": "application/json"},
-                json={"from": f"{self.cfg.from_name} <no-reply@{self.cfg.resend_domain}>", "to": [to_email], "subject": subject, "html": html_body},
+                json={
+                    "from": f"{self.cfg.from_name} <no-reply@{self.cfg.resend_domain}>",
+                    "to": [to_email],
+                    "subject": subject,
+                    "html": html_body,
+                },
                 timeout=10,
             )
             return resp.status_code in (200, 201)
@@ -183,7 +220,9 @@ class EmailService:
 
     def send(self, to_email: str, subject: str, html_body: str) -> bool:
         if self.cfg.provider == EmailProvider.CONSOLE:
-            print(f"\n{'='*60}\n[EmailService] CONSOLE — would send:\n  To: {to_email}\n  Subject: {subject}\n  Body: {html_body[:200]}...\n{'='*60}\n")
+            print(
+                f"\n{'=' * 60}\n[EmailService] CONSOLE — would send:\n  To: {to_email}\n  Subject: {subject}\n  Body: {html_body[:200]}...\n{'=' * 60}\n"
+            )
             return True
         if self.cfg.provider == EmailProvider.SMTP:
             return self._send_smtp(to_email, self._build_smtp_message(to_email, subject, html_body))
@@ -193,21 +232,75 @@ class EmailService:
             return self._send_resend(to_email, subject, html_body)
         return False
 
-    def send_welcome(self, to_email: str, tenant_name: str, api_key: str, brand: dict[str, Any], dashboard_url: str = "https://dashboard.roma.ai") -> bool:
-        html = self._render("welcome", tenant_name=tenant_name, api_key=api_key, brand=brand, dashboard_url=dashboard_url)
-        return self.send(to_email, f"Welcome to {brand.get('app_name','ROMA')}!", html)
+    def send_welcome(
+        self,
+        to_email: str,
+        tenant_name: str,
+        api_key: str,
+        brand: dict[str, Any],
+        dashboard_url: str = "https://dashboard.roma.ai",
+    ) -> bool:
+        html = self._render(
+            "welcome", tenant_name=tenant_name, api_key=api_key, brand=brand, dashboard_url=dashboard_url
+        )
+        return self.send(to_email, f"Welcome to {brand.get('app_name', 'ROMA')}!", html)
 
-    def send_usage_alert(self, to_email: str, tenant_name: str, percentage: float, used_gpus: float, remaining_gpus: float, brand: dict[str, Any]) -> bool:
-        html = self._render("usage_alert", tenant_name=tenant_name, percentage=percentage, used_gpus=used_gpus, remaining_gpus=remaining_gpus, brand=brand)
+    def send_usage_alert(
+        self,
+        to_email: str,
+        tenant_name: str,
+        percentage: float,
+        used_gpus: float,
+        remaining_gpus: float,
+        brand: dict[str, Any],
+    ) -> bool:
+        html = self._render(
+            "usage_alert",
+            tenant_name=tenant_name,
+            percentage=percentage,
+            used_gpus=used_gpus,
+            remaining_gpus=remaining_gpus,
+            brand=brand,
+        )
         return self.send(to_email, f"⚠️ Usage Alert — {percentage}% Quota Used", html)
 
-    def send_invoice(self, to_email: str, invoice_id: str, period: str, gpu_hours: float, subtotal: float, roma_fee: float, roma_fee_amount: float, revenue: float, brand: dict[str, Any]) -> bool:
-        html = self._render("invoice", invoice_id=invoice_id, period=period, gpu_hours=gpu_hours, subtotal=subtotal, roma_fee=roma_fee, roma_fee_amount=roma_fee_amount, revenue=revenue, brand=brand)
+    def send_invoice(
+        self,
+        to_email: str,
+        invoice_id: str,
+        period: str,
+        gpu_hours: float,
+        subtotal: float,
+        roma_fee: float,
+        roma_fee_amount: float,
+        revenue: float,
+        brand: dict[str, Any],
+    ) -> bool:
+        html = self._render(
+            "invoice",
+            invoice_id=invoice_id,
+            period=period,
+            gpu_hours=gpu_hours,
+            subtotal=subtotal,
+            roma_fee=roma_fee,
+            roma_fee_amount=roma_fee_amount,
+            revenue=revenue,
+            brand=brand,
+        )
         return self.send(to_email, f"Invoice {invoice_id} — Revenue Payment", html)
 
-    def send_low_balance(self, to_email: str, tenant_name: str, balance: float, brand: dict[str, Any], dashboard_url: str = "https://dashboard.roma.ai") -> bool:
-        html = self._render("low_balance", tenant_name=tenant_name, balance=balance, brand=brand, dashboard_url=dashboard_url)
-        return self.send(to_email, f"🔴 Low Balance — {brand.get('app_name','ROMA')}", html)
+    def send_low_balance(
+        self,
+        to_email: str,
+        tenant_name: str,
+        balance: float,
+        brand: dict[str, Any],
+        dashboard_url: str = "https://dashboard.roma.ai",
+    ) -> bool:
+        html = self._render(
+            "low_balance", tenant_name=tenant_name, balance=balance, brand=brand, dashboard_url=dashboard_url
+        )
+        return self.send(to_email, f"🔴 Low Balance — {brand.get('app_name', 'ROMA')}", html)
 
 
 if __name__ == "__main__":

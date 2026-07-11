@@ -29,6 +29,7 @@ Usage:
     python scripts/validate_agent.py agents/_impl/                  # whole dir
     python scripts/validate_agent.py --list-recommended-fixes agents/_impl/my_new_agent.py
 """
+
 from __future__ import annotations
 
 import argparse
@@ -42,8 +43,12 @@ from pathlib import Path
 # ─── Pretty output ─────────────────────────────────────────────────────────
 
 _USE_COLOR = sys.stdout.isatty()
+
+
 def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
+
+
 GREEN = lambda s: _c("32;1", s)
 RED = lambda s: _c("31;1", s)
 YELLOW = lambda s: _c("33;1", s)
@@ -56,21 +61,32 @@ DIM = lambda s: _c("2", s)
 REPO_ROOT = Path(__file__).resolve().parent.parent
 REGISTRY_PATH = REPO_ROOT / "agents" / "gitagent_registry.py"
 ALLOWED_DOMAINS = {
-    "astro", "fundamental", "macro", "quant", "options",
-    "sentiment", "technical", "research", "risk", "synthesis",
+    "astro",
+    "fundamental",
+    "macro",
+    "quant",
+    "options",
+    "sentiment",
+    "technical",
+    "research",
+    "risk",
+    "synthesis",
 }
 EPHEMERIS_KEYWORDS = ("swisseph", "ephemeris", "planet", "aspect")
 
 # ─── Result model ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class Check:
-    code: str         # "A1", "A2", ...
+    code: str  # "A1", "A2", ...
     label: str
     passed: bool
     detail: str = ""
 
+
 # ─── Helpers ───────────────────────────────────────────────────────────────
+
 
 def parse_registry() -> dict[str, dict]:
     """Return the {agent_name: info} dict from agents/gitagent_registry.py."""
@@ -106,6 +122,7 @@ def parse_registry() -> dict[str, dict]:
                     registry[k.value] = entry
     return registry
 
+
 def find_agent_class(tree: ast.AST) -> ast.ClassDef | None:
     for node in ast.walk(tree):
         if isinstance(node, ast.ClassDef):
@@ -115,11 +132,13 @@ def find_agent_class(tree: ast.AST) -> ast.ClassDef | None:
                     return node
     return None
 
+
 def find_run_method(klass: ast.ClassDef) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
     for node in klass.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == "run":
             return node
     return None
+
 
 def find_runner_function(tree: ast.AST, agent_name: str) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
     expected = f"run_{_camel_to_snake(agent_name)}"
@@ -128,10 +147,12 @@ def find_runner_function(tree: ast.AST, agent_name: str) -> ast.FunctionDef | as
             return node
     return None
 
+
 def _camel_to_snake(name: str) -> str:
     """CamelCase → snake_case. FundamentalAgent → fundamental_agent."""
     s = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", name)
     return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s).lower()
+
 
 def has_decorator(node: ast.FunctionDef | ast.AsyncFunctionDef, name: str) -> bool:
     for d in node.decorator_list:
@@ -139,15 +160,16 @@ def has_decorator(node: ast.FunctionDef | ast.AsyncFunctionDef, name: str) -> bo
             return True
     return False
 
+
 # ─── Individual checks ─────────────────────────────────────────────────────
+
 
 def check_A1_has_agent_class(tree: ast.AST, src: Path) -> Check:
     klass = find_agent_class(tree)
     if klass is None:
-        return Check("A1", "inherits BaseAgent[AgentResponse]", False,
-                     f"no class in {src.name} inherits BaseAgent")
-    return Check("A1", "inherits BaseAgent[AgentResponse]", True,
-                 f"class {klass.name}")
+        return Check("A1", "inherits BaseAgent[AgentResponse]", False, f"no class in {src.name} inherits BaseAgent")
+    return Check("A1", "inherits BaseAgent[AgentResponse]", True, f"class {klass.name}")
+
 
 def check_A2_super_init(klass: ast.ClassDef) -> Check:
     for node in klass.body:
@@ -156,19 +178,18 @@ def check_A2_super_init(klass: ast.ClassDef) -> Check:
                 if isinstance(sub, ast.Call) and isinstance(sub.func, ast.Attribute):
                     if sub.func.attr == "__init__":
                         return Check("A2", "calls super().__init__", True)
-            return Check("A2", "calls super().__init__", False,
-                         "__init__ exists but does not call super().__init__")
+            return Check("A2", "calls super().__init__", False, "__init__ exists but does not call super().__init__")
     return Check("A2", "calls super().__init__", False, "no __init__ defined")
+
 
 def check_A3_run_method(klass: ast.ClassDef) -> Check:
     run = find_run_method(klass)
     if run is None:
-        return Check("A3", "defines async run(self, state)", False,
-                     "no `run` method")
+        return Check("A3", "defines async run(self, state)", False, "no `run` method")
     if not isinstance(run, ast.AsyncFunctionDef):
-        return Check("A3", "defines async run(self, state)", False,
-                     "`run` is sync; should be async")
+        return Check("A3", "defines async run(self, state)", False, "`run` is sync; should be async")
     return Check("A3", "defines async run(self, state)", True)
+
 
 def check_A4_ephemeris_decorator(
     klass: ast.ClassDef,
@@ -180,8 +201,7 @@ def check_A4_ephemeris_decorator(
     lowered = source_text.lower()
     needs_ephemeris = any(kw in lowered for kw in EPHEMERIS_KEYWORDS)
     if not needs_ephemeris:
-        return Check("A4", "@require_ephemeris decorator", True,
-                     "not required for this agent (no ephemeris symbols)")
+        return Check("A4", "@require_ephemeris decorator", True, "not required for this agent (no ephemeris symbols)")
 
     # Find any decorator named require_ephemeris anywhere in the class body.
     has_dec = False
@@ -192,20 +212,22 @@ def check_A4_ephemeris_decorator(
                 break
     if has_dec:
         return Check("A4", "@require_ephemeris decorator", True, "present on a method")
-    return Check("A4", "@require_ephemeris decorator", False,
-                 "agent uses ephemeris symbols but no method has @require_ephemeris")
+    return Check(
+        "A4", "@require_ephemeris decorator", False, "agent uses ephemeris symbols but no method has @require_ephemeris"
+    )
+
 
 def check_A5_runner_function(tree: ast.AST, agent_name: str) -> Check:
     fn = find_runner_function(tree, agent_name)
     if fn is None:
         expected = f"run_{_camel_to_snake(agent_name)}"
-        return Check("A5", f"exports run_<{agent_name}>(state)", False,
-                     f"expected a top-level `{expected}` async function")
+        return Check(
+            "A5", f"exports run_<{agent_name}>(state)", False, f"expected a top-level `{expected}` async function"
+        )
     if not isinstance(fn, ast.AsyncFunctionDef):
-        return Check("A5", f"exports run_<{agent_name}>(state)", False,
-                     f"function `{fn.name}` should be async")
-    return Check("A5", f"exports run_<{agent_name}>(state)", True,
-                 f"function `{fn.name}` is async")
+        return Check("A5", f"exports run_<{agent_name}>(state)", False, f"function `{fn.name}` should be async")
+    return Check("A5", f"exports run_<{agent_name}>(state)", True, f"function `{fn.name}` is async")
+
 
 def check_A6_registry_entry(
     agent_name: str,
@@ -214,48 +236,45 @@ def check_A6_registry_entry(
 ) -> Check:
     # Templates and archived agents are exempt from registry coverage.
     if src is not None and ("_template" in src.stem or "_archived" in str(src)):
-        return Check("A6", "AGENT_AGENTS entry", True,
-                     "skipped (template/archived file)")
+        return Check("A6", "AGENT_AGENTS entry", True, "skipped (template/archived file)")
     if not registry:
-        return Check("A6", "AGENT_AGENTS entry", False,
-                     "registry not found or empty")
+        return Check("A6", "AGENT_AGENTS entry", False, "registry not found or empty")
     entry = registry.get(agent_name)
     if entry is None:
-        return Check("A6", "AGENT_AGENTS entry", False,
-                     f"agent '{agent_name}' not in AGENT_AGENTS; "
-                     f"add it in agents/gitagent_registry.py")
+        return Check(
+            "A6",
+            "AGENT_AGENTS entry",
+            False,
+            f"agent '{agent_name}' not in AGENT_AGENTS; add it in agents/gitagent_registry.py",
+        )
     weight = entry.get("weight", 0)
     if not (0.0 <= weight <= 1.0):
-        return Check("A6", "AGENT_AGENTS entry", False,
-                     f"weight={weight} not in [0, 1]")
+        return Check("A6", "AGENT_AGENTS entry", False, f"weight={weight} not in [0, 1]")
     domain = entry.get("domain", "")
     if domain not in ALLOWED_DOMAINS:
-        return Check("A6", "AGENT_AGENTS entry", False,
-                     f"domain '{domain}' not in {sorted(ALLOWED_DOMAINS)}")
-    return Check("A6", "AGENT_AGENTS entry", True,
-                 f"weight={weight}, domain={domain}")
+        return Check("A6", "AGENT_AGENTS entry", False, f"domain '{domain}' not in {sorted(ALLOWED_DOMAINS)}")
+    return Check("A6", "AGENT_AGENTS entry", True, f"weight={weight}, domain={domain}")
+
 
 def check_A7_docstrings(klass: ast.ClassDef, run: ast.FunctionDef | ast.AsyncFunctionDef | None) -> Check:
     if not ast.get_docstring(klass):
-        return Check("A7", "docstrings present", False,
-                     f"class {klass.name} has no docstring")
+        return Check("A7", "docstrings present", False, f"class {klass.name} has no docstring")
     if run is not None and not ast.get_docstring(run):
-        return Check("A7", "docstrings present", False,
-                     "run() has no docstring")
+        return Check("A7", "docstrings present", False, "run() has no docstring")
     return Check("A7", "docstrings present", True)
+
 
 def check_A8_return_type(run: ast.FunctionDef | ast.AsyncFunctionDef | None) -> Check:
     if run is None:
         return Check("A8", "run() return annotation", False, "no run()")
     ret = run.returns
     if ret is None:
-        return Check("A8", "run() return annotation", False,
-                     "run() lacks return type hint")
+        return Check("A8", "run() return annotation", False, "run() lacks return type hint")
     hint = ast.unparse(ret)
     if "AgentResponse" not in hint:
-        return Check("A8", "run() return annotation", False,
-                     f"run() returns {hint!r}, expected AgentResponse")
+        return Check("A8", "run() return annotation", False, f"run() returns {hint!r}, expected AgentResponse")
     return Check("A8", "run() return annotation", True, f"-> {hint}")
+
 
 def check_A9_graceful(run: ast.FunctionDef | ast.AsyncFunctionDef | None, src_text: str) -> Check:
     """Best-effort: look for a try/except inside run() that returns an AgentResponse."""
@@ -264,12 +283,12 @@ def check_A9_graceful(run: ast.FunctionDef | ast.AsyncFunctionDef | None, src_te
     # Look at the body of run: it must contain a `try`.
     for sub in ast.walk(run):
         if isinstance(sub, ast.Try):
-            return Check("A9", "graceful degradation", True,
-                         "run() has try/except block")
-    return Check("A9", "graceful degradation", False,
-                 "run() has no try/except; consider wrapping external calls")
+            return Check("A9", "graceful degradation", True, "run() has try/except block")
+    return Check("A9", "graceful degradation", False, "run() has no try/except; consider wrapping external calls")
+
 
 # ─── Driver ────────────────────────────────────────────────────────────────
+
 
 def validate(src: Path) -> list[Check]:
     src = src.resolve()
@@ -280,8 +299,7 @@ def validate(src: Path) -> list[Check]:
         return [Check("SYNTAX", "parses cleanly", False, f"{e.msg} at line {e.lineno}")]
     klass = find_agent_class(tree)
     if klass is None:
-        return [Check("A1", "inherits BaseAgent[AgentResponse]", False,
-                      "no agent class found")]
+        return [Check("A1", "inherits BaseAgent[AgentResponse]", False, "no agent class found")]
     agent_name = klass.name
     run = find_run_method(klass)
     registry = parse_registry()
@@ -296,6 +314,7 @@ def validate(src: Path) -> list[Check]:
         check_A8_return_type(run),
         check_A9_graceful(run, text),
     ]
+
 
 def render(checks: list[Check], src: Path) -> int:
     try:
@@ -323,6 +342,7 @@ def render(checks: list[Check], src: Path) -> int:
         print(GREEN("  Ready to ship."))
     return 0 if not failed else 1
 
+
 def recommend_fixes(checks: list[Check]) -> None:
     failed = [c for c in checks if not c.passed]
     if not failed:
@@ -333,33 +353,38 @@ def recommend_fixes(checks: list[Check]) -> None:
         print(f"  • [{c.code}] {c.label}")
         print(f"      {DIM(c.detail)}")
 
+
 def find_test_file(src: Path) -> Path | None:
     """Map agents/_impl/foo_agent.py → tests/test_foo_agent.py."""
     name = src.stem
     test_path = REPO_ROOT / "tests" / f"test_{name}.py"
     return test_path if test_path.exists() else None
 
+
 def run_pytest(test_path: Path) -> int:
     print(BOLD(f"\nrunning pytest on {test_path.relative_to(REPO_ROOT)} …\n"))
     return subprocess.call([sys.executable, "-m", "pytest", "-q", "--tb=short", str(test_path)])
+
 
 def iter_agent_files(target: Path) -> list[Path]:
     if target.is_file():
         return [target]
     if target.is_dir():
-        return [p for p in sorted(target.rglob("*.py"))
-                if "_archived" not in p.parts and "_templates" not in p.parts
-                and p.name != "__init__.py"]
+        return [
+            p
+            for p in sorted(target.rglob("*.py"))
+            if "_archived" not in p.parts and "_templates" not in p.parts and p.name != "__init__.py"
+        ]
     return []
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate a single AstroFin agent file")
-    parser.add_argument("target", nargs="?", default="agents/_impl",
-                        help="agent file or directory")
-    parser.add_argument("--with-tests", action="store_true",
-                        help="also run the corresponding test file")
-    parser.add_argument("--list-recommended-fixes", action="store_true",
-                        help="only print recommended fixes for failed checks")
+    parser.add_argument("target", nargs="?", default="agents/_impl", help="agent file or directory")
+    parser.add_argument("--with-tests", action="store_true", help="also run the corresponding test file")
+    parser.add_argument(
+        "--list-recommended-fixes", action="store_true", help="only print recommended fixes for failed checks"
+    )
     args = parser.parse_args(argv)
 
     target = Path(args.target)
@@ -388,6 +413,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 print(YELLOW(f"  no test file for {src.name} (skipping --with-tests)"))
     return overall
+
 
 if __name__ == "__main__":
     sys.exit(main())

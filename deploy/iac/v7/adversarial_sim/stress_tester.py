@@ -47,7 +47,7 @@ class AdversarialSimulator:
             template = next((s for s in self.SCENARIOS if s["name"] == scenario_name), self.SCENARIOS[0])
 
         return AdversarialScenario(
-            scenario_id=f"adv_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{random.randint(1000,9999)}",
+            scenario_id=f"adv_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{random.randint(1000, 9999)}",
             burst_job_count=template["burst_jobs"],
             node_failures=template["failures"],
             queue_spike_multiplier=template["spike"],

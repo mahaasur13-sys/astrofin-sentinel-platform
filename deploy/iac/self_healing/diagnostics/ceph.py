@@ -333,7 +333,7 @@ def get_recovery_priority(status: CephStatus) -> list[dict]:
                 "action": "alert_nearfull",
                 "target": "osd",
                 "priority": 5,
-                "reason": f"Storage {int(status.usage_ratio*100)}% used (nearfull threshold)",
+                "reason": f"Storage {int(status.usage_ratio * 100)}% used (nearfull threshold)",
                 "auto": False,
             }
         )

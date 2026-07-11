@@ -253,7 +253,11 @@ def run():
             "action": (
                 "block"
                 if status == "BLOCK"
-                else "allow" if status == "PASS" else "warn" if status == "WARN" else "escalate"
+                else "allow"
+                if status == "PASS"
+                else "warn"
+                if status == "WARN"
+                else "escalate"
             )
         },
         "ESCALATION_MODE": overall < 0.65,
