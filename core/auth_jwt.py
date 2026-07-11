@@ -366,9 +366,9 @@ def verify_token(
         logger.warning("auth.token_revoked", extra={"jti": decoded["jti"]})
         raise RevokedError(f"token jti revoked: {decoded['jti']}")
 
-    logger.info(
+    logger.debug(
         "auth.token_verified",
-        extra={"sub": decoded["sub"], "typ": expected_type, "jti": decoded["jti"]},
+        extra={"sub": (decoded["sub"][:8] + "...") if isinstance(decoded.get("sub"), str) else decoded.get("sub"), "typ": expected_type, "jti": decoded["jti"][:8]},
     )
     return Claims(
         sub=decoded["sub"],
