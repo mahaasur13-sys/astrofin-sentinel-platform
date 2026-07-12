@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import inspect
 import logging
-import os
 import secrets
 from functools import wraps
 
@@ -12,11 +11,39 @@ from fastapi import Request
 from flask import request as flask_request
 
 from core.error_schema import Forbidden, Unauthorized, format_error
+from core.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
-REQUIRE_AUTH = os.getenv("REQUIRE_AUTH", "true").lower() == "true"
-API_KEY = os.getenv("API_KEY", "")
+# Backwards-compatible module-level constants. The single source of truth
+# is :func:`core.settings.get_settings`; these bindings are refreshed at
+# startup and on every call to :func:`reload_auth_state` so tests that
+# mutate env vars pick up the new values without process restart.
+REQUIRE_AUTH: bool = True
+API_KEY: str = ""
+
+
+def _refresh_auth_state() -> tuple[bool, str]:
+    """(Re)read auth-related settings from the central config."""
+    s = get_settings()
+    key = s.api_key
+    if hasattr(key, "get_secret_value"):
+        key = key.get_secret_value()
+    return s.require_auth, key
+
+
+REQUIRE_AUTH, API_KEY = _refresh_auth_state()
+
+
+def reload_auth_state() -> None:
+    """Public hook for tests / startup that re-reads settings.
+
+    Sets the module-level ``REQUIRE_AUTH`` and ``API_KEY`` globals from the
+    central :class:`core.settings.Settings` instance. Use this in fixtures
+    after monkey-patching env vars instead of importing new values.
+    """
+    global REQUIRE_AUTH, API_KEY
+    REQUIRE_AUTH, API_KEY = _refresh_auth_state()
 
 
 def validate_startup() -> None:

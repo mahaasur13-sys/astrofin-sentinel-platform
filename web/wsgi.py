@@ -18,6 +18,8 @@ from __future__ import annotations
 import logging
 import os
 import signal
+
+from core.settings import get_settings
 import threading
 import time
 from typing import Any
@@ -105,7 +107,7 @@ def health():
 
 
 # ── Optional internal shutdown endpoint (opt-in) ──────────────────────────────
-if os.getenv("ENABLE_INTERNAL_ENDPOINTS", "").lower() in ("1", "true", "yes"):
+if get_settings().enable_internal_endpoints in ("1", "true", "yes"):
 
     @server.route("/_internal/shutdown", methods=["POST"])
     @require_api_key

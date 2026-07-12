@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import logging
-import os
 import sys
 
 import structlog
 from opentelemetry import trace as otel_trace
 
 from core.logging_utils import scrub_pii
+from core.settings import get_settings
 
 
 def _add_trace_context(logger, method, event_dict):
@@ -27,18 +27,23 @@ def _add_correlation_id(logger, method_name, event_dict):
 def setup_logging():
     """Configure structured logging for the AstroFin Sentinel platform.
 
-    The renderer is selected by RENDER_MODE env var:
-      - "json" (default): JSONRenderer — machine-readable, CI/ELK friendly.
-        All tests that assert on log structure (test_logging.py) use this.
-      - "console": ConsoleRenderer — human-friendly colors for dev (rich).
+    Renderer selection is read from the central settings
+    (:attr:`core.settings.Settings.LOG_RENDER_MODE`):
 
-    logger_factory=PrintLoggerFactory(file=sys.stdout) writes to the **current**
-    sys.stdout at call time. This is required for pytest's capsys fixture to
-    work correctly: pytest redirects sys.stdout INSIDE the test, and the
-    default LoggerFactory captures the *original* stdout at config time, so
-    pytest's redirect is missed.
+    * ``"json"`` (default) — :class:`JSONRenderer` — machine-readable, CI/ELK
+      friendly. All tests that assert on log structure (``test_logging.py``)
+      use this mode.
+    * ``"console"`` — :class:`ConsoleRenderer` — human-friendly colours for
+      dev (rich).
+
+    ``logger_factory=PrintLoggerFactory(file=sys.stdout)`` writes to the
+    **current** ``sys.stdout`` at call time. This is required for pytest's
+    ``capsys`` fixture to work correctly: pytest redirects ``sys.stdout``
+    INSIDE the test, and the default ``LoggerFactory`` captures the
+    *original* stdout at config time, so pytest's redirect is missed.
     """
-    render_mode = (os.getenv("RENDER_MODE") or "json").lower()
+    settings = get_settings()
+    render_mode = (settings.render_mode or "json").lower()
     if render_mode == "console":
         renderer = structlog.dev.ConsoleRenderer()
     else:
