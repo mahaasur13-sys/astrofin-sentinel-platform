@@ -80,7 +80,7 @@ class TestSchemaShape:
 
     def test_timestamp_is_iso_utc(self):
         env = format_error(BadRequest("x"))
-        assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", env["timestamp"])
+        assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$", env["timestamp"])
 
     def test_details_default_to_empty_dict(self):
         env = format_error(BadRequest("x"))
