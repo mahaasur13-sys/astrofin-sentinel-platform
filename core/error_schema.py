@@ -126,8 +126,9 @@ def format_error(
     """Render an exception into the standard JSON envelope.
 
     Unknown (non-AppException) exceptions are mapped to 500 INTERNAL_ERROR
-    with a generic message; the original type is recorded in `details.exception`
-    for observability, but no internal text is leaked to the client.
+    with a generic message; the original type is recorded in structured
+    logs only and is NOT included in the client envelope, so no internal
+    text is leaked to the client.
     """
     if isinstance(exc, AppException):
         code = exc.code
@@ -138,18 +139,23 @@ def format_error(
         code = InternalError.code
         status = InternalError.status
         message = InternalError.message
-        merged_details = {"exception": type(exc).__name__}
+        # Intentionally do not expose type(exc).__name__ to the client.
+        merged_details = {}
 
     if details:
         merged_details.update(details)
+
+    _now = time.time()
+    timestamp = (
+        time.strftime("%Y-%m-%dT%H:%M:%S.", time.gmtime(_now)) + f"{int((_now % 1) * 1000):03d}Z"
+    )  # ISO-8601 UTC with ms, RFC 3339
 
     return {
         "code": code,
         "message": message,
         "trace_id": trace_id or "unknown",
         "correlation_id": correlation_id or get_correlation_id(),
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.", time.gmtime())
-        + f"{int((time.time() % 1) * 1000):03d}Z",  # ISO-8601 UTC with ms, RFC 3339
+        "timestamp": timestamp,
         "status": status,
         "details": merged_details,
     }

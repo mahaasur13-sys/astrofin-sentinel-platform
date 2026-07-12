@@ -48,7 +48,7 @@ class TestStandardisedErrors:
     def test_400_bad_request_envelope(self, client):
         r = client.get(
             "/api/ab/compare",
-            headers={"X-API-Key": "test-key", "X-Correlation-ID": "cid-1"},
+            headers={"X-API-Key": "test-secret-key", "X-Correlation-ID": "cid-1"},
         )
         assert r.status_code == 400
         body = r.get_json()
@@ -63,7 +63,7 @@ class TestStandardisedErrors:
         r = client.post(
             "/api/live/enable",
             json={"confirmed": False},
-            headers={"X-API-Key": "test-key"},
+            headers={"X-API-Key": "test-secret-key"},
         )
         assert r.status_code == 400
         body = r.get_json()
@@ -74,7 +74,7 @@ class TestStandardisedErrors:
     def test_404_uses_envelope(self, client):
         r = client.get(
             "/data-room/conflicts",
-            headers={"X-API-Key": "test-key"},
+            headers={"X-API-Key": "test-secret-key"},
         )
         assert r.status_code == 404
         body = r.get_json()
@@ -89,12 +89,67 @@ class TestStandardisedErrors:
         assert isinstance(body, dict)
         assert _envelope_keys().issubset(body.keys())
 
+    def test_401_missing_api_key_envelope(self, client):
+        r = client.get(
+            "/api/ab/compare",
+            headers={"X-Correlation-ID": "cid-401"},
+        )
+        assert r.status_code == 401
+        body = r.get_json()
+        assert _envelope_keys().issubset(body.keys())
+        assert body["code"] == "UNAUTHORIZED"
+        assert body["status"] == 401
+        assert body["correlation_id"] == "cid-401"
+        assert r.headers.get("X-Correlation-ID") == "cid-401"
+
+    def test_403_wrong_api_key_envelope(self, client):
+        r = client.get(
+            "/api/ab/compare",
+            headers={"X-API-Key": "wrong-key", "X-Correlation-ID": "cid-403"},
+        )
+        assert r.status_code == 403
+        body = r.get_json()
+        assert _envelope_keys().issubset(body.keys())
+        assert body["code"] == "FORBIDDEN"
+        assert body["status"] == 403
+        assert body["correlation_id"] == "cid-403"
+        assert r.headers.get("X-Correlation-ID") == "cid-403"
+
+    def test_500_unexpected_exception_envelope(self, client, monkeypatch):
+
+        def _boom(*_a, **_kw):
+            raise RuntimeError("synthetic-failure")
+
+        # Drive _handle_unexpected via live_enable (POST). Patch the
+        # registered view function directly — Flask stores it in
+        # server.view_functions, so reassigning the module attribute would
+        # not affect the already-registered handler.
+        flask_server.view_functions["live_enable"] = _boom
+        r = client.post(
+            "/api/live/enable",
+            json={"confirmed": True},
+            headers={
+                "X-API-Key": "test-secret-key",
+                "X-Correlation-ID": "cid-500",
+            },
+        )
+        assert r.status_code == 500
+        body = r.get_json()
+        assert _envelope_keys().issubset(body.keys())
+        assert body["code"] == "INTERNAL_ERROR"
+        assert body["status"] == 500
+        assert body["correlation_id"] == "cid-500"
+        # Generic message — no leak of internal exception class
+        assert body["message"] == "Internal server error"
+        assert "exception" not in body.get("details", {})
+        assert r.headers.get("X-Correlation-ID") == "cid-500"
+
 
 class TestCorrelationIdPropagation:
     def test_correlation_id_generated_when_missing(self, client):
         r = client.get(
             "/api/ab/compare",
-            headers={"X-API-Key": "test-key"},
+            headers={"X-API-Key": "test-secret-key"},
         )
         body = r.get_json()
         assert body["correlation_id"]
@@ -103,7 +158,7 @@ class TestCorrelationIdPropagation:
     def test_correlation_id_echoed_from_request(self, client):
         r = client.get(
             "/api/ab/compare",
-            headers={"X-API-Key": "test-key", "X-Correlation-ID": "my-trace-7"},
+            headers={"X-API-Key": "test-secret-key", "X-Correlation-ID": "my-trace-7"},
         )
         body = r.get_json()
         assert body["correlation_id"] == "my-trace-7"
