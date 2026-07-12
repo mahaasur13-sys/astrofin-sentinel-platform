@@ -96,7 +96,6 @@ def test_auth_disabled_allows_request(monkeypatch: pytest.MonkeyPatch):
     assert r.status_code == 200
 
 
-@pytest.mark.xfail(reason="order-dependent secrets monkeypatch (KI-128 followup)")
 def test_constant_time_compare_used(monkeypatch: pytest.MonkeyPatch):
     """Sanity check: ``secrets.compare_digest`` is invoked on a wrong key."""
     import secrets as _secrets
@@ -113,8 +112,11 @@ def test_constant_time_compare_used(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("REQUIRE_AUTH", "true")
 
     for mod in list(importlib.sys.modules):
-        if mod == "web.wsgi" or mod == "core.auth":
+        if mod in ("web.wsgi", "core.auth", "core.settings"):
             importlib.sys.modules.pop(mod, None)
+
+    from core.settings import get_settings
+    get_settings.cache_clear()
 
     from web.wsgi import server
     from core.auth import reload_auth_state

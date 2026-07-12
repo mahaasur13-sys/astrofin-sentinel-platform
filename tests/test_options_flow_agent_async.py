@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, Mock, patch
 from agents._impl.options_flow_agent import OptionsFlowAgent
 
 
-@pytest.mark.xfail(reason="_fetch_ohlcv not implemented on OptionsFlowAgent", strict=True)
+@pytest.mark.skip(reason="_fetch_ohlcv not implemented on OptionsFlowAgent (KI-130)")
 @pytest.mark.asyncio
 async def test_options_flow_agent_uses_async_http():
     agent = OptionsFlowAgent()

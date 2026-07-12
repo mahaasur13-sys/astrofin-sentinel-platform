@@ -13,7 +13,17 @@ from flask import Flask, jsonify
 
 
 def _reload_core_auth():
-    """Drop cached ``core.auth`` so a fresh module is created from current env."""
+    """Drop cached ``core.auth`` AND the ``core.settings`` lru_cache singleton.
+
+    ``core.settings.get_settings`` is decorated with ``@lru_cache(maxsize=1)``,
+    so once any other test imports ``core.auth`` during the session, the cached
+    ``Settings`` instance (populated with the default ``test-secret-key``) is
+    reused on subsequent reloads. We must clear that cache so the reimport
+    reads the freshly-monkeypatched environment.
+    """
+    from core.settings import get_settings  # local import: avoid top-level side effects
+
+    get_settings.cache_clear()
     sys.modules.pop("core.auth", None)
     import core.auth as auth_mod  # noqa: F401 — populate sys.modules
 
