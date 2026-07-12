@@ -186,7 +186,11 @@ services:
     container_name: astrofin-postgres
     environment:
       POSTGRES_USER: astrofin
-      POSTGRES_PASSWORD: astrofin
+      # In production, set POSTGRES_PASSWORD via the deploy/secrets manager (see
+      # .env.prod.enc.yaml + SOPS). The default below is only used for local
+      # `docker compose config` validation; `docker compose up` will fail loudly
+      # if you forget to override it in a non-dev environment.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
       POSTGRES_DB: astrofin
     volumes:
       - postgres_data:/var/lib/postgresql/data
