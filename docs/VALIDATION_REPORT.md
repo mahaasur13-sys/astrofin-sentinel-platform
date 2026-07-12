@@ -90,7 +90,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     ```
 
 ### INFERRED #imports-5
-- **Source:** `audit_repo/tests/test_validator.py:LL10 :: audit_repo_tests_test_validator_py_tests_test_validator`
+- **Source:** `[ARCHIVED] audit_repo/tests/test_validator.py:LL10 :: audit_repo_tests_test_validator_py_tests_test_validator`
 - **Target:** `integrations/gitagent/validators/agent_validator.py:L43 :: validators_agent_validator_agentyamlvalidator`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
@@ -109,7 +109,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     ```
 
 ### INFERRED #imports-6
-- **Source:** `audit_repo/tests/data_room/test_data_room.py:LL115 :: audit_repo_tests_data_room_test_data_room_py_data_room_test_data_room`
+- **Source:** `[ARCHIVED] audit_repo/tests/data_room/test_data_room.py:LL115 :: audit_repo_tests_data_room_test_data_room_py_data_room_test_data_room`
 - **Target:** `data_room/blueprint.py:L12 :: data_room_blueprint_pricetick`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
@@ -204,7 +204,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     ```
 
 ### INFERRED #imports-11
-- **Source:** `audit_repo/tests/test_validator.py:LL10 :: audit_repo_tests_test_validator_py_tests_test_validator`
+- **Source:** `[ARCHIVED] audit_repo/tests/test_validator.py:LL10 :: audit_repo_tests_test_validator_py_tests_test_validator`
 - **Target:** `integrations/gitagent/validators/agent_validator.py:L26 :: validators_agent_validator_validationresult`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
@@ -223,7 +223,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     ```
 
 ### INFERRED #imports-12
-- **Source:** `audit_repo/tests/data_room/test_data_room.py:LL18 :: audit_repo_tests_data_room_test_data_room_py_data_room_test_data_room`
+- **Source:** `[ARCHIVED] audit_repo/tests/data_room/test_data_room.py:LL18 :: audit_repo_tests_data_room_test_data_room_py_data_room_test_data_room`
 - **Target:** `data_room/circuit_breaker.py:L34 :: data_room_circuit_breaker_breakerstate`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
@@ -270,13 +270,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/trading/execution/vwap.py:141:        executor = VWAPExecutor(broker=broker)
+    /home/workspace/[ARCHIVED] audit_repo/trading/execution/vwap.py:141:        executor = VWAPExecutor(broker=broker)
     ```
     ```
-    /home/workspace/audit_repo/trading/execution/vwap.py:143:        report = executor.execute("BTC/USDT", "buy", qty=1.0, config=config)
+    /home/workspace/[ARCHIVED] audit_repo/trading/execution/vwap.py:143:        report = executor.execute("BTC/USDT", "buy", qty=1.0, config=config)
     ```
     ```
-    /home/workspace/audit_repo/trading/execution/vwap.py:339:    executor = VWAPExecutor()
+    /home/workspace/[ARCHIVED] audit_repo/trading/execution/vwap.py:339:    executor = VWAPExecutor()
     ```
 
 ### INFERRED #imports-15
@@ -305,7 +305,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/core/tracing.py:10:from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    /home/workspace/[ARCHIVED] audit_repo/core/tracing.py:10:from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     ```
     ```
     /home/workspace/astrofin-sentinel-v5/observability/tracing.py:10:from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -343,7 +343,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/data_room/test_data_room.py:4:Tests for the Data Room: circuit breaker, graceful degradation,
     ```
     ```
-    /home/workspace/audit_repo/tests/data_room/test_data_room.py:4:Tests for the Data Room: circuit breaker, graceful degradation,
+    /home/workspace/[ARCHIVED] audit_repo/tests/data_room/test_data_room.py:4:Tests for the Data Room: circuit breaker, graceful degradation,
     ```
     ```
     /home/workspace/AsurDev/ml_engine/inference/ml_client.py:5:Includes circuit-breaker behaviour: on API error → falls back to 0.0.
@@ -442,7 +442,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     ```
 
 ### INFERRED #imports-24
-- **Source:** `audit_repo/meta_rl/strategy_evaluator.py:LL111 :: audit_repo_meta_rl_strategy_evaluator_py_meta_rl_strategy_evaluator`
+- **Source:** `[ARCHIVED] audit_repo/ meta_rl/strategy_evaluator.py:LL111 :: audit_repo_meta_rl_strategy_evaluator_py_meta_rl_strategy_evaluator`
 - **Target:** `meta_rl/types.py:L149 :: meta_rl_types_symbolmetrics`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
@@ -457,7 +457,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/integration/test_evolution_pipeline.py:251:        """With ≥10 OHLCV bars the evaluator must run the backtest pipeline
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:349:            evaluator = StrategyEvaluator()
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:349:            evaluator = StrategyEvaluator()
     ```
 
 ### INFERRED #imports-25
@@ -597,13 +597,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/trading/execution/vwap.py:141:        executor = VWAPExecutor(broker=broker)
+    /home/workspace/[ARCHIVED] audit_repo/trading/execution/vwap.py:141:        executor = VWAPExecutor(broker=broker)
     ```
     ```
-    /home/workspace/audit_repo/trading/execution/vwap.py:143:        report = executor.execute("BTC/USDT", "buy", qty=1.0, config=config)
+    /home/workspace/[ARCHIVED] audit_repo/trading/execution/vwap.py:143:        report = executor.execute("BTC/USDT", "buy", qty=1.0, config=config)
     ```
     ```
-    /home/workspace/audit_repo/trading/execution/vwap.py:339:    executor = VWAPExecutor()
+    /home/workspace/[ARCHIVED] audit_repo/trading/execution/vwap.py:339:    executor = VWAPExecutor()
     ```
 
 ### INFERRED #imports-33
@@ -721,7 +721,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     ```
 
 ### INFERRED #imports-39
-- **Source:** `audit_repo/tests/data_room/test_data_room.py:LL18 :: audit_repo_tests_data_room_test_data_room_py_data_room_test_data_room`
+- **Source:** `[ARCHIVED] audit_repo/tests/data_room/test_data_room.py:LL18 :: audit_repo_tests_data_room_test_data_room_py_data_room_test_data_room`
 - **Target:** `data_room/circuit_breaker.py:L79 :: data_room_circuit_breaker_call_with_breaker`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **valid**
@@ -730,14 +730,14 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/data_room/test_data_room.py:4:Tests for the Data Room: circuit breaker, graceful degradation,
     ```
     ```
-    /home/workspace/audit_repo/tests/data_room/test_data_room.py:4:Tests for the Data Room: circuit breaker, graceful degradation,
+    /home/workspace/[ARCHIVED] audit_repo/tests/data_room/test_data_room.py:4:Tests for the Data Room: circuit breaker, graceful degradation,
     ```
     ```
     /home/workspace/AsurDev/ml_engine/inference/ml_client.py:5:Includes circuit-breaker behaviour: on API error → falls back to 0.0.
     ```
 
 ### INFERRED #imports-40
-- **Source:** `audit_repo/tests/test_validator.py:LL10 :: audit_repo_tests_test_validator_py_tests_test_validator`
+- **Source:** `[ARCHIVED] audit_repo/tests/test_validator.py:LL10 :: audit_repo_tests_test_validator_py_tests_test_validator`
 - **Target:** `integrations/gitagent/validators/agent_validator.py:L17 :: validators_agent_validator_validationissue`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
@@ -756,7 +756,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     ```
 
 ### INFERRED #imports-41
-- **Source:** `audit_repo/tests/test_validator.py:LL10 :: audit_repo_tests_test_validator_py_tests_test_validator`
+- **Source:** `[ARCHIVED] audit_repo/tests/test_validator.py:LL10 :: audit_repo_tests_test_validator_py_tests_test_validator`
 - **Target:** `integrations/gitagent/validators/agent_validator.py:L35 :: validators_agent_validator_validationreport`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
@@ -803,13 +803,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:199:        Output("strategy-selector", "options"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:199:        Output("strategy-selector", "options"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:200:        Output("strategy-selector", "value"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:200:        Output("strategy-selector", "value"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:201:        Input("session-selector", "value"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:201:        Input("session-selector", "value"),
     ```
 
 ### INFERRED #imports-44
@@ -949,7 +949,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/core/tracing.py:10:from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    /home/workspace/[ARCHIVED] audit_repo/core/tracing.py:10:from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     ```
     ```
     /home/workspace/astrofin-sentinel-v5/observability/tracing.py:10:from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -1044,13 +1044,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/trading/execution/vwap.py:141:        executor = VWAPExecutor(broker=broker)
+    /home/workspace/[ARCHIVED] audit_repo/trading/execution/vwap.py:141:        executor = VWAPExecutor(broker=broker)
     ```
     ```
-    /home/workspace/audit_repo/trading/execution/vwap.py:143:        report = executor.execute("BTC/USDT", "buy", qty=1.0, config=config)
+    /home/workspace/[ARCHIVED] audit_repo/trading/execution/vwap.py:143:        report = executor.execute("BTC/USDT", "buy", qty=1.0, config=config)
     ```
     ```
-    /home/workspace/audit_repo/trading/execution/vwap.py:339:    executor = VWAPExecutor()
+    /home/workspace/[ARCHIVED] audit_repo/trading/execution/vwap.py:339:    executor = VWAPExecutor()
     ```
 
 ### INFERRED #imports-57
@@ -1165,7 +1165,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     ```
 
 ### INFERRED #imports-63
-- **Source:** `audit_repo/tests/data_room/test_data_room.py:LL115 :: audit_repo_tests_data_room_test_data_room_py_data_room_test_data_room`
+- **Source:** `[ARCHIVED] audit_repo/tests/data_room/test_data_room.py:LL115 :: audit_repo_tests_data_room_test_data_room_py_data_room_test_data_room`
 - **Target:** `data_room/blueprint.py:L36 :: data_room_blueprint_blueprint`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **valid**
@@ -1187,17 +1187,17 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/core/belief.py:26:from core.checkpoint import get_project_root
+    /home/workspace/[ARCHIVED] audit_repo/core/belief.py:26:from core.checkpoint import get_project_root
     ```
     ```
-    /home/workspace/audit_repo/core/checkpoint.py:21:    # This file lives at: <project_root>/core/checkpoint.py
+    /home/workspace/[ARCHIVED] audit_repo/core/checkpoint.py:21:    # This file lives at: <project_root>/core/checkpoint.py
     ```
     ```
-    /home/workspace/audit_repo/core/history_db.py:12:from core.checkpoint import get_project_root
+    /home/workspace/[ARCHIVED] audit_repo/core/history_db.py:12:from core.checkpoint import get_project_root
     ```
 
 ### INFERRED #imports-65
-- **Source:** `audit_repo/tests/test_validator.py:LL10 :: audit_repo_tests_test_validator_py_tests_test_validator`
+- **Source:** `[ARCHIVED] audit_repo/tests/test_validator.py:LL10 :: audit_repo_tests_test_validator_py_tests_test_validator`
 - **Target:** `integrations/gitagent/validators/agent_validator.py:L11 :: validators_agent_validator_severity`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **valid**
@@ -1302,7 +1302,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     ```
 
 ### INFERRED #imports-71
-- **Source:** `audit_repo/tests/data_room/test_data_room.py:LL18 :: audit_repo_tests_data_room_test_data_room_py_data_room_test_data_room`
+- **Source:** `[ARCHIVED] audit_repo/tests/data_room/test_data_room.py:LL18 :: audit_repo_tests_data_room_test_data_room_py_data_room_test_data_room`
 - **Target:** `data_room/circuit_breaker.py:L100 :: data_room_circuit_breaker_circuitbreakeropen`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `imports`
 - **Verdict:** **ambiguous**
@@ -1643,13 +1643,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
     ```
 
 ### INFERRED #imports_from-11
@@ -1771,13 +1771,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
     ```
 
 ### INFERRED #imports_from-19
@@ -1838,7 +1838,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/data_room/test_data_room.py:4:Tests for the Data Room: circuit breaker, graceful degradation,
     ```
     ```
-    /home/workspace/audit_repo/tests/data_room/test_data_room.py:4:Tests for the Data Room: circuit breaker, graceful degradation,
+    /home/workspace/[ARCHIVED] audit_repo/tests/data_room/test_data_room.py:4:Tests for the Data Room: circuit breaker, graceful degradation,
     ```
     ```
     /home/workspace/AsurDev/ml_engine/inference/ml_client.py:5:Includes circuit-breaker behaviour: on API error → falls back to 0.0.
@@ -1931,7 +1931,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/meta_rl/reward.py:53:    ATOM-META-RL-004 invariant:
+    /home/workspace/[ARCHIVED] audit_repo/meta_rl/reward.py:53:    ATOM-META-RL-004 invariant:
     ```
     ```
     /home/workspace/_sbs_old/system_contract.py:38:    Each key is an invariant name; value must always be True in production.
@@ -2251,7 +2251,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/agents/_impl/amre/lag_windowing.py:67:    EMA-based signal smoother with adaptive window size.
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/amre/lag_windowing.py:67:    EMA-based signal smoother with adaptive window size.
     ```
     ```
     /home/workspace/astrofin-sentinel-v5/meta_rl/amre/lag_windowing.py:67:    EMA-based signal smoother with adaptive window size.
@@ -2270,10 +2270,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/data_room/test_data_room.py:114:    """If primary resolver raises, blueprint tries the secondary."""
     ```
     ```
-    /home/workspace/audit_repo/observability/metrics.py:74:        "Data Room resolver calls",
+    /home/workspace/[ARCHIVED] audit_repo/observability/metrics.py:74:        "Data Room resolver calls",
     ```
     ```
-    /home/workspace/audit_repo/observability/metrics.py:75:        labelnames=("resolver", "status"),
+    /home/workspace/[ARCHIVED] audit_repo/observability/metrics.py:75:        labelnames=("resolver", "status"),
     ```
 
 ### INFERRED #imports_from-50
@@ -2360,13 +2360,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/backtest/metrics_agent.py:133:    """SQLite-backed metrics store for all backtest runs."""
+    /home/workspace/[ARCHIVED] audit_repo/backtest/metrics_agent.py:133:    """SQLite-backed metrics store for all backtest runs."""
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
     ```
 
 ### INFERRED #imports_from-56
@@ -2600,7 +2600,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/agents/_impl/amre/lag_windowing.py:67:    EMA-based signal smoother with adaptive window size.
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/amre/lag_windowing.py:67:    EMA-based signal smoother with adaptive window size.
     ```
     ```
     /home/workspace/astrofin-sentinel-v5/meta_rl/amre/lag_windowing.py:67:    EMA-based signal smoother with adaptive window size.
@@ -2664,13 +2664,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
     ```
 
 ### INFERRED #imports_from-75
@@ -2683,10 +2683,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/data_room/test_data_room.py:114:    """If primary resolver raises, blueprint tries the secondary."""
     ```
     ```
-    /home/workspace/audit_repo/tests/data_room/test_data_room.py:114:    """If primary resolver raises, blueprint tries the secondary."""
+    /home/workspace/[ARCHIVED] audit_repo/tests/data_room/test_data_room.py:114:    """If primary resolver raises, blueprint tries the secondary."""
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:2:Compromise Agent — explicit trade-off resolver for conflicting agent signals.
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/compromise_agent.py:2:Compromise Agent — explicit trade-off resolver for conflicting agent signals.
     ```
 
 ### INFERRED #imports_from-76
@@ -2699,7 +2699,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_compromise_agent.py:6:This is a runtime harness, not a normal pytest test: we need to stub
     ```
     ```
-    /home/workspace/audit_repo/tests/test_compromise_agent.py:6:This is a runtime harness, not a normal pytest test: we need to stub
+    /home/workspace/[ARCHIVED] audit_repo/tests/test_compromise_agent.py:6:This is a runtime harness, not a normal pytest test: we need to stub
     ```
     ```
     /home/workspace/astrofin-sentinel-v5/tests/test_compromise_agent.py:6:This is a runtime harness, not a normal pytest test: we need to stub
@@ -2731,10 +2731,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/data_room/test_data_room.py:114:    """If primary resolver raises, blueprint tries the secondary."""
     ```
     ```
-    /home/workspace/audit_repo/tests/data_room/test_data_room.py:114:    """If primary resolver raises, blueprint tries the secondary."""
+    /home/workspace/[ARCHIVED] audit_repo/tests/data_room/test_data_room.py:114:    """If primary resolver raises, blueprint tries the secondary."""
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:2:Compromise Agent — explicit trade-off resolver for conflicting agent signals.
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/compromise_agent.py:2:Compromise Agent — explicit trade-off resolver for conflicting agent signals.
     ```
 
 ### INFERRED #imports_from-79
@@ -2766,7 +2766,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_dual_mode.py:124:    print("\n[TEST 5] Function signatures unchanged...")
     ```
     ```
-    /home/workspace/audit_repo/tests/test_dual_mode.py:122:    """Test that function signatures haven't changed."""
+    /home/workspace/[ARCHIVED] audit_repo/tests/test_dual_mode.py:122:    """Test that function signatures haven't changed."""
     ```
 
 ### INFERRED #imports_from-81
@@ -2812,7 +2812,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/migrations/migrate.py:265:        help="Show what would be done without doing it",
+    /home/workspace/[ARCHIVED] audit_repo/migrations/migrate.py:265:        help="Show what would be done without doing it",
     ```
     ```
     /home/workspace/astrofin-sentinel-v5/migrations/migrate.py:265:        help="Show what would be done without doing it",
@@ -3074,7 +3074,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_phase1_cleanup.py:1:"""Phase 1 cleanup validation tests."""
     ```
     ```
-    /home/workspace/audit_repo/tests/test_phase1_cleanup.py:1:"""Phase 1 cleanup validation tests."""
+    /home/workspace/[ARCHIVED] audit_repo/tests/test_phase1_cleanup.py:1:"""Phase 1 cleanup validation tests."""
     ```
 
 ### INFERRED #defines-19
@@ -3237,7 +3237,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/health_endpoints.py:135:        "service": "AstroFin Sentinel V5",
     ```
     ```
-    /home/workspace/audit_repo/health_endpoints.py:135:        "service": "AstroFin Sentinel V5",
+    /home/workspace/[ARCHIVED] audit_repo/health_endpoints.py:135:        "service": "AstroFin Sentinel V5",
     ```
 
 ### INFERRED #defines-29
@@ -3467,10 +3467,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
+    /home/workspace/[ARCHIVED] audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
     /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
@@ -3486,10 +3486,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
+    /home/workspace/[ARCHIVED] audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
     /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
@@ -3739,10 +3739,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
+    /home/workspace/[ARCHIVED] audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
     /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
@@ -3787,7 +3787,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/agents/_impl/amre/idea_buffer_integration.py:192:    ATOM-R-041 + ATOM-016 bridge:
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/amre/idea_buffer_integration.py:192:    ATOM-R-041 + ATOM-016 bridge:
     ```
     ```
     /home/workspace/graphify-out/infer_edges.py:146:    "roma-execution-bridge/",
@@ -3825,7 +3825,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_phase1_cleanup.py:1:"""Phase 1 cleanup validation tests."""
     ```
     ```
-    /home/workspace/audit_repo/tests/test_phase1_cleanup.py:1:"""Phase 1 cleanup validation tests."""
+    /home/workspace/[ARCHIVED] audit_repo/tests/test_phase1_cleanup.py:1:"""Phase 1 cleanup validation tests."""
     ```
 
 ### INFERRED #defines-65
@@ -3950,10 +3950,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
-    /home/workspace/audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
+    /home/workspace/[ARCHIVED] audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
     ```
     ```
     /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
@@ -3966,7 +3966,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/orchestration/router.py:80:    # Symbol extraction (common crypto/ stock patterns)
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/router.py:80:    # Symbol extraction (common crypto/ stock patterns)
     ```
     ```
     /home/workspace/common/interfaces.py:5:them for callers that still import from ``common.interfaces`` during
@@ -4007,7 +4007,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/astrology/residual_model.py:93:    print(f"\nML Model trained: {ml.is_trained()}")
     ```
     ```
-    /home/workspace/audit_repo/core/residual_model.py:91:    ml = ResidualModel(mode="ml")
+    /home/workspace/[ARCHIVED] audit_repo/core/residual_model.py:91:    ml = ResidualModel(mode="ml")
     ```
 
 ### INFERRED #defines-76
@@ -4084,10 +4084,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
+    /home/workspace/[ARCHIVED] audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
     /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
@@ -4167,10 +4167,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
+    /home/workspace/[ARCHIVED] audit_repo/web/app.py:43:# ── App setup ──────────────────────────────────────────────────────────────────
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/time_window_agent.py:160:            summary = "4H no clear setup"
     ```
     ```
     /home/workspace/graphify-out/infer_edges.py:156:    "pop-os-setup/",
@@ -4302,7 +4302,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/orchestration/tracing.py:13:    otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/tracing.py:13:    otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
     ```
     ```
     /home/workspace/AsurDev/tests/test_amneziawg_integration.py:222:    print(f"  [OK{'=' if ok else '!'}] INV6 — O(1) lookup: {elapsed:.4f}s for 1000 lookups (100 traces)")
@@ -4343,7 +4343,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/astrology/vedic.py:215:    l = 134.9633964 + 477198.8675055 * T  # Mean anomaly
     ```
     ```
-    /home/workspace/audit_repo/astrology/vedic.py:213:    l = 134.9633964 + 477198.8675055 * T  # Mean anomaly
+    /home/workspace/[ARCHIVED] audit_repo/astrology/vedic.py:213:    l = 134.9633964 + 477198.8675055 * T  # Mean anomaly
     ```
     ```
     /home/workspace/astrofin-sentinel-v5/astrology/vedic.py:213:    l = 134.9633964 + 477198.8675055 * T  # Mean anomaly
@@ -4578,7 +4578,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     ```
 
 ### INFERRED #inherits-13
-- **Source:** `audit_repo/agents/_impl/ephemeris_decorator.py:LL46 :: audit_repo_agents_impl_ephemeris_decorator_py_impl_ephemeris_decorator_ephemerisunavailableerror`
+- **Source:** `[ARCHIVED] audit_repo/agents/_impl/ephemeris_decorator.py:LL46 :: audit_repo_agents_impl_ephemeris_decorator_py_impl_ephemeris_decorator_ephemerisunavailableerror`
 - **Target:** `atom-federation-os/orchestration/v8_2b_controlled_autocorrection/mutation_executor.py:L212 :: atom_federation_os_orchestration_v8_2b_controlled_autocorrection_mutation_executor_py_exception`
 - **Confidence:** 1.000  **Weight:** 1.00  **Relation:** `inherits`
 - **Verdict:** **valid**
@@ -4623,13 +4623,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/atom_030_stress_test.py:82:    # Test decide() - returns selected candidates
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/atom_030_stress_test.py:82:    # Test decide() - returns selected candidates
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/atom_030_stress_test.py:83:    candidates = unc.decide(ctx_high)
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/atom_030_stress_test.py:83:    candidates = unc.decide(ctx_high)
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/atom_030_stress_test.py:85:    print(f"  ✅ decide() returned: {candidates}")
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/atom_030_stress_test.py:85:    print(f"  ✅ decide() returned: {candidates}")
     ```
 
 ### INFERRED #references-2
@@ -4642,13 +4642,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/orchestration/tracing.py:3:from opentelemetry import trace
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/tracing.py:3:from opentelemetry import trace
     ```
     ```
-    /home/workspace/audit_repo/orchestration/tracing.py:6:from opentelemetry.sdk.trace import TracerProvider
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/tracing.py:6:from opentelemetry.sdk.trace import TracerProvider
     ```
     ```
-    /home/workspace/audit_repo/orchestration/tracing.py:7:from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/tracing.py:7:from opentelemetry.sdk.trace.export import SimpleSpanProcessor
     ```
 
 ### INFERRED #references-3
@@ -4824,13 +4824,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/mas_factory/architect.py:79:        2. Select roles by capability matching
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/architect.py:79:        2. Select roles by capability matching
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/architect.py:122:        # Step 3: Select roles by capability matching
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/architect.py:122:        # Step 3: Select roles by capability matching
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/architect.py:273:        # Router → First tier (capability-matched agents)
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/architect.py:273:        # Router → First tier (capability-matched agents)
     ```
 
 ### INFERRED #references-14
@@ -4878,13 +4878,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/mas_factory/architect.py:79:        2. Select roles by capability matching
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/architect.py:79:        2. Select roles by capability matching
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/architect.py:122:        # Step 3: Select roles by capability matching
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/architect.py:122:        # Step 3: Select roles by capability matching
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/architect.py:273:        # Router → First tier (capability-matched agents)
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/architect.py:273:        # Router → First tier (capability-matched agents)
     ```
 
 ### INFERRED #references-17
@@ -4913,13 +4913,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
     ```
 
 ### INFERRED #references-19
@@ -4951,10 +4951,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/rag_retriever.py:31:def _embed(text: str) -> np.ndarray:
     ```
     ```
-    /home/workspace/audit_repo/training/train_residual_model.py:39:) -> tuple[np.ndarray, np.ndarray]:
+    /home/workspace/[ARCHIVED] audit_repo/training/train_residual_model.py:39:) -> tuple[np.ndarray, np.ndarray]:
     ```
     ```
-    /home/workspace/audit_repo/meta_rl/strategy_pool.py:225:    def _chrom_to_vec(self, strategy: any) -> np.ndarray:
+    /home/workspace/[ARCHIVED] audit_repo/meta_rl/strategy_pool.py:225:    def _chrom_to_vec(self, strategy: any) -> np.ndarray:
     ```
 
 ### INFERRED #references-21
@@ -4970,7 +4970,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/scripts/validate_alerts_metrics.py:39:    # Simple regex: match words that follow prometheus metric naming conventions
     ```
     ```
-    /home/workspace/audit_repo/scripts/validate_alerts_metrics.py:38:    # Simple regex: match words that follow prometheus metric naming conventions
+    /home/workspace/[ARCHIVED] audit_repo/scripts/validate_alerts_metrics.py:38:    # Simple regex: match words that follow prometheus metric naming conventions
     ```
     ```
     /home/workspace/AsurDev/feature_pipeline/builder.py:10:    builder = FeatureBuilder(backend='prometheus')    # DEV
@@ -5139,13 +5139,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:676:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:719:        State("selected-strategy-store", "data"),
     ```
     ```
-    /home/workspace/audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
+    /home/workspace/[ARCHIVED] audit_repo/web/callbacks.py:737:        State("selected-strategy-store", "data"),
     ```
 
 ### INFERRED #references-32
@@ -5174,13 +5174,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/mas_factory/architect.py:79:        2. Select roles by capability matching
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/architect.py:79:        2. Select roles by capability matching
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/architect.py:122:        # Step 3: Select roles by capability matching
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/architect.py:122:        # Step 3: Select roles by capability matching
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/architect.py:273:        # Router → First tier (capability-matched agents)
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/architect.py:273:        # Router → First tier (capability-matched agents)
     ```
 
 ### INFERRED #references-34
@@ -5193,13 +5193,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/registry.py:176:        name="cycle",
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/registry.py:176:        name="cycle",
     ```
     ```
-    /home/workspace/audit_repo/agents/gitagent_exporter.py:126:        "description": "Market cycle analysis: 20/40/80 day cycles, phase detection, turn points",
+    /home/workspace/[ARCHIVED] audit_repo/agents/gitagent_exporter.py:126:        "description": "Market cycle analysis: 20/40/80 day cycles, phase detection, turn points",
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/bradley_agent.py:187:        # Check Jupiter-Saturn aspect (major cycle)
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/bradley_agent.py:187:        # Check Jupiter-Saturn aspect (major cycle)
     ```
 
 ### INFERRED #references-35
@@ -5282,7 +5282,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/amre/self_question.py:51:        "Is the regime stable enough to act on this signal?",
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/amre/self_question.py:51:        "Is the regime stable enough to act on this signal?",
     ```
     ```
     /home/workspace/AsurDev/v7/drift_alignment/tracker.py:145:        for sim, act in zip(simulated_states[-50:], actual_states[-50:]):
@@ -5301,13 +5301,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/atom_030_stress_test.py:82:    # Test decide() - returns selected candidates
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/atom_030_stress_test.py:82:    # Test decide() - returns selected candidates
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/atom_030_stress_test.py:83:    candidates = unc.decide(ctx_high)
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/atom_030_stress_test.py:83:    candidates = unc.decide(ctx_high)
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/atom_030_stress_test.py:85:    print(f"  ✅ decide() returned: {candidates}")
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/atom_030_stress_test.py:85:    print(f"  ✅ decide() returned: {candidates}")
     ```
 
 ### INFERRED #references-41
@@ -5336,10 +5336,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
     ```
     ```
-    /home/workspace/audit_repo/tests/test_logging.py:18:    logger.info("Test event")
+    /home/workspace/[ARCHIVED] audit_repo/tests/test_logging.py:18:    logger.info("Test event")
     ```
     ```
-    /home/workspace/audit_repo/db/session.py:35:    from sqlalchemy import create_engine, event
+    /home/workspace/[ARCHIVED] audit_repo/db/session.py:35:    from sqlalchemy import create_engine, event
     ```
 
 ### INFERRED #references-43
@@ -5384,13 +5384,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/registry.py:176:        name="cycle",
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/registry.py:176:        name="cycle",
     ```
     ```
-    /home/workspace/audit_repo/meta_rl/basket.py:10:# F821 fix: keep StrategyEvaluator import out of cycle
+    /home/workspace/[ARCHIVED] audit_repo/meta_rl/basket.py:10:# F821 fix: keep StrategyEvaluator import out of cycle
     ```
     ```
-    /home/workspace/audit_repo/agents/gitagent_exporter.py:126:        "description": "Market cycle analysis: 20/40/80 day cycles, phase detection, turn points",
+    /home/workspace/[ARCHIVED] audit_repo/agents/gitagent_exporter.py:126:        "description": "Market cycle analysis: 20/40/80 day cycles, phase detection, turn points",
     ```
 
 ### INFERRED #references-46
@@ -5486,10 +5486,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:82:        "decision",
     ```
     ```
-    /home/workspace/audit_repo/trading/safety_gate.py:21:  decision = gate.check(signal, state)
+    /home/workspace/[ARCHIVED] audit_repo/trading/safety_gate.py:21:  decision = gate.check(signal, state)
     ```
     ```
-    /home/workspace/audit_repo/db/models.py:114:    """Vedic planetary positions at decision time."""
+    /home/workspace/[ARCHIVED] audit_repo/db/models.py:114:    """Vedic planetary positions at decision time."""
     ```
 
 ### INFERRED #references-52
@@ -5550,10 +5550,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/meta_rl/persistence.py:165:        """Save elite chromosomes (batch of save_scored_strategy)."""
+    /home/workspace/[ARCHIVED] audit_repo/meta_rl/persistence.py:165:        """Save elite chromosomes (batch of save_scored_strategy)."""
     ```
     ```
-    /home/workspace/audit_repo/core/reward_engine.py:96:        """Compute rewards for a batch of trades."""
+    /home/workspace/[ARCHIVED] audit_repo/core/reward_engine.py:96:        """Compute rewards for a batch of trades."""
     ```
     ```
     /home/workspace/AsurDev/feature_pipeline/exporter.py:190:        batch = self.build_dataset()
@@ -5642,10 +5642,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:82:        "decision",
     ```
     ```
-    /home/workspace/audit_repo/db/models.py:114:    """Vedic planetary positions at decision time."""
+    /home/workspace/[ARCHIVED] audit_repo/db/models.py:114:    """Vedic planetary positions at decision time."""
     ```
     ```
-    /home/workspace/audit_repo/db/migrate_from_sqlite.py:67:                # Convert session to decision record format
+    /home/workspace/[ARCHIVED] audit_repo/db/migrate_from_sqlite.py:67:                # Convert session to decision record format
     ```
 
 ### INFERRED #references-61
@@ -5722,10 +5722,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:82:        "decision",
     ```
     ```
-    /home/workspace/audit_repo/db/models.py:114:    """Vedic planetary positions at decision time."""
+    /home/workspace/[ARCHIVED] audit_repo/db/models.py:114:    """Vedic planetary positions at decision time."""
     ```
     ```
-    /home/workspace/audit_repo/trading/safety_gate.py:21:  decision = gate.check(signal, state)
+    /home/workspace/[ARCHIVED] audit_repo/trading/safety_gate.py:21:  decision = gate.check(signal, state)
     ```
 
 ### INFERRED #references-66
@@ -5757,7 +5757,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
     ```
     ```
-    /home/workspace/audit_repo/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
+    /home/workspace/[ARCHIVED] audit_repo/scripts/validate_registry.py:38:        return 0  # nothing under _impl/ changed; no constraint applies
     ```
     ```
     /home/workspace/AsurDev/acos.py:78:  └── Policy compiler (policy → executable constraint graph)
@@ -5850,7 +5850,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_dual_mode.py:124:    print("\n[TEST 5] Function signatures unchanged...")
     ```
     ```
-    /home/workspace/audit_repo/tests/test_dual_mode.py:122:    """Test that function signatures haven't changed."""
+    /home/workspace/[ARCHIVED] audit_repo/tests/test_dual_mode.py:122:    """Test that function signatures haven't changed."""
     ```
 
 ### INFERRED #re_exports-3
@@ -5962,7 +5962,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/data/market_adapter.py:48:    """Multi-source market data adapter with fallback chain and caching."""
     ```
     ```
-    /home/workspace/audit_repo/agents/gitagent_registry.py:253:    Provides run(), run_ttc(), validate() with output adapter normalization.
+    /home/workspace/[ARCHIVED] audit_repo/agents/gitagent_registry.py:253:    Provides run(), run_ttc(), validate() with output adapter normalization.
     ```
 
 ### INFERRED #re_exports-10
@@ -6052,7 +6052,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/health_endpoints.py:135:        "service": "AstroFin Sentinel V5",
     ```
     ```
-    /home/workspace/audit_repo/tools/metrics_server.py:16:OLLAMA_STATUS = Gauge("astrofin_ollama_status", "Ollama service status (1=healthy)")
+    /home/workspace/[ARCHIVED] audit_repo/tools/metrics_server.py:16:OLLAMA_STATUS = Gauge("astrofin_ollama_status", "Ollama service status (1=healthy)")
     ```
 
 ### INFERRED #re_exports-16
@@ -6162,13 +6162,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/orchestration/tracing.py:3:from opentelemetry import trace
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/tracing.py:3:from opentelemetry import trace
     ```
     ```
-    /home/workspace/audit_repo/orchestration/tracing.py:6:from opentelemetry.sdk.trace import TracerProvider
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/tracing.py:6:from opentelemetry.sdk.trace import TracerProvider
     ```
     ```
-    /home/workspace/audit_repo/orchestration/tracing.py:7:from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/tracing.py:7:from opentelemetry.sdk.trace.export import SimpleSpanProcessor
     ```
 
 ### INFERRED #method-4
@@ -6178,13 +6178,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/orchestration/tracing.py:3:from opentelemetry import trace
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/tracing.py:3:from opentelemetry import trace
     ```
     ```
-    /home/workspace/audit_repo/orchestration/tracing.py:6:from opentelemetry.sdk.trace import TracerProvider
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/tracing.py:6:from opentelemetry.sdk.trace import TracerProvider
     ```
     ```
-    /home/workspace/audit_repo/orchestration/tracing.py:7:from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/tracing.py:7:from opentelemetry.sdk.trace.export import SimpleSpanProcessor
     ```
 
 ### INFERRED #method-5
@@ -6271,10 +6271,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/architecture/test_infer_edges.py:48:        "nodes": [
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/visualizer.py:34:        # Add roles as nodes
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/visualizer.py:34:        # Add roles as nodes
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/visualizer.py:41:        # Add switch nodes
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/visualizer.py:41:        # Add switch nodes
     ```
 
 ### INFERRED #calls-3
@@ -6547,7 +6547,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_brief/idea_tracker.py:434:    print("\nUse --help for commands.")
     ```
     ```
-    /home/workspace/audit_repo/migrations/migrate.py:140:# ── CLI commands ──────────────────────────────────────────────────────────────
+    /home/workspace/[ARCHIVED] audit_repo/migrations/migrate.py:140:# ── CLI commands ──────────────────────────────────────────────────────────────
     ```
 
 ### INFERRED #calls-18
@@ -6614,13 +6614,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/agents/gitagent_exporter.py:196:        "description": "Elliott Wave analysis for wave counting and trend prediction",
+    /home/workspace/[ARCHIVED] audit_repo/agents/gitagent_exporter.py:196:        "description": "Elliott Wave analysis for wave counting and trend prediction",
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/elliot_agent.py:127:        Simplified wave counting.
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/elliot_agent.py:127:        Simplified wave counting.
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/elliot_agent.py:157:        # Simplified wave counting
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/elliot_agent.py:157:        # Simplified wave counting
     ```
 
 ### INFERRED #calls-22
@@ -6636,10 +6636,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/astrology/vedic.py:221:    # Sidereal correction (ayanamsa ~ 24° in 2026)
     ```
     ```
-    /home/workspace/audit_repo/astrology/vedic.py:219:    # Sidereal correction (ayanamsa ~ 24° in 2026)
+    /home/workspace/[ARCHIVED] audit_repo/astrology/vedic.py:219:    # Sidereal correction (ayanamsa ~ 24° in 2026)
     ```
     ```
-    /home/workspace/audit_repo/core/kepler_hybrid.py:4:Kepler orbital model backed by ML residual correction.
+    /home/workspace/[ARCHIVED] audit_repo/core/kepler_hybrid.py:4:Kepler orbital model backed by ML residual correction.
     ```
 
 ### INFERRED #calls-23
@@ -6674,10 +6674,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/scripts/optimize_lag_blend.py:164:    Compute Sharpe ratio if PnL column is available.
     ```
     ```
-    /home/workspace/audit_repo/trading/execution/order_book.py:211:        permanent_frac: float = 0.5,  # permanent vs temporary impact ratio
+    /home/workspace/[ARCHIVED] audit_repo/trading/execution/order_book.py:211:        permanent_frac: float = 0.5,  # permanent vs temporary impact ratio
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/risk_agent.py:25:    4. Validate risk/reward ratio
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/risk_agent.py:25:    4. Validate risk/reward ratio
     ```
 
 ### INFERRED #calls-25
@@ -6747,10 +6747,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/core/reward/test_reward.py:36:        """Oscillating values should NOT produce oscillating EMA."""
+    /home/workspace/[ARCHIVED] audit_repo/core/reward/test_reward.py:36:        """Oscillating values should NOT produce oscillating EMA."""
     ```
     ```
-    /home/workspace/audit_repo/core/reward/test_reward.py:41:        assert abs(smoothed[-1]) < 1.0, f"EMA oscillating! last={smoothed[-1]}"
+    /home/workspace/[ARCHIVED] audit_repo/core/reward/test_reward.py:41:        assert abs(smoothed[-1]) < 1.0, f"EMA oscillating! last={smoothed[-1]}"
     ```
     ```
     /home/workspace/AsurDev/load_test/scenarios/policy_oscillation/test.py:125:        """Simulate a policy decision with oscillating behavior."""
@@ -6763,13 +6763,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/meta_rl/live_data.py:295:        # ATR-based stop distance
+    /home/workspace/[ARCHIVED] audit_repo/meta_rl/live_data.py:295:        # ATR-based stop distance
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:126:        # stop_distance_pct (≈ loss) and a 2R target distance (≈ gain).
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/compromise_agent.py:126:        # stop_distance_pct (≈ loss) and a 2R target distance (≈ gain).
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/fundamental_agent.py:185:        # ATH distance bonus
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/fundamental_agent.py:185:        # ATH distance bonus
     ```
 
 ### INFERRED #calls-30
@@ -6839,7 +6839,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/core/volatility.py:38:    LOW = "LOW"  # σ < 1.5%  — calm market
+    /home/workspace/[ARCHIVED] audit_repo/core/volatility.py:38:    LOW = "LOW"  # σ < 1.5%  — calm market
     ```
     ```
     /home/workspace/astrofin-sentinel-v5/astrology/volatility.py:38:    LOW = "LOW"  # σ < 1.5%  — calm market
@@ -6950,10 +6950,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/test_logging.py:20:    logger.info("Test event")
     ```
     ```
-    /home/workspace/audit_repo/tests/test_logging.py:18:    logger.info("Test event")
+    /home/workspace/[ARCHIVED] audit_repo/tests/test_logging.py:18:    logger.info("Test event")
     ```
     ```
-    /home/workspace/audit_repo/db/session.py:35:    from sqlalchemy import create_engine, event
+    /home/workspace/[ARCHIVED] audit_repo/db/session.py:35:    from sqlalchemy import create_engine, event
     ```
 
 ### INFERRED #calls-40
@@ -7116,13 +7116,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/agents/_impl/gann_agent.py:200:            summary = f"Gann time cluster: bar {bar_num} aligns with {hits}"
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/gann_agent.py:200:            summary = f"Gann time cluster: bar {bar_num} aligns with {hits}"
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/gann_agent.py:206:            summary = f"no Gann time cluster at bar {bar_num}"
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/gann_agent.py:206:            summary = f"no Gann time cluster at bar {bar_num}"
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/gann_agent.py:245:            summary = f"Astro time cluster: {', '.join(hits)}"
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/gann_agent.py:245:            summary = f"Astro time cluster: {', '.join(hits)}"
     ```
 
 ### INFERRED #calls-50
@@ -7173,13 +7173,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/agents/gitagent_exporter.py:196:        "description": "Elliott Wave analysis for wave counting and trend prediction",
+    /home/workspace/[ARCHIVED] audit_repo/agents/gitagent_exporter.py:196:        "description": "Elliott Wave analysis for wave counting and trend prediction",
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/elliot_agent.py:127:        Simplified wave counting.
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/elliot_agent.py:127:        Simplified wave counting.
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/elliot_agent.py:157:        # Simplified wave counting
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/elliot_agent.py:157:        # Simplified wave counting
     ```
 
 ### INFERRED #calls-53
@@ -7192,7 +7192,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/unit/test_strategy_pool_and_persistence.py:338:        # Seed the pool with one strategy to verify injection respects caps.
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/amre/idea_buffer_integration.py:116:    Full injection workflow:
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/amre/idea_buffer_integration.py:116:    Full injection workflow:
     ```
     ```
     /home/workspace/AsurDev/load_test/injectors/synthetic_scheduler.py:43:    """Full injection cycle result."""
@@ -7214,7 +7214,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/data/market_adapter.py:259:        higher volatility and inflated volume to mimic flow-driven markets.
     ```
     ```
-    /home/workspace/audit_repo/trading/risk_v2.py:199:        Adjust raw PnL by volatility regime and drawdown.
+    /home/workspace/[ARCHIVED] audit_repo/trading/risk_v2.py:199:        Adjust raw PnL by volatility regime and drawdown.
     ```
 
 ### INFERRED #calls-55
@@ -7249,10 +7249,10 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tests/architecture/test_infer_edges.py:48:        "nodes": [
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/visualizer.py:34:        # Add roles as nodes
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/visualizer.py:34:        # Add roles as nodes
     ```
     ```
-    /home/workspace/audit_repo/mas_factory/visualizer.py:41:        # Add switch nodes
+    /home/workspace/[ARCHIVED] audit_repo/mas_factory/visualizer.py:41:        # Add switch nodes
     ```
 
 ### INFERRED #calls-57
@@ -7265,13 +7265,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:12:      - Compute expected utility E[U] = p·gain − (1−p)·loss for each,
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/compromise_agent.py:12:      - Compute expected utility E[U] = p·gain − (1−p)·loss for each,
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:13:        using VolatilityEngine.analyze() for gain/loss.
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/compromise_agent.py:13:        using VolatilityEngine.analyze() for gain/loss.
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:125:        # E[U] = p·gain − (1−p)·loss. VolatilityEngine gives us the
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/compromise_agent.py:125:        # E[U] = p·gain − (1−p)·loss. VolatilityEngine gives us the
     ```
 
 ### INFERRED #calls-58
@@ -7319,13 +7319,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5.py:60:        adjustment = (oap_score - 0.5) * 0.4
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/sentinel_v5.py:60:        adjustment = (oap_score - 0.5) * 0.4
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5.py:61:        logger.debug(f"[OAP] no per-agent stats — uniform adj={adjustment:+.3f}")
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/sentinel_v5.py:61:        logger.debug(f"[OAP] no per-agent stats — uniform adj={adjustment:+.3f}")
     ```
     ```
-    /home/workspace/audit_repo/orchestration/sentinel_v5.py:62:        return dict.fromkeys(agents, adjustment)
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/sentinel_v5.py:62:        return dict.fromkeys(agents, adjustment)
     ```
 
 ### INFERRED #calls-61
@@ -7354,13 +7354,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/meta_rl/live_data.py:295:        # ATR-based stop distance
+    /home/workspace/[ARCHIVED] audit_repo/meta_rl/live_data.py:295:        # ATR-based stop distance
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:126:        # stop_distance_pct (≈ loss) and a 2R target distance (≈ gain).
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/compromise_agent.py:126:        # stop_distance_pct (≈ loss) and a 2R target distance (≈ gain).
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/fundamental_agent.py:185:        # ATH distance bonus
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/fundamental_agent.py:185:        # ATH distance bonus
     ```
 
 ### INFERRED #calls-63
@@ -7408,7 +7408,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
 - **Verdict:** **valid**
 - **Evidence:**
     ```
-    /home/workspace/audit_repo/meta_rl/live_provider.py:134:        """Fetch with retry + exponential backoff."""
+    /home/workspace/[ARCHIVED] audit_repo/meta_rl/live_provider.py:134:        """Fetch with retry + exponential backoff."""
     ```
     ```
     /home/workspace/AsurDev/failure_orchestrator/orchestrator.py:143:                backoff = engine.BACKOFF_BASE ** attempt
@@ -7452,7 +7452,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_brief/idea_tracker.py:434:    print("\nUse --help for commands.")
     ```
     ```
-    /home/workspace/audit_repo/orchestration/karl_cli.py:154:    """Prometheus /metrics server commands."""
+    /home/workspace/[ARCHIVED] audit_repo/orchestration/karl_cli.py:154:    """Prometheus /metrics server commands."""
     ```
 
 ### INFERRED #calls-68
@@ -7538,7 +7538,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/core/kepler_calibrator.py:233:        # Start with nominal elements
+    /home/workspace/[ARCHIVED] audit_repo/core/kepler_calibrator.py:233:        # Start with nominal elements
     ```
     ```
     /home/workspace/astrofin-sentinel-v5/astrology/kepler_calibrator.py:233:        # Start with nominal elements
@@ -7582,7 +7582,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/tools/thompson_cli.py:84:    # k resolved: explicit --k > pool.k > default_k(=4)
     ```
     ```
-    /home/workspace/audit_repo/tests/_template_agent_test.py:83:    """The convenience function must work without explicit instantiation."""
+    /home/workspace/[ARCHIVED] audit_repo/tests/_template_agent_test.py:83:    """The convenience function must work without explicit instantiation."""
     ```
 
 ### INFERRED #calls-75
@@ -7595,13 +7595,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:12:      - Compute expected utility E[U] = p·gain − (1−p)·loss for each,
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/compromise_agent.py:12:      - Compute expected utility E[U] = p·gain − (1−p)·loss for each,
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:13:        using VolatilityEngine.analyze() for gain/loss.
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/compromise_agent.py:13:        using VolatilityEngine.analyze() for gain/loss.
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/compromise_agent.py:125:        # E[U] = p·gain − (1−p)·loss. VolatilityEngine gives us the
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/compromise_agent.py:125:        # E[U] = p·gain − (1−p)·loss. VolatilityEngine gives us the
     ```
 
 ### INFERRED #calls-76
@@ -7614,13 +7614,13 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     source_symbol_present_but_target_not
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/amre/oap_optimizer.py:181:        Вычисляет actions для KPI control loop.
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/amre/oap_optimizer.py:181:        Вычисляет actions для KPI control loop.
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/amre/oap_optimizer.py:188:        actions: list[ControlAction] = []
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/amre/oap_optimizer.py:188:        actions: list[ControlAction] = []
     ```
     ```
-    /home/workspace/audit_repo/agents/_impl/amre/oap_optimizer.py:203:            actions.append(ControlAction.INCREASE_TTC_DEPTH)
+    /home/workspace/[ARCHIVED] audit_repo/agents/_impl/amre/oap_optimizer.py:203:            actions.append(ControlAction.INCREASE_TTC_DEPTH)
     ```
 
 ### INFERRED #calls-77
@@ -7655,7 +7655,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/scripts/compare_backtest_modes.py:101:        print("❌ Modes differ significantly.")
     ```
     ```
-    /home/workspace/audit_repo/scripts/compare_backtest_modes.py:100:        print("❌ Modes differ significantly.")
+    /home/workspace/[ARCHIVED] audit_repo/scripts/compare_backtest_modes.py:100:        print("❌ Modes differ significantly.")
     ```
     ```
     /home/workspace/AsurDev/ml_engine/training/evaluate.py:44:    Detect if model performance has drifted significantly.
@@ -7677,7 +7677,7 @@ Stratified validation of N=452 INFERRED edges from `graphify-out/graph.json` (sn
     /home/workspace/knowledge/daily_digest/daily_digest_analytics.py:174:            "merge node",
     ```
     ```
-    /home/workspace/audit_repo/knowledge/daily_digest/daily_digest_analytics.py:49:        "merge node",
+    /home/workspace/[ARCHIVED] audit_repo/knowledge/daily_digest/daily_digest_analytics.py:49:        "merge node",
     ```
 
 ### INFERRED #calls-80

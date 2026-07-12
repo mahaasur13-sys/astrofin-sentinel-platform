@@ -113,7 +113,7 @@ edit these in place.
 | `astrofin-sentinel-platform-new/`   |  61 M | Mid-2026 re-organisation snapshot                         |
 | `astrofin-monorepo/`                |  16 M | Pre-submodule monorepo experiment                         |
 | `astrofin-federation-stack/`        |  13 M | Federation stack prototype                                |
-| `audit_repo/`                       | 3.0 M | Audit-run clone (kept for traceability)                   |
+| `[ARCHIVED] audit_repo/`                       | 3.0 M | [ARCHIVED] Audit-run clone (kept on disk for traceability, removed from git index in #187) |
 | `pop-os-setup/`                     |   —   | Unrelated local-setup tooling (own lifecycle)             |
 
 If you need to compare an old revision, work from one of these as a read-only
@@ -183,7 +183,7 @@ _pr_logs/
 | `_pr_logs/`       | 7 tracked files (PR logs)    | `~/archives/cleanup_20260709/_pr_logs_archive_*.tar.gz` |
 
 Total compressed archive footprint: **~170 MB**.
-`audit_repo/` was inspected but **kept** because the audit source files
+`[ARCHIVED] audit_repo/` was inspected but **kept** because the audit source files
 were older versions; root has newer equivalents.
 
 **To restore** any of these: `tar -xzf <archive>.tar.gz -C /home/workspace/`.
