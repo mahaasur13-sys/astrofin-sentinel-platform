@@ -74,7 +74,7 @@
   `deploy/iac/terraform/terraform.tfvars.example`,
   `scripts/generate_secrets.sh`, `scripts/validate_docker_security.py`,
   `src/bridges/roma/billing/stripe_client.py`, `tests/**/*.py`,
-  `tests/fixtures/**`, `audit_repo/**`.
+  `tests/fixtures/**`, `[ARCHIVED] audit_repo/** (no longer in git index)`.
 
 Если у вас появляется **новая** ложная находка — сначала проверьте, не
 нарушает ли она allowlist. Если нарушает — лучше исправить источник

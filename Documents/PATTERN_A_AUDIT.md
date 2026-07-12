@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-18
 **Workspace:** `/home/workspace`
-**Scope:** `push/agents/_impl/`, `audit_repo/agents/_impl/`, `meta_rl/`,
+**Scope:** `push/agents/_impl/`, `[ARCHIVED] audit_repo/agents/_impl/`, `meta_rl/`,
 `tests/test_options_flow_agent_async.py`, `backtest/engine.py` (caller).
 
 ---
@@ -17,7 +17,7 @@ The `AstroFinSentinelV5/` clone is a single-commit "Initial import" with only
 Pattern A target agents even exist there.
 
 The real Pattern A work is in `push/agents/_impl/` (canonical) and
-`audit_repo/agents/_impl/` (snapshot). The work is **already done** to a
+`[ARCHIVED] audit_repo/agents/_impl/` (snapshot). The work is **already done** to a
 large degree — but the previous turn's framing was wrong.
 
 ---
@@ -57,7 +57,7 @@ astro_council/agent.py          deco=0  eph=0  eph_un=0  unk=0  fut=—    [MISS
 
 **Result: 17/18 OK, 1 MISS (`astro_council/agent.py`).**
 
-(`audit_repo/agents/_impl/` mirrors `push/` — identical pattern.)
+(`[ARCHIVED] audit_repo/agents/_impl/` mirrors `push/` — identical pattern.)
 
 ## 2. Per-task verification of the user's 4 explicit tasks
 
@@ -85,7 +85,7 @@ is also incorrect:
   directory** (no `agent.py` at all; nothing in git ls-files).
 
 ### Task 2 — `meta_rl/basket.py` `from __future__` position
-**STATUS: ALREADY DONE CORRECTLY in both `push/` and `audit_repo/`.**
+**STATUS: ALREADY DONE CORRECTLY in both `push/` and `[ARCHIVED] audit_repo/`.**
 
 ```
 """meta_rl/basket.py -- ATOM-META-RL-010: Multi-symbol Basket Evaluation"""
@@ -96,7 +96,7 @@ from __future__ import annotations       <-- line 3, correct first-statement
 in that clone).
 
 ### Task 3 — `quant_agent.py` dead code + `.bak` files
-**STATUS: ALREADY CLEAN in both `push/` and `audit_repo/`.**
+**STATUS: ALREADY CLEAN in both `push/` and `[ARCHIVED] audit_repo/`.**
 
 - `quant_agent.py` has clean Pattern A on `run()` (decorator, both
   `except` clauses, both `_degraded()` calls, docstring).
@@ -106,7 +106,7 @@ in that clone).
   different naming convention — not Pattern A scope.)
 
 ### Task 4 — `tests/test_options_flow_agent_async.py` xfail
-**STATUS: ALREADY DONE CORRECTLY in `push/`, `audit_repo/`, and `AstroFinSentinelV5/`.**
+**STATUS: ALREADY DONE CORRECTLY in `push/`, `[ARCHIVED] audit_repo/`, and `AstroFinSentinelV5/`.**
 
 All three copies have:
 ```python
@@ -181,7 +181,7 @@ relies on. **(b)** is the smaller-diff option and matches the user's stated
 preference of "оставить тело нетронутым".
 
 If the user confirms (b), I can apply it to `push/agents/_impl/astro_council/agent.py`
-and `audit_repo/agents/_impl/astro_council/agent.py` and run a smoke test.
+and `[ARCHIVED] audit_repo/agents/_impl/astro_council/agent.py` and run a smoke test.
 
 ## 7. PR / commit state
 
@@ -196,5 +196,5 @@ There is no `git push` to do until a real branch + commits exist.
 ---
 
 *Audited mechanically via `grep` over `push/agents/_impl/`, cross-checked
-against `audit_repo/agents/_impl/`. Runtime smoke test for `run({})`
+against `[ARCHIVED] audit_repo/agents/_impl/`. Runtime smoke test for `run({})`
 confirmed via `python3 -c` returning `dict` with key `astro_council_signal`.*

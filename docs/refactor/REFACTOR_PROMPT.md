@@ -244,7 +244,7 @@
 | `/home/workspace/astrofin-sentinel-v5/` | `phase4-observability-ab-cd-backtest-paper` | `5affa98` | `mahaasur13-sys/astrofin-sentinel-v5` | Экспериментальная ветка (наблюдаемость, A/B) |
 | `/home/workspace/AstroFinSentinelV5/` | `main` | `13cfec7` | `mahaasur13-sys/AstroFinSentinelV5` | «Initial import» — почти пустая оболочка |
 | `/home/workspace/AsurDev/` | — | — | `mahaasur13-sys/AsurDev` | ACOS (storage/contracts/events) — отдельный домен |
-| `/home/workspace/audit_repo/` | — | — | — | Копия для офлайн-аудита |
+| `/home/workspace/[ARCHIVED] audit_repo/` | — | — | — | [ARCHIVED] Копия для офлайн-аудита (на диске, не в git) |
 | `/home/workspace/push/` | `main` | `71d6e1d` | `mahaasur13-sys/push` | Независимый сервис-publisher |
 
 ### 10.2 Решение по рабочему корню
