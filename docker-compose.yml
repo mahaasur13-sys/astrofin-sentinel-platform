@@ -186,7 +186,7 @@ services:
     container_name: astrofin-postgres
     environment:
       POSTGRES_USER: astrofin
-      POSTGRES_PASSWORD: astrofin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in env}
       POSTGRES_DB: astrofin
     volumes:
       - postgres_data:/var/lib/postgresql/data
