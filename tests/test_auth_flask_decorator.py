@@ -22,6 +22,12 @@ def _reload_core_auth() -> None:
     test starts from the env vars it set via ``monkeypatch``.
     """
     sys.modules.pop("core.auth", None)
+    # pydantic-settings caches get_settings() via @lru_cache; without
+    # cache_clear() the re-imported module still sees stale env-derived
+    # values, which is what made the empty-key and auth-disabled tests
+    # fall through to the "missing key" 401 branch.
+    from core.settings import get_settings
+    get_settings.cache_clear()
     import core.auth  # noqa: F401  (re-import to repopulate sys.modules)
 
 
