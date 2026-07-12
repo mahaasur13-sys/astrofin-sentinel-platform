@@ -1,7 +1,8 @@
 """meta_rl/quant/__init__.py -- ATOM-META-RL-024"""
+
 from __future__ import annotations
 
-from meta_rl.quant.metrics import (
+from meta_rl.quant.risk import (
     calmar_ratio,
     enrich_result,
     max_consecutive_losses,

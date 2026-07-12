@@ -5,6 +5,11 @@ from __future__ import annotations
 import math
 from collections.abc import Sequence
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from meta_rl.types import EvaluationResult
+
 
 def sortino_ratio(returns: Sequence[float], target: float = 0.0) -> float:
     """Sortino: return / downside deviation. Higher is better."""
@@ -63,7 +68,6 @@ def rolling_sharpe(returns: Sequence[float], window: int = 20) -> list[float]:
 
 
 # ─── Extended EvaluationResult fields ────────────────────────────────────────
-from meta_rl.types import EvaluationResult
 
 
 def enrich_result(ev: EvaluationResult, returns: list[float]) -> EvaluationResult:
