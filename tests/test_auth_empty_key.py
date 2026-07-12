@@ -20,5 +20,9 @@ def test_empty_api_key_returns_500(monkeypatch):
 
     with app.test_client() as client:
         resp = client.get("/test", headers={"X-API-Key": "anything"})
+        # Новый контракт: 503, envelope с code/message/correlation_id
         assert resp.status_code == 500
-        assert b"misconfiguration" in resp.data.lower()
+        json_data = resp.get_json()
+        assert json_data["code"] == "INTERNAL_ERROR"
+        assert "message" in json_data
+        assert "correlation_id" in json_data
