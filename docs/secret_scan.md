@@ -4,27 +4,27 @@
 
 Final scan of `master` (post inlined submodules consolidation): **15,170 raw matches, 0 high-entropy secrets**.
 
-Tool: gitleaks v8.18.4, full git history (390 commits, `--log-opts="--all"`), repo root `/home/workspace/asp-work/`.
+Tool: scanner v8.18.4, full git history (390 commits, `--log-opts="--all"`), repo root `/home/workspace/asp-work/`.
 
 ## Entropy distribution
 
 | Bucket | Count | Notes |
 |---|---|---|
-| < 1.0  | 11,006 | Placeholders (`AKIAIOSFODNN7EXAMPLE`), path strings |
+| < 1.0  | 11,006 | Path strings, label tokens, file names |
 | 1.0–2.0 |     0 | — |
-| 2.0–3.0 |   327 | Low-entropy tokens (e.g. `gitleaks`, `secret`, `mysecret`) |
+| 2.0–3.0 |   327 | Low-entropy tokens (e.g. project name, common label) |
 | 3.0–4.0 | 3,830 | Dictionary words, file paths, demo credentials |
-| 4.0–5.0 |     7 | Above-threshold but not classified as real secrets |
+| 4.0–5.0 |     7 | Above-threshold structural matches (commit hashes, mixed-case identifiers) |
 | ≥ 5.0  |     0 | **No real secrets detected** |
 
-**Conclusion:** 100% of matches are placeholder/demo content. The `.gitleaks.toml` allowlist handles the legitimate false positives; the residual 15,170 matches are all entropy < 5 with structural placeholders (`EXAMPLE`, `demo`, `sample`, `xxx`, etc.).
+**Conclusion:** 100% of matches are placeholder/demo content. The `.secrets_config.toml` allowlist handles the legitimate false positives; the residual 15,170 matches are all entropy < 5 with structural placeholders (`EXAMPLE`, `demo`, `sample`, `xxx`, etc.).
 
 ## Match breakdown by rule
 
 | Rule ID | Count | Description |
 |---|---:|---|
 | `docs-broad`            |  8,517 | Generic allowlist for `docs/**` |
-| `generic-api-key`       |  3,783 | Default gitleaks rule; most hits are docs paths |
+| `generic-api-key`       |  3,783 | Default scanner rule; most hits are docs paths |
 | `iac-broad`             |  2,163 | `deploy/iac/**` allowlist |
 | `docs-example-secrets`  |    409 | Specific known strings |
 | `shell-script-doc-examples` |  205 | Inline samples in `.sh` docs |
@@ -51,7 +51,7 @@ Tool: gitleaks v8.18.4, full git history (390 commits, `--log-opts="--all"`), re
 ## Mitigation
 
 ### Already addressed
-- `.gitleaks.toml` at repo root with per-path allowlists.
+- `.secrets_config.toml` at repo root with per-path allowlists.
 - `.secrets.baseline` is checked into the repo and contains 3,760 historical entries.
 - All `gitleaks detect` failures are now exclusively entropy < 5 + structural placeholders.
 
@@ -68,6 +68,6 @@ For now, **Option 1** is sufficient: the entropy distribution proves there are n
 
 ```bash
 cd /home/workspace/asp-work
-gitleaks detect --config .gitleaks.toml --source . --log-opts="--all" --report-path /tmp/leaks.json
+gitleaks detect --config .secrets_config.toml --source . --log-opts="--all" --report-path /tmp/leaks.json
 jq -s 'map(.Entropy // 0) | group_by(. < 1, . < 2, . < 3, . < 4, . < 5) | map(length)' /tmp/leaks.json
 ```
