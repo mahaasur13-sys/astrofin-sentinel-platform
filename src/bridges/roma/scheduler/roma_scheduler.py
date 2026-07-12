@@ -119,11 +119,10 @@ class ROMAJobExecutor:
         if route.get("status") == "rejected":
             return route
 
-        async def run():
-            return await self.scheduler.execute_job(job)
-
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, lambda: asyncio.run(run()))
+        # execute_job is async — await directly. Previously wrapped in
+        # loop.run_in_executor(lambda: asyncio.run(run())), which spawned a
+        # nested event loop and could deadlock / drop cancellation under load.
+        result = await self.scheduler.execute_job(job)
         self.results[job_id] = result
         return result
 
