@@ -1,5 +1,9 @@
 # ATOM Core — Monorepo
 
+> ⚠️ **Не удалять.** Это **живой Go-роутер** для AstroFinSentinelV5 (`packages/atom-router/`).
+> Используется для: reflection-based routing, belief propagation, K8s operator (ROMA bridge pods).
+> Замены нет. Если нужна правка — см. `Known Issues` ниже.
+
 Координационный слой для AstroFinSentinelV5. Многоагентная система маршрутизации с deterministic execution.
 
 ## Архитектура
