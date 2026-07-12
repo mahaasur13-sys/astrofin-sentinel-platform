@@ -19,8 +19,15 @@ def _add_trace_context(logger, method, event_dict):
 
 
 def _add_correlation_id(logger, method_name, event_dict):
-    """Ensure every log line has a correlation_id; default 'unknown' if not bound."""
-    event_dict.setdefault("correlation_id", "unknown")
+    """Ensure every log line has a correlation_id from the request context.
+
+    Source of truth is ``core.error_schema.get_correlation_id()`` (a ContextVar
+    set by middleware on every request). We do NOT default to 'unknown' here —
+    the ContextVar already provides that fallback, and reading from it keeps
+    log lines and error envelopes in sync.
+    """
+    from core.error_schema import get_correlation_id
+    event_dict["correlation_id"] = get_correlation_id()
     return event_dict
 
 

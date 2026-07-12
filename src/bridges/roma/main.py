@@ -10,6 +10,8 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, ConfigDict
 
+from core.correlation import install as install_correlation_id
+
 # ============================================
 # МОДЕЛИ
 # ============================================
@@ -52,6 +54,7 @@ app = FastAPI(
     title="ROMA Execution Platform",
     version="1.0.0",
 )
+install_correlation_id(app)
 
 # ============================================
 # IN-MEMORY STORAGE (временное)
