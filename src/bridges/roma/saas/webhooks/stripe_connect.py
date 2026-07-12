@@ -39,7 +39,8 @@ class AsyncWebhookQueue:
         try:
             with open(self._queue_file) as f:
                 self._queue = json.load(f)
-        except: pass
+        except (FileNotFoundError, json.JSONDecodeError):  # nosec B110 — missing/corrupt queue is expected on cold start
+            pass
     
     def _save(self):
         with open(self._queue_file, 'w') as f:
