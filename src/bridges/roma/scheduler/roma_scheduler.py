@@ -16,6 +16,20 @@ from queue_manager.queue_manager import QueueManager
 logger = logging.getLogger("roma.scheduler")
 
 
+ALLOWED_COMMANDS = ("echo", "ls", "cat", "python", "python3", "pytest")
+
+
+def _check_command_allowed(command: str):
+    """Return (ok, reason). Reject empty, path-prefixed, or unknown commands."""
+    if not command or not command.strip():
+        return False, "empty command"
+    first = command.strip().split()[0]
+    base = first.rsplit("/", 1)[-1]
+    if base not in ALLOWED_COMMANDS:
+        return False, f"command {base!r} not in allowlist"
+    return True, None
+
+
 class ROMAGPUScheduler:
     def __init__(self):
         qm = QueueManager()
@@ -83,10 +97,15 @@ class ROMAGPUScheduler:
 
     def _execute_local(self, job: dict) -> dict:
         import subprocess
+        import shlex
+        command = job.get("command", "echo 'local execution'")
+        ok, reason = _check_command_allowed(command)
+        if not ok:
+            return {"status": "rejected", "reason": reason, "execution_target": "local"}
         try:
             result = subprocess.run(
-                job.get("command", "echo 'local execution'"),
-                shell=True, capture_output=True, text=True,
+                shlex.split(command),
+                capture_output=True, text=True,
                 timeout=job.get("timeout", 300)
             )
             return {
