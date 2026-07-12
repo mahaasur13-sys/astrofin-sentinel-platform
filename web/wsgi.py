@@ -25,15 +25,28 @@ from typing import Any
 from flask import Flask, jsonify, request
 
 from core.auth import require_api_key
+from core.error_schema import BadRequest, InternalError, error_response
+from web.middleware import install_error_handling
 
 _log = logging.getLogger("wsgi.shutdown")
 
 server = Flask(__name__)
 
+
+# Register error envelope handlers
+@server.errorhandler(InternalError)
+@server.errorhandler(BadRequest)
+def handle_known_errors(error):
+    return error_response(error)
+
+
+# Standardised error envelope (ERR-01): correlation-id + JSON schema.
+install_error_handling(server)
+
 # ── Graceful-shutdown state ────────────────────────────────────────────────────
 _state_lock = threading.Lock()
 _state: dict[str, Any] = {
-    "ready": True,            # False during drain → 503 from /health
+    "ready": True,  # False during drain → 503 from /health
     "draining_started_at": 0.0,  # epoch seconds
     "shutdown_started_at": 0.0,
 }
@@ -68,9 +81,7 @@ def _graceful_shutdown(signum: int, _frame: Any) -> None:
         if _state["shutdown_started_at"] == 0.0:
             _state["shutdown_started_at"] = time.time()
     _begin_drain()
-    _log.info(
-        "[graceful-shutdown] signal %s received; in-flight requests will drain", signum
-    )
+    _log.info("[graceful-shutdown] signal %s received; in-flight requests will drain", signum)
 
 
 # Install signal handlers. Gunicorn replaces these in its worker loop,
@@ -116,7 +127,7 @@ def ab_compare():
     sid_a = request.args.get("sid_a", "")
     sid_b = request.args.get("sid_b", "")
     if not sid_a or not sid_b:
-        return jsonify({"status": "ERROR", "error": "sid_a and sid_b required"}), 400
+        raise BadRequest("sid_a and sid_b required", details={"sid_a": sid_a, "sid_b": sid_b})
 
     try:
         result = {
@@ -128,8 +139,8 @@ def ab_compare():
             "winner": "TIE",
         }
         return jsonify(result)
-    except Exception as e:
-        return jsonify({"status": "ERROR", "error": str(e)}), 500
+    except Exception:  # noqa: BLE001
+        raise InternalError("ab_compare failed")
 
 
 @server.route("/api/live/enable", methods=["POST"])
@@ -139,7 +150,7 @@ def live_enable():
     data = request.get_json(silent=True) or {}
     confirmed = data.get("confirmed", False)
     if not confirmed:
-        return jsonify({"error": "Confirmation required"}), 400
+        raise BadRequest("Confirmation required", details={"field": "confirmed"})
     return jsonify({"status": "live_enabled", "mode": "live"})
 
 
