@@ -6,6 +6,7 @@ import os
 import uuid
 import subprocess
 import asyncio
+import shlex
 from datetime import datetime
 from typing import Optional
 
@@ -143,8 +144,10 @@ def execute_job_sync(job: JobRequest) -> JobResult:
                 cmd, capture_output=True, text=True, timeout=job.timeout
             )
         else:
+            # TODO: add command allowlist before exposing GPU worker to multi-tenant traffic
+            argv = shlex.split(job.command) if job.command else ["true"]  # nosec B602 — local worker, single-tenant PoC
             result = subprocess.run(
-                job.command, shell=True, capture_output=True, text=True,
+                argv, shell=False, capture_output=True, text=True,
                 timeout=job.timeout, cwd="/workspace"
             )
 
