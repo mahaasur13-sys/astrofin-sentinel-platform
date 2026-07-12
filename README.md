@@ -12,9 +12,9 @@ Unified monorepo aggregating three production-grade projects under one CI/CD:
 | Path | Origin | Purpose |
 | --- | --- | --- |
 | `/` (root) | `push/` | KARL / AMRE / Astro Council — orchestration, meta-RL, web dashboard |
-| `infrastructure/asurdev/` | `AsurDev/` | Home-cluster IaC, ACOS admission controllers, monitoring stack |
-| `kernel/atom-federation/` | `atom-federation-os/` | Deterministic alignment kernel, formal verification, K8s operator (re-integration in progress, see [Roadmap](#roadmap--known-issues)) |
-| `bridge/roma/` | `roma-execution-bridge/` | GPU execution bridge, SaaS billing, Stripe webhooks |
+| `deploy/iac/` | `AsurDev/` | Home-cluster IaC, ACOS admission controllers, monitoring stack |
+| `atom-core/` | `atom-federation-os/` | Deterministic alignment kernel, formal verification, K8s operator (re-integration in progress, see [Roadmap](#roadmap--known-issues)) |
+| `src/bridges/roma/` | `roma-execution-bridge/` | GPU execution bridge, SaaS billing, Stripe webhooks |
 
 ## Quickstart
 
@@ -44,9 +44,9 @@ astrofin-sentinel-platform/
 ├── trading/                      # Execution adapters, broker integrations
 ├── meta_rl/                      # Meta-reinforcement learning, A/B testing
 ├── monitoring/                   # Prometheus exporter, OpenTelemetry, health endpoints
-├── infrastructure/asurdev/       # Cluster IaC, ACOS admission controllers
-├── kernel/atom-federation/       # Alignment + verification kernel, K8s operator
-├── bridge/roma/                  # GPU execution bridge, SaaS billing
+├── deploy/iac/                   # Cluster IaC, ACOS admission controllers
+├── atom-core/                    # Alignment + verification kernel, K8s operator
+├── src/bridges/roma/             # GPU execution bridge, SaaS billing
 ├── scripts/                      # Monorepo-level automation (DORA, audits)
 ├── docs/                         # Architecture, contribution, runbooks
 ├── audit_reports/                # CI artifacts, audit snapshots
@@ -81,7 +81,7 @@ python -m monitoring.health_endpoints
 python -m kernel.atom_federation.verification.runner
 
 # ROMA execution bridge (local)
-cd bridge/roma && uvicorn roma_execution_bridge.main:app --reload
+cd src/bridges/roma && uvicorn roma_execution_bridge.main:app --reload
 ```
 
 ## Documentation
