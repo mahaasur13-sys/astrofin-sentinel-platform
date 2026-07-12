@@ -11,7 +11,15 @@ from core.logging import get_logger, setup_logging
 @pytest.fixture(autouse=True)
 def configure_structlog():
     setup_logging()
-    yield
+    # Reset the correlation_id ContextVar so this test sees the default
+    # "unknown" value even if a previous test (e.g. test_auth.py) set it
+    # via the FastAPI/Flask middleware.
+    from core.error_schema import _correlation_id_var
+    token = _correlation_id_var.set("unknown")
+    try:
+        yield
+    finally:
+        _correlation_id_var.reset(token)
 
 
 @pytest.mark.unit
