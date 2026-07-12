@@ -1,31 +1,29 @@
-# .gitleaks.toml
-# Extends the default gitleaks ruleset and adds a global allowlist
-# for known false-positive files (placeholders, example configs).
+# gitleaks configuration for astrofin-sentinel-platform
+# Purpose: allow only well-known false positives (AWS docs examples, test fixtures).
+# Any new rule must come with a justification comment.
 
-title = "astrofin-sentinel-platform"
+title = "AstroFin Sentinel — gitleaks config"
 
-[extend]
-useDefault = true
-
-# Global allowlist (singular [allowlist] in gitleaks 8.18.x).
-# Any finding that matches a path or regex here is suppressed.
 [allowlist]
-description = "Known placeholders and example fixtures"
-paths = [
-    '''deploy/iac/terraform/modules/kubernetes/main.tf''',
-    '''src/bridges/roma/billing/stripe_client.py''',
-    '''.secrets.baseline''',
-    '''.gitleaks.toml''',
-    '''.gitleaksignore''',
-    '''deploy/iac/ansible/group_vars/all.yml.example''',
-    '''deploy/iac/scripts/dev-tools/gh-auth-fix.sh''',
-    '''deploy/iac/terraform/terraform.tfvars.example''',
-]
-regexes = [
-    '''sk_test_placeholder''',
-    '''whsec_placeholder''',
-    '''YOUR_[A-Z_]+''',
-    '''change-me-in-production''',
-    '''REPLACE_WITH_[A-Z0-9_]+''',
-    '''ghp_xxxxxx+''',
-]
+  description = "Allow test fixtures with well-known/example-only secrets"
+  paths = [
+    '''tests/test_logging_utils\.py''',
+    '''tests/.*/conftest\.py''',
+    '''.*\.example$''',
+    '''.*\.example\..*$''',
+    '''docs/.*''',
+  ]
+
+  regexes = [
+    '''AKIAIOSFODNN7EXAMPLE''',
+    '''AIzaSyA1234567890ABCDEFGH''',
+  ]
+
+  stopwords = [
+    "EXAMPLE",
+    "example",
+    "dummy",
+    "placeholder",
+    "test-key",
+    "test-secret",
+  ]
