@@ -82,19 +82,47 @@ class ROMAGPUScheduler:
             return self._execute_local(job)
 
     def _execute_local(self, job: dict) -> dict:
+        import shlex
         import subprocess
+
+        # TODO(security): validate `command` against an allowlist of
+        # permitted executables (e.g. {"echo", "nvidia-smi", "python3"})
+        # before exec. shlex.split + shell=False closes the B602 vector
+        # but a hostile job could still invoke any binary on PATH.
+
+        raw_command = job.get("command", "echo 'local execution'")
         try:
-            result = subprocess.run(
-                job.get("command", "echo 'local execution'"),
-                shell=True, capture_output=True, text=True,
-                timeout=job.get("timeout", 300)
+            argv = shlex.split(raw_command) if isinstance(raw_command, str) else list(raw_command)
+        except ValueError as exc:
+            return {
+                "status": "failed",
+                "error": f"invalid command syntax: {exc}",
+                "execution_target": "local",
+            }
+
+        if not argv:
+            return {
+                "status": "failed",
+                "error": "empty command",
+                "execution_target": "local",
+            }
+
+        try:
+            result = subprocess.run(  # nosec B602 — shell=False; command is split via shlex
+                argv,
+                shell=False, capture_output=True, text=True,
+                timeout=job.get("timeout", 300),
             )
             return {
                 "status": "success" if result.returncode == 0 else "failed",
                 "stdout": result.stdout, "stderr": result.stderr,
                 "returncode": result.returncode, "execution_target": "local", "duration_seconds": 0
             }
-        except Exception as e:
+        except subprocess.TimeoutExpired as e:
+            return {"status": "failed", "error": f"timeout after {e.timeout}s", "execution_target": "local"}
+        except FileNotFoundError as e:
+            return {"status": "failed", "error": f"executable not found: {e.filename}", "execution_target": "local"}
+        except Exception as e:  # noqa: BLE001 — surface unexpected failures to caller
             return {"status": "failed", "error": str(e), "execution_target": "local"}
 
     def get_status(self) -> dict:
