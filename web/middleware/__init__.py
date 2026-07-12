@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import time
 import uuid
-from datetime import datetime, timezone
 
 from flask import Flask, Response, g, jsonify, request
 from werkzeug.exceptions import HTTPException
@@ -21,6 +20,10 @@ from core.logging import get_logger
 _log = get_logger(__name__)
 
 _CORRELATION_HEADER = "X-Correlation-ID"
+_MAX_LEGACY_MESSAGE_LEN = 512
+# Headers we let jsonify() own; everything else from the original response
+# must be preserved when we rebuild the response for error normalisation.
+_PASSTHROUGH_SKIP = {"content-type", "content-length"}
 
 
 def _status_to_code(status: int) -> str:
@@ -43,8 +46,13 @@ def _status_to_code(status: int) -> str:
     return "ERROR"
 
 
-def _utcnow_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+def _truncate(value: str, limit: int = _MAX_LEGACY_MESSAGE_LEN) -> str:
+    """Bound a message so we never echo a full HTML page or stack trace."""
+    if not value:
+        return ""
+    if len(value) <= limit:
+        return value
+    return value[: limit - 1] + "…"
 
 
 def install_flask(app: Flask) -> None:
@@ -64,6 +72,11 @@ def install_flask(app: Flask) -> None:
 
         if 400 <= response.status_code < 600:
             status = response.status_code
+            # Snapshot headers BEFORE we replace `response` with a new
+            # jsonify() object — otherwise CORS / Set-Cookie / security
+            # headers from the original view are lost on errors.
+            original_headers = [(k, v) for k, v in response.headers.items() if k.lower() not in _PASSTHROUGH_SKIP]
+
             ct = response.headers.get("Content-Type", "")
             if "application/json" not in ct:
                 try:
@@ -75,18 +88,22 @@ def install_flask(app: Flask) -> None:
                 except Exception:  # pragma: no cover — defensive  # noqa: BLE001
                     legacy = {"message": "error"}
 
-                msg = legacy.get("error") or legacy.get("message") or "error"
+                # Truncate so a 5MB HTML error page or stack trace doesn't
+                # end up in our JSON envelope.
+                raw_msg = legacy.get("error") or legacy.get("message") or "error"
+                msg = _truncate(str(raw_msg))
                 code = _status_to_code(status)
                 envelope = {
                     "code": code,
-                    "message": str(msg),
+                    "message": msg,
                     "trace_id": legacy.get("trace_id") or "unknown",
                     "correlation_id": cid,
-                    "timestamp": _utcnow_iso(),
+                    "timestamp": format_error(AppException(code=code, status=status, message=msg))["timestamp"],
                     "status": status,
                     "details": {k: v for k, v in legacy.items() if k not in {"error", "message", "trace_id", "status"}},
                 }
                 response = jsonify(envelope)
+                response.headers.extend(original_headers)
             else:
                 try:
                     data = response.get_json()
@@ -98,8 +115,17 @@ def install_flask(app: Flask) -> None:
                     data.setdefault("status", status)
                     data.setdefault("trace_id", data.get("trace_id") or "unknown")
                     if "timestamp" not in data:
-                        data["timestamp"] = _utcnow_iso()
+                        # Reuse the same millisecond-precise timestamp contract
+                        # as format_error() in core/error_schema.py.
+                        data["timestamp"] = format_error(
+                            AppException(
+                                code=data.get("code", _status_to_code(status)),
+                                status=status,
+                                message=data.get("message", "error"),
+                            )
+                        )["timestamp"]
                     response = jsonify(data)
+                    response.headers.extend(original_headers)
 
             response.status_code = status
             response.headers.setdefault(_CORRELATION_HEADER, cid)
@@ -133,10 +159,16 @@ def install_flask(app: Flask) -> None:
         cid = getattr(g, "correlation_id", None) or "unknown"
         envelope = {
             "code": _status_to_code(exc.code or 500),
-            "message": exc.description or exc.name or "error",
+            "message": _truncate(exc.description or exc.name or "error"),
             "trace_id": "unknown",
             "correlation_id": cid,
-            "timestamp": _utcnow_iso(),
+            "timestamp": format_error(
+                AppException(
+                    code=_status_to_code(exc.code or 500),
+                    status=exc.code or 500,
+                    message=exc.description or exc.name or "error",
+                )
+            )["timestamp"],
             "status": exc.code or 500,
             "details": {"path": request.path, "method": request.method},
         }
