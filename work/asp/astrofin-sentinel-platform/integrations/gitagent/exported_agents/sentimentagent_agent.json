@@ -1,0 +1,9 @@
+{
+  "name": "SentimentAgent",
+  "module": "unified-platform.domain.astrofin.agents.registry",
+  "acos_job_type": "astrofin_sentiment",
+  "acos_layer": "L5",
+  "description": "Market sentiment analysis - News, social, analyst ratings",
+  "tools": ["news_analysis", "social_sentiment", "analyst_ratings", "market_mood"],
+  "instructions": "Analyze market sentiment from news, social media, and analyst reports. Determine market mood indicators and sentiment trends."
+}
