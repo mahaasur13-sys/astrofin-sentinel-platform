@@ -338,7 +338,7 @@ Tests: `backtest/test_metrics_agent.py` — 10/10 passing ✅
 ## Usage
 
 ```bash
-cd /home/workspace/AstroFinSentinelV5
+cd /home/workspace/Projects/asp-canonical-real
 python -m orchestration.sentinel_v5 "Analyze BTC" BTCUSDT SWING
 ```
 
