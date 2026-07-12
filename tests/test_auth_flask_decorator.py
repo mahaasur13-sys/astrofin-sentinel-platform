@@ -28,7 +28,6 @@ def test_require_api_key_correct_key(monkeypatch):
     """Valid API key should allow access."""
     monkeypatch.setenv("REQUIRE_AUTH", "true")
     monkeypatch.setenv("API_KEY", "correct-key")
-    # Reload module to pick up new env vars
     import importlib
     import core.auth
 
@@ -43,7 +42,7 @@ def test_require_api_key_correct_key(monkeypatch):
 
 @pytest.mark.unit
 def test_require_api_key_missing_key(monkeypatch):
-    """Missing API key should return 401 with JSON error."""
+    """Missing API key should return 401 with envelope error."""
     monkeypatch.setenv("REQUIRE_AUTH", "true")
     monkeypatch.setenv("API_KEY", "correct-key")
     import importlib
@@ -55,12 +54,15 @@ def test_require_api_key_missing_key(monkeypatch):
     client = app.test_client()
     resp = client.get("/protected")  # No header
     assert resp.status_code == 401
-    assert resp.json.get("error") == "Unauthorized"
+    json_data = resp.get_json()
+    assert json_data["code"] == "UNAUTHORIZED"
+    assert "message" in json_data
+    assert "correlation_id" in json_data
 
 
 @pytest.mark.unit
 def test_require_api_key_wrong_key(monkeypatch):
-    """Wrong API key should return 403."""
+    """Wrong API key should return 403 with envelope error."""
     monkeypatch.setenv("REQUIRE_AUTH", "true")
     monkeypatch.setenv("API_KEY", "correct-key")
     import importlib
@@ -72,14 +74,17 @@ def test_require_api_key_wrong_key(monkeypatch):
     client = app.test_client()
     resp = client.get("/protected", headers={"X-API-Key": "wrong-key"})
     assert resp.status_code == 403
-    assert resp.json.get("error") == "Forbidden"
+    json_data = resp.get_json()
+    assert json_data["code"] == "FORBIDDEN"
+    assert "message" in json_data
+    assert "correlation_id" in json_data
 
 
 @pytest.mark.unit
 def test_require_api_key_empty_env_key_should_reject_all(monkeypatch):
     """
     If API_KEY env var is empty (or missing), all requests should be rejected
-    with 500, even if a key is provided.
+    with 503 SERVICE_UNAVAILABLE, even if a key is provided.
     """
     monkeypatch.setenv("REQUIRE_AUTH", "true")
     monkeypatch.setenv("API_KEY", "")  # empty
@@ -94,12 +99,18 @@ def test_require_api_key_empty_env_key_should_reject_all(monkeypatch):
     # Request with no key
     resp1 = client.get("/protected")
     assert resp1.status_code == 500
-    assert resp1.json.get("error") == "Server misconfiguration"
+    json_data1 = resp1.get_json()
+    assert json_data1["code"] == "INTERNAL_ERROR"
+    assert "message" in json_data1
+    assert "correlation_id" in json_data1
 
     # Request with any key
     resp2 = client.get("/protected", headers={"X-API-Key": "anything"})
     assert resp2.status_code == 500
-    assert resp2.json.get("error") == "Server misconfiguration"
+    json_data2 = resp2.get_json()
+    assert json_data2["code"] == "INTERNAL_ERROR"
+    assert "message" in json_data2
+    assert "correlation_id" in json_data2
 
 
 @pytest.mark.unit
