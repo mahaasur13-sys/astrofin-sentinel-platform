@@ -5,14 +5,34 @@ These tests verify authentication behavior including edge cases.
 
 from __future__ import annotations
 
+import importlib
+import sys
+
 import pytest
 
 from flask import Flask, jsonify
-from core.auth import require_api_key
+
+
+def _reload_core_auth() -> None:
+    """Drop cached ``core.auth`` and force a fresh re-import.
+
+    ``core.auth`` reads ``API_KEY``/``REQUIRE_AUTH`` at import time and
+    ``require_api_key`` closes over the module namespace. Reloading
+    repopulates ``sys.modules['core.auth']`` with a fresh module so each
+    test starts from the env vars it set via ``monkeypatch``.
+    """
+    sys.modules.pop("core.auth", None)
+    import core.auth  # noqa: F401  (re-import to repopulate sys.modules)
 
 
 def create_test_app():
-    """Create a Flask test app with a protected endpoint."""
+    """Create a Flask test app with a protected endpoint.
+
+    Imports ``require_api_key`` *inside* the factory so the closure captures
+    the freshly reloaded module's ``API_KEY``/``REQUIRE_AUTH`` constants.
+    """
+    from core.auth import require_api_key
+
     app = Flask(__name__)
 
     @app.route("/protected")
@@ -28,10 +48,7 @@ def test_require_api_key_correct_key(monkeypatch):
     """Valid API key should allow access."""
     monkeypatch.setenv("REQUIRE_AUTH", "true")
     monkeypatch.setenv("API_KEY", "correct-key")
-    import importlib
-    import core.auth
-
-    importlib.reload(core.auth)
+    _reload_core_auth()
 
     app = create_test_app()
     client = app.test_client()
@@ -45,10 +62,7 @@ def test_require_api_key_missing_key(monkeypatch):
     """Missing API key should return 401 with envelope error."""
     monkeypatch.setenv("REQUIRE_AUTH", "true")
     monkeypatch.setenv("API_KEY", "correct-key")
-    import importlib
-    import core.auth
-
-    importlib.reload(core.auth)
+    _reload_core_auth()
 
     app = create_test_app()
     client = app.test_client()
@@ -65,10 +79,7 @@ def test_require_api_key_wrong_key(monkeypatch):
     """Wrong API key should return 403 with envelope error."""
     monkeypatch.setenv("REQUIRE_AUTH", "true")
     monkeypatch.setenv("API_KEY", "correct-key")
-    import importlib
-    import core.auth
-
-    importlib.reload(core.auth)
+    _reload_core_auth()
 
     app = create_test_app()
     client = app.test_client()
@@ -88,10 +99,7 @@ def test_require_api_key_empty_env_key_should_reject_all(monkeypatch):
     """
     monkeypatch.setenv("REQUIRE_AUTH", "true")
     monkeypatch.setenv("API_KEY", "")  # empty
-    import importlib
-    import core.auth
-
-    importlib.reload(core.auth)
+    _reload_core_auth()
 
     app = create_test_app()
     client = app.test_client()
@@ -99,34 +107,29 @@ def test_require_api_key_empty_env_key_should_reject_all(monkeypatch):
     # Request with no key
     resp1 = client.get("/protected")
     assert resp1.status_code == 500
-    json_data1 = resp1.get_json()
-    assert json_data1["code"] == "INTERNAL_ERROR"
-    assert "message" in json_data1
-    assert "correlation_id" in json_data1
+    body1 = resp1.get_json()
+    assert body1["code"] == "INTERNAL_ERROR"
+    assert "message" in body1
+    assert "correlation_id" in body1
 
     # Request with any key
     resp2 = client.get("/protected", headers={"X-API-Key": "anything"})
     assert resp2.status_code == 500
-    json_data2 = resp2.get_json()
-    assert json_data2["code"] == "INTERNAL_ERROR"
-    assert "message" in json_data2
-    assert "correlation_id" in json_data2
+    body2 = resp2.get_json()
+    assert body2["code"] == "INTERNAL_ERROR"
 
 
 @pytest.mark.unit
 def test_require_api_key_auth_disabled(monkeypatch):
-    """When REQUIRE_AUTH=false, all requests should succeed."""
+    """When ``REQUIRE_AUTH=false`` the decorator must not block the request."""
+    monkeypatch.setenv("API_KEY", "ignored-when-disabled")
     monkeypatch.setenv("REQUIRE_AUTH", "false")
-    monkeypatch.setenv("API_KEY", "some-key")  # even if set, ignored
-    import importlib
-    import core.auth
-
-    importlib.reload(core.auth)
+    _reload_core_auth()
 
     app = create_test_app()
     client = app.test_client()
 
-    # No key
+    # No key → should succeed when auth disabled
     resp1 = client.get("/protected")
     assert resp1.status_code == 200
     assert resp1.json == {"data": "secret"}
