@@ -34,9 +34,7 @@ def wsgi_app(monkeypatch: pytest.MonkeyPatch):
 
 
 def test_missing_api_key_returns_401(wsgi_app):
-    r = wsgi_app.test_client().get(
-        "/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"}
-    )
+    r = wsgi_app.test_client().get("/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"})
     assert r.status_code == 401
     body = r.get_json()
     assert body["code"] == "UNAUTHORIZED"
@@ -84,9 +82,7 @@ def test_auth_disabled_allows_request(monkeypatch: pytest.MonkeyPatch):
 
     from web.wsgi import server
 
-    r = server.test_client().get(
-        "/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"}
-    )
+    r = server.test_client().get("/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"})
     assert r.status_code == 200
 
 

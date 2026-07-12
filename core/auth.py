@@ -53,9 +53,7 @@ def _check_key(request, path):
     if not API_KEY or API_KEY.strip() == "":
         logger.critical("Server misconfiguration: API key required but not set")
         return (
-            format_error(
-                {"code": "ServerMisconfiguration", "message": "API key not configured"}
-            ),
+            format_error({"code": "ServerMisconfiguration", "message": "API key not configured"}),
             500,
         )
 

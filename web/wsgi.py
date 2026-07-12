@@ -32,11 +32,13 @@ _log = logging.getLogger("wsgi.shutdown")
 
 server = Flask(__name__)
 
+
 # Register error envelope handlers
 @server.errorhandler(InternalError)
 @server.errorhandler(BadRequest)
 def handle_known_errors(error):
     return error_response(error)
+
 
 # Standardised error envelope (ERR-01): correlation-id + JSON schema.
 install_error_handling(server)
