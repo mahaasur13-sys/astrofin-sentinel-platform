@@ -63,7 +63,7 @@ def rolling_sharpe(returns: Sequence[float], window: int = 20) -> list[float]:
 
 
 # ─── Extended EvaluationResult fields ────────────────────────────────────────
-from meta_rl.types import EvaluationResult
+from meta_rl.types import EvaluationResult  # noqa: E402  (grouping after fn defs)
 
 
 def enrich_result(ev: EvaluationResult, returns: list[float]) -> EvaluationResult:
