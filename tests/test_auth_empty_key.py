@@ -16,6 +16,7 @@ def _reload_core_auth():
     """Drop cached ``core.auth`` so a fresh module is created from current env."""
     sys.modules.pop("core.auth", None)
     import core.auth as auth_mod  # noqa: F401 — populate sys.modules
+
     return auth_mod
 
 
