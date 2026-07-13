@@ -18,6 +18,9 @@ def test_blueprint_exists():
 def test_conflicts_endpoint_returns_json(monkeypatch):
     """При запросе /data-room/conflicts должен возвращаться JSON."""
     monkeypatch.setenv("API_KEY", "test-secret-key")
+    from core.auth import reload_auth_state
+
+    reload_auth_state()
     app = Flask(__name__)
     app.register_blueprint(data_room_bp)
     with app.test_client() as c:
