@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import json
+import os
 from flask import Flask
 from web.data_room import data_room_bp
 
-
 import pytest
+
+
 @pytest.mark.unit
 def test_blueprint_exists():
     """Проверяем, что Blueprint зарегистрирован и имеет правильный префикс."""
@@ -19,6 +21,8 @@ def test_conflicts_endpoint_returns_json():
     app = Flask(__name__)
     app.register_blueprint(data_room_bp)
     with app.test_client() as c:
-        resp = c.get("/data-room/conflicts")
+        # Добавляем заголовок с API-ключом, чтобы пройти аутентификацию
+        headers = {"X-API-Key": os.environ.get("API_KEY", "test-key")}
+        resp = c.get("/data-room/conflicts", headers=headers)
         assert resp.status_code in (200, 404)
         assert resp.is_json
