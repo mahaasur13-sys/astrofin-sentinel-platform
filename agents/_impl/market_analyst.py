@@ -10,7 +10,7 @@ import logging
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
-from core.metrics import track_agent_duration
+from agents.metrics import track_agent_duration
 
 logger = logging.getLogger(__name__)
 
@@ -142,8 +142,8 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
                 data = resp.json()
                 # OKX возвращает [timestamp, open, high, low, close, volume]
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
-        except Exception:
-            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT")
+        except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError) as e:
+            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT: {e}")
             return []
 
     def _calculate_rsi(self, data: list, period: int = 14) -> float:

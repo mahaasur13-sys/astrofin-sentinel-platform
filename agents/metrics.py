@@ -158,8 +158,33 @@ def track_agent_metrics(func: Callable[P, R]) -> Callable[P, R]:
     return wrapper
 
 
+def track_agent_duration(agent_name: str):
+    """Backwards-compatible decorator factory for agent-latency timing.
+
+    Migrated from ``core.metrics``. Same call-site usage::
+
+        @track_agent_duration("MarketAnalyst")
+        async def run(...): ...
+
+    Delegates to :func:`agent_latency` so we keep one canonical latency metric
+    while preserving the original ``track_agent_duration(name)`` signature.
+    """
+
+    histogram = agent_latency(agent_name)
+
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            with histogram.labels(agent=agent_name).time():
+                return await func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 __all__ = [
     "agent_counter",
     "agent_latency",
     "track_agent_metrics",
+    "track_agent_duration",
 ]
