@@ -428,3 +428,4 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 ---
 
 ## CI Checks
+## Phase B2c (coverage threshold 10%) — завершён 2026-07-13 (PR #206, HEAD `900ebdd`)

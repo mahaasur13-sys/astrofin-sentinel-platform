@@ -31,7 +31,7 @@
 
 ## Текущее состояние (2026-07-13)
 
-- **Branch:** `master` @ `d45de6a` (PR #201 squash-merged)
+- **Branch:** `master` @ `900ebdd` (PR #206 squash-merged, coverage threshold 10%)
 - **Phase B1 + 4.x:** завершены — 10 артефактов восстановлены, 0 hard linter violations
 - **Submodules:** 6 inlined, `.gitmodules.bak` оставлен как артефакт subtree-эксперимента
 - **Open:** Step 4.7 (auth на 5 web-роутах), R-3.5/R-7…R-12 линтер, RAG index, PostgreSQL migration
