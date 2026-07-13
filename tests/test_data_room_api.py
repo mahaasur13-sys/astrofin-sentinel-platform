@@ -7,6 +7,7 @@ from web.data_room import data_room_bp
 
 import pytest
 
+TEST_API_KEY = "test-secret-key"
 
 @pytest.mark.unit
 def test_blueprint_exists():
@@ -18,10 +19,10 @@ def test_blueprint_exists():
 def test_conflicts_endpoint_returns_json():
     """При запросе /data-room/conflicts должен возвращаться JSON."""
     app = Flask(__name__)
+    # Явно задаём ключ, чтобы не зависеть от переменных окружения
+    app.config["API_KEY"] = TEST_API_KEY
     app.register_blueprint(data_room_bp)
     with app.test_client() as c:
-        # Используем API-ключ, установленный в conftest (или из переменной окружения)
-        api_key = os.environ.get("API_KEY", "test-secret-key")
-        resp = c.get("/data-room/conflicts", headers={"X-API-Key": api_key})
+        resp = c.get("/data-room/conflicts", headers={"X-API-Key": TEST_API_KEY})
         assert resp.status_code in (200, 404)
         assert resp.is_json
