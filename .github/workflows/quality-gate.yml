@@ -6,6 +6,8 @@ on:
     paths:
       - 'agents/_impl/**'
       - 'core/**'
+      - 'orchestration/**'
+      - 'web/**'
       - 'scripts/**'
       - 'docs/**'
       - '.github/workflows/**'
@@ -38,13 +40,13 @@ jobs:
       - name: Install
         run: pip install --break-system-packages -r requirements-dev.txt
 
-      - name: Detect changes in agents/_impl/ and core/
+      - name: Detect changes in agents/_impl/, core/, orchestration/, and web/
         id: changed
         run: |
           {
             echo "changed_files<<EOF"
             git diff --name-only origin/${{ github.base_ref }}...HEAD \
-              | grep -E '^(agents/_impl/|core/)' || true
+              | grep -E '^(agents/_impl/|core/|orchestration/|web/)' || true
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
           echo "Changed files:"
@@ -62,7 +64,7 @@ jobs:
           mapfile -t files < <(
             git diff --name-only "$base"...HEAD \
               | grep -E '\.py$' \
-              | grep -E '^(agents/|core/|scripts/)' || true
+              | grep -E '^(agents/|core/|scripts/|orchestration/|web/)' || true
           )
           set -e
           existing=()
