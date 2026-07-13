@@ -218,7 +218,7 @@ Key alerts (all routed via Alertmanager → Slack + PagerDuty):
 - `PIILeakSuspected` — PII scrubber detected > 0 raw hits → page (CRITICAL).
 - `JwtAuthFailureSpike` — > 10 401/s for 5 min → Slack.
 
-Full list: `deploy/monitoring/prometheus/alerts.yml`.
+Full list: `deploy/monitoring/alerts.yml` (and `deploy/monitoring/prometheus-alerts.yml` for the Prometheus ruleset).
 
 ---
 
