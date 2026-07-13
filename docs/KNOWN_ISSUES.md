@@ -1,6 +1,6 @@
 # Known Issues & Technical Debt
 
-> **Last updated:** 2026-06-05
+> **Last updated:** 2026-07-13
 > **Format:** each issue has an ID, severity, owner, target version, and current mitigation.
 
 ---
