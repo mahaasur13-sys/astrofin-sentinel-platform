@@ -1,4 +1,5 @@
 """Smoke tests for deploy.iac.ete.gate.governance_gate (R-POL-3)."""
+
 from deploy.iac.ete.gate.governance_gate import Decision, GovernanceGate
 
 

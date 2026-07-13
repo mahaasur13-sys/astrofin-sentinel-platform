@@ -1,4 +1,5 @@
 """Smoke tests for agents._impl.amre.audit (R-POL-2)."""
+
 from __future__ import annotations
 
 from agents._impl.amre.audit import (
