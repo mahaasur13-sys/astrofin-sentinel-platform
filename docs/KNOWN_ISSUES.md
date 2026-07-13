@@ -282,5 +282,30 @@ Everything else (observability, security, AMRE, KARL) is already ✅.
   on PR #179.
 - **Owner:** see PR #179.
 
+## KI-130 — `quality-gate.yml` `paths:` filter does not include `orchestration/**` and `web/**` (PR work silently bypasses CI for those trees)
+
+- **Severity:** 🟠 P1
+- **Component:** `.github/workflows/quality-gate.yml`
+- **Status:** ✅ Resolved on 2026-07-13 by PR #202 (commit `f81740b`).
+- **Symptom:** When a PR modifies only files under `orchestration/**` or `web/**`, the `paths:` filter in `quality-gate.yml` (which listed `agents/_impl/**`, `core/**`, `scripts/**`, `docs/**`, `.github/workflows/**`) excludes the change, so the Quality Gate job is skipped entirely. Ruff, mypy, the changed-files summary, and the Architecture Lint safety net all silently turn into no-ops for those two trees.
+- **Resolution (this PR):** extended the `paths:` filter to also include `orchestration/**` and `web/**`. The step that detects whether the gate should run (the `grep -E '^(agents/_impl|core|orchestration|web|scripts|docs|.github/workflows)/' .changed-files` filter inside the workflow) and the per-component footgun guards (`[ "${#CHANGED_AGENTS_IMPL}" -gt 0 ] && CHANGED_AGENTS_IMPL_NUM=1`) were updated together to keep the contract consistent. Verified with PR #202 — 16/16 checks green, including the new CodeRabbit review which explicitly approved the change.
+- **Acceptance for un-parking:** PR #202 squash-merged, master is `f81740b`, no follow-up needed.
+- **Owner:** Felix (CI access) + Zo (workflow edits via AFS8).
+
+## KI-131 — `git push` of `.github/workflows/**` files is rejected: `refusing to allow a Personal Access Token to create or update workflow`
+
+- **Severity:** 🟠 P1
+- **Component:** `.github/workflows/**` + push authentication
+- **Status:** ✅ Resolved on 2026-07-13 by introducing PAT `AFS8` (classic PAT with `workflow` scope) and storing it as a Zo secret.
+- **Symptom:** The default `gh` OAuth App and the `AFS6`/`AFS7` classic PATs lack the `workflow` scope, so any commit that touches a file under `.github/workflows/` is rejected by GitHub with `refusing to allow a Personal Access Token to create or update workflow`. This blocked all CI/CD changes since the project adopted the workflow-file model in mid-2026.
+- **Resolution:** created a dedicated classic PAT with the `workflow` scope (stored only in Zo secrets as `AFS8`, never printed, used transiently via `git -c credential.helper=…`). Verified by pushing the `f81740b` squash-merge result and the upstream commit history of `ci/quality-gate-orchestration-web` without scope errors.
+- **Mitigation (recurring):**
+    1. Keep `AFS8` only in Zo secrets — never in shell history, never logged.
+    2. Before any push that touches `.github/workflows/**`, switch the remote to a temporary `https://x-access-token:${AFS8}@github.com/...` URL or use a one-shot `git -c credential.helper=…` invocation that reads `$AFS8` from the environment. Unset the helper immediately after.
+    3. The local `gh` OAuth App remains the default for everything else (PR creation, comments, merges, issue management).
+    4. If GitHub ever disables the `workflow` scope for classic PATs (already deprecated for new PATs as of late 2024), migrate to a fine-grained PAT scoped to the single repo with `workflows:write` permission, or use a GitHub App.
+- **Acceptance for un-parking:** All KI-130/131 follow-up work (and any future workflow edits) can be pushed directly. KI-131 entry is closed.
+- **Owner:** Felix (token provisioning) + Zo (push driver).
+
 ---
 
