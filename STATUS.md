@@ -11,7 +11,10 @@
 
 ## Следующий этап
 
-**Phase B2d** — исправление collection errors в `META_RL_MODE` (см. `PRODUCTION_BACKLOG.md`, `SPRINT_2.md`).
+**Phase B3 / Phase 3** — `PRODUCTION_BACKLOG.md` (87 задач, 5 фаз). Подробный план в `SPRINT_2.md` (Phase 1 finish + Phase 2 start) и `RELEASE_PLAN.md`.
+
+> ~~Phase B2d — collection errors `META_RL_MODE`~~ — **отменён 2026-07-13** (см. `docs/decisions/ADD-2026-07-13-B2D-CANCELLED.md`).
+> Причина: `meta_rl/config.py` использует `os.getenv("META_RL_MODE", HISTORICAL_MODE)` без валидации/`raise`; `meta_rl/settings.py`, `meta_rl/collectors.py`, `tests/meta_rl/` отсутствуют; `pytest --collect-only` проходит без ошибок. Объекта для исправления нет.
 
 ## Сводка
 
@@ -21,11 +24,11 @@
 | CI checks | 14 / 14 green |
 | Открытых PR | chore/docs-update-phase-b2c (в подготовке) |
 | Спринтов завершено | 1 / N (SPRINT_1 = 30 задач) |
-| Активная фаза | B2c → B2d |
+| Активная фаза | B2c → B3 / Phase 3 |
 
 ## История фаз
 
 - **B2a–b** — pre-flight: диагностика окружений, восстановление canonical репо.
 - **B2c** — coverage 3% → 10% (PR #206 merged @ `900ebdd`).
-- **B2d** — collection errors `META_RL_MODE` (планируется).
+- **B2d** — collection errors `META_RL_MODE`. **Отменён 2026-07-13** (см. `docs/decisions/ADD-2026-07-13-B2D-CANCELLED.md`): объект исправления отсутствует.
 - **B3+** — `PRODUCTION_BACKLOG.md` (87 задач, 5 фаз).
