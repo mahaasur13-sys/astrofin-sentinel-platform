@@ -142,8 +142,8 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
                 data = resp.json()
                 # OKX возвращает [timestamp, open, high, low, close, volume]
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
-        except Exception:
-            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT")
+        except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError) as e:
+            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT: {e}")
             return []
 
     def _calculate_rsi(self, data: list, period: int = 14) -> float:
