@@ -1,13 +1,11 @@
 """Smoke test for Data Room API blueprint."""
 from __future__ import annotations
 
-import os
 from flask import Flask
 from web.data_room import data_room_bp
 
 import pytest
 
-TEST_API_KEY = "test-secret-key"
 
 @pytest.mark.unit
 def test_blueprint_exists():
@@ -16,13 +14,12 @@ def test_blueprint_exists():
 
 
 @pytest.mark.unit
-def test_conflicts_endpoint_returns_json():
+def test_conflicts_endpoint_returns_json(monkeypatch):
     """При запросе /data-room/conflicts должен возвращаться JSON."""
+    monkeypatch.setenv("API_KEY", "test-secret-key")
     app = Flask(__name__)
-    # Явно задаём ключ, чтобы не зависеть от переменных окружения
-    app.config["API_KEY"] = TEST_API_KEY
     app.register_blueprint(data_room_bp)
     with app.test_client() as c:
-        resp = c.get("/data-room/conflicts", headers={"X-API-Key": TEST_API_KEY})
+        resp = c.get("/data-room/conflicts", headers={"X-API-Key": "test-secret-key"})
         assert resp.status_code in (200, 404)
         assert resp.is_json
