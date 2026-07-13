@@ -10,7 +10,7 @@ import logging
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
-from core.metrics import track_agent_duration
+from agents.metrics import track_agent_duration
 
 logger = logging.getLogger(__name__)
 
