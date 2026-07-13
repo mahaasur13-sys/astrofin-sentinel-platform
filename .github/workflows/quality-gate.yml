@@ -6,6 +6,8 @@ on:
     paths:
       - 'agents/_impl/**'
       - 'core/**'
+      - 'orchestration/**'
+      - 'web/**'
       - 'scripts/**'
       - 'docs/**'
       - '.github/workflows/**'
