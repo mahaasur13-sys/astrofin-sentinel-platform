@@ -100,7 +100,7 @@ if threading.current_thread() is threading.main_thread():
 
 # ── Health endpoints (replace /health so it returns 503 during drain) ────────
 @server.route("/health")
-def health():
+def public_health():
     if _is_draining():
         return jsonify({"status": "draining"}), 503
     return jsonify({"status": "ok"})

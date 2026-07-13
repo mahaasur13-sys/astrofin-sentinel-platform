@@ -229,7 +229,11 @@ def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> No
             is_route = any(".route(" in d for d in decorator_names)
             if not is_route:
                 continue
-            has_auth = any("require_auth" in d or "auth_required" in d for d in decorator_names)
+            has_auth = any(
+                token in d
+                for d in decorator_names
+                for token in ("require_auth", "auth_required", "require_api_key")
+            )
             is_public = "PUBLIC" in source_text.split(ast.unparse(node))[0][-200:]  # weak but useful
             if not has_auth and not is_public:
                 # Allow if the function is named with a public prefix or returns a static asset.
@@ -239,7 +243,7 @@ def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> No
                     _rel(src),
                     node.lineno,
                     "R4",
-                    f"route handler '{node.name}' is missing @require_auth",
+                    f"route handler '{node.name}' is missing @require_auth (or @require_api_key)",
                 )
 
 
