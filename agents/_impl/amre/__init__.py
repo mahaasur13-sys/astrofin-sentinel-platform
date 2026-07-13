@@ -19,7 +19,6 @@ from .ensemble_selection import (
     select_ensemble_by_confidence,
 )
 from .grounding import validate_with_grounding
-from .hierarchical_policy import HierarchicalPolicy
 from .karl_integration import (
     AMREOutput,
     DelistFallback,
@@ -113,7 +112,6 @@ __all__ = [
     "estimate_uncertainty",
     "SelfQuestioningEngine",
     "SQResult",
-    "HierarchicalPolicy",
     "CounterfactualEngine",
     "select_ensemble",
     "ensemble_diversity_score",
