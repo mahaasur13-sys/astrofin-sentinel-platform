@@ -1,4 +1,5 @@
 """Smoke test for Data Room API blueprint."""
+
 from __future__ import annotations
 
 from flask import Flask
