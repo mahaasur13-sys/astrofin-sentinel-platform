@@ -1,0 +1,85 @@
+{{/*
+GPU Worker Deployment
+*/}}
+{{- if .Values.gpuWorker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "roma-execution-bridge.fullname" . }}-gpu-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "roma-execution-bridge.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gpu-worker
+spec:
+  replicas: {{ .Values.gpuWorker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "roma-execution-bridge.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: gpu-worker
+  {{- with .Values.gpuWorker.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "roma-execution-bridge.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: gpu-worker
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.gpuWorker.service.port }}"
+        prometheus.io/path: /metrics
+    spec:
+      {{- include "roma-execution-bridge.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ .Values.rbac.serviceAccountName }}
+      {{- with .Values.gpuWorker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.gpuWorker.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.gpuWorker.nodeAffinity }}
+      affinity:
+        nodeAffinity:
+          {{- toYaml . | nindent 10 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.securityContext.gpuWorker | nindent 8 }}
+      containers:
+        - name: gpu-worker
+          image: "{{ .Values.gpuWorker.image.repository }}:{{ .Values.gpuWorker.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.gpuWorker.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.gpuWorker.service.port }}
+              protocol: TCP
+          {{- if .Values.gpuWorker.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.gpuWorker.probes.liveness.path }}
+              port: {{ .Values.gpuWorker.probes.liveness.port }}
+            initialDelaySeconds: {{ .Values.gpuWorker.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.gpuWorker.probes.liveness.periodSeconds }}
+          {{- end }}
+          {{- if .Values.gpuWorker.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.gpuWorker.probes.readiness.path }}
+              port: {{ .Values.gpuWorker.probes.readiness.port }}
+            initialDelaySeconds: {{ .Values.gpuWorker.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.gpuWorker.probes.readiness.periodSeconds }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.gpuWorker.resources | nindent 12 }}
+          env:
+            - name: WORKER_NAME_PREFIX
+              value: {{ .Values.gpuWorker.env.WORKER_NAME_PREFIX | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.gpuWorker.env.LOG_LEVEL | quote }}
+            - name: REDIS_HOST
+              value: {{ .Values.gpuWorker.env.REDIS_HOST | quote }}
+            - name: API_SERVER_URL
+              value: {{ .Values.gpuWorker.env.API_SERVER_URL | quote }}
+{{- end }}

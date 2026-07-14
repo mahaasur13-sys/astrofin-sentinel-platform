@@ -1,0 +1,24 @@
+ClusterName={{ cluster_name }}
+ControlMachine={{ slurm_control_node }}
+ControlAddr={{ hostvars[slurm_control_node].ansible_host | default(slurm_control_node) }}
+SlurmUser=slurm
+SlurmctldPort=6817
+SlurmdPort=6818
+AuthType=auth/munge
+StateSaveLocation=/var/spool/slurm
+SlurmdSpoolDir=/var/spool/slurmd
+TmpFS=/tmp
+LogFile=/var/log/slurm/slurmctld.log
+SlurmdLogFile=/var/log/slurm/slurmd.log
+GresTypes=gpu
+DefMemPerCPU=1024
+MaxMemPerCPU=32768
+
+{% for node in groups['all'] %}
+{% if node != slurm_control_node %}
+NodeName={{ hostvars[node].hostname }} NodeAddr={{ hostvars[node].ansible_host }} {{ hostvars[node].ansible_processor_vcpus }} State=UNKNOWN
+{% endif %}
+{% endfor %}
+
+PartitionName=gpu Nodes={{ slurm_control_node }} Default=YES MaxTime=INFINITE State=UP
+PartitionName=cpu Nodes=rk3576-node MaxTime=INFINITE State=UP

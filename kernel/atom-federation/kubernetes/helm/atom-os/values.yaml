@@ -1,0 +1,109 @@
+# =============================================================================
+# ATOM OS Helm Chart — values
+# =============================================================================
+
+operator:
+  image: ghcr.io/atom-federation/atom-operator:7.1.0
+  replicaCount: 1
+  watchNamespace: default
+  reconcileInterval: 5
+  logLevel: INFO
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Distributed ATOM runtime nodes
+cluster:
+  enabled: true
+  name: demo
+  replicas: 3
+  sbsThreshold: 0.01
+  coherenceDriftMax: 0.05
+  replayEnabled: true
+  image: ghcr.io/atom-federation/atom-os:latest
+  healingPolicy: conservative
+  monitoringEnabled: true
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+
+# -----------------------------------------------------------------------------
+# AstroFin Sentinel Platform services (deployed via compose, mirrored here)
+# -----------------------------------------------------------------------------
+web:
+  enabled: true
+  image: astrofin/web:latest
+  port: 8050
+  replicas: 1
+  env:
+    REDIS_URL: redis://redis:6379/0
+    POSTGRES_HOST: postgres
+  resources:
+    requests: { cpu: 200m, memory: 256Mi }
+    limits:   { cpu: 1000m, memory: 1Gi }
+
+mlEngine:
+  enabled: true
+  image: astrofin/ml-engine:latest
+  port: 8081
+  replicas: 1
+  env:
+    ML_MODEL_PATH: /app/models/failure_xgb_v2.pkl
+    ML_FEATURES_PATH: /app/models/features.txt
+  resources:
+    requests: { cpu: 500m, memory: 512Mi }
+    limits:   { cpu: 2000m, memory: 2Gi }
+
+featurePipeline:
+  enabled: true
+  image: astrofin/feature-pipeline:latest
+  port: 8090
+  replicas: 1
+  env:
+    PIPELINE_INTERVAL_SEC: "60"
+  resources:
+    requests: { cpu: 200m, memory: 256Mi }
+    limits:   { cpu: 1000m, memory: 1Gi }
+
+gpuWorker:
+  # Only deploy when GPU nodes are present (taint tolerations required)
+  enabled: false
+  image: astrofin/gpu-worker:latest
+  port: 8000
+  replicas: 1
+  env:
+    CUDA_VISIBLE_DEVICES: "0"
+  resources:
+    requests: { cpu: 500m, memory: 1Gi, nvidia.com/gpu: 1 }
+    limits:   { cpu: 4000m, memory: 16Gi, nvidia.com/gpu: 1 }
+
+# -----------------------------------------------------------------------------
+# Observability
+# -----------------------------------------------------------------------------
+prometheus:
+  enabled: true
+  operatorEnabled: true
+
+grafana:
+  enabled: true
+  image: grafana/grafana:latest
+  port: 3000
+
+rbac:
+  operatorServiceAccount: atom-operator
+  namespace: atom-system
+
+# -----------------------------------------------------------------------------
+# VPN / network — host-only, NOT containerised
+# -----------------------------------------------------------------------------
+amneziaWg:
+  enabled: false   # host kernel module — installed via ansible role in home-cluster-iac/acos/network/
+  note: "Managed by deploy_amneziawg.sh on the host. Never run inside a container."

@@ -1,0 +1,23 @@
+
+[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Step 1 - dry-run & merge completed
+  - Dry-run: predicted ~330 conflicts with -X ours
+  - Actual merge: 0 unmerged files (clean)
+  - Final pytest: 572 passed, 69 skipped, 0 failed, 42.41% coverage
+  - Commit: 5b08528 (merge origin/main into consolidation-v1 with -X ours --no-edit)
+  - Files: 419 files changed
+  - Branch: consolidation-v1
+  - Pushed to remote
+  - PR #212 created: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/pull/212
+  - .git backup saved to Trash/git_backup_20260714_134450.tar.gz (17.8 MB)
+
+=== ШАГ 1: MERGE -X ours --no-edit ===
+Результат: УСПЕХ
+- merge commit: 5b08528
+- Покрытие: 419 файлов, 0 unmerged
+- Pytest: 572 passed, 69 skipped, 0 failed (42.41% coverage)
+- Push origin/consolidation-v1: OK (force with lease)
+- PR #212 создан: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/pull/212
+- Статус PR: OPEN (ожидает ревью)
+- Бэкап .git сохранён в Trash/git_backup_20260714_134450.tar.gz
+
+Следующий шаг: ждать решения по PR #212 (merge/reject/fix)

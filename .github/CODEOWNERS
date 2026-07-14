@@ -1,0 +1,30 @@
+# CODEOWNERS — AstroFin Sentinel Platform
+# Two maintainers required by governance.
+# Order matters: the last matching pattern wins.
+
+# Default owners for everything in the repo
+*    @mahaasur13-sys @asurdev-maintainer
+
+# Core orchestration
+/orchestration/    @mahaasur13-sys @asurdev-maintainer
+/agents/           @mahaasur13-sys @asurdev-maintainer
+/core/             @mahaasur13-sys @asurdev-maintainer
+/meta_rl/          @mahaasur13-sys @asurdev-maintainer
+
+# Infrastructure
+/infrastructure/   @mahaasur13-sys @asurdev-infrastructure
+
+# Kernel
+/kernel/           @mahaasur13-sys @asurdev-kernel
+
+# Bridge (execution)
+/bridge/           @mahaasur13-sys @asurdev-bridge
+
+# CI/CD & governance
+/.github/          @mahaasur13-sys @asurdev-maintainer
+/scripts/          @mahaasur13-sys @asurdev-maintainer
+
+# Docs
+/docs/             @mahaasur13-sys @asurdev-maintainer
+*.md               @mahaasur13-sys @asurdev-maintainer
+README.md          @mahaasur13-sys @asurdev-maintainer

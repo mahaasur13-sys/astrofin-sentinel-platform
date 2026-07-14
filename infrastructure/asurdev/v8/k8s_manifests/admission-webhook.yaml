@@ -1,0 +1,168 @@
+# K8s ValidatingWebhookConfiguration — v8 Governance Kernel
+# All optimization decisions MUST pass through this webhook before execution
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: v8-governance-kernel
+  annotations:
+    description: "v8 Safety Kernel — admission control for cluster optimization decisions"
+webhooks:
+  - name: optimize.decisions.v8.home-cluster.local
+    clientConfig:
+      service:
+        name: v8-admission-controller
+        namespace: home-cluster
+        path: "/admit"
+      caBundle: ${CA_BUNDLE}
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["optimization.home-cluster.local"]
+        apiVersions: ["v1"]
+        resources: ["decisions"]
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
+    timeoutSeconds: 5
+    failurePolicy: Fail  # Fail closed — reject on webhook error
+---
+# Control Plane Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v8-governance-kernel
+  namespace: home-cluster
+  labels:
+    app: v8-governance-kernel
+    layer: control-plane
+spec:
+  replicas: 3  # HA — 3 replicas for fault tolerance
+  selector:
+    matchLabels:
+      app: v8-governance-kernel
+  template:
+    metadata:
+      labels:
+        app: v8-governance-kernel
+        layer: control-plane
+    spec:
+      containers:
+        - name: safety-kernel
+          image: home-cluster/v8-safety-kernel:latest
+          ports:
+            - containerPort: 8443
+          env:
+            - name: RISK_LIMIT
+              value: "0.8"
+            - name: MAX_ALLOWED_REGRET
+              value: "0.1"
+            - name: LOG_LEVEL
+              value: "info"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8443
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8443
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: v8-config
+        - name: tls
+          secret:
+            secretName: v8-tls-cert
+---
+# Admission Controller Service (ClusterIP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: v8-admission-controller
+  namespace: home-cluster
+  labels:
+    app: v8-admission-controller
+spec:
+  type: ClusterIP
+  ports:
+    - port: 443
+      targetPort: 8443
+      protocol: TCP
+      name: https
+  selector:
+    app: v8-governance-kernel
+---
+# ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: v8-config
+  namespace: home-cluster
+data:
+  constraints.yaml: |
+    constraints:
+      - name: latency_guard
+        expr: "p99_latency < 200ms"
+        severity: hard
+        description: "P99 latency must stay below 200ms"
+      - name: cpu_guard
+        expr: "cpu_util < 0.95"
+        severity: hard
+        description: "CPU utilization below 95%"
+      - name: failure_rate_guard
+        expr: "failure_rate < 0.05"
+        severity: hard
+        description: "Failure rate below 5%"
+      - name: queue_depth_guard
+        expr: "queue_depth < 1000"
+        severity: soft
+        description: "Queue depth warning at 1000"
+  policy_verifier.yaml: |
+    max_allowed_regret: 0.1
+    simulation_horizon: 60
+    require_budget_bounds: true
+---
+# RBAC
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: v8-governance-kernel
+rules:
+  - apiGroups: ["optimization.home-cluster.local"]
+    resources: ["decisions"]
+    verbs: ["get", "list", "watch", "create", "update"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: v8-governance-kernel
+subjects:
+  - kind: ServiceAccount
+    name: v8-governance-kernel
+    namespace: home-cluster
+roleRef:
+  kind: ClusterRole
+  name: v8-governance-kernel
+  apiGroup: rbac.authorization.k8s.io

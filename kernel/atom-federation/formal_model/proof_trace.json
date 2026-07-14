@@ -1,0 +1,100 @@
+{
+  "timestamp": "2026-04-15T23:04:38.082477+00:00",
+  "repo": "/home/workspace/atom-federation-os",
+  "proof_valid": false,
+  "total_nodes": 14,
+  "total_edges": 13,
+  "external_paths_found": 1,
+  "graph_depth": 14,
+  "entry_constraints_satisfied": true,
+  "no_bypass_satisfied": false,
+  "actuation_boundary_respected": true,
+  "nodes": [
+    "S0",
+    "G1",
+    "G2",
+    "G3",
+    "G4",
+    "G5",
+    "G6",
+    "G7",
+    "G8",
+    "G9",
+    "G10",
+    "ACT",
+    "SHALT_B",
+    "SHALT_E"
+  ],
+  "edges": [
+    [
+      "S0",
+      "G1"
+    ],
+    [
+      "G1",
+      "G2"
+    ],
+    [
+      "G2",
+      "G3"
+    ],
+    [
+      "G3",
+      "G4"
+    ],
+    [
+      "G4",
+      "G5"
+    ],
+    [
+      "G5",
+      "G6"
+    ],
+    [
+      "G6",
+      "G7"
+    ],
+    [
+      "G7",
+      "G8"
+    ],
+    [
+      "G8",
+      "G9"
+    ],
+    [
+      "G9",
+      "G10"
+    ],
+    [
+      "G10",
+      "ACT"
+    ],
+    [
+      "ACT",
+      "SHALT_B"
+    ],
+    [
+      "ACT",
+      "SHALT_E"
+    ]
+  ],
+  "path_lengths": {
+    "S0->S0": 1,
+    "S0->G1": 2,
+    "S0->G2": 3,
+    "S0->G3": 4,
+    "S0->G4": 5,
+    "S0->G5": 6,
+    "S0->G6": 7,
+    "S0->G7": 8,
+    "S0->G8": 9,
+    "S0->G9": 10,
+    "S0->G10": 11,
+    "S0->ACT": 12,
+    "S0->SHALT_B": 13,
+    "S0->SHALT_E": 14
+  },
+  "entry_point": "ExecutionGateway.execute",
+  "message": "\u274c 1 external path(s) detected \u2014 algebra INVALID"
+}
