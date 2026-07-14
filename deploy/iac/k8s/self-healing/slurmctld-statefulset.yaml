@@ -1,0 +1,60 @@
+# =============================================================================
+# Slurm Controller (slurmctld) - Self-Healing K8s Deployment
+# =============================================================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: slurmctld
+  namespace: cluster-infra
+spec:
+  serviceName: slurmctld
+  replicas: 1
+  selector:
+    matchLabels:
+      app: slurmctld
+  template:
+    metadata:
+      labels:
+        app: slurmctld
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: slurmctld
+        image: ghcr.io/cyclinder/slurm:24.02
+        env:
+        - name: SLURM_CONF
+          value: /etc/slurm/slurm.conf
+        - name: SLURMCTLD_PORT
+          value: "6817"
+        ports:
+        - containerPort: 6817
+          name: slurm
+        - containerPort: 6818
+          name: slurm-rest
+        volumeMounts:
+        - name: slurm-conf
+          mountPath: /etc/slurm/slurm.conf
+          subPath: slurm.conf
+        - name: slurm-state
+          mountPath: /var/spool/slurm
+        - name: slurm-logs
+          mountPath: /var/log/slurm
+        livenessProbe:
+          tcpSocket:
+            port: 6817
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 6817
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: slurm-conf
+        configMap:
+          name: slurm-config
+      - name: slurm-state
+        persistentVolumeClaim:
+          claimName: slurm-state-pvc
+      - name: slurm-logs
+        emptyDir: {}

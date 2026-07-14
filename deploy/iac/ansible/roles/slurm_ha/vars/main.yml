@@ -1,0 +1,3 @@
+---
+slurm_version: "23.11"
+slurm_url: "https://download.schedmd.com/slurm"

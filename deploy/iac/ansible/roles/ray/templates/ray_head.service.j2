@@ -1,0 +1,15 @@
+[Unit]
+Description=Ray head node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root
+ExecStart=/usr/local/bin/ray start --head --port=6379 --dashboard-host=0.0.0.0 --num-gpus=1 --storage=/tmp/ray
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

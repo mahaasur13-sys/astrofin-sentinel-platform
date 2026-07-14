@@ -1,0 +1,152 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astrofin-sentinel-v5"
+version = "1.0.0"
+description = "Multi-Agent Trading System with KARL Self-Improvement and Astro-Timing"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{name = "asurdev", email = "mahaasur13@gmail.com"}]
+
+dependencies = [
+  # Core numerics
+  "numpy>=1.26.0,<3.0",
+  "pandas>=2.0.0,<3.0",
+  "pydantic>=2.0.0,<3.0",
+  "pydantic-settings>=2.0.0,<3.0",
+  "scikit-learn>=1.3.0,<2.0",
+  "pyyaml>=6.0.0,<7.0",
+
+  # AstroFin core
+  "pyswisseph>=2.10.0,<3.0",
+  "ta>=0.10.0,<1.0",
+  "requests>=2.31.0,<3.0",
+
+  # KARL / AMRE
+  "sqlalchemy>=2.0.0,<3.0",
+  "alembic>=1.13.0,<2.0",
+  "psycopg2-binary>=2.9.9,<3.0",
+  "asyncpg>=0.29.0,<1.0",          # pgvector + RAG client (Sprint W3, P2-02)
+  "redis>=5.0.0,<9.0",
+
+  # API & monitoring
+  "fastapi>=0.109.0,<1.0",
+  "uvicorn[standard]>=0.27.0,<1.0",
+  "psutil>=5.9.0,<8.0",
+  "prometheus-client>=0.19.0,<1.0",
+
+  # OpenTelemetry (used by core.logging for trace context enrichment)
+  "opentelemetry-api>=1.27.0,<2.0",
+
+  # CLI & UI
+  "rich>=13.7.0,<16.0",
+  "click>=8.1.0,<9.0",
+
+  # Networking / async (used by data_provider + tests)
+  "aiohttp>=3.9.0,<4.0",
+  "httpx>=0.26.0,<1.0",
+
+  # Optional LLM (used by git_agent_exporter)
+  "openai>=1.0.0,<3.0",
+
+  # Bounded LRU cache for EmbeddingClient (P2-02 review, CR-104)
+  "cachetools>=5.3.0,<8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0,<10.0",
+  "pytest-asyncio>=0.23.0,<2.0",
+  "pytest-cov>=7.1.0,<8.0",
+  "pytest-flask>=1.3.0,<2.0",
+  "ruff>=0.4.0,<1.0",
+  "mypy>=2.2.0,<3.0",
+  # JWT (used by tests + web layer)
+  "pyjwt[crypto]>=2.13.0",
+  "cryptography>=49.0.0",
+  # Web UI + data layer
+  "faiss-cpu>=1.14.3",
+  "dash>=4.4.0",
+  "dash-bootstrap-components>=2.0.4",
+  "structlog>=26.1.0",
+  "flask>=3.1.3",
+  "fastapi>=0.109.0",
+]
+
+[project.scripts]
+astrofin = "orchestration.sentinel_v5:cli"
+astrofin-karl = "orchestration.karl_cli:cli"
+astrofin-dashboard = "web.wsgi:launch"
+
+[tool.setuptools.packages.find]
+include = ["meta_rl*", "orchestration*", "agents*", "core*", "trading*", "web*", "data_provider*"]
+exclude = ["tests*", "docs*", "bench*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+exclude = [
+    "_sbs_old/",
+    "_pr_logs/",
+    "acos-contracts/",
+    "data_room/",
+    "bench/",
+    "deploy/iac/",
+    "deploy/monitoring/",
+    ".venv/",
+    ".git/",
+    "__pycache__/",
+    "*.egg-info/",
+    "src/",
+    "knowledge/",
+    "astrology/",
+    "data/",
+    "db/",
+    "graphify-out/",
+    "integrations/",
+    "mas_factory/",
+    "meta_rl/",
+    "orchestration/",
+    "pop-os-setup/",
+    "trading/",
+    "web/",
+    "tools/",
+    "tests/architecture/",
+    "tests/data_room/",
+    "tests/integration/",
+    "tests/load/",
+    "tests/ralph_benchmark/",
+    "tests/unit/",
+    "tests/test_*.py",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-q --tb=short --strict-markers --strict-config --cov=agents --cov=core --cov=data_room --cov=observability --cov-report=term-missing --cov-report=xml --cov-fail-under=10 --ignore=tests/test_kepler_differential.py --ignore=tests/test_kepler_property.py --ignore=tests/test_validator.py --ignore=tests/test_core_aspects.py"
+asyncio_mode = "auto"
+markers = [
+  "unit: fast unit tests with no external deps (default)",
+  "integration: tests that hit network/DB/disk",
+  "slow: tests that take >1s",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "BLE001"]
+# E501 disabled: 162 pre-existing long lines in src/bridges/roma/saas/* and tests
+# originated before migration/v1-unification. Auto-fix is unsafe (touches SQL/strings).
+# TODO: fix long lines post-stabilization — see ROADMAP §CI Cleanup.
+ignore = ["E501"]
+
+[tool.bandit]
+# B608: f-string SQL with {where} built from internal allow-list of column names
+# and integer constants. All user-supplied values are bound via `args`. See audit
+# notes at the top of core/history_db.py and # nosec markers in-line.
+skips = ["B608"]

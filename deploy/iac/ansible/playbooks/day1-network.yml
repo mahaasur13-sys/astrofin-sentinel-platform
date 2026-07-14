@@ -1,0 +1,26 @@
+---
+- name: Day 1 — Network layer (VLAN + MikroTik)
+  hosts: all
+  become: true
+  tasks:
+    - name: Configure management VLAN
+      copy:
+        dest: /etc/systemd/network/10-mgmt.netdev
+        content: |
+          [NetDev]
+          Name=vlan10
+          Kind=vlan
+          [VLAN]
+          Id=10
+        mode: '0644'
+
+    - name: Configure storage VLAN
+      copy:
+        dest: /etc/systemd/network/20-storage.netdev
+        content: |
+          [NetDev]
+          Name=vlan20
+          Kind=vlan
+          [VLAN]
+          Id=20
+        mode: '0644'

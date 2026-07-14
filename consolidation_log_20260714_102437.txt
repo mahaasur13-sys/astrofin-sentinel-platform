@@ -1,0 +1,386 @@
+=== Baseline pytest (Step 0) ===
+Only in /home/workspace/acos-contracts/: README.md
+Files /home/workspace/acos-contracts/acos_contracts/__init__.py and /home/workspace/Projects/asp-canonical-real/acos-contracts/acos_contracts/__init__.py differ
+Files /home/workspace/acos-contracts/acos_contracts/__pycache__/__init__.cpython-312.pyc and /home/workspace/Projects/asp-canonical-real/acos-contracts/acos_contracts/__pycache__/__init__.cpython-312.pyc differ
+Only in /home/workspace/acos-contracts/acos_contracts/__pycache__: contracts.cpython-312.pyc
+Only in /home/workspace/acos-contracts/acos_contracts/__pycache__: deterministic.cpython-312.pyc
+Only in /home/workspace/acos-contracts/acos_contracts/__pycache__: deterministic_factory.cpython-312.pyc
+Only in /home/workspace/acos-contracts/acos_contracts/__pycache__: errors.cpython-312.pyc
+Files /home/workspace/acos-contracts/acos_contracts/__pycache__/events.cpython-312.pyc and /home/workspace/Projects/asp-canonical-real/acos-contracts/acos_contracts/__pycache__/events.cpython-312.pyc differ
+Only in /home/workspace/acos-contracts/acos_contracts/__pycache__: feature_pipeline.cpython-312.pyc
+Only in /home/workspace/acos-contracts/acos_contracts/__pycache__: interfaces.cpython-312.pyc
+Only in /home/workspace/acos-contracts/acos_contracts/__pycache__: state.cpython-312.pyc
+Only in /home/workspace/acos-contracts/acos_contracts/__pycache__: trading.cpython-312.pyc
+Only in /home/workspace/acos-contracts/acos_contracts: contracts.py
+Only in /home/workspace/acos-contracts/acos_contracts: deterministic.py
+Only in /home/workspace/acos-contracts/acos_contracts: deterministic_factory.py
+Only in /home/workspace/acos-contracts/acos_contracts: errors.py
+Files /home/workspace/acos-contracts/acos_contracts/events.py and /home/workspace/Projects/asp-canonical-real/acos-contracts/acos_contracts/events.py differ
+Only in /home/workspace/acos-contracts/acos_contracts: feature_pipeline.py
+Only in /home/workspace/acos-contracts/acos_contracts: interfaces.py
+Only in /home/workspace/acos-contracts/acos_contracts: state.py
+Only in /home/workspace/acos-contracts/acos_contracts: trading.py
+Only in /home/workspace/acos-contracts/: acos_contracts.egg-info
+Files /home/workspace/acos-contracts/pyproject.toml and /home/workspace/Projects/asp-canonical-real/acos-contracts/pyproject.toml differ
+
+--- Projects/asp-canonical/PROJECT_SPEC.md vs /home/workspace/PROJECT_SPEC.md ---
+
+--- Projects/asp-restore-v3/PROJECT_SPEC.md vs /home/workspace/PROJECT_SPEC.md ---
+
+--- Projects/asp-work/PROJECT_SPEC.md vs /home/workspace/PROJECT_SPEC.md ---
+core/reward_engine.py                             57     57     0%   7-165
+core/safe_json.py                                 73     73     0%   3-91
+core/security_middleware.py                       62     15    76%   82, 95-100, 121-125, 173-177
+core/settings.py                                 160      1    99%   245
+core/thompson.py                                 122     43    65%   113-114, 122-129, 134, 149-150, 159-169, 177-180, 193, 204-218, 240
+core/tracing.py                                   34     34     0%   17-75
+core/volatility.py                               128     53    59%   94, 97, 100, 103, 140-146, 153, 182, 184, 188-191, 195, 199, 248-251, 257, 281-294, 298, 310-321, 326-338
+data_room/__init__.py                              4      0   100%
+data_room/blueprint.py                            56      6    89%   62, 67, 76-79
+data_room/circuit_breaker.py                      54      0   100%
+data_room/observability.py                        54      5    91%   36-37, 40, 43, 46
+data_room/resolvers/__init__.py                    3      3     0%   14-18
+data_room/resolvers/base.py                       10     10     0%   7-42
+data_room/resolvers/price_resolver.py             17     17     0%   12-52
+observability/metrics.py                          55      6    89%   113-120, 128-131, 179-180
+----------------------------------------------------------------------------
+TOTAL                                           9655   5560    42%
+Coverage XML written to file coverage.xml
+
+Required test coverage of 10% reached. Total coverage: 42.41%
+
+=== Exit code: 0 ===
+
+=== Step 0: Backup started at 2026-07-14T10:31:36+00:00 ===
+Archive: /home/workspace/backup_workspace_20260714_103136.tar.gz
+tar PID: 55442
+Still running, PID=55446
+-rw-r--r-- 1 root root 65M Jul 14 10:31 /home/workspace/backup_workspace_20260714_103136.tar.gz
+
+=== Backup result ===
+-rw-r--r-- 1 root root 65M Jul 14 10:31 /home/workspace/backup_workspace_20260714_103136.tar.gz
+Verifying archive: /home/workspace/backup_workspace_20260714_103136.tar.gz
+Files in archive: 21656
+
+=== Restart backup with --ignore-failed-read ===
+Backup PID: 55904, TS=20260714_104032
+-rw-r--r-- 1 root root 73M Jul 14 10:40 /home/workspace/backup_workspace_20260714_104032.tar.gz
+Still running, PID=55913
+-rw-r--r-- 1 root root 73M Jul 14 10:40 /home/workspace/backup_workspace_20260714_104032.tar.gz
+Still running, PID=55968
+  PID     ELAPSED STAT   RSS
+55968       02:00 Ss    4432
+Backup PID: 56097, TS=20260714_104406
+Archive: /home/workspace/backup_workspace_20260714_104406.tar.gz
+Started at: Tue Jul 14 10:44:06 UTC 2026
+Finished at Tue Jul 14 10:45:40 UTC 2026
+-rw-r--r-- 1 root root 65M Jul 14 10:44 /home/workspace/backup_workspace_20260714_104406.tar.gz
+
+=== Verify archive ===
+gzip integrity: OK
+Files in archive: 22883
+./
+./acos-contracts/
+./acos-contracts/acos_contracts.egg-info/
+./acos-contracts/acos_contracts.egg-info/top_level.txt
+./acos-contracts/acos_contracts.egg-info/SOURCES.txt
+...
+./langgraph_schema.py
+./REPORT_STEP1_AUDIT_BASELINE.md
+./REPORT_STEP2_PHASE0.md
+./REPORT_CONSOLIDATION_TO_GA.md
+./consolidation_log_20260714_102437.txt
+-rw-r--r-- 1 root root 65M Jul 14 10:44 /home/workspace/backup_workspace_20260714_104406.tar.gz
+none            512G  6.7G  506G   2% /
+
+=== Step 1: Moving duplicates to Trash at 2026-07-14T10:46:53+00:00 ===
+  OK: astrofin-sentinel-platform  (664M -> 664M)
+  OK: asp-canonical  (60M -> 60M)
+  OK: asp-restore-v3  (62M -> 62M)
+  OK: asp-work  (663M -> 663M)
+
+--- After: ls /home/workspace/Projects/ ---
+total 9
+drwxr-xr-x  4 root root  170 Jul 14 10:46 .
+drwxr-xr-x 56 root root 4096 Jul 14 10:44 ..
+drwxr-xr-x  2 root root   59 Jul 13 09:03 Loopcraft
+drwxr-xr-x 68 root root 4096 Jul 14 07:50 asp-canonical-real
+
+--- After: ls /home/workspace/Trash/ ---
+total 21
+drwxr-xr-x  6 root root   40 Jul 14 10:46 .
+drwxr-xr-x 56 root root 4096 Jul 14 10:44 ..
+drwxr-xr-x 53 root root 4096 Jul 14 08:04 asp-canonical
+drwxr-xr-x 53 root root 4096 Jul 14 08:04 asp-restore-v3
+drwxr-xr-x 54 root root 4096 Jul 13 03:28 asp-work
+drwxr-xr-x 54 root root 4096 Jul 14 09:32 astrofin-sentinel-platform
+
+--- df ---
+none            512G  6.7G  506G   2% /
+
+=== Step 1 verification: smoke checks ===
+  OK: AGENTS.md exists (21726 bytes)
+  OK: pyproject.toml exists (4132 bytes)
+  OK: README.md exists (4994 bytes)
+  OK: PROJECT_SPEC.md exists (16074 bytes)
+  OK: core/ has 51 .py files
+  OK: agents/ has 57 .py files
+  OK: orchestration/ has 10 .py files
+  OK: meta_rl/ has 43 .py files
+  OK: acos-contracts/ has 10 .py files
+  OK: ml_engine/ has 0 .py files
+
+=== Step 1: pytest after move ===
+----------------------------------------------------------------------------
+TOTAL                                           9655   5560    42%
+Coverage XML written to file coverage.xml
+
+Required test coverage of 10% reached. Total coverage: 42.41%
+Pytest exit: 0
+
+=== Step 4, Group 1: core/auth/ + logging_setup.py at 2026-07-14T11:41:42+00:00 ===
+  [OK] core/auth/ copied, 5 .py files
+  [OK] logging_setup.py copied (1681 bytes)
+
+--- After Group 1 ---
+total 30
+drwxr-xr-x 2 root root     6 Jul 14 07:45 .
+drwxr-xr-x 7 root root  4096 Jul 14 11:41 ..
+-rw-r--r-- 1 root root   642 Jul 14 08:52 __init__.py
+-rw-r--r-- 1 root root  1028 Jul 14 08:52 api_key.py
+-rw-r--r-- 1 root root 17048 Jul 14 08:52 dependencies.py
+-rw-r--r-- 1 root root  4708 Jul 14 08:52 jwt.py
+-rw-r--r-- 1 root root   835 Jul 14 08:52 rbac.py
+-rw-r--r-- 1 root root 1681 Jul 14 11:41 /home/workspace/logging_setup.py
+
+=== Сравнение core/auth/ Версии A vs скопированного ===
+  IDENTICAL: __init__.py
+  IDENTICAL: api_key.py
+  IDENTICAL: dependencies.py
+  IDENTICAL: jwt.py
+  IDENTICAL: rbac.py
+
+=== pytest after Group 1 ===
+ERROR tests/e2e/test_api_endpoints.py
+ERROR tests/error_handling/test_error_handling_wsgi.py
+ERROR tests/test_auth.py
+ERROR tests/test_data_room_api.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!!
+Exit: 0
+core/ephemeris.py                                137    137     0%   20-379
+core/error_schema.py                              71     71     0%   25-182
+core/history_db.py                               125    125     0%   8-342
+core/houses.py                                   142    142     0%   6-406
+core/http_client.py                               24     24     0%   3-45
+core/idea_model.py                                68     68     0%   1-112
+core/kepler.py                                   178    178     0%   17-410
+core/kepler_calibrator.py                        193    193     0%   15-400
+core/kepler_hybrid.py                             97     97     0%   1-207
+core/logging.py                                   28     28     0%   1-79
+core/logging_utils.py                             33     33     0%   16-84
+core/metrics.py                                   13     13     0%   3-26
+core/muhurtha.py                                  46     46     0%   7-179
+core/online_trainer.py                           138    138     0%   7-375
+core/panchanga.py                                 80     80     0%   5-420
+core/rag_client.py                               286    286     0%   31-643
+core/rate_limit.py                                 9      9     0%   9-33
+core/residual_model.py                            70     70     0%   5-100
+core/reward/__init__.py                            5      5     0%   14-26
+core/reward/astro_reward.py                       41     41     0%   18-136
+core/reward/ema.py                                25     25     0%   9-68
+core/reward/reward_engine.py                      39     39     0%   11-250
+core/reward/test_reward.py                       111    111     0%   12-221
+core/reward_engine.py                             57     57     0%   7-165
+core/safe_json.py                                 73     73     0%   3-91
+core/security_middleware.py                       62     62     0%   24-179
+core/settings.py                                 160     30    81%   230, 242, 245, 252-270, 305-312, 331
+core/thompson.py                                 122    122     0%   1-240
+core/tracing.py                                   34     34     0%   17-75
+core/volatility.py                               128    128     0%   30-338
+data_room/__init__.py                              4      4     0%   1-6
+data_room/blueprint.py                            56     56     0%   3-98
+data_room/circuit_breaker.py                      54     54     0%   25-106
+data_room/observability.py                        54     54     0%   6-108
+data_room/resolvers/__init__.py                    3      3     0%   14-18
+data_room/resolvers/base.py                       10     10     0%   7-42
+data_room/resolvers/price_resolver.py             17     17     0%   12-52
+observability/metrics.py                          55     55     0%   21-188
+----------------------------------------------------------------------------
+TOTAL                                           9972   9739     2%
+Coverage XML written to file coverage.xml
+
+FAIL Required test coverage of 10% not reached. Total coverage: 2.34%
+=========================== short test summary info ============================
+ERROR tests/e2e/test_api_endpoints.py
+ERROR tests/error_handling/test_error_handling_wsgi.py
+ERROR tests/test_auth.py
+ERROR tests/test_data_room_api.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!!
+4 errors in 2.73s
+
+=== Rollback: restore core/auth.py from backup, remove core/auth/ dir ===
+-rw-r--r--  1 root root    4851 Jul 14 08:20 auth.py
+-rw-r--r--  1 root root   11665 Jul 14 08:20 auth_jwt.py
+-rw-r--r--  1 root root    7103 Jul 14 08:20 auth_jwt_middleware.py
+-rw-r--r--  1 root root    3559 Jul 13 09:03 auth_refresh.py
+-rw-r--r-- 1 root root 4851 Jul 14 08:20 /home/workspace/core/auth.py
+100:def require_api_key(func):
+Rollback done
+
+=== Step 4, Group 2 DRY-RUN: ACOS-инфраструктура at 2026-07-14T11:52:15+00:00 ===
+
+--- admission_controller/ (3 files, 27K) ---
+admission_controller/__init__.py
+admission_controller/controller.py
+admission_controller/probabilistic.py
+  [OK] Target /home/workspace/admission_controller does not exist
+
+--- ai_scheduler/ (8 files, 56K) ---
+ai_scheduler/config.yaml
+ai_scheduler/modules/metrics.py
+ai_scheduler/modules/policy.py
+ai_scheduler/modules/scoring.py
+ai_scheduler/requirements.txt
+ai_scheduler/scheduler.py
+ai_scheduler/submit.sh
+ai_scheduler/scheduler_v2.py
+  [OK] Target /home/workspace/ai_scheduler does not exist
+
+--- k8s/ (3 files, 4.5K) ---
+k8s/manifests/gpu-job.yaml
+k8s/manifests/ray-jobs-pvc.yaml
+k8s/manifests/ray-serve-service.yaml
+  [OK] Target /home/workspace/k8s does not exist
+
+--- l9_ebl/ (3 files, 33K) ---
+l9_ebl/capabilities/registry.py
+l9_ebl/gate/gate.py
+l9_ebl/policy_compiler/compiler.py
+  [OK] Target /home/workspace/l9_ebl does not exist
+
+--- l10_self_healing/ (2 files, 31K) ---
+l10_self_healing/orchestrator/failure_isolation.py
+l10_self_healing/watchdog/watchdog.py
+  [OK] Target /home/workspace/l10_self_healing does not exist
+
+--- l11_verifier/ (2 files, 18K) ---
+l11_verifier/__init__.py
+l11_verifier/verifier.py
+  [OK] Target /home/workspace/l11_verifier does not exist
+
+--- slsa4/ (5 files, 59K) ---
+slsa4/opa/data/opa_initial_data.json
+slsa4/policies/slsa4_policy.rego
+slsa4/scripts/cosign_keyless_sign.py
+slsa4/scripts/intoto_layout_generator.py
+slsa4/scripts/slsa4_policy_engine.py
+  [OK] Target /home/workspace/slsa4 does not exist
+
+--- scheduler_v3/ (3 files, 30K) ---
+scheduler_v3/__init__.py
+scheduler_v3/api.py
+scheduler_v3/scorer.py
+  [OK] Target /home/workspace/scheduler_v3 does not exist
+
+=== Step 4, Group 2: Copying 8 ACOS folders at 2026-07-14T11:54:10+00:00 ===
+  [OK] admission_controller/ -> /home/workspace/admission_controller (3 files)
+  [OK] ai_scheduler/ -> /home/workspace/ai_scheduler (8 files)
+  [OK] k8s/ -> /home/workspace/k8s (3 files)
+  [OK] l9_ebl/ -> /home/workspace/l9_ebl (3 files)
+  [OK] l10_self_healing/ -> /home/workspace/l10_self_healing (2 files)
+  [OK] l11_verifier/ -> /home/workspace/l11_verifier (2 files)
+  [OK] slsa4/ -> /home/workspace/slsa4 (5 files)
+  [OK] scheduler_v3/ -> /home/workspace/scheduler_v3 (3 files)
+
+--- After Group 2 ---
+/home/workspace/admission_controller
+/home/workspace/ai_scheduler
+/home/workspace/k8s
+/home/workspace/l10_self_healing
+/home/workspace/l11_verifier
+/home/workspace/l9_ebl
+/home/workspace/scheduler_v3
+/home/workspace/slsa4
+
+=== pytest after Group 2 ===
+data_room/resolvers/base.py                       10     10     0%   7-42
+data_room/resolvers/price_resolver.py             17     17     0%   12-52
+observability/metrics.py                          55      6    89%   113-120, 128-131, 179-180
+----------------------------------------------------------------------------
+TOTAL                                           9655   5560    42%
+Coverage XML written to file coverage.xml
+
+Required test coverage of 10% reached. Total coverage: 42.41%
+Exit: 0
+
+=== Step 4, Group 3: Dry-run for v6/v7/v8 at 2026-07-14T11:55:54+00:00 ===
+  [OK] v6/ -> target /home/workspace/v6 does not exist, 10 files in A, 153K
+  [OK] v7/ -> target /home/workspace/v7 does not exist, 7 files in A, 99K
+  [OK] v8/ -> target /home/workspace/v8 does not exist, 7 files in A, 81K
+
+=== Step 4, Group 3: Copying v6/v7/v8 at 2026-07-14T11:56:36+00:00 ===
+  [OK] v6/ -> /home/workspace/v6 (10 files)
+  [OK] v7/ -> /home/workspace/v7 (7 files)
+  [OK] v8/ -> /home/workspace/v8 (7 files)
+
+--- After Group 3 ---
+/home/workspace/v6
+/home/workspace/v7
+/home/workspace/v8
+
+=== pytest after Group 3 ===
+data_room/resolvers/base.py                       10     10     0%   7-42
+data_room/resolvers/price_resolver.py             17     17     0%   12-52
+observability/metrics.py                          55      6    89%   113-120, 128-131, 179-180
+----------------------------------------------------------------------------
+TOTAL                                           9655   5560    42%
+Coverage XML written to file coverage.xml
+
+Required test coverage of 10% reached. Total coverage: 42.41%
+Exit: 0
+
+=== Step 4 COMPLETE ===
+Total files copied from Version A:
+  Group 1 (rolled back): 0
+  Group 2 (acos infra): 28
+  Group 3 (v6/v7/v8): 24
+  Total: 52
+
+=== Final pytest ===
+Coverage XML written to file coverage.xml
+
+Required test coverage of 10% reached. Total coverage: 42.41%
+Exit: 0
+
+=== Step 5: Moving Projects/asp-canonical-real to Trash at 2026-07-14T12:02:00+00:00 ===
+  [OK] /home/workspace/Projects/asp-canonical-real -> /home/workspace/Trash/asp-canonical-real (632M -> 632M)
+
+--- ls /home/workspace/Projects/ ---
+total 5
+drwxr-xr-x  3 root root  170 Jul 14 12:02 .
+drwxr-xr-x 67 root root 4096 Jul 14 11:59 ..
+drwxr-xr-x  2 root root   59 Jul 13 09:03 Loopcraft
+
+--- ls /home/workspace/Trash/ ---
+total 25
+drwxr-xr-x  7 root root   40 Jul 14 12:02 .
+drwxr-xr-x 67 root root 4096 Jul 14 11:59 ..
+drwxr-xr-x 53 root root 4096 Jul 14 08:04 asp-canonical
+drwxr-xr-x 68 root root 4096 Jul 14 07:50 asp-canonical-real
+drwxr-xr-x 53 root root 4096 Jul 14 08:04 asp-restore-v3
+drwxr-xr-x 54 root root 4096 Jul 13 03:28 asp-work
+drwxr-xr-x 54 root root 4096 Jul 14 09:32 astrofin-sentinel-platform
+
+--- df ---
+none            512G  6.7G  506G   2% /
+
+=== Final pytest after Step 5 ===
+data_room/resolvers/base.py                       10     10     0%   7-42
+data_room/resolvers/price_resolver.py             17     17     0%   12-52
+observability/metrics.py                          55      6    89%   113-120, 128-131, 179-180
+----------------------------------------------------------------------------
+TOTAL                                           9655   5560    42%
+Coverage XML written to file coverage.xml
+
+Required test coverage of 10% reached. Total coverage: 42.41%
+Exit: 0

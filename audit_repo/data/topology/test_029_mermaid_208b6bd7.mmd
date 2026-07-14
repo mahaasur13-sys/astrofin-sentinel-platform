@@ -1,0 +1,16 @@
+flowchart LR
+    %% AstroFin MAS Topology
+    subgraph agents[
+        direction TB
+        FundamentalAgent["FundamentalAgent"]
+        QuantAgent["QuantAgent"]
+        MacroAgent["MacroAgent"]
+        GroundingLoop["GroundingLoop"]
+    ]
+    router --> FundamentalAgent
+    router --> QuantAgent
+    FundamentalAgent --> merge
+    QuantAgent --> merge
+    merge --> synthesis
+    input((IN)) --> router
+    synthesis --> output((OUT))

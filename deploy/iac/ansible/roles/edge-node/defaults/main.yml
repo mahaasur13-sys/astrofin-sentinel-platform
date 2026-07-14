@@ -1,0 +1,6 @@
+---
+# ansible/roles/edge-node/defaults/main.yml
+k3s_master_ip: "10.20.20.10"
+k3s_token: "rancher"
+slurm_controller_vip: "10.20.20.254"
+ray_head_ip: "10.20.20.10"

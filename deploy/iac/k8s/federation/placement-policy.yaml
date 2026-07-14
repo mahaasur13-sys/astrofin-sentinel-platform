@@ -1,0 +1,130 @@
+# k8s/federation/placement-policy.yaml
+# KubeFed placement policies for workload distribution
+apiVersion: types.kubefed.io/v1beta1
+kind: FederatedDeployment
+metadata:
+  name: ai-batch-workers
+  namespace: default
+spec:
+  template:
+    metadata:
+      labels:
+        workload-type: ai-batch
+    spec:
+      replicas: 4
+      selector:
+        matchLabels:
+          workload-type: ai-batch
+      template:
+        spec:
+          affinity:
+            nodeAffinity:
+              # Prefer ARM nodes for batch (energy efficient)
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 60
+                preference:
+                  matchExpressions:
+                  - key: hardware-type
+                    operator: In
+                    values:
+                    - ARM
+              # Allow GPU nodes only if ARM unavailable
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: hardware-type
+                    operator: In
+                    values:
+                    - GPU
+                    - ARM
+          containers:
+          - name: ray-worker
+            image: rayproject/ray:2.9.0
+            command: ["python", "-c", "import time; print('worker ready'); time.sleep(99999)"]
+            resources:
+              requests:
+                cpu: "1"
+                memory: "2Gi"
+              limits:
+                cpu: "2"
+                memory: "4Gi"
+          # Allow scheduling on ARM nodes (no GPU required)
+          tolerations:
+          - key: "node-role.kubernetes.io/edge"
+            operator: "Exists"
+            effect: "NoSchedule"
+  placement:
+    clusterNames:
+    - cluster.local
+    - arm-cluster
+---
+# GPU-intensive workloads — x86 cluster only
+apiVersion: types.kubefed.io/v1beta1
+kind: FederatedDeployment
+metadata:
+  name: gpu-training-job
+  namespace: default
+spec:
+  template:
+    metadata:
+      labels:
+        workload-type: gpu-training
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          workload-type: gpu-training
+      template:
+        spec:
+          containers:
+          - name: training
+            image: nvidia/cuda:12.1-devel-ubuntu22.04
+            command: ["nvidia-smi"]
+            resources:
+              limits:
+                nvidia.com/gpu: "1"
+          nodeSelector:
+            hardware-type: GPU
+          tolerations:
+          - key: "gpu"
+            operator: "Exists"
+            effect: "NoSchedule"
+  placement:
+    clusterNames:
+    - cluster.local    # Only x86 has RTX 3060
+---
+# Lightweight edge services — ARM cluster only
+apiVersion: types.kubefed.io/v1beta1
+kind: FederatedDeployment
+metadata:
+  name: edge-proxy
+  namespace: default
+spec:
+  template:
+    metadata:
+      labels:
+        workload-type: edge-proxy
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          workload-type: edge-proxy
+      template:
+        spec:
+          containers:
+          - name: proxy
+            image: nginx:alpine
+            ports:
+            - containerPort: 8080
+            resources:
+              requests:
+                cpu: "100m"
+                memory: "64Mi"
+  placement:
+    clusterNames:
+    - arm-cluster    # RK3576 edge node
+  overrides:
+  - clusterName: arm-cluster
+    clusterOverrides:
+    - path: "/spec/replicas"
+      value: 2

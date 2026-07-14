@@ -1,0 +1,45 @@
+---
+- name: Install Ray
+  ansible.builtin.pip:
+    name: ray[default]
+    version: "{{ ray_version }}"
+    state: present
+    executable: pip3
+
+- name: Start Ray head node
+  when: "'ray_nodes' | first == ansible_hostname"
+  ansible.builtin.shell: |
+    ray start --head \
+      --port=6379 \
+      --dashboard-host=0.0.0.0 \
+      --storage=/mnt/cephfs/ray_data \
+      --include-dashboard=true
+  register: ray_head_start
+  failed_when: false
+
+- name: Start Ray worker nodes
+  when: "'ray_nodes' | first != ansible_hostname"
+  ansible.builtin.shell: |
+    ray start --address="{{ ray_head_ip }}:6379" \
+      --resources='{"CPU":2,"memory":4000000000}'
+  register: ray_worker_start
+  failed_when: false
+
+- name: Create Ray dashboard service
+  ansible.builtin.systemd.unit:
+    name: ray-dashboard.service
+    content: |
+      [Unit]
+      Description=Ray Dashboard
+      After=network-online.target
+
+      [Service]
+      Type=simple
+      User=asur
+      ExecStart=/usr/local/bin/ray dashboard --port=8265
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+  when: "'ray_nodes' | first == ansible_hostname"
+  notify: reload systemd

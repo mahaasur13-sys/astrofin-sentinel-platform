@@ -1,0 +1,106 @@
+# k8s/federation/federated-deployment.yaml
+# Federated nginx deployment — runs on both x86 and ARM clusters
+apiVersion: core.kubefed.io/v1beta1
+kind: KubeFedConfig
+metadata:
+  name: kubefedconfig
+  namespace: kube-federation-system
+spec:
+  scope: Namespaced
+---
+apiVersion: types.kubefed.io/v1beta1
+kind: FederatedDeployment
+metadata:
+  name: nginx-federated
+  namespace: default
+  labels:
+    app: nginx
+    cluster-type: federated
+spec:
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: nginx
+      template:
+        spec:
+          containers:
+          - name: nginx
+            image: nginx:1.25
+            ports:
+            - containerPort: 80
+            resources:
+              requests:
+                cpu: "100m"
+                memory: "128Mi"
+              limits:
+                cpu: "500m"
+                memory: "256Mi"
+            livenessProbe:
+              httpGet:
+                path: /
+                port: 80
+              initialDelaySeconds: 10
+            readinessProbe:
+              httpGet:
+                path: /
+                port: 80
+              initialDelaySeconds: 5
+  placement:
+    clusterNames:
+    - cluster.local       # x86 (RTX head node)
+    - arm-cluster          # ARM (RK3576)
+  overrides:
+  - clusterName: arm-cluster
+    clusterOverrides:
+    - path: "/spec/replicas"
+      value: 1
+    - path: "/spec/template/spec/containers/0/resources/requests/cpu"
+      value: "50m"
+    - path: "/spec/template/spec/containers/0/resources/requests/memory"
+      value: "64Mi"
+---
+# Separate GPU workload deployment — x86 only
+apiVersion: types.kubefed.io/v1beta1
+kind: FederatedDeployment
+metadata:
+  name: ml-inference-federated
+  namespace: default
+  labels:
+    app: ml-inference
+    cluster-type: federated
+spec:
+  template:
+    metadata:
+      labels:
+        app: ml-inference
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: ml-inference
+      template:
+        spec:
+          containers:
+          - name: inference
+            image: nvidia/cuda:12.1-runtime-ubuntu22.04
+            command: ["sleep", "infinity"]
+            resources:
+              limits:
+                nvidia.com/gpu: "1"
+              requests:
+                cpu: "2"
+                memory: "4Gi"
+          tolerations:
+          - key: "gpu"
+            operator: "Exists"
+            effect: "NoSchedule"
+          nodeSelector:
+            hardware-type: GPU
+  placement:
+    clusterNames:
+    - cluster.local       # GPU only — x86 cluster

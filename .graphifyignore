@@ -1,0 +1,13 @@
+# .graphifyignore — exclude heavy/generated dirs from graphify
+node_modules/
+dist/
+build/
+__pycache__/
+.venv/
+venv/
+*.generated.py
+*.bak
+_trash/
+Trash/
+.cache/
+.pytest_cache/

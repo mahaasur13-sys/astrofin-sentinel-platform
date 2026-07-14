@@ -1,0 +1,62 @@
+{
+  "task_id": "roma-ml-training-001",
+  "analysis": {
+    "type": "ml_training",
+    "gpu_required": true,
+    "complexity": "medium",
+    "blocked": false,
+    "reasons": []
+  },
+  "dag": [
+    {
+      "id": "data-prep",
+      "type": "data",
+      "command": "python scripts/prepare_data.py --output /data/processed",
+      "image": "python:3.11-slim",
+      "depends_on": [],
+      "resources": {"cpu_cores": 2, "memory_gb": 4}
+    },
+    {
+      "id": "train-yolov8",
+      "type": "train",
+      "command": "python train.py --data config.yaml --epochs 50 --batch 16",
+      "image": "pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime",
+      "depends_on": ["data-prep"],
+      "resources": {"cpu_cores": 4, "memory_gb": 8, "gpu_required": true, "vram_gb": 8}
+    },
+    {
+      "id": "validate",
+      "type": "validate",
+      "command": "python validate.py --weights /outputs/model.pt",
+      "image": "pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime",
+      "depends_on": ["train-yolov8"],
+      "resources": {"cpu_cores": 2, "memory_gb": 4, "gpu_required": true, "vram_gb": 4}
+    }
+  ],
+  "resources": {
+    "cpu_cores": 4,
+    "memory_gb": 8,
+    "gpu_required": true,
+    "vram_gb": 8,
+    "gpu_model": "RTX3060"
+  },
+  "execution": {
+    "mode": "kubernetes",
+    "backend": "k8s",
+    "priority": "normal",
+    "retry_policy": "exponential",
+    "max_retries": 3
+  },
+  "security": {
+    "privileged": false,
+    "host_network": false,
+    "host_path_allowed": false,
+    "allow_root": true
+  },
+  "observability": {
+    "logging": true,
+    "metrics": true,
+    "trace_id": "roma-ml-training-001"
+  },
+  "notes": "YOLOv8 training on RTX 3060 with fp16"
+}

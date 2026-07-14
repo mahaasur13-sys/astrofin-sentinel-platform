@@ -1,0 +1,46 @@
+[
+  {
+    "timestamp": "2026-03-24T11:52:53.092567",
+    "state_hash": "69508034",
+    "pnl_pct": 2.0,
+    "reward": 166.21918991074676,
+    "alignment": 0.55,
+    "update": {
+      "updated": false,
+      "reason": "insufficient_experiences"
+    }
+  },
+  {
+    "timestamp": "2026-03-26T11:52:53.092567",
+    "state_hash": "4589ff6a",
+    "pnl_pct": 2.0,
+    "reward": 166.22315268511662,
+    "alignment": 0.55,
+    "update": {
+      "updated": false,
+      "reason": "insufficient_experiences"
+    }
+  },
+  {
+    "timestamp": "2026-03-28T11:52:53.092567",
+    "state_hash": "7bc5f5bc",
+    "pnl_pct": 2.0,
+    "reward": 165.98923517445118,
+    "alignment": 0.55,
+    "update": {
+      "updated": false,
+      "reason": "insufficient_experiences"
+    }
+  },
+  {
+    "timestamp": "2026-03-30T11:52:53.092567",
+    "state_hash": "9ce64c12",
+    "pnl_pct": 2.0,
+    "reward": 166.24953288337605,
+    "alignment": 0.55,
+    "update": {
+      "updated": false,
+      "reason": "insufficient_experiences"
+    }
+  }
+]
