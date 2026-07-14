@@ -230,3 +230,8 @@ def get_plugin(name: str) -> IPlugin:
     cls = PLUGIN_REGISTRY.get(name)
     if not cls: raise ValueError(f"Plugin '{name}' not registered")
     return cls()
+
+# Type checking imports
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from bridge.roma.context_execution import ExecutionContext  # noqa: F401

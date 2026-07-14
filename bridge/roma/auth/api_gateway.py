@@ -3,6 +3,8 @@
 from functools import wraps
 from typing import Dict, Callable, Optional, Tuple
 import time
+from auth.engine import AuthEngine, KeyType
+from auth.quota_engine import QuotaEngine
 
 # ── In-Memory Rate Limiter (Token Bucket) ────────────────────────────────────
 class RateLimiter:
