@@ -125,7 +125,6 @@ calls. They keep the contract honest and the CI pipeline green, while
 giving future contributors a working pytest skeleton to flesh out.
 """
 
-import asyncio
 import sys
 from pathlib import Path
 from unittest.mock import patch

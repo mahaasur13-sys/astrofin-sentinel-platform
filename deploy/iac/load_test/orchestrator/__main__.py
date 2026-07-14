@@ -10,8 +10,6 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from load_test.correction_loop.loop import CorrectionLoop
-from load_test.evolution.evolver import SystemEvolver
 
 SCENARIOS = [
     "policy_oscillation",

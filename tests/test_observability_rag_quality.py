@@ -5,10 +5,8 @@ from unittest.mock import MagicMock, patch
 
 from tools.metrics_server import (
     RAG_CHUNK_COUNT,
-    RAG_CHUNKS_RETURNED,
     RAG_QUERIES_TOTAL,
     RAG_RELEVANCE_AVG,
-    RAG_RELEVANCE_SCORE,
 )
 
 

@@ -13,7 +13,6 @@ giving future contributors a working pytest skeleton to flesh out.
 
 from __future__ import annotations
 
-import asyncio
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -25,7 +24,6 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from agents._impl import types as _t  # noqa: E402
 
 # ── fixtures ────────────────────────────────────────────────────────────
 

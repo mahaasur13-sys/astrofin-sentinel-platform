@@ -18,8 +18,6 @@ they do NOT touch the real graph.json / inferred_clean.jsonl files.
 from __future__ import annotations
 
 import json
-import math
-import subprocess
 import sys
 from pathlib import Path
 

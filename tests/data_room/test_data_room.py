@@ -20,7 +20,6 @@ from data_room.circuit_breaker import (
     BreakerState as CircuitState,
     CircuitBreaker,
     call_with_breaker,
-    CircuitBreakerOpen as CircuitOpenError,
 )
 from data_room.observability import MetricsStore
 

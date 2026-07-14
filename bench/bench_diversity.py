@@ -5,7 +5,6 @@ import sys, time
 
 sys.path.insert(0, "/home/workspace")
 
-import numpy as np
 from strategies.generator import GeneratedStrategy, random_chromosome
 from meta_rl.strategy_pool import StrategyPool
 from meta_rl.types import EvaluationResult

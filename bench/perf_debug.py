@@ -19,7 +19,6 @@ for i in range(N):
     )
 
 # Pre-build candidate vectors (simulate hot path)
-from meta_rl.strategy_pool import StrategyPool as SP
 
 _cands = [
     ScoredStrategy(

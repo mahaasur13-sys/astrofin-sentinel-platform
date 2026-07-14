@@ -8,7 +8,7 @@ Usage:
 """
 
 import requests
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 from dataclasses import dataclass
 
 API_BASE = "http://localhost:8000"

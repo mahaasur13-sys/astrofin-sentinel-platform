@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from pydantic import SecretStr, ValidationError
@@ -70,7 +69,7 @@ def test_log_level_uppercased() -> None:
 def test_log_level_invalid_rejected() -> None:
     os.environ["ENV"] = "test"
     os.environ["LOG_LEVEL"] = "NOPE"
-    from core.settings import get_settings, Settings
+    from core.settings import Settings
 
     with pytest.raises(ValidationError):
         # bypass lru_cache by calling Settings() directly
