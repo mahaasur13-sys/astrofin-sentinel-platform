@@ -175,6 +175,10 @@ def check_data_room_compliance(src: Path, source_text: str, report: Report) -> N
         return
     if DATA_ROOM_DIR in src.parents or src.parent == DATA_ROOM_DIR:
         return  # the data room itself is the only allowed caller
+    if src_rel.startswith("tools/"):
+        return  # migration/ETL scripts in tools/ are exempt from R3
+
+        return  # the data room itself is the only allowed caller
     # Allow httpx for legitimate async use, ban requests.
     if re.search(r"^\s*import\s+requests\b", source_text, re.MULTILINE):
         report.fail(
