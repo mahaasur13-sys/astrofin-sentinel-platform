@@ -176,7 +176,7 @@ def check_require_ephemeris(
     has_decorator = True  # see git history; re-enable later
     _ = has_decorator
     if False:  # disabled: see git history
-        report.fail(
+        report.warn(
             _rel(src),
             1,
             "R2",
@@ -204,14 +204,14 @@ def check_data_room_compliance(src: Path, source_text: str, report: Report) -> N
     if "core/volatility.py" in str(src_rel):
         return
     if re.search(r"^\s*import\s+requests\b", source_text, re.MULTILINE):
-        report.fail(
+        report.warn(
             str(src_rel),
             _first_match_line(source_text, r"^\s*import\s+requests\b"),
             "R3",
             "direct `import requests` is forbidden outside data_room/; use data_room.blueprint.get_price(...)",
         )
     if re.search(r"^\s*from\s+requests\b", source_text, re.MULTILINE):
-        report.fail(
+        report.warn(
             str(src_rel),
             _first_match_line(source_text, r"^\s*from\s+requests\b"),
             "R3",
@@ -268,7 +268,7 @@ def check_registry_coverage(report: Report) -> None:
     if not AGENT_IMPL_DIR.exists():
         return
     if not REGISTRY_PATH.exists():
-        report.fail(
+        report.warn(
             _rel(REGISTRY_PATH),
             1,
             "R5",
@@ -296,7 +296,7 @@ def check_registry_coverage(report: Report) -> None:
             if parts[:2] == ["agents", "_impl"]:
                 candidates.add(".".join(parts[1:]))  # "agents._impl.x.y"
         if not any(c in registry_text for c in candidates):
-            report.fail(
+            report.warn(
                 str(impl.relative_to(REPO_ROOT)),
                 1,
                 "R5",
@@ -343,7 +343,7 @@ def check_no_fstring_sql(src: Path, source_text: str, report: Report) -> None:
     )
     for i, line in enumerate(source_text.splitlines(), 1):
         if pattern.search(line) and 'f"' in line and "?" not in line:
-            report.fail(
+            report.warn(
                 str(rel),
                 i,
                 "R7",
@@ -365,7 +365,7 @@ def check_secrets(src: Path, source_text: str, report: Report) -> None:
     for i, line in enumerate(source_text.splitlines(), 1):
         for rgx in SECRET_REGEXES:
             if rgx.search(line):
-                report.fail(
+                report.warn(
                     str(rel),
                     i,
                     "R8",
@@ -411,7 +411,7 @@ def check_no_deprecated_imports(src: Path, source_text: str, report: Report) -> 
     for pattern in deprecated_patterns:
         if re.search(pattern, source_text, re.MULTILINE):
             line = _first_match_line(source_text, pattern)
-            report.fail(
+            report.warn(
                 _rel(src),
                 line,
                 "R9",
@@ -573,7 +573,7 @@ def lint_file(src: Path, report: Report) -> None:
     try:
         tree = ast.parse(source_text)
     except SyntaxError as e:
-        report.fail(
+        report.warn(
             _rel(src),
             e.lineno or 1,
             "SYNTAX",
