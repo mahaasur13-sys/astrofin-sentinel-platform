@@ -63,7 +63,6 @@ graphify-out/
 *.iws
 .cursor/
 .aider*
-.coderabbit.yaml
 
 # ─── Coverage и отчёты ─────────────────────────────────────
 coverage.xml
