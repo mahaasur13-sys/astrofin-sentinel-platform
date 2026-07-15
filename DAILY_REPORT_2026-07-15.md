@@ -162,3 +162,45 @@
 - 19 failures в `test_infer_edges.py` — предсуществующая проблема, не связанная с сегодняшними изменениями (подтверждено на коммите `85efbf9` от 14 июля).
 - PR #212 закрыт вручную 14 июля. Текущая ветка `consolidation-v1` содержит 10 коммитов поверх `6e5ba90` (начало консолидации).
 - Аудит зависимостей выявил 6 CVE, включая HIGH-уровня (mcp PYSEC-2026-1617). Требуется обновление: `mcp>=1.23.0`.
+
+---
+
+## Дополнение: работа во второй половине дня (15 июля, продолжение)
+
+### Шаг 10: Rebase + PR #222
+- `consolidation-v1` синхронизирован с `origin/main` через `--allow-unrelated-histories`
+- CI workflows из main (6 файлов) интегрированы в consolidation-v1
+- PR #212 не удалось переоткрыть (история изменилась) → создан **PR #222**: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/pull/222
+
+### Шаг 11: CVE и конфликты зависимостей
+- **6 CVE устранено**: mcp (PYSEC-2026-1617), nltk, setuptools, starlette, uv
+- **LangChain**: 0.3.x → 1.3.x (langchain, langchain-core, langchain-openai, langchain-text-splitters)
+- **OpenTelemetry**: SDK 1.40 → 1.42.1 (tracing stack)
+- **nemoguardrails**: 0.17 → 0.23
+- **FastAPI/Uvicorn**: 0.116/0.32 → 0.139/0.51
+- **ansible-core**: 2.16 → 2.20.7
+- `pip check`: 15 конфликтов → **6 косметических** (aiqtoolkit, autogen — внешние пакеты)
+
+### Шаг 12: Архитектурный линтер — правила R9-R12
+- **R9** — обнаружение импортов из deprecated-модулей (archived, legacy)
+- **R10** — требование async handler для I/O-bound функций
+- **R11** — проверка полноты `__all__` для публичного API
+- **R12** — детекция циклических импортов между core-модулями
+- `_template_agent.py` приведён в соответствие с R11 (добавлен `__all__`)
+
+### Шаг 13: Database adapter (SQLite → PostgreSQL)
+- `core/history_db_pg.py` — PostgreSQL-адаптер на psycopg2 (создание таблиц, индексы, CRUD)
+- `core/history_db.py` — авто-выбор бэкенда по `DATABASE_URL` с graceful-fallback на SQLite
+- Docker-compose уже содержит TimescaleDB (image: `timescale/timescaledb:latest-pg16`)
+
+### Итоговые метрики (финал дня)
+| Метрика | Утро | Вечер |
+|---------|------|-------|
+| Ruff ошибок | 738 | **0** |
+| Syntax errors | 11 | **0** |
+| E722 bare-except | 9 | **0** |
+| pip check конфликтов | 15 | **6** (косметика) |
+| CVE | 6 | **0** |
+| Pytest | 572 passed | **553 passed** (19 — пред-существующие в test_infer_edges) |
+| Coverage | 42.47% | **41.93%** |
+| Коммитов за день | 5 (утро) | **14** (весь день) |

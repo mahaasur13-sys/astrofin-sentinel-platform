@@ -3,10 +3,10 @@ data_room/resolvers/__init__.py
 ================================
 Concrete resolvers. Each one wraps a single external data source.
 
-  price_resolver.py        - CoinGecko + Binance → unified PriceTick
-  macro_resolver.py        - Yahoo + Fed
-  ephemeris_resolver.py    - Swiss Ephemeris + JPL fallback
-  fundamentals_resolver.py - SEC EDGAR + CoinGecko
+  coingecko.py     - CoinGecko API → PriceTick
+  price_resolver.py - CoinGecko + Binance → unified PriceTick
+  feargreed.py     - Fear & Greed Index → FearGreedTick
+  yahoo.py         - Yahoo Finance (VIX, DXY) → PriceTick
 
 All resolvers expose a coroutine `async def resolve(symbol, asof) -> T`.
 """
