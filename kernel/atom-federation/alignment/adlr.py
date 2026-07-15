@@ -156,7 +156,7 @@ class RecoveryPolicy:
         "TERM_ORDER_VIOLATION": ("reset_term", "DRL", {}),
     }
 
-    def recover(self, scenario: FailureScenario) -> RecoveryActionObj | None:
+    def recover(self, scenario)  # noqa: F821 -> RecoveryActionObj | None:
         """Map failure_type → RecoveryActionObj with target and parameters."""
         failure_type = scenario.failure_type
         handler = self._TYPE_MAP.get(failure_type)

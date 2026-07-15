@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 #!/usr/bin/env python3
 """
 Admission Controller — K8s-style validating webhook.

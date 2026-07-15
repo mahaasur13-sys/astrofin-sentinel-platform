@@ -114,4 +114,3 @@ class ObjectiveReweighter:
         return self._weights
 
 
-REWEIGH_EOF

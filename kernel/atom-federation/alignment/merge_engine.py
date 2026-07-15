@@ -22,6 +22,7 @@ Conflict resolution matrix:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 from enum import Enum, auto
 
 from core.deterministic import DeterministicClock, DeterministicUUIDFactory

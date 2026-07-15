@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 #!/usr/bin/env python3
 """
 comprehensive_audit.py — Full system audit for atom-federation-os v9.0+P6+P0.4

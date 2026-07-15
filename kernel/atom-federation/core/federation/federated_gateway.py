@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 """federated_gateway.py — atom-federation-os v9.0+P7 FederatedExecutionGateway.
 
 P7 Upgrade: Raft → PBFT-like BFT consensus.

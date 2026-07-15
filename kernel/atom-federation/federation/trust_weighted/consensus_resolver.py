@@ -23,6 +23,8 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from ..trust.trust_vector import TrustVector, TrustDelta
+from .node_weights import NodeWeightsSnapshot
 
 # ─────────────────────────────────────────────────────────────────
 # ConsensusShiftType

@@ -1,7 +1,8 @@
 """tests/test_switch_nodes.py - ATOM-R-028: SwitchNode Tests
-import pytest
 All 4 mandatory tests + additional coverage.
 """
+
+import pytest
 
 import sys
 

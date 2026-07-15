@@ -84,4 +84,3 @@ class ObjectiveReweighter:
 
     def get(self) -> ObjectiveWeights:
         return self._weights
-REWEIGH_EOF

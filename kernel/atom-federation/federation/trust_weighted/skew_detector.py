@@ -11,6 +11,8 @@ Integration:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from ..trust.trust_vector import TrustVector, TrustDelta
+from .node_weights import NodeWeightsSnapshot
 
 
 @dataclass

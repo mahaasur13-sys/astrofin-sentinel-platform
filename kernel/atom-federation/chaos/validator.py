@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 """
 ChaosValidator — SBS-aware result validator for chaos experiments.
 

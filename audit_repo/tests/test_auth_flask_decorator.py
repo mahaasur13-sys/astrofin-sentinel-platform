@@ -1,8 +1,9 @@
 """
-import pytest
 Unit tests for the Flask `require_api_key` decorator.
 These tests verify authentication behavior including edge cases.
 """
+
+import pytest
 
 from flask import Flask, jsonify
 from core.auth import require_api_key

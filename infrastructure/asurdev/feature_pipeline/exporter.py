@@ -5,7 +5,7 @@ Features(t) → Label(t + horizon_minutes).
 Time-based split (80/10/10) — no future leakage.
 """
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from .builder import FeatureBuilder

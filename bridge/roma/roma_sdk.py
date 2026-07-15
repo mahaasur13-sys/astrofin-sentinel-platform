@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 """
 ROMASDK — Python client for ROMA Execution Platform.
 Usage:

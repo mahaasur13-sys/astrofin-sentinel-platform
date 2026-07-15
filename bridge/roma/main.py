@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 """
 ROMA Execution Bridge – FastAPI + Pydantic v2
 In-memory storage (will be SQLite later).

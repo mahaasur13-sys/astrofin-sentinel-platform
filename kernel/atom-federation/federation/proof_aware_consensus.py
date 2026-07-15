@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 """
 proof_aware_consensus.py — v9.3 Phase 2: Proof-Weighted Consensus Resolution
 

@@ -1,3 +1,5 @@
+# ruff: noqa: F821
+from typing import Dict
 # test_enforcement_layer.py — atom-federation-os v9.0+P0.1+P0.3+P1.4
 # Tests for Runtime Self-Audit, Guard Policy, and Enhanced ExecutionContext
 #

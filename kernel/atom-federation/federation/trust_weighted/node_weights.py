@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
+from ..trust.trust_vector import TrustVector, TrustDelta
 
 
 @dataclass
