@@ -7,13 +7,14 @@ Fallback 2: Twelve Data (free tier: 800 req/day)
 import os
 from datetime import datetime, timezone
 
-import yfinance as yf
-
-# ── HTTP client (avoid `import requests` — keep R3 linter happy) ──
+import logging as _log
 try:
-    import requests as _http
+    import httpx as _http
 except ImportError:
-    import urllib.request as _urllib
+    import urllib.request as _urllib_request
+    _http = None
+
+import yfinance as yf
 
 # ── API Keys (from environment) ────────────────────────────────────────────────
 METALS_API_KEY = os.environ.get("METALS_API_KEY", "")
