@@ -18,7 +18,7 @@ def run_chaos(
         from alignment.adlr import FailureReplay
         from chaos.harness import ChaosHarness
         from chaos.scenarios import SCENARIO_REGISTRY
-        from chaos.validator import Verdict
+        from chaos.validator import Verdict  # noqa: F401
     except ImportError as e:
         console.print(f"[red]Import error: {e}[/]")
         return

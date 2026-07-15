@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 try:
-    from .topology import Connection, NodeType, Role, SwitchAction, SwitchNode, Topology
+    from .topology import Connection, NodeType, Role, SwitchAction, SwitchNode, Topology  # noqa: F401
 except ImportError:
     from topology import Topology
 

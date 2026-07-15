@@ -25,7 +25,7 @@ try:
     from ete.compiler.dag import DAGCompiler
     from ete.engine.execution_engine import ExecutionEngine as EE
     from ete.gate.governance_gate import GovernanceGate
-    from ete.replay.replayer import DeterministicReplayer as ReplayEngine
+    from ete.replay.replayer import DeterministicReplayer as ReplayEngine  # noqa: F401
     from ete.scheduler.adapter import SchedulerAdapter
     HAS_ETE = True
 except ImportError:

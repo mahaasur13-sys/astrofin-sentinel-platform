@@ -54,7 +54,7 @@ def extract_runtime() -> dict[str, str]:
     """
     sys.path.insert(0, str(REPO / "core" / "runtime"))
     try:
-        from dfa_execution_guard import _TRANSITIONS, DFAEvent, DFAState
+        from dfa_execution_guard import _TRANSITIONS, DFAEvent, DFAState  # noqa: F401
         # Runtime DFA == the spec DFA (Gateway interprets spec)
         transitions = {}
         for (s, e), n in _TRANSITIONS.items():
