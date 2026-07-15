@@ -1,0 +1,19 @@
+---
+- name: Day 5 — Ray distributed AI runtime
+  hosts: all
+  become: true
+  tasks:
+    - name: Install Ray
+      pip:
+        name: ray[default]
+        extra_args: --user
+
+    - name: Start Ray head (primary node)
+      shell: |
+        /opt/conda/bin/conda run -n ml ray start --head --port=6379 --dashboard-port=8265 --num-cpus=12
+      when: inventory_hostname == groups['primary'][0]
+
+    - name: Start Ray worker (other nodes)
+      shell: |
+        /opt/conda/bin/conda run -n ml ray start --worker --address=ray://192.168.10.11:6379 --num-cpus=$(nproc)
+      when: inventory_hostname != groups['primary'][0]

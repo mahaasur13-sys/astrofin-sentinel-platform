@@ -1,0 +1,9 @@
+---
+- name: restart cpufrequtils
+  service: name=cpufrequtils state=restarted
+
+- name: restart containerd
+  service: name=containerd state=restarted
+
+- name: restart slurmd
+  service: name=slurmd state=restarted

@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acos"
+version = "6.0.0"
+description = "Autonomous Constrained Optimization System"
+authors = [{name = "mahaasur13-sys"}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "scikit-learn>=1.3",
+    "fastapi>=0.100",
+    "uvicorn>=0.23",
+    "pydantic>=2.0",
+    "psycopg2-binary>=2.9",
+    "timescaleDB-client>=0.1",
+    "xgboost>=2.0",
+    "joblib>=1.3",
+    "requests>=2.31",
+    "shap>=0.44",
+    "prometheus-fastapi-instrumentator>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.6",
+    "black>=24.0",
+    "pre-commit>=3.0",
+    "httpx>=0.25",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "C", "UP"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 120
+target-version = ['py310']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "--cov=acos --cov-report=term --cov-report=xml"

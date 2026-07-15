@@ -1,0 +1,87 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'home-cluster'
+    env: 'prod'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+rule_files:
+  - "alerts/*.yml"
+
+scrape_configs:
+  # --- Slurm metrics ---
+  - job_name: 'slurm'
+    static_configs:
+      - targets: ['10.20.20.10:6817']
+        labels:
+          cluster: 'slurm-controller'
+    metrics_path: /metrics
+
+  # --- GPU metrics (DCGM) ---
+  - job_name: 'dcgm'
+    static_configs:
+      - targets: ['10.20.20.10:9400']
+        labels:
+          node: 'rtx-node'
+
+  # --- Node exporters ---
+  - job_name: 'node'
+    static_configs:
+      - targets:
+          - '10.20.20.10:9100'
+          - '10.20.20.20:9100'
+        labels:
+          cluster: 'home-cluster'
+
+  # --- Ray ---
+  - job_name: 'ray'
+    static_configs:
+      - targets: ['10.20.20.10:8265']
+
+  # --- Ceph ---
+  - job_name: 'ceph'
+    static_configs:
+      - targets: ['10.20.20.10:9283']
+        labels:
+          node: 'rtx-node'
+
+  # --- Slurm exporter ---
+  - job_name: 'slurm-exporter'
+    static_configs:
+      - targets: ['10.20.20.10:9341']
+        labels:
+          node: 'rtx-node'
+
+  # --- Ceph exporter ---
+  - job_name: 'ceph-exporter'
+    static_configs:
+      - targets: ['10.20.20.10:9342']
+        labels:
+          node: 'rtx-node'
+
+  # --- WireGuard exporter ---
+  - job_name: 'wg-exporter'
+    static_configs:
+      - targets:
+          - '10.20.20.10:9343'
+          - '10.20.20.20:9343'
+        labels:
+          cluster: 'home-cluster'
+
+  # --- AI Scheduler API ---
+  - job_name: 'scheduler'
+    static_configs:
+      - targets: ['10.20.20.10:8080']
+        labels:
+          service: 'ai-scheduler'
+    metrics_path: /metrics
+
+  # --- Prometheus self-monitoring ---
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

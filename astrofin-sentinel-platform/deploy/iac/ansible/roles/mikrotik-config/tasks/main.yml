@@ -1,0 +1,78 @@
+---
+# MikroTik hEX S configuration via API
+# Requires RouterOS 7.x and API access enabled
+
+- name: Check RouterOS API connectivity
+  ansible.builtin.uri:
+    url: "https://{{ ansible_host }}/rest/system/identity"
+    method: GET
+    validate_certs: false
+  register: router_info
+  failed_when: false
+
+- name: Configure VLAN bridge
+  ansible.builtin.uri:
+    url: "https://{{ ansible_host }}/rest/interface/bridge"
+    method: PUT
+    body:
+      name: br-vlan
+      vlan-filtering: true
+    validate_certs: false
+    body_format: json
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+- name: Create management VLAN (100)
+  ansible.builtin.uri:
+    url: "https://{{ ansible_host }}/rest/interface/vlan"
+    method: PUT
+    body:
+      name: vlan100
+      vlan-id: 100
+      interface: bridge
+    validate_certs: false
+    body_format: json
+
+- name: Create GPU VLAN (200)
+  ansible.builtin.uri:
+    url: "https://{{ ansible_host }}/rest/interface/vlan"
+    method: PUT
+    body:
+      name: vlan200
+      vlan-id: 200
+      interface: bridge
+    validate_certs: false
+    body_format: json
+
+- name: Assign IP to br-vlan
+  ansible.builtin.uri:
+    url: "https://{{ ansible_host }}/rest/ip/address"
+    method: PUT
+    body:
+      address: "{{ router_ip }}/24"
+      interface: br-vlan
+    validate_certs: false
+    body_format: json
+
+- name: Configure DHCP server for GPU VLAN
+  ansible.builtin.uri:
+    url: "https://{{ ansible_host }}/rest/ip/dhcp-server"
+    method: PUT
+    body:
+      name: dhcp-gpu
+      interface: vlan200
+      address-pool: pool-gpu
+      disabled: "false"
+    validate_certs: false
+    body_format: json
+
+- name: Configure NAT masquerade
+  ansible.builtin.uri:
+    url: "https://{{ ansible_host }}/rest/ip/firewall/nat"
+    method: PUT
+    body:
+      chain: srcnat
+      out-interface-list: WAN
+      action: masquerade
+    validate_certs: false
+    body_format: json

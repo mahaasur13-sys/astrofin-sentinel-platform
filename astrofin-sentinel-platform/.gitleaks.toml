@@ -1,0 +1,152 @@
+# .gitleaks.toml
+# Extends the default gitleaks ruleset, adds a global allowlist
+# for known false-positive files (placeholders, example configs),
+# and declares custom rules for the secret names defined in
+# core/settings.py (single source of truth for env vars).
+
+title = "astrofin-sentinel-platform"
+
+[extend]
+useDefault = true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Global allowlist (singular [allowlist] in gitleaks 8.18.x).
+# Any finding that matches a path or regex here is suppressed.
+# ─────────────────────────────────────────────────────────────────────────────
+[allowlist]
+description = "Known placeholders and example fixtures"
+paths = [
+    '''deploy/iac/terraform/modules/kubernetes/main.tf''',
+    '''src/bridges/roma/billing/stripe_client.py''',
+    '''.secrets.baseline''',
+    '''.gitleaks.toml''',
+    '''.gitleaksignore''',
+    '''deploy/iac/ansible/group_vars/all.yml.example''',
+    '''deploy/iac/scripts/dev-tools/gh-auth-fix.sh''',
+    '''deploy/iac/terraform/terraform.tfvars.example''',
+    # Our own generated example file — all values are placeholders.
+    '''.env.example''',
+    # --- example / template config files (placeholders only) ---
+    '''\.env.*\.example$''',
+    # --- documentation and research notes (variable name tables only) ---
+    '''knowledge/DB_ARCHITECTURE_RESEARCH_2026\.md$''',
+    '''audit_repo/knowledge/DB_ARCHITECTURE_RESEARCH_2026\.md$''',
+    '''docs/MIGRATION_GUIDE\.md$''',
+    '''audit_repo/docs/MIGRATION_GUIDE\.md$''',
+    '''db/README\.md$''',
+    '''kernel/atom-federation/formal_model/expected_ast_hash\.json$''',
+    # --- Makefile (variable references, not values) ---
+    '''Makefile$''',
+    # --- generic example/template files (placeholders only) ---
+    '''.+\.example$''',
+    # --- secret generation/validation scripts ---
+    '''scripts/generate_secrets\.sh$''',
+    '''scripts/validate_docker_security\.py$''',
+    # --- docker-compose and orchestration templates ---
+    '''.+/docker-compose[^/]*\.yml$''',
+    '''deploy/iac/scripts/acos-deploy/.+\.yml$''',
+    '''deploy/iac/scripts/.+/day6_monitoring\.sh$''',
+    '''deploy/iac/.+\.yml$''',
+    # --- tests (synthetic credentials) ---
+    '''tests/.+\.py$''',
+    '''tests/fixtures/.+''',
+    # --- archived audit copy (removed in master consolidation) ---
+    '''audit_repo/.+''',
+    # --- core/settings.py: field names only, values come from env ---
+    '''core/settings\.py$''',
+    # --- formal model: expected_ast_hash.json contains SHA-256 hashes ---
+    '''src/formal_verification/formal_model/expected_ast_hash\.json$''',
+    # --- archived audit reports from old astrofin-sentinel-platform/ ---
+    '''astrofin-sentinel-platform/audit_reports/.+\.json$''',
+    # --- pydantic Settings imports: SecretStr is a type, not a secret ---
+    '''from\s+pydantic\.SecretStr\b''',
+]
+regexes = [
+    '''sk_test_placeholder''',
+    '''whsec_placeholder''',
+    '''YOUR_[A-Z_]+''',
+    '''change-me-in-production''',
+    '''REPLACE_WITH_[A-Z0-9_]+''',
+    '''ghp_xxxxxx+''',
+    # Placeholders generated in .env.example by core/settings.py
+    '''your_[a-z0-9_]+_here''',
+    '''your_[a-z0-9_]+_password_here''',
+    '''your_[a-z0-9_]+_secret_here''',
+    '''your_[a-z0-9_]+_key_here''',
+    '''your_[a-z0-9_]+_token_here''',
+    '''your_[a-z0-9_]+_dsn_here''',
+    # core/settings.py declares field names that end in `_key`, `_secret`,
+    # `_password`, `_token` — these are NOT actual secrets, they are the
+    # canonical schema names. Exclude the schema file completely.
+    # (also covered by paths allowlist below)
+    # Match docker-compose required-env var syntax (":?VAR") to avoid
+    # false positives on `${POSTGRES_PASSWORD:?must be set}` etc.
+    '''\$\{[A-Z_]+\??[A-Za-z0-9_ ]*\}''',
+    # Match the value `SecretStr` (pydantic type annotation)
+    ''':\s*SecretStr\b''',
+    # Match "PLACEHOLDER_" in vault-init.sh (literal placeholder prefix)
+    '''PLACEHOLDER_[A-Z_]+''',
+]
+
+[[rules]]
+id = "asp-ccxt-api-key"
+description = "CCXT / exchange API key assignment"
+regex = '''(?i)(?:CCXT_API_KEY|CCXT_BINANCE_API_KEY|EXCHANGE_API_KEY)\s*[:=]\s*['\"]?([A-Za-z0-9_\-]{16,})['\"]?'''
+keywords = ["ccxt_api_key", "exchange_api_key"]
+tags = ["secret", "exchange", "asp"]
+
+[[rules]]
+id = "asp-ccxt-api-secret"
+description = "CCXT / exchange API secret assignment"
+regex = '''(?i)(?:CCXT_API_SECRET|CCXT_BINANCE_API_SECRET|EXCHANGE_API_SECRET)\s*[:=]\s*['\"]?([A-Za-z0-9_\-]{16,})['\"]?'''
+keywords = ["ccxt_api_secret", "exchange_api_secret"]
+tags = ["secret", "exchange", "asp"]
+
+[[rules]]
+id = "asp-jwt-private-key"
+description = "JWT RS256 private key path or inline PEM"
+regex = '''(?i)JWT_PRIVATE_KEY(?:_PATH)?\s*[:=]\s*['\"]?(?:[./\w\-]+\.pem|BEGIN[^\n]*PRIVATE KEY[^-]*-----END[^\n]*PRIVATE KEY-----)'''
+keywords = ["jwt_private_key"]
+tags = ["secret", "jwt", "asp"]
+
+[[rules]]
+id = "asp-jwt-public-key"
+description = "JWT RS256 public key path or inline PEM"
+regex = '''(?i)JWT_PUBLIC_KEY(?:_PATH)?\s*[:=]\s*['\"]?(?:[./\w\-]+\.pem|BEGIN[^\n]*PUBLIC KEY[^-]*-----END[^\n]*PUBLIC KEY-----)'''
+keywords = ["jwt_public_key"]
+tags = ["secret", "jwt", "asp"]
+
+[[rules]]
+id = "asp-grafana-admin-password"
+description = "Grafana admin password assignment"
+regex = '''(?i)GRAFANA_ADMIN_PASSWORD\s*[:=]\s*['\"]?([^\s'\"#]{6,})['\"]?'''
+keywords = ["grafana_admin_password"]
+tags = ["secret", "infra", "asp"]
+
+[[rules]]
+id = "asp-postgres-password"
+description = "Postgres password assignment (non-example)"
+regex = '''(?i)POSTGRES_PASSWORD\s*[:=]\s*['\"]?([^\s'\"#]{6,})['\"]?'''
+keywords = ["postgres_password"]
+tags = ["secret", "db", "asp"]
+
+[[rules]]
+id = "asp-telegram-bot-token"
+description = "Telegram bot token issued by @BotFather"
+regex = '''(?i)TELEGRAM_BOT_TOKEN\s*[:=]\s*['\"]?([0-9]{6,12}:AA[A-Za-z0-9_\-]{30,})['\"]?'''
+keywords = ["telegram_bot_token"]
+tags = ["secret", "messaging", "asp"]
+
+[[rules]]
+id = "asp-flask-secret-key"
+description = "Flask/Dash session SECRET_KEY (must be a real value)"
+regex = '''(?i)SECRET_KEY\s*[:=]\s*['\"]?([A-Za-z0-9_\-]{16,})['\"]?'''
+keywords = ["secret_key"]
+tags = ["secret", "web", "asp"]
+
+[[rules]]
+id = "asp-sentry-dsn"
+description = "Sentry DSN assignment"
+regex = '''(?i)SENTRY_DSN\s*[:=]\s*['\"]?(https?://[a-f0-9]+@[a-z0-9.\-]+/[0-9]+)['\"]?'''
+keywords = ["sentry_dsn"]
+tags = ["secret", "observability", "asp"]

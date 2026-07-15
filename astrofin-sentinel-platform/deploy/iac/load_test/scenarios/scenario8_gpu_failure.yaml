@@ -1,0 +1,23 @@
+name: GPU sudden failure
+description: Inject GPU error and verify cluster recovery
+duration: 300
+steps:
+  - name: inject_gpu_error
+    type: exec
+    command: nvidia-smi --gpu-reset || true
+    target: gpu-node-1
+  - name: wait_recovery
+    type: wait
+    duration: 60
+  - name: verify_recovery
+    type: http_check
+    url: http://slurmctld:8080/api/gpu_health
+    expected_status: 200
+    timeout: 10
+  - name: check_jobs_resume
+    type: exec
+    command: squeue --long
+    expect_contains:
+      - CG
+      - PD
+      - R

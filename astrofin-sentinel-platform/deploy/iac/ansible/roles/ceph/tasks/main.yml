@@ -1,0 +1,57 @@
+# ============================================================
+# Role: ceph — Ceph distributed storage (2-node cluster)
+# ============================================================
+
+- name: Add Ceph noarch repo
+  ansible.builtin.apt_repository:
+    repo: "deb http://ftp.debian.org/debian bullseye-backports main"
+    state: present
+
+- name: Install Ceph packages
+  ansible.builtin.apt:
+    name:
+      - ceph
+      - ceph-common
+      - python3-cephfs
+    state: present
+    update_cache: true
+
+# ── Bootstrap Ceph (first mon only) ─────────────────────────
+- name: Bootstrap Ceph cluster
+  ansible.builtin.command: >
+    cephadm bootstrap --mon-ip {{ ansible_host }}
+    --cluster-network {{ ceph_cluster_network }}
+    --output-config /etc/ceph/ceph.conf
+    --output-keyring /etc/ceph/ceph.client.admin.keyring
+    --allow-overwrite
+    --skip-dashboard
+    --skip-firewalld
+    --no-reduce-max-pool-pgs
+  when: inventory_hostname == groups['ceph_mon'][0]
+  notify: Ceph restart
+
+# ── Copy admin keyring to all nodes ──────────────────────────
+- name: Copy Ceph admin keyring
+  ansible.builtin.copy:
+    src: /etc/ceph/ceph.client.admin.keyring
+    dest: /etc/ceph/ceph.client.admin.keyring
+    mode: '0600'
+    owner: root
+    group: root
+  when: inventory_hostname == groups['ceph_mon'][0]
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['ceph_mon'] }}"
+
+# ── Add OSDs ────────────────────────────────────────────────
+- name: Prepare OSD device
+  ansible.builtin.command: >
+    ceph orch device ls {{ ansible_host }} --wide
+  register: ceph_devices
+  changed_when: false
+
+- name: Zap OSD device
+  ansible.builtin.command: >
+    ceph orch daemon add osd {{ ansible_host }}:/dev/{{ item }}
+  loop: "{{ ceph_osd_devices }}"
+  notify: Ceph restart
+  when: inventory_hostname in groups['ceph_osd']

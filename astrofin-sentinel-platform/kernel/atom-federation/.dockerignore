@@ -1,0 +1,60 @@
+# =============================================================================
+# ATOM Federation OS — build context filter
+#
+# Keeps `docker build` context small and stable:
+#   • skips .venv / node_modules / build artifacts → faster cache, smaller ctx
+#   • skips docs / tests / audit artefacts → image stays runtime-only
+#   • skips IDE / git noise → reproducible build diff
+# Mirrors AsurDev/acos/.dockerignore convention.
+# =============================================================================
+
+# Python bytecode & virtualenvs
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+.venv_test/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Tests, docs, audit artefacts — not needed in node runtime image
+tests/
+docs/
+*.md
+!README.md
+audit/
+proof/
+violations.json
+events.json
+proof_trace.json
+release.yml.
+
+# Build & CI scripts that are not part of the runtime
+scripts/
+.github/
+.gitlab-ci.yml
+validate_local.sh
+build_push.sh
+ghcr_push.sh
+pop-os-setup.sh
+Pop_OS_AI_Dev_Setup.sh
+
+# IDE / OS noise
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local-only python packages that shouldn't be reinstalled in image
+local-ai-stack/
+
+# Logs and runtime scratch from local dev
+*.log
+*.tmp

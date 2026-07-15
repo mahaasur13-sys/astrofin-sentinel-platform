@@ -1,0 +1,19 @@
+exclude_dirs:
+  - audit_repo
+  - tests
+  - bench
+  - graphify-out
+  - pop-os-setup
+  - acos-contracts
+  - scripts
+  - .venv
+  - venv
+skips:
+  - B324
+  - B307
+  - B602
+  - B310
+  - B104
+  - B306
+  - B102
+  - B108

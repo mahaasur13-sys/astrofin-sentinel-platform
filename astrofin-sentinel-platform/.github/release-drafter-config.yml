@@ -1,0 +1,35 @@
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+no-changes-template: "- No changes"
+version-resolver:
+  major:
+    labels: ["breaking", "major"]
+  minor:
+    labels: ["minor", "enhancement"]
+  patch:
+    labels: ["patch", "bug", "fix", "dependencies"]
+  default: patch
+categories:
+  - title: "🚨 Breaking Changes"
+    labels: ["breaking", "major"]
+  - title: "🚀 Features"
+    labels: ["feature", "enhancement", "minor"]
+  - title: "🐛 Bug Fixes"
+    labels: ["bug", "fix", "patch"]
+  - title: "🤖 KARL / Meta-RL"
+    labels: ["karl", "meta-rl"]
+  - title: "🔒 Security"
+    labels: ["security"]
+  - title: "🧪 Tests"
+    labels: ["test", "tests"]
+  - title: "📚 Documentation"
+    labels: ["docs", "documentation"]
+  - title: "🛠️ Maintenance"
+    labels: ["chore", "dependencies", "ci", "refactor", "perf"]
+  - title: "🏗️ Infrastructure"
+    labels: ["infra", "infrastructure", "deploy"]
+template: |
+  ## Changes
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

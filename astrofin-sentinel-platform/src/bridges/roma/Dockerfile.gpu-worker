@@ -1,0 +1,37 @@
+# ROMA GPU Worker — Docker Image
+# Multi-stage build for minimal image with GPU support
+
+FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04 AS runtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+
+# Install Python + runtime deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 \
+    python3-pip \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install FastAPI + uvicorn
+RUN pip install --no-cache-dir \
+    fastapi==0.115.0 \
+    uvicorn[standard]==0.30.6 \
+    pydantic==2.9.2 \
+    requests==2.32.3 \
+    pynvml==11.5.3 \
+    && rm -rf /root/.cache/pip
+
+# Copy worker app
+WORKDIR /app
+COPY gpu_worker/ /app/
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Run
+CMD ["python3", "server.py", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,77 @@
+# =============================================================================
+# KongPlugin CRDs — Tenant Routing + Branding Injection
+# =============================================================================
+
+---
+# Tenant Routing (custom Lua plugin)
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: tenant-routing
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+    app.kubernetes.io/component: kong-plugin
+plugin: tenant-routing
+---
+# Branding Injection (custom Lua plugin)
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: tenant-branding
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+    app.kubernetes.io/component: kong-plugin
+plugin: tenant-branding
+---
+# CORS (bundled plugin)
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: cors-delegate
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+    app.kubernetes.io/component: kong-plugin
+plugin: cors
+config:
+  origins:
+    - "*"
+  methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - PATCH
+    - OPTIONS
+  headers:
+    - Accept
+    - Authorization
+    - Content-Type
+    - X-Tenant-ID
+    - X-Roma-Tenant
+    - X-Request-ID
+  exposed_headers:
+    - X-RateLimit-Limit-Minute
+    - X-RateLimit-Remaining-Minute
+    - X-RateLimit-Reset
+    - X-Tenant-ID
+    - X-Tenant-Branding
+  credentials: true
+  max_age: 3600
+  preflight_continue: false
+---
+# Prometheus metrics (bundled)
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: prometheus-metrics
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+    app.kubernetes.io/component: kong-plugin
+plugin: prometheus
+config:
+  skip_upstream: false
+  per_consumer: true

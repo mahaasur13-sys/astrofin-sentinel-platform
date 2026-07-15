@@ -1,0 +1,2 @@
+slurm_control_node: rtx-node
+cluster_name: home-cluster

@@ -1,0 +1,44 @@
+apiVersion: ray.io/v1alpha1
+kind: RayJob
+metadata:
+  name: gpu-training-job
+spec:
+  Entrypoint: python /opt/ray-jobs/distributed_training.py
+  RayClusterSpec:
+    rayVersion: '2.9'
+    headGroupSpec:
+      serviceType: ClusterIP
+      replicas: 1
+      numRayActors: 1
+      template:
+        spec:
+          containers:
+            - name: ray-head
+              image: rayproject/ray:latest-gpu
+              ports:
+                - containerPort: 6379
+                  name: redis
+                - containerPort: 8265
+                  name: dashboard
+              resources:
+                limits:
+                  gpu: 1
+                  memory: "16Gi"
+                requests:
+                  gpu: 1
+                  memory: "8Gi"
+    workerGroupSpecs:
+      - replicas: 1
+        numRayActors: 1
+        template:
+          spec:
+            containers:
+              - name: ray-worker
+                image: rayproject/ray:latest-gpu
+                resources:
+                  limits:
+                    gpu: 1
+                    memory: "16Gi"
+                  requests:
+                    gpu: 1
+                    memory: "8Gi"

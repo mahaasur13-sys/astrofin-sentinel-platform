@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: atom-operator
+  namespace: atom-system
+  labels:
+    app.kubernetes.io/name: atom-operator
+    app.kubernetes.io/version: "7.0"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: atom-operator
+  labels:
+    app.kubernetes.io/name: atom-operator
+    app.kubernetes.io/version: "7.0"
+rules:
+  # ATOMCluster CRUD
+  - apiGroups: ["atom.io"]
+    resources: ["atomclusters", "atomclusters/status"]
+    verbs: ["get", "list", "watch", "patch", "update", "create", "delete"]
+
+  # StatefulSet management
+  - apiGroups: ["apps"]
+    resources: ["statefulsets", "statefulsets/status", "statefulsets/finalizers"]
+    verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+
+  # Services
+  - apiGroups: [""]
+    resources: ["services", "services/status"]
+    verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+
+  # Pods (for healing — delete unhealthy pods)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "delete"]
+
+  # ServiceAccount
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get", "create", "delete"]
+
+  # Events
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+
+  # Namespace read (for WATCH_NAMESPACE support)
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: atom-operator
+  labels:
+    app.kubernetes.io/name: atom-operator
+    app.kubernetes.io/version: "7.0"
+subjects:
+  - kind: ServiceAccount
+    name: atom-operator
+    namespace: atom-system
+roleRef:
+  kind: ClusterRole
+  name: atom-operator
+  apiGroup: rbac.authorization.k8s.io

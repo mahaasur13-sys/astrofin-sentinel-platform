@@ -1,0 +1,48 @@
+"""
+saas/branding/templates/invoice_email.html.j2
+"""
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9fafb; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .header { background: {{ branding.primary_color }}; padding: 24px; color: #ffffff; }
+    .header h1 { margin: 0; font-size: 20px; }
+    .header img { height: 40px; margin-bottom: 8px; }
+    .body { padding: 24px; }
+    .footer { background: #f3f4f6; padding: 16px 24px; font-size: 12px; color: #6b7280; }
+    .amount { font-size: 32px; font-weight: bold; color: {{ branding.primary_color }}; }
+    table { width: 100%%; border-collapse: collapse; margin: 16px 0; }
+    td { padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+    td:last-child { text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      {% if branding.logo_url %}
+      <img src="{{ branding.logo_url }}" alt="{{ branding.app_name }}" width="180">
+      {% endif %}
+      <h1>{{ branding.app_name }}</h1>
+      <p>Invoice #{{ invoice_id }}</p>
+    </div>
+    <div class="body">
+      <p>Hello {{ customer_name }},</p>
+      <p>Thank you for using {{ branding.app_name }}!</p>
+      <table>
+        <tr><td>GPU Hours ({{ gpu_hours }}h × ${{ rate }}/h)</td><td>${{ gpu_cost }}</td></tr>
+        <tr><td>Platform Fee</td><td>${{ platform_fee }}</td></tr>
+        <tr><td><strong>Total</strong></td><td><strong class="amount">${{ total }}</strong></td></tr>
+      </table>
+      <p>Invoice Date: {{ invoice_date }}</p>
+      <p>Payment Due: {{ due_date }}</p>
+    </div>
+    <div class="footer">
+      <p>{{ branding.app_name }} — {{ branding.support_email }}</p>
+      <p>Powered by {{ branding.metadata.powered_by|default("ROMA") }}</p>
+    </div>
+  </div>
+</body>
+</html>

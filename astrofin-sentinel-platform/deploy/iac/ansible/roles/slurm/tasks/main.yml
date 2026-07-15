@@ -1,0 +1,91 @@
+# ============================================================
+# Role: slurm — Slurm workload manager (GPU scheduling)
+# ============================================================
+
+- name: Add Slurm repository
+  ansible.builtin.apt_repository:
+    repo: "deb http://ftp.debian.org/debian bullseye-backports main"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install Slurm packages (controller)
+  ansible.builtin.apt:
+    name:
+      - slurmctld
+      - slurm-client
+      - munge
+      - munge-libs
+    state: present
+    update_cache: true
+  when: "'slurm_controller' in group_names"
+
+- name: Install Slurm packages (compute)
+  ansible.builtin.apt:
+    name:
+      - slurmd
+      - slurm-client
+      - munge
+      - munge-libs
+    state: present
+  when: "'slurm_compute' in group_names and inventory_hostname not in groups['slurm_controller']"
+
+- name: Generate munge key
+  ansible.builtin.command: create-munge-key -f
+  notify: Restart munge
+  when: inventory_hostname == groups['slurm_controller'][0]
+
+- name: Copy munge key to all nodes
+  ansible.builtin.copy:
+    src: /etc/munge/munge.key
+    dest: /etc/munge/munge.key
+    mode: '0400'
+    owner: munge
+    group: munge
+  when: inventory_hostname == groups['slurm_controller'][0]
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['slurm_compute'] }}"
+
+- name: Configure munge
+  ansible.builtin.template:
+    src: munge.j2
+    dest: /etc/munge/munge.key
+    mode: '0400'
+    owner: munge
+    group: munge
+  notify: Restart munge
+
+- name: Start and enable munge
+  ansible.builtin.systemd_service:
+    name: munge
+    enabled: true
+    state: started
+
+- name: Slurm config (controller)
+  ansible.builtin.template:
+    src: slurm.conf.j2
+    dest: /etc/slurm/slurm.conf
+    mode: '0644'
+  notify: Restart slurmctld
+  when: "'slurm_controller' in group_names"
+
+- name: Slurm config (compute node)
+  ansible.builtin.template:
+    src: slurm.conf.compute.j2
+    dest: /etc/slurm/slurm.conf
+    mode: '0644'
+  notify: Restart slurmd
+  when: "'slurm_compute' in group_names and inventory_hostname not in groups['slurm_controller']"
+
+- name: Start slurmctld
+  ansible.builtin.systemd_service:
+    name: slurmctld
+    enabled: true
+    state: started
+  when: "'slurm_controller' in group_names"
+
+- name: Start slurmd
+  ansible.builtin.systemd_service:
+    name: slurmd
+    enabled: true
+    state: started
+  when: "'slurm_compute' in group_names"
