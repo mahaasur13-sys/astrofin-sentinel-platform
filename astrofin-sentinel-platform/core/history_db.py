@@ -319,10 +319,25 @@ class HistoryDB:
 _db: HistoryDB | None = None
 
 
-def get_db() -> HistoryDB:
+def get_db() -> HistoryDB | PostgresHistoryDB:
+    """Returns the active history database backend.
+
+    Auto-selects PostgreSQL (via DATABASE_URL) over SQLite.
+    Falls back to SQLite when PostgreSQL is unavailable.
+    """
     global _db
-    if _db is None:
-        _db = HistoryDB()
+    if _db is not None:
+        return _db
+
+    import os
+    dsn = os.environ.get("DATABASE_URL", "")
+    if dsn and any(kw in dsn.lower() for kw in ("postgres", "postgresql", "psycopg")):
+        try:
+            _db = PostgresHistoryDB(dsn)
+            return _db
+        except Exception:
+            pass
+    _db = HistoryDB()
     return _db
 
 
