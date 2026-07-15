@@ -3,19 +3,16 @@
 ACOS CLI — Execution Trace Engine v1.
 Contract-compliant: all components validated at startup.
 """
-import argparse
-import json
-import os
-import sys
+import sys, os, json, argparse
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(__file__))
 
 # === CONTRACT + RECORDING LAYER ===
 from acos.contracts import (
-    validate_engine_contract,
-    validate_scheduler_contract,
     validate_trace_recorder_contract,
+    validate_scheduler_contract,
+    validate_engine_contract,
 )
 from acos.recorder.recorder import DeterministicTraceRecorder
 from acos.storage import MemoryTraceStorage
@@ -23,12 +20,12 @@ from acos.storage import MemoryTraceStorage
 # === ETE MODULES ===
 try:
     from ete.compiler.dag import DAGCompiler
-    from ete.engine.execution_engine import ExecutionEngine as EE
     from ete.gate.governance_gate import GovernanceGate
-    from ete.replay.replayer import DeterministicReplayer as ReplayEngine  # noqa: F401
     from ete.scheduler.adapter import SchedulerAdapter
+    from ete.engine.execution_engine import ExecutionEngine as EE
+    from ete.replay.replayer import DeterministicReplayer as ReplayEngine
     HAS_ETE = True
-except ImportError:
+except ImportError as e:
     HAS_ETE = False
 
 # === UPPER LAYERS ===
@@ -190,8 +187,7 @@ def main():
     args = parser.parse_args()
 
     if not args.cmd:
-        parser.print_help()
-        return
+        parser.print_help(); return
 
     validate_all_contracts()
     cli = ACOSCLI()

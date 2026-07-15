@@ -5,6 +5,8 @@ U = alpha * throughput + beta * reliability + gamma * migration_cost
     + delta * SLA_violation + epsilon * load_variance
 """
 from dataclasses import dataclass, field
+from typing import Optional
+import math
 
 
 @dataclass
@@ -38,8 +40,8 @@ class ClusterSnapshot:
 class ScheduleAction:
     action_id: str
     action_type: str           # "place", "migrate", "evict", "defer"
-    job_id: str | None
-    node_id: str | None
+    job_id: Optional[str]
+    node_id: Optional[str]
     expected_utility_delta: float
 
 
@@ -55,7 +57,7 @@ class UtilityFunction:
         + exploration_bonus
     """
 
-    def __init__(self, weights: UtilityWeights | None = None):
+    def __init__(self, weights: Optional[UtilityWeights] = None):
         self.w = weights or UtilityWeights()
 
     def throughput_component(self, snapshot: ClusterSnapshot) -> float:

@@ -3,8 +3,6 @@ tests/test_kepler.py — ATOM-STEP-1: Kepler Engine Tests
 Tests core/kepler.py: orbital propagation, anomaly solving, Swiss Ephemeris validation.
 """
 
-from __future__ import annotations
-
 import math
 import sys
 from pathlib import Path
@@ -123,9 +121,7 @@ class TestMeanAnomaly:
         """M stays in [0, 360)."""
         orbit = KeplerOrbit(OrbitalElements.earth())
         # 1 year later
-        M = orbit.mean_anomaly_at(
-            orbit.elements.epoch_jd + orbit.elements.orbital_period
-        )
+        M = orbit.mean_anomaly_at(orbit.elements.epoch_jd + orbit.elements.orbital_period)
         assert 0 <= M < 360
 
 

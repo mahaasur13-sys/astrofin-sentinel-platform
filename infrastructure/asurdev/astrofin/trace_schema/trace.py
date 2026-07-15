@@ -4,6 +4,7 @@ ACOS × AstroFin — Unified Execution Trace Schema
 Every AstroFin action generates a trace.
 """
 from dataclasses import dataclass, field
+from typing import Optional
 from datetime import datetime
 
 
@@ -16,7 +17,7 @@ class ExecutionNode:
     output: dict = field(default_factory=dict)
     latency_ms: float = 0.0
     compute_node: str = "unset"
-    ml_model: str | None = None
+    ml_model: Optional[str] = None
 
 
 @dataclass
@@ -46,7 +47,7 @@ class AstroFinTrace:
     rollback_status: bool = False
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     meta_rl_generation: int = 0
-    strategy_id: str | None = None
+    strategy_id: Optional[str] = None
     execution_mode: str = "live"    # live | backtest | paper
 
 

@@ -77,9 +77,7 @@ class CompositeRankingEngine:
 
                 # Per-component scores (0-1, higher = better)
                 sharpe_score = self._norm(sharpe, self.SHARPE_MIN, self.SHARPE_MAX)
-                win_rate_score = self._norm(
-                    win_rate, self.WINRATE_MIN, self.WINRATE_MAX
-                )
+                win_rate_score = self._norm(win_rate, self.WINRATE_MIN, self.WINRATE_MAX)
                 pnl_score = self._norm(pnl, self.PNL_MIN, self.PNL_MAX)
                 dd_penalty_score = 1.0 - self._norm(max_dd, 0.0, self.DD_MAX_TOLERABLE)
 
@@ -87,9 +85,7 @@ class CompositeRankingEngine:
                 rh = self._get(s, "reward_history", [])
                 stability_score = 0.5
                 if len(rh) >= 3:
-                    stability_score = 1.0 - float(
-                        np.std(rh) / (abs(np.mean(rh)) + 1e-8)
-                    )
+                    stability_score = 1.0 - float(np.std(rh) / (abs(np.mean(rh)) + 1e-8))
 
                 # Diversity: favor strategies with more trades (liquid)
                 diversity_score = self._norm(trades, 0, self.WIN_MAX_TOLERABLE)
@@ -161,6 +157,7 @@ def rank_all_sessions(n_top: int = 20) -> list[dict]:
 
         engine = CompositeRankingEngine()
         ranked = engine.rank_strategies(all_strategies)
+        return ranked[:n_top] if ranked else []
         return ranked[:n_top] if ranked else []
     except Exception as e:
         logger.warning(f"[RANKING] rank_all_sessions failed: {e}")

@@ -1,12 +1,3 @@
-from __future__ import annotations
-import logging
-import math
-from dataclasses import dataclass
-from pathlib import Path
-import joblib
-from core.kepler import OrbitalElementsDB, propagate_kepler
-
-logger = logging.getLogger(__name__)
 """
 core/kepler_hybrid.py — ATOM-STEP-4: Kepler + ML Hybrid Model
 ==============================================================
@@ -17,6 +8,15 @@ Architecture:
   3. hybrid_propagate(Elements, jd) → Kepler + ML correction
 """
 
+from __future__ import annotations
+
+import math
+from dataclasses import dataclass
+from pathlib import Path
+
+import joblib
+
+from core.kepler import OrbitalElementsDB, propagate_kepler
 
 # ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -77,9 +77,7 @@ class ResidualModel:
         jd_norm = (jd - 2451545.0) / 10000.0
         body_enc = {"earth": 0, "jupiter": 1, "saturn": 2}.get(body.lower(), -1)
         elements = OrbitalElementsDB[body.lower()]
-        mean_lon = (
-            elements.mean_longitude + elements.mean_motion * (jd - elements.epoch_jd)
-        ) % 360
+        mean_lon = (elements.mean_longitude + elements.mean_motion * (jd - elements.epoch_jd)) % 360
         sin_orb = math.sin(math.radians(mean_lon))
         cos_orb = math.cos(math.radians(mean_lon))
         is_saturn = 1.0 if body.lower() == "saturn" else 0.0
@@ -98,9 +96,7 @@ class ResidualModel:
         features = [self._features(jd, body)]
         try:
             pred = self.model.predict(features)[0]
-            conf = getattr(self.model, "predict_proba", lambda x: [[0.5, 0.5]])(
-                features
-            )[0]
+            conf = getattr(self.model, "predict_proba", lambda x: [[0.5, 0.5]])(features)[0]
             if hasattr(conf, "__len__") and len(conf) >= 2:
                 confidence = float(max(conf))
             else:
@@ -175,16 +171,8 @@ def print_hybrid_comparison(jd_start: float = 2451545.0, jd_end: float = 2460000
     import core.ephemeris as eph
 
     bodies = ["earth", "jupiter", "saturn"]
-    logger.info(
-        "\n%-10s %10s %8s %10s %12s %s",
-        "BODY",
-        "JD",
-        "KEPLER",
-        "CORRECTED",
-        "CORR_ARCMIN",
-        "METHOD",
-    )
-    logger.info("%s", "-" * 70)
+    print(f"\n{'BODY':<10} {'JD':>10} {'KEPLER':>8} {'CORRECTED':>10} {'CORR_ARCMIN':>12} {'METHOD'}")
+    print("-" * 70)
 
     for body in bodies:
         for jd in [jd_start, jd_end]:
@@ -193,14 +181,12 @@ def print_hybrid_comparison(jd_start: float = 2451545.0, jd_end: float = 2460000
             swiss_lon = swiss.longitude % 360.0
             (h.kepler_lon - swiss_lon + 180) % 360 - 180
             (h.corrected_lon - swiss_lon + 180) % 360 - 180
-            logger.info(
-                "%-10s %10.1f %8.3f° %10.3f° %10.2f' %s",
-                body,
-                jd,
-                h.kepler_lon,
-                h.corrected_lon,
-                h.correction_arcmin,
-                h.method,
+            print(
+                f"{body:<10} {jd:>10.1f} "
+                f"{h.kepler_lon:>8.3f}° "
+                f"{h.corrected_lon:>10.3f}° "
+                f"{h.correction_arcmin:>10.2f}' "
+                f"{h.method}"
             )
 
 

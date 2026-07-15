@@ -1,7 +1,5 @@
 """Метрики производительности агентов."""
 
-from __future__ import annotations
-
 import time
 
 from tools.metrics_server import AGENT_DURATION
@@ -16,9 +14,7 @@ def track_agent_duration(agent_name: str):
             try:
                 result = await func(*args, **kwargs)
             finally:
-                AGENT_DURATION.labels(agent_name=agent_name).observe(
-                    time.time() - start
-                )
+                AGENT_DURATION.labels(agent_name=agent_name).observe(time.time() - start)
             return result
 
         return wrapper

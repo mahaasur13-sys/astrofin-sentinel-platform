@@ -38,7 +38,7 @@ class BackpressureStatus:
 class BackpressureSystem:
     """
     GPU saturation + queue admission control.
-
+    
     Rules:
     1. GPU VRAM > config.gpu_saturation_max → stop admitting new GPU jobs
     2. Queue depth > config.queue_depth_max → stop admitting

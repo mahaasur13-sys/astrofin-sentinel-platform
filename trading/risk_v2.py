@@ -28,9 +28,7 @@ class RiskConfigV2:
     close_on_kill: bool = True
 
     def __post_init__(self):
-        assert (
-            0 < self.max_drawdown <= 1.0
-        ), f"max_drawdown={self.max_drawdown} out of range"
+        assert 0 < self.max_drawdown <= 1.0, f"max_drawdown={self.max_drawdown} out of range"
         assert 0 < self.max_exposure_per_asset <= 1.0
         assert 0 < self.correlation_limit <= 1.0
         assert self.target_volatility > 0
@@ -64,9 +62,9 @@ class RiskEngineV2:
         self._return_history: list = []
 
     def update_position(self, pos: AssetPosition) -> None:
-        pos.unrealized_pnl = pos.notional_value - pos.entry_price * abs(
-            pos.notional_value
-        ) / max(pos.current_price, 1e-10)
+        pos.unrealized_pnl = pos.notional_value - pos.entry_price * abs(pos.notional_value) / max(
+            pos.current_price, 1e-10
+        )
         self._positions[pos.symbol] = pos
 
     def update_equity(self, equity: float) -> None:
@@ -79,9 +77,7 @@ class RiskEngineV2:
         equity = self._equity_history[-1] if self._equity_history else 100_000.0
         peak = max(self._equity_history) if self._equity_history else equity
         dd = max(0.0, (peak - equity) / peak) if peak > 0 else 0.0
-        kill = (
-            dd >= self.config.max_drawdown if self.config.kill_switch_enabled else False
-        )
+        kill = dd >= self.config.max_drawdown if self.config.kill_switch_enabled else False
         return RiskState(
             total_equity=equity,
             cash=equity,
@@ -104,19 +100,12 @@ class RiskEngineV2:
         state = self.get_state()
         if state.total_equity <= 0:
             return False, 0.0, "Invalid equity"
-        current_notional = abs(
-            self._positions.get(
-                symbol, AssetPosition(symbol, 0, 0, 0, 0, 0)
-            ).notional_value
-        )
+        current_notional = abs(self._positions.get(symbol, AssetPosition(symbol, 0, 0, 0, 0, 0)).notional_value)
         total_exposure = sum(abs(p.notional_value) for p in self._positions.values())
         new_total = total_exposure + proposed_notional
         new_asset_exposure = (current_notional + proposed_notional) / state.total_equity
         if new_asset_exposure > self.config.max_exposure_per_asset:
-            scaled = (
-                self.config.max_exposure_per_asset * state.total_equity
-                - current_notional
-            )
+            scaled = self.config.max_exposure_per_asset * state.total_equity - current_notional
             return (
                 False,
                 max(0.0, scaled),
@@ -127,7 +116,7 @@ class RiskEngineV2:
             return False, max(0.0, scaled), "TOTAL EXPOSURE > 100%"
         return True, proposed_notional, "OK"
 
-    def check_correlation(self, symbol, _proposed_return):
+    def check_correlation(self, symbol, proposed_return):
         if len(self._return_history) < 5:
             return True, 1.0, "OK"
         symbols = list(self._positions.keys())
@@ -156,9 +145,7 @@ class RiskEngineV2:
                 if not math.isnan(cv):
                     max_corr = max(max_corr, cv)
         if max_corr > self.config.correlation_limit:
-            reduction = max(
-                0.1, min(1.0, 1.0 - (max_corr - self.config.correlation_limit))
-            )
+            reduction = max(0.1, min(1.0, 1.0 - (max_corr - self.config.correlation_limit)))
             return False, reduction, f"CORRELATION REDUCE: {max_corr:.3f} > limit"
         return True, 1.0, "OK"
 
@@ -173,15 +160,11 @@ class RiskEngineV2:
         size = base_size * vol_scalar * kelly
         return self._clamp_size(size)
 
-    def pre_trade_check(
-        self, symbol, proposed_notional, realized_vol=0.0, regime="NORMAL"
-    ):
+    def pre_trade_check(self, symbol, proposed_notional, realized_vol=0.0, regime="NORMAL"):
         ok, dd, msg = self.check_kill_switch()
         if not ok:
             return "REJECTED", 0.0, f"KILL_SWITCH: {msg}"
-        vol_size = self.compute_vol_adjusted_size(
-            proposed_notional, realized_vol, regime
-        )
+        vol_size = self.compute_vol_adjusted_size(proposed_notional, realized_vol, regime)
         ok, capped, msg = self.check_exposure(symbol, vol_size)
         if not ok:
             return "REDUCED" if capped > 0 else "REJECTED", capped, f"EXPOSURE: {msg}"
@@ -270,11 +253,7 @@ class RiskEngineV2:
             return self.config.target_volatility
         try:
             vol = float(np.std(rets, ddof=0))
-            return (
-                vol
-                if not (math.isnan(vol) or vol <= 0)
-                else self.config.target_volatility
-            )
+            return vol if not (math.isnan(vol) or vol <= 0) else self.config.target_volatility
         except Exception:
             return self.config.target_volatility
 

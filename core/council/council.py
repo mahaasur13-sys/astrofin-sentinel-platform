@@ -1,9 +1,7 @@
 """core/council/council.py - AstroCouncil: Multi-Agent Voting System"""
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core.council.types import AGENT_WEIGHTS, CouncilResult, Signal
 
@@ -50,7 +48,7 @@ def build_council_result(symbol, members, deliberation=""):
     final_signal, consensus, dissent = resolve_conflict(members)
     deliberation += f"final={final_signal.value} consensus={consensus:.2f}"
     return CouncilResult(
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         symbol=symbol,
         weighted_signal=ws,
         final_signal=final_signal,
@@ -83,9 +81,7 @@ class AstroCouncil:
             f"  Consensus: {result.consensus:.0%}  W-signal: {result.weighted_signal:+.3f}",
         ]
         for m in sorted(result.members, key=lambda x: -x.weight):
-            lines.append(
-                f"  [{m.weight:.0%}] {m.name}: {m.vote.value} ({m.confidence:.0f}%)"
-            )
+            lines.append(f"  [{m.weight:.0%}] {m.name}: {m.vote.value} ({m.confidence:.0f}%)")
         if result.dissent:
             lines.append(f"  Dissent: {len(result.dissent)} disagree")
         return "\n".join(lines)

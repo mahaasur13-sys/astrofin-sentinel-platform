@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-import json
-import os
-
+import json, os, sys
 repo = os.environ.get('GITHUB_REPOSITORY', 'mahaasur13-sys/AsurDev')
 sha = os.environ.get('GITHUB_SHA', 'abc123')
 run_id = os.environ.get('GITHUB_RUN_ID', '1')

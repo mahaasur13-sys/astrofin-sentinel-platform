@@ -124,9 +124,7 @@ class AdaptiveSlippageModel:
         # Volume impact: nonlinear in participation
         # Small orders (<1% ADV): minimal impact
         # Large orders (>10% ADV): severe impact
-        size_impact = (
-            self.size_coefficient * math.sqrt(max(participation, 0.0001)) * 100
-        )
+        size_impact = self.size_coefficient * math.sqrt(max(participation, 0.0001)) * 100
 
         # Vol impact: proportional to realized volatility
         vol_impact = self.vol_coefficient * volatility_bps / 100

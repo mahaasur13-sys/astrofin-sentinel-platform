@@ -59,8 +59,7 @@ class ProjectionEngine:
 
         elif et == EventType.JOB_QUEUED.value:
             j = self.jobs.get(payload["job_id"])
-            if j:
-                j.status = "QUEUED"
+            if j: j.status = "QUEUED"
 
         elif et == EventType.JOB_SCHEDULED.value:
             j = self.jobs.get(payload["job_id"])
@@ -98,8 +97,7 @@ class ProjectionEngine:
 
     def project_job(self, job_id: str) -> Optional[Dict]:
         j = self.jobs.get(job_id)
-        if not j:
-            return None
+        if not j: return None
         d = asdict(j)
         d["events"] = [e for e in self.events if e.get("payload", {}).get("job_id") == job_id]
         return d

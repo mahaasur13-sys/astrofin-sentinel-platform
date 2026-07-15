@@ -7,18 +7,20 @@ GET  /jobs/:id     — job state
 GET  /state        — cluster state snapshot from DB
 GET  /metrics      — Prometheus metrics
 """
-import logging
 import os
+import logging
 import time
+from typing import Optional
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from prometheus_client import Counter, Gauge, Histogram, generate_latest
 from pydantic import BaseModel
+from prometheus_client import Counter, Histogram, Gauge, generate_latest
 
+from state_store import StateStore, JobStatus
 from admission_controller import AdmissionController
 from job_engine import JobEngine
 from scheduler_v3.scorer import score_and_select
-from state_store import StateStore
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 log = logging.getLogger("scheduler_v3")
@@ -33,9 +35,9 @@ PG_USER   = os.environ.get("PG_USER",   "clusteruser")
 PG_PASS   = os.environ.get("PGPASS",   "clusterpass")
 
 # Globals (lazy init)
-_state_store: StateStore | None = None
-_admission:   AdmissionController | None = None
-_job_engine:  JobEngine | None = None
+_state_store: Optional[StateStore] = None
+_admission:   Optional[AdmissionController] = None
+_job_engine:  Optional[JobEngine] = None
 
 
 def get_store() -> StateStore:
@@ -73,15 +75,15 @@ class ScheduleRequest(BaseModel):
     job_type:   str   = "gpu"   # gpu | cpu | arm | vps
     memory_gb:  int   = 8
     priority:   int   = 5
-    script:     str | None = None
+    script:     Optional[str] = None
 
 
 class ScheduleResponse(BaseModel):
     submitted: bool
     job_id:    str
     reason:    str
-    node:      str | None = None
-    wait_time: int | None = None
+    node:      Optional[str] = None
+    wait_time: Optional[int] = None
 
 
 # ---------------------------------------------------------------------------
@@ -149,7 +151,7 @@ def get_scores(job_type: str = "gpu"):
     nodes = get_store().get_healthy_nodes()
     result = []
     for node in nodes:
-        from scheduler_v3.scorer import _compute_score
+        from scheduler_v3.scorer import _compute_score, _filter_eligible
         if job_type == "gpu" and node.gpu_count == 0:
             continue
         score = _compute_score(node, job_type, {

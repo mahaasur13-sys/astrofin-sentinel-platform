@@ -122,9 +122,7 @@ class HTMLReportGenerator:
 
     def _format_overfit(self, report) -> str:
         if not report:
-            return (
-                "<tr><td colspan='4' class='text-muted'>No WFA data available</td></tr>"
-            )
+            return "<tr><td colspan='4' class='text-muted'>No WFA data available</td></tr>"
         try:
             flag = getattr(report, "overall_overfit_flag", False)
             splits = getattr(report, "overfit_splits", 0)
@@ -162,9 +160,7 @@ class HTMLReportGenerator:
 
     def _strategies_table(self, elites: list[Any]) -> str:
         if not elites:
-            return (
-                "<tr><td colspan='7' class='text-muted'>No elite strategies</td></tr>"
-            )
+            return "<tr><td colspan='7' class='text-muted'>No elite strategies</td></tr>"
         rows = ""
         for rank, e in enumerate(elites[:20], 1):
             ev = getattr(e, "evaluation", None)

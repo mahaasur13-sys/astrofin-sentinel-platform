@@ -24,8 +24,6 @@ Design:
     - All DBs in scope: core/history.db, backtest/metrics_history.db
 """
 
-from __future__ import annotations
-
 import argparse
 import re
 import sqlite3
@@ -95,9 +93,7 @@ def get_all_versions(db_path: Path) -> list[int]:
         return []
     conn = sqlite3.connect(db_path)
     try:
-        rows = conn.execute(
-            f"SELECT version FROM {_VERSION_TABLE} ORDER BY version"
-        ).fetchall()
+        rows = conn.execute(f"SELECT version FROM {_VERSION_TABLE} ORDER BY version").fetchall()
         return [r[0] for r in rows]
     finally:
         conn.close()
@@ -118,9 +114,7 @@ def apply_migration(db_path: Path, migration: dict, simulate: bool = False) -> b
     )
 
     if simulate:
-        print(
-            f"  [SIMULATE] Would apply: v{migration['version']} — {migration['name']}"
-        )
+        print(f"  [SIMULATE] Would apply: v{migration['version']} — {migration['name']}")
         return True
 
     conn = sqlite3.connect(db_path)
@@ -152,9 +146,7 @@ def cmd_status() -> None:
         version = get_version(path)
         applied = get_all_versions(path)
         status_icon = "🟢" if version == _latest() else "🟡"
-        print(
-            f"  {status_icon} {name}: v{version} / {_latest()} applied={applied or '—'}"
-        )
+        print(f"  {status_icon} {name}: v{version} / {_latest()} applied={applied or '—'}")
 
 
 def cmd_plan() -> None:
@@ -216,9 +208,7 @@ def cmd_init_single(db_key: str) -> None:
     cur = get_version(path)
     if cur > 0:
         print(f"  ⚠️  DB already has schema v{cur}. Re-initialising from scratch.")
-        backup = path.with_suffix(
-            ".db.backup_{}".format(datetime.now().strftime("%Y%m%d%H%M%S"))
-        )
+        backup = path.with_suffix(".db.backup_{}".format(datetime.now().strftime("%Y%m%d%H%M%S")))
         path.rename(backup)
         print(f"  → Renamed old DB to {backup}")
 
@@ -235,18 +225,14 @@ def cmd_rollback(version: int) -> None:
     Rollback: recreate DB from scratch at specified version.
     This is pragmatic for SQLite — no DROP COLUMN support.
     """
-    print(
-        f"\n⚠️  Rollback to v{version} for SQLite = re-bootstrap from v0 + apply through v{version}"
-    )
+    print(f"\n⚠️  Rollback to v{version} for SQLite = re-bootstrap from v0 + apply through v{version}")
     for name, path in DBs.items():
         cur = get_version(path)
         if cur <= version:
             print(f"  {name}: already at v{cur} — nothing to do")
             continue
         # Backup
-        backup = path.with_suffix(
-            f".rollback_v{version}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        )
+        backup = path.with_suffix(f".rollback_v{version}_{datetime.now().strftime('%Y%m%d%H%M%S')}")
         if path.exists():
             path.rename(backup)
             print(f"  → Backed up {name} to {backup}")
@@ -269,15 +255,9 @@ def _latest() -> int:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="AstroFin Sentinel V5 — Schema Migration Runner"
-    )
-    parser.add_argument(
-        "--status", action="store_true", help="Show current schema version per DB"
-    )
-    parser.add_argument(
-        "--check", action="store_true", help="Exit 0 if all DBs are current"
-    )
+    parser = argparse.ArgumentParser(description="AstroFin Sentinel V5 — Schema Migration Runner")
+    parser.add_argument("--status", action="store_true", help="Show current schema version per DB")
+    parser.add_argument("--check", action="store_true", help="Exit 0 if all DBs are current")
     parser.add_argument("--plan", action="store_true", help="Show pending migrations")
     parser.add_argument(
         "--dry-run",

@@ -3,8 +3,9 @@
 AI Scheduler v2 — Scoring Engine
 Computes weighted scores for node selection based on live metrics.
 """
-
+from typing import Dict
 from .metrics import get_node_metrics
+
 
 WEIGHTS = {
     "gpu": 0.50,
@@ -15,7 +16,7 @@ WEIGHTS = {
 }
 
 
-def score_node(node: str, job_type: str = "gpu", extra_weights: dict = None) -> float:
+def score_node(node: str, job_type: str = "gpu", extra_weights: Dict = None) -> float:
     """
     Compute suitability score for a node.
     Higher = better. Range approximately 0-100.
@@ -56,7 +57,7 @@ def score_node(node: str, job_type: str = "gpu", extra_weights: dict = None) -> 
     return round(base_score, 2)
 
 
-def rank_nodes(nodes: list, job_type: str = "gpu") -> dict[str, float]:
+def rank_nodes(nodes: list, job_type: str = "gpu") -> Dict[str, float]:
     """Return dict of node -> score, sorted descending."""
     results = {}
     for n in nodes:

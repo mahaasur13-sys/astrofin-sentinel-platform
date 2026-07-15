@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import subprocess
 import sys
 import time
@@ -31,9 +29,11 @@ def test_with_metrics_flag_registers_metrics():
     """
     from prometheus_client import REGISTRY, generate_latest
 
-    from tools.metrics_server import REQUEST_COUNT
-
-    REQUEST_COUNT._value.get() if hasattr(REQUEST_COUNT, "_value") else 0
+    # REQUEST_COUNT has labels (method, endpoint, status); touching it with
+    # .inc() without labels raises. We only need the import to succeed and
+    # the metric to be registered. The real assertion checks the /metrics
+    # output below.
+    from tools.metrics_server import REQUEST_COUNT  # noqa: F401
 
     proc = subprocess.Popen(
         [
@@ -57,6 +57,4 @@ def test_with_metrics_flag_registers_metrics():
     # (даже если оркестратор упал, сервер метрик остаётся в процессе и вызовет инкремент).
     # Здесь проверяем, что метрики с префиксом astrofin_ зарегистрированы.
     output = generate_latest(REGISTRY).decode()
-    assert (
-        "astrofin_requests_total" in output
-    ), "Metrics must contain astrofin_requests_total"
+    assert "astrofin_requests_total" in output, "Metrics must contain astrofin_requests_total"

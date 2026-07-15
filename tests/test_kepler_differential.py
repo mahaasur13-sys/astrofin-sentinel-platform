@@ -4,8 +4,6 @@ tests/test_kepler_differential.py — ATOM-STEP-3: Differential Testing (Swiss E
 Differential tests: pure Keplerian (core/kepler.py) vs Swiss Ephemeris DE405.
 """
 
-from __future__ import annotations
-
 import math
 import sys
 from pathlib import Path
@@ -90,9 +88,7 @@ class TestDifferentialSwissEphemeris:
         s_lon = _eph.calculate_planet(body, jd).longitude
         delta_deg = angular_sep(k_lon, s_lon)
 
-        assert (
-            delta_deg < MAX_CATASTROPHIC_DEG
-        ), f"{body} JD={jd}: catastrophic Δ={delta_deg:.2f}°"
+        assert delta_deg < MAX_CATASTROPHIC_DEG, f"{body} JD={jd}: catastrophic Δ={delta_deg:.2f}°"
 
     # ─── Test 4: Keplerian periodicity (self-consistency) ─────────────
 
@@ -117,9 +113,7 @@ class TestDifferentialSwissEphemeris:
         lon1 = orbit.heliocentric_longitude(jd1)
 
         delta = angular_sep(lon0, lon1)
-        assert (
-            delta < 0.5
-        ), f"{body}: periodicity broken, Δ={delta:.4f}° after {orbit.elements.orbital_period:.2f} days"
+        assert delta < 0.5, f"{body}: periodicity broken, Δ={delta:.4f}° after {orbit.elements.orbital_period:.2f} days"
 
     # ─── Test 5: Earth-Sun radius in [0.9, 1.1] AU ───────────────────
 
@@ -148,9 +142,7 @@ class TestDifferentialSwissEphemeris:
             "true_anomaly",
         ]:
             val = getattr(k_result, field)
-            assert not (
-                math.isnan(val) or math.isinf(val)
-            ), f"Kepler NaN/Inf: {field} for {body} at JD={jd}"
+            assert not (math.isnan(val) or math.isinf(val)), f"Kepler NaN/Inf: {field} for {body} at JD={jd}"
 
         s_result = _eph.calculate_planet(body, jd)
         assert not (math.isnan(s_result.longitude) or math.isinf(s_result.longitude))
@@ -175,9 +167,7 @@ class TestDifferentialSwissEphemeris:
         r_peri = p / (1.0 + e * math.cos(math.radians(0.0)))
         r_aph = p / (1.0 + e * math.cos(math.radians(180.0)))
 
-        assert (
-            r_peri < r_aph
-        ), f"{body}: perihelion {r_peri:.4f} >= aphelion {r_aph:.4f}"
+        assert r_peri < r_aph, f"{body}: perihelion {r_peri:.4f} >= aphelion {r_aph:.4f}"
         assert abs(r_peri - a * (1 - e)) < 0.001
 
 

@@ -1,6 +1,5 @@
 """Tests for MCP Adapter"""
 
-from __future__ import annotations
 import json
 import pytest
 from pathlib import Path
@@ -46,11 +45,7 @@ class TestMCPAdapter:
     def test_wrap_tool(self):
         """Test tool wrapping."""
         adapter = MCPAdapter()
-        tool_def = {
-            "name": "test_tool",
-            "description": "A test tool",
-            "inputSchema": {"type": "object"},
-        }
+        tool_def = {"name": "test_tool", "description": "A test tool", "inputSchema": {"type": "object"}}
         wrapped = adapter.wrap_tool(tool_def)
         assert wrapped["name"] == "test_tool"
         assert wrapped["description"] == "A test tool"

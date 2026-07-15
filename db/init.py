@@ -8,9 +8,6 @@ Features:
 - Idempotent: safe to run multiple times
 """
 
-from __future__ import annotations
-
-
 import logging
 from pathlib import Path
 
@@ -74,9 +71,7 @@ def init_schema_if_needed() -> bool:
         existing = inspector.get_table_names()
 
         if existing:
-            logger.info(
-                f"[DB-INIT] PostgreSQL tables already exist ({len(existing)} tables)"
-            )
+            logger.info(f"[DB-INIT] PostgreSQL tables already exist ({len(existing)} tables)")
             return True
 
         # Try SQLAlchemy create_all first

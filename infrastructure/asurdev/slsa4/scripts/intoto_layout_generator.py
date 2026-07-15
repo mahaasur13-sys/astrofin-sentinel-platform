@@ -6,17 +6,12 @@ CVG + LCCP SLSA-4 Production Pipeline
 Generates in-toto attestations for multi-step supply chain.
 Supports SLSA v1 provenance + in-toto Link/Layout metadata.
 """
-import datetime
-import hashlib
-import json
-import os
-import sys
+import json, hashlib, datetime, os, sys
 
 HOME = os.environ.get('HOME', '/root')
 
 def h(data):
-    if isinstance(data, str):
-        data = data.encode()
+    if isinstance(data, str): data = data.encode()
     return hashlib.sha256(data).hexdigest()
 
 def generate_in_toto_link(name: str, materials: dict, products: dict, command: list, env: dict, return_value: int = 0) -> dict:

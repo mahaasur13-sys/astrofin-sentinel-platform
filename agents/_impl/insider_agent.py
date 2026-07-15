@@ -6,18 +6,10 @@ from __future__ import annotations
 
 import logging
 
-from agents._impl.ephemeris_decorator import (
-    EphemerisUnavailableError,
-    require_ephemeris,
-)
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
-from core.base_agent import (
-    EPHEMERIS_UNAVAILABLE,
-    UNKNOWN,
-    AgentResponse,
-    BaseAgent,
-    SignalDirection,
-)
+
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -190,8 +182,3 @@ async def run_insider_agent(state: dict) -> dict:
     agent = InsiderAgent()
     result = await agent.analyze(state)
     return {"insider_signal": result.to_dict()}
-
-
-def create() -> InsiderAgent:
-    """Factory for 6-fn test contract."""
-    return InsiderAgent()

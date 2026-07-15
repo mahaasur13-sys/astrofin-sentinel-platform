@@ -8,9 +8,8 @@ Transforms human-readable constraints into executable DAG guards:
 Every constraint becomes: PRE → (constraint_check) → POST pipeline.
 """
 from __future__ import annotations
-
 import uuid
-
+from typing import Any
 
 class ConstraintType:
     MAX_RISK = "max_risk"

@@ -16,6 +16,7 @@ from __future__ import annotations
 import logging
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from typing import Callable
 
 LOG = logging.getLogger("operator.health")
 

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 """db/session.py — PostgreSQL Session Management (ATOM-DB-MIGRATION)
@@ -112,14 +110,10 @@ def wait_for_postgres(
             logger.info(f"[DB] PostgreSQL connected on attempt {attempt}")
             return True
         except Exception as e:
-            logger.warning(
-                f"[DB] PostgreSQL not ready (attempt {attempt}/{max_retries}): {e}"
-            )
+            logger.warning(f"[DB] PostgreSQL not ready (attempt {attempt}/{max_retries}): {e}")
             if attempt < max_retries:
                 time.sleep(retry_delay)
-    logger.error(
-        "[DB] PostgreSQL unavailable after max retries — using SQLite fallback"
-    )
+    logger.error("[DB] PostgreSQL unavailable after max retries — using SQLite fallback")
     return False
 
 

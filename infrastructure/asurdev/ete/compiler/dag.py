@@ -6,12 +6,10 @@ Translates all incoming jobs into deterministic DAGs.
 Every execution unit becomes a node with explicit dependencies.
 """
 from __future__ import annotations
-
 import uuid
+from typing import Any
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
-
 
 class NodeType(Enum):
     AGENT = "agent"
@@ -25,11 +23,7 @@ class ExecutionBackend(Enum):
     EDGE = "edge"
 
 class Layer(Enum):
-    L4 = "L4"
-    L5 = "L5"
-    L6 = "L6"
-    L8 = "L8"
-    L9 = "L9"
+    L4 = "L4"; L5 = "L5"; L6 = "L6"; L8 = "L8"; L9 = "L9"
 
 @dataclass
 class DAGNode:

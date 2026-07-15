@@ -4,7 +4,9 @@ Beam Search Candidate Generator.
 Generates K-best candidates using ML-scored beam search.
 Avoids O(N×M) explosion by pruning at each level.
 """
+from typing import Optional
 from dataclasses import dataclass
+import numpy as np
 
 
 @dataclass
@@ -25,7 +27,7 @@ class CandidateGenerator:
     Stage 3: Constraint filtering — remove infeasible
     """
 
-    def __init__(self, constraint_engine, ml_predictor=None, config: dict | None = None):
+    def __init__(self, constraint_engine, ml_predictor=None, config: Optional[dict] = None):
         self.constraints = constraint_engine
         self.ml = ml_predictor
         self.config = config or {}
@@ -47,7 +49,7 @@ class CandidateGenerator:
         for job in jobs:
             job_id = job.get("id", "?")
             requested_gpu = job.get("gpu_mem_gb", 8.0)
-            job.get("partition", "default")
+            partition = job.get("partition", "default")
 
             # Step 1: Get feasible nodes (hard constraints only)
             feasible = self.constraints.get_feasible_nodes(job)

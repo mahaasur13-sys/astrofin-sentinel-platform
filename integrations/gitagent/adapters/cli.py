@@ -3,9 +3,6 @@ GitAgent CLI Adapter
 Command-line interface for exporting and importing agents with MCP tool integration.
 """
 
-from __future__ import annotations
-
-
 import argparse
 import json
 from pathlib import Path
@@ -13,14 +10,13 @@ from typing import Any, Optional
 
 from .mcp_adapter import MCPAdapter
 
+
 # =============================================================================
 # Agent Export/Import Functions
 # =============================================================================
 
 
-def export_agent(
-    agent_name: str, output_dir: str = "./exported_agents"
-) -> dict[str, Any]:
+def export_agent(agent_name: str, output_dir: str = "./exported_agents") -> dict[str, Any]:
     """
     Export an agent from AstroFinSentinelV5 to GitAgent format.
 
@@ -152,9 +148,7 @@ def mcp_search_cli(query: str, category: Optional[str] = None) -> list[dict[str,
     return adapter.mcp_search(query, category=category)
 
 
-def mcp_install_cli(
-    server_name: str, config: Optional[dict[str, Any]] = None
-) -> dict[str, Any]:
+def mcp_install_cli(server_name: str, config: Optional[dict[str, Any]] = None) -> dict[str, Any]:
     """
     Install an MCP server from Smithery.
 
@@ -197,19 +191,13 @@ def mcp_tools_cli() -> list[dict[str, Any]]:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="GitAgent CLI - Agent export/import with MCP integration"
-    )
+    parser = argparse.ArgumentParser(description="GitAgent CLI - Agent export/import with MCP integration")
     subparsers = parser.add_subparsers(dest="command", help="Commands")
 
     # Export command
-    export_parser = subparsers.add_parser(
-        "export-agent", help="Export agent from AstroFinSentinelV5"
-    )
+    export_parser = subparsers.add_parser("export-agent", help="Export agent from AstroFinSentinelV5")
     export_parser.add_argument("agent_name", help="Name of agent to export")
-    export_parser.add_argument(
-        "--output", "-o", default="./exported_agents", help="Output directory"
-    )
+    export_parser.add_argument("--output", "-o", default="./exported_agents", help="Output directory")
 
     # Import command
     import_parser = subparsers.add_parser("import-agent", help="Import agent from file")
@@ -219,31 +207,19 @@ def main():
     subparsers.add_parser("list-agents", help="List all available agents")
 
     # MCP commands
-    mcp_search_parser = subparsers.add_parser(
-        "mcp-search", help="Search Smithery MCP registry"
-    )
+    mcp_search_parser = subparsers.add_parser("mcp-search", help="Search Smithery MCP registry")
     mcp_search_parser.add_argument("query", help="Search query")
-    mcp_search_parser.add_argument(
-        "--category", "-c", help="Category filter (financial, crypto, news, calendar)"
-    )
+    mcp_search_parser.add_argument("--category", "-c", help="Category filter (financial, crypto, news, calendar)")
 
-    mcp_install_parser = subparsers.add_parser(
-        "mcp-install", help="Install MCP server from Smithery"
-    )
+    mcp_install_parser = subparsers.add_parser("mcp-install", help="Install MCP server from Smithery")
     mcp_install_parser.add_argument("server_name", help="Server name to install")
     mcp_install_parser.add_argument("--config", help="JSON config file")
 
-    mcp_list_parser = subparsers.add_parser(
-        "mcp-list", help="List installed MCP servers"
-    )
+    subparsers.add_parser("mcp-list", help="List installed MCP servers")
 
-    mcp_tools_parser = subparsers.add_parser(
-        "mcp-list-tools", help="List tools from MCP servers"
-    )
+    subparsers.add_parser("mcp-list-tools", help="List tools from MCP servers")
 
-    mcp_recommend_parser = subparsers.add_parser(
-        "mcp-recommended", help="Show recommended MCP servers"
-    )
+    subparsers.add_parser("mcp-recommended", help="Show recommended MCP servers")
 
     args = parser.parse_args()
 

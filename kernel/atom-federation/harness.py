@@ -1,5 +1,3 @@
-# ruff: noqa: F821
-import time
 def run(self) -> ChaosResult:
     start_ts = time.time()
 

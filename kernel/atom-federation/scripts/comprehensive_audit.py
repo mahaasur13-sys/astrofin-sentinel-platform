@@ -1,4 +1,3 @@
-# ruff: noqa: F821
 #!/usr/bin/env python3
 """
 comprehensive_audit.py — Full system audit for atom-federation-os v9.0+P6+P0.4
@@ -51,14 +50,15 @@ def audit_L1_algebra():
     try:
         import subprocess
         repo = pathlib.Path(__file__).parent.parent
-        subprocess.run(['python3', str(repo/'scripts'/'execution_algebra_validator.py'), '--repo', str(repo)], capture_output=True, text=True)
+        r = subprocess.run(['python3', str(repo/'scripts'/'execution_algebra_validator.py'), '--repo', str(repo)], capture_output=True, text=True)
+        alg_ok = r.returncode == 0
         v.discover_python_files()
         v.find_gate_presence()
         eps = v.find_execution_entry_points()
         bypasses = v.check_bypass_paths(eps, v.gate_presence)
         exposed = v.check_actuator_exposure()
         # Count G1–G10 presence
-        {g.gate.id: g.exists for g in v.gate_presence}
+        gpresent = {g.gate.id: g.exists for g in v.gate_presence}
         missing = [g.gate.id for g in v.gate_presence if g.gate.required and not g.exists]
         if missing:
             log("FAIL", "L1-Algebra", f"Missing gates: {missing}")
@@ -219,9 +219,10 @@ def audit_L7_actuator():
 # ═══════════════════════════════════════════════════════════════
 def audit_L8_entry_surface():
     log("INFO", "L8-EntrySurface", "═" * 40)
+    CANONICAL_ENTRY = "ExecutionGateway.execute"
     repo = pathlib.Path(__file__).parent.parent
     spec_path = repo / "formal_model" / "dfa_spec.json"
-    json.load(open(spec_path)) if spec_path.exists() else {}
+    spec = json.load(open(spec_path)) if spec_path.exists() else {}
     # Read hidden entry points from regression report
     report_path = repo / "formal_model" / "dfa_diff_report.json"
     if not report_path.exists():

@@ -32,9 +32,7 @@ SECTION_RE = re.compile(r"^##\s+(KI-\d+)\s*[-]*\s*(.+)$", re.MULTILINE)
 # Russian 'Zatронутые файлы:' (cyrillic 'За'). The 'За' prefix is
 # intentionally avoided here to keep this file ASCII; the section
 # body itself is the fallback.
-AFFECTED_RE = re.compile(
-    r"\*(?:Affected|Затронутые файлы|Files?)\s*:?\*?\s*\n([^*]+)", re.IGNORECASE
-)
+AFFECTED_RE = re.compile(r"\*(?:Affected|Затронутые файлы|Files?)\s*:?\*?\s*\n([^*]+)", re.IGNORECASE)
 
 # Match backtick-quoted file paths inside a string.
 PATH_RE = re.compile(r"`([\w./\-]+\.[\w]+)`")

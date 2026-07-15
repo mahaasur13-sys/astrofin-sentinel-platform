@@ -6,22 +6,21 @@ Patch 2: Idempotent execution + has_trace()
 Patch 3: Enriched projections (node_graph_resolution + execution_order)
 """
 from __future__ import annotations
-
 import ast
 import inspect
 import sys
 
-from acos.events.event import Event
 from acos.events.event_log import EventLog
+from acos.events.event import Event
 from acos.events.types import EventType
+from acos.state.reducer import StateReducer
 from acos.eventsourced.engine import EventSourcedEngine
 from acos.projection.raw import RawEventProjection
 from acos.projection.state import StateProjection
-from acos.recorder.recorder import DeterministicTraceRecorder
-from acos.state.reducer import StateReducer
-from acos.storage.memory_backend import MemoryTraceStorage
 from acos.storage.schema import TraceRecord
-from acos.validator.contract_validator import DAGValidator
+from acos.validator.contract_validator import DAGValidator, ContractViolation
+from acos.storage.memory_backend import MemoryTraceStorage
+from acos.recorder.recorder import DeterministicTraceRecorder
 
 
 def test_inv1():
@@ -50,7 +49,7 @@ def test_inv2():
                 if isinstance(func.value, ast.Name) and func.value.id == "self":
                     print(f"  [FAIL] INV2 — Found self.{func.attr}() call")
                     return False
-    print("  [OK] INV2 — Engine write-side purity: no self.emit/rebuild/get_trace")
+    print(f"  [OK] INV2 — Engine write-side purity: no self.emit/rebuild/get_trace")
     return True
 
 
@@ -64,7 +63,7 @@ def test_inv3():
                 if isinstance(func.value, ast.Name) and func.value.id == "self":
                     print(f"  [FAIL] INV3 — Found self.{func.attr}() call in Reducer")
                     return False
-    print("  [OK] INV3 — Reducer read-side purity: no self.emit/append")
+    print(f"  [OK] INV3 — Reducer read-side purity: no self.emit/append")
     return True
 
 
@@ -149,17 +148,17 @@ def test_patch1_dag_validator():
     valid = {"nodes": [{"id": "a"}, {"id": "b"}], "edges": [{"source": "a", "target": "b"}]}
     v_ok = DAGValidator.validate_dag(valid)
     ok_valid = len(v_ok) == 0
-
+    
     # Invalid: duplicate node ID
     dup = {"nodes": [{"id": "a"}, {"id": "a"}], "edges": []}
     v_dup = DAGValidator.validate_dag(dup)
     ok_dup = len(v_dup) == 1 and "Duplicate" in v_dup[0].message
-
+    
     # Invalid: orphan edge
     orphan = {"nodes": [{"id": "a"}], "edges": [{"source": "a", "target": "b"}]}
     v_orphan = DAGValidator.validate_dag(orphan)
     ok_orphan = len(v_orphan) == 1 and "not found" in v_orphan[0].message
-
+    
     ok = ok_valid and ok_dup and ok_orphan
     print(f"  [{'OK' if ok else 'FAIL'}] PATCH1 — DAGValidator: valid={ok_valid}, dup={ok_dup}, orphan={ok_orphan}")
     return ok
@@ -170,21 +169,21 @@ def test_patch2_idempotent_engine():
     storage = MemoryTraceStorage()
     recorder = DeterministicTraceRecorder(storage)
     log = EventLog()
-
+    
     # Use the idempotent engine with recorder
     from acos.validators.engine_v6 import EventSourcedEngine as IdempotentEngine
     engine = IdempotentEngine(log, recorder)
-
+    
     dag = {"nodes": [{"id": "x"}], "edges": []}
-
+    
     # First execution
     t1 = engine.execute(dag, {}, "idemo")
     events_after_first = log.get_event_count()
-
+    
     # Second execution — should be IDEMPOTENT (skip)
     t2 = engine.execute(dag, {}, "idemo")
     events_after_second = log.get_event_count()
-
+    
     # Events should NOT increase on second call
     ok = (t1 == t2 == "idemo") and (events_after_first == events_after_second)
     print(f"  [{'OK' if ok else 'FAIL'}] PATCH2 — Idempotent: trace_id={t1}, events unchanged: {events_after_first}=={events_after_second}")
@@ -200,12 +199,12 @@ def test_patch3_enriched_projection():
     log.emit("p3", EventType.NODE_EXECUTED, {"node_id": "n1"})
     log.emit("p3", EventType.NODE_SCHEDULED, {"node_id": "n2"})
     log.emit("p3", EventType.NODE_EXECUTED, {"node_id": "n2"})
-
+    
     enriched = StateProjection(log).get_enriched_trace("p3")
-
+    
     ngr = enriched.get("node_graph_resolution", [])
     eo = enriched.get("execution_order", [])
-
+    
     ok = (ngr == ["n1", "n2"]) and (len(eo) == 4) and (enriched["status"] == "COMPLETED")
     print(f"  [{'OK' if ok else 'FAIL'}] PATCH3 — Enriched: ngr={ngr}, exec_order={len(eo)} events")
     return ok

@@ -87,7 +87,7 @@ class TWAPExecutor:
         qty: float,
         config: TWAPConfig | None = None,
         current_price: float = 0.0,
-        _get_market_price_fn=None,
+        get_market_price_fn=None,
     ) -> TWAPExecutionReport:
         cfg = config or TWAPConfig()
         price = current_price or self.ob_sim.mid_price
@@ -112,9 +112,7 @@ class TWAPExecutor:
         for i in range(cfg.num_slices):
             slice_price = price * (1 + 0.0005 * ((hash((now, i)) % 1000) - 500) / 500)
 
-            impact = self.ob_sim.estimate_market_impact(
-                side, slice_qty, num_slices=1, base_price=slice_price
-            )
+            impact = self.ob_sim.estimate_market_impact(side, slice_qty, num_slices=1, base_price=slice_price)
 
             slip = self.slippage.calculate(
                 side,
@@ -174,15 +172,9 @@ class TWAPExecutor:
         filled = [s for s in report.slices if s.filled]
         report.filled_qty = sum(s.qty for s in filled)
         report.remaining_qty = qty - report.filled_qty
-        report.avg_price = (
-            sum(s.exec_price * s.qty for s in filled) / report.filled_qty
-            if report.filled_qty > 0
-            else 0
-        )
+        report.avg_price = sum(s.exec_price * s.qty for s in filled) / report.filled_qty if report.filled_qty > 0 else 0
         report.vwap = report.avg_price
-        report.avg_slippage_bps = (
-            sum(s.slippage_bps for s in filled) / len(filled) if filled else 0
-        )
+        report.avg_slippage_bps = sum(s.slippage_bps for s in filled) / len(filled) if filled else 0
         report.total_slippage_cost = total_slippage_cost
         report.total_commission = total_commission
         report.total_cost = total_cost
@@ -190,9 +182,7 @@ class TWAPExecutor:
         report.execution_prices = exec_prices
 
         if report.price_start > 0:
-            report.price_impact_bps = (
-                abs(report.avg_price - report.price_start) / report.price_start * 10000
-            )
+            report.price_impact_bps = abs(report.avg_price - report.price_start) / report.price_start * 10000
 
         return report
 
@@ -204,15 +194,11 @@ if __name__ == "__main__":
     print("=== TWAP Execution ===")
     executor = TWAPExecutor()
     cfg = TWAPConfig(num_slices=5, slice_duration_seconds=10)
-    report = executor.execute(
-        "BTC/USDT", "buy", qty=1.0, current_price=50000, config=cfg
-    )
+    report = executor.execute("BTC/USDT", "buy", qty=1.0, current_price=50000, config=cfg)
     print(f"  {report.summary()}")
     for s in report.slices:
         status = "FILLED" if s.filled else "ABORTED"
         print(
             f"    Slice {s.slice_num}: {status} @ ${s.exec_price:.2f}, slip={s.slippage_bps:.2f}bps, cost=${s.slippage_cost:.2f}"
         )
-    print(
-        f"  Total cost: ${report.total_cost:.2f} (commissions ${report.total_commission:.2f})"
-    )
+    print(f"  Total cost: ${report.total_cost:.2f} (commissions ${report.total_commission:.2f})")

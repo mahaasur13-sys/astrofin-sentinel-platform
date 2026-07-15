@@ -27,8 +27,6 @@ Usage:
       signal = SignalDirection.AVOID
 """
 
-from __future__ import annotations
-
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -185,9 +183,7 @@ class VolatilityEngine:
         elif hasattr(self, "_atr_pct"):
             resolved_atr_pct = self._atr_pct
         else:
-            logger.warning(
-                f"[VolatilityEngine] No ATR data for {symbol}, using NORMAL regime"
-            )
+            logger.warning(f"[VolatilityEngine] No ATR data for {symbol}, using NORMAL regime")
             resolved_atr_pct = 0.020
 
         # Resolve regime
@@ -201,9 +197,7 @@ class VolatilityEngine:
         # Kelly
         kelly_raw = self._kelly(self.win_rate, self.avg_win_pct, self.avg_loss_pct)
         kelly_mult = REGIME_POSITION_KELLY_MULT[resolved_regime]
-        kelly_adjusted = max(
-            self.MIN_KELLY, min(kelly_raw * kelly_mult, self.MAX_KELLY)
-        )
+        kelly_adjusted = max(self.MIN_KELLY, min(kelly_raw * kelly_mult, self.MAX_KELLY))
 
         # Risk pct
         risk_pct = REGIME_RISK_PCT[resolved_regime]
@@ -287,9 +281,7 @@ def get_volatility_risk(
     if regime:
         engine = VolatilityEngine.from_regime(regime)
 
-    risk = engine.analyze(
-        symbol=symbol, price=price, atr=atr, atr_pct=atr_pct, regime=regime
-    )
+    risk = engine.analyze(symbol=symbol, price=price, atr=atr, atr_pct=atr_pct, regime=regime)
     _volatility_cache[cache_key] = (price, risk)
     return risk
 
@@ -322,17 +314,13 @@ def calculate_atr(highs_lows_closes: list[list[float]], period: int = 14) -> flo
 
 
 def atr_from_binance(symbol: str, interval: str = "1d", limit: int = 30) -> float:
-    """Fetch Binance klines and compute ATR."""
+    """Fetch Binance klines and compute ATR via data_room blueprint (R3)."""
     try:
-        import requests
-
-        url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}&interval={interval}&limit={limit}"
-        data = requests.get(url, timeout=10).json()
-        klines = [
-            [float(x[2]), float(x[3]), float(x[4])] for x in data
-        ]  # high, low, close
-        atr = calculate_atr(klines)
-        return atr
+        from data_room import blueprint as dr_blueprint
+        closes = dr_blueprint.get_klines(symbol, interval=interval, limit=limit)
+        # derive klines with high/low proxies from close (best-effort for ATR fallback)
+        klines = [[c, c, c] for c in closes]
+        return calculate_atr(klines)
     except Exception as e:
         logger.warning(f"[VolatilityEngine] Failed to fetch ATR for {symbol}: {e}")
         return 0.0

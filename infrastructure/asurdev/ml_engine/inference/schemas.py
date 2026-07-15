@@ -6,6 +6,7 @@ All fields map 1:1 to raw metrics used by build_advanced_features().
 """
 from __future__ import annotations
 
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -13,7 +14,7 @@ class MetricsInput(BaseModel):
     """Raw system metrics — single snapshot from a node."""
 
     # === Time & identity ===
-    timestamp: float | None = None  # unix timestamp, auto-filled if missing
+    timestamp: Optional[float] = None  # unix timestamp, auto-filled if missing
     node_id: str = "unknown"
 
     # === CPU ===
@@ -27,8 +28,8 @@ class MetricsInput(BaseModel):
     # === GPU ===
     gpu_util: float = Field(0.0, ge=0.0, le=100.0, description="GPU utilization %")
     gpu_mem_used_pct: float = Field(0.0, ge=0.0, le=100.0, description="GPU memory used %")
-    gpu_temp: float | None = Field(None, ge=0.0, le=120.0, description="GPU temperature °C")
-    gpu_power_draw: float | None = Field(None, ge=0.0, description="GPU power draw W")
+    gpu_temp: Optional[float] = Field(None, ge=0.0, le=120.0, description="GPU temperature °C")
+    gpu_power_draw: Optional[float] = Field(None, ge=0.0, description="GPU power draw W")
 
     # === Disk I/O ===
     disk_read_bytes_sec: float = Field(0.0, ge=0.0, description="Disk read bytes/s")
@@ -45,13 +46,13 @@ class MetricsInput(BaseModel):
 
     # === Process stats ===
     num_processes: int = Field(1, ge=1, description="Number of running processes")
-    open_files: int | None = Field(None, ge=0, description="Open file descriptors")
+    open_files: Optional[int] = Field(None, ge=0, description="Open file descriptors")
 
     # === Historical lag features (optional — auto-filled by API if not provided) ===
-    cpu_load_lag1: float | None = None
-    mem_used_pct_lag1: float | None = None
-    gpu_util_lag1: float | None = None
-    disk_usage_pct_lag1: float | None = None
+    cpu_load_lag1: Optional[float] = None
+    mem_used_pct_lag1: Optional[float] = None
+    gpu_util_lag1: Optional[float] = None
+    disk_usage_pct_lag1: Optional[float] = None
 
     class Config:
         json_schema_extra = {
@@ -84,7 +85,7 @@ class PredictionResponse(BaseModel):
     risk_score: float = Field(..., ge=0.0, le=1.0, description="Probability of failure (0-1)")
     status: str = Field("ok", description="Status: 'ok', 'error', 'degraded'")
     prediction_id: str = Field(..., description="Unique ID for this prediction (for debugging)")
-    explain_url: str | None = Field(
+    explain_url: Optional[str] = Field(
         None, description="URL to get SHAP explanations (if explain=true)"
     )
     latency_ms: float = Field(..., description="Prediction latency in milliseconds")
@@ -115,7 +116,7 @@ class HealthResponse(BaseModel):
     status: str = Field("alive", description="'alive' or 'degraded' or 'dead'")
     model_loaded: bool
     feature_count: int
-    model_version: str | None = None
+    model_version: Optional[str] = None
     uptime_seconds: float
 
 

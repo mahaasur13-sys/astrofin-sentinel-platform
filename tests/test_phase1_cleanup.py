@@ -1,7 +1,5 @@
 """Phase 1 cleanup validation tests."""
 
-from __future__ import annotations
-
 import importlib
 import pytest
 

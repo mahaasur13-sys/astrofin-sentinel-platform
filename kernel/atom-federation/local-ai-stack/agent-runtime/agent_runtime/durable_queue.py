@@ -164,7 +164,7 @@ class DurableTaskQueue:
         r = await self._get_redis()
 
         # XADD with MAXLEN to keep stream bounded
-        await r.xadd(
+        stream_id = await r.xadd(
             self._stream_key,
             {
                 "task_id": task_id,
@@ -238,7 +238,7 @@ class DurableTaskQueue:
                     pending_ids.add(stream_id)
 
                     try:
-                        await self._process_task(handler, task)
+                        result = await self._process_task(handler, task)
                     except Exception as e:
                         print(f"[{self._worker_id}] Task {task_id} failed: {e}")
 

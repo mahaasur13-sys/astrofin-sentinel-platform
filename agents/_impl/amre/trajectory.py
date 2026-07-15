@@ -1,7 +1,5 @@
 """amre/trajectory.py — Market state + Trajectory + TrajectoryStep"""
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -56,9 +54,7 @@ def market_state_hash(ms: MarketState) -> str:
     import hashlib
 
     data = f"{ms.symbol}:{ms.price}:{ms.timeframe}:{ms.n_signals}:{ms.regime}"
-    return hashlib.md5(data.encode()).hexdigest()[
-        :12
-    ]  # nosec B324 — content hash for trajectory key, not security
+    return hashlib.md5(data.encode()).hexdigest()[:12]
 
 
 def trajectory_from_state(ms: MarketState) -> Trajectory:
@@ -93,19 +89,14 @@ def compute_trajectory_metrics(traj: Trajectory) -> TrajectoryMetrics:
         max_drawdown=round(dd, 4),
         win_rate=round(win_rate, 4),
         trade_count=len(traj.steps),
-        avg_confidence=round(
-            sum(s.confidence for s in traj.steps) / len(traj.steps), 1
-        ),
+        avg_confidence=round(sum(s.confidence for s in traj.steps) / len(traj.steps), 1),
         regime_stability=round(1.0 - dd, 4),
     )
 
 
 def trajectory_to_dict(traj: Trajectory) -> dict:
     return {
-        "steps": [
-            {"timestamp": s.timestamp, "price": s.price, "regime": s.regime}
-            for s in traj.steps
-        ],
+        "steps": [{"timestamp": s.timestamp, "price": s.price, "regime": s.regime} for s in traj.steps],
         "metadata": traj.metadata,
     }
 

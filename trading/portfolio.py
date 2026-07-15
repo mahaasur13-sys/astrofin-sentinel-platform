@@ -3,7 +3,6 @@ trading/portfolio.py — ATOM-STEP-8: Portfolio & Position Tracking
 ===============================================================
 """
 
-from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -120,15 +119,11 @@ class Portfolio:
         total_trades = self.win_count + self.loss_count
         return {
             "initial_capital": self.initial_capital,
-            "final_equity": (
-                self.equity_curve[-1] if self.equity_curve else self.initial_capital
-            ),
+            "final_equity": self.equity_curve[-1] if self.equity_curve else self.initial_capital,
             "total_return_pct": round(self.total_return, 2),
             "max_drawdown_pct": round(self.max_drawdown, 2),
             "total_trades": total_trades,
-            "win_rate_pct": (
-                round(self.win_count / total_trades * 100, 1) if total_trades > 0 else 0
-            ),
+            "win_rate_pct": round(self.win_count / total_trades * 100, 1) if total_trades > 0 else 0,
             "win_count": self.win_count,
             "loss_count": self.loss_count,
             "sharpe_ratio": round(self._sharpe(), 2),

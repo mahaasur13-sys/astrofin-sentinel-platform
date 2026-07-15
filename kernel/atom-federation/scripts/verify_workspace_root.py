@@ -55,7 +55,7 @@ def _import_with_path(name: str, *extra_paths: str) -> tuple | None:
             if extra not in sys.path:
                 sys.path.insert(0, extra)
         try:
-            importlib.import_module(name)
+            mod = importlib.import_module(name)
             hits.append((extra or "(sys.path)", name))
         except ImportError:
             pass

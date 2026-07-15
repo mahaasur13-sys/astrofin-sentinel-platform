@@ -1,7 +1,5 @@
 """backtest/atom_014_stress_test.py — ATOM-014: KARL Stress Test"""
 
-from __future__ import annotations
-
 import asyncio
 import os
 import sys
@@ -12,9 +10,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-def fetch_binance_bars(
-    symbol="BTCUSDT", interval="1h", start_ts=None, end_ts=None, limit=500
-):
+def fetch_binance_bars(symbol="BTCUSDT", interval="1h", start_ts=None, end_ts=None, limit=500):
     import requests
 
     params = {"symbol": symbol, "interval": interval, "limit": limit}
@@ -22,9 +18,7 @@ def fetch_binance_bars(
         params["startTime"] = start_ts
     if end_ts:
         params["endTime"] = end_ts
-    resp = requests.get(
-        "https://www.okx.com/api/v5/market/candles", params=params, timeout=15
-    )
+    resp = requests.get("https://www.okx.com/api/v5/market/candles", params=params, timeout=15)
     resp.raise_for_status()
     bars = []
     for b in resp.json():
@@ -81,39 +75,17 @@ def generate_synthetic_signals(price, regime, bar_idx):
     conf_base = 60 + int((price % 1000) / 10)
     signals = []
     if regime == "EXTREME":
-        signals.append(
-            make_signal("VolatilityAgent", "NEUTRAL", max(30, conf_base - 20))
-        )
+        signals.append(make_signal("VolatilityAgent", "NEUTRAL", max(30, conf_base - 20)))
     elif regime == "HIGH":
-        signals.append(
-            make_signal(
-                "TechnicalAgent", "LONG" if bar_idx % 3 == 0 else "SHORT", conf_base
-            )
-        )
+        signals.append(make_signal("TechnicalAgent", "LONG" if bar_idx % 3 == 0 else "SHORT", conf_base))
     else:
         signals.append(make_signal("TechnicalAgent", "LONG", conf_base))
-    signals.append(
-        make_signal(
-            "FundamentalAgent", "LONG" if price > 100000 else "NEUTRAL", conf_base - 5
-        )
-    )
-    signals.append(
-        make_signal(
-            "MacroAgent", "LONG" if bar_idx % 2 == 0 else "NEUTRAL", conf_base - 10
-        )
-    )
-    signals.append(
-        make_signal(
-            "SentimentAgent", "BUY" if bar_idx % 4 == 0 else "NEUTRAL", conf_base - 15
-        )
-    )
+    signals.append(make_signal("FundamentalAgent", "LONG" if price > 100000 else "NEUTRAL", conf_base - 5))
+    signals.append(make_signal("MacroAgent", "LONG" if bar_idx % 2 == 0 else "NEUTRAL", conf_base - 10))
+    signals.append(make_signal("SentimentAgent", "BUY" if bar_idx % 4 == 0 else "NEUTRAL", conf_base - 15))
     signals.append(make_signal("QuantAgent", "LONG", conf_base + 5))
     signals.append(make_signal("OptionsFlowAgent", "NEUTRAL", conf_base - 20))
-    signals.append(
-        make_signal(
-            "AstroCouncil", "LONG" if bar_idx % 5 == 0 else "NEUTRAL", conf_base - 25
-        )
-    )
+    signals.append(make_signal("AstroCouncil", "LONG" if bar_idx % 5 == 0 else "NEUTRAL", conf_base - 25))
     return signals
 
 
@@ -131,9 +103,7 @@ def bar_to_market_state(bar, bar_idx):
         "symbol": "BTCUSDT",
         "current_price": price,
         "regime": regime,
-        "timestamp": datetime.fromtimestamp(
-            bar["timestamp"] / 1000, tz=timezone.utc
-        ).isoformat(),
+        "timestamp": datetime.fromtimestamp(bar["timestamp"] / 1000, tz=timezone.utc).isoformat(),
         "session_id": f"march26_{bar_idx}",
         "n_signals": 7,
         "confidence": 65,
@@ -149,9 +119,7 @@ async def run_base_mode(bars, interval=24):
     for i in range(0, len(bars), interval):
         bar = bars[i]
         state = bar_to_market_state(bar, i)
-        state["all_signals"] = generate_synthetic_signals(
-            bar["close"], state["regime"], i
-        )
+        state["all_signals"] = generate_synthetic_signals(bar["close"], state["regime"], i)
         resp = await agent.run(state)
         results.append(
             {
@@ -189,9 +157,7 @@ async def run_karl_mode(bars, interval=24):
     for i in range(0, len(bars), interval):
         bar = bars[i]
         state = bar_to_market_state(bar, i)
-        state["all_signals"] = generate_synthetic_signals(
-            bar["close"], state["regime"], i
-        )
+        state["all_signals"] = generate_synthetic_signals(bar["close"], state["regime"], i)
         resp = await karl_agent.run(state)
         synth = resp["synthesis_result"]
         future_idx = min(i + 4, len(bars) - 1)
@@ -226,17 +192,11 @@ async def run_karl_mode(bars, interval=24):
                 "regime": state["regime"],
                 "pnl_pct": round(pnl, 4),
                 "reward": round(reward, 4),
-                "passed": (
-                    synth.get("metadata", {}).get("amre_passed", True)
-                    if synth.get("metadata")
-                    else True
-                ),
+                "passed": synth.get("metadata", {}).get("amre_passed", True) if synth.get("metadata") else True,
                 "karl_confidence": synth.get("confidence", 50),
-                "uncertainty": (
-                    synth.get("metadata", {}).get("uncertainty", {}).get("total", 0.5)
-                    if synth.get("metadata")
-                    else 0.5
-                ),
+                "uncertainty": synth.get("metadata", {}).get("uncertainty", {}).get("total", 0.5)
+                if synth.get("metadata")
+                else 0.5,
             }
         )
     return {
@@ -273,17 +233,13 @@ def compute_metrics(results):
             if rew != 0:
                 cal_errors.append(abs(conf - (1 if rew > 0 else 0)))
     cal_error = np.mean(cal_errors) if cal_errors else 0.5
-    false_corr = sum(
-        1 for r in results if r["confidence"] > 70 and r.get("reward", 0) < -0.5
-    )
+    false_corr = sum(1 for r in results if r["confidence"] > 70 and r.get("reward", 0) < -0.5)
     false_corr_rate = false_corr / len(results) if results else 0
     return {
         "total_decisions": len(results),
         "long_pct": round(len(longs) / len(results), 3),
         "short_pct": round(len(shorts) / len(results), 3),
-        "neutral_pct": round(
-            (len(results) - len(longs) - len(shorts)) / len(results), 3
-        ),
+        "neutral_pct": round((len(results) - len(longs) - len(shorts)) / len(results), 3),
         "win_rate": round(win_rate, 4),
         "sharpe_ratio": round(sharpe, 4),
         "max_drawdown": round(max_dd, 4),
@@ -302,9 +258,7 @@ async def main():
     print("[1/4] Fetching March 2026 BTC data...")
     bars = get_march_2026_bars()
     print(f"      Got {len(bars)} hourly bars")
-    print(
-        f"      Price range: {min(b['close'] for b in bars):,.0f} — {max(b['close'] for b in bars):,.0f}"
-    )
+    print(f"      Price range: {min(b['close'] for b in bars):,.0f} — {max(b['close'] for b in bars):,.0f}")
     print()
     print("[2/4] Running BASE mode (SynthesisAgent only)...")
     base_results = await run_base_mode(bars)
@@ -341,24 +295,16 @@ async def main():
         drift_q = avg(q1, "q_star") - avg(q4, "q_star")
         drift_unc = avg(q4, "uncertainty_total") - avg(q1, "uncertainty_total")
         audit_drift = {
-            "status": (
-                "stable"
-                if abs(drift_conf) < 10 and abs(drift_unc) < 0.15
-                else "degrading"
-            ),
+            "status": "stable" if abs(drift_conf) < 10 and abs(drift_unc) < 0.15 else "degrading",
             "confidence_drift": round(drift_conf, 2),
             "q_star_drift": round(drift_q, 4),
             "uncertainty_drift": round(drift_unc, 4),
             "records_total": n,
-            "high_conf_pct_late": round(
-                len([r for r in q4 if r.confidence_final >= 70]) / max(len(q4), 1), 3
-            ),
+            "high_conf_pct_late": round(len([r for r in q4 if r.confidence_final >= 70]) / max(len(q4), 1), 3),
         }
     else:
         audit_drift = {"status": "insufficient_data", "records": len(records)}
-    print(
-        f"      Status: {audit_drift.get('status')} | Conf drift: {audit_drift.get('confidence_drift', 0):+.2f}"
-    )
+    print(f"      Status: {audit_drift.get('status')} | Conf drift: {audit_drift.get('confidence_drift', 0):+.2f}")
     print()
     print("=" * 70)
     print("ATOM-014 RESULTS SUMMARY")
@@ -379,9 +325,7 @@ async def main():
         diff, sign = k - b, "+" if k - b > 0 else ""
         if key == "max_drawdown":
             diff, sign = b - k, "+" if b - k > 0 else ""
-        print(
-            f"{key.replace('_', ' ').title():<30} {b:>12.4f} {k:>12.4f} {sign}{abs(diff):>9.4f}"
-        )
+        print(f"{key.replace('_', ' ').title():<30} {b:>12.4f} {k:>12.4f} {sign}{abs(diff):>9.4f}")
     print()
     print("KARL-Specific:")
     print(f"  Audit Records:      {karl_results['audit_total']}")
@@ -399,22 +343,14 @@ async def main():
     print()
     improvements, regressions = [], []
     if karl_metrics.get("win_rate", 0) > base_metrics.get("win_rate", 0):
-        improvements.append(
-            f"Win Rate: +{(karl_metrics['win_rate'] - base_metrics['win_rate']) * 100:.1f}%"
-        )
+        improvements.append(f"Win Rate: +{(karl_metrics['win_rate'] - base_metrics['win_rate']) * 100:.1f}%")
     elif karl_metrics.get("win_rate", 0) < base_metrics.get("win_rate", 0):
-        regressions.append(
-            f"Win Rate: {(karl_metrics['win_rate'] - base_metrics['win_rate']) * 100:.1f}%"
-        )
+        regressions.append(f"Win Rate: {(karl_metrics['win_rate'] - base_metrics['win_rate']) * 100:.1f}%")
     if karl_metrics.get("max_drawdown", 999) < base_metrics.get("max_drawdown", 999):
         improvements.append("Max Drawdown reduced")
     if karl_metrics.get("sharpe_ratio", 0) > base_metrics.get("sharpe_ratio", 0):
-        improvements.append(
-            f"Sharpe Ratio: +{karl_metrics['sharpe_ratio'] - base_metrics['sharpe_ratio']:.4f}"
-        )
-    if karl_metrics.get("calibration_error", 999) < base_metrics.get(
-        "calibration_error", 999
-    ):
+        improvements.append(f"Sharpe Ratio: +{karl_metrics['sharpe_ratio'] - base_metrics['sharpe_ratio']:.4f}")
+    if karl_metrics.get("calibration_error", 999) < base_metrics.get("calibration_error", 999):
         improvements.append(
             f"Calibration Error reduced by {base_metrics.get('calibration_error', 0) - karl_metrics.get('calibration_error', 0):.4f}"
         )

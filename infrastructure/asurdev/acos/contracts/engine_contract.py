@@ -1,14 +1,13 @@
 """ACOS Engine Contract — enforced execution engine interface."""
-from typing import Any, Protocol
-
+from typing import Protocol, Any
 
 class ExecutionEngineContract(Protocol):
     """ENFORCED contract for execution engines."""
-
+    
     def execute(self, dag: dict, context: dict) -> dict:
         """Execute compiled DAG. MUST return dict with 'results' and 'state'."""
         ...
-
+    
     def get_state(self) -> dict:
         """Return current engine state."""
         ...

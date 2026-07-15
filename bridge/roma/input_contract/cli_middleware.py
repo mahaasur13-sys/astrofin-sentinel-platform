@@ -8,7 +8,7 @@ from input_contract import InputContractValidator, ROMAValidationError
 
 def cli_validate(user_task: str) -> str:
     """
-    CLI entry point validator.
+    CLI entry point validator. 
     Returns task string if valid, exits with error if invalid.
     """
     try:

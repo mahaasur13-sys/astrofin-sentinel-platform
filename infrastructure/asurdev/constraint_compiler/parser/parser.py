@@ -4,10 +4,9 @@ Constraint Compiler — Parser
 Transforms policy text into executable constraint DAG.
 """
 import re
+from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any
-
 
 class ConstraintType(Enum):
     RESOURCE_LIMIT = auto()
@@ -26,7 +25,7 @@ class Constraint:
     threshold: Any
     description: str = ""
 
-    def evaluate(self, state: dict[str, Any]) -> tuple[bool, str | None]:
+    def evaluate(self, state: Dict[str, Any]) -> Tuple[bool, Optional[str]]:
         current = state.get(self.key)
         op = self.operator
 
@@ -56,7 +55,7 @@ class Constraint:
         except Exception as e:
             return False, f"Constraint {self.id} evaluation error: {e}"
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "type": self.ctype.name,
@@ -69,11 +68,11 @@ class Constraint:
 @dataclass
 class ConstraintGroup:
     name: str
-    constraints: list[Constraint] = field(default_factory=list)
+    constraints: List[Constraint] = field(default_factory=list)
     severity: str = "high"
-    tags: list[str] = field(default_factory=list)
+    tags: List[str] = field(default_factory=list)
 
-    def evaluate_all(self, state: dict[str, Any]) -> list[str]:
+    def evaluate_all(self, state: Dict[str, Any]) -> List[str]:
         violations = []
         for c in self.constraints:
             ok, msg = c.evaluate(state)
@@ -84,11 +83,11 @@ class ConstraintGroup:
 @dataclass
 class PolicyBlock:
     action: str
-    groups: list[ConstraintGroup] = field(default_factory=list)
+    groups: List[ConstraintGroup] = field(default_factory=list)
     description: str = ""
     version: str = "1.0"
 
-    def evaluate(self, state: dict[str, Any]) -> list[str]:
+    def evaluate(self, state: Dict[str, Any]) -> List[str]:
         all_violations = []
         for group in self.groups:
             all_violations.extend(group.evaluate_all(state))
@@ -96,13 +95,13 @@ class PolicyBlock:
 
 class PolicyParser:
     def __init__(self):
-        self.blocks: dict[str, PolicyBlock] = {}
+        self.blocks: Dict[str, PolicyBlock] = {}
 
-    def parse_text(self, text: str) -> dict[str, PolicyBlock]:
+    def parse_text(self, text: str) -> Dict[str, PolicyBlock]:
         self.blocks.clear()
-        current_block: PolicyBlock | None = None
-        current_group: ConstraintGroup | None = None
-        current_constraints: list[Constraint] = []
+        current_block: Optional[PolicyBlock] = None
+        current_group: Optional[ConstraintGroup] = None
+        current_constraints: List[Constraint] = []
 
         for line in text.split("\n"):
             line = line.strip()
@@ -175,10 +174,10 @@ class PolicyParser:
         except ValueError:
             return val.strip('"').strip("'")
 
-    def get_block(self, action: str) -> PolicyBlock | None:
+    def get_block(self, action: str) -> Optional[PolicyBlock]:
         return self.blocks.get(action)
 
-    def summary(self) -> dict[str, Any]:
+    def summary(self) -> Dict[str, Any]:
         return {
             "blocks": len(self.blocks),
             "actions": [b.action for b in self.blocks.values()],

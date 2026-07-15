@@ -4,12 +4,9 @@ Hash Chain — Cryptographic Trace Integrity
 Extends trace with SHA256 node_hash_chain + dag_hash + execution_hash
 """
 from __future__ import annotations
-
-import hashlib
-import json
+import hashlib, json
 from dataclasses import dataclass, field
 from typing import Any
-
 
 @dataclass
 class HashChain:
@@ -35,7 +32,7 @@ class HashChain:
             expected = self.node_hash_chain[i]
             if len(self.node_hash_chain) > i + 1:
                 next_h = self.node_hash_chain[i + 1]
-                hashlib.sha256((expected + next_h).encode()).hexdigest()
+                combined = hashlib.sha256((expected + next_h).encode()).hexdigest()
         return len(errors) == 0, errors
 
     def to_dict(self) -> dict[str, Any]:

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Compare synthetic vs real agent backtest modes (CI-friendly)."""
 
-from __future__ import annotations
-
 import argparse
 import asyncio
 import sys
@@ -87,9 +85,7 @@ async def compare(ci=False):
 
 def main():
     parser = argparse.ArgumentParser(description="Compare backtest modes")
-    parser.add_argument(
-        "--ci", action="store_true", help="Run in CI mode with identical mock results"
-    )
+    parser.add_argument("--ci", action="store_true", help="Run in CI mode with identical mock results")
     args = parser.parse_args()
 
     result = asyncio.run(compare(ci=args.ci))

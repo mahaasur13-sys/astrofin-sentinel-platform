@@ -8,27 +8,23 @@ Run: pytest tests/test_amneziawg_integration.py -v
 from __future__ import annotations
 
 import sys
-
 sys.path.insert(0, "/home/workspace/home-cluster-iac")
 
-from dataclasses import FrozenInstanceError
-
 import pytest
-
-from acos.events.event import Event
 from acos.events.event_log import EventLog
+from acos.events.event import Event
 from acos.events.types import EventType
+from acos.state.reducer import StateReducer
 from acos.eventsourced.engine import EventSourcedEngine
-from acos.network.amnezia_wg import (
-    AmneziaWGManager,
-    TunnelEvent,
-    TunnelState,
-)
 from acos.projection.raw import RawEventProjection
 from acos.projection.state import StateProjection
-from acos.state.reducer import StateReducer
 from acos.storage.schema import TraceRecord
 from acos.validator.contract_validator import DAGValidator
+from acos.network.amnezia_wg import (
+    AmneziaWGManager, TunnelEvent, TunnelState,
+)
+from dataclasses import FrozenInstanceError
+
 
 # =============================================================================
 # AMNEZIAWG INVARIANTS
@@ -105,7 +101,7 @@ def test_awg_stop_idempotent():
 def test_awg_events_written_to_eventlog():
     """INV-AWG6: All tunnel events are written to EventLog (append-only)."""
     log = EventLog()
-    AmneziaWGManager(log, trace_id="eventlog-test")
+    mgr = AmneziaWGManager(log, trace_id="eventlog-test")
 
     # Simulate start event emission (can't actually call subprocess in test)
     log.emit("eventlog-test", "TUNNEL_UP", {"interface": "wg0", "peer": "10.8.0.1"})
@@ -153,11 +149,10 @@ def test_inv1_action_produces_event():
 def test_inv2_engine_write_side_pure():
     """INV2: Engine NEVER reads from EventLog."""
     import ast
-
+    src = EventSourcedEngine.__module__
     # Verify: no self.get_trace / self.get_all / self.rebuild in engine source
-    import inspect
-
     from acos.eventsourced.engine import EventSourcedEngine as ESE
+    import inspect
     source = inspect.getsource(ESE)
     tree = ast.parse(source)
     for node in ast.walk(tree):
@@ -174,9 +169,8 @@ def test_inv2_engine_write_side_pure():
 def test_inv3_reducer_read_side_pure():
     """INV3: Reducer NEVER writes to EventLog."""
     import ast
-    import inspect
-
     from acos.state.reducer import StateReducer
+    import inspect
     source = inspect.getsource(StateReducer)
     tree = ast.parse(source)
     for node in ast.walk(tree):

@@ -173,9 +173,7 @@ class CalibrationTracker:
                 (agent, signal, conf, ts, ctx_json),
             )
             new_id = int(cur.lastrowid)
-        logger.debug(
-            f"[CALIBRATION] recorded prediction {new_id} for {agent} conf={conf:.2f}"
-        )
+        logger.debug(f"[CALIBRATION] recorded prediction {new_id} for {agent} conf={conf:.2f}")
         return new_id
 
     def record_outcome(
@@ -191,8 +189,7 @@ class CalibrationTracker:
         ts = self._ts(observed_at)
         with self._cursor() as cur:
             cur.execute(
-                "INSERT INTO outcomes (prediction_id, actual_label, observed_at, pnl) "
-                "VALUES (?, ?, ?, ?)",
+                "INSERT INTO outcomes (prediction_id, actual_label, observed_at, pnl) " "VALUES (?, ?, ?, ?)",
                 (int(prediction_id), int(actual_label), ts, float(pnl)),
             )
             outcome_id = int(cur.lastrowid)
@@ -237,8 +234,7 @@ class CalibrationTracker:
                     (agent, start_iso, end_iso),
                 )
                 cur.execute(
-                    "SELECT COUNT(*) FROM predictions "
-                    "WHERE agent = ? AND predicted_at >= ? AND predicted_at <= ?",
+                    "SELECT COUNT(*) FROM predictions " "WHERE agent = ? AND predicted_at >= ? AND predicted_at <= ?",
                     (agent, start_iso, end_iso),
                 )
 
@@ -255,9 +251,7 @@ class CalibrationTracker:
         asof: datetime | None = None,
     ) -> list[ReliabilityBin]:
         """Return the 10-bin reliability diagram for the given window."""
-        return self.get_calibration(
-            agent=agent, window_days=window_days, asof=asof
-        ).bins
+        return self.get_calibration(agent=agent, window_days=window_days, asof=asof).bins
 
     # ── Internals ──────────────────────────────────────────────────────────
 
@@ -303,10 +297,7 @@ class CalibrationTracker:
     ) -> CalibrationReport:
         n_resolved = len(pairs)
         if n_resolved == 0:
-            empty_bins = [
-                ReliabilityBin(BIN_EDGES[i], BIN_EDGES[i + 1], 0, 0.0, 0.0)
-                for i in range(N_BINS)
-            ]
+            empty_bins = [ReliabilityBin(BIN_EDGES[i], BIN_EDGES[i + 1], 0, 0.0, 0.0) for i in range(N_BINS)]
             return CalibrationReport(
                 agent=agent,
                 n_predictions=n_predictions,

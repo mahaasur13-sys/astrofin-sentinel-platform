@@ -91,18 +91,14 @@ class CCXTLiveProvider:
         api_secret = os.getenv("CCXT_API_SECRET", "")
 
         if not api_key or not api_secret:
-            logger.warning(
-                "[CCXT] LIVE requested but CCXT_API_KEY / CCXT_API_SECRET not set → fallback to SANDBOX"
-            )
+            logger.warning("[CCXT] LIVE requested but CCXT_API_KEY / CCXT_API_SECRET not set → fallback to SANDBOX")
             self._live_mode = False
             return
 
         try:
             ex_class = getattr(ccxt, self.exchange_name)
             if ex_class is None:
-                logger.warning(
-                    f"[CCXT] Unknown exchange '{self.exchange_name}' → fallback to SANDBOX"
-                )
+                logger.warning(f"[CCXT] Unknown exchange '{self.exchange_name}' → fallback to SANDBOX")
                 self._live_mode = False
                 return
 
@@ -123,9 +119,7 @@ class CCXTLiveProvider:
             logger.info(f"[CCXT] Connected to {self.exchange_name} ({key_diagnostic})")
 
         except Exception as e:
-            logger.warning(
-                f"[CCXT] Exchange connection failed: {e} → fallback to SANDBOX"
-            )
+            logger.warning(f"[CCXT] Exchange connection failed: {e} → fallback to SANDBOX")
             self._live_mode = False
             self._exchange = None
 
@@ -149,9 +143,7 @@ class CCXTLiveProvider:
                 if attempt < _CCXT_RECONNECT_ATTEMPTS - 1:
                     time.sleep(_CCXT_RECONNECT_DELAY_S * (attempt + 1))
         # All retries exhausted → fallback to mock
-        logger.warning(
-            "[CCXT] All retries exhausted → falling back to SANDBOX for this call"
-        )
+        logger.warning("[CCXT] All retries exhausted → falling back to SANDBOX for this call")
         return None
 
     def get_snapshot(self, symbol: str = "BTC/USDT") -> MarketSnapshot:
@@ -196,18 +188,14 @@ class CCXTLiveProvider:
             logger.warning(f"[CCXT] Snapshot error: {e} → SANDBOX fallback")
             return self._sandbox_snapshot(speed=time.time() - t0, error=str(e))
 
-    def _detect_regime_fast(
-        self, price: float, symbol: str
-    ) -> Literal["BULL", "BEAR", "NEUTRAL", "VOLATILE"]:
+    def _detect_regime_fast(self, price: float, symbol: str) -> Literal["BULL", "BEAR", "NEUTRAL", "VOLATILE"]:
         """Fast regime detection using 24h change from ticker."""
         try:
             if not self._exchange:
                 return "NEUTRAL"
             ticker = self._fetch_with_retry("fetch_ticker", symbol)
             if ticker and ticker.get("change") is not None:
-                change_pct = (
-                    float(ticker["change"]) / max(float(ticker.get("last", 1)), 1) * 100
-                )
+                change_pct = float(ticker["change"]) / max(float(ticker.get("last", 1)), 1) * 100
                 if change_pct > 1.0:
                     return "BULL"
                 elif change_pct < -1.0:
@@ -218,9 +206,7 @@ class CCXTLiveProvider:
             pass
         return "NEUTRAL"
 
-    def _sandbox_snapshot(
-        self, speed: float = 0, error: str | None = None
-    ) -> MarketSnapshot:
+    def _sandbox_snapshot(self, speed: float = 0, error: str | None = None) -> MarketSnapshot:
         """Generate realistic sandbox snapshot."""
         base_prices = {"BTC/USDT": 67450.0, "ETH/USDT": 3520.0, "SOL/USDT": 145.0}
         price = base_prices.get("BTC/USDT", 50000.0)

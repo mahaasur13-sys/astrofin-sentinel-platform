@@ -34,24 +34,24 @@ class AsyncWebhookQueue:
         self._processed = set()
         self._queue_file = queue_file
         self._load()
-
+    
     def _load(self):
         try:
             with open(self._queue_file) as f:
                 self._queue = json.load(f)
         except: pass
-
+    
     def _save(self):
         with open(self._queue_file, 'w') as f:
             json.dump(self._queue, f)
-
+    
     def enqueue(self, event_id: str, payload: dict):
         if event_id in self._processed:
             return "already_queued"
         self._queue.append({"event_id": event_id, "payload": payload, "enqueued_at": time.time()})
         self._save()
         return "queued"
-
+    
     def process_all(self):
         processed = []
         for item in self._queue[:]:

@@ -67,7 +67,7 @@ class Violation:
 class MutationCallVisitor(ast.NodeVisitor):
     '''
     AST visitor that detects mutation-related violations.
-
+    
     Checks:
         1. Call nodes — direct calls to mutation functions
         2. Import nodes — forbidden module imports
@@ -107,7 +107,7 @@ class MutationCallVisitor(ast.NodeVisitor):
             # Check if caller is in allowed module
             if not self.in_allowed_module:
                 # Check if this is a direct call (not through gateway)
-                self._get_caller_context(node)
+                caller_info = self._get_caller_context(node)
 
                 self.violations.append(Violation(
                     vtype=ViolationType.DIRECT_CALL,

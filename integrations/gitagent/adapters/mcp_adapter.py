@@ -4,9 +4,6 @@ Integrates with Smithery MCP registry to search, install, and wrap MCP tools
 as GitAgent-compatible tools.
 """
 
-from __future__ import annotations
-
-
 import json
 import subprocess
 from pathlib import Path
@@ -26,9 +23,7 @@ class MCPAdapter:
     """
 
     def __init__(self, storage_path: Optional[str] = None):
-        self.storage_path = (
-            Path(storage_path) if storage_path else Path.home() / ".gitagent" / "mcp"
-        )
+        self.storage_path = Path(storage_path) if storage_path else Path.home() / ".gitagent" / "mcp"
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self.installed_servers: dict[str, dict[str, Any]] = {}
         self._load_installed()
@@ -71,11 +66,7 @@ class MCPAdapter:
                 },
             ],
             "filesystem": [
-                {
-                    "name": "@smithery/filesystem",
-                    "description": "Local filesystem operations",
-                    "category": "system",
-                },
+                {"name": "@smithery/filesystem", "description": "Local filesystem operations", "category": "system"},
                 {
                     "name": "@modelcontextprotocol/server-filesystem",
                     "description": "Filesystem MCP server",
@@ -88,11 +79,7 @@ class MCPAdapter:
                     "description": "Web search capabilities",
                     "category": "search",
                 },
-                {
-                    "name": "@smithery/brave-search",
-                    "description": "Brave Search API integration",
-                    "category": "search",
-                },
+                {"name": "@smithery/brave-search", "description": "Brave Search API integration", "category": "search"},
             ],
             "slack": [
                 {
@@ -100,11 +87,7 @@ class MCPAdapter:
                     "description": "Slack messaging integration",
                     "category": "communication",
                 },
-                {
-                    "name": "@smithery/slack",
-                    "description": "Slack API MCP server",
-                    "category": "communication",
-                },
+                {"name": "@smithery/slack", "description": "Slack API MCP server", "category": "communication"},
             ],
             "postgres": [
                 {
@@ -112,11 +95,7 @@ class MCPAdapter:
                     "description": "PostgreSQL database access",
                     "category": "database",
                 },
-                {
-                    "name": "@smithery/postgres",
-                    "description": "PostgreSQL MCP server",
-                    "category": "database",
-                },
+                {"name": "@smithery/postgres", "description": "PostgreSQL MCP server", "category": "database"},
             ],
             "finance": [
                 {
@@ -124,42 +103,18 @@ class MCPAdapter:
                     "description": "Yahoo Finance data (stocks, crypto, options)",
                     "category": "financial",
                 },
-                {
-                    "name": "bloomberg-mcp",
-                    "description": "Bloomberg API integration",
-                    "category": "financial",
-                },
+                {"name": "bloomberg-mcp", "description": "Bloomberg API integration", "category": "financial"},
             ],
             "crypto": [
-                {
-                    "name": "coinmarketcap-mcp",
-                    "description": "Cryptocurrency price data",
-                    "category": "crypto",
-                },
-                {
-                    "name": "binance-mcp",
-                    "description": "Binance crypto exchange API",
-                    "category": "crypto",
-                },
+                {"name": "coinmarketcap-mcp", "description": "Cryptocurrency price data", "category": "crypto"},
+                {"name": "binance-mcp", "description": "Binance crypto exchange API", "category": "crypto"},
             ],
             "news": [
-                {
-                    "name": "newsapi-mcp",
-                    "description": "News API for financial news aggregation",
-                    "category": "news",
-                },
-                {
-                    "name": "rss-mcp",
-                    "description": "RSS feed reader for news aggregation",
-                    "category": "news",
-                },
+                {"name": "newsapi-mcp", "description": "News API for financial news aggregation", "category": "news"},
+                {"name": "rss-mcp", "description": "RSS feed reader for news aggregation", "category": "news"},
             ],
             "calendar": [
-                {
-                    "name": "google-calendar-mcp",
-                    "description": "Google Calendar integration",
-                    "category": "calendar",
-                },
+                {"name": "google-calendar-mcp", "description": "Google Calendar integration", "category": "calendar"},
                 {
                     "name": "@modelcontextprotocol/server-google-calendar",
                     "description": "Google Calendar MCP",
@@ -187,9 +142,7 @@ class MCPAdapter:
                 return servers
         return []
 
-    def mcp_search(
-        self, query: str, category: Optional[str] = None
-    ) -> list[dict[str, Any]]:
+    def mcp_search(self, query: str, category: Optional[str] = None) -> list[dict[str, Any]]:
         """
         Search Smithery registry for MCP servers matching query.
 
@@ -242,9 +195,7 @@ class MCPAdapter:
 
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             with httpx.Client(timeout=15.0, verify=False, http2=True) as client:
-                resp = client.get(
-                    f"{self.api_base}/servers", params={"q": query, "limit": 20}
-                )
+                resp = client.get(f"{self.api_base}/servers", params={"q": query, "limit": 20})
                 if resp.status_code == 200:
                     api_results = resp.json()
                     if isinstance(api_results, dict):
@@ -300,9 +251,7 @@ class MCPAdapter:
 
         return unique_results[:20]
 
-    def mcp_install(
-        self, server_name: str, config: Optional[dict[str, Any]] = None
-    ) -> dict[str, Any]:
+    def mcp_install(self, server_name: str, config: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         """
         Install an MCP server from Smithery registry.
 
@@ -317,11 +266,7 @@ class MCPAdapter:
         install_path = self.storage_path / "servers" / install_id
         install_path.mkdir(parents=True, exist_ok=True)
 
-        result = {
-            "status": "pending",
-            "name": server_name,
-            "install_path": str(install_path),
-        }
+        result = {"status": "pending", "name": server_name, "install_path": str(install_path)}
 
         try:
             # Use Smithery CLI to install
@@ -333,9 +278,7 @@ class MCPAdapter:
                     json.dump(config, f)
                 cmd.extend(["--config", str(config_file)])
 
-            proc = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=120, cwd=install_path
-            )
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120, cwd=install_path)
 
             if proc.returncode == 0:
                 result["status"] = "installed"
@@ -357,12 +300,8 @@ class MCPAdapter:
         except FileNotFoundError:
             # npx not available, try direct npm install
             try:
-                npm_name = (
-                    server_name if server_name.startswith("@") else f"@{server_name}"
-                )
-                subprocess.run(
-                    ["npm", "install", "-g", npm_name], capture_output=True, timeout=60
-                )
+                npm_name = server_name if server_name.startswith("@") else f"@{server_name}"
+                subprocess.run(["npm", "install", "-g", npm_name], capture_output=True, timeout=60)
                 result["status"] = "installed"
                 self.installed_servers[install_id] = {
                     "name": server_name,
@@ -437,11 +376,7 @@ class MCPAdapter:
 
         try:
             server_name = self.installed_servers[install_id]["name"]
-            subprocess.run(
-                ["npx", "@smithery/cli", "remove", server_name],
-                capture_output=True,
-                timeout=30,
-            )
+            subprocess.run(["npx", "@smithery/cli", "remove", server_name], capture_output=True, timeout=30)
         except Exception:
             pass
 
@@ -463,9 +398,7 @@ class MCPAdapter:
         return {
             "name": tool_def.get("name", "unnamed_tool"),
             "description": tool_def.get("description", ""),
-            "input_schema": tool_def.get(
-                "inputSchema", tool_def.get("input_schema", {})
-            ),
+            "input_schema": tool_def.get("inputSchema", tool_def.get("input_schema", {})),
             "server": tool_def.get("_server", "unknown"),
             "original_def": tool_def,
         }
@@ -546,13 +479,9 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="MCP Adapter for GitAgent")
-    parser.add_argument(
-        "command", choices=["search", "install", "list", "tools", "recommended"]
-    )
+    parser.add_argument("command", choices=["search", "install", "list", "tools", "recommended"])
     parser.add_argument("query", nargs="?", help="Search query or server name")
-    parser.add_argument(
-        "--category", help="Category filter (financial, crypto, news, calendar)"
-    )
+    parser.add_argument("--category", help="Category filter (financial, crypto, news, calendar)")
     parser.add_argument("--config", help="JSON config file for server")
 
     args = parser.parse_args()

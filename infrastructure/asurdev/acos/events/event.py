@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """ACOS Event — immutable record written to EventLog."""
 from __future__ import annotations
-
 import hashlib
 import json
 import time
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field, asdict
 from typing import Any
 
 from acos.events.types import EventType

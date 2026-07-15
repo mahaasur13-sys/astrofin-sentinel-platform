@@ -4,8 +4,10 @@ Constraint Engine — validates feasibility before optimization.
 Hard constraints: MUST be satisfied.
 Soft constraints: penalty in objective.
 """
-from dataclasses import dataclass
+from typing import Optional
+from dataclasses import dataclass, field
 from enum import Enum, auto
+import numpy as np
 
 
 class ViolationType(Enum):
@@ -36,11 +38,11 @@ class PlacementContext:
     requested_cpu_mem_gb: float
     partition: str
     required_nodes: tuple[str, ...]  # anti-affinity group
-    reservation_id: str | None = None
+    reservation_id: Optional[str] = None
 
 
 class ConstraintEngine:
-    def __init__(self, config: dict | None = None):
+    def __init__(self, config: Optional[dict] = None):
         self.config = config or {}
         # Node capacities (from cluster state)
         self._node_gpu_mem: dict[str, float] = {}
@@ -69,13 +71,13 @@ class ConstraintEngine:
         for part in state.get("partitions", {}).values():
             self._partition_nodes[part["name"]] = part.get("nodes", [])
         # Reset allocations
-        self._allocated_gpu_mem = dict.fromkeys(nodes, 0.0)
-        self._allocated_cpu_mem = dict.fromkeys(nodes, 0.0)
+        self._allocated_gpu_mem = {n: 0.0 for n in nodes}
+        self._allocated_cpu_mem = {n: 0.0 for n in nodes}
 
     def set_allocations(self, allocations: list[dict]) -> None:
         """Set current allocations from job list. Call before validate()."""
-        self._allocated_gpu_mem = dict.fromkeys(self._node_gpu_mem, 0.0)
-        self._allocated_cpu_mem = dict.fromkeys(self._node_cpu_mem, 0.0)
+        self._allocated_gpu_mem = {n: 0.0 for n in self._node_gpu_mem}
+        self._allocated_cpu_mem = {n: 0.0 for n in self._node_cpu_mem}
         for job in allocations:
             nid = job["node_id"]
             self._allocated_gpu_mem[nid] = self._allocated_gpu_mem.get(nid, 0) + job.get("gpu_mem_gb", 0)
@@ -132,7 +134,7 @@ class ConstraintEngine:
                 results[p.job_id] = v
         return results
 
-    def get_feasible_nodes(self, job: dict, forbidden_nodes: set[str] | None = None) -> list[str]:
+    def get_feasible_nodes(self, job: dict, forbidden_nodes: Optional[set[str]] = None) -> list[str]:
         """Return list of nodes that can satisfy this job (hard constraints only)."""
         forbidden = forbidden_nodes or set()
         feasible = []

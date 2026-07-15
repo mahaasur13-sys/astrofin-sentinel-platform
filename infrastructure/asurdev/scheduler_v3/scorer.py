@@ -4,9 +4,9 @@ Scheduler v3 — Stateful Scoring Engine
 Reads job + node state from DB. Considers history + failure counts.
 NOT stateless — every decision is logged to scheduler_scores table.
 """
-import logging
 import os
-from typing import Any
+import logging
+from typing import Optional, List, Tuple, Dict, Any
 
 log = logging.getLogger("scheduler_v3.scorer")
 
@@ -22,7 +22,7 @@ WEIGHTS = {
 FAILURE_PENALTY = 20.0  # subtract from score per recent failure
 
 
-def score_and_select(job, state_store) -> tuple[Any | None, list[dict]]:
+def score_and_select(job, state_store) -> Tuple[Optional[Any], List[Dict]]:
     """
     Stateful node selection:
       1. Load nodes from DB (not Prometheus directly)
@@ -94,7 +94,7 @@ def _filter_eligible(nodes, job_type: str, memory_gb: int):
     return eligible
 
 
-def _compute_score(node, job_type: str, weights: dict[str, float]) -> dict[str, float]:
+def _compute_score(node, job_type: str, weights: Dict[str, float]) -> Dict[str, float]:
     """
     Compute per-component score breakdown.
     Higher available resources → higher score contribution.

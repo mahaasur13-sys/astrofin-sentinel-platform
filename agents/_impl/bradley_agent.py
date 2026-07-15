@@ -6,18 +6,10 @@ from __future__ import annotations
 
 import logging
 
-from agents._impl.ephemeris_decorator import (
-    EphemerisUnavailableError,
-    require_ephemeris,
-)
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
-from core.base_agent import (
-    EPHEMERIS_UNAVAILABLE,
-    UNKNOWN,
-    AgentResponse,
-    BaseAgent,
-    SignalDirection,
-)
+
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +69,11 @@ class BradleyAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 40
 
-        reasoning = f"Bradley seasonality: {seasonality['summary']}. Planetary aspects: {planetary_aspects['summary']}. Bradley score: {bradley_score:.2f}"
+        reasoning = (
+            f"Bradley seasonality: {seasonality['summary']}. "
+            f"Planetary aspects: {planetary_aspects['summary']}. "
+            f"Bradley score: {bradley_score:.2f}"
+        )
 
         return AgentResponse(
             agent_name="BradleyAgent",
@@ -117,9 +113,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
                 data = resp.json()
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
-            logger.warning(
-                f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}"
-            )
+            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}")
             return []
 
     def _calculate_seasonality(self, data: list) -> dict:
@@ -130,7 +124,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
         if len(data) < 90:
             return {"score": 0.5, "summary": "insufficient data for seasonality"}
 
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         # Map closes to day of year
         daily_returns = {}
@@ -143,7 +137,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
                 daily_returns[day] = daily_returns.get(day, []) + [-1]
 
         # Find current period's historical performance
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         current_day = now.timetuple().tm_yday
 
         # Check past 30 days of current period
@@ -174,14 +168,14 @@ class BradleyAgent(BaseAgent[AgentResponse]):
         """
         Check major planetary aspects for Bradley-style forecasts.
         """
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         from core.ephemeris import HAS_SWISS_EPHEMERIS, _julian_day, calculate_planet
 
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         jd = _julian_day(now)
 
         # Get major planets
@@ -229,8 +223,3 @@ async def run_bradley_agent(state: dict) -> dict:
     agent = BradleyAgent()
     result = await agent.analyze(state)
     return {"bradley_signal": result.to_dict()}
-
-
-def create() -> BradleyAgent:
-    """Factory for 6-fn test contract."""
-    return BradleyAgent()

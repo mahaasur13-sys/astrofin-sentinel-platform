@@ -15,6 +15,7 @@ from meta_rl.backtest_adapter import BacktestEngineAdapter
 from meta_rl.types import BasketMetrics, SymbolMetrics
 from trading.risk_v2 import RiskEngineV2
 
+
 logger = logging.getLogger(__name__)
 
 MULTI_SYMBOL_ENABLED = True
@@ -172,9 +173,7 @@ class BasketEvaluator:
             )
 
         if not symbol_metrics:
-            logger.warning(
-                "[META-RL-BASKET] No valid metrics across basket, returning fail-safe"
-            )
+            logger.warning("[META-RL-BASKET] No valid metrics across basket, returning fail-safe")
             return BasketMetrics(symbols=symbols)
 
         # Aggregate portfolio equity curve
@@ -252,17 +251,13 @@ class BasketEvaluator:
         market_data_dict: dict[str, dict],
     ) -> BasketMetrics:
         """Fallback when multi-symbol is disabled: evaluate first available symbol."""
-        logger.warning(
-            "[META-RL-BASKET] Multi-symbol disabled, using single-symbol fallback"
-        )
+        logger.warning("[META-RL-BASKET] Multi-symbol disabled, using single-symbol fallback")
 
         primary = self.basket[0] if self.basket else "BTCUSDT"
         sym_data = market_data_dict.get(primary, market_data_dict.get("BTCUSDT"))
 
         if sym_data is None:
-            logger.warning(
-                f"[META-RL-BASKET] No market data for {primary}, returning empty basket"
-            )
+            logger.warning(f"[META-RL-BASKET] No market data for {primary}, returning empty basket")
             return BasketMetrics(symbols=self.basket)
 
         eval_result = self.strategy_evaluator.evaluate(strategy, sym_data)

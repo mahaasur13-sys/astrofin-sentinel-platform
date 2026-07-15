@@ -5,11 +5,11 @@ Every cycle: observes state, detects deviation, classifies fix, applies correcti
 No direct production changes — everything goes through governance pipeline.
 """
 from __future__ import annotations
-
-import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional, Literal
 from enum import Enum
+import logging
 
 
 class FixType(Enum):
@@ -62,7 +62,7 @@ class CorrectionCycleResult:
     cycle_id: int
     timestamp: datetime
     signals: list[CorrectionSignal]
-    decision: CorrectionDecision | None
+    decision: Optional[CorrectionDecision]
     execution_ms: float
     next_cycle_recommended: bool
     escalation_required: bool = False
@@ -87,9 +87,9 @@ class CorrectionLoop:
         self.state = state_store
         self._cycle_counter = 0
         self._history: list[CorrectionCycleResult] = []
-        self._pending_fix: CorrectionDecision | None = None
+        self._pending_fix: Optional[CorrectionDecision] = None
         self._fix_cooldown_sec = 30
-        self._last_fix_time: datetime | None = None
+        self._last_fix_time: Optional[datetime] = None
         self._correction_log = logging.getLogger("acos.correction_loop")
         self._suppression_count = 0
 

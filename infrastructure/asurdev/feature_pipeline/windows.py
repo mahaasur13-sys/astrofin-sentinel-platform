@@ -3,8 +3,9 @@
 Feature Windows — time-series aggregation for ML pipeline.
 Produces sliding-window aggregates: 1m, 5m, 15m, 1h per node/metric.
 """
-import time
 from dataclasses import dataclass
+from typing import Dict, List
+import time
 
 
 @dataclass
@@ -20,12 +21,12 @@ WINDOWS = [
 ]
 
 
-def get_window_data(window: TimeWindow, metric: str) -> dict:
+def get_window_data(window: TimeWindow, metric: str) -> Dict:
     """
     For a given metric + window, return aggregates.
     In production: query Prometheus range API or read from timeseries DB.
     """
-    time.time()
+    now = time.time()
     # Placeholder — real implementation reads from Prometheus range API:
     #   query_range(f"node_gpu_util{{node=\"{node}\"}}", start, end, step)
     return {
@@ -39,7 +40,7 @@ def get_window_data(window: TimeWindow, metric: str) -> dict:
     }
 
 
-def build_windows() -> dict[str, dict]:
+def build_windows() -> Dict[str, Dict]:
     """
     Build all window aggregates for all metrics.
     Returns: {metric_name: {window_name: aggregates}}

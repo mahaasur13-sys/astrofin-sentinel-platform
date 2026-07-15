@@ -6,18 +6,9 @@ from __future__ import annotations
 
 import logging
 
-from agents._impl.ephemeris_decorator import (
-    EphemerisUnavailableError,
-    require_ephemeris,
-)
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
-from core.base_agent import (
-    EPHEMERIS_UNAVAILABLE,
-    UNKNOWN,
-    AgentResponse,
-    BaseAgent,
-    SignalDirection,
-)
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -70,11 +61,7 @@ class ElliotAgent(BaseAgent[AgentResponse]):
         corrective = self._detect_corrective_phase(closes)
 
         # Elliott score
-        elliot_score = (
-            wave_count["score"] * 0.50
-            + fib_targets["score"] * 0.30
-            + corrective["score"] * 0.20
-        )
+        elliot_score = wave_count["score"] * 0.50 + fib_targets["score"] * 0.30 + corrective["score"] * 0.20
 
         if wave_count["suggestion"] == "long":
             signal = SignalDirection.LONG
@@ -86,7 +73,12 @@ class ElliotAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 40
 
-        reasoning = f"Wave structure: {wave_count['summary']}. Fib targets: {fib_targets['summary']}. Corrective phase: {corrective['summary']}. Elliot score: {elliot_score:.2f}"
+        reasoning = (
+            f"Wave structure: {wave_count['summary']}. "
+            f"Fib targets: {fib_targets['summary']}. "
+            f"Corrective phase: {corrective['summary']}. "
+            f"Elliot score: {elliot_score:.2f}"
+        )
 
         return AgentResponse(
             agent_name="ElliotAgent",
@@ -127,9 +119,7 @@ class ElliotAgent(BaseAgent[AgentResponse]):
                 data = resp.json()
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
-            logger.warning(
-                f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}"
-            )
+            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}")
             return []
 
     def _count_waves(self, highs: list, lows: list, closes: list) -> dict:
@@ -191,9 +181,7 @@ class ElliotAgent(BaseAgent[AgentResponse]):
             "num_swings": num_swings,
         }
 
-    def _calculate_fib_targets(
-        self, wave_count: dict, highs: list, lows: list, closes: list
-    ) -> dict:
+    def _calculate_fib_targets(self, wave_count: dict, highs: list, lows: list, closes: list) -> dict:
         """
         Calculate Fibonacci retracement/extension targets.
         """
@@ -262,8 +250,3 @@ async def run_elliot_agent(state: dict) -> dict:
     agent = ElliotAgent()
     result = await agent.analyze(state)
     return {"elliot_signal": result.to_dict()}
-
-
-def create() -> ElliotAgent:
-    """Factory for 6-fn test contract."""
-    return ElliotAgent()

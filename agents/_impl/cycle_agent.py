@@ -5,20 +5,12 @@ Cycle Agent — market timing cycles analysis.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
-from agents._impl.ephemeris_decorator import (
-    EphemerisUnavailableError,
-    require_ephemeris,
-)
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
-from core.base_agent import (
-    EPHEMERIS_UNAVAILABLE,
-    UNKNOWN,
-    AgentResponse,
-    BaseAgent,
-    SignalDirection,
-)
+
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -130,9 +122,7 @@ class CycleAgent(BaseAgent[AgentResponse]):
                 data = resp.json()
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
-            logger.warning(
-                f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}"
-            )
+            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}")
             return []
 
     def _find_dominant_cycle(self, data: list) -> dict:
@@ -155,10 +145,7 @@ class CycleAgent(BaseAgent[AgentResponse]):
             if period >= len(closes) // 2:
                 continue
             # Calculate autocorrelation at lag=period
-            corr_sum = sum(
-                (closes[i] - mean) * (closes[i - period] - mean)
-                for i in range(period, len(closes))
-            )
+            corr_sum = sum((closes[i] - mean) * (closes[i - period] - mean) for i in range(period, len(closes)))
             corr = corr_sum / var if var > 0 else 0
 
             if corr > best_corr:
@@ -208,9 +195,7 @@ class CycleAgent(BaseAgent[AgentResponse]):
 
         return {"name": phase_name, "direction": direction, "strength": strength}
 
-    def _predict_turning_point(
-        self, data: list, dominant_cycle: dict, cycle_phase: dict
-    ) -> dict:
+    def _predict_turning_point(self, data: list, dominant_cycle: dict, cycle_phase: dict) -> dict:
         """Predict next cycle turning point."""
         period = dominant_cycle["period"]
 
@@ -235,7 +220,7 @@ class CycleAgent(BaseAgent[AgentResponse]):
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         jd = _julian_day(now)
 
         # Jupiter cycle (12 years — check position in zodiac)
@@ -270,8 +255,3 @@ async def run_cycle_agent(state: dict) -> dict:
     agent = CycleAgent()
     result = await agent.analyze(state)
     return {"cycle_signal": result.to_dict()}
-
-
-def create() -> CycleAgent:
-    """Factory for 6-fn test contract."""
-    return CycleAgent()

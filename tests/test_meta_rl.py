@@ -1,7 +1,5 @@
 """tests/test_meta_rl.py — ATOM-META-RL-001: Full Test Suite (31 tests)"""
 
-from __future__ import annotations
-
 import math
 
 import numpy as np
@@ -144,25 +142,19 @@ class TestRewardCalculator:
 
     def test_negative_pnl_zero_trades(self):
         calc = RewardCalculator()
-        r = EvaluationResult(
-            pnl=-0.5, sharpe=-1.0, max_drawdown=0.5, trades=0, win_rate=0.0
-        )
+        r = EvaluationResult(pnl=-0.5, sharpe=-1.0, max_drawdown=0.5, trades=0, win_rate=0.0)
         reward = calc.compute(r)
         assert reward == 0.0
 
     def test_drawdown_heavy_penalty(self):
         calc = RewardCalculator()
-        r = EvaluationResult(
-            pnl=0.1, sharpe=0.5, max_drawdown=0.8, trades=20, win_rate=0.5
-        )
+        r = EvaluationResult(pnl=0.1, sharpe=0.5, max_drawdown=0.8, trades=20, win_rate=0.5)
         reward = calc.compute(r)
         assert reward < 0
 
     def test_stability_bonus_kicks_in(self):
         calc = RewardCalculator()
-        r = EvaluationResult(
-            pnl=0.2, sharpe=1.0, max_drawdown=0.1, trades=20, win_rate=0.7
-        )
+        r = EvaluationResult(pnl=0.2, sharpe=1.0, max_drawdown=0.1, trades=20, win_rate=0.7)
         reward = calc.compute(r)
         assert reward > 0
 
@@ -182,9 +174,7 @@ class TestRewardCalculator:
 
     def test_no_nan_on_weird_inputs(self):
         calc = RewardCalculator()
-        r = EvaluationResult(
-            pnl=float("nan"), sharpe=float("inf"), max_drawdown=1.0, trades=5
-        )
+        r = EvaluationResult(pnl=float("nan"), sharpe=float("inf"), max_drawdown=1.0, trades=5)
         reward = calc.compute(r)
         assert not math.isnan(reward)
 
@@ -209,18 +199,14 @@ class TestStrategyPool:
     def test_add_and_retrieve(self, sample_evaluation_result):
         pool = StrategyPool(max_size=10)
         strategy = GeneratedStrategy(random_chromosome())
-        scored = ScoredStrategy(
-            strategy=strategy, reward=1.0, evaluation=sample_evaluation_result
-        )
+        scored = ScoredStrategy(strategy=strategy, reward=1.0, evaluation=sample_evaluation_result)
         assert pool.add(scored) is True
         assert len(pool) == 1
 
     def test_deduplication(self, sample_evaluation_result):
         pool = StrategyPool(max_size=10)
         strategy = GeneratedStrategy(random_chromosome())
-        scored1 = ScoredStrategy(
-            strategy=strategy, reward=1.0, evaluation=sample_evaluation_result
-        )
+        scored1 = ScoredStrategy(strategy=strategy, reward=1.0, evaluation=sample_evaluation_result)
         pool.add(scored1)
         # Same instance added again — should be skipped
         assert pool.add(scored1) is False
@@ -229,9 +215,7 @@ class TestStrategyPool:
         pool = StrategyPool(max_size=10)
         for i in range(5):
             s = GeneratedStrategy(random_chromosome())
-            scored = ScoredStrategy(
-                strategy=s, reward=float(i), evaluation=sample_evaluation_result
-            )
+            scored = ScoredStrategy(strategy=s, reward=float(i), evaluation=sample_evaluation_result)
             pool.add(scored)
         top = pool.top_k(3)
         assert len(top) == 3
@@ -253,17 +237,13 @@ class TestStrategyPool:
         pool = StrategyPool(max_size=3)
         for i in range(5):
             s = GeneratedStrategy(random_chromosome())
-            sc = ScoredStrategy(
-                strategy=s, reward=float(i), evaluation=sample_evaluation_result
-            )
+            sc = ScoredStrategy(strategy=s, reward=float(i), evaluation=sample_evaluation_result)
             pool.add(sc)
         assert len(pool) == 3
 
     def test_scored_strategy_hashable(self, sample_evaluation_result):
         strategy = GeneratedStrategy(random_chromosome())
-        scored = ScoredStrategy(
-            strategy=strategy, reward=1.0, evaluation=sample_evaluation_result
-        )
+        scored = ScoredStrategy(strategy=strategy, reward=1.0, evaluation=sample_evaluation_result)
         d = {scored: "value"}
         assert d[scored] == "value"
 
@@ -271,9 +251,7 @@ class TestStrategyPool:
         pool = StrategyPool(max_size=10)
         for i in range(5):
             s = GeneratedStrategy(random_chromosome())
-            sc = ScoredStrategy(
-                strategy=s, reward=float(i), evaluation=sample_evaluation_result
-            )
+            sc = ScoredStrategy(strategy=s, reward=float(i), evaluation=sample_evaluation_result)
             pool.add(sc)
         exported = pool.export_elites(3)
         assert len(exported) == 3
@@ -284,9 +262,7 @@ class TestStrategyPool:
         pool = StrategyPool(max_size=10)
         for i in range(5):
             s = GeneratedStrategy(random_chromosome())
-            sc = ScoredStrategy(
-                strategy=s, reward=float(i), evaluation=sample_evaluation_result
-            )
+            sc = ScoredStrategy(strategy=s, reward=float(i), evaluation=sample_evaluation_result)
             pool.add(sc)
         stats = pool.get_statistics()
         assert stats["size"] == 5
@@ -317,9 +293,7 @@ class TestMetaAgent:
         assert all(isinstance(r, float) for r in rewards)
 
     def test_select_returns_sorted_elites(self, sample_market_data):
-        agent = MetaAgent(
-            config=EvolutionConfig(population_size=10, elite_count=3, random_seed=42)
-        )
+        agent = MetaAgent(config=EvolutionConfig(population_size=10, elite_count=3, random_seed=42))
         pop = agent.initialize_population()
         pop = agent.evaluate_population(pop, sample_market_data)
         elites = agent.select(pop)
@@ -327,9 +301,7 @@ class TestMetaAgent:
         assert all(isinstance(e, ScoredStrategy) for e in elites)
 
     def test_evolve_returns_correct_size(self, sample_market_data):
-        agent = MetaAgent(
-            config=EvolutionConfig(population_size=10, elite_count=3, random_seed=42)
-        )
+        agent = MetaAgent(config=EvolutionConfig(population_size=10, elite_count=3, random_seed=42))
         pop = agent.initialize_population()
         pop = agent.evaluate_population(pop, sample_market_data)
         elites = agent.select(pop)
@@ -338,9 +310,7 @@ class TestMetaAgent:
         assert agent.generation == 2
 
     def test_generation_counter_increments(self, sample_market_data):
-        agent = MetaAgent(
-            config=EvolutionConfig(population_size=5, elite_count=2, random_seed=42)
-        )
+        agent = MetaAgent(config=EvolutionConfig(population_size=5, elite_count=2, random_seed=42))
         pop = agent.initialize_population()
         assert agent.generation == 1
         pop = agent.evaluate_population(pop, sample_market_data)
@@ -354,12 +324,8 @@ class TestMetaAgent:
 
 class TestEvolutionEngine:
     def test_full_evolution_run(self, sample_market_data):
-        agent = MetaAgent(
-            config=EvolutionConfig(population_size=10, elite_count=3, random_seed=42)
-        )
-        engine = EvolutionEngine(
-            agent, market_data=sample_market_data, max_generations=3
-        )
+        agent = MetaAgent(config=EvolutionConfig(population_size=10, elite_count=3, random_seed=42))
+        engine = EvolutionEngine(agent, market_data=sample_market_data, max_generations=3)
         final_pop, history = engine.run()
         assert len(final_pop) <= 10
         assert len(history) >= 1
@@ -367,9 +333,7 @@ class TestEvolutionEngine:
 
     def test_convergence_report(self, sample_market_data):
         agent = MetaAgent(config=EvolutionConfig(population_size=10, random_seed=42))
-        engine = EvolutionEngine(
-            agent, market_data=sample_market_data, max_generations=5
-        )
+        engine = EvolutionEngine(agent, market_data=sample_market_data, max_generations=5)
         engine.run()
         report = engine.convergence_report()
         assert "status" in report
@@ -377,18 +341,14 @@ class TestEvolutionEngine:
 
     def test_get_best_strategy(self, sample_market_data):
         agent = MetaAgent(config=EvolutionConfig(population_size=10, random_seed=42))
-        engine = EvolutionEngine(
-            agent, market_data=sample_market_data, max_generations=3
-        )
+        engine = EvolutionEngine(agent, market_data=sample_market_data, max_generations=3)
         engine.run()
         best = engine.get_best_strategy()
         assert best is None or isinstance(best, ScoredStrategy)
 
     def test_evolution_stats_serialization(self, sample_market_data):
         agent = MetaAgent(config=EvolutionConfig(population_size=5, random_seed=42))
-        engine = EvolutionEngine(
-            agent, market_data=sample_market_data, max_generations=2
-        )
+        engine = EvolutionEngine(agent, market_data=sample_market_data, max_generations=2)
         _, history = engine.run()
         stats = history[-1]
         d = stats.to_dict()
@@ -408,12 +368,8 @@ class TestEvolutionEngine:
         assert len(history) <= 52
 
     def test_reward_improves_after_evolution(self, sample_market_data):
-        agent = MetaAgent(
-            config=EvolutionConfig(population_size=15, elite_count=4, random_seed=99)
-        )
-        engine = EvolutionEngine(
-            agent, market_data=sample_market_data, max_generations=5
-        )
+        agent = MetaAgent(config=EvolutionConfig(population_size=15, elite_count=4, random_seed=99))
+        engine = EvolutionEngine(agent, market_data=sample_market_data, max_generations=5)
         _, history = engine.run()
         first_max = history[0].max_reward if history else 0.0
         last_max = history[-1].max_reward if history else 0.0
@@ -426,9 +382,7 @@ class TestEvolutionEngine:
 class TestScoredStrategy:
     def test_reward_history_append(self, sample_evaluation_result):
         strategy = GeneratedStrategy(random_chromosome())
-        scored = ScoredStrategy(
-            strategy=strategy, reward=0.5, evaluation=sample_evaluation_result
-        )
+        scored = ScoredStrategy(strategy=strategy, reward=0.5, evaluation=sample_evaluation_result)
         assert len(scored.reward_history) >= 1
         scored.reward = 0.8
         assert 0.8 in scored.reward_history

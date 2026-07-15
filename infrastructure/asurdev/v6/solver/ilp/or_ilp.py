@@ -3,10 +3,11 @@
 ILP Solver — exact optimization via scipy minimize + branch-and-bound.
 Falls back to heuristic when ILP is infeasible or timeout.
 """
+from typing import Optional
 from dataclasses import dataclass
-
 import numpy as np
 from scipy.optimize import minimize
+from scipy.sparse import csr_matrix
 
 
 @dataclass
@@ -26,7 +27,7 @@ class ILPSolver:
     Uses scipy minimize with penalty method for constraint handling.
     """
 
-    def __init__(self, config: dict | None = None):
+    def __init__(self, config: Optional[dict] = None):
         self.config = config or {}
         self.timeout_s = self.config.get("timeout_s", 5.0)
         self.max_vars = self.config.get("max_vars", 500)
@@ -40,8 +41,8 @@ class ILPSolver:
         import time
         t0 = time.time()
 
-        jobs = list({c.job_id for c in candidates})
-        nodes = list({c.node_id for c in candidates if c.node_id != "REJECT"})
+        jobs = list(set(c.job_id for c in candidates))
+        nodes = list(set(c.node_id for c in candidates if c.node_id != "REJECT"))
         n_jobs, n_nodes = len(jobs), len(nodes)
 
         if n_jobs * n_nodes > self.max_vars:

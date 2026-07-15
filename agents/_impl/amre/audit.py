@@ -3,8 +3,6 @@
 анализа ошибок и backtest не только результатов, но и решений.
 """
 
-from __future__ import annotations
-
 import hashlib
 import json
 from dataclasses import asdict, dataclass
@@ -143,9 +141,7 @@ class DecisionRecord:
 
     def compute_hash(self) -> str:
         """Вычисляет хеш записи для верификации"""
-        key_data = (
-            f"{self.decision_id}:{self.state_hash}:{self.q_star}:{self.final_action}"
-        )
+        key_data = f"{self.decision_id}:{self.state_hash}:{self.q_star}:{self.final_action}"
         return hashlib.sha256(key_data.encode()).hexdigest()[:16]
 
     @classmethod
@@ -342,9 +338,7 @@ def record_meta_rl_decision(
         # Extract strategy params
         if hasattr(scored.strategy, "chromosome"):
             params = scored.strategy.chromosome
-        elif hasattr(scored.strategy, "config") and hasattr(
-            scored.strategy.config, "params"
-        ):
+        elif hasattr(scored.strategy, "config") and hasattr(scored.strategy.config, "params"):
             params = scored.strategy.config.params
         else:
             params = {}
@@ -362,10 +356,7 @@ def record_meta_rl_decision(
 
         # Strategy metadata
         strategy_name = (
-            (
-                getattr(scored.strategy, "config", None)
-                and getattr(scored.strategy.config, "name", None)
-            )
+            (getattr(scored.strategy, "config", None) and getattr(scored.strategy.config, "name", None))
             or getattr(scored.strategy, "name", "unknown")
             or "unknown"
         )
@@ -462,9 +453,7 @@ class AuditLog:
                 return r
         return None
 
-    def find_similar(
-        self, regime: str, action: str, n: int = 5
-    ) -> list[DecisionRecord]:
+    def find_similar(self, regime: str, action: str, n: int = 5) -> list[DecisionRecord]:
         """Найти похожие решения для анализа"""
         candidates = self._by_regime.get(regime, [])
         return [r for r in candidates if r.final_action == action][-n:]
@@ -498,9 +487,7 @@ class AuditLog:
             "regime_distribution": regime_dist,
             "high_confidence_ratio": round(success_rate, 3),
             "avg_q_star": round(sum(r.q_star for r in self.records) / total, 4),
-            "avg_uncertainty": round(
-                sum(r.uncertainty_total for r in self.records) / total, 4
-            ),
+            "avg_uncertainty": round(sum(r.uncertainty_total for r in self.records) / total, 4),
         }
 
     def analyze_drift(self) -> dict[str, Any]:
@@ -532,9 +519,7 @@ class AuditLog:
             "confidence_drift": round(drift_conf, 2),
             "q_star_drift": round(drift_q, 4),
             "uncertainty_drift": round(drift_unc, 4),
-            "recent_high_conf_pct": round(
-                len([r for r in q4 if r.confidence_final >= 70]) / len(q4), 3
-            ),
+            "recent_high_conf_pct": round(len([r for r in q4 if r.confidence_final >= 70]) / len(q4), 3),
         }
 
     def export_json(self) -> str:

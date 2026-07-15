@@ -4,9 +4,6 @@ Note: Using Text columns instead of JSONB for maximum compatibility.
 JSON stored as text is handled by the repository layer.
 """
 
-from __future__ import annotations
-
-
 import enum
 
 from sqlalchemy import (
@@ -94,18 +91,14 @@ class Session(Base):
     finished_at = Column(DateTime(timezone=True))
     created_at = Column(DateTime(timezone=True), default=func.now())
 
-    signals = relationship(
-        "AgentSignal", back_populates="session", cascade="all, delete-orphan"
-    )
+    signals = relationship("AgentSignal", back_populates="session", cascade="all, delete-orphan")
     decisions = relationship("KARLDecisionRecord", back_populates="session")
 
 
 class AgentSignal(Base):
     __tablename__ = "agent_signals"
     signal_id = Column(UUID(as_uuid=True), primary_key=True)
-    session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="CASCADE")
-    )
+    session_id = Column(UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="CASCADE"))
     agent_name = Column(String(100), nullable=False)
     agent_pool = Column(String(20))
     signal = Column(String(20))  # renamed from 'signal' to avoid column name conflict
@@ -122,9 +115,7 @@ class AstroPosition(Base):
 
     __tablename__ = "astro_positions"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="CASCADE")
-    )
+    session_id = Column(UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="CASCADE"))
     planet = Column(String(20), nullable=False)
     longitude = Column(Numeric(10, 6))
     latitude = Column(Numeric(10, 6))
@@ -167,9 +158,7 @@ class AgentBeliefHistory(Base):
     __tablename__ = "agent_belief_history"
     id = Column(Integer, primary_key=True, autoincrement=True)
     agent_name = Column(String(100), nullable=False)
-    session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="SET NULL")
-    )
+    session_id = Column(UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="SET NULL"))
     prior_alpha = Column(Numeric(10, 4))
     prior_beta = Column(Numeric(10, 4))
     posterior_alpha = Column(Numeric(10, 4))
@@ -182,9 +171,7 @@ class AgentBeliefHistory(Base):
 class AgentSelectionLog(Base):
     __tablename__ = "agent_selection_log"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="CASCADE")
-    )
+    session_id = Column(UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="CASCADE"))
     agent_name = Column(String(100), nullable=False)
     pool_name = Column(String(20), nullable=False)
     was_called = Column(Boolean, nullable=False)
@@ -196,9 +183,7 @@ class AgentSelectionLog(Base):
 class KARLDecisionRecord(Base):
     __tablename__ = "karl_decision_records"
     decision_id = Column(UUID(as_uuid=True), primary_key=True)
-    session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="SET NULL")
-    )
+    session_id = Column(UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="SET NULL"))
     symbol = Column(String(20))
     price = Column(Numeric(20, 8))
     timeframe = Column(String(20))
@@ -261,9 +246,7 @@ class RewardCalibration(Base):
 class BacktestRun(Base):
     __tablename__ = "backtest_runs"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="SET NULL")
-    )
+    session_id = Column(UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="SET NULL"))
     symbol = Column(String(20), nullable=False)
     start_date = Column(DateTime(timezone=True), nullable=False)
     end_date = Column(DateTime(timezone=True), nullable=False)
@@ -323,9 +306,7 @@ class KARLTrajectoryStep(Base):
 
     __tablename__ = "karl_trajectory_steps"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    trajectory_id = Column(
-        String(100), ForeignKey("karl_trajectories.trajectory_id", ondelete="CASCADE")
-    )
+    trajectory_id = Column(String(100), ForeignKey("karl_trajectories.trajectory_id", ondelete="CASCADE"))
     step_index = Column(Integer)
     state_json = Column(Text)
     action = Column(String(20))

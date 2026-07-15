@@ -556,7 +556,7 @@ class SandboxEngine:
     def get_violations(self) -> list[str]:
         return sorted(self._violations)
 
-    def _apply_recovery(self, action_obj) -> bool:
+    def _apply_recovery(self, action_obj: RecoveryActionObj) -> bool:
         """Apply recovery from RecoveryActionObj."""
         if action_obj.action_type == "adjust_quorum":
             bound = action_obj.parameters.get("expected_bound", 0.5)

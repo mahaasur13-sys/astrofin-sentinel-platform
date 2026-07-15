@@ -377,7 +377,7 @@ class TestDeterminism3Runs:
             })
 
         # Serialize trace for comparison
-        json.dumps(trace, sort_keys=True)
+        trace_json = json.dumps(trace, sort_keys=True)
 
         # Verify determinism
         assert len(trace) == 20

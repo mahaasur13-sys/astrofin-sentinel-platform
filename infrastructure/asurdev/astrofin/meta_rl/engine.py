@@ -4,12 +4,12 @@ ACOS × AstroFin — Meta-RL Engine
 Distributed genetic algorithm + RL feedback loop for strategy evolution.
 Population: ACOS jobs → evaluated on cluster → fitness aggregated in TSDB.
 """
+from dataclasses import dataclass, field
+from typing import Callable
+from datetime import datetime
+import random
 import hashlib
 import json
-import random
-from collections.abc import Callable
-from dataclasses import dataclass, field
-from datetime import datetime
 
 
 @dataclass

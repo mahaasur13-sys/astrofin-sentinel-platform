@@ -4,6 +4,8 @@ Feedback Collector — ingests job outcomes from state_store into TimescaleDB.
 Job completes → outcome stored → dataset builder sees it → retraining triggered.
 """
 import logging
+from datetime import datetime
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +59,7 @@ class FeedbackCollector:
         job_id: str,
         node_id: str,
         job_state: str,
-        exit_code: int | None,
+        exit_code: Optional[int],
         duration_seconds: float,
         queued_seconds: float,
     ) -> bool:

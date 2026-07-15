@@ -5,9 +5,7 @@ If trace already exists, returns cached result WITHOUT re-execution.
 After execution, records trace to recorder for idempotency.
 """
 from __future__ import annotations
-
 import time
-
 from acos.recorder.recorder import DeterministicTraceRecorder
 from acos.validator.contract_validator import DAGValidator
 
@@ -15,7 +13,7 @@ from acos.validator.contract_validator import DAGValidator
 class EventSourcedEngine:
     """
     Idempotent write-side execution engine.
-
+    
     PATCH 2 fixes:
     - execute() checks has_trace() BEFORE execution
     - After execution, records trace to recorder for idempotency
@@ -29,7 +27,7 @@ class EventSourcedEngine:
     def execute(self, dag: dict, context: dict, trace_id: str) -> str:
         """
         Idempotent execution.
-
+        
         PATCH 2: Check has_trace() BEFORE executing.
         If trace exists → return cached trace_id (no re-execution).
         After execution → record to recorder for future idempotency.

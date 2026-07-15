@@ -4,9 +4,10 @@ WireGuard Prometheus Exporter
 Exports: peer status, bytes transferred, latest handshake
 Endpoint: /metrics  (text format for Prometheus)
 """
-import re
 import subprocess
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import re
+import time
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 WG_INTERFACE = "wg0"
 

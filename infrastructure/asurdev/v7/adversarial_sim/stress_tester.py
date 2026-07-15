@@ -4,10 +4,9 @@ Adversarial Load Simulator — stress tests policy stability under worst-case co
 S_adversarial = S + burst_load + node_failure_chain + queue_spike
 """
 from __future__ import annotations
-
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 import random
-from dataclasses import dataclass
-from datetime import datetime
 
 
 @dataclass

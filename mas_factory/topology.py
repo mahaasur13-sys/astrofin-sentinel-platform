@@ -1,7 +1,5 @@
 """mas_factory/topology.py - ATOM-R-028: Dynamic SwitchNode + Topology Updater"""
 
-from __future__ import annotations
-
 import hashlib
 import json
 from dataclasses import asdict, dataclass, field
@@ -51,11 +49,7 @@ class ConditionEvaluator:
         if not condition:
             return True
         try:
-            ns = {
-                k: v
-                for k, v in context.items()
-                if k in cls.SAFE_NAMES or k.startswith("_")
-            }
+            ns = {k: v for k, v in context.items() if k in cls.SAFE_NAMES or k.startswith("_")}
             ns["true"] = True
             ns["false"] = False
             return bool(eval(condition, {"__builtins__": {}}, ns))
@@ -83,16 +77,8 @@ class SwitchNode:
         if self.strategy == SwitchStrategy.THOMPSON:
             import random
 
-            scores = {
-                a: random.random() * (self.weights or {}).get(a, 1.0)
-                for a in self.candidates
-            }
-            return [
-                a
-                for a, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)[
-                    : self.k
-                ]
-            ]
+            scores = {a: random.random() * (self.weights or {}).get(a, 1.0) for a in self.candidates}
+            return [a for a, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)[: self.k]]
         return self.candidates[: self.k]
 
 
@@ -276,9 +262,7 @@ class TopologyUpdater:
     def apply_change(self, change: TopologyChange) -> Topology:
         try:
             new_topo = self._apply_change_internal(change)
-            print(
-                f"    [DEBUG] new_topo id={id(new_topo)}, roles={[r.name for r in new_topo.roles]}"
-            )
+            print(f"    [DEBUG] new_topo id={id(new_topo)}, roles={[r.name for r in new_topo.roles]}")
             self.versions.append(
                 TopologyVersion(
                     version=self._bump_version(),
@@ -372,15 +356,13 @@ class TopologyUpdater:
         return {
             "total_changes": len(self.change_history),
             "current_version": self.versions[-1].version if self.versions else "v0",
-            "last_change": (
-                {
-                    "id": self.change_history[-1].change_id,
-                    "action": self.change_history[-1].action.value,
-                    "reason": self.change_history[-1].reason,
-                }
-                if self.change_history
-                else None
-            ),
+            "last_change": {
+                "id": self.change_history[-1].change_id,
+                "action": self.change_history[-1].action.value,
+                "reason": self.change_history[-1].reason,
+            }
+            if self.change_history
+            else None,
         }
 
 

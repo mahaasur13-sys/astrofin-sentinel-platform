@@ -11,7 +11,6 @@ Usage:
     python knowledge/daily_digest/daily_digest_log.py --status PROPOSED
 """
 
-from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -65,11 +64,7 @@ class DigestLog:
         # Parse markdown table
         entries = []
         for line in content.split("\n"):
-            if (
-                line.startswith("|")
-                and not line.startswith("|--")
-                and "Date" not in line
-            ):
+            if line.startswith("|") and not line.startswith("|--") and "Date" not in line:
                 parts = [p.strip() for p in line.split("|")[1:-1]]
                 if len(parts) >= 4:
                     entry = DigestEntry(
@@ -77,9 +72,7 @@ class DigestLog:
                         source=parts[1],
                         key_ideas=parts[2].split(", ") if parts[2] else [],
                         status=parts[3],
-                        linked_atoms=(
-                            parts[4].split(", ") if len(parts) > 4 and parts[4] else []
-                        ),
+                        linked_atoms=parts[4].split(", ") if len(parts) > 4 and parts[4] else [],
                     )
                     entries.append(entry)
 
@@ -98,15 +91,11 @@ class DigestLog:
         for e in sorted(self.entries, key=lambda x: x.date, reverse=True):
             ideas_str = ", ".join(e.key_ideas[:3])
             atoms_str = ", ".join(e.linked_atoms) if e.linked_atoms else "—"
-            lines.append(
-                f"| {e.date} | {e.source} | {ideas_str} | {e.status} | {atoms_str} |"
-            )
+            lines.append(f"| {e.date} | {e.source} | {ideas_str} | {e.status} | {atoms_str} |")
 
         self.LOG_FILE.write_text("\n".join(lines), encoding="utf-8")
 
-    def add_entry(
-        self, date: str, source: str, key_ideas: list, status: str = None
-    ) -> DigestEntry:
+    def add_entry(self, date: str, source: str, key_ideas: list, status: str = None) -> DigestEntry:
         """Add a new digest entry."""
         # Check if entry for date exists
         for e in self.entries:
@@ -199,9 +188,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Daily Digest Log")
     parser.add_argument("--log", type=str, help="Add log entry for date")
-    parser.add_argument(
-        "--source", type=str, default="email", help="Source (email, webhook, file)"
-    )
+    parser.add_argument("--source", type=str, default="email", help="Source (email, webhook, file)")
     parser.add_argument("--ideas", type=str, help="Comma-separated key ideas")
     parser.add_argument("--status", type=str, help="Set status for --log")
     parser.add_argument("--list", action="store_true", help="List all entries")

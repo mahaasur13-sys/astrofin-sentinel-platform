@@ -1,15 +1,13 @@
-from __future__ import annotations
+"""amre/karl_optimizer.py - ATOM-021: KARL Optimization & Parallelism"""
+
+"""Optimizations for KARL loop: parallel processing, TTC depth, reduced overhead."""
+
 import asyncio
 import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Optional
-
-"""amre/karl_optimizer.py - ATOM-021: KARL Optimization & Parallelism"""
-
-
-"""Optimizations for KARL loop: parallel processing, TTC depth, reduced overhead."""
 
 
 @dataclass
@@ -30,13 +28,7 @@ class KARLPerfProfile:
 
     @property
     def overhead_ms(self) -> float:
-        return (
-            self.uncertainty_ms
-            + self.grounding_ms
-            + self.reward_ms
-            + self.oap_ms
-            + self.audit_ms
-        )
+        return self.uncertainty_ms + self.grounding_ms + self.reward_ms + self.oap_ms + self.audit_ms
 
 
 class AsyncPipeline:

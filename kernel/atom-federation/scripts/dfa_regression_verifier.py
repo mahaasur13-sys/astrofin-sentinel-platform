@@ -44,17 +44,17 @@ def load_spec() -> dict[str, str]:
 def extract_runtime() -> dict[str, str]:
     """
     Extract runtime transitions using the verified DFA spec from dfa_execution_guard.
-
+    
     The Runtime DFA == the spec DFA defined in dfa_execution_guard._TRANSITIONS,
     since ExecutionGateway is the INTERPRETER of that DFA.
-
+    
     We verify the gateway code CONSISTENCY with the DFA spec:
     - Check that trace.append() uses format consistent with DFA state names
     - Check that no BINARY BYPASS of the DFA layer exists
     """
     sys.path.insert(0, str(REPO / "core" / "runtime"))
     try:
-        from dfa_execution_guard import _TRANSITIONS, DFAEvent, DFAState  # noqa: F401
+        from dfa_execution_guard import _TRANSITIONS, DFAEvent, DFAState
         # Runtime DFA == the spec DFA (Gateway interprets spec)
         transitions = {}
         for (s, e), n in _TRANSITIONS.items():
@@ -264,7 +264,7 @@ def main() -> int:
     ap.add_argument("--output", default=str(OUTPUT_JSON))
     args = ap.parse_args()
 
-    pathlib.Path(args.repo)
+    repo = pathlib.Path(args.repo)
 
     spec = load_spec()
     runtime = extract_runtime()

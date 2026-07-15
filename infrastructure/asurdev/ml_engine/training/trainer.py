@@ -3,13 +3,16 @@
 Trainer — batch training loop for all ML models.
 Produces failure + load models, logs to registry.
 """
+import os
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional, Dict, Any
 
 import numpy as np
+import pandas as pd
 
-from ml_engine.dataset import DatasetBuilder, time_aware_split
+from ml_engine.dataset import DatasetBuilder, time_aware_split, stratify_by_label
 from ml_engine.models import FailureXGBoost, LoadXGBoost
 from ml_engine.registry import ModelRegistry
 
@@ -19,7 +22,7 @@ logger = logging.getLogger(__name__)
 class Trainer:
     def __init__(
         self,
-        registry_path: Path | None = None,
+        registry_path: Optional[Path] = None,
         dataset_days: int = 30,
         horizon_minutes: int = 30,
     ):
@@ -30,10 +33,10 @@ class Trainer:
 
     def train(
         self,
-        output_dir: Path | None = None,
+        output_dir: Optional[Path] = None,
         retrain: bool = False,
         min_positive_ratio: float = 0.05,
-    ) -> dict[str, str]:
+    ) -> Dict[str, str]:
         """
         Full training pipeline: build → split → train → evaluate → register.
 
@@ -65,10 +68,10 @@ class Trainer:
 
         # Time-aware split
         train_df, val_df, test_df = time_aware_split(df, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15)
-        X_train, _X_val, X_test = X.loc[train_df.index], X.loc[val_df.index], X.loc[test_df.index]
-        yf_train, _yf_val, yf_test = y_failure.loc[train_df.index], y_failure.loc[val_df.index], y_failure.loc[test_df.index]
-        yq_train, _yq_val, yq_test = y_queue.loc[train_df.index], y_queue.loc[val_df.index], y_queue.loc[test_df.index]
-        yg_train, _yg_val, yg_test = y_gpu.loc[train_df.index], y_gpu.loc[val_df.index], y_gpu.loc[test_df.index]
+        X_train, X_val, X_test = X.loc[train_df.index], X.loc[val_df.index], X.loc[test_df.index]
+        yf_train, yf_val, yf_test = y_failure.loc[train_df.index], y_failure.loc[val_df.index], y_failure.loc[test_df.index]
+        yq_train, yq_val, yq_test = y_queue.loc[train_df.index], y_queue.loc[val_df.index], y_queue.loc[test_df.index]
+        yg_train, yg_val, yg_test = y_gpu.loc[train_df.index], y_gpu.loc[val_df.index], y_gpu.loc[test_df.index]
 
         registered = {}
 

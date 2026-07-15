@@ -1,14 +1,11 @@
-from __future__ import annotations
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Any
-import os
-
 """amre/self_question.py — Self-Questioning Engine + Meta-Questioning (ATOM-016)
 Self-questioning: agent asks itself hard questions before committing to a decision.
 Meta-questioning: agent reflects on whether its own questions are good enough.
 """
 
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
 
 # ─── Question Outcome Tracking ──────────────────────────────────────────────────
 
@@ -169,14 +166,10 @@ class SelfQuestioningEngine:
         if not recent:
             return "No history yet — treating questions as untested", 50
 
-        recent_accuracy = sum(1 for o in recent if o.actual_outcome == "correct") / len(
-            recent
-        )
+        recent_accuracy = sum(1 for o in recent if o.actual_outcome == "correct") / len(recent)
 
         # Score the question bank based on recent accuracy
-        avg_score = sum(self.question_scores.values()) / max(
-            len(self.question_scores), 1
-        )
+        avg_score = sum(self.question_scores.values()) / max(len(self.question_scores), 1)
 
         if recent_accuracy < 0.4 or avg_score < 0.5:
             return (
@@ -250,9 +243,7 @@ class SelfQuestioningEngine:
             }
 
         worst = sorted(question_performance.items(), key=lambda x: x[1]["accuracy"])[:2]
-        best = sorted(
-            question_performance.items(), key=lambda x: x[1]["accuracy"], reverse=True
-        )[:2]
+        best = sorted(question_performance.items(), key=lambda x: x[1]["accuracy"], reverse=True)[:2]
 
         return {
             "status": "analyzed",
@@ -263,17 +254,11 @@ class SelfQuestioningEngine:
             ),
             "worst_questions": [{"question": q, **stats} for q, stats in worst],
             "best_questions": [{"question": q, **stats} for q, stats in best],
-            "questions_to_evict": [
-                q for q, s in self.question_scores.items() if s < 0.3
-            ],
-            "recommended_new_questions": self._propose_new_questions(
-                question_performance
-            ),
+            "questions_to_evict": [q for q, s in self.question_scores.items() if s < 0.3],
+            "recommended_new_questions": self._propose_new_questions(question_performance),
         }
 
-    def _propose_new_questions(
-        self, performance: dict[str, dict[str, float]]
-    ) -> list[str]:
+    def _propose_new_questions(self, performance: dict[str, dict[str, float]]) -> list[str]:
         """Propose new questions based on weaknesses in the current question bank."""
         proposals = []
 
@@ -281,18 +266,12 @@ class SelfQuestioningEngine:
         if low_acc:
             proposals.append("Am I confusing correlation with causation here?")
 
-        hard_cases = [
-            o
-            for o in self.question_history
-            if o.was_hard and o.actual_outcome == "incorrect"
-        ]
+        hard_cases = [o for o in self.question_history if o.was_hard and o.actual_outcome == "incorrect"]
         if len(hard_cases) > 3:
             proposals.append("Is this a repeat of a previously failed pattern?")
 
         if len(self.questions) < 5:
-            proposals.append(
-                "Is my uncertainty estimate realistic given the data quality?"
-            )
+            proposals.append("Is my uncertainty estimate realistic given the data quality?")
             proposals.append("Should I wait for more data before acting?")
 
         return proposals[:3]
@@ -301,11 +280,11 @@ class SelfQuestioningEngine:
 # ============================================================================
 # PHASE 4: SelfQ Triple Trigger (ATOM-KARL-015)
 # ============================================================================
+import os
+from typing import Any
 
 # Feature flag (можно переопределить через env)
-SELFQ_TRIPLE_TRIGGER_ENABLED = (
-    os.getenv("SELFQ_TRIPLE_TRIGGER_ENABLED", "true").lower() == "true"
-)
+SELFQ_TRIPLE_TRIGGER_ENABLED = os.getenv("SELFQ_TRIPLE_TRIGGER_ENABLED", "true").lower() == "true"
 
 # Конфигурируемые пороги (тоже через env)
 DISAGREEMENT_THRESHOLD = float(os.getenv("SELFQ_DISAGREEMENT_THRESHOLD", "0.35"))

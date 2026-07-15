@@ -1,14 +1,13 @@
 """ACOS Scheduler Contract — enforced scheduler interface."""
-from typing import Any, Protocol
-
+from typing import Protocol, Any
 
 class SchedulerContract(Protocol):
     """ENFORCED contract for all Scheduler implementations."""
-
+    
     def schedule(self, dag: dict, context: dict) -> dict:
         """Compile DAG into executable schedule. MUST return dict with 'nodes'."""
         ...
-
+    
     def route(self, job: dict) -> str:
         """Route job to appropriate executor. MUST return executor name."""
         ...

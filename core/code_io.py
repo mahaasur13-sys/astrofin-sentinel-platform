@@ -1,12 +1,7 @@
-from __future__ import annotations
-
 import ast
-import logging
 import subprocess
 import tempfile
 from pathlib import Path
-
-logger = logging.getLogger(__name__)
 
 
 def is_valid_python(code: str) -> tuple[bool, str]:
@@ -31,7 +26,6 @@ def format_code_black(code: str) -> str:
             ["black", tmp_path],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            timeout=30,
             check=False,
         )
         formatted = Path(tmp_path).read_text(encoding="utf-8")
@@ -74,5 +68,5 @@ def safe_write_code_file(path: str, content: str) -> bool:
         write_code_file(path, content)
         return True
     except Exception as e:
-        logger.exception("[CODE WRITE ERROR] %s", e)
+        print(f"[CODE WRITE ERROR] {e}")
         return False

@@ -6,12 +6,7 @@ CVG + LCCP SLSA-4 Production Pipeline
 Uses cosign with Fulcio OIDC (Google, GitHub, Microsoft)
 for keyless certificate issuance + Rekor transparency log.
 """
-import datetime
-import hashlib
-import json
-import os
-import subprocess
-import sys
+import json, subprocess, hashlib, os, datetime, sys
 
 HOME = os.environ.get('HOME', '/root')
 COSIGN_BIN = os.environ.get('COSIGN_BIN', '/usr/local/bin/cosign')
@@ -23,8 +18,7 @@ SUPPORTED_OIDC_PROVIDERS = [
 ]
 
 def h(data):
-    if isinstance(data, str):
-        data = data.encode()
+    if isinstance(data, str): data = data.encode()
     return hashlib.sha256(data).hexdigest()
 
 def check_cosign():
@@ -46,7 +40,7 @@ def cosign_keyless_sign_attestation(commit_hash: str, manifest_hash: str, subjec
     print("=" * 70)
     print("SIGSTORE KEYLESS SIGNING v5.0")
     print("=" * 70)
-    print("Method: cosign attest (Fulcio + Rekor)")
+    print(f"Method: cosign attest (Fulcio + Rekor)")
     print(f"Subject: {subject_ref}")
     print(f"Commit: {commit_hash}")
     print(f"Manifest: {manifest_hash}")
@@ -106,7 +100,7 @@ def verify_from_rekor(signature: str, artifact_ref: str) -> dict:
     print("[REKOR] Verifying transparency log entry...")
     print(f"  Signature: {signature}")
     print(f"  Artifact: {artifact_ref}")
-    subprocess.run(
+    r = subprocess.run(
         [COSIGN_BIN, 'verify-attestation', '--help'],
         capture_output=True, text=True
     )

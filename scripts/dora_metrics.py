@@ -21,9 +21,11 @@ import argparse
 import json
 import os
 import sys
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
 import urllib.request
 import urllib.error

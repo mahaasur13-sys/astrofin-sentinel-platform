@@ -271,7 +271,7 @@ class TestSyncHistory:
 class TestMaliciousTheta:
     @pytest.mark.xfail(reason='C1: wall-clock time in policy sync', strict=False)
     def test_collapse_state_rejected_at_consensus_gate(self):
-        PolicySync(
+        cr_from_policy_sync = PolicySync(
             "n1",
             replay_validator=lambda t: (True, "ok"),
         )

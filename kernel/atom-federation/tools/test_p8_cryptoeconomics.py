@@ -78,7 +78,7 @@ def test7_triple_vote():
     # Three votes on different proposals
     slash.verify_and_slash_vote("attacker", "prop-A")  # 1st: clean
     slash.verify_and_slash_vote("attacker", "prop-B")  # 2nd: double vote -> rejected, no additional slash (already slashed)
-    reg.get_stake("attacker")  # 1000 * 0.5 = 500 after first slash
+    stake_after_double = reg.get_stake("attacker")  # 1000 * 0.5 = 500 after first slash
     slash.verify_and_slash_vote("attacker", "prop-C")  # 3rd: triple vote -> 100% on remaining
     check(reg.get_stake("attacker") == 0.0, f"After triple vote: 0: {reg.get_stake('attacker')}")
     check(slashed(reg, "attacker", init["attacker"]), "Attacker slashed for triple vote")
@@ -144,8 +144,7 @@ if __name__ == "__main__":
     passed = 0
     for t in tests:
         try:
-            t()
-            passed += 1
+            t(); passed += 1
         except Exception as e:
             print(f"  EXCEPTION: {e}")
     print(f"\n{'='*60}\n{passed}/{len(tests)} P8 TESTS PASSED\n{'='*60}")

@@ -14,8 +14,6 @@ Usage:
     )
 """
 
-from __future__ import annotations
-
 from core.idea_model import Idea, IdeaStatus
 
 # ─── Forward-declare to avoid circular import ─────────────────────────────────

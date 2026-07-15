@@ -9,9 +9,6 @@ Modules:
     safe_json.py   - Safe JSON/JSONL operations (SQLite fallback)
 """
 
-from __future__ import annotations
-
-
 from db.init import get_db_status, init_db_if_needed, init_schema_if_needed
 from db.karl_replay import PostgresReplayBuffer, get_default_pg_buffer
 from db.repositories import (

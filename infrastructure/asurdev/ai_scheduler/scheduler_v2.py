@@ -3,13 +3,13 @@
 AI Scheduler v2 — FastAPI Service
 Data-driven policy engine: metrics → scoring → decision → routing.
 """
-import logging
 import os
+import logging
 from pathlib import Path
-
-import uvicorn
+from typing import Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import uvicorn
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("scheduler")
@@ -22,10 +22,10 @@ class ScheduleRequest(BaseModel):
     memory_gb: int = 0
     priority: int = 5          # 1-10, higher = more urgent
     dataset_ceph: bool = False
-    dataset_path: str | None = None
+    dataset_path: Optional[str] = None
     cpus: int = 1
     gpus: int = 0
-    time_limit: str | None = None
+    time_limit: Optional[str] = None
 
 
 class ScheduleResponse(BaseModel):
@@ -33,7 +33,7 @@ class ScheduleResponse(BaseModel):
     partition: str
     scores: dict
     reason: str
-    job_id: str | None = None
+    job_id: Optional[str] = None
 
 
 @app.get("/health")
@@ -67,8 +67,8 @@ def schedule(req: ScheduleRequest):
 
 @app.get("/scores")
 def scores(job_type: str = "gpu"):
-    from .modules.policy import ALL_NODES
     from .modules.scoring import rank_nodes
+    from .modules.policy import ALL_NODES
     return rank_nodes(ALL_NODES, job_type)
 
 
@@ -84,10 +84,9 @@ def metrics():
 
 
 @app.post("/submit")
-def submit(job_type: str = "gpu", script: str = "job.sh", partition: str | None = None):
+def submit(job_type: str = "gpu", script: str = "job.sh", partition: Optional[str] = None):
     """Submit job to selected partition via slurm wrapper."""
-    import subprocess
-    import uuid
+    import subprocess, uuid
 
     decision = schedule(ScheduleRequest(job_type=job_type))
     partition = partition or decision.partition

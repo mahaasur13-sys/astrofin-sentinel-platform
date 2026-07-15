@@ -8,8 +8,6 @@ Checks for new top strategies in the pool every N minutes and
 exports them as GitAgent packages. Idempotent — skips already-exported.
 """
 
-from __future__ import annotations
-
 import argparse
 import logging
 import os
@@ -60,12 +58,7 @@ def run_once():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Nightly strategy export")
     parser.add_argument("--daemon", action="store_true", help="Run continuously")
-    parser.add_argument(
-        "--poll",
-        type=int,
-        default=POLL_INTERVAL_SECONDS,
-        help="Poll interval in seconds",
-    )
+    parser.add_argument("--poll", type=int, default=POLL_INTERVAL_SECONDS, help="Poll interval in seconds")
     args = parser.parse_args()
 
     if args.daemon:

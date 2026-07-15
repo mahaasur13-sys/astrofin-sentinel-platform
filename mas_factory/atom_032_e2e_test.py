@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """ATOM-R-032: Final MAS Factory E2E Test"""
 
-from __future__ import annotations
-
 import asyncio
 import sys
 import time
@@ -12,9 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 def p(msg, style=""):
-    s = {"g": "\033[92m", "r": "\033[91m", "y": "\033[93m", "b": "\033[94m"}.get(
-        style, ""
-    )
+    s = {"g": "\033[92m", "r": "\033[91m", "y": "\033[93m", "b": "\033[94m"}.get(style, "")
     print(f"{s}{msg}\033[0m")
 
 

@@ -34,8 +34,7 @@ class GPULeaseManager:
         with self._lock:
             lease = self._leases.get(gpu_id)
             if lease and lease.job_id == job_id:
-                lease.renewed += 1
-                return True
+                lease.renewed += 1; return True
             return False
 
     def is_locked(self, gpu_id: str) -> bool:

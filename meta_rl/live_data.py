@@ -194,9 +194,7 @@ class LiveDataProvider:
             return result
 
         except Exception as e:
-            logger.warning(
-                f"[LIVE-DATA] Fetch failed for {sym}: {e} — using sandbox fallback"
-            )
+            logger.warning(f"[LIVE-DATA] Fetch failed for {sym}: {e} — using sandbox fallback")
             return self._sandbox_ohlcv(sym, interval, limit)
 
     def fetch_ticker(self, symbol: str | None = None) -> dict:
@@ -467,9 +465,7 @@ class LiveDataProvider:
 
 
 # Convenience factory
-def create_live_provider(
-    symbol: str = "BTC/USDT", sandbox: bool = None
-) -> LiveDataProvider:
+def create_live_provider(symbol: str = "BTC/USDT", sandbox: bool = None) -> LiveDataProvider:
     """Factory for LiveDataProvider with sensible defaults."""
     return LiveDataProvider(
         sandbox=sandbox if sandbox is not None else CCXT_SANDBOX_MODE,

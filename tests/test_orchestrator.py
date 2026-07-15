@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 from core.base_agent import AgentResponse, SignalDirection
@@ -115,7 +113,7 @@ class TestOrchestratorIntegration:
             "flows_run",
             "agent_count",
             "final_recommendation",
-            # "final_report" — merged into final_recommendation (G12)  # noqa
+            "final_report",
             "timestamp",
         ]
         for field in required_fields:
@@ -131,9 +129,7 @@ class TestOrchestratorIntegration:
         rec = result["final_recommendation"]
         assert rec is not None
         conf = rec.get("confidence")
-        assert isinstance(
-            conf, (int, float)
-        ), f"confidence is {type(conf)}: {conf}"  # noqa: UP038
+        assert isinstance(conf, (int, float)), f"confidence is {type(conf)}: {conf}"  # noqa: UP038
         assert 0 <= conf <= 100, f"confidence={conf} out of range"
 
     @pytest.mark.asyncio
@@ -166,9 +162,7 @@ class TestOrchestratorIntegration:
             symbol="BTCUSDT",
             timeframe="SWING",
         )
-        assert (
-            result["final_recommendation"] is not None
-        )  # final_report merged into final_recommendation (G12)
+        assert result["final_recommendation"] == result["final_report"]
 
     @pytest.mark.asyncio
     async def test_timestamp_is_iso_format(self):

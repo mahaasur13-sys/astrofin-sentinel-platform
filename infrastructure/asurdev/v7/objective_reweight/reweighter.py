@@ -6,10 +6,8 @@ v7: U = f(α(t), β(t), γ(t), δ(t))
 Weight updates via gradient from regret signal.
 """
 from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import datetime
-
 import numpy as np
 
 
@@ -84,3 +82,4 @@ class ObjectiveReweighter:
 
     def get(self) -> ObjectiveWeights:
         return self._weights
+REWEIGH_EOF

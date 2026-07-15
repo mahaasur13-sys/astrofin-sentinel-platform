@@ -6,26 +6,29 @@ Production-Grade Integration: L0-L10 + EBL + ETE
 Decision Flow (HARD ENFORCED):
   ML proposes → Solver optimizes → Policy constrains → Governance finalizes → EBL enforces → Execute → ETE traces
 """
+import time
 import uuid
+from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any
-
-# Constraint Compiler imports
-from constraint_compiler.parser.parser import PolicyBlock, PolicyParser
-from ete.replay.replayer import CorrelationEngine, DeterministicReplayer
-
-# ETE imports
-from ete.store.trace_store import TraceNode, TraceStore, TraceType
 
 # L9 EBL imports
-from l9_ebl.capabilities.registry import ExecutionContext
-from l9_ebl.gate.gate import ActionResult, ExecutionGate
-from l9_ebl.policy_compiler.compiler import GuardRule, PolicyCompiler
+from l9_ebl.capabilities.registry import ExecutionContext, Capability, CapabilityDenied, enforce
+from l9_ebl.gate.gate import ExecutionGate, ActionResult, GateDecision
+from l9_ebl.policy_compiler.compiler import PolicyCompiler, GuardRule
+
+# ETE imports
+from ete.store.trace_store import TraceStore, TraceNode, TraceType, ExecutionTrace
+from ete.replay.replayer import DeterministicReplayer, CorrelationEngine
+
+# Constraint Compiler imports
+from constraint_compiler.parser.parser import PolicyParser, PolicyBlock
 
 # L10 imports
-from l10_self_healing.orchestrator.failure_isolation import FailureIsolator
-from l10_self_healing.watchdog.watchdog import Watchdog
+from l10_self_healing.orchestrator.failure_isolation import (
+    FailureIsolator, Incident, IncidentSeverity, FailMode, SEVERITY_RESPONSE
+)
+from l10_self_healing.watchdog.watchdog import Watchdog, HealthMetric
 
 # ============================================================
 # ARCHITECTURE SUMMARY
@@ -106,16 +109,16 @@ class ACOSContext:
     trace_id: str
     session_id: str
     role: str = "optimizer"
-    metadata: dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class ACOSDecisionRequest:
     action: str
-    params: dict[str, Any]
-    ml_signals: dict[str, Any] = field(default_factory=dict)
+    params: Dict[str, Any]
+    ml_signals: Dict[str, Any] = field(default_factory=dict)
     solver_score: float = 0.0
     policy_score: float = 0.0
-    context: ACOSContext | None = None
+    context: Optional[ACOSContext] = None
 
 @dataclass
 class ACOSDecisionResponse:
@@ -124,7 +127,7 @@ class ACOSDecisionResponse:
     reason: str
     trace_id: str
     risk_score: float
-    enforced_layers: list[str]
+    enforced_layers: List[str]
     rollback_triggered: bool = False
 
 class ACOSOrchestrator:
@@ -142,8 +145,8 @@ class ACOSOrchestrator:
         # EBL components
         self.capability_registry = None  # imported module
         self.policy_compiler = PolicyCompiler()
-        self.constraint_graph: dict[str, GuardRule] = {}
-        self.execution_gate: ExecutionGate | None = None
+        self.constraint_graph: Dict[str, GuardRule] = {}
+        self.execution_gate: Optional[ExecutionGate] = None
 
         # ETE components
         self.trace_store = TraceStore()
@@ -158,7 +161,7 @@ class ACOSOrchestrator:
         self.policy_parser = PolicyParser()
 
         # Policy blocks
-        self.policy_blocks: dict[str, PolicyBlock] = {}
+        self.policy_blocks: Dict[str, PolicyBlock] = {}
 
         self.decision_count = 0
 
@@ -279,7 +282,7 @@ class ACOSOrchestrator:
             enforced_layers=["L5", "L6", "L7", "L8", "L9", "L0"]
         )
 
-    def architecture_summary(self) -> dict[str, Any]:
+    def architecture_summary(self) -> Dict[str, Any]:
         return {
             "layers": ["L0-L3_infra", "L4_control_plane", "L5_ml", "L6_optimizer",
                        "L7_policy", "L8_governance", "L9_ebl", "L10_self_healing",
@@ -300,9 +303,9 @@ class ACOSGovernanceKernel:
     Non-linear confidence aggregation (min, not product)
     """
     def __init__(self):
-        self.violations: list[dict[str, Any]] = []
+        self.violations: List[Dict[str, Any]] = []
 
-    def analyze(self, acos: ACOSOrchestrator) -> dict[str, Any]:
+    def analyze(self, acos: ACOSOrchestrator) -> Dict[str, Any]:
         static_conf = 0.95
         runtime_conf = 0.40
         semantic_conf = 0.80

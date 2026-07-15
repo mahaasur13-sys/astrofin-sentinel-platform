@@ -1,7 +1,5 @@
 """Alembic env.py"""
 
-from __future__ import annotations
-
 import os
 import sys
 from logging.config import fileConfig

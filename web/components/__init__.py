@@ -1,6 +1,5 @@
 """web/components/__init__.py"""
 
-from __future__ import annotations
 from web.components.dashboard import dashboard_tab
 from web.components.evolution import evolution_tab
 from web.components.live import live_tab

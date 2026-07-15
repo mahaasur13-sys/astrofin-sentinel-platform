@@ -189,7 +189,7 @@ class TestPhase3ProofEnrichedGossip:
     """Phase 3: proof metadata in delta gossip."""
 
     def test_attach_proof_to_message(self):
-        GossipProofEngine()
+        gpe = GossipProofEngine()
         base_msg = DeltaGossipMessage(
             source_node_id="node_2",
             root_hash="root_abc",

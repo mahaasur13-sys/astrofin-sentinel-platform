@@ -6,12 +6,12 @@ Supports hooks: on_state_change, on_failure, on_retry.
 
 State Machine: CREATED → ADMITTED → SCHEDULED → RUNNING → SUCCESS/FAIL/RETRY
 """
+import uuid
 import logging
 import time
-import uuid
-from collections.abc import Callable
-from dataclasses import dataclass, field
 from enum import Enum
+from dataclasses import dataclass, field
+from typing import Callable, Dict, List, Optional, Any
 from threading import Lock
 
 logger = logging.getLogger("job_engine")
@@ -30,7 +30,7 @@ class JobState(Enum):
 
 
 # Valid transitions: current_state → set of valid next states
-TRANSITIONS: dict[JobState, list[JobState]] = {
+TRANSITIONS: Dict[JobState, List[JobState]] = {
     JobState.CREATED:  [JobState.ADMITTED, JobState.REJECTED, JobState.QUEUED],
     JobState.ADMITTED: [JobState.SCHEDULED],
     JobState.QUEUED:   [JobState.ADMITTED, JobState.REJECTED],
@@ -49,14 +49,14 @@ class Job:
     priority: int
     memory_gb: int
     state: JobState = JobState.CREATED
-    node_id: str | None = None
+    node_id: Optional[str] = None
     attempts: int = 0
     max_attempts: int = 3
     created_at: float = field(default_factory=time.time)
-    scheduled_at: float | None = None
-    started_at: float | None = None
-    completed_at: float | None = None
-    last_error: str | None = None
+    scheduled_at: Optional[float] = None
+    started_at: Optional[float] = None
+    completed_at: Optional[float] = None
+    last_error: Optional[str] = None
 
 
 # Event hooks — override these to add telemetry
@@ -80,7 +80,7 @@ class TelemetryJobEngine(JobEventHooks):
     Every transition writes to the event log for ML dataset generation.
     """
     def __init__(self, db=None):
-        self.jobs: dict[str, Job] = {}
+        self.jobs: Dict[str, Job] = {}
         self._lock = Lock()
         self._db = db  # optional StateStore connection
 
@@ -139,10 +139,10 @@ class TelemetryJobEngine(JobEventHooks):
         self.on_failure(job, reason)
         return self._transition(job, JobState.FAIL)
 
-    def get_job(self, job_id: str) -> Job | None:
+    def get_job(self, job_id: str) -> Optional[Job]:
         return self.jobs.get(job_id)
 
-    def get_jobs_by_state(self, state: JobState) -> list[Job]:
+    def get_jobs_by_state(self, state: JobState) -> List[Job]:
         return [j for j in self.jobs.values() if j.state == state]
 
     # ---------------------------------------------------------------------------
@@ -166,7 +166,7 @@ class TelemetryJobEngine(JobEventHooks):
             raise KeyError(f"Job {job_id} not found")
         return self.jobs[job_id]
 
-    def _write_event(self, job: Job, state: JobState, error: str | None, event_type: str) -> None:
+    def _write_event(self, job: Job, state: JobState, error: Optional[str], event_type: str) -> None:
         """Write event to telemetry log (append-only, immutable)."""
         if self._db is None:
             return

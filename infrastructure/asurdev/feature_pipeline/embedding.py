@@ -3,9 +3,9 @@
 Node Embedding Layer — vector representations of nodes.
 Used for: similarity clustering, anomaly detection, affinity-based scheduling.
 """
-
 import numpy as np
-
+from typing import Dict, List, Optional
+from dataclasses import dataclass
 from .schemas import NodeProfile, NodeRole
 
 # =============================================================================
@@ -54,7 +54,7 @@ class NodeEmbeddingBuilder:
 
         return np.array(full_vec, dtype=np.float32)
 
-    def build_from_features(self, features: dict[str, float]) -> np.ndarray:
+    def build_from_features(self, features: Dict[str, float]) -> np.ndarray:
         """
         Build embedding from a feature vector (24h aggregates).
         Maps raw features → condensed 16-dim representation.
@@ -91,9 +91,9 @@ class NodeEmbeddingBuilder:
     def find_similar_nodes(
         self,
         target_embedding: np.ndarray,
-        all_embeddings: dict[str, np.ndarray],
+        all_embeddings: Dict[str, np.ndarray],
         top_k: int = 3
-    ) -> list[tuple]:
+    ) -> List[tuple]:
         """
         Find top-k most similar nodes to target_embedding.
         Returns list of (node_id, similarity_score).
@@ -107,9 +107,9 @@ class NodeEmbeddingBuilder:
 
     def cluster_nodes(
         self,
-        embeddings: dict[str, np.ndarray],
+        embeddings: Dict[str, np.ndarray],
         n_clusters: int = 3
-    ) -> dict[int, list[str]]:
+    ) -> Dict[int, List[str]]:
         """
         Simple K-means clustering of nodes by embedding similarity.
         Returns {cluster_id: [node_ids]}.
@@ -123,7 +123,7 @@ class NodeEmbeddingBuilder:
         X = np.array([embeddings[nid] for nid in node_ids])
         kmeans = KMeans(n_clusters=min(n_clusters, len(node_ids)), random_state=42, n_init=10)
         labels = kmeans.fit_predict(X)
-        result: dict[int, list[str]] = {}
+        result: Dict[int, List[str]] = {}
         for node_id, label in zip(node_ids, labels):
             result.setdefault(int(label), []).append(node_id)
         return result

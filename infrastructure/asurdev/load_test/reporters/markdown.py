@@ -3,18 +3,18 @@
 #ACOS #LOAD_TEST
 Markdown Reporter — generates human-readable report from orchestrator results
 """
-import json
-from datetime import datetime
+import json, sys
 from pathlib import Path
+from datetime import datetime
 
 
 def format_result(r: dict) -> str:
     lines = [
         f"## {r['scenario']}",
-        "",
+        f"",
         f"**Tags:** {', '.join(r.get('tags', []))}",
         f"**Failure detected:** {'❌ YES' if r.get('failure_detected') else '✅ NO'}",
-        "",
+        f"",
     ]
     if r.get("metrics"):
         lines.append("**Metrics:**")
@@ -44,18 +44,18 @@ def generate_report(results_file: str):
     meta = data.get("meta", {})
     results = data.get("results", [])
     corrections = data.get("corrections", [])
-    data.get("post_fix_results", [])
+    post = data.get("post_fix_results", [])
 
     lines = [
-        "# ACOS Load Test Report",
-        "",
+        f"# ACOS Load Test Report",
+        f"",
         f"**Generated:** {datetime.fromtimestamp(meta.get('timestamp', 0))}",
         f"**Total scenarios:** {meta.get('total_scenarios', 0)}",
         f"**Failures detected:** {meta.get('total_failures', 0)}",
         f"**Corrections applied:** {meta.get('corrections_applied', 0)}",
-        "",
-        "## Tag Distribution",
-        "",
+        f"",
+        f"## Tag Distribution",
+        f"",
     ]
 
     for tag, count in sorted(meta.get("tag_stats", {}).items(), key=lambda x: -x[1]):

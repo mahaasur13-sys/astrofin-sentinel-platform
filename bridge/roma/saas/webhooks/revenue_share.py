@@ -8,7 +8,7 @@ class RevenueShareCalculator:
         (5000.0, 0.15),   # $1001 - $5000 inclusive
         (float('inf'), 0.20),
     ]
-
+    
     def __init__(self):
         self._store = {}
 

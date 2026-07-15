@@ -91,11 +91,7 @@ def _pool_decide(pool: AgentPool, k_override: int = None) -> tuple[bool, list[st
     pool_agents = pool.agents
 
     # Resolve K: explicit arg > pool.k > default_k from sampler
-    k_resolved = (
-        k_override
-        if k_override is not None
-        else (pool.k if pool.k is not None else sampler.default_k)
-    )
+    k_resolved = k_override if k_override is not None else (pool.k if pool.k is not None else sampler.default_k)
     k = max(k_resolved, pool.min_select)
     k = min(k, len(pool_agents))
 
@@ -136,9 +132,7 @@ def _pool_decide(pool: AgentPool, k_override: int = None) -> tuple[bool, list[st
     selected = [name for name, _ in eligible[:k]]
 
     if below:
-        print(
-            f"[BeliefGuard] '{pool.name}' — filtered (low utility): {below} | selected: {selected}"
-        )
+        print(f"[BeliefGuard] '{pool.name}' — filtered (low utility): {below} | selected: {selected}")
 
     should_run = len(selected) >= pool.min_select
     return should_run, selected
@@ -185,9 +179,7 @@ def _run_technical_agents(state: AgentState, selected: list[str]) -> dict:
         elif hasattr(r, "model_dump"):  # AgentResponse Pydantic model
             merged[f"{name.lower()}_signal"] = r.model_dump()
         elif isinstance(r, dict):
-            merged[f"{name.lower()}_signal"] = r.get(f"{name.lower()}_signal") or (
-                list(r.values())[0] if r else {}
-            )
+            merged[f"{name.lower()}_signal"] = r.get(f"{name.lower()}_signal") or (list(r.values())[0] if r else {})
         else:
             merged[f"{name.lower()}_signal"] = {"signal": "NEUTRAL", "confidence": 0}
     return merged

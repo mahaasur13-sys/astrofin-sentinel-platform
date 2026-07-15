@@ -3,12 +3,12 @@
 Evaluator — metrics for classification and regression models.
 Includes drift detection.
 """
-
 import numpy as np
-from sklearn.metrics import mean_absolute_error, mean_squared_error, precision_recall_fscore_support, roc_auc_score
+from typing import Dict, Any
+from sklearn.metrics import roc_auc_score, precision_recall_fscore_support, mean_absolute_error, mean_squared_error
 
 
-def evaluate_classifier(model, X_test, y_test, threshold: float = 0.5) -> dict[str, float]:
+def evaluate_classifier(model, X_test, y_test, threshold: float = 0.5) -> Dict[str, float]:
     y_proba = model.predict_proba(X_test)
     y_pred = (y_proba >= threshold).astype(int)
 
@@ -24,7 +24,7 @@ def evaluate_classifier(model, X_test, y_test, threshold: float = 0.5) -> dict[s
     }
 
 
-def evaluate_regressor(model, X_test, y_queue_test, y_gpu_test=None) -> dict[str, float]:
+def evaluate_regressor(model, X_test, y_queue_test, y_gpu_test=None) -> Dict[str, float]:
     yq_pred = model.predict_queue(X_test)
 
     metrics = {
@@ -39,7 +39,7 @@ def evaluate_regressor(model, X_test, y_queue_test, y_gpu_test=None) -> dict[str
     return metrics
 
 
-def detect_drift(train_metrics: dict[str, float], current_metrics: dict[str, float], drift_threshold: float = 0.1) -> bool:
+def detect_drift(train_metrics: Dict[str, float], current_metrics: Dict[str, float], drift_threshold: float = 0.1) -> bool:
     """
     Detect if model performance has drifted significantly.
     Returns True if drift detected.

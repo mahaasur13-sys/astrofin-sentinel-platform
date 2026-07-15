@@ -1,6 +1,5 @@
 """web/utils/notifications.py — Centralized toast notifications (ATOM-META-RL-005)"""
 
-from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import html
 

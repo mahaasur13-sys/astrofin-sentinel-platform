@@ -3,15 +3,15 @@ AstroFin Sentinel v5 — Base Agent
 RAG-first agent implementation with knowledge retrieval.
 """
 
-from __future__ import annotations
-
 import logging
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Generic, TypeVar
+
+from knowledge.rag_retriever import RAGRetriever
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class AgentResponse:
     reasoning: str
     sources: list[str] = field(default_factory=list)  # RAG chunk IDs
     metadata: dict = field(default_factory=dict)
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     session_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
 
     def __post_init__(self):
@@ -66,9 +66,7 @@ class AgentResponse:
 
     def to_dict(self) -> dict:
         # Handle both string signals (new) and enum signals (old)
-        signal_value = (
-            self.signal.value if hasattr(self.signal, "value") else self.signal
-        )
+        signal_value = self.signal.value if hasattr(self.signal, "value") else self.signal
         return {
             "agent_name": self.agent_name,
             "signal": signal_value,
@@ -111,11 +109,7 @@ class BaseAgent(ABC, Generic[T]):
         self.weight = weight
         self.domain = domain
         self.instructions_md = ""
-        # Start with a no-op degraded retriever; the real HybridRetriever
-        # (pgvector + BM25) is constructed lazily on first await of
-        # _get_retriever(). This keeps __init__ cheap and lets tests
-        # patch.object(self._retriever, "retrieve") safely.
-        self._retriever = _DegradedRetriever()
+        self._rag = RAGRetriever()
 
         if instructions_path:
             try:
@@ -158,60 +152,25 @@ class BaseAgent(ABC, Generic[T]):
             metadata={"degraded": True, "degradation_reason": reason},
         )
 
-    async def _get_retriever(self):
-        """
-        Lazy factory for the hybrid RAG retriever.
-
-        Returns the cached HybridRetriever on subsequent calls. Falls back to
-        a degraded stub (returning empty chunks) if the RAG stack cannot be
-        initialised — agents stay runnable, just without knowledge.
-        """
-        if self._retriever is not None:
-            return self._retriever
-
-        try:
-            from knowledge.hybrid_retriever import HybridRetriever
-
-            self._retriever = HybridRetriever.create()
-        except Exception as exc:  # noqa: BLE001 — degraded fallback
-            logger.warning(
-                "rag_retriever_init_failed",
-                extra={"agent": self.name, "error": str(exc)},
-            )
-            self._retriever = _DegradedRetriever()
-        return self._retriever
-
-    async def retrieve(
+    def retrieve(
         self,
         query: str,
         domain: str = None,
         top_k: int = 5,
     ) -> list[dict]:
         """
-        Запрос к RAG базе знаний (async, hybrid BM25+vector с RRF).
+        Запрос к RAG базе знаний.
 
         Использовать когда:
         - Вопрос выходит за рамки instructions.md
         - Нужен факт из авторитетного источника
         - Требуется подтверждение перед выводом
-
-        Returns an empty list on RAG failure; callers should treat that as
-        «no knowledge» rather than raising.
         """
-        try:
-            retriever = await self._get_retriever()
-            chunks = await retriever.retrieve(
-                query=query,
-                domain=domain or self.domain,
-                top_k=top_k,
-            )
-            return chunks or []
-        except Exception as exc:  # noqa: BLE001 — degraded fallback
-            logger.warning(
-                "rag_retrieve_failed",
-                extra={"agent": self.name, "query": query[:80], "error": str(exc)},
-            )
-            return []
+        return self._rag.retrieve(
+            query=query,
+            domain=domain or self.domain,
+            top_k=top_k,
+        )
 
     def format_retrieval(self, chunks: list[dict]) -> str:
         """Форматировать результаты RAG для включения в ответ."""
@@ -220,9 +179,7 @@ class BaseAgent(ABC, Generic[T]):
 
         lines = ["• RAG источники:"]
         for i, chunk in enumerate(chunks, 1):
-            lines.append(
-                f"  [{i}] {chunk['source']} (релевантность: {chunk['relevance_score']:.0%})"
-            )
+            lines.append(f"  [{i}] {chunk['source']} (релевантность: {chunk['relevance_score']:.0%})")
             # Add first 100 chars of content as preview
             lines.append(f"      → {chunk['title']}")
             preview = chunk["content"][:100].replace("\n", " ")
@@ -243,7 +200,7 @@ class BaseAgent(ABC, Generic[T]):
         """
         pass
 
-    async def _build_prompt(
+    def _build_prompt(
         self,
         user_task: str,
         extra_context: str = "",
@@ -263,7 +220,7 @@ class BaseAgent(ABC, Generic[T]):
 
         if use_rag:
             try:
-                chunks = await self.retrieve(user_task, top_k=5)
+                chunks = self.retrieve(user_task, top_k=5)
                 if chunks:
                     parts.append(self.format_retrieval(chunks))
                 else:
@@ -275,21 +232,3 @@ class BaseAgent(ABC, Generic[T]):
             parts.append(f"\n# Current Context\n\n{extra_context}")
 
         return "\n\n".join(parts)
-
-
-class _DegradedRetriever:
-    """
-    No-op retriever used when the real RAG stack is unavailable
-    (e.g. pgvector pool cannot be created in CI).
-
-    Returns an empty chunk list for any query; agents continue to function
-    but without knowledge augmentation.
-    """
-
-    async def retrieve(
-        self,
-        query: str,
-        domain: str | None = None,
-        top_k: int = 5,
-    ) -> list[dict]:
-        return []

@@ -13,7 +13,7 @@ def test_fee_boundaries():
     # (gross, expected_rate) — tiers: $0-$1000→10%, $1001-$5000→15%, $5001+→20%
     cases = [
         (999.00, 0.10),     # below tier 2 threshold
-        (1000.00, 0.10),    # top of tier 1 (boundary)
+        (1000.00, 0.10),    # top of tier 1 (boundary) 
         (1001.00, 0.15),     # bottom of tier 2
         (5000.00, 0.15),    # top of tier 2 (boundary)
         (5001.00, 0.20),    # bottom of tier 3

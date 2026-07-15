@@ -6,10 +6,7 @@ CVG + LCCP Supply Chain Security
 Uses OPA (Open Policy Agent) for Rego-based policy enforcement.
 Falls back to native Python validator if OPA unavailable.
 """
-import hashlib
-import json
-import os
-import subprocess
+import json, os, hashlib, subprocess, datetime
 
 POLICY_DIR = os.path.dirname(os.path.abspath(__file__))
 OPA_BIN = os.path.join(POLICY_DIR, '../opa_linux_amd64')
@@ -100,8 +97,7 @@ NATIVE_POLICY = {
 }
 
 def h(data):
-    if isinstance(data, str):
-        data = data.encode()
+    if isinstance(data, str): data = data.encode()
     return hashlib.sha256(data).hexdigest()
 
 class SLSA4PolicyEngine:

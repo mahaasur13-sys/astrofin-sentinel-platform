@@ -4,21 +4,18 @@ ACOS SCL v1 — Integration Test
 Validates all 5 system invariants.
 """
 from __future__ import annotations
-
 import time
-
-from acos.events.event_log import Event, EventLog, EventType
-from acos.eventsourced.engine import EventSourcedEngine
-from acos.projection.projection import EventProjection
+from acos.events.event_log import EventLog, EventType, Event
 from acos.state.reducer import StateReducer
-
+from acos.projection.projection import EventProjection
+from acos.eventsourced.engine import EventSourcedEngine
 
 def test_invariant_1():
     """INV1: Every action produces an event."""
     log = EventLog()
     engine = EventSourcedEngine(log, StateReducer(log))
     dag = {"nodes": [{"id": "n1"}, {"id": "n2"}], "edges": []}
-    engine.execute(dag, {}, "trace-1")
+    result = engine.execute(dag, {}, "trace-1")
     all_events = log.get_all()
     actions = len(all_events)
     print(f"  [{'OK' if actions >= 4 else 'FAIL'}] INV1 — Events emitted: {actions} (expected >= 4)")

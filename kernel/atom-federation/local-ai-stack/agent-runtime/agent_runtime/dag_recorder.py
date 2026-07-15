@@ -96,7 +96,7 @@ class ExecutionDAG:
 class DAGRecorder:
     """
     Thread-safe, async-native execution trace recorder.
-
+    
     Usage:
         recorder = DAGRecorder()
         dag_id = await recorder.create(task_id)

@@ -85,9 +85,7 @@ class TelegramAlerter:
                 data=payload,
                 headers={"Content-Type": "application/json"},
             )
-            with urllib.request.urlopen(
-                req, timeout=10
-            ) as resp:  # nosec B310 — webhook URL validated upstream
+            with urllib.request.urlopen(req, timeout=10) as resp:
                 result = json.loads(resp.read())
                 if result.get("ok"):
                     self._alert_count += 1
@@ -159,11 +157,7 @@ class TelegramAlerter:
             best_sharpe = f"{getattr(ev, 'sharpe', 0):.3f}" if ev else "N/A"
             best_wr = f"{getattr(ev, 'win_rate', 0):.0%}" if ev else "N/A"
 
-        elapsed_str = (
-            f"{int(elapsed_seconds // 60)}m {int(elapsed_seconds % 60)}s"
-            if elapsed_seconds > 0
-            else "N/A"
-        )
+        elapsed_str = f"{int(elapsed_seconds // 60)}m {int(elapsed_seconds % 60)}s" if elapsed_seconds > 0 else "N/A"
 
         msg = (
             f"🏁 *Evolution Complete*\n"
@@ -252,6 +246,4 @@ def send_reward_alert(strategy, reward: float, generation: int, **kwargs) -> boo
 
 def send_evolution_complete(history, best_strategy, session_id: str, **kwargs) -> bool:
     """Quick alert when evolution completes."""
-    return get_alerter().send_evolution_complete(
-        history, best_strategy, session_id, **kwargs
-    )
+    return get_alerter().send_evolution_complete(history, best_strategy, session_id, **kwargs)

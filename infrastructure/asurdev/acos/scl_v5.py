@@ -4,16 +4,13 @@ ACOS SCL v5 — Integration Test (Pure Event-Sourcing Kernel)
 Validates STRICT write/read separation and all 5+1 event-sourcing invariants.
 """
 from __future__ import annotations
-
-import inspect
-
-from acos.events.event_log import Event, EventLog, EventType
+import time, inspect, sys
+from acos.events.event_log import EventLog, EventType, Event
+from acos.state.reducer import StateReducer
 from acos.eventsourced.engine import EventSourcedEngineV5
 from acos.projection.raw_projection import RawEventProjection
 from acos.projection.state_projection import StateProjection
-from acos.state.reducer import StateReducer
 from acos.storage.schema import TraceRecord
-
 
 def test_invariant_1():
     """INV1: Every action produces an event."""
@@ -91,14 +88,14 @@ def test_projection_split():
     log = EventLog()
     log.emit("ps", EventType.DAG_CREATED, {"dag": {}})
     log.emit("ps", EventType.NODE_SCHEDULED, {"node_id": "a"})
-
+    
     raw = RawEventProjection(log)
     state = StateProjection(log)
-
+    
     raw_events = raw.get_trace_events("ps")
     state_dict = state.get_trace("ps")
-
-    ok = (len(raw_events) == 2 and
+    
+    ok = (len(raw_events) == 2 and 
           state_dict["status"] == "CREATED" and
           "dag" not in raw_events[0] or raw_events[0].get("dag") == {})
     print(f"  [{'OK' if ok else 'FAIL'}] INV7 — Projection split: raw={len(raw_events)} events, state={state_dict['status']}")
@@ -109,14 +106,14 @@ def test_full_flow():
     log = EventLog()
     engine = EventSourcedEngineV5(log)
     dag = {"nodes": [{"id": "a"}, {"id": "b"}], "edges": []}
-
+    
     # WRITE: engine returns trace_id ONLY
     returned = engine.execute(dag, {}, "full-flow")
-
+    
     # READ: StateProjection rebuilds state (engine NOT involved)
     state_proj = StateProjection(log)
     state = state_proj.get_trace("full-flow")
-
+    
     # VERIFY: engine returned string, state derived from events
     ok = (returned == "full-flow" and
           state["status"] == "COMPLETED" and
@@ -124,7 +121,7 @@ def test_full_flow():
           state["executed_count"] == 2)
     print(f"  [{'OK' if ok else 'FAIL'}] INV8 — Full separation: returned={returned}, state={state['status']}")
     print(f"       Engine type returned: {type(returned).__name__} (must be str)")
-    print("       State source: derived via StateProjection (NOT engine)")
+    print(f"       State source: derived via StateProjection (NOT engine)")
     return ok
 
 def test_trace_record():

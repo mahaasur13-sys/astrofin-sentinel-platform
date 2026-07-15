@@ -41,7 +41,7 @@ class ExecutionGraph:
 class ExecutionGraphBuilder:
     '''
     Builds execution graph from source code.
-
+    
     Discovers:
         - Entry points (ExecutionGateway.execute)
         - Gateway nodes (G1-G10 stages)

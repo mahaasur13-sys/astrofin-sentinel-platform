@@ -60,9 +60,7 @@ class ExecutionSanityChecker:
         if not self._is_valid(order.qty) or order.qty <= 0:
             return SanityResult(ValidationStatus.REJECTED, f"INVALID_QTY: {order.qty}")
         if not self._is_valid(market.last_price) or market.last_price <= 0:
-            return SanityResult(
-                ValidationStatus.REJECTED, f"INVALID_PRICE: {market.last_price}"
-            )
+            return SanityResult(ValidationStatus.REJECTED, f"INVALID_PRICE: {market.last_price}")
         vol_rank = {"LOW": 0, "NORMAL": 1, "HIGH": 2, "EXTREME": 3}
         regime_level = vol_rank.get(market.current_vol_regime, 1)
         max_level = vol_rank.get(self.config.max_vol_regime, 2)
@@ -86,11 +84,7 @@ class ExecutionSanityChecker:
             participation = order_notional / market.adv_24h
             if participation > self.config.max_adv_participation:
                 if self.config.scale_instead_of_reject:
-                    scaled = (
-                        market.adv_24h
-                        * self.config.max_adv_participation
-                        / market.last_price
-                    )
+                    scaled = market.adv_24h * self.config.max_adv_participation / market.last_price
                     scaled = max(0.0, scaled)
                     return SanityResult(
                         ValidationStatus.SCALED,

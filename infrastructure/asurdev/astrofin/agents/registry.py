@@ -3,7 +3,8 @@
 ACOS × AstroFin — 14 Agent Registry
 Each agent = ACOS job type with constraint profile.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 
 @dataclass
@@ -185,7 +186,7 @@ AGENTS = {
 }
 
 
-def get_agent(name: str) -> AgentSpec | None:
+def get_agent(name: str) -> Optional[AgentSpec]:
     return AGENTS.get(name)
 
 

@@ -178,7 +178,7 @@ class TestReconcilerScale:
             "coherence_drift": 0.0,
             "ready_replicas": 2,
         }):
-            rec.reconcile({
+            result = rec.reconcile({
                 "metadata": {"name": "test-cluster", "namespace": "default"},
                 "spec": {"replicas": 3},
                 "status": cluster.to_k8s_status(),
@@ -200,7 +200,7 @@ class TestReconcilerScale:
             "coherence_drift": 0.0,
             "ready_replicas": 3,
         }):
-            rec.reconcile({
+            result = rec.reconcile({
                 "metadata": {"name": "test-cluster", "namespace": "default"},
                 "spec": {"replicas": 3},
                 "status": cluster.to_k8s_status(),

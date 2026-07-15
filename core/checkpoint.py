@@ -3,8 +3,6 @@ AstroFin Sentinel v5 — Project Root Utility
 Provides the absolute path to the project root directory.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 _PROJECT_ROOT: Path | None = None

@@ -3,7 +3,7 @@
 Feature Registry — declarative, versioned, reproducible feature definitions.
 Transforms pipeline into deterministic function compiler.
 """
-from typing import Any
+from typing import Dict, Any
 
 # =============================================================================
 # FEATURE REGISTRY — declarative specification
@@ -11,7 +11,7 @@ from typing import Any
 # Each feature: { "source": metric_name, "window": seconds, "agg": aggregation }
 # Aggregation options: mean, std, min, max, slope, derivative, p95, count
 
-FEATURE_REGISTRY: dict[str, dict[str, Any]] = {
+FEATURE_REGISTRY: Dict[str, Dict[str, Any]] = {
     # --- GPU features ---
     "gpu_mean_1m":     {"source": "gpu_util",      "window": 60,   "agg": "mean"},
     "gpu_mean_5m":     {"source": "gpu_util",      "window": 300,  "agg": "mean"},
@@ -80,10 +80,10 @@ FEATURE_REGISTRY: dict[str, dict[str, Any]] = {
 def get_feature_names() -> list:
     return list(FEATURE_REGISTRY.keys())
 
-def get_features_by_source(source: str) -> dict[str, dict]:
+def get_features_by_source(source: str) -> Dict[str, Dict]:
     return {k: v for k, v in FEATURE_REGISTRY.items() if v["source"] == source}
 
-def get_features_by_window(window_seconds: int) -> dict[str, dict]:
+def get_features_by_window(window_seconds: int) -> Dict[str, Dict]:
     return {k: v for k, v in FEATURE_REGISTRY.items() if v["window"] == window_seconds}
 
 def get_registry_version() -> str:

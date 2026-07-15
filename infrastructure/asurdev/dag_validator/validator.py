@@ -138,7 +138,7 @@ class DAGValidator:
         violations = []
         if seed is not None:
             random.seed(seed)
-        in_deg = dict.fromkeys(nodes, 0)
+        in_deg = {nid: 0 for nid in nodes}
         for src, _ in edges:
             if src in in_deg:
                 in_deg[_] = in_deg.get(src, 0) + 1

@@ -10,15 +10,13 @@ Provides:
 These are MINIMAL patches. No core invariants are broken.
 """
 from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
-
 if TYPE_CHECKING:
-    from acos.network.amnezia_wg import AmneziaWGManager
     from acos.validator.contract_validator import ContractViolation
+    from acos.network.amnezia_wg import AmneziaWGManager
 
 
-def validate_network_requirements(dag: dict, tunnel_manager: AmneziaWGManager) -> list[ContractViolation]:
+def validate_network_requirements(dag: dict, tunnel_manager: "AmneziaWGManager") -> list["ContractViolation"]:
     """
     PATCH 1a: DAGValidator network check.
 
@@ -36,9 +34,7 @@ def validate_network_requirements(dag: dict, tunnel_manager: AmneziaWGManager) -
         from dataclasses import dataclass
         @dataclass
         class ContractViolation:
-            message: str
-            path: str
-            severity: str
+            message: str; path: str; severity: str
         def DAGValidator(): pass
 
     violations = []
@@ -105,7 +101,7 @@ def patch_engine_pre_execute(engine_self, dag: dict, context: dict, trace_id: st
     return True
 
 
-def get_tunnel_metrics(tunnel_manager: AmneziaWGManager) -> dict[str, Any]:
+def get_tunnel_metrics(tunnel_manager: "AmneziaWGManager") -> dict[str, Any]:
     """
     PATCH 3a: Get Prometheus-compatible metrics from tunnel manager.
 

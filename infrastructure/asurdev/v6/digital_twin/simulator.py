@@ -6,9 +6,9 @@ S(t+Δ) = f(S(t), actions, ml_predictions, historical_drift)
 Key fix: NOT random — uses calibrated ML predictions from v5
 and resource decay models from TSDB historical data.
 """
-from dataclasses import dataclass
+from typing import Optional
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-
 import numpy as np
 
 
@@ -51,14 +51,14 @@ class JobState:
     walltime_min: int
     remaining_min: float
     state: str = "running"       # queued / running / completed / failed
-    exit_code: int | None = None
+    exit_code: Optional[int] = None
 
 
 @dataclass
 class PredictedEvent:
     event_type: str   # "node_failure" | "load_spike" | "job_complete"
-    node_id: str | None
-    job_id: str | None
+    node_id: Optional[str]
+    job_id: Optional[str]
     time_delta_min: float
     probability: float
     severity: float   # 0-1
@@ -67,10 +67,10 @@ class PredictedEvent:
 @dataclass
 class SimAction:
     action_type: str   # "place_job" | "migrate_job" | "drain_node" | "nothing"
-    job_id: str | None = None
-    target_node: str | None = None
-    source_node: str | None = None
-    job_config: dict | None = None
+    job_id: Optional[str] = None
+    target_node: Optional[str] = None
+    source_node: Optional[str] = None
+    job_config: Optional[dict] = None
 
 
 class DigitalTwin:
@@ -79,13 +79,13 @@ class DigitalTwin:
     State evolution: S(t+Δ) = resource_decay + queue_evolution + failure_risk_drift
     """
 
-    def __init__(self, ml_predictor=None, tsdb_client=None, config: dict | None = None):
+    def __init__(self, ml_predictor=None, tsdb_client=None, config: Optional[dict] = None):
         self.ml_predictor = ml_predictor  # v5 predictor for calibrated failure_prob
         self.tsdb = tsdb_client           # TimescaleDB client for historical drift
         self.config = config or {}
         # Calibration: historical mean inter-failure time per node type
         self._failure_drift_rate: dict[str, float] = {}  # failures/hour
-        self._load_autocorr: dict[str, float] = {}       # autocorrelation coefficient
+        self._load_autocorr: dict[str, float = {}       # autocorrelation coefficient
 
     def load_historical_calibration(self, node_id: str, mean_inter_failure_h: float) -> None:
         """Load historical calibration from TSDB."""

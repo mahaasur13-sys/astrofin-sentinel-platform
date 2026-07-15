@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """ATOM-R-030: MAS Factory Full Stress Test
-from __future__ import annotations
-
 Tests: SwitchNodes, Meta-Questioning, Visualizer on real data.
 """
 
@@ -129,9 +127,7 @@ def test_topology_construction():
     assert len(topo.connections) == 5
 
     errors = topo.validate()
-    print(
-        f"  ✅ Topology: {len(topo.roles)} roles, {len(topo.switch_nodes)} switches, {len(topo.connections)} conns"
-    )
+    print(f"  ✅ Topology: {len(topo.roles)} roles, {len(topo.switch_nodes)} switches, {len(topo.connections)} conns")
     print(f"  ✅ Validation errors: {len(errors)}")
 
     return topo

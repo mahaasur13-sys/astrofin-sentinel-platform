@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-
 from enum import Enum
-
 """
 Incident Model — auto-classification + severity scoring.
 Severity = f(p99_delta, error_rate, alignment_drop).
 Auto-classification: S1 → L3 rollback / S2 → L2 / S3 → alert only.
 """
-
-import hashlib
+from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional
+import hashlib
 
 
 class Severity(Enum):
@@ -30,9 +28,9 @@ class Incident:
     post_state: dict
     policy_hash: str
     severity: Severity
-    root_cause: str | None = None
+    root_cause: Optional[str] = None
     resolved: bool = False
-    resolution_time_ms: float | None = None
+    resolution_time_ms: Optional[float] = None
     actions_taken: list[str] = field(default_factory=list)
 
 
@@ -40,7 +38,7 @@ class IncidentManager:
     """
     Auto-classifies incidents by severity.
     Routes to appropriate response (rollback level or alert).
-
+    
     Severity scoring:
         severity = w_latency * p99_delta + w_failure * error_rate + w_drift * alignment_drop
     """
@@ -61,9 +59,9 @@ class IncidentManager:
         trigger_type: str,
         severity: float,
         details: dict,
-        pre_state: dict | None = None,
-        post_state: dict | None = None,
-        policy_hash: str | None = None,
+        pre_state: Optional[dict] = None,
+        post_state: Optional[dict] = None,
+        policy_hash: Optional[str] = None,
     ) -> Incident:
         """Factory: create + classify + route incident."""
         incident_id = hashlib.sha256(

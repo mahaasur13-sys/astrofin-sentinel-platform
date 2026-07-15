@@ -319,14 +319,14 @@ def test_slashing_engine_full():
     assert engine.is_slashed('malicious')
 
     # Slash for equivocation
-    engine.report_equivocation(
+    r2 = engine.report_equivocation(
         node_id='equivocator',
         payload_hash_a='PA', payload_hash_b='PB',
     )
     assert engine.is_slashed('equivocator')
 
     # Slash for invalid QC
-    engine.report_invalid_qc(
+    r3 = engine.report_invalid_qc(
         node_id='bad_actor',
         qc_request_hash='qc_hash',
         expected_threshold=3,

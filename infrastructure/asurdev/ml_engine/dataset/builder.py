@@ -5,8 +5,10 @@ Assembles features + labels, handles node filtering, version tracking.
 """
 import logging
 from datetime import datetime, timedelta
+from typing import Optional, List, Dict, Any
 
 import pandas as pd
+import numpy as np
 
 from feature_pipeline import FeatureBuilder
 
@@ -32,9 +34,9 @@ class DatasetBuilder:
 
     def build(
         self,
-        node_ids: list[str] | None = None,
-        start_time: datetime | None = None,
-        end_time: datetime | None = None,
+        node_ids: Optional[List[str]] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
         horizon_minutes: int = 30,
         window_type: str = "5m",
         min_samples: int = 100,
@@ -122,7 +124,7 @@ class DatasetBuilder:
         start_time: datetime,
         end_time: datetime,
         horizon_minutes: int,
-        node_ids: list[str] | None = None,
+        node_ids: Optional[List[str]] = None,
     ) -> pd.DataFrame:
         """Query TimescaleDB for failure/load labels within horizon window."""
         try:

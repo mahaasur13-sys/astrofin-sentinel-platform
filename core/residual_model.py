@@ -2,8 +2,6 @@
 core/residual_model.py - ATOM-STEP-4: Residual Correction Model
 """
 
-from __future__ import annotations
-
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -63,9 +61,7 @@ class ResidualModel:
         except Exception:
             swiss_lon = kepler_lon
         delta = (swiss_lon - kepler_lon + 180) % 360 - 180
-        return ResidualCorrection(
-            body_lower, jd, kepler_lon, swiss_lon, delta, delta * 60.0
-        )
+        return ResidualCorrection(body_lower, jd, kepler_lon, swiss_lon, delta, delta * 60.0)
 
     def corrected_longitude(self, body: str, jd: float) -> float:
         return self.predict_correction(body, jd).swiss_lon_deg
@@ -79,7 +75,8 @@ class ResidualModel:
         for body in bodies:
             rc = self.predict_correction(body, jd)
             print(
-                f"{body:<10} {rc.kepler_lon_deg:>8.3f} {rc.swiss_lon_deg:>8.3f} {rc.correction_deg:>8.4f} {rc.correction_arcmin:>10.2f} {self.mode}"
+                f"{body:<10} {rc.kepler_lon_deg:>8.3f} {rc.swiss_lon_deg:>8.3f} "
+                f"{rc.correction_deg:>8.4f} {rc.correction_arcmin:>10.2f} {self.mode}"
             )
 
 

@@ -28,6 +28,8 @@ class K8sCompiler:
 
     def _compile_k8s_job(self, task_id: str, dag: list, gpu_required: bool, resources: dict) -> dict:
         steps = []
+        dependencies = []
+        init_containers = []
 
         for i, node in enumerate(dag):
             step_name = f"step-{i}-{node['id']}"

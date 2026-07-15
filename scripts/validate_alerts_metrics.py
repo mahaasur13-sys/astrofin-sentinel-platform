@@ -4,8 +4,6 @@ Validate that all alert rules reference existing metrics.
 Known metrics list should be updated when new metrics are added.
 """
 
-from __future__ import annotations
-
 import re
 import sys
 from pathlib import Path
@@ -78,9 +76,7 @@ def main():
                 }:
                     continue
                 if metric not in KNOWN_METRICS:
-                    errors.append(
-                        f"{alert_name}: metric '{metric}' not in known metrics list"
-                    )
+                    errors.append(f"{alert_name}: metric '{metric}' not in known metrics list")
 
     if errors:
         print("ERROR: Alert rules reference unknown metrics:")

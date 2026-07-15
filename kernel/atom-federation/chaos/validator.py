@@ -1,4 +1,3 @@
-# ruff: noqa: F821
 """
 ChaosValidator — SBS-aware result validator for chaos experiments.
 
@@ -358,7 +357,7 @@ class ChaosValidator:
 
 def chaos_result_to_adlr_record(result: ChaosResult) -> dict:
     """Convert ChaosResult to FailureReplay-compatible record."""
-    result.cluster_metrics.get("post", {})
+    health = result.cluster_metrics.get("post", {})
     score = result.violation_score or 0.0
     stages = []
     actions = []

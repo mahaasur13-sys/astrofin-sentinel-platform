@@ -8,9 +8,6 @@ Usage:
     python -m db.init --reset      # reset schema (DROP + CREATE)
 """
 
-from __future__ import annotations
-
-
 import argparse
 import sys
 
@@ -18,15 +15,9 @@ import sys
 def main():
     parser = argparse.ArgumentParser(prog="python -m db.init")
     parser.add_argument("--status", action="store_true", help="Show database status")
-    parser.add_argument(
-        "--migrate", action="store_true", help="Migrate data from SQLite"
-    )
-    parser.add_argument(
-        "--reset", action="store_true", help="Reset schema (DROP all tables)"
-    )
-    parser.add_argument(
-        "--force", action="store_true", help="Force operation without confirmation"
-    )
+    parser.add_argument("--migrate", action="store_true", help="Migrate data from SQLite")
+    parser.add_argument("--reset", action="store_true", help="Reset schema (DROP all tables)")
+    parser.add_argument("--force", action="store_true", help="Force operation without confirmation")
     args = parser.parse_args()
 
     if args.status:

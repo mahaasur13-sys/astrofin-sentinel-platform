@@ -12,18 +12,10 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from agents._impl.ephemeris_decorator import (
-    EphemerisUnavailableError,
-    require_ephemeris,
-)
+
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
-from core.base_agent import (
-    EPHEMERIS_UNAVAILABLE,
-    UNKNOWN,
-    AgentResponse,
-    BaseAgent,
-    SignalDirection,
-)
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 from knowledge.rag_retriever import RAGRetriever
 
 logger = logging.getLogger(__name__)
@@ -56,7 +48,7 @@ class MacroAgent(BaseAgent[AgentResponse]):
         """Lazy init RAG retriever."""
         if self.rag is None:
             try:
-                self.rag = RAGRetriever()  # index_name removed in P2-02 RAGClient (G12)
+                self.rag = RAGRetriever(index_name="macro")
             except Exception as e:
                 logger.warning("Failed to init RAG for MacroAgent: %s", e)
         return self.rag
@@ -174,9 +166,7 @@ class MacroAgent(BaseAgent[AgentResponse]):
                 f"DXY={dxy:.1f} (normal range)",
             )
 
-    async def _analyze_geopolitical(
-        self, state: dict
-    ) -> tuple[Optional[SignalDirection], float, str]:
+    async def _analyze_geopolitical(self, state: dict) -> tuple[Optional[SignalDirection], float, str]:
         """
         Analyze geopolitical risk via RAG.
 
@@ -224,11 +214,7 @@ class MacroAgent(BaseAgent[AgentResponse]):
             neg_count = 0
             pos_count = 0
             for doc in results:
-                text = (
-                    doc.page_content.lower()
-                    if hasattr(doc, "page_content")
-                    else str(doc).lower()
-                )
+                text = doc.page_content.lower() if hasattr(doc, "page_content") else str(doc).lower()
                 neg_count += sum(text.count(kw) for kw in negative_keywords)
                 pos_count += sum(text.count(kw) for kw in positive_keywords)
 
@@ -251,9 +237,7 @@ class MacroAgent(BaseAgent[AgentResponse]):
             logger.warning("Geopolitical analysis failed: %s", e)
             return None, 0, f"Geopolitical analysis error: {str(e)}"
 
-    def _weighted_aggregate(
-        self, scores: list[tuple[SignalDirection, float]]
-    ) -> tuple[SignalDirection, float]:
+    def _weighted_aggregate(self, scores: list[tuple[SignalDirection, float]]) -> tuple[SignalDirection, float]:
         """
         Aggregate multiple macro signals into a single direction.
 
@@ -293,8 +277,3 @@ async def run_macro_agent(state: dict) -> dict:
     agent = MacroAgent()
     resp = await agent.analyze(state)
     return {"macro_agent_signal": resp.to_dict()}
-
-
-def create() -> MacroAgent:
-    """Factory for 6-fn test contract."""
-    return MacroAgent()

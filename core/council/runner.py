@@ -1,15 +1,10 @@
 """core/council/runner.py — AstroCouncil Runner"""
 
-from __future__ import annotations
-
-import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core.council.agents import AGENT_FACTORIES
 from core.council.council import AstroCouncil
 from core.council.types import CouncilResult
-
-logger = logging.getLogger(__name__)
 
 
 def run_council(
@@ -39,17 +34,11 @@ def run_council(
 ) -> CouncilResult:
     council = AstroCouncil()
     members = [
-        AGENT_FACTORIES["fundamental"](
-            price=price, fair_value=fair_value, catalyst=catalyst
-        ),
-        AGENT_FACTORIES["quant"](
-            predicted_return=predicted_return, uncertainty=uncertainty
-        ),
+        AGENT_FACTORIES["fundamental"](price=price, fair_value=fair_value, catalyst=catalyst),
+        AGENT_FACTORIES["quant"](predicted_return=predicted_return, uncertainty=uncertainty),
         AGENT_FACTORIES["macro"](vix=vix, dxy=dxy, geopolitical=geopolitical),
         AGENT_FACTORIES["technical"](rsi=rsi, macd_bullish=macd_bullish, price=price),
-        AGENT_FACTORIES["sentiment"](
-            vix=vix, fear_greed=fear_greed, news_score=news_score
-        ),
+        AGENT_FACTORIES["sentiment"](vix=vix, fear_greed=fear_greed, news_score=news_score),
         AGENT_FACTORIES["optionsflow"](
             predicted_return=predicted_return,
             ul_trailing=ul_trailing,
@@ -69,7 +58,7 @@ def run_council(
     ]
     for m in members:
         council.add_member(m)
-    deliberation = f"Council voting on {symbol} at {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}: "
+    deliberation = f"Council voting on {symbol} at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')}: "
     result = council.vote(symbol, deliberation)
     result.deliberation += "; " + council.summary(result)
     return result
@@ -77,10 +66,6 @@ def run_council(
 
 if __name__ == "__main__":
     result = run_council("BTCUSDT")
-    logger.info(result.deliberation)
-    logger.info(
-        "SUMMARY: %s confidence=%.3f consensus=%.3f",
-        result.final_signal.value,
-        result.confidence,
-        result.consensus,
-    )
+    print(result.deliberation)
+    print()
+    print("SUMMARY:", result.final_signal.value, result.confidence, result.consensus)

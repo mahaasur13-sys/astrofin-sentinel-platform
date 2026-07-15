@@ -3,8 +3,8 @@
 Beam Pruner — K-best pruning to prevent candidate explosion.
 Reduces O(N×M) to O(K×M) where K = beam_width.
 """
+from typing import Optional
 from dataclasses import dataclass
-
 import numpy as np
 
 
@@ -24,7 +24,7 @@ class BeamPruner:
     score = E[U] - lambda * sqrt(variance)   (regret-aware)
     """
 
-    def __init__(self, config: dict | None = None):
+    def __init__(self, config: Optional[dict] = None):
         self.config = config or {}
         self.beam_width = self.config.get("beam_width", 10)
         self.regret_lambda = self.config.get("regret_lambda", 1.5)
@@ -33,7 +33,7 @@ class BeamPruner:
     def load_variance_from_tsd(self, node_id: str, var: float) -> None:
         self._node_variance[node_id] = var
 
-    def prune(self, candidates: list, top_k: int | None = None) -> list[PrunedCandidate]:
+    def prune(self, candidates: list, top_k: Optional[int] = None) -> list[PrunedCandidate]:
         k = top_k or self.beam_width
         scored = []
         for c in candidates:

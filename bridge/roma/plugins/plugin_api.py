@@ -33,32 +33,32 @@ class PluginPriority(Enum):
 
 class IPlugin(ABC):
     """Plugin interface — all ROMA plugins must implement this contract."""
-
+    
     @property
     @abstractmethod
     def name(self) -> str: ...
-
+    
     @property
     @abstractmethod
     def version(self) -> str: ...
-
+    
     @property
     @abstractmethod
     def capabilities(self) -> List[PluginCapability]: ...
-
+    
     @property
     @abstractmethod
     def priority(self) -> PluginPriority: ...
-
+    
     @abstractmethod
     async def on_init(self, config: Dict[str, Any]) -> None: ...
-
+    
     @abstractmethod
     async def on_execute(self, task: 'ROMATask', context: 'ExecutionContext') -> 'PluginResult': ...
-
+    
     @abstractmethod
     async def on_validate(self, task: 'ROMATask') -> 'ValidationResult': ...
-
+    
     @abstractmethod
     async def on_cleanup(self) -> None: ...
 
@@ -80,7 +80,7 @@ class ROMATask:
         self.metadata = metadata
         self._created_at = time.time()
         self._hash = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:16]
-
+    
     @property
     def fingerprint(self) -> str: return self._hash
 
@@ -92,7 +92,7 @@ class PluginResult:
         self.error = error
         self.metrics = metrics or {}
         self._timestamp = time.time()
-
+    
     def to_dict(self) -> Dict:
         return {
             "success": self.success,
@@ -113,7 +113,7 @@ class ValidationResult:
 
 class MLTrainingPlugin(IPlugin):
     """ML training workload plugin — reference implementation."""
-
+    
     @property
     def name(self) -> str: return "ml_training"
     @property
@@ -123,17 +123,17 @@ class MLTrainingPlugin(IPlugin):
         return [PluginCapability.GPU_ENABLED, PluginCapability.DISTRIBUTED]
     @property
     def priority(self) -> PluginPriority: return PluginPriority.HIGH
-
+    
     async def on_init(self, config: Dict[str, Any]) -> None:
         self.config = config
-
+    
     async def on_execute(self, task: ROMATask, context: IExecutionContext) -> PluginResult:
         # Simulate GPU training execution
         batch_size = task.payload.get("batch_size", 8)
         epochs = task.payload.get("epochs", 10)
         gpu_mem = batch_size * 0.7  # ~700MB per batch
         duration = epochs * 2.5
-
+        
         if context.gpu_available and context.vram_gb >= gpu_mem:
             return PluginResult(
                 success=True,
@@ -146,18 +146,18 @@ class MLTrainingPlugin(IPlugin):
                 metrics={"vram_gb": gpu_mem, "duration_s": duration}
             )
         return PluginResult(success=False, error="Insufficient GPU resources")
-
+    
     async def on_validate(self, task: ROMATask) -> ValidationResult:
         required = ["model_type", "dataset", "batch_size"]
         missing = [f for f in required if f not in task.payload]
         return ValidationResult(valid=not missing, errors=missing)
-
+    
     async def on_cleanup(self) -> None:
         pass
 
 class InferencePlugin(IPlugin):
     """Inference workload plugin."""
-
+    
     @property
     def name(self) -> str: return "inference"
     @property
@@ -167,21 +167,21 @@ class InferencePlugin(IPlugin):
         return [PluginCapability.GPU_ENABLED]
     @property
     def priority(self) -> PluginPriority: return PluginPriority.CRITICAL
-
+    
     async def on_execute(self, task: ROMATask, context: IExecutionContext) -> PluginResult:
         model = task.payload.get("model", "unknown")
         return PluginResult(
             success=True,
             output={"inference_id": task.task_id, "model": model, "node": context.node_name}
         )
-
+    
     async def on_init(self, config: Dict[str, Any]) -> None: pass
     async def on_validate(self, task: ROMATask) -> ValidationResult: return ValidationResult(valid=True)
     async def on_cleanup(self) -> None: pass
 
 class ETLPipelinePlugin(IPlugin):
     """ETL pipeline workload plugin."""
-
+    
     @property
     def name(self) -> str: return "etl_pipeline"
     @property
@@ -191,17 +191,17 @@ class ETLPipelinePlugin(IPlugin):
         return [PluginCapability.STATEFUL, PluginCapability.PERSISTENT_STORAGE]
     @property
     def priority(self) -> PluginPriority: return PluginPriority.NORMAL
-
+    
     async def on_execute(self, task: ROMATask, context: IExecutionContext) -> PluginResult:
         return PluginResult(success=True, output={"pipeline_id": task.task_id, "stage": "completed"})
-
+    
     async def on_init(self, config: Dict[str, Any]) -> None: pass
     async def on_validate(self, task: ROMATask) -> ValidationResult: return ValidationResult(valid=True)
     async def on_cleanup(self) -> None: pass
 
 class SimulationPlugin(IPlugin):
     """Simulation workload plugin."""
-
+    
     @property
     def name(self) -> str: return "simulation"
     @property
@@ -211,7 +211,7 @@ class SimulationPlugin(IPlugin):
         return [PluginCapability.GPU_ENABLED, PluginCapability.DISTRIBUTED]
     @property
     def priority(self) -> PluginPriority: return PluginPriority.LOW
-
+    
     async def on_execute(self, task: ROMATask, context: IExecutionContext) -> PluginResult:
         return PluginResult(success=True, output={"sim_id": task.task_id})
     async def on_init(self, config: Dict[str, Any]) -> None: pass
@@ -228,11 +228,5 @@ PLUGIN_REGISTRY = {
 
 def get_plugin(name: str) -> IPlugin:
     cls = PLUGIN_REGISTRY.get(name)
-    if not cls:
-        raise ValueError(f"Plugin '{name}' not registered")
+    if not cls: raise ValueError(f"Plugin '{name}' not registered")
     return cls()
-
-# Type checking imports
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from bridge.roma.context_execution import ExecutionContext  # noqa: F401

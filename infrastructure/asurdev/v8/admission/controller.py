@@ -1,4 +1,3 @@
-# ruff: noqa: F821
 #!/usr/bin/env python3
 """
 Admission Controller — K8s-style validating webhook.
@@ -6,7 +5,8 @@ All decisions from v6+v7 MUST pass through here.
 POST /admit → SafetyKernel → admit / reject / degrade.
 """
 from __future__ import annotations
-
+from dataclasses import dataclass
+from typing import Optional
 import hashlib
 
 
@@ -74,7 +74,7 @@ class AdmissionController:
             "approved_by": result.approved_by,
         }
 
-    def _build_context(self, raw_context: dict) -> DecisionContext:
+    def _build_context(self, raw_context: dict) -> "DecisionContext":
         """Build DecisionContext from raw request."""
         from v8.safety_kernel.engine import DecisionContext
         return DecisionContext(

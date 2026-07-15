@@ -28,18 +28,10 @@ class ModeLimits:
 
 
 MODE_LIMITS = {
-    TradingMode.BACKTEST: ModeLimits(
-        1.0, 1.0, True, True, True, True, False, 10_000, False
-    ),
-    TradingMode.PAPER: ModeLimits(
-        0.50, 1.0, True, True, False, False, False, 100, False
-    ),
-    TradingMode.LIVE_LIMITED: ModeLimits(
-        0.20, 0.50, True, True, False, False, True, 10, True
-    ),
-    TradingMode.LIVE_FULL: ModeLimits(
-        0.30, 0.80, True, True, True, True, True, 50, True
-    ),
+    TradingMode.BACKTEST: ModeLimits(1.0, 1.0, True, True, True, True, False, 10_000, False),
+    TradingMode.PAPER: ModeLimits(0.50, 1.0, True, True, False, False, False, 100, False),
+    TradingMode.LIVE_LIMITED: ModeLimits(0.20, 0.50, True, True, False, False, True, 10, True),
+    TradingMode.LIVE_FULL: ModeLimits(0.30, 0.80, True, True, True, True, True, 50, True),
 }
 
 
@@ -49,9 +41,7 @@ class ModeEnforcer:
         self.limits = MODE_LIMITS[mode]
         self._order_count_today = 0
 
-    def check_order(
-        self, proposed_size_pct, is_market, is_limit, is_option, is_short, equity
-    ):
+    def check_order(self, proposed_size_pct, is_market, is_limit, is_option, is_short, equity):
         limits = self.limits
         if proposed_size_pct > limits.max_position_pct:
             return (

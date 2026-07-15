@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 if __name__ == "__main__":
+    import os, glob
 
     if len(sys.argv) > 1 and sys.argv[1] != "all":
         scenario = sys.argv[1]

@@ -18,7 +18,6 @@ Usage:
     python knowledge/daily_brief/idea_tracker.py --import-json FILE
 """
 
-from __future__ import annotations
 import argparse
 import json
 import uuid
@@ -311,30 +310,18 @@ def get_kpi() -> dict:
 
     kpi = {
         "ideas_total": len(ideas),
-        "ideas_proposed": sum(
-            1 for i in ideas if i.status == IdeaStatus.PROPOSED.value
-        ),
+        "ideas_proposed": sum(1 for i in ideas if i.status == IdeaStatus.PROPOSED.value),
         "ideas_scored": sum(1 for i in ideas if i.status == IdeaStatus.SCORED.value),
-        "ideas_injected": sum(
-            1 for i in ideas if i.status == IdeaStatus.INJECTED.value
-        ),
+        "ideas_injected": sum(1 for i in ideas if i.status == IdeaStatus.INJECTED.value),
         "ideas_tested": sum(1 for i in ideas if i.status == IdeaStatus.TESTED.value),
-        "ideas_accepted": sum(
-            1 for i in ideas if i.status == IdeaStatus.ACCEPTED.value
-        ),
-        "ideas_rejected": sum(
-            1 for i in ideas if i.status == IdeaStatus.REJECTED.value
-        ),
+        "ideas_accepted": sum(1 for i in ideas if i.status == IdeaStatus.ACCEPTED.value),
+        "ideas_rejected": sum(1 for i in ideas if i.status == IdeaStatus.REJECTED.value),
     }
 
     tested_ideas = [i for i in ideas if i.impact_score != 0.0]
     if tested_ideas:
-        kpi["impact_mean"] = round(
-            sum(i.impact_score for i in tested_ideas) / len(tested_ideas), 4
-        )
-        kpi["acceptance_rate"] = (
-            round(kpi["ideas_accepted"] / len(tested_ideas), 4) if tested_ideas else 0
-        )
+        kpi["impact_mean"] = round(sum(i.impact_score for i in tested_ideas) / len(tested_ideas), 4)
+        kpi["acceptance_rate"] = round(kpi["ideas_accepted"] / len(tested_ideas), 4) if tested_ideas else 0
     else:
         kpi["impact_mean"] = 0.0
         kpi["acceptance_rate"] = 0.0
@@ -359,9 +346,7 @@ def list_ideas(status_filter: str = None, limit: int = 50):
     print("-" * 70)
 
     for idea in ideas:
-        print(
-            f"  {idea.id:<14} {idea.status:<10} {idea.score:>6.2f} {idea.impact_score:>8.4f} {idea.category:<20}"
-        )
+        print(f"  {idea.id:<14} {idea.status:<10} {idea.score:>6.2f} {idea.impact_score:>8.4f} {idea.category:<20}")
 
     print(f"\nTotal: {len(ideas)} ideas")
 
@@ -394,18 +379,14 @@ def show_idea(idea_id: str):
 def main():
     parser = argparse.ArgumentParser(description="ATOM-R-041: Idea → Outcome Tracking")
     parser.add_argument("--list", action="store_true", help="List all ideas")
-    parser.add_argument(
-        "--pending", action="store_true", help="Show ideas ready for testing"
-    )
+    parser.add_argument("--pending", action="store_true", help="Show ideas ready for testing")
     parser.add_argument("--kpi", action="store_true", help="Show KPI dashboard")
     parser.add_argument("--inject", type=str, help="Inject idea into KARL buffer")
     parser.add_argument("--eval", type=str, help="Evaluate idea by ID")
     parser.add_argument("--reward", type=float, help="Reward value for --eval")
     parser.add_argument("--add", type=str, help="Add new idea text")
     parser.add_argument("--source", type=str, default="manual", help="Source for --add")
-    parser.add_argument(
-        "--category", type=str, default="GENERAL", help="Category for --add"
-    )
+    parser.add_argument("--category", type=str, default="GENERAL", help="Category for --add")
     parser.add_argument("--status", type=str, help="Filter by status for --list")
     parser.add_argument("--show", type=str, help="Show idea details")
     parser.add_argument("--import-json", type=str, help="Import ideas from JSON file")
@@ -415,9 +396,7 @@ def main():
     if args.add:
         idea = create_idea(args.add, args.source, args.category)
         save_idea(idea)
-        status_note = (
-            "(scored)" if idea.status == IdeaStatus.SCORED.value else "(low score)"
-        )
+        status_note = "(scored)" if idea.status == IdeaStatus.SCORED.value else "(low score)"
         print(f"Created: {idea.id} {status_note}")
         print(f"  Score: {idea.score:.2f} (threshold: {SCORE_THRESHOLD})")
         return
@@ -504,9 +483,7 @@ def main():
     # Default: show KPI
     kpi = get_kpi()
     print(f"\n{'=== ATOM-R-041 ===':^60}")
-    print(
-        f"  Total: {kpi['ideas_total']} | Accepted: {kpi['ideas_accepted']} | Impact: {kpi['impact_mean']:.4f}"
-    )
+    print(f"  Total: {kpi['ideas_total']} | Accepted: {kpi['ideas_accepted']} | Impact: {kpi['impact_mean']:.4f}")
     print("\nUse --help for commands.")
 
 

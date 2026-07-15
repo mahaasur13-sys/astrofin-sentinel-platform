@@ -1,6 +1,5 @@
 """web/sessions_callbacks.py — Sessions tab callbacks (ATOM-META-RL-004)"""
 
-from __future__ import annotations
 import logging
 
 import dash_bootstrap_components as dbc
@@ -32,11 +31,7 @@ def register_sessions_callbacks(app):
             meta = p.load_session_metadata(sid) or {}
             best = meta.get("best_reward", 0.0)
             n_strat = meta.get("n_strategies", "?")
-            badge = (
-                "bg-success"
-                if best > 0.7
-                else "bg-warning text-dark" if best > 0.4 else "bg-secondary"
-            )
+            badge = "bg-success" if best > 0.7 else "bg-warning text-dark" if best > 0.4 else "bg-secondary"
             rows.append(
                 html.Tr(
                     [
@@ -90,9 +85,7 @@ def register_sessions_callbacks(app):
     def update_comparison(checks, ids):
         from web.utils.comparison import build_comparison_chart
 
-        checked = [
-            ctx.triggered_id["index"] for c, i in zip(checks, ids, strict=False) if c
-        ]
+        checked = [ctx.triggered_id["index"] for c, i in zip(checks, ids, strict=False) if c]
         if len(checked) < 2:
             return go.Figure().to_dict()
 
@@ -117,13 +110,9 @@ def register_sessions_callbacks(app):
     def update_comparison_table(checks, ids):
         from web.utils.comparison import build_comparison_table
 
-        checked = [
-            ctx.triggered_id["index"] for c, i in zip(checks, ids, strict=False) if c
-        ]
+        checked = [ctx.triggered_id["index"] for c, i in zip(checks, ids, strict=False) if c]
         if len(checked) < 2:
-            return html.Div(
-                "Select 2+ sessions above to compare", className="text-muted p-3"
-            )
+            return html.Div("Select 2+ sessions above to compare", className="text-muted p-3")
 
         from meta_rl.persistence import get_persistence
 

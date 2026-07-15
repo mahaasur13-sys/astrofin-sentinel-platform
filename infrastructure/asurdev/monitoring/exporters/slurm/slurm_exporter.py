@@ -4,9 +4,11 @@ Slurm Prometheus Exporter
 Exports: queue depth, node state, GPU allocation, job states
 Endpoint: /metrics  (text format for Prometheus)
 """
-import re
 import subprocess
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import re
+import time
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import url
 
 SLURMCTL_HOST = "10.20.20.10"
 SLURMCTL_PORT = 6817
@@ -25,13 +27,13 @@ def get_slurm_queue() -> dict:
 
     lines = out.strip().split("\n")
     metrics = {"total_jobs": 0, "running": 0, "pending": 0, "nodes": {}}
-    re.compile(r"^(.+?)\s+(.+?)\s+(COMPLETING|RUNNING|PENDING|FAILED|CANCELLED)\s+(.*)$")
+    node_re = re.compile(r"^(.+?)\s+(.+?)\s+(COMPLETING|RUNNING|PENDING|FAILED|CANCELLED)\s+(.*)$")
 
     for line in lines[1:]:
         parts = line.split("|")
         if len(parts) < 3:
             continue
-        _job_id, _name, state = parts[0], parts[1], parts[2]
+        job_id, name, state = parts[0], parts[1], parts[2]
         metrics["total_jobs"] += 1
         if state == "RUNNING":
             metrics["running"] += 1
@@ -55,7 +57,7 @@ def get_slurm_nodes() -> dict:
         parts = line.split("|")
         if len(parts) < 7:
             continue
-        hostname, avail, up, cpus, _mem, _free_mem, gpus, state = parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7]
+        hostname, avail, up, cpus, mem, free_mem, gpus, state = parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7]
         nodes[hostname] = {
             "state": state.strip(),
             "cpus": int(cpus),

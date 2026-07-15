@@ -57,18 +57,12 @@ def safe_rel(py: pathlib.Path, repo: pathlib.Path) -> str:
 
 @dataclass
 class GateInfo:
-    id: str
-    name: str
-    file: str | None
-    calls: int
-    ok: bool
+    id: str; name: str; file: str | None; calls: int; ok: bool
 
 
 @dataclass
 class EntryInfo:
-    name: str
-    file: str
-    line: int
+    name: str; file: str; line: int
     gates_covered: list = field(default_factory=list)
     gates_missing: list = field(default_factory=list)
     status: str = ""  # gateway / mutagen / deprecated_ok / bypass

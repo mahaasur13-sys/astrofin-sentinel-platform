@@ -3,7 +3,6 @@
 Enhanced with real-time polling, live stats, progress tracking and professional quant UI.
 """
 
-from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
@@ -112,9 +111,7 @@ def evolution_tab() -> html.Div:
                                             dbc.Label("Walk-Forward", size="sm"),
                                             dbc.Checklist(
                                                 id="walk-forward-toggle",
-                                                options=[
-                                                    {"label": " Enabled", "value": 1}
-                                                ],
+                                                options=[{"label": " Enabled", "value": 1}],
                                                 value=[1],
                                                 switch=True,
                                                 inline=True,
@@ -189,9 +186,7 @@ def evolution_tab() -> html.Div:
                                 [
                                     dbc.Col(
                                         [
-                                            html.Small(
-                                                "Progress", className="text-muted"
-                                            ),
+                                            html.Small("Progress", className="text-muted"),
                                             html.Br(),
                                             html.Span(
                                                 id="progress-pct",
@@ -203,9 +198,7 @@ def evolution_tab() -> html.Div:
                                     ),
                                     dbc.Col(
                                         [
-                                            html.Small(
-                                                "Generation", className="text-muted"
-                                            ),
+                                            html.Small("Generation", className="text-muted"),
                                             html.Br(),
                                             html.Span(
                                                 id="current-gen-display",
@@ -217,9 +210,7 @@ def evolution_tab() -> html.Div:
                                     ),
                                     dbc.Col(
                                         [
-                                            html.Small(
-                                                "Best Reward", className="text-muted"
-                                            ),
+                                            html.Small("Best Reward", className="text-muted"),
                                             html.Br(),
                                             html.Span(
                                                 id="best-reward-display",
@@ -231,9 +222,7 @@ def evolution_tab() -> html.Div:
                                     ),
                                     dbc.Col(
                                         [
-                                            html.Small(
-                                                "Δ Best", className="text-muted"
-                                            ),
+                                            html.Small("Δ Best", className="text-muted"),
                                             html.Br(),
                                             html.Span(
                                                 id="delta-best-display",
@@ -245,9 +234,7 @@ def evolution_tab() -> html.Div:
                                     ),
                                     dbc.Col(
                                         [
-                                            html.Small(
-                                                "Mean ± Std", className="text-muted"
-                                            ),
+                                            html.Small("Mean ± Std", className="text-muted"),
                                             html.Br(),
                                             html.Span(
                                                 id="mean-std-display",
@@ -259,9 +246,7 @@ def evolution_tab() -> html.Div:
                                     ),
                                     dbc.Col(
                                         [
-                                            html.Small(
-                                                "KARL Q*", className="text-muted"
-                                            ),
+                                            html.Small("KARL Q*", className="text-muted"),
                                             html.Br(),
                                             html.Span(
                                                 id="karl-qstar-display",
@@ -273,9 +258,7 @@ def evolution_tab() -> html.Div:
                                     ),
                                     dbc.Col(
                                         [
-                                            html.Small(
-                                                "Diversity", className="text-muted"
-                                            ),
+                                            html.Small("Diversity", className="text-muted"),
                                             html.Br(),
                                             html.Span(
                                                 id="diversity-display",
@@ -358,9 +341,7 @@ def evolution_tab() -> html.Div:
                     "history": [],
                 },
             ),
-            dcc.Interval(
-                id="evolution-interval", interval=3000, disabled=True, n_intervals=0
-            ),
+            dcc.Interval(id="evolution-interval", interval=3000, disabled=True, n_intervals=0),
         ],
         className="p-3",
     )

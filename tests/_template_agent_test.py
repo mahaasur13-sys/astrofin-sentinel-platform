@@ -38,6 +38,7 @@ if str(REPO_ROOT) not in sys.path:
 from agents._impl._template_agent import TemplateAgent, run_template_agent  # noqa: E402
 from core.base_agent import AgentResponse, SignalDirection  # noqa: E402
 
+
 # ─── fixtures ────────────────────────────────────────────────────────────────
 
 
@@ -62,9 +63,7 @@ def happy_state() -> dict:
 
 
 @pytest.mark.asyncio
-async def test_happy_path_returns_agent_response(
-    agent: TemplateAgent, happy_state: dict
-) -> None:
+async def test_happy_path_returns_agent_response(agent: TemplateAgent, happy_state: dict) -> None:
     """A well-formed state must produce a fully-populated AgentResponse."""
     response = await agent.run(happy_state)
     assert isinstance(response, AgentResponse)
@@ -121,9 +120,7 @@ async def test_malformed_state_does_not_crash(agent: TemplateAgent) -> None:
 
 
 @pytest.mark.asyncio
-async def test_data_source_unavailable_marks_degraded(
-    agent: TemplateAgent, happy_state: dict
-) -> None:
+async def test_data_source_unavailable_marks_degraded(agent: TemplateAgent, happy_state: dict) -> None:
     """If a data source raises, the response is degraded with a machine reason."""
     # TODO: replace the patch target with the function your agent actually calls.
     # For the template, we just confirm the degraded() path works.
@@ -140,9 +137,7 @@ async def test_data_source_unavailable_marks_degraded(
 
 
 @pytest.mark.asyncio
-async def test_missing_ephemeris_returns_degraded(
-    agent: TemplateAgent, happy_state: dict
-) -> None:
+async def test_missing_ephemeris_returns_degraded(agent: TemplateAgent, happy_state: dict) -> None:
     """@require_ephemeris must convert to a degraded response, not a crash."""
     with patch("agents._impl.ephemeris_decorator.HAS_SWISS_EPHEMERIS", False):
         response = await agent.run(happy_state)

@@ -1,10 +1,7 @@
 """Shared async HTTP client for agent data fetching."""
 
-from __future__ import annotations
-
-import logging
-
 import httpx
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -27,19 +24,3 @@ async def close_http_client():
         await _client.aclose()
         _client = None
         logger.info("Closed shared httpx AsyncClient")
-
-
-class HTTPClient:
-    """Thin wrapper around httpx.AsyncClient so tests can patch .get/.post."""
-
-    def __init__(self, timeout: float = 10.0) -> None:
-        self._inner = httpx.AsyncClient(timeout=timeout)
-
-    async def get(self, url: str, **kw) -> httpx.Response:
-        return await self._inner.get(url, **kw)
-
-    async def post(self, url: str, **kw) -> httpx.Response:
-        return await self._inner.post(url, **kw)
-
-    async def aclose(self) -> None:
-        await self._inner.aclose()

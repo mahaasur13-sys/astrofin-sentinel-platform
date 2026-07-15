@@ -1,9 +1,20 @@
-from __future__ import annotations
 import logging
+
+logger = logging.getLogger(__name__)
+"""agents/karl_synthesis.py — KARL-013: SynthesisAgent + AMRE Integration
+Оборачивает SynthesisAgent в AMRE-контур:
+  DecisionRecord → OAP update → Backtest sample → Sync audit
+
+Использование:
+    from agents.karl_synthesis import KARLSynthesisAgent
+    result = await karl_agent.run(state)
+"""
+
 import hashlib
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
+
 from agents._impl.amre import (
     SelfQuestioningEngine,
     # Audit
@@ -32,20 +43,6 @@ from agents._impl.amre.reward import (
 )
 from agents._impl.synthesis_agent import SynthesisAgent
 from agents.base_agent import AgentResponse
-from agents._impl.amre.lag_windowing import get_lag_window
-from agents._impl.amre.risk_control import apply_position_lag_risk
-from agents._impl.amre.trajectory import MarketState, market_state_hash
-
-logger = logging.getLogger(__name__)
-"""agents/karl_synthesis.py — KARL-013: SynthesisAgent + AMRE Integration
-Оборачивает SynthesisAgent в AMRE-контур:
-  DecisionRecord → OAP update → Backtest sample → Sync audit
-
-Использование:
-    from agents.karl_synthesis import KARLSynthesisAgent
-    result = await karl_agent.run(state)
-"""
-
 
 # ATOM-019: PostgreSQL integration
 try:
@@ -63,11 +60,14 @@ except Exception:
     AgentSignalRepository = None
     AstroPositionRepository = None
 # ATOM-KARL-015 Phase 5: Lag Windowing
+from agents._impl.amre.lag_windowing import get_lag_window
+from agents._impl.amre.risk_control import apply_position_lag_risk
+from agents._impl.amre.trajectory import MarketState, market_state_hash
 
 # ─── KARL Synthesis Agent ────────────────────────────────────────────────────────
 
 
-class KARLSynthesisAgent:
+class KARLSynthesisAgent(SynthesisAgent):
     """
     SynthesisAgent + Full AMRE/KARL Control Loop.
 
@@ -86,7 +86,6 @@ class KARLSynthesisAgent:
         enable_backtest: bool = True,
         backtest_horizon: int = 5,
     ):
-        self.base_agent = SynthesisAgent()
         self.sync_interval = sync_interval  # Recalibrate every N decisions
         self.enable_self_question = enable_self_question
         self.enable_backtest = enable_backtest
@@ -94,11 +93,7 @@ class KARLSynthesisAgent:
         # Sub-systems
         self.decision_counter = 0
         self.self_questioner = SelfQuestioningEngine() if enable_self_question else None
-        self.backtest = (
-            create_backtest_runner(horizon=backtest_horizon)
-            if enable_backtest
-            else None
-        )
+        self.backtest = create_backtest_runner(horizon=backtest_horizon) if enable_backtest else None
         self.oap = get_oap_optimizer()
         self.calibrator = get_calibrator()
         self.dd_tracker = get_dd_tracker()
@@ -171,9 +166,7 @@ class KARLSynthesisAgent:
                 print(f"[SelfQ Trigger] {sq_reason} — running self-questioning")
                 sq_result = self.self_questioner.ask(all_signals, state)
                 if sq_result.confidence_adjustment != 0:
-                    confidence = max(
-                        30, min(92, confidence + sq_result.confidence_adjustment)
-                    )
+                    confidence = max(30, min(92, confidence + sq_result.confidence_adjustment))
                     synth_dict["reasoning"] = (
                         f"[SelfQ] {sq_result.question} → {sq_result.answer}. {synth_dict.get('reasoning', '')}"
                     )
@@ -188,37 +181,30 @@ class KARLSynthesisAgent:
         # ── Step 4.5: Phase 5 — Grounding Soft Degrade ───────────────────────
         # Apply grounding BEFORE lag windowing so EMA gets a clean base signal.
         # New grounding returns a delta (negative = degrade) and grounding_factor.
-        grounding = validate_with_grounding(
-            state, all_signals, current_confidence=confidence
-        )
+        grounding = validate_with_grounding(state, all_signals, current_confidence=confidence)
 
         grounding_factor = grounding.get("grounding_factor", 1.0)
         if grounding_factor < 1.0:
             # Multiplicative soft degrade: max(30, round(confidence * factor))
             degraded = max(30, round(confidence * grounding_factor))
             confidence = degraded
-            print(
-                f"[Grounding] factor={grounding_factor:.3f} → conf {confidence} (degraded)"
-            )
+            print(f"[Grounding] factor={grounding_factor:.3f} → conf {confidence} (degraded)")
 
         # ── Step 4.6: Phase 5 — Lag Windowing smoothing ───────────────────────
         position_pct = synth_dict.get("metadata", {}).get("position_size", 0.02)
 
-        confidence, position_pct, lag_meta = self._apply_lag_smoothing(
-            confidence, position_pct
-        )
+        confidence, position_pct, lag_meta = self._apply_lag_smoothing(confidence, position_pct)
 
         # Risk control via position_lag (only when window is mature)
         risk_adjusted = False
         if lag_meta.get("window_mature", False):
-            new_pos = apply_position_lag_risk(
-                position_pct, lag_meta.get("position_lag", 0.0)
-            )
+            new_pos = apply_position_lag_risk(position_pct, lag_meta.get("position_lag", 0.0))
             if new_pos != position_pct:
                 position_pct = new_pos
                 risk_adjusted = True
                 print(
-                    f"[RiskControl] position adjusted: lag={lag_meta.get('position_lag', 0.0):+.3f} → {position_pct:.4f}"
+                    f"[RiskControl] position adjusted: "
+                    f"lag={lag_meta.get('position_lag', 0.0):+.3f} → {position_pct:.4f}"
                 )
 
         # Store lag metrics in synth_dict for observability
@@ -287,9 +273,7 @@ class KARLSynthesisAgent:
 
         confidence_adjustments = []
         if grounding.get("confidence_adjustment", 0) != 0:
-            confidence_adjustments.append(
-                f"grounding:{grounding['confidence_adjustment']}"
-            )
+            confidence_adjustments.append(f"grounding:{grounding['confidence_adjustment']}")
         # Use cached sq_result from Step 3 — NEVER call ask() again here (would double-invoke and drain question bank)
         if sq_result is not None and sq_result.confidence_adjustment != 0:
             confidence_adjustments.append(f"self_q:{sq_result.confidence_adjustment}")
@@ -327,7 +311,8 @@ class KARLSynthesisAgent:
         )
         if record.risk_adjusted_pnl != 0.0:
             logger.debug(
-                f"[META-RL-KARL-BIDIR] DecisionRecord {record.decision_id}: risk_adj_pnl={record.risk_adjusted_pnl:+.4f}"
+                f"[META-RL-KARL-BIDIR] DecisionRecord {record.decision_id}: "
+                f"risk_adj_pnl={record.risk_adjusted_pnl:+.4f}"
             )
 
         # ── Step 8: Record to audit log ──────────────────────────────────────
@@ -401,9 +386,7 @@ class KARLSynthesisAgent:
             "karl_diagnostics": get_karl_diagnostics(),
         }
 
-    def _estimate_reward(
-        self, state: dict, signals: list, confidence: int, signal: str
-    ) -> float:
+    def _estimate_reward(self, state: dict, signals: list, confidence: int, signal: str) -> float:
         """
         Phase 3: EMA-smoothed reward with astro enrichment.
         - 70% market reward + 30% astro reward
@@ -456,25 +439,29 @@ class KARLSynthesisAgent:
         # Log for observability
         if self.reward_state.count % 10 == 0:
             print(
-                f"[REWARD EMA] count={self.reward_state.count} market={market_reward:.3f} astro={astro_reward:.3f} raw={raw_reward:.3f} ema={smoothed:.3f}"
+                f"[REWARD EMA] count={self.reward_state.count} "
+                f"market={market_reward:.3f} astro={astro_reward:.3f} "
+                f"raw={raw_reward:.3f} ema={smoothed:.3f}"
             )
 
         return smoothed
 
-    def _compute_state_hash(
-        self, state: dict, signal: str, confidence: int, regime: str
-    ) -> str:
+    def _compute_state_hash(self, state: dict, signal: str, confidence: int, regime: str) -> str:
         """Compute reproducible state hash."""
-        data = f"{state.get('symbol', '')}:{state.get('current_price', 0)}:{state.get('timeframe_requested', 'SWING')}:{len(state.get('all_signals', []))}:{regime}:{signal}:{confidence}"
-        return hashlib.md5(data.encode()).hexdigest()[
-            :12
-        ]  # nosec B324 — content hash for synthesis key, not security
+        data = (
+            f"{state.get('symbol', '')}:"
+            f"{state.get('current_price', 0)}:"
+            f"{state.get('timeframe_requested', 'SWING')}:"
+            f"{len(state.get('all_signals', []))}:"
+            f"{regime}:"
+            f"{signal}:"
+            f"{confidence}"
+        )
+        return hashlib.md5(data.encode()).hexdigest()[:12]
 
     # ── Phase 5: Lag Windowing ─────────────────────────────────────────────────
 
-    def _apply_lag_smoothing(
-        self, confidence: int, position_pct: float
-    ) -> tuple[int, float, dict]:
+    def _apply_lag_smoothing(self, confidence: int, position_pct: float) -> tuple[int, float, dict]:
         """
         Apply LagWindow smoothing to confidence and compute position_lag metrics.
 
@@ -524,7 +511,8 @@ class KARLSynthesisAgent:
         # Log when lag adjustment is non-zero
         if metrics["lag_adj"] != 0:
             print(
-                f"[LagWindow] conf {confidence} → {adjusted_conf} (adj={metrics['lag_adj']:+.3f}, pos_lag={metrics['position_lag']:+.3f})"
+                f"[LagWindow] conf {confidence} → {adjusted_conf} "
+                f"(adj={metrics['lag_adj']:+.3f}, pos_lag={metrics['position_lag']:+.3f})"
             )
 
         return adjusted_conf, position_pct, lag_meta
@@ -553,9 +541,7 @@ class KARLSynthesisAgent:
             "decision_count": self.decision_counter,
         }
 
-    def run_backtest_on_historical(
-        self, bars: list, symbol: str = "BTCUSDT"
-    ) -> dict[str, Any]:
+    def run_backtest_on_historical(self, bars: list, symbol: str = "BTCUSDT") -> dict[str, Any]:
         """
         Run continuous backtest on historical bars.
         Returns backtest results.

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """ATOM-R-033: Production Optimization Test"""
 
-from __future__ import annotations
-
 import sys
 import time
 
@@ -117,9 +115,7 @@ def test_metrics():
     engine = ProductionMASEngine()
 
     for i in range(3):
-        engine.run_sync(
-            {"intention": "ANALYZE", "symbol": "BTCUSDT", "timeframe": "SWING"}
-        )
+        engine.run_sync({"intention": "ANALYZE", "symbol": "BTCUSDT", "timeframe": "SWING"})
 
     summary = engine.get_metrics_summary()
     cprint(f"  Total runs: {summary['total_runs']}", "93")
@@ -173,9 +169,7 @@ def main():
     total = len(results)
 
     cprint("\n" + "=" * 70, "94")
-    cprint(
-        f"  SUMMARY: {passed}/{total} TESTS PASSED", "94" if passed == total else "91"
-    )
+    cprint(f"  SUMMARY: {passed}/{total} TESTS PASSED", "94" if passed == total else "91")
 
     if passed == total:
         cprint("  🎉 ALL TESTS PASSED - READY FOR PRODUCTION!", "92")

@@ -10,9 +10,9 @@ Every execution produces a full trace stored in:
 Trace is append-only. No modifications allowed.
 """
 from __future__ import annotations
-
+import json
+import uuid
 from datetime import datetime
-
 
 class TraceRecorder:
     """

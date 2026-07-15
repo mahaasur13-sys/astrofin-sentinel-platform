@@ -4,8 +4,6 @@
 - Regime-aware reward with drawdown penalty
 """
 
-from __future__ import annotations
-
 import math
 from dataclasses import dataclass
 from typing import Any
@@ -27,9 +25,7 @@ class RewardState:
         self.count: int = 0
 
 
-def update_reward_ema(
-    previous: float, current: float, alpha: float = EMA_ALPHA
-) -> float:
+def update_reward_ema(previous: float, current: float, alpha: float = EMA_ALPHA) -> float:
     """
     EMA smoothing: new = alpha * current + (1 - alpha) * previous.
     α = 0.3 → responsive but not noisy.
@@ -120,14 +116,10 @@ class RewardCalibrator:
 
     def _compute_ece(self, bin_centers: list[float], bin_accs: list[float]):
         """Compute Expected Calibration Error."""
-        total = sum(
-            abs(c - a) for c, a in zip(bin_centers, bin_accs, strict=False) if c > 0
-        )
+        total = sum(abs(c - a) for c, a in zip(bin_centers, bin_accs, strict=False) if c > 0)
         count = sum(1 for c in bin_centers if c > 0)
         self.metrics.calibration_error = total / count if count > 0 else 1.0
-        self.metrics.reliability_diagram = list(
-            zip(bin_centers, bin_accs, strict=False)
-        )
+        self.metrics.reliability_diagram = list(zip(bin_centers, bin_accs, strict=False))
 
     def calibrate(self, raw_reward: float) -> float:
         """Apply Platt scaling to raw reward prediction."""
@@ -152,9 +144,7 @@ class RewardCalibrator:
             "slope": round(self.slope, 4),
             "intercept": round(self.intercept, 4),
             "reliability_diagram": [
-                {"bin": round(c, 3), "accuracy": round(a, 3)}
-                for c, a in self.metrics.reliability_diagram
-                if c > 0
+                {"bin": round(c, 3), "accuracy": round(a, 3)} for c, a in self.metrics.reliability_diagram if c > 0
             ],
         }
 
@@ -186,9 +176,7 @@ class FalseCorrelationDetector:
         self.min_samples = min_samples_for_trust
         self.sample_history: list[tuple[int, float]] = []  # (n_samples, reward)
 
-    def assess(
-        self, n_samples: int, raw_reward: float, regime: str
-    ) -> CorrelationPenalty:
+    def assess(self, n_samples: int, raw_reward: float, regime: str) -> CorrelationPenalty:
         """Assess whether reward is spurious and apply penalty."""
         self.sample_history.append((n_samples, raw_reward))
 
@@ -199,9 +187,7 @@ class FalseCorrelationDetector:
         if n_samples < self.min_samples and raw_reward > 0.7:
             lucky_factor = raw_reward * (1 - n_samples / self.min_samples)
             penalty += lucky_factor * 0.4
-            reasons.append(
-                f"lucky_streak: n={n_samples}<{self.min_samples}, reward={raw_reward:.3f}"
-            )
+            reasons.append(f"lucky_streak: n={n_samples}<{self.min_samples}, reward={raw_reward:.3f}")
 
         # Rule 2: Regime instability — reward swings wildly across recent samples
         if len(self.sample_history) >= 5:
@@ -224,9 +210,7 @@ class FalseCorrelationDetector:
                 # If more data → lower reward, suspicious
                 if late_avg < early_avg - 0.1 and raw_reward > 0.5:
                     penalty += 0.25
-                    reasons.append(
-                        f"sample_inverse: early={early_avg:.3f} > late={late_avg:.3f}"
-                    )
+                    reasons.append(f"sample_inverse: early={early_avg:.3f} > late={late_avg:.3f}")
 
         is_spurious = penalty > 0.3
         max(0.0, raw_reward - penalty)
@@ -339,7 +323,9 @@ def compute_trajectory_reward(
         (
             1.0
             if _get(s, "signal", "NEUTRAL") in ("LONG", "BUY")
-            else -0.5 if _get(s, "signal") in ("SHORT", "SELL") else 0
+            else -0.5
+            if _get(s, "signal") in ("SHORT", "SELL")
+            else 0
         )
         * _get(s, "confidence", 50)
         / 100

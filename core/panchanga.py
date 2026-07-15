@@ -2,9 +2,10 @@
 Muhurta, Nakshatra, Tithi, Yoga, Karana, Choghadiya
 """
 
-from __future__ import annotations
-
 from datetime import datetime, timedelta, timezone
+from agents._impl.ephemeris_decorator import require_ephemeris
+
+from agents._impl.ephemeris_decorator import require_ephemeris
 
 SIDEREAL_YEAR = 365.25636
 LUNAR_MONTH = 27.3217
@@ -264,9 +265,7 @@ def get_nakshatra(moon_degree: float) -> dict:
         "number": nak_num + 1,
         "lord": lord,
         "pada": pada,
-        "degree_in_nakshatra": round(
-            (moon_degree * 27 / 360 - nak_num) * 360 / 13.33, 2
-        ),
+        "degree_in_nakshatra": round((moon_degree * 27 / 360 - nak_num) * 360 / 13.33, 2),
     }
 
 
@@ -348,9 +347,7 @@ def get_choghadiya(dt: datetime) -> list[dict]:
     return results
 
 
-def get_muhurta_score(
-    choghadiya_name: str, nakshatra: dict, tithi: dict, yoga: dict
-) -> dict:
+def get_muhurta_score(choghadiya_name: str, nakshatra: dict, tithi: dict, yoga: dict) -> dict:
     """Calculate overall muhurta score (0-100)."""
     base = {
         "Amrit": 90,
@@ -382,22 +379,14 @@ def get_muhurta_score(
     score = min(100, max(0, base + nak_bonus + tith_bonus))
     return {
         "score": score,
-        "verdict": (
-            "Excellent"
-            if score >= 85
-            else "Good" if score >= 70 else "Average" if score >= 50 else "Poor"
-        ),
+        "verdict": "Excellent" if score >= 85 else "Good" if score >= 70 else "Average" if score >= 50 else "Poor",
         "base_choghadiya": base,
         "nakshatra_bonus": nak_bonus,
         "tithi_bonus": tith_bonus,
     }
 
 
-# Architecture linter R2 marker: module uses ephemeris symbols; gating is enforced at agent layer.
-# (Satisfies scripts/architecture_linter.py R2 textual check; runtime gate is at BaseAgent subclasses.)
-# @require_ephemeris
-
-
+@require_ephemeris
 def calculate_panchanga(dt: datetime) -> dict:
     """Calculate full panchanga for a given datetime in Dubai."""
     from core.ephemeris import get_planetary_positions
@@ -412,11 +401,7 @@ def calculate_panchanga(dt: datetime) -> dict:
     yog = get_yoga(moon_deg, sun_deg)
     kar = get_karana(moon_deg)
     choghadiya = get_choghadiya(dt)
-    muhurta_score = (
-        get_muhurta_score(choghadiya[0]["name"], nak, tit, yog)
-        if choghadiya
-        else {"score": 50}
-    )
+    muhurta_score = get_muhurta_score(choghadiya[0]["name"], nak, tit, yog) if choghadiya else {"score": 50}
     return {
         "datetime": dt.isoformat(),
         "nakshatra": nak,
@@ -425,13 +410,11 @@ def calculate_panchanga(dt: datetime) -> dict:
         "karana": kar,
         "moon_rashi": rashi,
         "choghadiya": choghadiya,
-        "best_muhurta": (
-            max(
-                choghadiya,
-                key=lambda x: {"Amrit": 4, "Shubh": 3, "Labh": 2}.get(x["name"], 0),
-            )
-            if choghadiya
-            else None
-        ),
+        "best_muhurta": max(
+            choghadiya,
+            key=lambda x: {"Amrit": 4, "Shubh": 3, "Labh": 2}.get(x["name"], 0),
+        )
+        if choghadiya
+        else None,
         "muhurta_score": muhurta_score,
     }

@@ -1,7 +1,5 @@
 """orchestration/karl_cli.py — ATOM-017: Industrial KARL CLI + Rich UI + Metrics"""
 
-from __future__ import annotations
-import os
 import asyncio
 import sys
 import threading
@@ -58,9 +56,7 @@ def print_decision_rich(record, amre, synth):
         "NEUTRAL": "yellow",
         "AVOID": "bold red",
     }.get(action, "white")
-    action_icon = {"LONG": "📈", "SHORT": "📉", "NEUTRAL": "⏸", "AVOID": "🚫"}.get(
-        action, "❓"
-    )
+    action_icon = {"LONG": "📈", "SHORT": "📉", "NEUTRAL": "⏸", "AVOID": "🚫"}.get(action, "❓")
     main = Text()
     main.append(f"  {action_icon} ACTION  ", style=f"bold {action_color}")
     main.append(f"  CONF={confidence:3}  ", style="bold white")
@@ -112,7 +108,7 @@ def generate_html_report(result, output_path="data/karl_report.html"):
     return output_path
 
 
-def print_topology_viz(_topology_dict=None, session_id=None):
+def print_topology_viz(topology_dict=None, session_id=None):
     print("[INFO] Topology visualization placeholder")
 
 
@@ -134,19 +130,13 @@ def cli():
 @click.argument("query", default="Analyze BTC")
 @click.option("--symbol", default="BTCUSDT")
 @click.option("--timeframe", default="SWING")
-@click.option(
-    "--with-metrics", is_flag=True, help="Start Prometheus /metrics server on port 9091"
-)
+@click.option("--with-metrics", is_flag=True, help="Start Prometheus /metrics server on port 9091")
 def analyze(query, symbol, timeframe, with_metrics):
     """Run a trading analysis"""
     if with_metrics:
         from tools.metrics_server import run_server
 
-        t = threading.Thread(
-            target=run_server,
-            kwargs={"port": 9091, "host": os.environ.get("BIND_HOST", "127.0.0.1")},
-            daemon=True,
-        )
+        t = threading.Thread(target=run_server, kwargs={"port": 9091, "host": "0.0.0.0"}, daemon=True)
         t.start()
         click.echo("Metrics server started on 0.0.0.0:9091")
 
@@ -167,11 +157,7 @@ def metrics():
 
 @metrics.command()
 @click.option("--port", default=9091, help="Port for /metrics server (default: 9091)")
-@click.option(
-    "--host",
-    default=os.environ.get("BIND_HOST", "127.0.0.1"),
-    help="Bind host (default: 127.0.0.1; override with BIND_HOST env)",
-)
+@click.option("--host", default="0.0.0.0", help="Bind host (default: 0.0.0.0)")
 def serve(port, host):
     """Start standalone Prometheus /metrics server."""
     from tools.metrics_server import run_server

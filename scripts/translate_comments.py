@@ -6,8 +6,6 @@ scripts/translate_comments.py
 Строковые литералы и docstring не изменяются.
 """
 
-from __future__ import annotations
-
 import re
 import sys
 from pathlib import Path
@@ -21,9 +19,7 @@ except ImportError:
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 EXCLUDE_DIRS = {".venv", "__pycache__", ".git", "node_modules", "dist", "build"}
 CYRILLIC_PATTERN = re.compile(r"[А-Яа-яЁё]")
-COMMENT_LINE_PATTERN = re.compile(
-    r"^(\s*#)\s*(.*)$"
-)  # строка, начинающаяся с # (возможно с отступом)
+COMMENT_LINE_PATTERN = re.compile(r"^(\s*#)\s*(.*)$")  # строка, начинающаяся с # (возможно с отступом)
 
 
 def extract_comment_text(line: str) -> Tuple[str, str, str] | None:
@@ -68,9 +64,7 @@ def process_file(filepath: Path) -> bool:
                 new_line = f"{indent}{hash_space}{translated}\n"
                 new_lines.append(new_line)
                 changed = True
-                print(
-                    f"  ✏ {filepath.name}: {orig_text.strip()[:60]}... → {translated.strip()[:60]}..."
-                )
+                print(f"  ✏ {filepath.name}: {orig_text.strip()[:60]}... → {translated.strip()[:60]}...")
                 continue
         new_lines.append(line)
 
@@ -82,11 +76,7 @@ def process_file(filepath: Path) -> bool:
 
 
 def main():
-    py_files = [
-        p
-        for p in PROJECT_ROOT.rglob("*.py")
-        if not any(part in EXCLUDE_DIRS for part in p.parts)
-    ]
+    py_files = [p for p in PROJECT_ROOT.rglob("*.py") if not any(part in EXCLUDE_DIRS for part in p.parts)]
     print(f"Найдено {len(py_files)} .py файлов")
     translated_files = 0
     for fp in sorted(py_files):

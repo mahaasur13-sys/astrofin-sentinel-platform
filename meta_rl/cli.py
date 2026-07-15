@@ -10,8 +10,6 @@ Usage:
     python -m meta_rl.cli --paper --symbol ETH/USDT --gens 10       # paper mode
 """
 
-from __future__ import annotations
-
 import argparse
 import logging
 import sys
@@ -51,9 +49,7 @@ def parse_args():
         help="historical=mock, paper=CCXT sandbox, live=CCXT real",
     )
     parser.add_argument("--live", action="store_true", help="Shorthand for --mode=live")
-    parser.add_argument(
-        "--paper", action="store_true", help="Shorthand for --mode=paper"
-    )
+    parser.add_argument("--paper", action="store_true", help="Shorthand for --mode=paper")
     parser.add_argument("--symbol", default=DEFAULT_SYMBOL)
     parser.add_argument("--timeframe", default=DEFAULT_TIMEFRAME)
     parser.add_argument("--limit", type=int, default=500)
@@ -109,9 +105,7 @@ def get_market_data_live(symbol: str, timeframe: str, limit: int, mode: str) -> 
         sandbox=sandbox,
     )
 
-    logger.info(
-        f"[CLI] Fetching {symbol} ({timeframe}) via CCXT mode={'paper/sandbox' if sandbox else 'LIVE'}"
-    )
+    logger.info(f"[CLI] Fetching {symbol} ({timeframe}) via CCXT mode={'paper/sandbox' if sandbox else 'LIVE'}")
     return provider.get_latest_bars(symbol, timeframe, limit=limit)
 
 
@@ -126,9 +120,7 @@ def run_evolution(args) -> int:
     if mode == HISTORICAL_MODE:
         market_data = get_market_data_historical(args.symbol, args.limit)
     else:
-        market_data = get_market_data_live(
-            args.symbol, args.timeframe, args.limit, mode
-        )
+        market_data = get_market_data_live(args.symbol, args.timeframe, args.limit, mode)
 
     # ── Agent ─────────────────────────────────────────────────────────────
     cfg = EvolutionConfig(
@@ -142,9 +134,7 @@ def run_evolution(args) -> int:
     agent = MetaAgent(config=cfg)
 
     # ── Engine ────────────────────────────────────────────────────────────
-    session_id = args.session or (
-        f"{mode}_{args.symbol.replace('/', '')}_{datetime.now():%Y%m%d_%H%M%S}"
-    )
+    session_id = args.session or (f"{mode}_{args.symbol.replace('/', '')}_{datetime.now():%Y%m%d_%H%M%S}")
 
     engine = EvolutionEngine(
         agent=agent,
@@ -160,14 +150,8 @@ def run_evolution(args) -> int:
     )
 
     logger.info("=" * 70)
-    logger.info(
-        "  meta_rl EVOLUTION  "
-        + f"mode={mode}".ljust(50)
-        + f"gen={args.gens}  pop={args.pop}"
-    )
-    logger.info(
-        f"  symbol={args.symbol}  tf={args.timeframe}  walk_forward={not args.no_walk_forward}"
-    )
+    logger.info("  meta_rl EVOLUTION  " + f"mode={mode}".ljust(50) + f"gen={args.gens}  pop={args.pop}")
+    logger.info(f"  symbol={args.symbol}  tf={args.timeframe}  walk_forward={not args.no_walk_forward}")
     logger.info(f"  session={session_id}")
     logger.info("=" * 70)
 
@@ -192,13 +176,9 @@ def run_evolution(args) -> int:
         print(f"  Max DD:         {best.evaluation.max_drawdown:.4f}")
         print(f"  Trades:         {best.evaluation.trades}")
         print()
-        print(
-            f"  conf={c['confidence_threshold']:.0f}  pos={c['position_size_pct']:.0f}%"
-        )
+        print(f"  conf={c['confidence_threshold']:.0f}  pos={c['position_size_pct']:.0f}%")
         print(f"  regime={c['regime_filter']}  atr={c['atr_multiplier']:.1f}")
-        print(
-            f"  mom={'Y' if c['use_momentum'] else 'N'}  rev={'Y' if c['use_mean_reversion'] else 'N'}"
-        )
+        print(f"  mom={'Y' if c['use_momentum'] else 'N'}  rev={'Y' if c['use_mean_reversion'] else 'N'}")
     else:
         print("  No elite found")
 
@@ -207,9 +187,7 @@ def run_evolution(args) -> int:
         persist = get_persistence()
         summary = persist.get_sessions_summary()
         print()
-        print(
-            f"  Persistence: {summary['total_sessions']} sessions, {summary['total_strategies']} strategies"
-        )
+        print(f"  Persistence: {summary['total_sessions']} sessions, {summary['total_strategies']} strategies")
         print(f"  Max reward: {summary['max_reward']:+.4f}")
         if args.visualize and not args.no_viz:
             from pathlib import Path

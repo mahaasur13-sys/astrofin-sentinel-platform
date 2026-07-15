@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """ACOS SCL v6 - EventLog (append-only, O(1) trace index)."""
 from __future__ import annotations
-
 from acos.events.event import Event
-
 
 class EventLog:
     """Append-only log with O(1) trace index."""
@@ -22,8 +20,7 @@ class EventLog:
 
     def emit(self, trace_id: str, event_type: str, payload: dict | None = None, actor: str = "engine") -> Event:
         from acos.events.types import EventType
-        if isinstance(event_type, str):
-            event_type = EventType(event_type)
+        if isinstance(event_type, str): event_type = EventType(event_type)
         event = Event(trace_id=trace_id, event_type=event_type,
                       payload=dict(payload) if payload else {}, actor=actor)
         return self.append(event)
@@ -44,9 +41,7 @@ class EventLog:
         events = self.get_trace(trace_id) if trace_id else self._in_memory
         prev = "0" * 64
         for e in sorted(events, key=lambda x: x.timestamp):
-            if e.prev_hash != prev:
-                return False
-            if e.event_hash != e._compute_hash():
-                return False
+            if e.prev_hash != prev: return False
+            if e.event_hash != e._compute_hash(): return False
             prev = e.event_hash
         return True

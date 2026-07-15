@@ -4,14 +4,15 @@ Failure Orchestrator — Recovery Actions
 Targeted recovery procedures per failure type.
 Each function returns (success: bool, message: str)
 """
-import logging
 import subprocess
 import time
+import logging
+from typing import Tuple
 
 log = logging.getLogger("recovery")
 
 
-def _run(cmd: list, timeout: int = 30) -> tuple[bool, str]:
+def _run(cmd: list, timeout: int = 30) -> Tuple[bool, str]:
     try:
         result = subprocess.run(cmd, timeout=timeout, capture_output=True, text=True)
         if result.returncode == 0:
@@ -23,7 +24,7 @@ def _run(cmd: list, timeout: int = 30) -> tuple[bool, str]:
         return False, str(e)
 
 
-def restart_slurm_controller() -> tuple[bool, str]:
+def restart_slurm_controller() -> Tuple[bool, str]:
     log.warning("Recovery: restarting slurmctld")
     ok, msg = _run(["systemctl", "restart", "slurmctld"])
     if ok:
@@ -34,7 +35,7 @@ def restart_slurm_controller() -> tuple[bool, str]:
     return False, f"slurmctld restart failed: {msg}"
 
 
-def restart_slurm_worker(node: str = "rk3576") -> tuple[bool, str]:
+def restart_slurm_worker(node: str = "rk3576") -> Tuple[bool, str]:
     log.warning(f"Recovery: restarting slurmd on {node}")
     ok, _ = _run(["ssh", node, "systemctl", "restart", "slurmd"])
     if not ok:
@@ -46,7 +47,7 @@ def restart_slurm_worker(node: str = "rk3576") -> tuple[bool, str]:
     return False, f"slurmd check failed on {node}"
 
 
-def restart_ceph_osd(osd_id: str = "0") -> tuple[bool, str]:
+def restart_ceph_osd(osd_id: str = "0") -> Tuple[bool, str]:
     log.warning(f"Recovery: restarting ceph-osd.{osd_id}")
     ok, msg = _run(["systemctl", "restart", f"ceph-osd@{osd_id}"])
     if ok:
@@ -55,7 +56,7 @@ def restart_ceph_osd(osd_id: str = "0") -> tuple[bool, str]:
     return False, f"ceph-osd.{osd_id} restart failed: {msg}"
 
 
-def restart_ceph_mon(mon_id: str = "a") -> tuple[bool, str]:
+def restart_ceph_mon(mon_id: str = "a") -> Tuple[bool, str]:
     log.warning(f"Recovery: restarting ceph-mon.{mon_id}")
     ok, msg = _run(["systemctl", "restart", f"ceph-mon@{mon_id}"])
     if ok:
@@ -64,7 +65,7 @@ def restart_ceph_mon(mon_id: str = "a") -> tuple[bool, str]:
     return False, f"ceph-mon.{mon_id} restart failed: {msg}"
 
 
-def restart_ceph_manager() -> tuple[bool, str]:
+def restart_ceph_manager() -> Tuple[bool, str]:
     log.warning("Recovery: restarting ceph-mgr")
     ok, msg = _run(["systemctl", "restart", "ceph-mgr@$(hostname)"])
     if ok:
@@ -73,7 +74,7 @@ def restart_ceph_manager() -> tuple[bool, str]:
     return False, f"ceph-mgr restart failed: {msg}"
 
 
-def restart_ceph() -> tuple[bool, str]:
+def restart_ceph() -> Tuple[bool, str]:
     log.warning("Recovery: full ceph cluster health check + repair")
     ok1, _ = _run(["ceph", "osd", "set", "noout"])
     ok2, msg = _run(["ceph", "osd", "out", "all"])
@@ -84,7 +85,7 @@ def restart_ceph() -> tuple[bool, str]:
     return False, f"ceph repair failed: {msg} {msg2}"
 
 
-def restart_ray_head() -> tuple[bool, str]:
+def restart_ray_head() -> Tuple[bool, str]:
     log.warning("Recovery: restarting Ray head")
     _run(["ray", "stop"])
     time.sleep(2)
@@ -94,7 +95,7 @@ def restart_ray_head() -> tuple[bool, str]:
     return False, f"ray start failed: {msg}"
 
 
-def restart_ray_worker(node: str = "rk3576") -> tuple[bool, str]:
+def restart_ray_worker(node: str = "rk3576") -> Tuple[bool, str]:
     log.warning(f"Recovery: restarting Ray worker on {node}")
     ray_head_ip = "10.20.20.10"
     ok, _ = _run(["ssh", node, "ray", "stop"])
@@ -109,7 +110,7 @@ def restart_ray_worker(node: str = "rk3576") -> tuple[bool, str]:
     return False, f"ray worker start failed on {node}: {msg}"
 
 
-def restart_wireguard(interface: str = "wg0") -> tuple[bool, str]:
+def restart_wireguard(interface: str = "wg0") -> Tuple[bool, str]:
     log.warning(f"Recovery: restarting WireGuard interface {interface}")
     ok, msg = _run(["wg-quick", "down", interface])
     if not ok:
@@ -121,7 +122,7 @@ def restart_wireguard(interface: str = "wg0") -> tuple[bool, str]:
     return False, f"wg-quick up failed: {msg2}"
 
 
-def restart_nvidia_driver() -> tuple[bool, str]:
+def restart_nvidia_driver() -> Tuple[bool, str]:
     log.warning("Recovery: reloading NVIDIA driver")
     ok, msg = _run(["nvidia-smi"])
     if not ok:
@@ -132,7 +133,7 @@ def restart_nvidia_driver() -> tuple[bool, str]:
     return False, f"nvidia driver reload failed: {msg2}"
 
 
-def reboot_node(node: str) -> tuple[bool, str]:
+def reboot_node(node: str) -> Tuple[bool, str]:
     log.warning(f"Recovery: rebooting node {node}")
     ok, msg = _run(["ssh", node, "reboot"])
     if not ok:

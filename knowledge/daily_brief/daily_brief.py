@@ -9,7 +9,6 @@ Usage:
     python knowledge/daily_brief/daily_brief.py --parse FILE   # Parse specific file
 """
 
-from __future__ import annotations
 import argparse
 import re
 from datetime import datetime, timedelta
@@ -68,16 +67,9 @@ def generate_ideas(brief_content: str) -> list:
     ideas = []
 
     # Detect patterns in brief
-    has_tool_release = any(
-        kw in brief_content.lower() for kw in ["github", "release", "tool", "framework"]
-    )
-    has_research = any(
-        kw in brief_content.lower() for kw in ["arxiv", "paper", "research", "study"]
-    )
-    has_community = any(
-        kw in brief_content.lower()
-        for kw in ["reddit", "hacker news", "discussion", "forum"]
-    )
+    has_tool_release = any(kw in brief_content.lower() for kw in ["github", "release", "tool", "framework"])
+    has_research = any(kw in brief_content.lower() for kw in ["arxiv", "paper", "research", "study"])
+    has_community = any(kw in brief_content.lower() for kw in ["reddit", "hacker news", "discussion", "forum"])
 
     if has_tool_release:
         ideas.append(
@@ -195,17 +187,11 @@ def main():
     parser = argparse.ArgumentParser(description="Daily Brief CLI")
     parser.add_argument("--latest", action="store_true", help="Show latest brief")
     parser.add_argument("--list", action="store_true", help="List all briefs")
-    parser.add_argument(
-        "--ideas", action="store_true", help="Generate ATOM ideas from latest"
-    )
+    parser.add_argument("--ideas", action="store_true", help="Generate ATOM ideas from latest")
     parser.add_argument("--parse", type=str, help="Parse specific brief file")
     parser.add_argument("--gc", action="store_true", help="Garbage collect old briefs")
-    parser.add_argument(
-        "--save", type=str, help="Save brief content (for webhook/email)"
-    )
-    parser.add_argument(
-        "--track", action="store_true", help="Import ideas into idea_tracker"
-    )
+    parser.add_argument("--save", type=str, help="Save brief content (for webhook/email)")
+    parser.add_argument("--track", action="store_true", help="Import ideas into idea_tracker")
 
     args = parser.parse_args()
 
@@ -251,9 +237,7 @@ def main():
                     print(f"  [{idea['category']}]")
                     print(f"    → {idea['prompt']}\n")
         else:
-            print(
-                "No briefs found. Run with --gc to clean up or wait for next daily email."
-            )
+            print("No briefs found. Run with --gc to clean up or wait for next daily email.")
         return
 
     if args.list:

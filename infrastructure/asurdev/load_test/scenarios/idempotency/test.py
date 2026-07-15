@@ -5,17 +5,12 @@ Idempotency Failure — same action executed multiple times
 HYPOTHESIS: replay of events causes duplicate recovery actions
 EXPECTED: same action executed >1 time OR restart loop detected
 """
-import hashlib
-import json
+import json, hashlib
 from dataclasses import dataclass
-
 
 @dataclass
 class ExecutedAction:
-    action_id: str
-    target: str
-    action_type: str
-    execution_count: int
+    action_id: str; target: str; action_type: str; execution_count: int
 
 class IdempotencyScenario:
     def __init__(self):
@@ -59,5 +54,4 @@ def run():
     print(f"Failure detected: {r['failure_detected']}")
     print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
-if __name__ == "__main__":
-    run()
+if __name__ == "__main__": run()

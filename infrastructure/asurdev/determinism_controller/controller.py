@@ -4,14 +4,9 @@ DeterminismController — R1-R4 Strong Guarantees
 R1: Bitwise deterministic replay, R2: Scheduler fidelity, R3: ML version locking, R4: External isolation
 """
 from __future__ import annotations
-
-import hashlib
-import json
-import os
-import random
+import hashlib, json, os, random
 from dataclasses import dataclass, field
 from typing import Any
-
 
 @dataclass
 class ExecutionContext:

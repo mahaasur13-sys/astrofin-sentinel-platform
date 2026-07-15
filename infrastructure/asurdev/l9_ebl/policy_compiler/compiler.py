@@ -3,20 +3,18 @@
 L9 EBL — Policy Compiler
 Transforms policy (YAML/text) into executable constraint graphs.
 """
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
-from typing import Any
-
 import yaml
-
 
 @dataclass
 class ConstraintNode:
     id: str
     constraint_type: str  # resource_limit | forbidden_action | required_state
-    params: dict[str, Any]
+    params: Dict[str, Any]
     description: str = ""
 
-    def validate(self, params: dict[str, Any]) -> list[str]:
+    def validate(self, params: Dict[str, Any]) -> List[str]:
         violations = []
         if self.constraint_type == "resource_limit":
             key = self.params.get("key")
@@ -37,11 +35,11 @@ class ConstraintNode:
 @dataclass
 class GuardRule:
     action: str
-    constraints: list[ConstraintNode]
+    constraints: List[ConstraintNode]
     severity: str = "high"
-    tags: list[str] = field(default_factory=list)
+    tags: List[str] = field(default_factory=list)
 
-    def validate(self, params: dict[str, Any]) -> list[str]:
+    def validate(self, params: Dict[str, Any]) -> List[str]:
         violations = []
         for c in self.constraints:
             violations.extend(c.validate(params))
@@ -49,7 +47,7 @@ class GuardRule:
 
 class PolicyCompiler:
     def __init__(self):
-        self.rules: dict[str, GuardRule] = {}
+        self.rules: Dict[str, GuardRule] = {}
         self._compiled = False
 
     def load_policy(self, policy_text: str) -> None:
@@ -72,13 +70,13 @@ class PolicyCompiler:
             self.rules[rule_name] = guard
         self._compiled = True
 
-    def get_guard(self, action: str) -> GuardRule | None:
+    def get_guard(self, action: str) -> Optional[GuardRule]:
         for rule in self.rules.values():
             if rule.action == action:
                 return rule
         return None
 
-    def compile_summary(self) -> dict[str, Any]:
+    def compile_summary(self) -> Dict[str, Any]:
         return {
             "rules_count": len(self.rules),
             "actions": [r.action for r in self.rules.values()],

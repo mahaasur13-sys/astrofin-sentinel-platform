@@ -173,11 +173,11 @@ async def run_step_with_trace(
     """Execute a single step with DAG recording + cancellation monitoring."""
     step_id = step.get("id", "")
     tool = step.get("tool", "unknown")
-    step.get("action", "")
+    action = step.get("action", "")
     params = step.get("params", {})
 
     dag = await get_dag_recorder()
-    await get_cancellation()
+    cancellation = await get_cancellation()
 
     await dag.start_step(dag_id, step_id)
 
@@ -240,7 +240,7 @@ async def run(task: str, context: dict | None = None) -> dict:
     5. Return result
     """
     dag = await get_dag_recorder()
-    await get_cancellation()
+    cancellation = await get_cancellation()
 
     # ── planning ──────────────────────────────────────────────────────────
     steps = await plan(task)
@@ -281,7 +281,7 @@ async def run(task: str, context: dict | None = None) -> dict:
         raise
 
     # ── finalize DAG ─────────────────────────────────────────────────────
-    await dag.finalize(dag_id)
+    final_dag = await dag.finalize(dag_id)
 
     # ── build response ───────────────────────────────────────────────────
     outputs = []
@@ -307,15 +307,15 @@ async def worker_loop():
     """
     await get_dag_recorder()
     scheduler = await get_scheduler()
-    await get_cancellation()
+    cancellation = await get_cancellation()
 
-    asyncio.get_running_loop()
+    loop = asyncio.get_running_loop()
 
     while True:
         try:
             # adapt concurrency dynamically
             concurrency = await scheduler.compute_target_concurrency()
-            asyncio.Semaphore(concurrency)
+            semaphore = asyncio.Semaphore(concurrency)
 
             # dequeue highest-priority tasks
             tasks = await scheduler.dequeue(count=concurrency)
@@ -360,6 +360,7 @@ async def worker_loop():
                 dag_id = await (await get_dag_recorder()).create(task_id, epoch=claimed_epoch)
 
                 attempt = 0
+                last_error = ""
 
                 while True:
                     try:

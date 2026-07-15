@@ -1,10 +1,8 @@
-"""Verify that all required testing and compatibility packages are importable.
-
+"""
+import pytest
+Verify that all required testing and compatibility packages are importable.
 These tests will fail if Flask or Hypothesis are missing.
 """
-
-from __future__ import annotations
-
 import pytest
 
 

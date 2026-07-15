@@ -26,14 +26,14 @@ def tenant_config():
 def app(tenant_config):
     app = FastAPI()
     app.add_middleware(TenantMiddleware, tenant_config=tenant_config)
-
+    
     @app.get("/test")
     async def test_route(request: Request):
         return {
             "tenant_id": request.state.tenant_id,
             "path": request.url.path,
         }
-
+    
     return app
 
 
@@ -69,11 +69,11 @@ class TestTenantMiddleware:
             tenant_config=tenant_config,
             require_tenant=True,
         )
-
+        
         @app.get("/test")
         async def test_route(request: Request):
             return {"tenant_id": request.state.tenant_id}
-
+        
         client = TestClient(app, raise_server_exceptions=False)
         resp = client.get("/test")
         assert resp.status_code == 400

@@ -203,9 +203,7 @@ class SafetyGate:
 
     # ── Internal Checks ─────────────────────────────────────────────────────────
 
-    def _check_mode(
-        self, state: dict, proposed_size_pct: float = 0.2
-    ) -> SafetyDecision:
+    def _check_mode(self, state: dict, proposed_size_pct: float = 0.2) -> SafetyDecision:
         """ModeEnforcer (TradingMode) check — validates operational mode constraints."""
         try:
             from trading.mode import ModeEnforcer, TradingMode
@@ -219,9 +217,7 @@ class SafetyGate:
 
             enforcer = ModeEnforcer(mode=mode)
 
-            sig_direction = self._normalize_signal(state.get("signal", "NEUTRAL")).get(
-                "signal", "NEUTRAL"
-            )
+            sig_direction = self._normalize_signal(state.get("signal", "NEUTRAL")).get("signal", "NEUTRAL")
 
             is_short = sig_direction == "SHORT"
             is_market = state.get("order_type") != "limit"
@@ -294,9 +290,7 @@ class SafetyGate:
                             fa = _FakeAsset()
                             fa.symbol = sym
                             fa.notional_value = pos.notional_value
-                            fa.current_price = (
-                                getattr(pos, "current_price", 0) or current_price
-                            )
+                            fa.current_price = getattr(pos, "current_price", 0) or current_price
                             fa.entry_price = getattr(pos, "entry_price", current_price)
                             engine._positions[sym] = fa
 
@@ -413,9 +407,7 @@ class SafetyGate:
     def _log_event(self, stage: str, status: str, reason: str):
         if self._log:
             ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
-            icon = {"APPROVED": "✅", "REDUCED": "⚠️", "REJECTED": "🚫"}.get(
-                status, "?"
-            )
+            icon = {"APPROVED": "✅", "REDUCED": "⚠️", "REJECTED": "🚫"}.get(status, "?")
             print(f"[SAFETY-STACK] {ts} {stage:8s} {icon} {status:8s} — {reason}")
 
     def get_stats(self) -> dict:
@@ -423,9 +415,7 @@ class SafetyGate:
             "calls": self._call_count,
             "rejected": self._total_rejected,
             "reduced": self._total_reduced,
-            "approval_rate": (
-                (self._call_count - self._total_rejected) / max(self._call_count, 1)
-            ),
+            "approval_rate": ((self._call_count - self._total_rejected) / max(self._call_count, 1)),
         }
 
 

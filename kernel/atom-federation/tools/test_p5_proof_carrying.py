@@ -43,7 +43,7 @@ def test3():
     print("\n[3] Invalid signature rejected")
     with tempfile.TemporaryDirectory() as td:
         v = ProofVerifier(signing_key=b"k", state_dir=pathlib.Path(td))
-        ExecutionGateway(proof_verifier=v)
+        gw = ExecutionGateway(proof_verifier=v)
         req = v.sign(payload={"a": 1}, issuer_id="i")
         bad = ExecutionRequest(payload={"a": 1}, proof=b"WRONG", signature=b"WRONG",
                              issuer_id="i", nonce=req.nonce, timestamp=req.timestamp)
@@ -144,8 +144,7 @@ if __name__ == "__main__":
     p = f = 0
     for t in tests:
         try:
-            if t():
-                p += 1
+            if t(): p += 1
             else: f += 1
         except Exception as e:
             print(f"  EXCEPTION: {type(e).__name__}: {e}")

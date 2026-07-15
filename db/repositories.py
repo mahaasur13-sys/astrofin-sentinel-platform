@@ -4,9 +4,6 @@ All repositories work with PostgreSQL when available,
 fall back gracefully to SQLite when not.
 """
 
-from __future__ import annotations
-
-
 import json
 import logging
 import os
@@ -87,9 +84,7 @@ if _BACKEND == "postgresql":
                     uncertainty_total=record.get("uncertainty_total", 0.5),
                     confidence_raw=record.get("confidence_raw", 50),
                     confidence_final=record.get("confidence_final", 50),
-                    confidence_adjustments_json=_d(
-                        record.get("confidence_adjustments", [])
-                    ),
+                    confidence_adjustments_json=_d(record.get("confidence_adjustments", [])),
                     final_action=record.get("final_action", "NEUTRAL"),
                     position_pct=record.get("position_pct", 0),
                     kpi_snapshot_json=_d(record.get("kpi_snapshot", {})),
@@ -101,12 +96,7 @@ if _BACKEND == "postgresql":
         @staticmethod
         def get_recent(limit: int = 10) -> list[dict]:
             with pg_session() as s:
-                rows = (
-                    s.query(KARLDecisionRecord)
-                    .order_by(KARLDecisionRecord.created_at.desc())
-                    .limit(limit)
-                    .all()
-                )
+                rows = s.query(KARLDecisionRecord).order_by(KARLDecisionRecord.created_at.desc()).limit(limit).all()
                 return [_row_to_karl(r) for r in rows]
 
         @staticmethod
@@ -158,9 +148,7 @@ if _BACKEND == "postgresql":
                         uncertainty_total=record.get("uncertainty_total", 0.5),
                         confidence_raw=record.get("confidence_raw", 50),
                         confidence_final=record.get("confidence_final", 50),
-                        confidence_adjustments_json=_d(
-                            record.get("confidence_adjustments", [])
-                        ),
+                        confidence_adjustments_json=_d(record.get("confidence_adjustments", [])),
                         final_action=record.get("final_action", "NEUTRAL"),
                         position_pct=record.get("position_pct", 0),
                         kpi_snapshot_json=_d(record.get("kpi_snapshot", {})),
@@ -229,11 +217,7 @@ if _BACKEND == "postgresql":
         @staticmethod
         def get_by_session(session_id: str) -> list[dict]:
             with pg_session() as s:
-                rows = (
-                    s.query(AstroPosition)
-                    .filter(AstroPosition.session_id == session_id)
-                    .all()
-                )
+                rows = s.query(AstroPosition).filter(AstroPosition.session_id == session_id).all()
                 return [_row_to_astro(r) for r in rows]
 
     class AuditLogRepository:
@@ -256,12 +240,7 @@ if _BACKEND == "postgresql":
         @staticmethod
         def get_recent(limit: int = 100) -> list[dict]:
             with pg_session() as s:
-                rows = (
-                    s.query(AuditLogRecord)
-                    .order_by(AuditLogRecord.created_at.desc())
-                    .limit(limit)
-                    .all()
-                )
+                rows = s.query(AuditLogRecord).order_by(AuditLogRecord.created_at.desc()).limit(limit).all()
                 return [_row_to_audit(r) for r in rows]
 
 
@@ -373,15 +352,9 @@ def _row_to_karl(r) -> dict:
         "q_values": _l(r.q_values_json),
         "q_star": float(r.q_star) if r.q_star else None,
         "advantage": float(r.advantage) if r.advantage else None,
-        "uncertainty_aleatoric": (
-            float(r.uncertainty_aleatoric) if r.uncertainty_aleatoric else None
-        ),
-        "uncertainty_epistemic": (
-            float(r.uncertainty_epistemic) if r.uncertainty_epistemic else None
-        ),
-        "uncertainty_total": (
-            float(r.uncertainty_total) if r.uncertainty_total else None
-        ),
+        "uncertainty_aleatoric": float(r.uncertainty_aleatoric) if r.uncertainty_aleatoric else None,
+        "uncertainty_epistemic": float(r.uncertainty_epistemic) if r.uncertainty_epistemic else None,
+        "uncertainty_total": float(r.uncertainty_total) if r.uncertainty_total else None,
         "confidence_raw": r.confidence_raw,
         "confidence_final": r.confidence_final,
         "confidence_adjustments": _l(r.confidence_adjustments_json),

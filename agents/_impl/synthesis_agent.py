@@ -14,15 +14,8 @@ from pathlib import Path
 import yaml
 
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError
-from agents._impl.ephemeris_decorator import require_ephemeris
 from agents.metrics import track_agent_metrics
-from core.base_agent import (
-    EPHEMERIS_UNAVAILABLE,
-    UNKNOWN,
-    AgentResponse,
-    BaseAgent,
-    SignalDirection,
-)
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 from core.volatility import VolatilityEngine, VolatilityRegime
 
 logger = logging.getLogger(__name__)
@@ -58,14 +51,13 @@ def _load_weights() -> dict:
         actual = sum(normalized.values())
         if abs(actual - 1.0) > 0.001:
             raise ValueError(
-                f"{name} sum = {actual:.4f} (expected 1.0). Check config/agent_weights.yaml — all weight values must sum to 1.0."
+                f"{name} sum = {actual:.4f} (expected 1.0). "
+                f"Check config/agent_weights.yaml — all weight values must sum to 1.0."
             )
         return normalized
 
     if "category_weights" in data:
-        data["category_weights"] = _normalize(
-            data["category_weights"], "category_weights"
-        )
+        data["category_weights"] = _normalize(data["category_weights"], "category_weights")
     if "agent_weights" in data:
         data["agent_weights"] = _normalize(data["agent_weights"], "agent_weights")
 
@@ -105,9 +97,7 @@ MIN_CONFIDENCE = _CONFIG.get("guards", {}).get("min_confidence", 30)
 VOLATILITY_DROP = _CONFIG.get("guards", {}).get("volatility_drop", 15)
 
 # Conflict resolution
-_CONFLICT_CFG = _CONFIG.get("conflict_resolution", {}).get(
-    "astro_vs_fundamental_quant", {}
-)
+_CONFLICT_CFG = _CONFIG.get("conflict_resolution", {}).get("astro_vs_fundamental_quant", {})
 ASTRO_REDUCTION = _CONFLICT_CFG.get("astro_reduction", 0.30)
 FUNDAMENTAL_BOOST = _CONFLICT_CFG.get("fundamental_boost", 0.18)
 QUANT_BOOST = _CONFLICT_CFG.get("quant_boost", 0.12)
@@ -143,7 +133,6 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
             logger.exception("agent_run_unhandled", extra={"agent": self.name})
             return self._degraded(UNKNOWN, repr(e))
 
-    @require_ephemeris
     async def analyze(self, state: dict) -> AgentResponse:
         """
         Финальный синтез всех агентов.
@@ -202,9 +191,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                 for sig in all_signals:
                     meta = self._get_signal_attr(sig, "metadata", {})
                     if meta.get("atr"):
-                        vol_engine = VolatilityEngine.from_price_atr(
-                            current_price, meta["atr"]
-                        )
+                        vol_engine = VolatilityEngine.from_price_atr(current_price, meta["atr"])
                         break
                 vol_risk = vol_engine.analyze(symbol=symbol, price=current_price)
             except Exception:
@@ -230,18 +217,13 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
             compromise = CompromiseAgent()
             compromise_response = await compromise.run(state)
             compromise_meta = compromise_response.metadata or {}
-            if (
-                compromise_meta.get("compromise_active")
-                and compromise_response.confidence >= 60
-            ):
+            if compromise_meta.get("compromise_active") and compromise_response.confidence >= 60:
                 compromise_signal = compromise_response
         except Exception as e:  # noqa: BLE001 — non-fatal
             logger.warning("[SYNTHESIS] CompromiseAgent failed, falling back: %r", e)
 
         # ─── 3. Считаем взвешенные оценки ───────────────────────────────
-        direction, confidence, reasoning = self._synthesize(
-            categories, conflicts, symbol
-        )
+        direction, confidence, reasoning = self._synthesize(categories, conflicts, symbol)
 
         # Apply compromise override (PR1) — takes precedence over vote.
         if compromise_signal is not None:
@@ -253,9 +235,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
         if regime == VolatilityRegime.EXTREME:
             direction = SignalDirection.AVOID
             confidence = max(30, confidence - 25)
-            reasoning = (
-                f"V-07 [EXTREME VOLATILITY] — trade blocked. Original: {reasoning}"
-            )
+            reasoning = f"V-07 [EXTREME VOLATILITY] — trade blocked. Original: {reasoning}"
 
         # ── V-06: Volatility confidence drop ────────────────────────────
         if vol_risk and vol_risk.confidence_drop > 0:
@@ -302,9 +282,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                 decision_id=state.get("session_id", str(uuid.uuid4())) + "_" + symbol,
                 timestamp=datetime.now().isoformat(),
                 symbol=symbol,
-                signal=(
-                    direction.value if hasattr(direction, "value") else str(direction)
-                ),
+                signal=direction.value if hasattr(direction, "value") else str(direction),
                 confidence=confidence,
                 q_star=vol_risk.kelly_adjusted if vol_risk else 0.5,
                 uncertainty_total=uncertainty.get("total", 0.5),
@@ -356,12 +334,8 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                         "reason_code": compromise_signal.metadata.get("reason_code"),
                         "top1": compromise_signal.metadata.get("top1"),
                         "top2": compromise_signal.metadata.get("top2"),
-                        "expected_utility": compromise_signal.metadata.get(
-                            "expected_utility"
-                        ),
-                        "drift_triggers": compromise_signal.metadata.get(
-                            "drift_triggers", []
-                        ),
+                        "expected_utility": compromise_signal.metadata.get("expected_utility"),
+                        "drift_triggers": compromise_signal.metadata.get("drift_triggers", []),
                     }
                     if compromise_signal is not None
                     else None
@@ -434,20 +408,10 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
         def get_direction(signals):
             if not signals:
                 return "NEUTRAL"
-            votes = [
-                self._get_signal_attr(s, "signal", "NEUTRAL").upper() for s in signals
-            ]
-            long_v = (
-                votes.count("LONG") + votes.count("BUY") + votes.count("STRONG_BUY")
-            )
-            short_v = (
-                votes.count("SHORT") + votes.count("SELL") + votes.count("STRONG_SELL")
-            )
-            return (
-                "LONG"
-                if long_v > short_v
-                else "SHORT" if short_v > long_v else "NEUTRAL"
-            )
+            votes = [self._get_signal_attr(s, "signal", "NEUTRAL").upper() for s in signals]
+            long_v = votes.count("LONG") + votes.count("BUY") + votes.count("STRONG_BUY")
+            short_v = votes.count("SHORT") + votes.count("SELL") + votes.count("STRONG_SELL")
+            return "LONG" if long_v > short_v else "SHORT" if short_v > long_v else "NEUTRAL"
 
         astro_dir = get_direction(categories.get("astro", []))
         fund_dir = get_direction(categories.get("fundamental", []))
@@ -470,18 +434,14 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
 
         return conflicts
 
-    def _synthesize(
-        self, categories: dict[str, list], conflicts: list, symbol: str
-    ) -> tuple:
+    def _synthesize(self, categories: dict[str, list], conflicts: list, symbol: str) -> tuple:
         """Финальный синтез."""
         eff = {k: v for k, v in CATEGORY_WEIGHTS.items()}
         if conflicts:
             for c in conflicts:
                 if c["type"] == "astro_vs_fundamental_quant":
                     eff["astro"] = eff.get("astro", 0.25) * (1 - ASTRO_REDUCTION)
-                    eff["fundamental"] = eff.get("fundamental", 0.15) * (
-                        1 + FUNDAMENTAL_BOOST
-                    )
+                    eff["fundamental"] = eff.get("fundamental", 0.15) * (1 + FUNDAMENTAL_BOOST)
                     eff["quant"] = eff.get("quant", 0.20) * (1 + QUANT_BOOST)
         direction, confidence, reasoning = self._vote(categories, eff)
         return direction, confidence, reasoning
@@ -557,34 +517,20 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
         for cat, signals in categories.items():
             w = CATEGORY_WEIGHTS.get(cat, 0.0)
             if not signals:
-                lines.append(
-                    f"  [{cat.upper():12s}] NEUTRAL    [░░░░░░░░░░]   0.0% w={w:.2f} (no signals)"
-                )
+                lines.append(f"  [{cat.upper():12s}] NEUTRAL    [░░░░░░░░░░]   0.0% w={w:.2f} (no signals)")
                 continue
 
-            conf_avg = sum(
-                self._get_signal_attr(s, "confidence", 50) for s in signals
-            ) / len(signals)
-            votes = [
-                self._get_signal_attr(s, "signal", "NEUTRAL").upper() for s in signals
-            ]
+            conf_avg = sum(self._get_signal_attr(s, "confidence", 50) for s in signals) / len(signals)
+            votes = [self._get_signal_attr(s, "signal", "NEUTRAL").upper() for s in signals]
             long_v = votes.count("LONG") + votes.count("BUY")
             short_v = votes.count("SHORT") + votes.count("SELL")
 
-            direction = (
-                "LONG ▲"
-                if long_v > short_v
-                else "SHORT ▼" if short_v > long_v else "NEUT"
-            )
+            direction = "LONG ▲" if long_v > short_v else "SHORT ▼" if short_v > long_v else "NEUT"
 
             bar = "█" * int(conf_avg / 10) + "░" * (10 - int(conf_avg / 10))
-            agents = ", ".join(
-                self._get_signal_attr(s, "agent_name", "?") for s in signals
-            )
+            agents = ", ".join(self._get_signal_attr(s, "agent_name", "?") for s in signals)
 
-            lines.append(
-                f"  [{cat.upper():12s}] {direction:12s} [{bar}] {conf_avg:5.1f}% w={w:.2f} ({agents})"
-            )
+            lines.append(f"  [{cat.upper():12s}] {direction:12s} [{bar}] {conf_avg:5.1f}% w={w:.2f} ({agents})")
 
         return "\n".join(lines)
 
@@ -597,9 +543,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                     sources.append(src)
         return list(set(sources))
 
-    def _calculate_levels(
-        self, direction: SignalDirection, price: float, risk_pct: float
-    ) -> dict:
+    def _calculate_levels(self, direction: SignalDirection, price: float, risk_pct: float) -> dict:
         """
         Рассчитывает entry zones, targets, stop.
         Uses dynamic risk_pct from VolatilityEngine (R-07):
@@ -653,8 +597,3 @@ async def run_synthesis_agent(state: dict) -> dict:
     agent = SynthesisAgent()
     result = await agent.run(state)
     return {"synthesis_signal": result.to_dict()}
-
-
-def create() -> SynthesisAgent:
-    """Factory for 6-fn test contract."""
-    return SynthesisAgent()

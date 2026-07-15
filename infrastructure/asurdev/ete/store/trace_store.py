@@ -4,13 +4,12 @@ ETE — Execution Trace Engine: Store
 Stores full DAG of every decision in the system.
 """
 import json
-import time
 import uuid
-from dataclasses import dataclass, field
+import time
 from datetime import datetime, timezone
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass, field, asdict
 from enum import Enum, auto
-from typing import Any
-
 
 class TraceType(Enum):
     DECISION = auto()
@@ -27,13 +26,13 @@ class TraceNode:
     node_id: str
     node_type: TraceType
     layer: str
-    parent_ids: list[str] = field(default_factory=list)
-    data: dict[str, Any] = field(default_factory=dict)
+    parent_ids: List[str] = field(default_factory=list)
+    data: Dict[str, Any] = field(default_factory=dict)
     timestamp_ns: int = field(default_factory=lambda: time.time_ns())
-    causal_links: list[str] = field(default_factory=list)
-    metadata: dict[str, Any] = field(default_factory=dict)
+    causal_links: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "node_id": self.node_id,
             "node_type": self.node_type.name,
@@ -49,16 +48,16 @@ class TraceNode:
 class ExecutionTrace:
     trace_id: str
     run_id: str
-    decision_graph: dict[str, Any] = field(default_factory=dict)
-    ml_signals: dict[str, Any] = field(default_factory=dict)
-    policy_constraints: dict[str, Any] = field(default_factory=dict)
-    solver_path: dict[str, Any] = field(default_factory=dict)
-    execution_result: dict[str, Any] = field(default_factory=dict)
-    risk_score: dict[str, Any] = field(default_factory=dict)
-    rollback_status: dict[str, Any] = field(default_factory=dict)
-    nodes: list[dict[str, Any]] = field(default_factory=list)
+    decision_graph: Dict[str, Any] = field(default_factory=dict)
+    ml_signals: Dict[str, Any] = field(default_factory=dict)
+    policy_constraints: Dict[str, Any] = field(default_factory=dict)
+    solver_path: Dict[str, Any] = field(default_factory=dict)
+    execution_result: Dict[str, Any] = field(default_factory=dict)
+    risk_score: Dict[str, Any] = field(default_factory=dict)
+    rollback_status: Dict[str, Any] = field(default_factory=dict)
+    nodes: List[Dict[str, Any]] = field(default_factory=list)
     started_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    completed_at: str | None = None
+    completed_at: Optional[str] = None
     status: str = "running"
 
     def add_node(self, node: TraceNode) -> None:
@@ -74,7 +73,7 @@ class ExecutionTrace:
         elif node.node_type == TraceType.ROLLBACK:
             self.rollback_status[node.node_id] = node.data
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "trace_id": self.trace_id,
             "run_id": self.run_id,
@@ -94,8 +93,8 @@ class ExecutionTrace:
 class TraceStore:
     def __init__(self, store_dir: str = "/tmp/ete_traces"):
         self.store_dir = store_dir
-        self._traces: dict[str, ExecutionTrace] = {}
-        self._correlation_index: dict[str, list[str]] = {}
+        self._traces: Dict[str, ExecutionTrace] = {}
+        self._correlation_index: Dict[str, List[str]] = {}
 
     def create_trace(self, run_id: str) -> ExecutionTrace:
         trace_id = f"tr_{uuid.uuid4().hex[:16]}"
@@ -115,10 +114,10 @@ class TraceStore:
             trace.completed_at = datetime.now(timezone.utc).isoformat()
             trace.status = status
 
-    def get_trace(self, trace_id: str) -> ExecutionTrace | None:
+    def get_trace(self, trace_id: str) -> Optional[ExecutionTrace]:
         return self._traces.get(trace_id)
 
-    def get_traces_by_run(self, run_id: str) -> list[ExecutionTrace]:
+    def get_traces_by_run(self, run_id: str) -> List[ExecutionTrace]:
         trace_ids = self._correlation_index.get(run_id, [])
         return [self._traces[tid] for tid in trace_ids if tid in self._traces]
 

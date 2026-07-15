@@ -3,13 +3,13 @@
 L10 Self-Healing — Watchdog
 Monitors health across all layers, triggers isolation on failure.
 """
-from collections.abc import Callable
+import time
+from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any
-
-from l10_self_healing.orchestrator.failure_isolation import FailureIsolator, FailureTrigger
-
+from l10_self_healing.orchestrator.failure_isolation import (
+    FailureIsolator, Incident, IncidentSeverity, FailureTrigger, FailMode
+)
 
 @dataclass
 class HealthMetric:
@@ -26,16 +26,16 @@ class WatchdogResult:
     healthy: int
     degraded: int
     failed: int
-    triggered_incidents: list[str]
-    actions_taken: list[str]
+    triggered_incidents: List[str]
+    actions_taken: List[str]
 
 class Watchdog:
     def __init__(self, failure_isolator: FailureIsolator):
         self.failure_isolator = failure_isolator
-        self.health_checks: list[HealthMetric] = []
-        self.watchdog_triggers: dict[str, FailureTrigger] = {}
-        self.last_check: str | None = None
-        self._monitors: dict[str, Callable] = {}
+        self.health_checks: List[HealthMetric] = []
+        self.watchdog_triggers: Dict[str, FailureTrigger] = {}
+        self.last_check: Optional[str] = None
+        self._monitors: Dict[str, Callable] = {}
 
     def register_trigger(self, trigger: FailureTrigger) -> None:
         self.watchdog_triggers[trigger.metric] = trigger
@@ -99,7 +99,7 @@ class Watchdog:
             return value == thr
         return False
 
-    def status_summary(self) -> dict[str, Any]:
+    def status_summary(self) -> Dict[str, Any]:
         return {
             "registered_triggers": len(self.watchdog_triggers),
             "registered_monitors": len(self._monitors),

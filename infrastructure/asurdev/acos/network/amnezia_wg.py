@@ -1,16 +1,10 @@
 #!/usr/bin/env python3
 """ACOS AmneziaWG Integration - refactored (C-8: complexity 23→7)."""
 from __future__ import annotations
-
-import hashlib
-import logging
-import random
-import subprocess
-import time
+import hashlib, logging, random, subprocess, time
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any
-
 if TYPE_CHECKING:
     from acos.events.event_log import EventLog
 
@@ -25,7 +19,7 @@ class TunnelEvent:
     message: str; peer: str = ""; local_ip: str = ""
     prev_hash: str = field(default="0" * 64, repr=False)
     def _compute_hash(self) -> str:
-        import hashlib
+        import hashlib, json
         data = (f"{self.trace_id}{self.event_type}{self.timestamp}"
                 ""
                 f"{""}{self.prev_hash}")
@@ -37,11 +31,12 @@ class TunnelEvent:
                 "peer": self.peer, "local_ip": self.local_ip}
 
 # CRITICAL-9: import from single source
+from acos.utils import payload_to_dict
 
 class AmneziaWGManager:
     """Manages AmneziaWG tunnel. C-8 refactored: start() = 7 lines."""
-
-    def __init__(self, event_log: EventLog, interface: str = "wg0",
+    
+    def __init__(self, event_log: "EventLog", interface: str = "wg0",
                  trace_id: str | None = None, max_attempts: int = 5):
         self._log = event_log; self._iface = interface
         self._trace_id = trace_id or "network-bootstrap"
@@ -80,6 +75,8 @@ class AmneziaWGManager:
         return False
 
     def _emit(self, event_type: str, message: str, **kw) -> None:
+        from acos.events.types import EventType
+        from dataclasses import replace
         e = TunnelEvent(trace_id=self._trace_id, event_type=event_type,
                         timestamp=time.time(), message=message, **kw)
         self._log.append(e)

@@ -25,8 +25,7 @@ try:
     from atomos.runtime.dcp_control_plane import DistributedControlPlane
     dcp = DistributedControlPlane(heartbeat_timeout=5)
     for nid in ['node-A', 'node-B', 'node-C']:
-        dcp.register_node(nid)
-        dcp.heartbeat(nid)
+        dcp.register_node(nid); dcp.heartbeat(nid)
     leader = dcp.elect_leader()
     state = dcp.cluster_state()
     leaders = [nid for nid, n in state.get('nodes', {}).items()

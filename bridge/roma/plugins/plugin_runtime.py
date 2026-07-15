@@ -46,12 +46,12 @@ class PluginRuntime:
             "on_load": [], "on_unload": [], "on_execute_before": [],
             "on_execute_after": [], "on_scheduler_tick": [],
         }
-
+    
     def register_hook(self, hook_name: str, callback: callable) -> None:
         if hook_name not in self._hooks:
             raise ValueError(f"Unknown hook: {hook_name}")
         self._hooks[hook_name].append(callback)
-
+    
     def load_from_class(self, plugin_class: Type, plugin_name: str, version: str = "1.0.0") -> PluginInstance:
         spec = PluginSpec(
             name=plugin_name,
@@ -65,30 +65,27 @@ class PluginRuntime:
         instance_obj = plugin_class()
         plugin_inst = PluginInstance(spec=spec, plugin_class=plugin_class, instance=instance_obj)
         self._loaded[plugin_name] = plugin_inst
-        for cb in self._hooks["on_load"]:
-            cb(plugin_inst)
+        for cb in self._hooks["on_load"]: cb(plugin_inst)
         print(f"  Loaded plugin: {plugin_name} v{version}")
         return plugin_inst
-
+    
     def execute_plugin_sync(self, plugin_name: str, task: Any, context: Any) -> Dict:
         """Sync wrapper for plugin execution."""
         if plugin_name not in self._loaded:
             raise ValueError(f"Plugin not loaded: {plugin_name}")
         inst = self._loaded[plugin_name]
-        for cb in self._hooks["on_execute_before"]:
-            cb(inst, task)
+        for cb in self._hooks["on_execute_before"]: cb(inst, task)
         inst.instance.phase = "running"
-
+        
         import asyncio
         loop = asyncio.new_event_loop()
         result = loop.run_until_complete(inst.instance.on_execute(task, context))
         loop.close()
-
+        
         inst.execution_count += 1
-        for cb in self._hooks["on_execute_after"]:
-            cb(inst, task, result)
+        for cb in self._hooks["on_execute_after"]: cb(inst, task, result)
         return result.to_dict()
-
+    
     def list_loaded(self) -> List[Dict]:
         return [{"name": k, "version": str(v.spec.version), "phase": v.phase,
                  "executions": v.execution_count, "errors": v.error_count}
@@ -97,40 +94,32 @@ class PluginRuntime:
 def main():
     from plugin_api import PLUGIN_REGISTRY
     runtime = PluginRuntime()
-
+    
     for name, cls in PLUGIN_REGISTRY.items():
         runtime.load_from_class(cls, name, "1.0.0")
-
+    
     print("\nLoaded plugins:")
     for p in runtime.list_loaded():
         print(f"  {p['name']} v{p['version']} | phase={p['phase']} | executions={p['executions']}")
-
+    
     class DemoTask:
-        task_id = "task-001"
-        plugin_name = "ml_training"
-        payload = {"batch_size": 8, "epochs": 10}
-        metadata = {}
-        fingerprint = "abc123"
-
+        task_id = "task-001"; plugin_name = "ml_training"
+        payload = {"batch_size": 8, "epochs": 10}; metadata = {}; fingerprint = "abc123"
+    
     class DemoContext:
-        gpu_available = True
-        vram_gb = 10.5
-        cpu_cores = 8
-        ram_gb = 32
-        node_name = "gpu-node-1"
-        tick = 1
-
+        gpu_available = True; vram_gb = 10.5; cpu_cores = 8; ram_gb = 32
+        node_name = "gpu-node-1"; tick = 1
+    
     print("\nExecuting ml_training plugin:")
     result = runtime.execute_plugin_sync("ml_training", DemoTask(), DemoContext())
     print(f"  Result: {result}")
-
+    
     print("\nExecuting inference plugin:")
     task2 = type('Task', (), {'task_id': 'task-002', 'plugin_name': 'inference',
                                'payload': {'model': 'llama3-8b'}, 'metadata': {}, 'fingerprint': 'x'})()
     result2 = runtime.execute_plugin_sync("inference", task2, DemoContext())
     print(f"  Result: {result2}")
-
+    
     print("\nPlugin execution complete.")
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()

@@ -1,98 +1,88 @@
-"""Data Room Blueprint — fallback chain for data access."""
+"""Data Room Blueprint — единственная точка доступа к рыночным данным.
+
+R3 (CodeRabbit): все агенты ОБЯЗАНЫ получать цены/метрики через этот модуль.
+Прямой `import requests` в `agents/` запрещён.
+
+Провайдеры:
+- ``get_price(symbol, timeframe)`` — текущая/историческая цена.
+- ``get_market_cap(symbol)`` — капитализация.
+- ``get_klines(symbol, interval, limit)`` — OHLCV-свечи.
+
+Поведение:
+- При сбое внешних API возвращает ``None`` (degrade gracefully).
+- Таймауты 10s, ретраев нет (выше — ответственность оркестратора).
+"""
 
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
-from typing import Any, Protocol, runtime_checkable
+from typing import Optional
 
-logger = logging.getLogger("data_room.blueprint")
+import requests
 
-
-@dataclass(frozen=True)
-class PriceTick:
-    """A point-in-time price observation."""
-
-    symbol: str
-    price: float
-    asof: str = ""
-    source_id: str = "unknown"
-    quality_score: float = 1.0
-    freshness_sla_seconds: int = 30
-    metadata: dict = None  # type: ignore[assignment]
-
-    def __post_init__(self) -> None:
-        if self.metadata is None:
-            object.__setattr__(self, "metadata", {})
+logger = logging.getLogger(__name__)
 
 
-@runtime_checkable
-class Resolver(Protocol):
-    """Anything that has an async resolve() method."""
+def get_price(symbol: str, timeframe: str = "1d") -> Optional[float]:
+    """Вернуть текущую цену ``symbol`` (``BTCUSDT`` → Binance).
 
-    id: str
-    freshness_sla_seconds: int
-
-    async def resolve(self, symbol: str, asof: str) -> PriceTick: ...
-
-
-class Blueprint:
-    """Fallback chain for data access.
-
-    Resolvers are registered with a name (e.g. "price") and an optional
-    chain of fallback IDs. When get_price is called, it walks the chain
-    in order; on error it moves to the next.
+    :param symbol: торговый символ, например ``BTCUSDT``.
+    :param timeframe: ``1H|4H|1D|1W|SWING`` (маппится в Binance interval).
+    :return: цена закрытия или ``None`` при ошибке.
     """
-
-    def __init__(self) -> None:
-        self._named: dict[str, list[Resolver]] = {}
-        self._all: list[Resolver] = []
-
-    def register(
-        self,
-        name: str,
-        resolver: Resolver,
-        chain: list[str] | None = None,
-    ) -> None:
-        self._named.setdefault(name, []).append(resolver)
-        self._all.append(resolver)
-        # tag the resolver with the chain (best-effort) for the runner
-        chain = chain or []
-        if hasattr(resolver, "_chain"):
-            resolver._chain = chain
-
-    def get_resolver_chain(self, name: str) -> list[Resolver]:
-        """Return resolvers in fallback order: starting with `name`, then chain."""
-        if name not in self._named:
-            return []
-        primary = self._named[name]
-        primary_id = getattr(primary[0], "id", None) if primary else None
-        # The chain attribute is on the FIRST registered resolver under that name.
-        chain_ids = list(getattr(primary[0], "_chain", [])) if primary else []
-        ordered: list[Resolver] = []
-        for r in primary:
-            ordered.append(r)
-        for cid in chain_ids:
-            for r in self._all:
-                if getattr(r, "id", None) == cid:
-                    ordered.append(r)
-                    break
-        return ordered
-
-    async def get_price(self, symbol: str, asof: str = "") -> PriceTick | None:
-        chain = self.get_resolver_chain("price")
-        for resolver in chain:
-            try:
-                return await resolver.resolve(symbol, asof)
-            except Exception as exc:  # noqa: BLE001
-                logger.warning(
-                    "blueprint: resolver %s failed for %s: %s",
-                    getattr(resolver, "id", "?"),
-                    symbol,
-                    exc,
-                )
-                continue
-        return None
+    try:
+        interval_map = {"1H": "1h", "4H": "4h", "1D": "1d", "1W": "1w", "SWING": "1d"}
+        interval = interval_map.get(timeframe, "1d")
+        url = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit=1"
+        resp = requests.get(url, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            if data:
+                return float(data[-1][4])  # close price
+    except Exception as exc:  # noqa: BLE001 — boundary log only
+        logger.warning("data_room.get_price failed for %s: %s", symbol, exc)
+    return None
 
 
-__all__ = ["PriceTick", "Resolver", "Blueprint"]
+def get_klines(symbol: str, interval: str = "1d", limit: int = 100) -> list[float]:
+    """Вернуть список close-цен (Binance)."""
+    try:
+        url = (
+            f"https://api.binance.com/api/v3/klines"
+            f"?symbol={symbol}&interval={interval}&limit={limit}"
+        )
+        resp = requests.get(url, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            return [float(x[4]) for x in data]
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("data_room.get_klines failed for %s: %s", symbol, exc)
+    return []
+
+
+def get_market_cap(symbol: str) -> Optional[dict]:
+    """Вернуть базовые метрики CoinGecko для ``symbol`` (без USDT)."""
+    try:
+        coin_id = symbol.replace("USDT", "").lower()
+        url = f"https://api.coingecko.com/api/v3/coins/{coin_id}"
+        resp = requests.get(url, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            return {
+                "name": data.get("name", ""),
+                "market_cap_rank": data.get("market_cap_rank", 999),
+                "market_cap": data.get("market_data", {})
+                .get("market_cap", {})
+                .get("usd", 0),
+                "volume_24h": data.get("market_data", {})
+                .get("total_volume", {})
+                .get("usd", 0),
+                "ath": data.get("market_data", {}).get("ath", {}).get("usd", 0),
+                "atl": data.get("market_data", {}).get("atl", {}).get("usd", 0),
+            }
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("data_room.get_market_cap failed for %s: %s", symbol, exc)
+    return None
+
+
+__all__ = ["get_price", "get_klines", "get_market_cap"]

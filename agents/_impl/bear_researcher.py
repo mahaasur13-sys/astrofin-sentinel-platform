@@ -6,18 +6,9 @@ from __future__ import annotations
 
 import logging
 
-from agents._impl.ephemeris_decorator import (
-    EphemerisUnavailableError,
-    require_ephemeris,
-)
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
-from core.base_agent import (
-    EPHEMERIS_UNAVAILABLE,
-    UNKNOWN,
-    AgentResponse,
-    BaseAgent,
-    SignalDirection,
-)
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -143,9 +134,7 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
                     for x in data.get("data", [])
                 ]
         except Exception:
-            logger.warning(
-                f"Failed to fetch OHLCV data for {symbol}-USDT on {interval} with limit {limit}"
-            )
+            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT on {interval} with limit {limit}")
             return []
 
     def _detect_bearish_patterns(self, data: list) -> dict:
@@ -217,9 +206,7 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
         if not swing_highs:
             return {"score": 0.5, "summary": "no clear resistance identified"}
 
-        nearest_resistance = min(
-            [r for r in swing_highs if r > current_price], default=highs[-5]
-        )
+        nearest_resistance = min([r for r in swing_highs if r > current_price], default=highs[-5])
 
         distance_pct = ((nearest_resistance - current_price) / current_price) * 100
 
@@ -230,22 +217,20 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
         else:
             score = 0.45
 
-        summary = (
-            f"resistance at ${nearest_resistance:,.0f} ({distance_pct:.1f}% above)"
-        )
+        summary = f"resistance at ${nearest_resistance:,.0f} ({distance_pct:.1f}% above)"
 
         return {"score": min(score, 1.0), "summary": summary}
 
     async def _check_astro_bearish(self, state: dict) -> dict:
         """Check astro indicators for bearish bias."""
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         from core.ephemeris import HAS_SWISS_EPHEMERIS, _julian_day, calculate_planet
 
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         jd = _julian_day(now)
 
         saturn = calculate_planet("saturn", jd)
@@ -272,8 +257,3 @@ async def run_bear_researcher(state: dict) -> dict:
     agent = BearResearcherAgent()
     result = await agent.analyze(state)
     return {"bear_signal": result.to_dict()}
-
-
-def create() -> BearResearcherAgent:
-    """Factory for 6-fn test contract."""
-    return BearResearcherAgent()

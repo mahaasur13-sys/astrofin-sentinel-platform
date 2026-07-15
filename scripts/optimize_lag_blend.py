@@ -21,8 +21,6 @@ Usage:
     python scripts/optimize_lag_blend.py --data data/logs.csv --update-env
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import logging
@@ -101,9 +99,7 @@ def generate_demo_data(n: int = 500, seed: int = 42) -> pd.DataFrame:
         }
     )
 
-    logger.info(
-        f"[Demo] Generated {n} rows, reversals in raw: {sum(np.abs(np.diff(np.sign(raw - 50))) > 0)}"
-    )
+    logger.info(f"[Demo] Generated {n} rows, reversals in raw: {sum(np.abs(np.diff(np.sign(raw - 50))) > 0)}")
 
     return df
 
@@ -117,9 +113,7 @@ def load_data(path: str) -> pd.DataFrame:
     required = {"timestamp", "raw_confidence"}
     missing = required - set(df.columns)
     if missing:
-        raise ValueError(
-            f"Missing required columns: {missing}. Found: {list(df.columns)}"
-        )
+        raise ValueError(f"Missing required columns: {missing}. Found: {list(df.columns)}")
 
     if len(df) < 50:
         logger.warning(f"Only {len(df)} rows — statistics may be unreliable.")
@@ -291,9 +285,7 @@ def run_optimization(
             raise ValueError("Cannot optimize 'sharpe': PnL column missing or invalid.")
         best = max(valid, key=lambda r: r.sharpe)
     else:
-        raise ValueError(
-            f"Unknown metric: {metric}. Use: reversals, stability, sharpe."
-        )
+        raise ValueError(f"Unknown metric: {metric}. Use: reversals, stability, sharpe.")
 
     return results, best
 
@@ -349,9 +341,7 @@ def save_json(
         "window_size": window_size,
         "best_blend": best.blend,
         "best_value": (
-            best.reversals
-            if metric == "reversals"
-            else best.stability if metric == "stability" else best.sharpe
+            best.reversals if metric == "reversals" else best.stability if metric == "stability" else best.sharpe
         ),
         "results": [asdict(r) for r in results],
     }
@@ -362,9 +352,7 @@ def save_json(
     logger.info(f"Saved: {output_path}")
 
 
-def plot_results(
-    results: list[BlendResult], best: BlendResult, metric: str, output_path: str
-):
+def plot_results(results: list[BlendResult], best: BlendResult, metric: str, output_path: str):
     """Plot metric vs blend and save as PNG."""
     try:
         import matplotlib.pyplot as plt
@@ -388,9 +376,7 @@ def plot_results(
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(blends[: len(values)], values, "b-o", linewidth=2, markersize=5)
-    ax.axvline(
-        x=best.blend, color="r", linestyle="--", label=f"Optimal blend={best.blend:.2f}"
-    )
+    ax.axvline(x=best.blend, color="r", linestyle="--", label=f"Optimal blend={best.blend:.2f}")
     ax.scatter(
         [best.blend],
         [best_val],
@@ -427,9 +413,7 @@ def parse_args():
         default=None,
         help="Path to CSV file with columns: timestamp, raw_confidence, true_direction, pnl (optional).",
     )
-    parser.add_argument(
-        "--demo", action="store_true", help="Use synthetic demo data (500 rows)."
-    )
+    parser.add_argument("--demo", action="store_true", help="Use synthetic demo data (500 rows).")
     parser.add_argument(
         "--metric",
         type=str,
@@ -467,9 +451,7 @@ def parse_args():
         default="logs/blend_results.json",
         help="Output JSON path. Default: logs/blend_results.json",
     )
-    parser.add_argument(
-        "--plot", action="store_true", help="Generate and save PNG plot."
-    )
+    parser.add_argument("--plot", action="store_true", help="Generate and save PNG plot.")
     parser.add_argument(
         "--update-env",
         action="store_true",
@@ -494,7 +476,9 @@ def main():
         sys.exit(1)
 
     logger.info(
-        f"[Run] metric={args.metric}, window={args.window}, blend=[{args.blend_min}, {args.blend_max}] step={args.blend_step}, data={data_label}"
+        f"[Run] metric={args.metric}, window={args.window}, "
+        f"blend=[{args.blend_min}, {args.blend_max}] step={args.blend_step}, "
+        f"data={data_label}"
     )
 
     results, best = run_optimization(
@@ -521,13 +505,9 @@ def main():
     # Summary
     metric_key = args.metric
     best_val = (
-        best.reversals
-        if args.metric == "reversals"
-        else best.stability if args.metric == "stability" else best.sharpe
+        best.reversals if args.metric == "reversals" else best.stability if args.metric == "stability" else best.sharpe
     )
-    print(
-        f"Optimal blend for metric '{args.metric}': {best.blend} ({metric_key}={best_val})"
-    )
+    print(f"Optimal blend for metric '{args.metric}': {best.blend} ({metric_key}={best_val})")
 
 
 if __name__ == "__main__":

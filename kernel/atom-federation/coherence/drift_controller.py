@@ -156,7 +156,7 @@ class DriftController:
 
         # Decision: apply correction only outside hysteresis band
         # Hysteresis band prevents jitter loop at threshold boundary
-        self._threshold + self._hysteresis
+        upper = self._threshold + self._hysteresis
         lower = self._threshold - self._hysteresis
 
         if status in (DriftStatus.DRIFTING, DriftStatus.CRITICAL) and not self._in_correction:

@@ -82,11 +82,7 @@ class Monitoring:
         self._cumulative_pnl += trade.realized_pnl
         if trade.slippage_bps > 0:
             self._slippage_ts.append(trade.slippage_bps)
-        comm_bps = (
-            (trade.commission / trade.price / trade.qty * 10_000)
-            if trade.price > 0
-            else 0.0
-        )
+        comm_bps = (trade.commission / trade.price / trade.qty * 10_000) if trade.price > 0 else 0.0
         self._cost_ts.append(comm_bps)
 
     def record_reward(self, reward):
@@ -95,11 +91,7 @@ class Monitoring:
             self._reward_ts.append(reward)
 
     def get_snapshot(self, regime="NORMAL", mode="BACKTEST"):
-        equity = (
-            self._equity_ts[-1]
-            if self._equity_ts
-            else self._initial_equity or 100_000.0
-        )
+        equity = self._equity_ts[-1] if self._equity_ts else self._initial_equity or 100_000.0
         drawdown = self._compute_drawdown(equity)
         pnl_total = self._cumulative_pnl + self._compute_unrealized_pnl()
         pnl_unrealized = self._compute_unrealized_pnl()
@@ -145,9 +137,7 @@ class Monitoring:
             "rl_reward": round(s.rl_reward_cumulative, 4),
             "regime": s.regime,
             "mode": s.mode,
-            "timestamp": datetime.fromtimestamp(s.timestamp).strftime(
-                "%Y-%m-%d %H:%M:%S"
-            ),
+            "timestamp": datetime.fromtimestamp(s.timestamp).strftime("%Y-%m-%d %H:%M:%S"),
         }
 
     def print_metrics(self, regime="NORMAL", mode="BACKTEST"):

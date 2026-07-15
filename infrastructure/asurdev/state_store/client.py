@@ -3,16 +3,17 @@
 State Store Client — PostgreSQL System of Record
 Thread-safe connection pool + all queries for scheduler + job engine.
 """
-import contextlib
-import logging
 import os
 import uuid
+import logging
+import contextlib
+from typing import Optional, List, Dict, Any
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any
 
-from psycopg2 import pool
+import psycopg2
+from psycopg2 import pool, sql
 from psycopg2.extras import Json, RealDictCursor
 
 log = logging.getLogger("state_store")
@@ -49,21 +50,21 @@ class JobState:
     retry_count: int
     max_retries: int
     memory_gb: int
-    node_target: str | None
-    slurm_job_id: int | None
+    node_target: Optional[str]
+    slurm_job_id: Optional[int]
     created_at: datetime
     updated_at: datetime
-    started_at: datetime | None
-    finished_at: datetime | None
-    error_message: str | None
+    started_at: Optional[datetime]
+    finished_at: Optional[datetime]
+    error_message: Optional[str]
 
 
 @dataclass
 class NodeState:
     hostname: str
-    roles: list[str]
+    roles: List[str]
     gpu_count: int
-    gpu_model: str | None
+    gpu_model: Optional[str]
     cpu_cores: int
     memory_gb: int
     gpu_load_pct: float
@@ -75,7 +76,7 @@ class NodeState:
 
 
 class StateStore:
-    _pool: pool.ThreadedConnectionPool | None = None
+    _pool: Optional[pool.ThreadedConnectionPool] = None
 
     def __init__(self, host="localhost", port=5432,
                  dbname="clusterdb", user=None, password=None):
@@ -133,7 +134,7 @@ class StateStore:
                           {"priority": priority, "memory_gb": memory_gb})
         return job_id
 
-    def get_job(self, job_id: str) -> JobState | None:
+    def get_job(self, job_id: str) -> Optional[JobState]:
         with self._cursor() as cur:
             cur.execute(
                 "SELECT * FROM jobs WHERE id = %s", (job_id,))
@@ -168,7 +169,7 @@ class StateStore:
             self._write_event(job_id, status.value, {})
         return affected > 0
 
-    def get_pending_jobs(self, limit: int = 100) -> list[JobState]:
+    def get_pending_jobs(self, limit: int = 100) -> List[JobState]:
         with self._cursor() as cur:
             cur.execute(
                 """SELECT * FROM jobs
@@ -178,7 +179,7 @@ class StateStore:
                 (limit,))
             return [JobState(**r) for r in cur.fetchall()]
 
-    def get_active_slurm_job_ids(self) -> list[int]:
+    def get_active_slurm_job_ids(self) -> List[int]:
         with self._cursor(dict_cursor=False) as cur:
             cur.execute(
                 """SELECT DISTINCT slurm_job_id FROM jobs
@@ -198,7 +199,7 @@ class StateStore:
     # -------------------------------------------------------------------------
     # Nodes
     # -------------------------------------------------------------------------
-    def upsert_node(self, hostname: str, roles: list[str],
+    def upsert_node(self, hostname: str, roles: List[str],
                     gpu_count: int = 0, gpu_model: str = None,
                     cpu_cores: int = 0, memory_gb: int = 0) -> None:
         with self._cursor() as cur:
@@ -241,7 +242,7 @@ class StateStore:
                        WHERE hostname=%s""",
                     (gpu_load_pct, cpu_load_pct, memory_used_gb, hostname))
 
-    def get_healthy_nodes(self) -> list[NodeState]:
+    def get_healthy_nodes(self) -> List[NodeState]:
         with self._cursor() as cur:
             cur.execute(
                 """SELECT * FROM nodes
@@ -251,7 +252,7 @@ class StateStore:
                      gpu_load_pct ASC""")
             return [NodeState(**r) for r in cur.fetchall()]
 
-    def get_node(self, hostname: str) -> NodeState | None:
+    def get_node(self, hostname: str) -> Optional[NodeState]:
         with self._cursor() as cur:
             cur.execute("SELECT * FROM nodes WHERE hostname=%s", (hostname,))
             row = cur.fetchone()
@@ -261,14 +262,14 @@ class StateStore:
     # Events (append-only)
     # -------------------------------------------------------------------------
     def _write_event(self, job_id: str, event_type: str,
-                     payload: dict[str, Any]) -> None:
+                     payload: Dict[str, Any]) -> None:
         with self._cursor() as cur:
             cur.execute(
                 """INSERT INTO job_events (job_id, event_type, payload)
                    VALUES (%s,%s,%s)""",
                 (job_id, event_type, Json(payload)))
 
-    def get_job_events(self, job_id: str) -> list[dict]:
+    def get_job_events(self, job_id: str) -> List[Dict]:
         with self._cursor() as cur:
             cur.execute(
                 """SELECT * FROM job_events
@@ -280,7 +281,7 @@ class StateStore:
     # Scheduler scores audit
     # -------------------------------------------------------------------------
     def write_scheduler_decision(self, job_id: str, round_num: int,
-                                  scores: list[dict],
+                                  scores: List[Dict],
                                   selected_node: str) -> None:
         with self._cursor() as cur:
             for node_scores in scores:
@@ -301,7 +302,7 @@ class StateStore:
     # -------------------------------------------------------------------------
     def write_admission_decision(self, job_id: str, decision: str,
                                   reason: str,
-                                  cluster_util: dict) -> None:
+                                  cluster_util: Dict) -> None:
         with self._cursor() as cur:
             cur.execute(
                 """INSERT INTO admission_decisions
@@ -333,7 +334,7 @@ class StateStore:
                 (job_id, hostname, failure_type,
                  recovery_action, attempt, success))
 
-    def get_recent_failures(self, minutes: int = 60) -> list[dict]:
+    def get_recent_failures(self, minutes: int = 60) -> List[Dict]:
         with self._cursor() as cur:
             cur.execute(
                 """SELECT * FROM failure_recoveries
@@ -345,14 +346,14 @@ class StateStore:
     # -------------------------------------------------------------------------
     # Cluster state
     # -------------------------------------------------------------------------
-    def get_cluster_state(self) -> dict:
+    def get_cluster_state(self) -> Dict:
         with self._cursor() as cur:
             cur.execute("SELECT * FROM cluster_state")
             rows = cur.fetchall()
         return {"nodes": [dict(r) for r in rows],
                 "ts": datetime.utcnow().isoformat()}
 
-    def get_total_utilization(self) -> dict:
+    def get_total_utilization(self) -> Dict:
         with self._cursor(dict_cursor=False) as cur:
             cur.execute("SELECT get_total_cluster_utilization() as u")
             return cur.fetchone()[0]

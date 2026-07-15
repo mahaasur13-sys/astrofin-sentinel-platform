@@ -4,13 +4,10 @@ ExecutionSandbox — Node-level isolation
 Block: fs writes outside scope, network calls, env mutation, memory overflow
 """
 from __future__ import annotations
-
-import os
-import resource
+import hashlib, json, os, resource, sys, tempfile
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any
-
+from enum import Enum
 
 class ViolationType(Enum):
     FS_WRITE = "FS_WRITE"

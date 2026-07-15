@@ -139,9 +139,7 @@ class OHLCV:
 
 
 # ── Yahoo Finance v8 (direct REST API) ──────────────────────────────────────
-def _fetch_yahoo_v8(
-    symbol: str, interval: str = "1d", range_: str = "60d", limit: int = 500
-) -> list[OHLCV]:
+def _fetch_yahoo_v8(symbol: str, interval: str = "1d", range_: str = "60d", limit: int = 500) -> list[OHLCV]:
     """
     Yahoo Finance v8 API — works for symbols that yfinance lib marks as delisted.
     JJN (iPath Nickel) works here but not in yfinance.Ticker().
@@ -168,9 +166,7 @@ def _fetch_yahoo_v8(
         r = requests.get(
             f"https://query1.finance.yahoo.com/v8/finance/chart/{ySymbol}",
             params={"interval": yInterval, "range": range_},
-            headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            },
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
             timeout=10,
         )
         data = r.json()
@@ -229,9 +225,7 @@ def _fetch_yahoo_v8(
 
 
 # ── Yahoo Finance (yfinance library) ─────────────────────────────────────────
-def _fetch_yfinance_lib(
-    symbol: str, interval: str = "1d", period: str = "60d", limit: int = 500
-) -> list[OHLCV]:
+def _fetch_yfinance_lib(symbol: str, interval: str = "1d", period: str = "60d", limit: int = 500) -> list[OHLCV]:
     """yfinance library fallback (works for most standard symbols)."""
     ySymbol = _to_yahoo_symbol(symbol)
     yInterval = _to_yahoo_interval(interval)
@@ -252,9 +246,7 @@ def _fetch_yfinance_lib(
 
 
 # ── Metals-API (free tier: 50 req/month) ────────────────────────────────────
-def _fetch_metals_api(
-    symbol: str, interval: str = "1d", limit: int = 500
-) -> list[OHLCV]:
+def _fetch_metals_api(symbol: str, interval: str = "1d", limit: int = 500) -> list[OHLCV]:
     if not METALS_API_KEY:
         raise ValueError("METALS_API_KEY not set")
     metal = METALS_API_SYMBOLS.get(symbol)
@@ -294,9 +286,7 @@ def _fetch_metals_api(
 
 
 # ── Twelve Data (free tier: 800 req/day) ─────────────────────────────────────
-def _fetch_twelve_data(
-    symbol: str, interval: str = "1d", limit: int = 500
-) -> list[OHLCV]:
+def _fetch_twelve_data(symbol: str, interval: str = "1d", limit: int = 500) -> list[OHLCV]:
     if not TWELVE_DATA_KEY:
         raise ValueError("TWELVE_DATA_KEY not set")
 
@@ -329,9 +319,7 @@ def _fetch_twelve_data(
             for bar in reversed(data["values"]):
                 result.append(
                     OHLCV(
-                        timestamp=int(
-                            datetime.fromisoformat(bar["datetime"]).timestamp() * 1000
-                        ),
+                        timestamp=int(datetime.fromisoformat(bar["datetime"]).timestamp() * 1000),
                         open_=float(bar["open"]),
                         high=float(bar["high"]),
                         low=float(bar["low"]),

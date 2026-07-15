@@ -3,12 +3,13 @@
 Failure Orchestrator — Main Loop
 Runs detectors, applies recovery based on rules, logs + escalates.
 """
-import json
-import logging
 import os
 import sys
 import time
+import logging
+import json
 from pathlib import Path
+from typing import Optional
 
 logging.basicConfig(
     level=logging.INFO,
@@ -118,8 +119,8 @@ def escalate(message: str, severity: str):
 
 
 def run_cycle():
-    from . import recovery as rec_module
     from .detectors import all_detectors
+    from . import recovery as rec_module
 
     state = load_state()
     results = all_detectors()

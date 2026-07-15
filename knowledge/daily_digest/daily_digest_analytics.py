@@ -6,7 +6,6 @@ Parses multi-agent digest files, categorizes findings,
 and evaluates relevance to AstroFinSentinelV5.
 """
 
-from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
@@ -266,11 +265,7 @@ class DigestAnalyzer:
 
             if not title:
                 # Fallback: first line
-                lines = [
-                    l.strip()
-                    for l in section.split("\n")
-                    if l.strip() and not l.startswith("#")
-                ]
+                lines = [l.strip() for l in section.split("\n") if l.strip() and not l.startswith("#")]
                 if lines:
                     title = lines[0][:100]
 
@@ -295,9 +290,7 @@ class DigestAnalyzer:
 
             # Extract description: **Описание:** ...
             description = ""
-            desc_match = re.search(
-                r"\*\*Описание:\*\*\s*(.+?)(?:\n\*\*|$)", section, re.DOTALL
-            )
+            desc_match = re.search(r"\*\*Описание:\*\*\s*(.+?)(?:\n\*\*|$)", section, re.DOTALL)
             if desc_match:
                 description = desc_match.group(1).strip()
 
@@ -317,9 +310,7 @@ class DigestAnalyzer:
             relevance = RelevanceScore.score(full_text)
 
             # Generate implications
-            apps, risks = self._generate_implications(
-                title, description, category, relevance
-            )
+            apps, risks = self._generate_implications(title, description, category, relevance)
 
             if len(title) > 10:
                 finding = Finding(
@@ -356,14 +347,8 @@ class DigestAnalyzer:
         text = f"{title} {description}".lower()
 
         if relevance >= 0.5:
-            if (
-                "multi-agent" in text
-                or "coordination" in text
-                or "pressure field" in text
-            ):
-                apps.append(
-                    "Улучшить MAS Factory координацию через pressure field концепцию"
-                )
+            if "multi-agent" in text or "coordination" in text or "pressure field" in text:
+                apps.append("Улучшить MAS Factory координацию через pressure field концепцию")
                 apps.append("Оптимизировать AgentNode/SwitchNode взаимодействие")
 
             if "thompson" in text or "sampling" in text:
@@ -395,9 +380,7 @@ class DigestAnalyzer:
             raise FileNotFoundError(f"Digest not found: {path}")
 
         content = path.read_text(encoding="utf-8")
-        date = (
-            date_hint or path.stem.split("_")[-1] or datetime.now().strftime("%Y-%m-%d")
-        )
+        date = date_hint or path.stem.split("_")[-1] or datetime.now().strftime("%Y-%m-%d")
 
         findings = self.parse_digest(content, date)
 
@@ -443,9 +426,7 @@ class DigestAnalyzer:
             "total_findings": self.current_analysis.total_findings,
             "findings": [f.__dict__ for f in self.current_analysis.findings],
             "category_breakdown": self.current_analysis.category_breakdown,
-            "high_relevance_findings": [
-                f.__dict__ for f in self.current_analysis.high_relevance_findings
-            ],
+            "high_relevance_findings": [f.__dict__ for f in self.current_analysis.high_relevance_findings],
             "summary": self.current_analysis.summary,
             "analyzed_at": self.current_analysis.analyzed_at,
         }
@@ -462,9 +443,7 @@ class DigestAnalyzer:
         print(f"  📊 DAILY DIGEST ANALYSIS — {a.date}")
         print(f"{'=' * 70}")
 
-        print(
-            f"\n📈 Всего находок: {a.total_findings} | Высокая релевантность: {len(a.high_relevance_findings)}"
-        )
+        print(f"\n📈 Всего находок: {a.total_findings} | Высокая релевантность: {len(a.high_relevance_findings)}")
 
         if a.category_breakdown:
             print("\n📋 Категории:")

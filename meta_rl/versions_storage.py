@@ -1,7 +1,5 @@
 """meta_rl/versions_storage.py -- ATOM-META-RL-012: Versioned Elite Storage + A/B Testing API"""
 
-from __future__ import annotations
-
 import json as _json
 from pathlib import Path as _Path
 
@@ -44,20 +42,14 @@ class VersionedEliteStorage:
         records = []
         for e in elites or []:
             ev = getattr(e, "evaluation", None)
-            chrom = (
-                getattr(getattr(e, "strategy", None), "chromosome", {})
-                if hasattr(e, "strategy")
-                else {}
-            )
+            chrom = getattr(getattr(e, "strategy", None), "chromosome", {}) if hasattr(e, "strategy") else {}
             records.append(
                 {
                     "id": getattr(e, "id", ""),
                     "generation": getattr(e, "generation", 0),
                     "chromosome": chrom,
                     "reward": getattr(e, "reward", 0.0),
-                    "risk_adjusted_pnl": (
-                        getattr(ev, "risk_adjusted_pnl", 0.0) if ev else 0.0
-                    ),
+                    "risk_adjusted_pnl": getattr(ev, "risk_adjusted_pnl", 0.0) if ev else 0.0,
                     "session_id": session_id,
                 }
             )
@@ -67,9 +59,7 @@ class VersionedEliteStorage:
             idx["versions"] = idx.get("versions", [])
             idx["versions"].append(str(tag))
         idx["by_tag"] = idx.get("by_tag", {})
-        idx["by_tag"][str(tag)] = dict(
-            tag=str(tag), session_id=session_id, n=len(records)
-        )
+        idx["by_tag"][str(tag)] = dict(tag=str(tag), session_id=session_id, n=len(records))
         _save_index(idx)
         print(f"[META-RL-VERSION] Saved {tag}: {len(records)} elites")
         return True

@@ -1,7 +1,5 @@
 """core/council/agents.py — AstroCouncil agents"""
 
-from __future__ import annotations
-
 from .types import AGENT_WEIGHTS, CouncilMember, Signal
 
 
@@ -73,9 +71,7 @@ def quant_agent(predicted_return: float, uncertainty: float, **kwargs) -> Counci
     )
 
 
-def macro_agent(
-    vix: float, dxy: float, geopolitical: float = 0.1, **kwargs
-) -> CouncilMember:
+def macro_agent(vix: float, dxy: float, geopolitical: float = 0.1, **kwargs) -> CouncilMember:
     risk = (vix - 15) / 10 + (dxy - 100) / 20 + geopolitical
     if risk < 0.2:
         return CouncilMember(
@@ -108,9 +104,7 @@ def macro_agent(
     )
 
 
-def technical_agent(
-    rsi: float, macd_bullish: bool, price: float, **kwargs
-) -> CouncilMember:
+def technical_agent(rsi: float, macd_bullish: bool, price: float, **kwargs) -> CouncilMember:
     score = 0
     if rsi < 35:
         score += 2

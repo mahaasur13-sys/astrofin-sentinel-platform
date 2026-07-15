@@ -29,6 +29,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from typing import Callable
 
 log = logging.getLogger("cluster.node.healthcheck")
 if not log.handlers:

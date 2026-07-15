@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Healthcheck для AstroFinSentinelV5 — проверка окружения и сервисов."""
 
-from __future__ import annotations
-
 import json
 import subprocess
 import sys
@@ -66,8 +64,6 @@ def check_ollama() -> dict:
 
     try:
         req = urllib.request.Request("http://localhost:11434/api/tags")
-        # nosec B310: hard-coded ollama localhost health check
-
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read())
             models = [m["name"] for m in data.get("models", [])]

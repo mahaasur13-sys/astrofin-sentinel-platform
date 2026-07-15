@@ -1,4 +1,3 @@
-# ruff: noqa: F821
 """
 Async execution engine v2 — no threadpool bottleneck.
 

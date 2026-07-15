@@ -47,14 +47,14 @@ class TestRateLimitWithMockedRequest:
     async def test_allows_request_under_limit(self):
         from saas.gateway.rate_limiter import _buckets, check_rate_limit
         _buckets.clear()
-
+        
         from unittest.mock import MagicMock
         from fastapi import Request
-
+        
         mock_request = MagicMock(spec=Request)
         mock_request.state.tenant_id = "test-tenant-rl"
         mock_request.url.path = "/test"
-
+        
         # Should not raise
         await check_rate_limit(
             mock_request,
@@ -68,18 +68,18 @@ class TestRateLimitWithMockedRequest:
         from saas.gateway.rate_limiter import _buckets
         from unittest.mock import MagicMock
         from fastapi import Request
-
+        
         _buckets.clear()
-
+        
         mock_request = MagicMock(spec=Request)
         mock_request.state.tenant_id = "test-tenant-burst"
         mock_request.url.path = "/test"
-
+        
         # Consume burst with direct bucket access
         bucket = TokenBucket(rate=1.0, burst=2)
         await bucket.consume(1)
         await bucket.consume(1)
-
+        
         # Now the bucket is empty — next should fail
         result = await bucket.consume(1)
         assert result is False

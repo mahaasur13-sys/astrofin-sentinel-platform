@@ -4,8 +4,6 @@ AstroFin Sentinel V5 — Database Analysis Script
 Run: python backtest/db_analysis.py
 """
 
-from __future__ import annotations
-
 import json
 import sqlite3
 from datetime import datetime
@@ -46,8 +44,7 @@ def print_table(headers, rows, title=""):
         print("  (no data)")
         return
     col_widths = [
-        max(len(str(h)), max(len(str(r[i])) for r in rows)) if i < len(headers) else 10
-        for i, h in enumerate(headers)
+        max(len(str(h)), max(len(str(r[i])) for r in rows)) if i < len(headers) else 10 for i, h in enumerate(headers)
     ]
     sep = "  "
     header_line = sep.join(f"{h:<w}" for h, w in zip(headers, col_widths, strict=False))

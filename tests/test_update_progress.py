@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 import subprocess
 from datetime import date
@@ -55,9 +53,7 @@ def test_generates_progress_file():
     content = progress_file.read_text()
     today = date.today().isoformat()
     assert today in content, "progress.md does not contain today's date"
-    assert (
-        "Test commit for progress" in content
-    ), "progress.md does not contain commit message"
+    assert "Test commit for progress" in content, "progress.md does not contain commit message"
     # Уберем тестовый мусор
     test_file.unlink(missing_ok=True)
     subprocess.run(["git", "rm", "--cached", "test_temp.txt"], capture_output=True)

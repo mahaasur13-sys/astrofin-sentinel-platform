@@ -8,10 +8,8 @@ Mid-execution: kill switch (interrupt on threshold breach)
 Post-execution: audit trail generation
 """
 from __future__ import annotations
-
 import uuid
 from enum import Enum
-
 
 class Decision(Enum):
     APPROVED = "APPROVED"

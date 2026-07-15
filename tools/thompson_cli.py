@@ -13,8 +13,6 @@ Usage:
     python tools/thompson_cli.py daily-brief --ideas         # generate ATOM ideas
 """
 
-from __future__ import annotations
-
 import argparse
 import sys
 from pathlib import Path
@@ -63,12 +61,8 @@ def cmd_scores(args):
     results = sampler.scores(pool)
 
     print(f"\n=== Thompson Scores: {pool.name.upper()} ===")
-    print(
-        f"exploration_bonus={args.exploration_bonus}  k={pool.k or sampler.default_k}"
-    )
-    print(
-        f"{'Agent':<22} {'Sample':>8}  {'Alpha':>6}  {'Beta':>6}  {'Mean':>7}  Sessions"
-    )
+    print(f"exploration_bonus={args.exploration_bonus}  k={pool.k or sampler.default_k}")
+    print(f"{'Agent':<22} {'Sample':>8}  {'Alpha':>6}  {'Beta':>6}  {'Mean':>7}  Sessions")
     print("-" * 65)
 
     for name, score, belief in results:
@@ -79,9 +73,7 @@ def cmd_scores(args):
                 f"{belief.mean:>7.4f}  {belief.total_sessions}"
             )
         else:
-            bonus_note = (
-                f"+{args.exploration_bonus:.1f}" if args.exploration_bonus else ""
-            )
+            bonus_note = f"+{args.exploration_bonus:.1f}" if args.exploration_bonus else ""
             print(f"  {name:<20} {score:>8.4f}  (unseen, Beta(1{bonus_note},1))")
 
 
@@ -89,11 +81,7 @@ def cmd_select(args):
     sampler = ThompsonSampler(exploration_bonus=args.exploration_bonus)
     pool = POOL_MAP[args.pool]
     # k resolved: explicit --k > pool.k > default_k(=4)
-    k = (
-        args.k
-        if args.k is not None
-        else (pool.k if pool.k is not None else sampler.default_k)
-    )
+    k = args.k if args.k is not None else (pool.k if pool.k is not None else sampler.default_k)
     selected = sampler.select(pool, k=k)
 
     print(f"\n=== Thompson Selected ({pool.name.upper()}, k={k}) ===")
@@ -110,9 +98,7 @@ def cmd_leaderboard(args):
         return
 
     print(f"\n{'=== Belief Leaderboard (Beta Posterior) ===':^60}")
-    print(
-        f"{'Rank':<5} {'Agent':<22} {'Mean':>7}  {'CI 95%':>14}  {'Sessions':>9}  {'α':>5}  {'β':>5}"
-    )
+    print(f"{'Rank':<5} {'Agent':<22} {'Mean':>7}  {'CI 95%':>14}  {'Sessions':>9}  {'α':>5}  {'β':>5}")
     print("-" * 72)
 
     for rank, row in enumerate(rows, 1):
@@ -140,9 +126,7 @@ def cmd_simulate(args):
         for name, _ in selected:
             counts[name] += 1
 
-    print(
-        f"\n=== Simulation: {args.n} runs, k={k}, pool={pool.name}, exploration_bonus={args.exploration_bonus} ==="
-    )
+    print(f"\n=== Simulation: {args.n} runs, k={k}, pool={pool.name}, exploration_bonus={args.exploration_bonus} ===")
     print(f"Random seed: {args.seed or 'random'}")
     print(f"\n{'Agent':<22} {'Selected':>10}  {'Frequency':>10}")
     print("-" * 45)
@@ -210,11 +194,7 @@ def cmd_daily_brief(args):
             return
         print(f"\n{'=== Latest Daily Brief ===':^60}")
         print(f"File: {path.name}\n")
-        print(
-            path.read_text()[:500] + "..."
-            if len(path.read_text()) > 500
-            else path.read_text()
-        )
+        print(path.read_text()[:500] + "..." if len(path.read_text()) > 500 else path.read_text())
 
 
 def cmd_idea_tracker(args):
@@ -242,9 +222,7 @@ def cmd_idea_tracker(args):
         print(f"{'ID':<16} {'Status':<12} {'Score':>6} {'Impact':>8} {'Category':<20}")
         print("-" * 70)
         for idea in ideas:
-            print(
-                f"  {idea.id:<14} {idea.status:<12} {idea.score:>6.2f} {idea.impact_score:>8.4f} {idea.category:<20}"
-            )
+            print(f"  {idea.id:<14} {idea.status:<12} {idea.score:>6.2f} {idea.impact_score:>8.4f} {idea.category:<20}")
     elif args.pending:
         from knowledge.daily_brief.idea_tracker import get_ideas_by_status
 
@@ -256,9 +234,7 @@ def cmd_idea_tracker(args):
         print(f"{'ID':<16} {'Score':>6} {'Category':<20} {'Text':<30}")
         print("-" * 75)
         for idea in ideas:
-            print(
-                f"  {idea.id:<14} {idea.score:>6.2f} {idea.category:<20} {idea.text[:28]:<30}"
-            )
+            print(f"  {idea.id:<14} {idea.score:>6.2f} {idea.category:<20} {idea.text[:28]:<30}")
     elif args.inject:
         from knowledge.daily_brief.idea_tracker import inject_idea
 
@@ -293,25 +269,17 @@ def cmd_idea_tracker(args):
         print(f"{'ID':<16} {'Status':<12} {'Score':>6} {'Impact':>8} {'Category':<20}")
         print("-" * 75)
         for idea in ideas:
-            print(
-                f"  {idea.id:<14} {idea.status:<12} {idea.score:>6.2f} {idea.impact_score:>8.4f} {idea.category:<20}"
-            )
+            print(f"  {idea.id:<14} {idea.status:<12} {idea.score:>6.2f} {idea.impact_score:>8.4f} {idea.category:<20}")
     else:
-        print(
-            "No action specified for idea tracker. Use --kpi, --list, --pending, --inject, --eval, or --status."
-        )
+        print("No action specified for idea tracker. Use --kpi, --list, --pending, --inject, --eval, or --status.")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Thompson Sampling CLI")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    p_scores = sub.add_parser(
-        "scores", help="Show sampled scores for all agents in pool"
-    )
-    p_scores.add_argument(
-        "--pool", choices=["technical", "astro", "electoral"], default="astro"
-    )
+    p_scores = sub.add_parser("scores", help="Show sampled scores for all agents in pool")
+    p_scores.add_argument("--pool", choices=["technical", "astro", "electoral"], default="astro")
     p_scores.add_argument("--seed", type=int, default=None)
     p_scores.add_argument(
         "--exploration-bonus",
@@ -321,12 +289,8 @@ def main():
     )
 
     p_select = sub.add_parser("select", help="Run Thompson selection")
-    p_select.add_argument(
-        "--pool", choices=["technical", "astro", "electoral"], default="astro"
-    )
-    p_select.add_argument(
-        "--k", type=int, default=None, help="Agents to select (default: pool.k or 4)"
-    )
+    p_select.add_argument("--pool", choices=["technical", "astro", "electoral"], default="astro")
+    p_select.add_argument("--k", type=int, default=None, help="Agents to select (default: pool.k or 4)")
     p_select.add_argument("--seed", type=int, default=None)
     p_select.add_argument(
         "--exploration-bonus",
@@ -338,9 +302,7 @@ def main():
     sub.add_parser("leaderboard", help="Show belief leaderboard")
 
     p_sim = sub.add_parser("simulate", help="Simulate N runs")
-    p_sim.add_argument(
-        "--pool", choices=["technical", "astro", "electoral"], default="astro"
-    )
+    p_sim.add_argument("--pool", choices=["technical", "astro", "electoral"], default="astro")
     p_sim.add_argument(
         "--k",
         type=int,
@@ -357,23 +319,17 @@ def main():
     )
 
     p_reset = sub.add_parser("reset", help="Reset belief tracker")
-    p_reset.add_argument(
-        "--agent", type=str, default=None, help="Reset one agent (default: all)"
-    )
+    p_reset.add_argument("--agent", type=str, default=None, help="Reset one agent (default: all)")
 
     p_daily_brief = sub.add_parser("daily-brief", help="Show or list daily briefs")
     p_daily_brief.add_argument("--list", action="store_true", help="List all briefs")
-    p_daily_brief.add_argument(
-        "--ideas", action="store_true", help="Generate ATOM ideas"
-    )
+    p_daily_brief.add_argument("--ideas", action="store_true", help="Generate ATOM ideas")
 
     p_idea = sub.add_parser("idea-tracker", help="ATOM-R-041: Idea → Outcome Tracking")
     p_idea.add_argument("--kpi", action="store_true", help="Show KPI dashboard")
     p_idea.add_argument("--list", action="store_true", help="List all ideas")
     p_idea.add_argument("--pending", action="store_true", help="Show pending ideas")
-    p_idea.add_argument(
-        "--inject", type=str, metavar="IDEA_ID", help="Inject idea into KARL buffer"
-    )
+    p_idea.add_argument("--inject", type=str, metavar="IDEA_ID", help="Inject idea into KARL buffer")
     p_idea.add_argument("--eval", type=str, metavar="IDEA_ID", help="Evaluate idea")
     p_idea.add_argument("--reward", type=float, help="Reward for --eval")
     p_idea.add_argument("--status", type=str, help="Filter by status")

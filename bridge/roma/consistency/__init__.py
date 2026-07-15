@@ -40,7 +40,7 @@ from consistency.backpressure import (
 __all__ = [
     "GlobalStateModel",
     "TruthSource",
-    "ConflictResolution",
+    "ConflictResolution", 
     "GlobalStateRecord",
     "BackpressureSystem",
     "BackpressureConfig",

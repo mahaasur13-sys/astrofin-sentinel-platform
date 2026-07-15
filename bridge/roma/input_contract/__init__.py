@@ -38,7 +38,7 @@ class ValidationResult:
 class InputContractValidator:
     """
     STRICT validation layer — NEVER generates fallback tasks.
-
+    
     Input Contract Rules:
     1. Empty/whitespace-only input → REJECT
     2. Input must be meaningful task description

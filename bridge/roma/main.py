@@ -1,4 +1,3 @@
-# ruff: noqa: F821
 """
 ROMA Execution Bridge – FastAPI + Pydantic v2
 In-memory storage (will be SQLite later).
@@ -155,13 +154,13 @@ async def submit_atom_cluster(payload: dict):
     """Submit job as ATOMCluster managed execution."""
     cluster_spec = payload.get("cluster_spec", {})
     cluster_name = cluster_spec.get("name", "default")
-
+    
     # Create ATOMCluster CR if not exists
     try:
         create_atomcluster(cluster_name, cluster_spec)
     except Exception:
         pass  # Already exists
-
+    
     # Dispatch as managed job
     job_id = str(uuid.uuid4())
     job = {

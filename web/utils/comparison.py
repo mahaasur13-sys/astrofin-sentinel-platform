@@ -16,11 +16,7 @@ def build_comparison_table(session_records: list[dict]) -> str:
     for r in session_records:
         ev = r.get("evaluation", {})
         reward = r.get("reward", 0)
-        badge = (
-            "bg-success"
-            if reward > 0.7
-            else "bg-warning" if reward > 0.4 else "bg-secondary"
-        )
+        badge = "bg-success" if reward > 0.7 else "bg-warning" if reward > 0.4 else "bg-secondary"
         rows.append(
             f"<tr><td><code>{r.get('id', '?')[:8]}</code></td>"
             f"<td>{r.get('generation', 0)}</td>"
@@ -77,11 +73,7 @@ def build_comparison_chart(records_by_session: dict[str, list[dict]]) -> dict:
                 ev.get("win_rate", 0),
                 min(ev.get("trades", 1) / 50, 1),
                 1 - min(ev.get("max_drawdown", 0), 1),
-                (
-                    abs(ev.get("risk_adjusted_pnl", 0))
-                    if ev.get("risk_adjusted_pnl", 0) is not None
-                    else 0
-                ),
+                abs(ev.get("risk_adjusted_pnl", 0)) if ev.get("risk_adjusted_pnl", 0) is not None else 0,
             ]
             labels = ["Sharpe", "Win%", "Trades", "Stability", "PnL"]
             fig.add_trace(
@@ -105,9 +97,7 @@ def build_comparison_chart(records_by_session: dict[str, list[dict]]) -> dict:
         margin=dict(l=40, r=20, t=40, b=30),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        legend=dict(
-            orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5
-        ),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
         barmode="group",
     )
     return fig.to_dict()

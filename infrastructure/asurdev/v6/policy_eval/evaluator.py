@@ -5,9 +5,9 @@ Policy space: (priority_weights, risk_threshold, admission_policy)
 Regret = E[U_best] - E[U_selected]
 Trails historical policies, computes empirical regret, selects best.
 """
-from dataclasses import dataclass
+from typing import Optional, Callable
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-
 import numpy as np
 
 
@@ -26,7 +26,7 @@ class Policy:
 class PolicyTrial:
     policy_id: str
     start_time: datetime
-    end_time: datetime | None
+    end_time: Optional[datetime]
     total_jobs: int
     accepted_jobs: int
     rejected_jobs: int
@@ -46,11 +46,11 @@ class PolicyEvaluator:
     Selects policy with lowest cumulative regret.
     """
 
-    def __init__(self, config: dict | None = None):
+    def __init__(self, config: Optional[dict] = None):
         self.config = config or {}
         self.policies: dict[str, Policy] = {}
         self.trials: dict[str, list[PolicyTrial]] = {}
-        self._best_policy: str | None = None
+        self._best_policy: Optional[str] = None
         self._regret_window_hours = self.config.get("regret_window_hours", 24)
 
     def register_policy(self, policy: Policy) -> None:
@@ -82,7 +82,7 @@ class PolicyEvaluator:
             "cumulative_regret": sum(t.regret for t in recent),
         }
 
-    def get_best_policy(self) -> Policy | None:
+    def get_best_policy(self) -> Optional[Policy]:
         if not self._best_policy:
             self._update_best()
         return self.policies.get(self._best_policy) if self._best_policy else None

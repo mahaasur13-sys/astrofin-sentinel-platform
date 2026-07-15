@@ -7,8 +7,6 @@ Tests:
   C4: record_run() with BacktestRun directly returns session_id
 """
 
-from __future__ import annotations
-
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path

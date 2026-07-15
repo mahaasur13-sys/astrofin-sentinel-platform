@@ -3,13 +3,12 @@
 Workload Generator — generates job streams from profiles.
 """
 from __future__ import annotations
-
-import math
-import random
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-
-from .types import WorkloadProfile
+from typing import Optional
+import random
+import math
+from .types import WorkloadProfile, WorkloadProfile as WProfile
 
 
 @dataclass
@@ -21,7 +20,7 @@ class Job:
     gpu_required: bool
     priority: int
     adversarial: bool
-    target_node: str | None = None
+    target_node: Optional[str] = None
     failure_injected: bool = False
 
 
@@ -51,7 +50,7 @@ class WorkloadGenerator:
         duration_sec: int,
         target_nodes: list[str],
         scenario_name: str = "unnamed",
-        start_time: datetime | None = None,
+        start_time: Optional[datetime] = None,
     ) -> WorkloadStream:
         """Generate full job stream for given profile and duration."""
         rng = self._rng

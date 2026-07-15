@@ -8,18 +8,9 @@ import logging
 
 import httpx
 
-from agents._impl.ephemeris_decorator import (
-    EphemerisUnavailableError,
-    require_ephemeris,
-)
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
-from core.base_agent import (
-    EPHEMERIS_UNAVAILABLE,
-    UNKNOWN,
-    AgentResponse,
-    BaseAgent,
-    SignalDirection,
-)
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -51,11 +42,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
         price_momentum = self._analyze_price_momentum(state)
 
         # Combine sentiment
-        sentiment_score = (
-            fear_greed["score"] * 0.40
-            + funding_rate["score"] * 0.30
-            + price_momentum["score"] * 0.30
-        )
+        sentiment_score = fear_greed["score"] * 0.40 + funding_rate["score"] * 0.30 + price_momentum["score"] * 0.30
 
         if sentiment_score >= 0.65:
             signal = SignalDirection.LONG
@@ -67,7 +54,12 @@ class SentimentAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 45
 
-        reasoning = f"Fear & Greed: {fear_greed['summary']}. Funding rate: {funding_rate['summary']}. Price momentum: {price_momentum['summary']}. Sentiment score: {sentiment_score:.2f}"
+        reasoning = (
+            f"Fear & Greed: {fear_greed['summary']}. "
+            f"Funding rate: {funding_rate['summary']}. "
+            f"Price momentum: {price_momentum['summary']}. "
+            f"Sentiment score: {sentiment_score:.2f}"
+        )
 
         return AgentResponse(
             agent_name="SentimentAgent",
@@ -110,9 +102,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
                     if fng_value <= 20:
                         summary = f"Extreme Fear ({fng_value}) — contrarian BUY signal"
                     elif fng_value >= 80:
-                        summary = (
-                            f"Extreme Greed ({fng_value}) — contrarian SELL signal"
-                        )
+                        summary = f"Extreme Greed ({fng_value}) — contrarian SELL signal"
                     else:
                         summary = f"Fear & Greed: {fng_value} ({fng_class})"
 
@@ -136,9 +126,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
                 resp = await client.get(url, timeout=10)
 
                 if resp.status_code != 200:
-                    logger.warning(
-                        f"[SentimentAgent] HTTP {resp.status_code} from Bybit"
-                    )
+                    logger.warning(f"[SentimentAgent] HTTP {resp.status_code} from Bybit")
                     return {
                         "score": 0.5,
                         "summary": f"HTTP {resp.status_code}",
@@ -146,9 +134,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
                     }
 
                 data = resp.json()
-                funding_rate = float(
-                    data.get("result", {}).get("list", [{}])[0].get("fundingRate", 0.0)
-                )
+                funding_rate = float(data.get("result", {}).get("list", [{}])[0].get("fundingRate", 0.0))
 
                 if funding_rate > 0.001:
                     score = 0.65
@@ -169,9 +155,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
                 return {"score": score, "summary": summary, "raw_rate": funding_rate}
 
         except Exception as e:
-            logger.warning(
-                f"[SentimentAgent] Failed to fetch funding rate for {symbol}: {e}"
-            )
+            logger.warning(f"[SentimentAgent] Failed to fetch funding rate for {symbol}: {e}")
 
         return {"score": 0.5, "summary": "Funding rate unavailable", "raw_rate": 0.0}
 
@@ -215,8 +199,3 @@ async def run_sentiment_agent(state: dict) -> dict:
     agent = SentimentAgent()
     result = await agent.analyze(state)
     return {"sentiment_signal": result.to_dict()}
-
-
-def create() -> SentimentAgent:
-    """Factory for 6-fn test contract."""
-    return SentimentAgent()

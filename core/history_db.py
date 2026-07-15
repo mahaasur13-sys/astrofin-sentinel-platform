@@ -5,8 +5,6 @@ SQLite-backed session history. Every run_sentinel_v5() call is persisted.
 Supports: save, get, list, stats, clear.
 """
 
-from __future__ import annotations
-
 import json
 import sqlite3
 from pathlib import Path
@@ -71,9 +69,7 @@ class HistoryDB:
         self._init_db()
 
     def _conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(
-            str(self.db_path), timeout=10, isolation_level="IMMEDIATE"
-        )
+        conn = sqlite3.connect(str(self.db_path), timeout=10, isolation_level="IMMEDIATE")
         conn.row_factory = sqlite3.Row
         return conn
 
@@ -144,9 +140,7 @@ class HistoryDB:
     def get(self, session_id: str) -> dict | None:
         """Retrieve a session by session_id. Returns None if not found."""
         with self._conn() as conn:
-            row = conn.execute(
-                "SELECT * FROM sessions WHERE session_id = ?", (session_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM sessions WHERE session_id = ?", (session_id,)).fetchone()
 
         if not row:
             return None
@@ -192,51 +186,35 @@ class HistoryDB:
         days_arg = f"-{days} days"
 
         if symbol:
-            where = "WHERE created_at >= datetime('now', ?) AND symbol = ?"
+            where += " AND symbol = ?"
             args = (days_arg, symbol)
         else:
-            where = "WHERE created_at >= datetime('now', ?)"
             args = (days_arg,)
 
         with self._conn() as conn:
-            meta_sql = """
+            # Count + avg confidence
+            meta = conn.execute(
+                f"""
                 SELECT
                     COUNT(*)                          AS total,
                     AVG(final_confidence)              AS avg_conf,
                     MIN(final_confidence)              AS min_conf,
                     MAX(final_confidence)              AS max_conf
-                FROM sessions
-            """ + where
-            meta = conn.execute(meta_sql, args).fetchone()  # nosec B608
+                FROM sessions {where}
+            """,
+                args,
+            ).fetchone()
 
-            dist_sql = (
-                """
+            # Signal distribution
+            dist_rows = conn.execute(
+                f"""
                 SELECT final_signal, COUNT(*) AS cnt
-                FROM sessions
-            """
-                + where
-                + """
+                FROM sessions {where}
                 GROUP BY final_signal
                 ORDER BY cnt DESC
-            """
-            )
-            dist_rows = conn.execute(dist_sql, args).fetchall()  # nosec B608
-
-            daily_sql = (
-                """
-                SELECT
-                    DATE(created_at)                    AS day,
-                    COUNT(*)                            AS sessions,
-                    AVG(final_confidence)               AS avg_conf
-                FROM sessions
-            """
-                + where
-                + """
-                GROUP BY DATE(created_at)
-                ORDER BY day ASC
-            """
-            )
-            conn.execute(daily_sql, args).fetchall()  # nosec B608
+            """,
+                args,
+            ).fetchall()
 
             # Recent trend: LONG vs SHORT ratio per day (last 7 days)
             trend_sql = """
@@ -253,20 +231,14 @@ class HistoryDB:
                 trend_sql += " AND symbol = ?"
                 trend_args = (symbol,)
 
-            trend_rows = conn.execute(
-                trend_sql + " GROUP BY DATE(created_at) ORDER BY day DESC", trend_args
-            ).fetchall()
+            trend_rows = conn.execute(trend_sql + " GROUP BY DATE(created_at) ORDER BY day DESC", trend_args).fetchall()
 
         dist = {r["final_signal"]: r["cnt"] for r in dist_rows}
         total = meta["total"] or 0
 
         long_cnt = dist.get("LONG", 0)
         short_cnt = dist.get("SHORT", 0)
-        win_rate = (
-            round(long_cnt / (long_cnt + short_cnt), 4)
-            if (long_cnt + short_cnt) > 0
-            else None
-        )
+        win_rate = round(long_cnt / (long_cnt + short_cnt), 4) if (long_cnt + short_cnt) > 0 else None
 
         return {
             "total_sessions": total,

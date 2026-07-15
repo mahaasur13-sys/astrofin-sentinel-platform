@@ -49,29 +49,74 @@ metric per agent regardless of which pattern the author picked.
 
 from __future__ import annotations
 
-import functools
-import re
-from collections.abc import Callable
-from typing import ParamSpec, TypeVar
+import os
 
-from prometheus_client import Counter, Histogram
+# ----------------------------------------------------------------------------
+# Global kill-switch
+# ----------------------------------------------------------------------------
+# When set to a falsy value ("0", "false", "no", "off", or empty), the
+# prometheus_client Counter/Histogram factories are replaced with thin
+# no-op shims. This avoids the "Duplicated timeseries in CollectorRegistry"
+# / "Incorrect label names" errors that arise when test suites instantiate
+# the same agent in multiple collection cycles (each cycle re-imports
+# the module and tries to re-register the same metric name with the
+# default global REGISTRY).
+#
+# Production keeps metrics on (default). Test runners should set
+# ``SENTINEL_METRICS_ENABLED=0`` — see ``pyproject.toml`` [tool.pytest.ini_options].
+SENTINEL_METRICS_ENABLED = os.getenv("SENTINEL_METRICS_ENABLED", "1").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+
+
+class _NoOpMetric:
+    """Stand-in for prometheus_client.Counter / Histogram.
+
+    Exposes the same ``.labels(...)`` API surface used by
+    ``track_agent_metrics`` and Pattern A/B call sites, so disabling
+    metrics requires zero changes at the call site.
+    """
+
+    def labels(self, **_: str) -> _NoOpMetric:
+        return self
+
+    def inc(self, *_args: Any, **_kwargs: Any) -> None:
+        return None
+
+    def time(self) -> "_NoOpTimer":
+        return _NoOpTimer()
+
+
+class _NoOpTimer:
+    def __enter__(self) -> _NoOpTimer:
+        return self
+
+    def __exit__(self, *_exc: Any) -> bool:
+        return False
+
+    def __call__(self, *_a: Any, **_k: Any) -> _NoOpTimer:
+        return self
+
+
+if SENTINEL_METRICS_ENABLED:
+    from prometheus_client import Counter, Histogram  # noqa: E402
+else:
+    Counter = Histogram = _NoOpMetric  # type: ignore[assignment,misc]  # noqa: E402
+
+import functools  # noqa: E402
+import re  # noqa: E402
+from collections.abc import Callable  # noqa: E402
+from typing import Any, ParamSpec, TypeVar  # noqa: E402
 
 P = ParamSpec("P")
 R = TypeVar("R")
 
 # Standard latency buckets — 1ms to 5s. The 5ms bucket matches the P99
 # budget called out in ``_template_agent.py``.
-_DEFAULT_BUCKETS: tuple[float, ...] = (
-    0.001,
-    0.005,
-    0.01,
-    0.025,
-    0.05,
-    0.1,
-    0.5,
-    1.0,
-    5.0,
-)
+_DEFAULT_BUCKETS: tuple[float, ...] = (0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.5, 1.0, 5.0)
 
 # Cache so a second call to ``agent_counter("macro_agent")`` returns the
 # same object — prometheus_client raises on duplicate metric registration.
@@ -98,6 +143,8 @@ def agent_counter(agent_name: str) -> Counter:
     The Counter is labelled by ``agent`` and ``signal``. Calling this
     multiple times with the same ``agent_name`` returns the same object.
     """
+    if not SENTINEL_METRICS_ENABLED:
+        return _NoOpMetric()
     snake = _snake(agent_name)
     if snake in _COUNTER_CACHE:
         return _COUNTER_CACHE[snake]
@@ -116,6 +163,8 @@ def agent_latency(agent_name: str) -> Histogram:
 
     Labelled by ``agent``. Standard buckets cover 1ms–5s.
     """
+    if not SENTINEL_METRICS_ENABLED:
+        return _NoOpMetric()
     snake = _snake(agent_name)
     if snake in _HISTOGRAM_CACHE:
         return _HISTOGRAM_CACHE[snake]
@@ -143,9 +192,22 @@ def track_agent_metrics(func: Callable[P, R]) -> Callable[P, R]:
     The decorator discovers the agent's display name from ``self.name`` —
     so the metric suffix stays consistent with the registry.
     """
+    if not SENTINEL_METRICS_ENABLED:
+
+        @functools.wraps(func)
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            return await func(*args, **kwargs)
+
+        return wrapper
 
     @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        # Fast path: metrics are disabled — no instrumentation, no registry
+        # mutation, no label resolution. Keeps tests fast and avoids the
+        # duplicate-registration ValueError across test collection cycles.
+        if not SENTINEL_METRICS_ENABLED:
+            return await func(*args, **kwargs)
+
         # Resolve the agent name lazily (we need a live instance to read it).
         self_obj = args[0] if args else None
         agent_label = getattr(self_obj, "name", None) or func.__qualname__
@@ -158,9 +220,7 @@ def track_agent_metrics(func: Callable[P, R]) -> Callable[P, R]:
         # Best-effort signal labelling — agents that return AgentResponse
         # are labelled by signal; everything else is labelled "unknown".
         signal = getattr(result, "signal", None)
-        signal_label = (
-            signal.value if hasattr(signal, "value") else (signal or "unknown")
-        )
+        signal_label = signal.value if hasattr(signal, "value") else (signal or "unknown")
         try:
             counter.labels(agent=agent_label, signal=str(signal_label)).inc()
         except Exception:  # noqa: BLE001 — never let metrics crash the agent
@@ -174,4 +234,5 @@ __all__ = [
     "agent_counter",
     "agent_latency",
     "track_agent_metrics",
-]
+    "SENTINEL_METRICS_ENABLED",
+]  # fmt: skip
