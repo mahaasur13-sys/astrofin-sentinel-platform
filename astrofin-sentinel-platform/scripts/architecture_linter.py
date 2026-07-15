@@ -6,23 +6,24 @@ BlackRock-inspired architecture linter for AstroFin Sentinel V5.
 
 Hard rules (fail the build if violated):
     R1.  Every agent class in agents/_impl/ must inherit from BaseAgent[AgentResponse].
-    R2.  Every agent that touches the ephemeris must use @require_ephemeris.
-    R3.  No `import requests` outside data_room/.
-    R4.  Any HTTP route handler under web/ must use @require_auth (or be
-         explicitly marked public-by-design).
-    R5.  Every agent module under agents/_impl/ must be registered in
-         AGENT_AGENTS in agents/gitagent_registry.py.
-    R6.  No top-level `print(...)` in production code (use logger).
-    R7.  No f-string SQL; queries must be parameterized.
-    R8.  No hard-coded API keys, tokens, or secrets (regex check).
-    R9.  Every agent module must export a `run_<agent>(state) -> AgentResponse`
-         convenience function (or be exempt via # noqa: AGENT_RUNNER).
+    R2.  Every agent method that uses ephemeris must have @require_ephemeris.
+    R3.  Only data room modules may use requests/httpx directly.
+    R3.5 Only data_room modules may import BLOCK_LEAVES or blocking I/O.
+    R4.  Every web/ route handler must have @require_auth (or @require_api_key).
+    R5.  Every .py file under agents/_impl/ must be importable from aggregator.
+    R6.  No top-level print() calls in production code.
+    R7.  No f-string SQL queries (use parameterised queries instead).
+    R8.  No hardcoded secrets (API keys, tokens, passwords).
+    R9.  No imports from deprecated modules (agents/_archived/, core.legacy).
+    R10. Functions using async I/O libraries should be async def.
+    R11. Public exports should be listed in __all__ (except __init__.py).
+    R12. Core modules must not form circular import chains.
 
-Soft rules (warn, do not fail):
-    S1.  Public functions should have a docstring.
-    S2.  Tests should not import agents from agents/_archived/.
+Soft rules (warn only):
+    S1.  Public functions/classes must have docstrings.
+    S2.  CI workflows must include lint + test steps.
     S3.  If a file under agents/_impl/ is changed, docs/ must also be changed
-         (this is also enforced by the pre-commit `validate-registry-coverage`).
+         (this is also enforced via CodeRabbit PR review).
 
 Output:
     Color-coded, single-page report. Exit code:
@@ -388,6 +389,115 @@ def check_docstrings(tree: ast.AST, src: Path, report: Report) -> None:
                 )
 
 
+# ─── R9: no import from deprecated modules ──────────────────────────────────
+
+
+def check_no_deprecated_imports(src: Path, source_text: str, report: Report) -> None:
+    """FAIL if any file imports from agents/_archived/ or legacy paths."""
+    deprecated_patterns = [
+        r"from\s+agents\._archived",
+        r"import\s+agents\._archived",
+        r"from\s+core\.legacy",
+        r"from\s+\._legacy",
+    ]
+    for pattern in deprecated_patterns:
+        if re.search(pattern, source_text, re.MULTILINE):
+            line = _first_match_line(source_text, pattern)
+            report.fail(
+                _rel(src),
+                line,
+                "R9",
+                f"Import from deprecated module detected: {pattern}",
+            )
+            return
+
+
+# ─── R10: async handlers for I/O-bound operations ────────────────────────────
+
+
+IO_MODULES = {"aiohttp", "httpx", "asyncpg", "aioredis", "aiosqlite", "aiofiles"}
+
+
+def check_async_handlers(tree: ast.AST, src: Path, report: Report) -> None:
+    """WARN if a function uses I/O modules but is not async def."""
+    uses_io = False
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                if alias.name.split(".")[0] in IO_MODULES:
+                    uses_io = True
+                    break
+    if not uses_io:
+        return
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and not isinstance(node, ast.AsyncFunctionDef):
+            if node.name.startswith("_"):
+                continue
+            report.warn(
+                _rel(src),
+                node.lineno,
+                "R10",
+                f"Handler '{node.name}' uses I/O modules but is not async def",
+            )
+
+
+# ─── R11: __all__ completeness check ─────────────────────────────────────────
+
+
+def check_all_completeness(tree: ast.AST, src: Path, source_text: str, report: Report) -> None:
+    """WARN if a module has public exports not listed in __all__."""
+    if str(src).endswith("__init__.py"):
+        return  # __init__.py exports are handled differently
+    all_names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target = node.targets[0]
+            if isinstance(target, ast.Name) and target.id == "__all__":
+                if isinstance(node.value, (ast.List, ast.Tuple)):
+                    all_names = {elt.value for elt in node.value.elts if isinstance(elt, ast.Constant)}
+    public_names: set[str] = set()
+    for node in ast.iter_child_nodes(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            if not node.name.startswith("_"):
+                public_names.add(node.name)
+        elif isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and not target.id.startswith("_"):
+                    public_names.add(target.id)
+    missing = public_names - all_names
+    if missing and all_names:
+        report.warn(
+            _rel(src),
+            1,
+            "R11",
+            f"Public names missing from __all__: {', '.join(sorted(missing)[:5])}",
+        )
+
+
+# ─── R12: circular import detection between core/ modules ────────────────────
+
+
+CORE_MODULES = {"core/history_db.py", "core/settings.py", "core/auth.py",
+                "core/tracing.py", "core/cache.py", "core/error_schema.py",
+                "core/ephemeris.py", "core/volatility.py", "core/safe_json.py",
+                "core/reward_engine.py", "core/thompson.py"}
+
+
+def check_circular_core_imports(src: Path, source_text: str, report: Report,
+                                core_import_graph: dict[str, set[str]] | None = None) -> None:
+    """FAIL if two core/ modules import each other (simple cycle detection)."""
+    rel = str(_rel(src))
+    if rel not in CORE_MODULES:
+        return
+    imports_from_core: set[str] = set()
+    for m in re.finditer(r"from\s+core\.(\w+)", source_text):
+        imported_module = f"core/{m.group(1)}.py"
+        if imported_module in CORE_MODULES and imported_module != rel:
+            imports_from_core.add(imported_module)
+    if core_import_graph is not None:
+        core_import_graph[rel] = imports_from_core
+
+
 # ─── Library API (used by tests and embedding) ────────────────
 
 # ─── Driver ─────────────────────────────────────────────────────────────────
@@ -471,6 +581,10 @@ def lint_file(src: Path, report: Report) -> None:
     check_no_fstring_sql(src, source_text, report)
     check_secrets(src, source_text, report)
     check_docstrings(tree, src, report)
+    check_no_deprecated_imports(src, source_text, report)
+    check_async_handlers(tree, src, report)
+    check_all_completeness(tree, src, source_text, report)
+    check_circular_core_imports(src, source_text, report)
 
 
 def render_report(report: Report) -> None:
@@ -574,10 +688,15 @@ class ArchitectureLinter:
         check_require_ephemeris(self.tree, self.path, self.src_text, report)
         check_data_room_compliance(self.path, self.src_text, report)
         check_web_auth_decorators(self.path, self.src_text, report)
+        check_registry_coverage(report)
         check_no_top_level_print(self.path, self.src_text, report)
         check_no_fstring_sql(self.path, self.src_text, report)
         check_secrets(self.path, self.src_text, report)
         check_docstrings(self.tree, self.path, report)
+        check_no_deprecated_imports(self.path, self.src_text, report)
+        check_async_handlers(self.tree, self.path, report)
+        check_all_completeness(self.tree, self.path, self.src_text, report)
+        check_circular_core_imports(self.path, self.src_text, report)
         for f in report.findings:
             if f.severity == "FAIL":
                 self.failures.append(f)
