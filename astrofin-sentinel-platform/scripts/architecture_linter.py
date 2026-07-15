@@ -188,12 +188,8 @@ def check_require_ephemeris(
 
 
 def check_data_room_compliance(src: Path, source_text: str, report: Report) -> None:
-    """No `import requests` (or `from requests import ...`) outside data_room/."""
-    try:
-        src_rel = _rel(src)
-    except ValueError:
-        return
-    # NOTE: R3 temporarily disabled; data_room/ is the only allowed caller.
+    """R3: Disabled — data_room migration in progress (Sprint 3).
+    Re-enable after all agents use data_room/resolvers/ exclusively."""
     return
     if DATA_ROOM_DIR in src.parents or src.parent == DATA_ROOM_DIR:
         return  # the data room itself is the only allowed caller
