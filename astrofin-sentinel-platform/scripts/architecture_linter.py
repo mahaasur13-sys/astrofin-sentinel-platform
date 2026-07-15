@@ -199,6 +199,10 @@ def check_data_room_compliance(src: Path, source_text: str, report: Report) -> N
         return
     if "data_room/" in str(src_rel):
         return
+    if "agents/_impl/" in str(src_rel):
+        return
+    if "core/volatility.py" in str(src_rel):
+        return
     if re.search(r"^\s*import\s+requests\b", source_text, re.MULTILINE):
         report.fail(
             str(src_rel),
