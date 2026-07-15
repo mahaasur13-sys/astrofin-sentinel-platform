@@ -7,6 +7,8 @@ from typing import Any
 
 def payload_to_dict(p: Any) -> dict:
     """Convert Event.payload to dict. Handles tuple (frozen dataclass) and dict."""
-    if isinstance(p, dict): return p
-    if isinstance(p, tuple): return dict(p)
+    if isinstance(p, dict):
+        return p
+    if isinstance(p, tuple):
+        return dict(p)
     return {}

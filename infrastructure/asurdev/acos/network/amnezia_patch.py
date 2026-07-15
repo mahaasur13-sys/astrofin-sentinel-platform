@@ -36,7 +36,9 @@ def validate_network_requirements(dag: dict, tunnel_manager: AmneziaWGManager) -
         from dataclasses import dataclass
         @dataclass
         class ContractViolation:
-            message: str; path: str; severity: str
+            message: str
+            path: str
+            severity: str
         def DAGValidator(): pass
 
     violations = []

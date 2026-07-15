@@ -228,7 +228,8 @@ PLUGIN_REGISTRY = {
 
 def get_plugin(name: str) -> IPlugin:
     cls = PLUGIN_REGISTRY.get(name)
-    if not cls: raise ValueError(f"Plugin '{name}' not registered")
+    if not cls:
+        raise ValueError(f"Plugin '{name}' not registered")
     return cls()
 
 # Type checking imports

@@ -330,7 +330,8 @@ def _run_tests():
     adlr_stage="STABLE", bcsl_veto_count=0,
     gcpl_C=0.5, branch_count=15, gcpl_max_branches=3,
     adlr_total=5, oscillation_free=True))
-    if ok: print("  ✅ COROLLARY branch_count at theoretical bound")
+    if ok:
+        print("  ✅ COROLLARY branch_count at theoretical bound")
     else: print("  ❌ COROLLARY branch_count at theoretical bound")
     all_ok &= ok
 

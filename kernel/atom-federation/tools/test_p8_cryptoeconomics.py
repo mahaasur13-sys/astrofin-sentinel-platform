@@ -144,7 +144,8 @@ if __name__ == "__main__":
     passed = 0
     for t in tests:
         try:
-            t(); passed += 1
+            t()
+            passed += 1
         except Exception as e:
             print(f"  EXCEPTION: {e}")
     print(f"\n{'='*60}\n{passed}/{len(tests)} P8 TESTS PASSED\n{'='*60}")

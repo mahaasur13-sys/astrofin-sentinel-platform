@@ -144,7 +144,8 @@ if __name__ == "__main__":
     p = f = 0
     for t in tests:
         try:
-            if t(): p += 1
+            if t():
+                p += 1
             else: f += 1
         except Exception as e:
             print(f"  EXCEPTION: {type(e).__name__}: {e}")

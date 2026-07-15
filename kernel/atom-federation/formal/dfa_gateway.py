@@ -17,9 +17,17 @@ from enum import Enum, auto
 
 
 class GatewayState(Enum):
-    S0  = auto(); S1  = auto(); S2  = auto(); S3  = auto()
-    S4  = auto(); S5  = auto(); S6  = auto(); S7  = auto()
-    S8  = auto(); S9  = auto(); S10 = auto()
+    S0  = auto()
+    S1  = auto()
+    S2  = auto()
+    S3  = auto()
+    S4  = auto()
+    S5  = auto()
+    S6  = auto()
+    S7  = auto()
+    S8  = auto()
+    S9  = auto()
+    S10 = auto()
     S11 = auto()  # ACCEPTING
     SR  = auto()  # REJECTING
 

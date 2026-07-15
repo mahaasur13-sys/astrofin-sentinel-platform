@@ -41,10 +41,14 @@ class MeteringEngine:
                         value=val, job_id=job_id)
         self.events.append(ev)
         t = self.tenant_totals.setdefault(tenant, {"gpu_s": 0, "cpu_s": 0, "gb_s": 0, "cost": 0.0, "jobs": 0})
-        if event_type == "gpu_usage":   t["gpu_s"] += gpu_seconds
-        if event_type == "cpu_usage":   t["cpu_s"] += cpu_seconds
-        if event_type == "storage_usage": t["gb_s"] += gb_seconds
-        if event_type == "job_completed": t["jobs"] += 1
+        if event_type == "gpu_usage":
+            t["gpu_s"] += gpu_seconds
+        if event_type == "cpu_usage":
+            t["cpu_s"] += cpu_seconds
+        if event_type == "storage_usage":
+            t["gb_s"] += gb_seconds
+        if event_type == "job_completed":
+            t["jobs"] += 1
         t["cost"] += ev.cost_usd
         return ev
 

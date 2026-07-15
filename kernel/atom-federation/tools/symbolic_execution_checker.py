@@ -29,8 +29,13 @@ class ProofTrace:
 
 @dataclass
 class ViolationRecord:
-    severity: str; file: str; line: int; name: str
-    description: str; path: list; fix: str
+    severity: str
+    file: str
+    line: int
+    name: str
+    description: str
+    path: list
+    fix: str
 
 KNOWN_NODES = ["S0","G1","G2","G3","G4","G5","G6","G7","G8","G9","G10","ACT","SHALT_B","SHALT_E"]
 KNOWN_EDGES = [("S0","G1"),("G1","G2"),("G2","G3"),("G3","G4"),("G4","G5"),("G5","G6"),("G6","G7"),("G7","G8"),("G8","G9"),("G9","G10"),("G10","ACT"),("ACT","SHALT_B"),("ACT","SHALT_E")]

@@ -25,7 +25,11 @@ class ExecutionBackend(Enum):
     EDGE = "edge"
 
 class Layer(Enum):
-    L4 = "L4"; L5 = "L5"; L6 = "L6"; L8 = "L8"; L9 = "L9"
+    L4 = "L4"
+    L5 = "L5"
+    L6 = "L6"
+    L8 = "L8"
+    L9 = "L9"
 
 @dataclass
 class DAGNode:

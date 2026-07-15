@@ -23,7 +23,8 @@ SUPPORTED_OIDC_PROVIDERS = [
 ]
 
 def h(data):
-    if isinstance(data, str): data = data.encode()
+    if isinstance(data, str):
+        data = data.encode()
     return hashlib.sha256(data).hexdigest()
 
 def check_cosign():

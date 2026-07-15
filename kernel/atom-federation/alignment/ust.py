@@ -48,9 +48,12 @@ class UST:
     @property
     def liveness(self) -> tuple[bool, str]:
         s = self.state
-        if s.adlr_L >= 10: return False, "L=" + str(s.adlr_L) + ">=10"
-        if s.gcpl_S < 0.70: return False, "S=" + str(round(s.gcpl_S,3)) + "<0.70"
-        if s.bcil_C >= 0.20: return False, "C=" + str(round(s.bcil_C,3)) + ">=0.20"
+        if s.adlr_L >= 10:
+            return False, "L=" + str(s.adlr_L) + ">=10"
+        if s.gcpl_S < 0.70:
+            return False, "S=" + str(round(s.gcpl_S,3)) + "<0.70"
+        if s.bcil_C >= 0.20:
+            return False, "C=" + str(round(s.bcil_C,3)) + ">=0.20"
         return True, "bounded by n*T_max=" + str(s.n*6)
 
     @property
@@ -70,7 +73,8 @@ class UST:
         ok = True
         parts = []
         for name, v in checks:
-            if not v: ok = False
+            if not v:
+                ok = False
             parts.append("  " + ("OK" if v else "FAIL") + " " + name)
         parts.append("  Liveness: " + self.liveness[1])
         parts.append("  Theorem: UST = GCPL & BCIL & ADLR -> Safe & Live")

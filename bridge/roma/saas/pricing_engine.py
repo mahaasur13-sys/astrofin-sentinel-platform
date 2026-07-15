@@ -4,7 +4,9 @@ from typing import Dict, Any
 from enum import Enum
 
 class PricingTier(str, Enum):
-    FREE = "free"; PRO = "pro"; ENTERPRISE = "enterprise"
+    FREE = "free"
+    PRO = "pro"
+    ENTERPRISE = "enterprise"
 
 # GPU_RATE: sell price per GPU-second (at base tier)
 GPU_RATES = {
@@ -37,9 +39,12 @@ TIER_QUOTA = {PricingTier.FREE: 3600, PricingTier.PRO: 180000, PricingTier.ENTER
 
 # Load-based pricing multipliers
 def load_mult(cluster_load: float) -> float:
-    if cluster_load < 0.3:   return 0.8    # idle: 20% off
-    if cluster_load < 0.7:   return 1.0    # normal
-    if cluster_load < 0.9:   return 1.5    # peak: 50% premium
+    if cluster_load < 0.3:
+        return 0.8    # idle: 20% off
+    if cluster_load < 0.7:
+        return 1.0    # normal
+    if cluster_load < 0.9:
+        return 1.5    # peak: 50% premium
     return 2.0                         # saturated: 2×
 
 # Region multipliers
@@ -47,10 +52,16 @@ REGION_MULT = {"us-east": 1.0, "eu-west": 1.2, "apac": 1.4}
 
 @dataclass
 class PriceQuote:
-    gpu_seconds: float; gpu_model: str; tier: str
-    base_cost: float; load_mult: float; region_mult: float
-    total_cost: float; currency: str = "USD"
-    breakdown: Dict = None; estimated_hours: float = 0.0
+    gpu_seconds: float
+    gpu_model: str
+    tier: str
+    base_cost: float
+    load_mult: float
+    region_mult: float
+    total_cost: float
+    currency: str = "USD"
+    breakdown: Dict = None
+    estimated_hours: float = 0.0
 
 class PricingEngine:
     def quote(self, gpu_seconds, gpu_model="RTX4090", tier="pro",

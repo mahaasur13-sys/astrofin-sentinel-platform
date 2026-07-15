@@ -96,8 +96,12 @@ def adversarial_analysis(violations, reachability, layer_edges, dynamic_findings
     critical = sum(1 for v in violations if v["severity"]=="critical")
     high = sum(1 for v in violations if v["severity"]=="high")
     medium = sum(1 for v in violations if v["severity"]=="medium")
-    if critical: score -= 0.5; findings.append(f"{critical} CRITICAL")
-    elif high: score -= 0.25; findings.append(f"{high} HIGH")
+    if critical:
+        score -= 0.5
+        findings.append(f"{critical} CRITICAL")
+    elif high:
+        score -= 0.25
+        findings.append(f"{high} HIGH")
     if medium: score -= medium * 0.05
     if len(dynamic_findings) >= 5:
         score -= min(0.15, (len(dynamic_findings)-4)*0.03)

@@ -65,7 +65,8 @@ class PluginRuntime:
         instance_obj = plugin_class()
         plugin_inst = PluginInstance(spec=spec, plugin_class=plugin_class, instance=instance_obj)
         self._loaded[plugin_name] = plugin_inst
-        for cb in self._hooks["on_load"]: cb(plugin_inst)
+        for cb in self._hooks["on_load"]:
+            cb(plugin_inst)
         print(f"  Loaded plugin: {plugin_name} v{version}")
         return plugin_inst
 
@@ -74,7 +75,8 @@ class PluginRuntime:
         if plugin_name not in self._loaded:
             raise ValueError(f"Plugin not loaded: {plugin_name}")
         inst = self._loaded[plugin_name]
-        for cb in self._hooks["on_execute_before"]: cb(inst, task)
+        for cb in self._hooks["on_execute_before"]:
+            cb(inst, task)
         inst.instance.phase = "running"
 
         import asyncio
@@ -83,7 +85,8 @@ class PluginRuntime:
         loop.close()
 
         inst.execution_count += 1
-        for cb in self._hooks["on_execute_after"]: cb(inst, task, result)
+        for cb in self._hooks["on_execute_after"]:
+            cb(inst, task, result)
         return result.to_dict()
 
     def list_loaded(self) -> List[Dict]:
@@ -103,12 +106,19 @@ def main():
         print(f"  {p['name']} v{p['version']} | phase={p['phase']} | executions={p['executions']}")
 
     class DemoTask:
-        task_id = "task-001"; plugin_name = "ml_training"
-        payload = {"batch_size": 8, "epochs": 10}; metadata = {}; fingerprint = "abc123"
+        task_id = "task-001"
+        plugin_name = "ml_training"
+        payload = {"batch_size": 8, "epochs": 10}
+        metadata = {}
+        fingerprint = "abc123"
 
     class DemoContext:
-        gpu_available = True; vram_gb = 10.5; cpu_cores = 8; ram_gb = 32
-        node_name = "gpu-node-1"; tick = 1
+        gpu_available = True
+        vram_gb = 10.5
+        cpu_cores = 8
+        ram_gb = 32
+        node_name = "gpu-node-1"
+        tick = 1
 
     print("\nExecuting ml_training plugin:")
     result = runtime.execute_plugin_sync("ml_training", DemoTask(), DemoContext())
@@ -122,4 +132,5 @@ def main():
 
     print("\nPlugin execution complete.")
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    main()

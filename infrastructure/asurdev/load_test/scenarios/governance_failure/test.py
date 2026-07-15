@@ -12,7 +12,11 @@ from dataclasses import dataclass
 
 @dataclass
 class Decision:
-    action: str; severity: float; safety_score: float; rejected: bool; reason: str
+    action: str
+    severity: float
+    safety_score: float
+    rejected: bool
+    reason: str
 
 class GovernanceFailureScenario:
     def __init__(self, n_decisions=200):
@@ -50,4 +54,5 @@ def run():
     print(f"Failure detected: {r['failure_detected']}")
     print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
-if __name__ == "__main__": run()
+if __name__ == "__main__":
+    run()

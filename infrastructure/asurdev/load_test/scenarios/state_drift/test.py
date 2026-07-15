@@ -14,7 +14,10 @@ from dataclasses import dataclass
 
 @dataclass
 class DriftSample:
-    ts: float; feature_value: float; model_output: float; system_metric: float
+    ts: float
+    feature_value: float
+    model_output: float
+    system_metric: float
 
 class StateDriftScenario:
     def __init__(self, duration_sec=120):
@@ -87,4 +90,5 @@ def run():
     print(f"Failure detected: {r['failure_detected']}")
     print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
-if __name__ == "__main__": run()
+if __name__ == "__main__":
+    run()

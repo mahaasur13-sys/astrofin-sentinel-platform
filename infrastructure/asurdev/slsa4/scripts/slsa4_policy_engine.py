@@ -100,7 +100,8 @@ NATIVE_POLICY = {
 }
 
 def h(data):
-    if isinstance(data, str): data = data.encode()
+    if isinstance(data, str):
+        data = data.encode()
     return hashlib.sha256(data).hexdigest()
 
 class SLSA4PolicyEngine:

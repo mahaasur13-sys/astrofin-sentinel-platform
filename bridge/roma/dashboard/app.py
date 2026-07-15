@@ -8,7 +8,8 @@ from datetime import datetime
 import time
 
 # ── Projection Engine import ──────────────────────────────────────
-import sys; sys.path.insert(0, '/home/workspace/roma-execution-bridge')
+import sys
+sys.path.insert(0, '/home/workspace/roma-execution-bridge')
 from dashboard.projection_engine import ProjectionEngine
 
 # ── Init ──────────────────────────────────────────────────────────
@@ -238,10 +239,12 @@ def refresh(n):
     Input("sim-tier", "value"),
 )
 def simulate(task, gpu_sec, batch, tier):
-    if not gpu_sec: raise PreventUpdate
+    if not gpu_sec:
+        raise PreventUpdate
     rate = {"FREE": 0.0001, "PRO": 0.0002, "ENTERPRISE": 0.0001}.get(tier, 0.0002)
     base_cost = gpu_sec * rate
-    if batch and batch > 64: base_cost *= 1.5
+    if batch and batch > 64:
+        base_cost *= 1.5
     return dbc.Alert([
         html.Strong(f"Estimated: ${base_cost:.4f}"),
         html.Br(),

@@ -7,8 +7,12 @@ from enum import Enum
 
 
 class ExecutionState(Enum):
-    PENDING = "PENDING"; RUNNING = "RUNNING"; SUCCESS = "SUCCESS"
-    FAILED = "FAILED"; KILLED = "KILLED"; ROLLED_BACK = "ROLLED_BACK"
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+    KILLED = "KILLED"
+    ROLLED_BACK = "ROLLED_BACK"
 
 class ExecutionEngine:
     """

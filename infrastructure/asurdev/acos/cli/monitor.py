@@ -119,11 +119,14 @@ Examples:
 
 def main() -> int:
     if len(sys.argv) < 2 or sys.argv[1] in ("help", "--help"):
-        print(HELP); return 0
+        print(HELP)
+        return 0
     cmd = sys.argv[1]
-    if cmd == "status": return cmd_status()
+    if cmd == "status":
+        return cmd_status()
     elif cmd == "switch":
-        if len(sys.argv) < 3: print("Usage: acos monitor switch <backend>"); return 1
+        if len(sys.argv) < 3: print("Usage: acos monitor switch <backend>")
+        return 1
         return cmd_switch(sys.argv[2])
     elif cmd == "list":
         cfg = load_config()
@@ -132,7 +135,9 @@ def main() -> int:
             print(f"  {'◀ ' if name == active else '  '}{name:12} {info['label']}")
         return 0
     else:
-        print(f"Unknown: {cmd}"); print(HELP); return 1
+        print(f"Unknown: {cmd}")
+        print(HELP)
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())

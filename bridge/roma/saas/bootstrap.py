@@ -1,5 +1,6 @@
 """ROMA SaaS Bootstrap — Self-service onboarding."""
-import sys; sys.path.insert(0, '/home/workspace/roma-execution-bridge')
+import sys
+sys.path.insert(0, '/home/workspace/roma-execution-bridge')
 
 from org.organization import Organization
 from auth.api_keys import APIKeyManager

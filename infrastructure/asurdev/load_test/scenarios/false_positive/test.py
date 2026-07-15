@@ -12,7 +12,10 @@ from dataclasses import dataclass
 
 @dataclass
 class OSDState:
-    osd_id: str; is_down: bool; restart_count: int; last_recovery_action: float
+    osd_id: str
+    is_down: bool
+    restart_count: int
+    last_recovery_action: float
 
 class FalsePositiveScenario:
     def __init__(self, cooldown_sec=30, debounce_sec=5, duration_sec=120):
@@ -66,4 +69,5 @@ def run():
     print(f"Failure detected: {r['failure_detected']}")
     print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
-if __name__ == "__main__": run()
+if __name__ == "__main__":
+    run()

@@ -26,8 +26,10 @@ class EventStore:
     def all(self): return tuple(self._events)
     def query(self, nid=None, et=None):
         r = self._events
-        if nid: r = [x for x in r if x.node_id == nid]
-        if et: r = [x for x in r if x.event_type == et]
+        if nid:
+            r = [x for x in r if x.node_id == nid]
+        if et:
+            r = [x for x in r if x.event_type == et]
         return tuple(r)
 
 class StateRebuilder:
@@ -56,7 +58,8 @@ class StateRebuilder:
             return {k: tuple(v) if isinstance(v,list) else
                     {kk: tuple(vv) for kk,vv in v.items()} if isinstance(v,dict) else v
                     for k,v in s.items()}
-        if h(s1) != h(s2): raise AssertionError('REPLAY INCONSISTENCY')
+        if h(s1) != h(s2):
+            raise AssertionError('REPLAY INCONSISTENCY')
         return "REPLAY CONSISTENT"
 
 @dataclass
@@ -71,11 +74,16 @@ class Node:
     def within(self): return self.local_only
 
 def health(n):
-    if not n.within(): return 'OUT_OF_SCOPE'
-    if n.status == 'FAILED': return 'NODE_FAILED'
-    if n.cpu > 0.90: return 'DEGRADED_CPU'
-    if n.mem > 0.90: return 'DEGRADED_MEMORY'
-    if n.disk > 0.90: return 'DEGRADED_STORAGE'
+    if not n.within():
+        return 'OUT_OF_SCOPE'
+    if n.status == 'FAILED':
+        return 'NODE_FAILED'
+    if n.cpu > 0.90:
+        return 'DEGRADED_CPU'
+    if n.mem > 0.90:
+        return 'DEGRADED_MEMORY'
+    if n.disk > 0.90:
+        return 'DEGRADED_STORAGE'
     return 'HEALTHY'
 
 def ctrl(issue):

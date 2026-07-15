@@ -190,7 +190,8 @@ def main():
     args = parser.parse_args()
 
     if not args.cmd:
-        parser.print_help(); return
+        parser.print_help()
+        return
 
     validate_all_contracts()
     cli = ACOSCLI()

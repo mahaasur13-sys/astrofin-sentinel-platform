@@ -15,7 +15,8 @@ import sys
 HOME = os.environ.get('HOME', '/root')
 
 def h(data):
-    if isinstance(data, str): data = data.encode()
+    if isinstance(data, str):
+        data = data.encode()
     return hashlib.sha256(data).hexdigest()
 
 def generate_in_toto_link(name: str, materials: dict, products: dict, command: list, env: dict, return_value: int = 0) -> dict:
