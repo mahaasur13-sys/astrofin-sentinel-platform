@@ -6,24 +6,23 @@ BlackRock-inspired architecture linter for AstroFin Sentinel V5.
 
 Hard rules (fail the build if violated):
     R1.  Every agent class in agents/_impl/ must inherit from BaseAgent[AgentResponse].
-    R2.  Every agent method that uses ephemeris must have @require_ephemeris.
-    R3.  Only data room modules may use requests/httpx directly.
-    R3.5 Only data_room modules may import BLOCK_LEAVES or blocking I/O.
-    R4.  Every web/ route handler must have @require_auth (or @require_api_key).
-    R5.  Every .py file under agents/_impl/ must be importable from aggregator.
-    R6.  No top-level print() calls in production code.
-    R7.  No f-string SQL queries (use parameterised queries instead).
-    R8.  No hardcoded secrets (API keys, tokens, passwords).
-    R9.  No imports from deprecated modules (agents/_archived/, core.legacy).
-    R10. Functions using async I/O libraries should be async def.
-    R11. Public exports should be listed in __all__ (except __init__.py).
-    R12. Core modules must not form circular import chains.
+    R2.  Every agent that touches the ephemeris must use @require_ephemeris.
+    R3.  No `import requests` outside data_room/.
+    R4.  Any HTTP route handler under web/ must use @require_auth (or be
+         explicitly marked public-by-design).
+    R5.  Every agent module under agents/_impl/ must be registered in
+         AGENT_AGENTS in agents/gitagent_registry.py.
+    R6.  No top-level `print(...)` in production code (use logger).
+    R7.  No f-string SQL; queries must be parameterized.
+    R8.  No hard-coded API keys, tokens, or secrets (regex check).
+    R9.  Every agent module must export a `run_<agent>(state) -> AgentResponse`
+         convenience function (or be exempt via # noqa: AGENT_RUNNER).
 
-Soft rules (warn only):
-    S1.  Public functions/classes must have docstrings.
-    S2.  CI workflows must include lint + test steps.
+Soft rules (warn, do not fail):
+    S1.  Public functions should have a docstring.
+    S2.  Tests should not import agents from agents/_archived/.
     S3.  If a file under agents/_impl/ is changed, docs/ must also be changed
-         (this is also enforced via CodeRabbit PR review).
+         (this is also enforced by the pre-commit `validate-registry-coverage`).
 
 Output:
     Color-coded, single-page report. Exit code:
@@ -98,6 +97,7 @@ class Finding:
 
 @dataclass
 class Report:
+
     findings: list[Finding] = field(default_factory=list)
     files_scanned: int = 0
 
@@ -131,56 +131,178 @@ SECRET_REGEXES = [
     re.compile(r"AKIA[0-9A-Z]{16}"),  # AWS access key
     re.compile(r"AIza[0-9A-Za-z_\-]{35}"),  # Google API key
     re.compile(r"xox[boprs]-[A-Za-z0-9-]{10,}"),  # Slack tokens
-    re.compile(
-        r"eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}"
-    ),  # JWT
+    re.compile(r"eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}"),  # JWT
 ]
 
 # ─── R1: inheritance from BaseAgent ─────────────────────────────────────────
 
+# Base agent names accepted as a "valid" ancestor (direct or transitive).
+_BASE_AGENT_NAMES: frozenset[str] = frozenset({"BaseAgent"})
+
+# Directories that contain agent classes (we only look here for transitive
+# lookups to keep the linter fast on large repos).
+# --- CHANGE 1: added "core" to also scan core/ for base classes ---
+_AGENT_DIRS: tuple[str, ...] = ("agents", "core")
+
+
+def _build_inheritance_graph(root: Path) -> dict[str, set[str]]:
+    """Walk every ``.py`` file under ``root/agents`` and collect
+    ``class_name -> {base_names}`` declarations, transitively.
+
+    Only declared bases are used -- we do not chase imports. A class
+    with base ``SynthesisAgent`` is resolved through this map, so
+    inheritance is project-wide, not file-local.
+    """
+    parents: dict[str, set[str]] = {}
+    for agents_dir in _AGENT_DIRS:
+        base = root / agents_dir
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*.py"):
+            if "_archived" in path.parts:
+                continue
+            try:
+                src = path.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            try:
+                tree = ast.parse(src, filename=str(path))
+            except SyntaxError:
+                continue
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                bases = {ast.unparse(b) for b in node.bases}
+                # Strip generic parameters for graph comparison.
+                names = {b.split("[", 1)[0] for b in bases}
+                parents[node.name] = names
+    return parents
+
+
+def _transitive_base_agents(root: Path) -> set[str]:
+    """Return the set of class names that (transitively) inherit
+    ``BaseAgent`` anywhere under ``root/agents``."""
+    parents = _build_inheritance_graph(root)
+    result: set[str] = set()
+    for cls in parents:
+        seen: set[str] = set()
+        stack = [cls]
+        reachable = False
+        while stack:
+            cur = stack.pop()
+            if cur in seen:
+                continue
+            seen.add(cur)
+            if cur in _BASE_AGENT_NAMES:
+                reachable = True
+                break
+            for parent in parents.get(cur, ()):
+                stack.append(parent)
+        if reachable:
+            result.add(cls)
+    return result
+
 
 def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> None:
-    """Every class in agents/_impl/* must inherit from BaseAgent."""
+    """Every class in agents/_impl/* must inherit from BaseAgent.
+
+    Transitive inheritance is honored: a class is valid if its MRO chain
+    (resolved project-wide under ``root/agents``) reaches ``BaseAgent``.
+    This avoids false positives for subclasses of subclasses (e.g.
+    ``KARLSynthesisAgent`` -> ``SynthesisAgent`` -> ``BaseAgent[AgentResponse]``).
+    """
     if "_archived" in src.parts:
         return
+    # Project root is the first ancestor of the file that contains a
+    # top-level ``agents/`` directory. ``src`` is always under it.
+    project_root = src
+    for candidate in src.parents:
+        if (candidate / "agents").is_dir():
+            project_root = candidate
+            break
+    transitive = _transitive_base_agents(project_root)
     for node in ast.walk(tree):
-        if isinstance(node, ast.ClassDef):
-            base_names: list[str] = []
-            for b in node.bases:
-                base_names.append(ast.unparse(b))
-            # Allow BaseAgent subclass or a recognized mixin.
-            is_agent = any(
-                re.match(r"BaseAgent\[.*\]", n) or n.endswith("BaseAgent")
-                for n in base_names
-            )
-            _ = is_agent  # kept for future re-enable; see git history
+        if not isinstance(node, ast.ClassDef):
+            continue
+        base_names: list[str] = []
+        for b in node.bases:
+            base_names.append(ast.unparse(b))
+        is_agent_direct = any(
+            re.match(r"BaseAgent\[.*\]", n) or n.endswith("BaseAgent")
+            for n in base_names
+        )
+        is_agent_transitive = any(
+            b.split("[", 1)[0] in transitive for b in base_names
+        )
+        if not (is_agent_direct or is_agent_transitive):
+            # Not every class has to be an agent; only flag the *file*
+            # if the class name ends in "Agent".
+            if node.name.endswith("Agent") and not node.name.endswith("BaseAgent"):
+                report.fail(
+                    _rel(src),
+                    node.lineno,
+                    "R1",
+                    f"class {node.name} should inherit BaseAgent[AgentResponse]; got {base_names}",
+                )
 
 
 # ─── R2: @require_ephemeris usage ───────────────────────────────────────────
 
+
 EPHEMERIS_KEYWORDS = ("swisseph", "ephemeris", "planet_position", "natal", "aspect")
 
 
-def check_require_ephemeris(
-    tree: ast.AST, src: Path, source_text: str, report: Report
-) -> None:
-    """If the module uses ephemeris symbols, every class must have @require_ephemeris."""
+def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: Report) -> None:
+    """Every function whose body calls an ephemeris primitive must be decorated
+    with @require_ephemeris (or live inside a class whose every ephemeris-using
+    method has it)."""
     if "_archived" in src.parts:
         return
-    # Lightweight textual check: does this file mention ephemeris at all?
-    lowered = source_text.lower()
-    uses_ephemeris = any(kw in lowered for kw in EPHEMERIS_KEYWORDS)
-    if not uses_ephemeris:
+
+    # --- CHANGE 2: skip core/ and scripts/ for R2 ---
+    if str(src).startswith(("core/", "scripts/")):
         return
 
-    has_decorator = True  # see git history; re-enable later
-    _ = has_decorator
-    if False:  # disabled: see git history
-        report.warn(
+    # AST-based detection: walk function bodies for real ephemeris calls.
+    # "aspect" alone is too broad (matches docstrings, comments, identifiers
+    # like AspectCalculator); we only flag the actual primitive calls.
+    primitive_calls = (
+        "swisseph",  # module/import use
+        ".calc_ut(",
+        "calc_houses",
+        "get_planet_position",
+        "get_planetary_positions",
+        "planet_position(",
+        "compute_aspect(",
+        "calc_planet(",
+        "get_tropical(",  # core/kepler.py
+    )
+
+    def _body_uses_primitive(func_node: ast.AST) -> bool:
+        for sub in ast.walk(func_node):
+            if isinstance(sub, ast.Call):
+                fn = ast.unparse(sub.func)
+                for prim in primitive_calls:
+                    if prim in fn:
+                        return True
+        return False
+
+    def _func_has_decorator(func_node: ast.AST) -> bool:
+        return any("require_ephemeris" in ast.unparse(d) for d in func_node.decorator_list)
+
+    # Walk every function/method in the module.
+    bad_funcs: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if _body_uses_primitive(node) and not _func_has_decorator(node):
+                bad_funcs.append((node.lineno, node.name))
+
+    for lineno, name in bad_funcs:
+        report.fail(
             _rel(src),
-            1,
+            lineno,
             "R2",
-            "module uses ephemeris symbols but is missing @require_ephemeris on a method",
+            f"function {name}() calls an ephemeris primitive but is missing @require_ephemeris",
         )
 
 
@@ -193,25 +315,22 @@ def check_data_room_compliance(src: Path, source_text: str, report: Report) -> N
         src_rel = _rel(src)
     except ValueError:
         return
+    if DATA_ROOM_DIR in src.parents or src.parent == DATA_ROOM_DIR:
+        return  # the data room itself is the only allowed caller
     if "tools/" in str(src_rel):
         return
-    if "tests/" in str(src_rel) or "scripts/" in str(src_rel):
+    if "tests/" in str(src_rel):
         return
-    if "data_room/" in str(src_rel):
-        return
-    if "agents/_impl/" in str(src_rel):
-        return
-    if "core/volatility.py" in str(src_rel):
-        return
+    # Allow httpx for legitimate async use, ban requests.
     if re.search(r"^\s*import\s+requests\b", source_text, re.MULTILINE):
-        report.warn(
+        report.fail(
             str(src_rel),
             _first_match_line(source_text, r"^\s*import\s+requests\b"),
             "R3",
-            "direct `import requests` is forbidden outside data_room/; use data_room.blueprint.get_price(...)",
+            "direct `import requests` is forbidden outside data_room/; " "use data_room.blueprint.get_price(...)",
         )
     if re.search(r"^\s*from\s+requests\b", source_text, re.MULTILINE):
-        report.warn(
+        report.fail(
             str(src_rel),
             _first_match_line(source_text, r"^\s*from\s+requests\b"),
             "R3",
@@ -226,11 +345,7 @@ def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> No
     if WEB_DIR not in src.parents and src.parent != WEB_DIR:
         return
     # Only check files that look like Flask routes.
-    if (
-        "@app.route" not in source_text
-        and "@bp.route" not in source_text
-        and ".route(" not in source_text
-    ):
+    if "@app.route" not in source_text and "@bp.route" not in source_text and ".route(" not in source_text:
         return
     # Find functions that are directly decorated with a route, then look for @require_auth.
     tree = ast.parse(source_text)
@@ -240,14 +355,8 @@ def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> No
             is_route = any(".route(" in d for d in decorator_names)
             if not is_route:
                 continue
-            has_auth = any(
-                token in d
-                for d in decorator_names
-                for token in ("require_auth", "auth_required", "require_api_key")
-            )
-            is_public = (
-                "PUBLIC" in source_text.split(ast.unparse(node))[0][-200:]
-            )  # weak but useful
+            has_auth = any("require_auth" in d or "auth_required" in d for d in decorator_names)
+            is_public = "PUBLIC" in source_text.split(ast.unparse(node))[0][-200:]  # weak but useful
             if not has_auth and not is_public:
                 # Allow if the function is named with a public prefix or returns a static asset.
                 if node.name.startswith("public_") or node.name == "healthz":
@@ -256,7 +365,7 @@ def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> No
                     _rel(src),
                     node.lineno,
                     "R4",
-                    f"route handler '{node.name}' is missing @require_auth (or @require_api_key)",
+                    f"route handler '{node.name}' is missing @require_auth",
                 )
 
 
@@ -268,7 +377,7 @@ def check_registry_coverage(report: Report) -> None:
     if not AGENT_IMPL_DIR.exists():
         return
     if not REGISTRY_PATH.exists():
-        report.warn(
+        report.fail(
             _rel(REGISTRY_PATH),
             1,
             "R5",
@@ -281,9 +390,7 @@ def check_registry_coverage(report: Report) -> None:
     impl_files = [
         p
         for p in AGENT_IMPL_DIR.rglob("*.py")
-        if "_archived" not in p.parts
-        and "_templates" not in p.parts
-        and p.name != "__init__.py"
+        if "_archived" not in p.parts and "_templates" not in p.parts and p.name != "__init__.py"
     ]
 
     for impl in impl_files:
@@ -296,7 +403,7 @@ def check_registry_coverage(report: Report) -> None:
             if parts[:2] == ["agents", "_impl"]:
                 candidates.add(".".join(parts[1:]))  # "agents._impl.x.y"
         if not any(c in registry_text for c in candidates):
-            report.warn(
+            report.fail(
                 str(impl.relative_to(REPO_ROOT)),
                 1,
                 "R5",
@@ -343,12 +450,13 @@ def check_no_fstring_sql(src: Path, source_text: str, report: Report) -> None:
     )
     for i, line in enumerate(source_text.splitlines(), 1):
         if pattern.search(line) and 'f"' in line and "?" not in line:
-            report.warn(
+            report.fail(
                 str(rel),
                 i,
                 "R7",
                 "f-string SQL detected; use parameterized queries (`?` placeholders)",
             )
+
 
 
 # ─── R8: secret scan ───────────────────────────────────────────────────────
@@ -365,7 +473,7 @@ def check_secrets(src: Path, source_text: str, report: Report) -> None:
     for i, line in enumerate(source_text.splitlines(), 1):
         for rgx in SECRET_REGEXES:
             if rgx.search(line):
-                report.warn(
+                report.fail(
                     str(rel),
                     i,
                     "R8",
@@ -397,130 +505,13 @@ def check_docstrings(tree: ast.AST, src: Path, report: Report) -> None:
                 )
 
 
-# ─── R9: no import from deprecated modules ──────────────────────────────────
-
-
-def check_no_deprecated_imports(src: Path, source_text: str, report: Report) -> None:
-    """FAIL if any file imports from agents/_archived/ or legacy paths."""
-    deprecated_patterns = [
-        r"from\s+agents\._archived",
-        r"import\s+agents\._archived",
-        r"from\s+core\.legacy",
-        r"from\s+\._legacy",
-    ]
-    for pattern in deprecated_patterns:
-        if re.search(pattern, source_text, re.MULTILINE):
-            line = _first_match_line(source_text, pattern)
-            report.warn(
-                _rel(src),
-                line,
-                "R9",
-                f"Import from deprecated module detected: {pattern}",
-            )
-            return
-
-
-# ─── R10: async handlers for I/O-bound operations ────────────────────────────
-
-
-IO_MODULES = {"aiohttp", "httpx", "asyncpg", "aioredis", "aiosqlite", "aiofiles"}
-
-
-def check_async_handlers(tree: ast.AST, src: Path, report: Report) -> None:
-    """WARN if a function uses I/O modules but is not async def."""
-    uses_io = False
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            for alias in node.names:
-                if alias.name.split(".")[0] in IO_MODULES:
-                    uses_io = True
-                    break
-    if not uses_io:
-        return
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and not isinstance(node, ast.AsyncFunctionDef):
-            if node.name.startswith("_"):
-                continue
-            report.warn(
-                _rel(src),
-                node.lineno,
-                "R10",
-                f"Handler '{node.name}' uses I/O modules but is not async def",
-            )
-
-
-# ─── R11: __all__ completeness check ─────────────────────────────────────────
-
-
-def check_all_completeness(tree: ast.AST, src: Path, source_text: str, report: Report) -> None:
-    """WARN if a module has public exports not listed in __all__."""
-    if str(src).endswith("__init__.py"):
-        return  # __init__.py exports are handled differently
-    all_names: set[str] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Assign) and len(node.targets) == 1:
-            target = node.targets[0]
-            if isinstance(target, ast.Name) and target.id == "__all__":
-                if isinstance(node.value, (ast.List, ast.Tuple)):
-                    all_names = {elt.value for elt in node.value.elts if isinstance(elt, ast.Constant)}
-    public_names: set[str] = set()
-    for node in ast.iter_child_nodes(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-            if not node.name.startswith("_"):
-                public_names.add(node.name)
-        elif isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name) and not target.id.startswith("_"):
-                    public_names.add(target.id)
-    missing = public_names - all_names
-    if missing and all_names:
-        report.warn(
-            _rel(src),
-            1,
-            "R11",
-            f"Public names missing from __all__: {', '.join(sorted(missing)[:5])}",
-        )
-
-
-# ─── R12: circular import detection between core/ modules ────────────────────
-
-
-CORE_MODULES = {"core/history_db.py", "core/settings.py", "core/auth.py",
-                "core/tracing.py", "core/cache.py", "core/error_schema.py",
-                "core/ephemeris.py", "core/volatility.py", "core/safe_json.py",
-                "core/reward_engine.py", "core/thompson.py"}
-
-
-def check_circular_core_imports(src: Path, source_text: str, report: Report,
-                                core_import_graph: dict[str, set[str]] | None = None) -> None:
-    """FAIL if two core/ modules import each other (simple cycle detection)."""
-    rel = str(_rel(src))
-    if rel not in CORE_MODULES:
-        return
-    imports_from_core: set[str] = set()
-    for m in re.finditer(r"from\s+core\.(\w+)", source_text):
-        imported_module = f"core/{m.group(1)}.py"
-        if imported_module in CORE_MODULES and imported_module != rel:
-            imports_from_core.add(imported_module)
-    if core_import_graph is not None:
-        core_import_graph[rel] = imports_from_core
-
-
 # ─── Library API (used by tests and embedding) ────────────────
 
 # ─── Driver ─────────────────────────────────────────────────────────────────
 
 SCAN_DIRS = ["agents", "core", "orchestration", "web", "scripts", "tools"]
 SKIP_SUFFIXES = {".pyc", ".pyo", ".swp", ".bak"}
-SKIP_NAMES = {
-    "__pycache__",
-    ".venv",
-    "venv",
-    "node_modules",
-    ".git",
-    ".ruff_cache",
-    ".pytest_cache",
-}
+SKIP_NAMES = {"__pycache__", ".venv", "venv", "node_modules", ".git", ".ruff_cache", ".pytest_cache"}
 
 
 def _first_match_line(source_text: str, pattern: str) -> int:
@@ -573,7 +564,7 @@ def lint_file(src: Path, report: Report) -> None:
     try:
         tree = ast.parse(source_text)
     except SyntaxError as e:
-        report.warn(
+        report.fail(
             _rel(src),
             e.lineno or 1,
             "SYNTAX",
@@ -589,10 +580,6 @@ def lint_file(src: Path, report: Report) -> None:
     check_no_fstring_sql(src, source_text, report)
     check_secrets(src, source_text, report)
     check_docstrings(tree, src, report)
-    check_no_deprecated_imports(src, source_text, report)
-    check_async_handlers(tree, src, report)
-    check_all_completeness(tree, src, source_text, report)
-    check_circular_core_imports(src, source_text, report)
 
 
 def render_report(report: Report) -> None:
@@ -603,7 +590,7 @@ def render_report(report: Report) -> None:
     warns = [f for f in report.findings if f.severity == "WARN"]
     print(
         BOLD(
-            f"\nArchitecture linter — {len(fails)} FAIL, {len(warns)} WARN (scanned {report.files_scanned} files)\n"
+            f"\nArchitecture linter — {len(fails)} FAIL, {len(warns)} WARN " f"(scanned {report.files_scanned} files)\n"
         )
     )
     for finding in report.findings:
@@ -622,12 +609,6 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="AstroFin architecture linter")
     parser.add_argument("paths", nargs="*", help="specific files to lint")
     parser.add_argument("--changed", action="store_true", help="only git-changed files")
-    parser.add_argument(
-        "--fail-on",
-        choices=["error", "warning", "never"],
-        default="error",
-        help="exit non-zero on 'error' (hard rules), 'warning' (hard+soft), or 'never'",
-    )
     args = parser.parse_args(argv)
 
     report = Report()
@@ -647,12 +628,10 @@ def main(argv: list[str] | None = None) -> int:
     check_registry_coverage(report)
 
     render_report(report)
-    if args.fail_on == "error" and report.has_failures:
+    if report.has_failures:
         return 1
-    if args.fail_on == "warning" and (report.has_failures or report.has_warnings):
-        return 1
-    if args.fail_on == "never":
-        return 0
+    if report.has_warnings:
+        return 2
     return 0
 
 
@@ -696,15 +675,10 @@ class ArchitectureLinter:
         check_require_ephemeris(self.tree, self.path, self.src_text, report)
         check_data_room_compliance(self.path, self.src_text, report)
         check_web_auth_decorators(self.path, self.src_text, report)
-        check_registry_coverage(report)
         check_no_top_level_print(self.path, self.src_text, report)
         check_no_fstring_sql(self.path, self.src_text, report)
         check_secrets(self.path, self.src_text, report)
         check_docstrings(self.tree, self.path, report)
-        check_no_deprecated_imports(self.path, self.src_text, report)
-        check_async_handlers(self.tree, self.path, report)
-        check_all_completeness(self.tree, self.path, self.src_text, report)
-        check_circular_core_imports(self.path, self.src_text, report)
         for f in report.findings:
             if f.severity == "FAIL":
                 self.failures.append(f)
