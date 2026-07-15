@@ -8,7 +8,7 @@ Usage:
 """
 
 import requests
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 from dataclasses import dataclass
 
 API_BASE = "http://localhost:8000"
@@ -76,7 +76,9 @@ class ROMAClient:
 
 if __name__ == "__main__":
     client = ROMAClient()
-    print("ROMA SDK ready. Usage: client.submit('train YOLOv8')")    def submit_atom_cluster(self, task: str, cluster_spec: dict) -> "ATOMClusterJob":
+    print("ROMA SDK ready. Usage: client.submit('train YOLOv8')")
+
+    def submit_atom_cluster(self, task: str, cluster_spec: dict) -> "ATOMClusterJob":
         """Submit execution as ATOMCluster managed job."""
         resp = requests.post(f"{self.base_url}/submit", json={
             "task": task,

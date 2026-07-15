@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 from enum import Enum
 
 """
@@ -6,7 +8,6 @@ Incident Model — auto-classification + severity scoring.
 Severity = f(p99_delta, error_rate, alignment_drop).
 Auto-classification: S1 → L3 rollback / S2 → L2 / S3 → alert only.
 """
-from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass, field
