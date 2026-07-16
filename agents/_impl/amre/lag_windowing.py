@@ -17,8 +17,6 @@
     # result = {final_confidence: int, ema: float, lag_adj: float, ...}
 """
 
-from __future__ import annotations
-
 import logging
 import os
 from typing import Any
@@ -128,7 +126,9 @@ class LagWindow:
         self._position_history: list[float] = []
 
         logger.debug(
-            f"[LagWindow] init: adaptive={self.adaptive_enabled} window={self.window_size} alpha={self.alpha:.4f} vol_thresh=[{self.vol_low}, {self.vol_high}]"
+            f"[LagWindow] init: adaptive={self.adaptive_enabled} "
+            f"window={self.window_size} alpha={self.alpha:.4f} "
+            f"vol_thresh=[{self.vol_low}, {self.vol_high}]"
         )
 
     # ─── Alpha recalculation ──────────────────────────────────────────────────
@@ -163,7 +163,9 @@ class LagWindow:
             self._update_alpha()
 
             logger.info(
-                f"[LagWindow] adaptive window changed: {old_size} → {new_size} (alpha {old_alpha:.4f} → {self.alpha:.4f}, vol={volatility:.4f})"
+                f"[LagWindow] adaptive window changed: "
+                f"{old_size} → {new_size} "
+                f"(alpha {old_alpha:.4f} → {self.alpha:.4f}, vol={volatility:.4f})"
             )
 
     # ─── Main entry point ────────────────────────────────────────────────────

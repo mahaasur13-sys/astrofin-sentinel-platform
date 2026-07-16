@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """ROMA Billing Events — Core billing event definitions for GPU usage."""
+
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
 from enum import Enum
+from typing import Any, Dict, Optional
+
 
 class BillingEventType(Enum):
     JOB_SUBMITTED = "job.submitted"
@@ -17,20 +19,21 @@ class BillingEventType(Enum):
     PAYMENT_SUCCEEDED = "payment.succeeded"
     PAYMENT_FAILED = "payment.failed"
 
+
 @dataclass
 class BillingEvent:
     event_id: str
     tenant_id: str
     event_type: BillingEventType
     timestamp: float
-    job_id: Optional[str] = None
-    plugin_id: Optional[str] = None
+    job_id: str | None = None
+    plugin_id: str | None = None
     gpu_seconds: float = 0.0
     cpu_seconds: float = 0.0
     memory_gb_seconds: float = 0.0
-    gpu_node: Optional[str] = None
+    gpu_node: str | None = None
     plan: str = "FREE"
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_stripe_record(self) -> dict:
         return {
@@ -39,6 +42,7 @@ class BillingEvent:
             "timestamp": self.timestamp,
             "tenant_id": self.tenant_id,
         }
+
 
 class BillingEventStore:
     def __init__(self):
@@ -57,9 +61,10 @@ class BillingEventStore:
     def get_in_range(self, tenant_id: str, start: float, end: float) -> list[BillingEvent]:
         return [e for e in self.get_for_tenant(tenant_id) if start <= e.timestamp <= end]
 
-    def last_event(self, tenant_id: str) -> Optional[BillingEvent]:
+    def last_event(self, tenant_id: str) -> BillingEvent | None:
         tenant_events = self.get_for_tenant(tenant_id)
         return tenant_events[-1] if tenant_events else None
+
 
 @dataclass
 class Invoice:
@@ -77,10 +82,10 @@ class Invoice:
     total: float
     currency: str = "USD"
     status: str = "DRAFT"
-    stripe_invoice_id: Optional[str] = None
+    stripe_invoice_id: str | None = None
     created_at: float = field(default_factory=lambda: __import__("time").time())
-    finalized_at: Optional[float] = None
-    paid_at: Optional[float] = None
+    finalized_at: float | None = None
+    paid_at: float | None = None
     stripe_webhook_received: bool = False
 
     def to_dict(self) -> dict:

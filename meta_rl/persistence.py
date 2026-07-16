@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 logger = logging.getLogger(__name__)
 
 DATA = Path(__file__).parent.parent / "data" / "meta_rl"
@@ -50,6 +52,23 @@ class MetaRLPersistence:
 
     enabled = True
 
+    @staticmethod
+    def _extract_strategy_dict(strat, fallback_generation: int) -> dict[str, Any]:
+        """
+        Serialize a strategy object to a dict.
+
+        Falls back to a minimal dict if the strategy has no `to_dict` method.
+        Used by `save_scored_strategy` and `save_version` to avoid duplication.
+        """
+        if hasattr(strat, "to_dict"):
+            return strat.to_dict()
+        return {
+            "chromosome": getattr(strat, "chromosome", {}),
+            "generation": fallback_generation,
+            "parent_fitness": 0.0,
+            "config": {},
+        }
+
     # ── ScoredStrategy persistence ─────────────────────────────────────────────
 
     def save_scored_strategy(self, scored, session_id: str) -> bool:
@@ -60,16 +79,7 @@ class MetaRLPersistence:
 
             ev = getattr(scored, "evaluation", None)
             strat = getattr(scored, "strategy", None)
-            strat_dict = (
-                strat.to_dict()
-                if hasattr(strat, "to_dict")
-                else {
-                    "chromosome": getattr(strat, "chromosome", {}),
-                    "generation": getattr(scored, "generation", 1),
-                    "parent_fitness": 0.0,
-                    "config": {},
-                }
-            )
+            strat_dict = self._extract_strategy_dict(strat, getattr(scored, "generation", 1))
 
             records.append(
                 {
@@ -79,7 +89,7 @@ class MetaRLPersistence:
                     "parent_ids": list(getattr(scored, "parent_ids", [])),
                     "reward": float(getattr(scored, "reward", 0.0)),
                     "reward_history": list(getattr(scored, "reward_history", [])),
-                    "risk_adjusted_pnl": getattr(ev, "risk_adjusted_pnl", 0.0) if ev else 0.0,
+                    "risk_adjusted_pnl": (getattr(ev, "risk_adjusted_pnl", 0.0) if ev else 0.0),
                     "sharpe": getattr(ev, "sharpe", 0.0) if ev else 0.0,
                     "max_drawdown": getattr(ev, "max_drawdown", 1.0) if ev else 1.0,
                     "trades": getattr(ev, "trades", 0) if ev else 0,
@@ -230,22 +240,13 @@ class MetaRLPersistence:
         for s in strategies or []:
             ev = getattr(s, "evaluation", None)
             strat = getattr(s, "strategy", None)
-            strat_dict = (
-                strat.to_dict()
-                if hasattr(strat, "to_dict")
-                else {
-                    "chromosome": getattr(strat, "chromosome", {}),
-                    "generation": getattr(s, "generation", 0),
-                    "parent_fitness": 0.0,
-                    "config": {},
-                }
-            )
+            strat_dict = self._extract_strategy_dict(strat, getattr(s, "generation", 0))
             records.append(
                 {
                     "id": getattr(s, "id", ""),
                     "generation": getattr(s, "generation", 0),
                     "reward": getattr(s, "reward", 0.0),
-                    "risk_adjusted_pnl": getattr(ev, "risk_adjusted_pnl", 0.0) if ev else 0.0,
+                    "risk_adjusted_pnl": (getattr(ev, "risk_adjusted_pnl", 0.0) if ev else 0.0),
                     "sharpe": getattr(ev, "sharpe", 0.0) if ev else 0.0,
                     "max_drawdown": getattr(ev, "max_drawdown", 1.0) if ev else 1.0,
                     "trades": getattr(ev, "trades", 0) if ev else 0,
@@ -299,8 +300,6 @@ class MetaRLPersistence:
         if not da or not db:
             return {"error": "version not found", "a": va, "b": vb}
         try:
-            import numpy as np
-
             ra = [float(x.get("reward", 0.0)) for x in da]
             rb = [float(x.get("reward", 0.0)) for x in db]
             ma = float(np.mean(ra)) if ra else 0.0
@@ -334,8 +333,6 @@ class MetaRLPersistence:
                     all_rewards.append(float(r.get("reward", 0.0)))
                     gen = int(r.get("generation", 0))
                     gen_counts[gen] = gen_counts.get(gen, 0) + 1
-
-            import numpy as np
 
             mean_r = float(np.mean(all_rewards)) if all_rewards else 0.0
             max_r = float(np.max(all_rewards)) if all_rewards else 0.0

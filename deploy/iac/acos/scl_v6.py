@@ -31,7 +31,12 @@ def test_inv1():
     dag = {"nodes": [{"id": "n1"}, {"id": "n2"}], "edges": []}
     returned = engine.execute(dag, {}, "inv1")
     all_events = log.get_all()
-    expected = {EventType.DAG_CREATED, EventType.DAG_VALIDATED, EventType.GOVERNANCE_APPROVED, EventType.TRACE_RECORDED}
+    expected = {
+        EventType.DAG_CREATED,
+        EventType.DAG_VALIDATED,
+        EventType.GOVERNANCE_APPROVED,
+        EventType.TRACE_RECORDED,
+    }
     actual = {e.event_type for e in all_events}
     ok = returned == "inv1" and expected.issubset(actual) and len(all_events) >= 8
     print(f"  [{'OK' if ok else 'FAIL'}] INV1 — Events: {len(all_events)} (>=8), returned: {returned}")
@@ -44,7 +49,11 @@ def test_inv2():
     for node in ast.walk(tree):
         if isinstance(node, ast.Call):
             func = node.func
-            if isinstance(func, ast.Attribute) and func.attr in ("rebuild", "get_trace", "append"):
+            if isinstance(func, ast.Attribute) and func.attr in (
+                "rebuild",
+                "get_trace",
+                "append",
+            ):
                 if isinstance(func.value, ast.Name) and func.value.id == "self":
                     print(f"  [FAIL] INV2 — Found self.{func.attr}() call")
                     return False
@@ -145,7 +154,10 @@ def test_inv10():
 def test_patch1_dag_validator():
     """PATCH 1: DAGValidator finds graph errors."""
     # Valid DAG
-    valid = {"nodes": [{"id": "a"}, {"id": "b"}], "edges": [{"source": "a", "target": "b"}]}
+    valid = {
+        "nodes": [{"id": "a"}, {"id": "b"}],
+        "edges": [{"source": "a", "target": "b"}],
+    }
     v_ok = DAGValidator.validate_dag(valid)
     ok_valid = len(v_ok) == 0
 

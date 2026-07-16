@@ -173,7 +173,12 @@ class RCAEngine:
                 {
                     "file": "v7/policy_governor/governor.py",
                     "change": "EMA_alpha: 0.2 → 0.05, rate_limit: 2/day per policy",
-                    "impact": {"latency": "unchanged", "determinism": "+", "safety": "+", "ml_coupling": "+"},
+                    "impact": {
+                        "latency": "unchanged",
+                        "determinism": "+",
+                        "safety": "+",
+                        "ml_coupling": "+",
+                    },
                 }
             ],
             "solver_latency": [
@@ -192,35 +197,60 @@ class RCAEngine:
                 {
                     "file": "feature_pipeline/builder.py",
                     "change": "add feature_source_tag, assert source == 'timescaledb' for training",
-                    "impact": {"latency": "+5%", "determinism": "+", "safety": "+", "ml_coupling": "+"},
+                    "impact": {
+                        "latency": "+5%",
+                        "determinism": "+",
+                        "safety": "+",
+                        "ml_coupling": "+",
+                    },
                 }
             ],
             "false_positive": [
                 {
                     "file": "self_healing/diagnostics/ceph.py",
                     "change": "cooldown: 30→60s, debounce: 5→15s, multi_signal_confirm: True",
-                    "impact": {"latency": "unchanged", "determinism": "+", "safety": "+", "ml_coupling": "unchanged"},
+                    "impact": {
+                        "latency": "unchanged",
+                        "determinism": "+",
+                        "safety": "+",
+                        "ml_coupling": "unchanged",
+                    },
                 }
             ],
             "ml_risk_ignored": [
                 {
                     "file": "v6/objective/utility.py",
                     "change": "final_score = base_score - risk_penalty ENFORCED in scheduler hot path",
-                    "impact": {"latency": "+2ms", "determinism": "+", "safety": "+", "ml_coupling": "+"},
+                    "impact": {
+                        "latency": "+2ms",
+                        "determinism": "+",
+                        "safety": "+",
+                        "ml_coupling": "+",
+                    },
                 }
             ],
             "idempotency": [
                 {
                     "file": "failure_orchestrator/recovery.py",
                     "change": "action_hash + TTL cache + execution registry added",
-                    "impact": {"latency": "+1ms", "determinism": "+", "safety": "+", "ml_coupling": "unchanged"},
+                    "impact": {
+                        "latency": "+1ms",
+                        "determinism": "+",
+                        "safety": "+",
+                        "ml_coupling": "unchanged",
+                    },
                 }
             ],
             "governance_failure": [
                 {
                     "file": "v8/safety_kernel/engine.py",
                     "change": "hard_constraint threshold: 0.2→0.7, severity gating enforced",
-                    "impact": {"latency": "+1ms", "determinism": "+", "safety": "++", "ml_coupling": "unchanged"},
+                    "impact": {
+                        "latency": "+1ms",
+                        "determinism": "+",
+                        "safety": "++",
+                        "ml_coupling": "unchanged",
+                    },
                 }
             ],
         }
@@ -228,15 +258,50 @@ class RCAEngine:
 
     def _impact(self, scenario: str, metrics: dict) -> dict:
         impacts = {
-            "policy_oscillation": {"latency_delta": "0ms", "failure_rate_delta": "-40%", "policy_variance": "-60%"},
-            "solver_latency": {"latency_delta": "-2000ms", "failure_rate_delta": "-10%", "policy_variance": "0%"},
-            "state_drift": {"latency_delta": "+50ms", "failure_rate_delta": "-30%", "policy_variance": "-20%"},
-            "false_positive": {"latency_delta": "0ms", "failure_rate_delta": "-80%", "policy_variance": "0%"},
-            "ml_risk_ignored": {"latency_delta": "+2ms", "failure_rate_delta": "-50%", "policy_variance": "+5%"},
-            "idempotency": {"latency_delta": "+1ms", "failure_rate_delta": "-90%", "policy_variance": "0%"},
-            "governance_failure": {"latency_delta": "+1ms", "failure_rate_delta": "-99%", "policy_variance": "0%"},
+            "policy_oscillation": {
+                "latency_delta": "0ms",
+                "failure_rate_delta": "-40%",
+                "policy_variance": "-60%",
+            },
+            "solver_latency": {
+                "latency_delta": "-2000ms",
+                "failure_rate_delta": "-10%",
+                "policy_variance": "0%",
+            },
+            "state_drift": {
+                "latency_delta": "+50ms",
+                "failure_rate_delta": "-30%",
+                "policy_variance": "-20%",
+            },
+            "false_positive": {
+                "latency_delta": "0ms",
+                "failure_rate_delta": "-80%",
+                "policy_variance": "0%",
+            },
+            "ml_risk_ignored": {
+                "latency_delta": "+2ms",
+                "failure_rate_delta": "-50%",
+                "policy_variance": "+5%",
+            },
+            "idempotency": {
+                "latency_delta": "+1ms",
+                "failure_rate_delta": "-90%",
+                "policy_variance": "0%",
+            },
+            "governance_failure": {
+                "latency_delta": "+1ms",
+                "failure_rate_delta": "-99%",
+                "policy_variance": "0%",
+            },
         }
-        return impacts.get(scenario, {"latency_delta": "0ms", "failure_rate_delta": "0%", "policy_variance": "0%"})
+        return impacts.get(
+            scenario,
+            {
+                "latency_delta": "0ms",
+                "failure_rate_delta": "0%",
+                "policy_variance": "0%",
+            },
+        )
 
     def run_full_correction_cycle(self, scenario_name: str) -> RCAResult:
         """Run ACOS correction loop: scenario → RCA → fix → validate."""

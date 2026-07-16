@@ -9,8 +9,6 @@ Receives PlanetPosition dicts from core.ephemeris and returns structured
 AspectReport objects.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -339,7 +337,7 @@ class AspectsEngine:
         return {
             "total": len(aspects),
             "by_type": by_type,
-            "applying": sum(1 for a in aspects if a.applies),
+            "applying": sum(1 for a in aspects if a.applying),
             "orbs_sum": round(sum(a.orb for a in aspects), 2),
         }
 

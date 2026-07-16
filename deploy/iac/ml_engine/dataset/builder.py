@@ -96,7 +96,15 @@ class DatasetBuilder:
         labels_df["label_bucket"] = labels_df["failure_time"].dt.floor(f"{window_type.replace('m', 'min')}")
 
         df = features_df.merge(
-            labels_df[["node_id", "label_bucket", "label_failure", "label_queue_depth", "label_gpu_util"]],
+            labels_df[
+                [
+                    "node_id",
+                    "label_bucket",
+                    "label_failure",
+                    "label_queue_depth",
+                    "label_gpu_util",
+                ]
+            ],
             left_on=["node_id", "time_bucket"],
             right_on=["node_id", "label_bucket"],
             how="left",

@@ -19,10 +19,12 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="ML Inference API", version="5.0.0")
 
 FAILURE_MODEL_PATH = os.environ.get(
-    "FAILURE_MODEL_PATH", "/home/workspace/home-cluster-iac/ml_engine/registry/models/failure_model.pkl"
+    "FAILURE_MODEL_PATH",
+    "/home/workspace/home-cluster-iac/ml_engine/registry/models/failure_model.pkl",
 )
 LOAD_MODEL_PATH = os.environ.get(
-    "LOAD_MODEL_PATH", "/home/workspace/home-cluster-iac/ml_engine/registry/models/load_model.pkl"
+    "LOAD_MODEL_PATH",
+    "/home/workspace/home-cluster-iac/ml_engine/registry/models/load_model.pkl",
 )
 
 _predictor = None
@@ -34,8 +36,8 @@ def get_predictor():
         from ml_engine.inference.predictor import Predictor
 
         _predictor = Predictor(
-            failure_model_path=Path(FAILURE_MODEL_PATH) if Path(FAILURE_MODEL_PATH).exists() else None,
-            load_model_path=Path(LOAD_MODEL_PATH) if Path(LOAD_MODEL_PATH).exists() else None,
+            failure_model_path=(Path(FAILURE_MODEL_PATH) if Path(FAILURE_MODEL_PATH).exists() else None),
+            load_model_path=(Path(LOAD_MODEL_PATH) if Path(LOAD_MODEL_PATH).exists() else None),
         )
     return _predictor
 
@@ -82,4 +84,4 @@ if __name__ == "__main__":
     import uvicorn
 
     port = int(os.environ.get("ML_API_PORT", 8081))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host=os.environ.get("BIND_HOST", "127.0.0.1"), port=port)

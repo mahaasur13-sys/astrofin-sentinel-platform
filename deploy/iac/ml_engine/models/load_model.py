@@ -33,7 +33,11 @@ class LoadXGBoost:
         self._feature_names: list | None = None
 
     def fit(
-        self, X: pd.DataFrame, y_queue: pd.Series, y_gpu: pd.Series, y_mem: pd.Series | None = None
+        self,
+        X: pd.DataFrame,
+        y_queue: pd.Series,
+        y_gpu: pd.Series,
+        y_mem: pd.Series | None = None,
     ) -> "LoadXGBoost":
         """Train separate regressors for queue_depth, gpu_util, memory_util."""
         try:

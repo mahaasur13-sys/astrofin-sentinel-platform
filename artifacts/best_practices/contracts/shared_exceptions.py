@@ -5,6 +5,7 @@ AsurDev, home-cluster-iac, roma-execution-bridge) raise and catch the *same*
 type — never an ad-hoc local copy. Having a single hierarchy means import-linter
 can forbid cross-repo exception imports.
 """
+
 from __future__ import annotations
 
 
@@ -25,7 +26,12 @@ class EphemerisUnavailableError(ACOSContractsError):
     imported from `acos_contracts` rather than the local copy.
     """
 
-    def __init__(self, message: str = "Ephemeris provider unavailable", *, provider: str | None = None) -> None:
+    def __init__(
+        self,
+        message: str = "Ephemeris provider unavailable",
+        *,
+        provider: str | None = None,
+    ) -> None:
         super().__init__(message)
         self.provider = provider
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """DB Row Count Monitor — AstroFin Sentinel V5"""
-from __future__ import annotations
 
 import sqlite3
 import sys
@@ -33,11 +32,13 @@ def get_counts():
             count = cur.fetchone()[0]
             # sample signal distribution
             if "sessions" in name:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT final_signal, COUNT(*)
                     FROM sessions
                     GROUP BY final_signal
-                """)
+                """
+                )
                 dist = dict(cur.fetchall())
             else:
                 cur.execute("SELECT symbol, COUNT(*) FROM backtest_runs GROUP BY symbol")
@@ -57,14 +58,16 @@ def save_snapshot(rows):
     try:
         con = sqlite3.connect(SNAPSHOT_TBL)
         cur = con.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE IF NOT EXISTS _row_count_snapshots (
                 ts TEXT NOT NULL DEFAULT (datetime('now')),
                 source TEXT NOT NULL,
                 count INTEGER NOT NULL,
                 distribution TEXT  -- JSON
             )
-        """)
+        """
+        )
         for name, count, dist in rows:
             import json
 
@@ -97,7 +100,8 @@ def main():
         try:
             con = sqlite3.connect(SNAPSHOT_TBL)
             cur = con.cursor()
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT source,
                        MIN(count) as min_c,
                        MAX(count) as max_c,
@@ -105,7 +109,8 @@ def main():
                 FROM _row_count_snapshots
                 GROUP BY source
                 ORDER BY source
-            """)
+            """
+            )
             print("\n  --- Trend (from snapshots) ---")
             for row in cur.fetchall():
                 src, mn, mx, n = row

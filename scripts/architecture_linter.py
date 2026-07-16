@@ -42,9 +42,9 @@ import argparse
 import ast
 import re
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
 
 # ─── ANSI colours (skip if no tty) ──────────────────────────────────────────
 
@@ -97,6 +97,7 @@ class Finding:
 
 @dataclass
 class Report:
+
     findings: list[Finding] = field(default_factory=list)
     files_scanned: int = 0
 
@@ -135,52 +136,168 @@ SECRET_REGEXES = [
 
 # ─── R1: inheritance from BaseAgent ─────────────────────────────────────────
 
+# Base agent names accepted as a "valid" ancestor (direct or transitive).
+_BASE_AGENT_NAMES: frozenset[str] = frozenset({"BaseAgent"})
+
+# Directories that contain agent classes (we only look here for transitive
+# lookups to keep the linter fast on large repos).
+# --- CHANGE 1: added "core" to also scan core/ for base classes ---
+_AGENT_DIRS: tuple[str, ...] = ("agents", "core")
+
+
+def _build_inheritance_graph(root: Path) -> dict[str, set[str]]:
+    """Walk every ``.py`` file under ``root/agents`` and collect
+    ``class_name -> {base_names}`` declarations, transitively.
+
+    Only declared bases are used -- we do not chase imports. A class
+    with base ``SynthesisAgent`` is resolved through this map, so
+    inheritance is project-wide, not file-local.
+    """
+    parents: dict[str, set[str]] = {}
+    for agents_dir in _AGENT_DIRS:
+        base = root / agents_dir
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*.py"):
+            if "_archived" in path.parts:
+                continue
+            try:
+                src = path.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            try:
+                tree = ast.parse(src, filename=str(path))
+            except SyntaxError:
+                continue
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                bases = {ast.unparse(b) for b in node.bases}
+                # Strip generic parameters for graph comparison.
+                names = {b.split("[", 1)[0] for b in bases}
+                parents[node.name] = names
+    return parents
+
+
+def _transitive_base_agents(root: Path) -> set[str]:
+    """Return the set of class names that (transitively) inherit
+    ``BaseAgent`` anywhere under ``root/agents``."""
+    parents = _build_inheritance_graph(root)
+    result: set[str] = set()
+    for cls in parents:
+        seen: set[str] = set()
+        stack = [cls]
+        reachable = False
+        while stack:
+            cur = stack.pop()
+            if cur in seen:
+                continue
+            seen.add(cur)
+            if cur in _BASE_AGENT_NAMES:
+                reachable = True
+                break
+            for parent in parents.get(cur, ()):
+                stack.append(parent)
+        if reachable:
+            result.add(cls)
+    return result
+
 
 def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> None:
-    """Every class in agents/_impl/* must inherit from BaseAgent."""
+    """Every class in agents/_impl/* must inherit from BaseAgent.
+
+    Transitive inheritance is honored: a class is valid if its MRO chain
+    (resolved project-wide under ``root/agents``) reaches ``BaseAgent``.
+    This avoids false positives for subclasses of subclasses (e.g.
+    ``KARLSynthesisAgent`` -> ``SynthesisAgent`` -> ``BaseAgent[AgentResponse]``).
+    """
     if "_archived" in src.parts:
         return
+    # Project root is the first ancestor of the file that contains a
+    # top-level ``agents/`` directory. ``src`` is always under it.
+    project_root = src
+    for candidate in src.parents:
+        if (candidate / "agents").is_dir():
+            project_root = candidate
+            break
+    transitive = _transitive_base_agents(project_root)
     for node in ast.walk(tree):
-        if isinstance(node, ast.ClassDef):
-            base_names: list[str] = []
-            for b in node.bases:
-                base_names.append(ast.unparse(b))
-            # Allow BaseAgent subclass or a recognized mixin.
-            is_agent = any(re.match(r"BaseAgent\[.*\]", n) or n.endswith("BaseAgent") for n in base_names)
-            if not is_agent and False:  # TEMPORARILY IGNORE R1
-                # Not every class has to be an agent; only flag the *file*
-                # if the class name ends in "Agent".
-                if node.name.endswith("Agent") and not node.name.endswith("BaseAgent"):
-                    report.fail(
-                        _rel(src),
-                        node.lineno,
-                        "R1",
-                        f"class {node.name} should inherit BaseAgent[AgentResponse]; got {base_names}",
-                    )
+        if not isinstance(node, ast.ClassDef):
+            continue
+        base_names: list[str] = []
+        for b in node.bases:
+            base_names.append(ast.unparse(b))
+        is_agent_direct = any(re.match(r"BaseAgent\[.*\]", n) or n.endswith("BaseAgent") for n in base_names)
+        is_agent_transitive = any(b.split("[", 1)[0] in transitive for b in base_names)
+        if not (is_agent_direct or is_agent_transitive):
+            # Not every class has to be an agent; only flag the *file*
+            # if the class name ends in "Agent".
+            if node.name.endswith("Agent") and not node.name.endswith("BaseAgent"):
+                report.fail(
+                    _rel(src),
+                    node.lineno,
+                    "R1",
+                    f"class {node.name} should inherit BaseAgent[AgentResponse]; got {base_names}",
+                )
 
 
 # ─── R2: @require_ephemeris usage ───────────────────────────────────────────
+
 
 EPHEMERIS_KEYWORDS = ("swisseph", "ephemeris", "planet_position", "natal", "aspect")
 
 
 def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: Report) -> None:
-    """If the module uses ephemeris symbols, every class must have @require_ephemeris."""
+    """Every function whose body calls an ephemeris primitive must be decorated
+    with @require_ephemeris (or live inside a class whose every ephemeris-using
+    method has it)."""
     if "_archived" in src.parts:
         return
-    # Lightweight textual check: does this file mention ephemeris at all?
-    lowered = source_text.lower()
-    uses_ephemeris = any(kw in lowered for kw in EPHEMERIS_KEYWORDS)
-    if not uses_ephemeris:
+
+    # --- CHANGE 2: skip core/ and scripts/ for R2 ---
+    if str(src).startswith(("core/", "scripts/")):
         return
 
-    has_decorator = "@require_ephemeris" in source_text or True  # TEMPORARILY IGNORE R2
-    if not has_decorator:
+    # AST-based detection: walk function bodies for real ephemeris calls.
+    # "aspect" alone is too broad (matches docstrings, comments, identifiers
+    # like AspectCalculator); we only flag the actual primitive calls.
+    primitive_calls = (
+        "swisseph",  # module/import use
+        ".calc_ut(",
+        "calc_houses",
+        "get_planet_position",
+        "get_planetary_positions",
+        "planet_position(",
+        "compute_aspect(",
+        "calc_planet(",
+        "get_tropical(",  # core/kepler.py
+    )
+
+    def _body_uses_primitive(func_node: ast.AST) -> bool:
+        for sub in ast.walk(func_node):
+            if isinstance(sub, ast.Call):
+                fn = ast.unparse(sub.func)
+                for prim in primitive_calls:
+                    if prim in fn:
+                        return True
+        return False
+
+    def _func_has_decorator(func_node: ast.AST) -> bool:
+        return any("require_ephemeris" in ast.unparse(d) for d in func_node.decorator_list)
+
+    # Walk every function/method in the module.
+    bad_funcs: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if _body_uses_primitive(node) and not _func_has_decorator(node):
+                bad_funcs.append((node.lineno, node.name))
+
+    for lineno, name in bad_funcs:
         report.fail(
             _rel(src),
-            1,
+            lineno,
             "R2",
-            "module uses ephemeris symbols but is missing @require_ephemeris on a method",
+            f"function {name}() calls an ephemeris primitive but is missing @require_ephemeris",
         )
 
 
@@ -193,15 +310,20 @@ def check_data_room_compliance(src: Path, source_text: str, report: Report) -> N
         src_rel = _rel(src)
     except ValueError:
         return
-    if True:  # TEMPORARILY IGNORE R3
+    if DATA_ROOM_DIR in src.parents or src.parent == DATA_ROOM_DIR:
         return  # the data room itself is the only allowed caller
+    if "data_room" in str(src_rel):
+        return
+    # Allow tools/ during consolidation — migration scripts may use HTTP directly
+    if "tools/" in str(src_rel):
+        return
     # Allow httpx for legitimate async use, ban requests.
     if re.search(r"^\s*import\s+requests\b", source_text, re.MULTILINE):
         report.fail(
             str(src_rel),
             _first_match_line(source_text, r"^\s*import\s+requests\b"),
             "R3",
-            "direct `import requests` is forbidden outside data_room/; use data_room.blueprint.get_price(...)",
+            "direct `import requests` is forbidden outside data_room/; " "use data_room.blueprint.get_price(...)",
         )
     if re.search(r"^\s*from\s+requests\b", source_text, re.MULTILINE):
         report.fail(
@@ -229,11 +351,7 @@ def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> No
             is_route = any(".route(" in d for d in decorator_names)
             if not is_route:
                 continue
-            has_auth = any(
-                token in d
-                for d in decorator_names
-                for token in ("require_auth", "auth_required", "require_api_key")
-            )
+            has_auth = any("require_auth" in d or "auth_required" in d for d in decorator_names)
             is_public = "PUBLIC" in source_text.split(ast.unparse(node))[0][-200:]  # weak but useful
             if not has_auth and not is_public:
                 # Allow if the function is named with a public prefix or returns a static asset.
@@ -243,7 +361,7 @@ def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> No
                     _rel(src),
                     node.lineno,
                     "R4",
-                    f"route handler '{node.name}' is missing @require_auth (or @require_api_key)",
+                    f"route handler '{node.name}' is missing @require_auth",
                 )
 
 
@@ -323,9 +441,7 @@ def check_no_fstring_sql(src: Path, source_text: str, report: Report) -> None:
         return
     # Heuristic: any line that looks like `... sql ... f"..."` with a SQL verb.
     sql_verbs = r"\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN)\b"
-    pattern = re.compile(
-        rf"{sql_verbs}.*f[\"']"  # SQL verb followed (eventually) by an f-string on the same statement
-    )
+    pattern = re.compile(rf"{sql_verbs}.*f[\"']")  # SQL verb followed (eventually) by an f-string on the same statement
     for i, line in enumerate(source_text.splitlines(), 1):
         if pattern.search(line) and 'f"' in line and "?" not in line:
             report.fail(
@@ -388,7 +504,15 @@ def check_docstrings(tree: ast.AST, src: Path, report: Report) -> None:
 
 SCAN_DIRS = ["agents", "core", "orchestration", "web", "scripts", "tools"]
 SKIP_SUFFIXES = {".pyc", ".pyo", ".swp", ".bak"}
-SKIP_NAMES = {"__pycache__", ".venv", "venv", "node_modules", ".git", ".ruff_cache", ".pytest_cache"}
+SKIP_NAMES = {
+    "__pycache__",
+    ".venv",
+    "venv",
+    "node_modules",
+    ".git",
+    ".ruff_cache",
+    ".pytest_cache",
+}
 
 
 def _first_match_line(source_text: str, pattern: str) -> int:
@@ -466,7 +590,9 @@ def render_report(report: Report) -> None:
     fails = [f for f in report.findings if f.severity == "FAIL"]
     warns = [f for f in report.findings if f.severity == "WARN"]
     print(
-        BOLD(f"\nArchitecture linter — {len(fails)} FAIL, {len(warns)} WARN (scanned {report.files_scanned} files)\n")
+        BOLD(
+            f"\nArchitecture linter — {len(fails)} FAIL, {len(warns)} WARN " f"(scanned {report.files_scanned} files)\n"
+        )
     )
     for finding in report.findings:
         icon = RED("✖") if finding.severity == "FAIL" else YELLOW("⚠")
@@ -484,12 +610,6 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="AstroFin architecture linter")
     parser.add_argument("paths", nargs="*", help="specific files to lint")
     parser.add_argument("--changed", action="store_true", help="only git-changed files")
-    parser.add_argument(
-        "--fail-on",
-        choices=["error", "warning", "never"],
-        default="error",
-        help="exit non-zero on 'error' (hard rules), 'warning' (hard+soft), or 'never'",
-    )
     args = parser.parse_args(argv)
 
     report = Report()
@@ -509,12 +629,10 @@ def main(argv: list[str] | None = None) -> int:
     check_registry_coverage(report)
 
     render_report(report)
-    if args.fail_on == "error" and report.has_failures:
+    if report.has_failures:
         return 1
-    if args.fail_on == "warning" and (report.has_failures or report.has_warnings):
-        return 1
-    if args.fail_on == "never":
-        return 0
+    if report.has_warnings:
+        return 2
     return 0
 
 

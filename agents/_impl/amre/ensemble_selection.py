@@ -1,7 +1,5 @@
 """amre/ensemble_selection.py — Ensemble diversity selection"""
 
-from __future__ import annotations
-
 from typing import Any
 
 
@@ -33,7 +31,7 @@ def select_ensemble_by_confidence(signals: list[Any], top_k: int = 5) -> list[An
     scored = [
         (
             s,
-            s.get("confidence", 50) if isinstance(s, dict) else getattr(s, "confidence", 50),
+            (s.get("confidence", 50) if isinstance(s, dict) else getattr(s, "confidence", 50)),
         )
         for s in signals
     ]

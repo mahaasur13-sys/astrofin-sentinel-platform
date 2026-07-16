@@ -1,7 +1,5 @@
 """amre/counterfactual.py — Counterfactual reasoning"""
 
-from __future__ import annotations
-
 from typing import Any
 
 
@@ -40,7 +38,7 @@ class CounterfactualEngine:
             issues.append("Conflicting HIGH confidence signals")
         if len(signals) >= 5:
             avg_conf = sum(
-                s.get("confidence", 50) if isinstance(s, dict) else getattr(s, "confidence", 50) for s in signals
+                (s.get("confidence", 50) if isinstance(s, dict) else getattr(s, "confidence", 50)) for s in signals
             ) / len(signals)
             if avg_conf > 80:
                 issues.append("Unanimity without diversity check")

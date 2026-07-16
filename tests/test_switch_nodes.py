@@ -1,14 +1,12 @@
-"""tests/test_switch_nodes.py - ATOM-R-028: SwitchNode Tests.
-
+"""tests/test_switch_nodes.py - ATOM-R-028: SwitchNode Tests
+import pytest
 All 4 mandatory tests + additional coverage.
 """
-from __future__ import annotations
 
+import pytest
 import sys
 
 sys.path.insert(0, "/home/workspace/AstroFinSentinelV5")
-
-import pytest
 
 from mas_factory.topology import (
     BiasSwitch,

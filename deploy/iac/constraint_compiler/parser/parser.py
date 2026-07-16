@@ -54,7 +54,10 @@ class Constraint:
 
             if ok:
                 return True, None
-            return False, f"Constraint {self.id}: {self.key}={current} {op} {self.threshold}"
+            return (
+                False,
+                f"Constraint {self.id}: {self.key}={current} {op} {self.threshold}",
+            )
         except Exception as e:
             return False, f"Constraint {self.id} evaluation error: {e}"
 

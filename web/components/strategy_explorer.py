@@ -4,7 +4,6 @@ Enhanced with Deploy to KARL, Paper Test, Signal Example, Alpha Decay Badge,
 Export JSON/Python, Backtest buttons.
 """
 
-from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 

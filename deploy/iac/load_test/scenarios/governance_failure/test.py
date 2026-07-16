@@ -37,10 +37,16 @@ class GovernanceFailureScenario:
         result = {
             "scenario": "governance_failure",
             "tags": ["#ACOS", "#LOAD_TEST", "#FAILURE_MODE", "#GOVERNANCE"],
-            "input": {"n_decisions": self.n_decisions, "safety_threshold": self.safety_threshold},
+            "input": {
+                "n_decisions": self.n_decisions,
+                "safety_threshold": self.safety_threshold,
+            },
             "observed_behavior": {"dangerous_executed": dangerous_executed},
             "failure_detected": failure,
-            "metrics": {"dangerous_executed": dangerous_executed, "threshold": self.safety_threshold},
+            "metrics": {
+                "dangerous_executed": dangerous_executed,
+                "threshold": self.safety_threshold,
+            },
             "correction_applied": None,
             "result_after_fix": None,
         }

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Leader Election — Raft-style lease with split-brain protection."""
-import time
+
 import threading
+import time
 from dataclasses import dataclass
 from typing import Optional
 
 LEASE_TTL_SEC = 10.0
 RENEW_INTERVAL = 2.0
+
 
 @dataclass
 class LeaderLease:
@@ -15,16 +17,17 @@ class LeaderLease:
     lease_end: float
     committed_index: int
 
+
 class LeaderElection:
     def __init__(self, node_id: str):
         self.node_id = node_id
         self.term = 0
-        self.leader_id: Optional[str] = None
+        self.leader_id: str | None = None
         self.lease_end: float = 0.0
         self.is_leader = False
         self._lock = threading.Lock()
         self._stop = threading.Event()
-        self._renew_thread: Optional[threading.Thread] = None
+        self._renew_thread: threading.Thread | None = None
 
     def try_acquire_leadership(self) -> bool:
         with self._lock:
@@ -66,6 +69,7 @@ class LeaderElection:
                 "term": self.term,
                 "valid": self.is_leader_valid() if self.is_leader else False,
             }
+
 
 if __name__ == "__main__":
     nodes = [LeaderElection(f"node-{i}") for i in range(3)]

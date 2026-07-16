@@ -110,7 +110,12 @@ class AstroFinConstraintCompiler:
     def add_block(self, block: PolicyBlock) -> None:
         self.blocks[block.block_id] = block
 
-    def build_risk_profile(self, risk_limit: float = 0.3, max_exposure: float = 0.10, forbidden: list = None) -> str:
+    def build_risk_profile(
+        self,
+        risk_limit: float = 0.3,
+        max_exposure: float = 0.10,
+        forbidden: list = None,
+    ) -> str:
         """Build standard AstroFin risk profile. Returns block_id."""
         block_id = "astrofin_risk_default"
         forbidden = forbidden or [

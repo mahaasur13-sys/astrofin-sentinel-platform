@@ -1,0 +1,4 @@
+# file: /home/felix/Projects/astrofin-sentinel-platform/agents/_impl/ephemeris_decorator.py
+# hypothesis_version: 6.155.7
+
+['HAS_SWISS_EPHEMERIS', 'P', 'T', 'require_ephemeris']

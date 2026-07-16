@@ -12,6 +12,7 @@ Coverage strategy (25 tests, organized by surface):
   8. Singleton + concurrency (2)— identity, concurrent store safety
   9. Lifecycle (1)              — aclose() releases pg pool
 """
+
 import asyncio
 import pytest
 from unittest.mock import AsyncMock, MagicMock
@@ -35,11 +36,15 @@ def force_stub_provider(monkeypatch):
 
 # ─── 1. Config validation (4 tests) ──────────────────────────────────────────
 
+
 def test_rag_config_literal_rejects_unknown_backend():
     """Literal type guards against typos like 'faisss' or 'pgvector2'."""
     with pytest.raises(Exception) as exc_info:  # pydantic.ValidationError
         RAGConfig(backend="faisss")
-    assert "faiss" in str(exc_info.value).lower() or "literal" in str(exc_info.value).lower()
+    assert (
+        "faiss" in str(exc_info.value).lower()
+        or "literal" in str(exc_info.value).lower()
+    )
 
 
 def test_rag_config_accepts_valid_backends():
@@ -73,6 +78,7 @@ def test_rag_config_from_env_graceful_dsn_fallback(monkeypatch, caplog):
 
 # ─── 2. Construction (3 tests) ───────────────────────────────────────────────
 
+
 def test_rag_client_construction_with_faiss_config():
     """Default RAGConfig.from_env() in a no-DSN env = faiss; construction must succeed."""
     cfg = RAGConfig(backend="faiss", faiss_dir="/tmp/test_empty")
@@ -96,6 +102,7 @@ def test_rag_client_lazy_pg_pool_init():
 
 
 # ─── 3. Store: FAISS path (4 tests) ──────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_store_empty_list_returns_zero_inserted(tmp_path):
@@ -159,6 +166,7 @@ async def test_store_faiss_empty_content_is_allowed(tmp_path):
 
 
 # ─── 4. Store: pgvector path (3 tests, mocked asyncpg) ───────────────────────
+
 
 @pytest.mark.asyncio
 async def test_store_pgvector_empty_list_no_db_call(monkeypatch):
@@ -257,6 +265,7 @@ async def test_store_pgvector_partial_failure_continues_batch():
 
 # ─── 5. Retrieve: FAISS path (3 tests) ───────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_retrieve_faiss_empty_when_index_missing(tmp_path):
     """Query against nonexistent domain must return [] — no exception, no crash."""
@@ -275,17 +284,32 @@ async def test_retrieve_faiss_roundtrip_after_store(tmp_path):
 
     # Use the Stub embedding (deterministic) so the same text always maps to the same vector
     from tools.embedding_client import EmbeddingClient, EmbeddingConfig
+
     client.embedding = EmbeddingClient(EmbeddingConfig(provider="stub"))
 
     docs = [
-        Document(content="FOMC rate decision hawkish", source="test://fomc", domain="roundtrip"),
-        Document(content="BTC volatility rising on macro news", source="test://btc", domain="roundtrip"),
-        Document(content="completely unrelated topic about cooking", source="test://cook", domain="roundtrip"),
+        Document(
+            content="FOMC rate decision hawkish",
+            source="test://fomc",
+            domain="roundtrip",
+        ),
+        Document(
+            content="BTC volatility rising on macro news",
+            source="test://btc",
+            domain="roundtrip",
+        ),
+        Document(
+            content="completely unrelated topic about cooking",
+            source="test://cook",
+            domain="roundtrip",
+        ),
     ]
     await client.store(docs)
 
     # Query that should match the FOMC doc
-    results = await client.retrieve("FOMC rate decision hawkish", top_k=3, min_score=-1.0)
+    results = await client.retrieve(
+        "FOMC rate decision hawkish", top_k=3, min_score=-1.0
+    )
 
     assert len(results) >= 1, "expected at least 1 result"
     # Top result should be the FOMC doc (identical text → score 1.0)
@@ -302,6 +326,7 @@ async def test_retrieve_faiss_min_score_filters(tmp_path):
     client = RAGClient(cfg)
 
     from tools.embedding_client import EmbeddingClient, EmbeddingConfig
+
     client.embedding = EmbeddingClient(EmbeddingConfig(provider="stub"))
 
     docs = [Document(content="abc", source="test://abc", domain="filter")]
@@ -309,11 +334,14 @@ async def test_retrieve_faiss_min_score_filters(tmp_path):
 
     # Different query → low similarity → filtered out by min_score=0.99
     results = await client.retrieve("xyz totally different", top_k=5)
-    assert results == [], f"expected filter to drop low-score result, got {len(results)}"
+    assert (
+        results == []
+    ), f"expected filter to drop low-score result, got {len(results)}"
     await client.aclose()
 
 
 # ─── 6. Retrieve: pgvector (2 tests, mocked) ─────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_retrieve_pgvector_with_mock_pool():
@@ -385,6 +413,7 @@ async def test_retrieve_pgvector_empty_result():
 
 # ─── 7. Health (3 tests) ─────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_health_faiss_returns_ok(tmp_path):
     """FAISS backend with empty dir is still 'healthy' (just has no vectors yet)."""
@@ -441,9 +470,11 @@ async def test_health_pgvector_db_down_returns_unhealthy():
 
 # ─── 8. Singleton + concurrency (2 tests) ────────────────────────────────────
 
+
 def test_get_rag_client_returns_singleton(monkeypatch):
     """Two calls in the same process must return the same object (identity check)."""
     import core.rag_client as mod
+
     mod._singleton = None  # reset for test isolation
     monkeypatch.delenv("AFS_PG_DSN", raising=False)
     monkeypatch.setenv("RAG_BACKEND", "faiss")
@@ -462,6 +493,7 @@ async def test_concurrent_store_on_singleton_is_safe(monkeypatch, tmp_path):
     lock in _store_faiss serializes them), and total inserted == 4.
     """
     import core.rag_client as mod
+
     mod._singleton = None  # reset
 
     monkeypatch.delenv("AFS_PG_DSN", raising=False)
@@ -470,19 +502,28 @@ async def test_concurrent_store_on_singleton_is_safe(monkeypatch, tmp_path):
     cfg = RAGConfig(backend="faiss", faiss_dir=str(tmp_path))
     client = RAGClient(cfg)
 
-    batch1 = [Document(content=f"a-{i}", source=f"test://a{i}", domain="concurrent") for i in range(2)]
-    batch2 = [Document(content=f"b-{i}", source=f"test://b{i}", domain="concurrent") for i in range(2)]
+    batch1 = [
+        Document(content=f"a-{i}", source=f"test://a{i}", domain="concurrent")
+        for i in range(2)
+    ]
+    batch2 = [
+        Document(content=f"b-{i}", source=f"test://b{i}", domain="concurrent")
+        for i in range(2)
+    ]
 
     r1, r2 = await asyncio.gather(client.store(batch1), client.store(batch2))
     total_inserted = r1.inserted + r2.inserted
     total_failed = r1.failed + r2.failed
-    assert total_inserted == 4, f"expected 4 inserted across both batches, got {total_inserted}"
+    assert (
+        total_inserted == 4
+    ), f"expected 4 inserted across both batches, got {total_inserted}"
     assert total_failed == 0
     await client.aclose()
     mod._singleton = None
 
 
 # ─── 9. Lifecycle (1 test) ───────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_aclose_releases_pg_pool():

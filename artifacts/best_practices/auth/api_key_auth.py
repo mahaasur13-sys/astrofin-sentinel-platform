@@ -109,7 +109,10 @@ def require_api_key(func):
             return await func(*args, **kwargs)
         request, path = _resolve_request(args, kwargs)
         if request is None:
-            return format_error({"code": "Unauthorized", "message": "Missing request"}), 401
+            return (
+                format_error({"code": "Unauthorized", "message": "Missing request"}),
+                401,
+            )
         err = _check_key(request, path)
         if err is not None:
             return err
@@ -121,7 +124,10 @@ def require_api_key(func):
             return func(*args, **kwargs)
         request, path = _resolve_request(args, kwargs)
         if request is None:
-            return format_error({"code": "Unauthorized", "message": "Missing request"}), 401
+            return (
+                format_error({"code": "Unauthorized", "message": "Missing request"}),
+                401,
+            )
         err = _check_key(request, path)
         if err is not None:
             return err

@@ -39,11 +39,10 @@ import os
 import random
 import sys
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
 
 # --------------------------------------------------------------------------- #
 # Конфигурация                                                                #
@@ -113,7 +112,10 @@ class Environment:
     """
 
     def __init__(
-        self, optimal_lr: float = LANDSCAPE_OPTIMAL_LR, noise_std: float = LANDSCAPE_NOISE_STD, seed: int | None = None
+        self,
+        optimal_lr: float = LANDSCAPE_OPTIMAL_LR,
+        noise_std: float = LANDSCAPE_NOISE_STD,
+        seed: int | None = None,
     ) -> None:
         self.optimal_lr = optimal_lr
         self.noise_std = noise_std
@@ -210,7 +212,7 @@ def load_state() -> CycleState:
     if not STATE_FILE.exists():
         return CycleState()
     try:
-        with open(STATE_FILE, "r", encoding="utf-8") as f:
+        with open(STATE_FILE, encoding="utf-8") as f:
             data = json.load(f)
         # best_loss может быть inf — JSON не любит, обработаем отдельно
         if data.get("best_loss") in (None, "Infinity"):
@@ -283,7 +285,13 @@ def run_cycle(verbose: bool = False, max_iterations: int = DEFAULT_MAX_ITERATION
                 state.rejected_count += 1
 
             state.attempts.append(
-                Attempt(iteration=i, lr=proposed_lr, loss=loss, accepted=accepted, reason=reason).__dict__
+                Attempt(
+                    iteration=i,
+                    lr=proposed_lr,
+                    loss=loss,
+                    accepted=accepted,
+                    reason=reason,
+                ).__dict__
             )
 
             # ---- 5. Сохранить state после КАЖДОЙ попытки (атомарно) ----

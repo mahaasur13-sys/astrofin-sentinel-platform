@@ -14,8 +14,6 @@ Usage:
     )
 """
 
-from __future__ import annotations
-
 from core.idea_model import Idea, IdeaStatus
 
 # ─── Forward-declare to avoid circular import ─────────────────────────────────
@@ -222,5 +220,5 @@ def get_buffer_stats() -> dict:
         "entries_with_rewards": len(rewards),
         "total_rewards": round(sum(rewards), 4) if rewards else 0,
         "avg_reward": round(sum(rewards) / len(rewards), 4) if rewards else 0,
-        "ideas": list(set(e.idea_id for e in _KARL_BUFFER)),
+        "ideas": list({e.idea_id for e in _KARL_BUFFER}),
     }

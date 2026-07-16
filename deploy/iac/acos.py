@@ -207,7 +207,10 @@ class ACOSOrchestrator:
             node_type=TraceType.POLICY_CONSTRAINT,
             layer="L7",
             parent_ids=[solver_node.node_id],
-            data={"violations": policy_violations, "policy_score": request.policy_score},
+            data={
+                "violations": policy_violations,
+                "policy_score": request.policy_score,
+            },
         )
         self.trace_store.add_node(trace_id, policy_node)
 
@@ -269,7 +272,11 @@ class ACOSOrchestrator:
             node_type=TraceType.EXECUTION,
             layer="L0",
             parent_ids=[ebl_node.node_id],
-            data={"action": request.action, "params": request.params, "status": "executed"},
+            data={
+                "action": request.action,
+                "params": request.params,
+                "status": "executed",
+            },
         )
         self.trace_store.add_node(trace_id, exec_node)
 
@@ -334,7 +341,18 @@ class ACOSGovernanceKernel:
         return {
             "RUN_ID": str(uuid.uuid4())[:8],
             "TIMESTAMP": datetime.now(timezone.utc).isoformat(),
-            "LAYERS": ["L0-L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "ETE", "CONSTRAINT_COMPILER"],
+            "LAYERS": [
+                "L0-L3",
+                "L4",
+                "L5",
+                "L6",
+                "L7",
+                "L8",
+                "L9",
+                "L10",
+                "ETE",
+                "CONSTRAINT_COMPILER",
+            ],
             "DECISION_FLOW": "ML → Solver → Policy → Governance → EBL → ETE",
             "VIOLATIONS": self.violations,
             "CONFidence": {

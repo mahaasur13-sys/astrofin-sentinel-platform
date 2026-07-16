@@ -12,7 +12,6 @@ Usage:
     python tools/thompson_cli.py daily-brief --list          # list all briefs
     python tools/thompson_cli.py daily-brief --ideas         # generate ATOM ideas
 """
-from __future__ import annotations
 
 import argparse
 import sys
@@ -122,7 +121,7 @@ def cmd_simulate(args):
         exploration_bonus=args.exploration_bonus,
     )
 
-    for i in range(args.n):
+    for _i in range(args.n):
         selected = sampler.select(pool, k=k)
         for name, _ in selected:
             counts[name] += 1

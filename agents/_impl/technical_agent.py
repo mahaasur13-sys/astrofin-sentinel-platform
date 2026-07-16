@@ -7,10 +7,13 @@ AstroFin Sentinel v5 — Technical Agent
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent
 
@@ -48,7 +51,7 @@ class TechnicalAgent(BaseAgent[AgentResponse]):
     async def analyze(self, state: dict[str, Any]) -> AgentResponse:
         symbol = state.get("symbol", "BTCUSDT")
         current_price = state.get("current_price") or state.get("price") or 50000
-        dt = state.get("datetime") or datetime.utcnow()
+        dt = state.get("datetime") or datetime.now(timezone.utc)
 
         # 1. Астрологические данные
         eph = self._call_ephemeris(dt)
@@ -291,8 +294,3 @@ async def run_technical_agent(state: dict) -> dict:
     agent = TechnicalAgent()
     result = await agent.run(state)
     return {"technical_signal": result.to_dict()}
-
-
-def create() -> TechnicalAgent:
-    """Factory for 6-fn test contract."""
-    return TechnicalAgent()

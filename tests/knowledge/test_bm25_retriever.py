@@ -12,7 +12,9 @@ def finance_chunks() -> list[Chunk]:
     return [
         Chunk(id="1", content="Купить акции Apple по рыночной цене", metadata={}),
         Chunk(id="2", content="Продать облигации федерального займа", metadata={}),
-        Chunk(id="3", content="Инвестиции в недвижимость и земельные участки", metadata={}),
+        Chunk(
+            id="3", content="Инвестиции в недвижимость и земельные участки", metadata={}
+        ),
         Chunk(id="4", content="Дивидендная политика компании Apple", metadata={}),
     ]
 

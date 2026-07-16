@@ -15,10 +15,13 @@ from typing import Any
 try:
     from dag_validator.validator import DAGValidator
     from dag_validator.validator import ViolationType as VT
-    from determinism_controller.controller import DeterminismController, ExecutionContext
+    from determinism_controller.controller import (
+        DeterminismController,
+        ExecutionContext,
+    )
     from execution_sandbox.sandbox import ExecutionSandbox
-    from execution_sandbox.sandbox import ViolationType as SVT
-    from hash_chain.chain import HashChain, compute_deterministic_hash
+    from execution_sandbox.sandbox import ViolationType as _SVT
+    from hash_chain.chain import HashChain, _compute_deterministic_hash
 except ImportError:
     import os
     import sys
@@ -128,7 +131,7 @@ class L11Verifier:
             sandbox_results=sandbox_results,
         )
 
-    def post_execution(self, trace: dict, original_dag: dict | None = None) -> VerificationReport:
+    def post_execution(self, trace: dict, _original_dag: dict | None = None) -> VerificationReport:
         failures = []
         trace_id = trace.get("trace_id", "unknown")
         dag_hash = trace.get("dag_hash", "")
@@ -157,7 +160,11 @@ class L11Verifier:
         return dict.fromkeys(SYSTEM_INVARIANTS, True)
 
     def full_pipeline(
-        self, dag: dict, node_results: list[dict], trace: dict, context: dict | None = None
+        self,
+        dag: dict,
+        node_results: list[dict],
+        trace: dict,
+        context: dict | None = None,
     ) -> dict[str, Any]:
         pre = self.pre_execution(dag, context)
         mid = self.mid_execution(node_results, dag)
@@ -171,7 +178,7 @@ class L11Verifier:
             "post_execution": {"passed": post.passed, "violations": len(post.failures)},
             "total_failures": len(all_failures),
             "critical": len(critical_failures),
-            "action_needed": critical_failures[0].action.value if critical_failures else "APPROVE",
+            "action_needed": (critical_failures[0].action.value if critical_failures else "APPROVE"),
             "invariants": self.verify_invariants(),
         }
 

@@ -17,6 +17,7 @@ Usage:
 import argparse
 import os
 import sys
+import tempfile
 from datetime import datetime, timedelta, timezone
 
 import structlog
@@ -29,7 +30,12 @@ from feature_pipeline import FeatureBuilder, FeatureExporter, build_features
 DSN = os.environ.get("CLUSTER_DSN", "postgresql://cluster:password@localhost:5432/cluster_metrics")
 
 
-def backfill_range(start: datetime, end: datetime, export_dir: str | None = None, nodes: list[str] | None = None):
+def backfill_range(
+    start: datetime,
+    end: datetime,
+    export_dir: str | None = None,
+    nodes: list[str] | None = None,
+):
     """
     Reconstruct features from TimescaleDB continuous aggregates.
     Queries metrics_5m (primary) with full historical fidelity.
@@ -105,7 +111,7 @@ if __name__ == "__main__":
     parser.add_argument("--start", type=str)
     parser.add_argument("--end", type=str)
     parser.add_argument("--export-csv", action="store_true")
-    parser.add_argument("--output", default="/tmp/ml_dataset")
+    parser.add_argument("--output", default=os.path.join(tempfile.gettempdir(), "ml_dataset"))
     args = parser.parse_args()
 
     if args.start and args.end:

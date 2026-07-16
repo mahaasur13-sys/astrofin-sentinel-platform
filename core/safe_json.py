@@ -1,7 +1,5 @@
 """core/safe_json.py — ATOM-017 FIX: Safe JSON operations with error handling"""
 
-from __future__ import annotations
-
 import json
 import logging
 from datetime import datetime
@@ -72,7 +70,7 @@ def safe_jsonl_load(filepath: str) -> list:
     """Load all records from a JSONL file safely."""
     try:
         with open(filepath, encoding="utf-8") as f:
-            lines = [line.strip() for line in f if line.strip()]
+            lines = [l.strip() for l in f if l.strip()]
         records = []
         for i, line in enumerate(lines):
             try:

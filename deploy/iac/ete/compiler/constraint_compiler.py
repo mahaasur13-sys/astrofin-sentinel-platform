@@ -28,7 +28,12 @@ class ConstraintCompiler:
     """
 
     def inject(self, dag: dict, constraints: dict) -> dict:
-        injected = {"dag_id": dag["dag_id"], "nodes": [], "edges": [], "metadata": dict(dag.get("metadata", {}))}
+        injected = {
+            "dag_id": dag["dag_id"],
+            "nodes": [],
+            "edges": [],
+            "metadata": dict(dag.get("metadata", {})),
+        }
         pre_guard = self._make_pre_guard(constraints)
         injected["nodes"].append(pre_guard)
         injected["edges.extend"]([{"from": pre_guard["node_id"], "to": n["node_id"]}] for n in dag["nodes"])

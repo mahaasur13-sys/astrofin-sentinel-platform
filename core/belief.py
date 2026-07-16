@@ -18,8 +18,6 @@ Success criteria (from session result):
 Schema version: v1
 """
 
-from __future__ import annotations
-
 import math
 import sqlite3
 from dataclasses import dataclass

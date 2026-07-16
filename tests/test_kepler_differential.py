@@ -3,7 +3,6 @@ tests/test_kepler_differential.py — ATOM-STEP-3: Differential Testing (Swiss E
 ==========================================================================================
 Differential tests: pure Keplerian (core/kepler.py) vs Swiss Ephemeris DE405.
 """
-from __future__ import annotations
 
 import math
 import sys
@@ -49,9 +48,9 @@ class TestDifferentialSwissEphemeris:
         s_lon = _eph.calculate_planet(body, jd).longitude
         delta_deg = angular_sep(k_lon, s_lon)
 
-        assert delta_deg < REASONABLE_ERROR_ARCMIN, (
-            f"{body}: J2000 Δ={delta_deg * 60:.2f} arcmin (Kepler={k_lon:.4f}°, Swiss={s_lon:.4f}°)"
-        )
+        assert (
+            delta_deg < REASONABLE_ERROR_ARCMIN
+        ), f"{body}: J2000 Δ={delta_deg * 60:.2f} arcmin (Kepler={k_lon:.4f}°, Swiss={s_lon:.4f}°)"
 
     # ─── Test 2: Earth frame-awareness (reference frame difference) ─────
 

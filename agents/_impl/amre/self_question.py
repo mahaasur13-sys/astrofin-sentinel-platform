@@ -1,14 +1,11 @@
-from __future__ import annotations
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Any
-import os
-
 """amre/self_question.py — Self-Questioning Engine + Meta-Questioning (ATOM-016)
 Self-questioning: agent asks itself hard questions before committing to a decision.
 Meta-questioning: agent reflects on whether its own questions are good enough.
 """
 
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
 
 # ─── Question Outcome Tracking ──────────────────────────────────────────────────
 
@@ -121,7 +118,7 @@ class SelfQuestioningEngine:
             return default
 
         high_conf = [s for s in signals if _get(s, "confidence", 50) > 75]
-        low_agr = len(set(_get(s, "signal", "") for s in signals)) > 3
+        low_agr = len({_get(s, "signal", "") for s in signals}) > 3
 
         q_lower = question.lower()
 
@@ -283,6 +280,8 @@ class SelfQuestioningEngine:
 # ============================================================================
 # PHASE 4: SelfQ Triple Trigger (ATOM-KARL-015)
 # ============================================================================
+import os
+from typing import Any
 
 # Feature flag (можно переопределить через env)
 SELFQ_TRIPLE_TRIGGER_ENABLED = os.getenv("SELFQ_TRIPLE_TRIGGER_ENABLED", "true").lower() == "true"

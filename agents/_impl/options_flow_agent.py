@@ -6,9 +6,18 @@ from __future__ import annotations
 
 import logging
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +95,11 @@ class OptionsFlowAgent(BaseAgent[AgentResponse]):
 
         confidence = int(sum(scores) / len(scores) * 100)
 
-        reasoning = f"GEX: {gex_analysis['summary']}. Activity: {activity_analysis['summary']}. Squeeze: {squeeze_analysis['probability']}"
+        reasoning = (
+            f"GEX: {gex_analysis['summary']}. "
+            f"Activity: {activity_analysis['summary']}. "
+            f"Squeeze: {squeeze_analysis['probability']}"
+        )
 
         return AgentResponse(
             agent_name="OptionsFlowAgent",
@@ -176,8 +189,3 @@ async def run_options_flow_agent(state: dict) -> dict:
     agent = OptionsFlowAgent()
     result = await agent.analyze(state)
     return {"options_flow_signal": result.to_dict()}
-
-
-def create() -> OptionsFlowAgent:
-    """Factory for 6-fn test contract."""
-    return OptionsFlowAgent()

@@ -1,7 +1,5 @@
 """mas_factory/architect.py - MASFactoryArchitect: builds topology from intention"""
 
-from __future__ import annotations
-
 import hashlib
 import json
 from dataclasses import dataclass
@@ -197,9 +195,7 @@ class MASFactoryArchitect:
         complexity = (
             "simple"
             if len(required_capabilities) <= 3
-            else "moderate"
-            if len(required_capabilities) <= 5
-            else "complex"
+            else "moderate" if len(required_capabilities) <= 5 else "complex"
         )
 
         # Constraints
@@ -276,7 +272,7 @@ class MASFactoryArchitect:
         capability_order = list(intention.required_capabilities)[:4]
 
         prev = "router"
-        for i, cap in enumerate(capability_order):
+        for _i, cap in enumerate(capability_order):
             # Find matching role
             role = next((r for r in roles if cap in r.capabilities), None)
             if role:

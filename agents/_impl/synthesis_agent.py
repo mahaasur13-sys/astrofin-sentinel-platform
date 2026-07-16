@@ -14,9 +14,14 @@ from pathlib import Path
 import yaml
 
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError
-from agents._impl.ephemeris_decorator import require_ephemeris
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 from core.volatility import VolatilityEngine, VolatilityRegime
 
 logger = logging.getLogger(__name__)
@@ -52,7 +57,8 @@ def _load_weights() -> dict:
         actual = sum(normalized.values())
         if abs(actual - 1.0) > 0.001:
             raise ValueError(
-                f"{name} sum = {actual:.4f} (expected 1.0). Check config/agent_weights.yaml — all weight values must sum to 1.0."
+                f"{name} sum = {actual:.4f} (expected 1.0). "
+                f"Check config/agent_weights.yaml — all weight values must sum to 1.0."
             )
         return normalized
 
@@ -133,7 +139,6 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
             logger.exception("agent_run_unhandled", extra={"agent": self.name})
             return self._degraded(UNKNOWN, repr(e))
 
-    @require_ephemeris
     async def analyze(self, state: dict) -> AgentResponse:
         """
         Финальный синтез всех агентов.
@@ -283,7 +288,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
                 decision_id=state.get("session_id", str(uuid.uuid4())) + "_" + symbol,
                 timestamp=datetime.now().isoformat(),
                 symbol=symbol,
-                signal=direction.value if hasattr(direction, "value") else str(direction),
+                signal=(direction.value if hasattr(direction, "value") else str(direction)),
                 confidence=confidence,
                 q_star=vol_risk.kelly_adjusted if vol_risk else 0.5,
                 uncertainty_total=uncertainty.get("total", 0.5),
@@ -437,7 +442,7 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
 
     def _synthesize(self, categories: dict[str, list], conflicts: list, symbol: str) -> tuple:
         """Финальный синтез."""
-        eff = {k: v for k, v in CATEGORY_WEIGHTS.items()}
+        eff = dict(CATEGORY_WEIGHTS.items())
         if conflicts:
             for c in conflicts:
                 if c["type"] == "astro_vs_fundamental_quant":
@@ -598,8 +603,3 @@ async def run_synthesis_agent(state: dict) -> dict:
     agent = SynthesisAgent()
     result = await agent.run(state)
     return {"synthesis_signal": result.to_dict()}
-
-
-def create() -> SynthesisAgent:
-    """Factory for 6-fn test contract."""
-    return SynthesisAgent()

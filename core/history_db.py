@@ -5,8 +5,6 @@ SQLite-backed session history. Every run_sentinel_v5() call is persisted.
 Supports: save, get, list, stats, clear.
 """
 
-from __future__ import annotations
-
 import json
 import sqlite3
 from pathlib import Path
@@ -194,25 +192,29 @@ class HistoryDB:
             args = (days_arg,)
 
         with self._conn() as conn:
-            # Count + avg confidence. f-string {where} built from internal allow-list; args bound.
-            meta_sql = f"""  # nosec B608
+            # Count + avg confidence
+            meta = conn.execute(
+                f"""
                 SELECT
                     COUNT(*)                          AS total,
                     AVG(final_confidence)              AS avg_conf,
                     MIN(final_confidence)              AS min_conf,
                     MAX(final_confidence)              AS max_conf
                 FROM sessions {where}
-            """
-            meta = conn.execute(meta_sql, args).fetchone()
+            """,
+                args,
+            ).fetchone()
 
-            # Signal distribution. Same allow-list + bound args as above.
-            dist_sql = f"""  # nosec B608
+            # Signal distribution
+            dist_rows = conn.execute(
+                f"""
                 SELECT final_signal, COUNT(*) AS cnt
                 FROM sessions {where}
                 GROUP BY final_signal
                 ORDER BY cnt DESC
-            """
-            dist_rows = conn.execute(dist_sql, args).fetchall()
+            """,
+                args,
+            ).fetchall()
 
             # Recent trend: LONG vs SHORT ratio per day (last 7 days)
             trend_sql = """

@@ -3,7 +3,6 @@ AstroFin Sentinel v5 — Router Agent
 Routes user queries to appropriate specialist flows.
 """
 
-from __future__ import annotations
 from enum import Enum
 
 from pydantic import BaseModel, Field

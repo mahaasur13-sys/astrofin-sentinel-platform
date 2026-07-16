@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from mas_factory.registry import get_agent_runner  # F821 fix
 
 """mas_factory/engine.py — ATOM-R-033: Production Optimized MAS Factory Engine
@@ -123,7 +121,7 @@ class ProductionMASEngine:
 
             return {
                 "status": "success",
-                "topology_hash": topology.hash[:8] if hasattr(topology, "hash") else "unknown",
+                "topology_hash": (topology.hash[:8] if hasattr(topology, "hash") else "unknown"),
                 "result": result,
                 "metrics": {
                     "duration_ms": round(duration_ms, 2),

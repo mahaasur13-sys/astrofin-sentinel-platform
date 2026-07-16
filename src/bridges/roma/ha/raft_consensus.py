@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """ROMA Raft Consensus Layer — True distributed consensus implementation."""
-import time
-import threading
+
 import random
+import threading
+import time
 from dataclasses import dataclass, field
-from typing import List, Optional, Set, Dict
+from typing import Dict, List, Optional, Set
+
 
 @dataclass
 class LogEntry:
@@ -13,17 +15,19 @@ class LogEntry:
     command: dict
     committed: bool = False
 
+
 @dataclass
 class NodeState:
     node_id: str
     role: str = "follower"  # follower | candidate | leader
     term: int = 0
-    voted_for: Optional[str] = None
-    log: List[LogEntry] = field(default_factory=list)
+    voted_for: str | None = None
+    log: list[LogEntry] = field(default_factory=list)
     commit_index: int = 0
     last_applied: int = 0
     last_contact: float = field(default_factory=time.time)
     alive: bool = True
+
 
 class ROMARaftNode:
     """True Raft consensus node — leader election + log replication + membership."""
@@ -33,17 +37,17 @@ class ROMARaftNode:
     HEARTBEAT_INTERVAL = 0.5
     MAX_ENTRIES_PER_APPEND = 100
 
-    def __init__(self, node_id: str, cluster_nodes: List[str]):
+    def __init__(self, node_id: str, cluster_nodes: list[str]):
         self.node_id = node_id
         self.cluster_nodes = cluster_nodes
         self.state = NodeState(node_id)
         self._lock = threading.RLock()
         self._running = False
-        self._thread: Optional[threading.Thread] = None
-        self.match_index: Dict[str, int] = {n: 0 for n in cluster_nodes}
-        self.next_index: Dict[str, int] = {n: 1 for n in cluster_nodes}
-        self._voted_this_term: Set[str] = set()
-        self.on_apply: Optional[callable] = None
+        self._thread: threading.Thread | None = None
+        self.match_index: dict[str, int] = dict.fromkeys(cluster_nodes, 0)
+        self.next_index: dict[str, int] = dict.fromkeys(cluster_nodes, 1)
+        self._voted_this_term: set[str] = set()
+        self.on_apply: callable | None = None
 
     # ─── Election ───────────────────────────────────────────────────────────
     def _election_timeout(self) -> float:
@@ -190,21 +194,24 @@ class ROMARaftNode:
 class ROMARaftCluster:
     """Raft cluster manager — coordinates leader election and replication."""
 
-    def __init__(self, cluster_ids: List[str]):
-        self.nodes: Dict[str, ROMARaftNode] = {}
+    def __init__(self, cluster_ids: list[str]):
+        self.nodes: dict[str, ROMARaftNode] = {}
         self.cluster_ids = cluster_ids
         for nid in cluster_ids:
             self.nodes[nid] = ROMARaftNode(nid, cluster_ids)
 
-        self.leader_id: Optional[str] = None
+        self.leader_id: str | None = None
         self._lock = threading.Lock()
 
-    def elect_leader(self) -> Optional[str]:
+    def elect_leader(self) -> str | None:
         """Run leader election across cluster."""
         with self._lock:
             election_results = {}
             for nid, node in self.nodes.items():
-                t = threading.Thread(target=lambda n: election_results.update({n.node_id: n.start_election()}), args=(node,))
+                t = threading.Thread(
+                    target=lambda n: election_results.update({n.node_id: n.start_election()}),
+                    args=(node,),
+                )
                 t.start()
 
             # Wait and find leader

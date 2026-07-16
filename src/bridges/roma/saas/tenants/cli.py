@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """saas.tenants.cli — Tenant management CLI."""
+
 import argparse
 import json
 import sys
@@ -8,7 +9,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from saas.tenants.onboarding import OnboardingSession
-
 
 _TENANTS_FILE = Path(__file__).parent.parent / "tenants.json"
 
@@ -95,7 +95,12 @@ def cmd_stripe_onboard(args: argparse.Namespace) -> None:
     if not t:
         print(f"Tenant not found: {args.tenant_id}")
         sys.exit(1)
-    s = OnboardingSession(display_name=t["display_name"], slug=t["slug"], email=t["email"], revenue_share=t["revenue_share"])
+    s = OnboardingSession(
+        display_name=t["display_name"],
+        slug=t["slug"],
+        email=t["email"],
+        revenue_share=t["revenue_share"],
+    )
     s.tenant_id = t["id"]
     s.start_stripe_onboarding()
     print(f"Stripe onboarding URL:\n{s.stripe_onboarding_url}")

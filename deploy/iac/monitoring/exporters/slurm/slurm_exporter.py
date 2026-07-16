@@ -1,3 +1,5 @@
+import os
+
 #!/usr/bin/env python3
 """
 Slurm Prometheus Exporter
@@ -18,7 +20,11 @@ METRICS = {}
 def get_slurm_queue() -> dict:
     """Parse squeue output."""
     try:
-        out = subprocess.check_output(["squeue", "--format=%i|%j|%T|%P|%u|%g|%M|%L|%N", "-a"], text=True, timeout=5)
+        out = subprocess.check_output(
+            ["squeue", "--format=%i|%j|%T|%P|%u|%g|%M|%L|%N", "-a"],
+            text=True,
+            timeout=5,
+        )
     except Exception:
         return {"total_jobs": 0, "running": 0, "pending": 0, "nodes": {}}
 
@@ -113,6 +119,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", 9341), Handler)
+    server = HTTPServer((os.environ.get("BIND_HOST", "127.0.0.1"), 9341), Handler)
     print("Slurm exporter listening on :9341/metrics")
     server.serve_forever()

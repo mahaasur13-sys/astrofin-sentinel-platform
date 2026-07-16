@@ -3,8 +3,6 @@ Registry: централизованный доступ ко всем агент
 Output Adapter: единый нормализатор после registry.run().
 """
 
-from __future__ import annotations
-
 import asyncio
 import builtins
 import logging
@@ -223,17 +221,7 @@ AGENT_AGENTS: dict[str, dict] = {
         "ttc": True,
         "selfq": False,
         "path": "agents._impl.synthesis_agent",
-        "method": "run_synthesis_agent",
-    },
-    "CompromiseAgent": {
-        "name": "CompromiseAgent",
-        "domain": "synthesis",
-        "weight": 0.00,
-        "karl": False,
-        "ttc": False,
-        "selfq": False,
-        "path": "agents._impl.compromise_agent",
-        "method": "run_compromise_agent",
+        "method": "SynthesisAgent",
     },
 }
 

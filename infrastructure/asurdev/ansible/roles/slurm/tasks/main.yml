@@ -1,0 +1,68 @@
+# Ansible role: Slurm cluster setup
+- name: Slurm — install packages (controller)
+  package:
+    name:
+      - slurmctld
+      - slurm-client
+      - munge
+      - mariadb-server
+    state: present
+  when: "'rtx_node' in group_names"
+
+- name: Slurm — install packages (worker)
+  package:
+    name:
+      - slurmd
+      - slurm-client
+      - munge
+    state: present
+  when: "'rk3576_node' in group_names"
+
+- name: Slurm — create munge key
+  command: create-munge-key -f
+  when: false  # manual, run once on cluster
+
+- name: Slurm — create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: slurm
+    group: slurm
+    mode: "0755"
+  loop:
+    - /var/spool/slurm
+    - /var/log/slurm
+    - /etc/slurm
+
+- name: Slurm — deploy slurm.conf
+  template:
+    src: slurm.conf.j2
+    dest: /etc/slurm/slurm.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Slurmctld
+  when: "'rtx_node' in group_names"
+
+- name: Slurm — deploy gres.conf
+  template:
+    src: gres.conf.j2
+    dest: /etc/slurm/gres.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: "'rtx_node' in group_names"
+
+- name: Slurm — enable and start controller
+  systemd:
+    name: slurmctld
+    enabled: true
+    state: started
+  when: "'rtx_node' in group_names"
+
+- name: Slurm — enable and start slurmd (worker)
+  systemd:
+    name: slurmd
+    enabled: true
+    state: started
+  when: "'rk3576_node' in group_names"

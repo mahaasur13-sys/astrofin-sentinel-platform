@@ -100,7 +100,6 @@ class Check:
     label: str
     passed: bool
     detail: str = ""
-    severity: str = "warning"  # "error" or "warning" — threshold for --fail-on
 
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
@@ -128,10 +127,10 @@ def parse_registry() -> dict[str, dict]:
         if assign_value is None:
             continue
         if isinstance(assign_value, ast.Dict):
-            for k, v in zip(assign_value.keys, assign_value.values):
+            for k, v in zip(assign_value.keys, assign_value.values, strict=False):
                 if isinstance(k, ast.Constant) and isinstance(v, ast.Dict):
                     entry: dict = {}
-                    for kk, vv in zip(v.keys, v.values):
+                    for kk, vv in zip(v.keys, v.values, strict=False):
                         if isinstance(kk, ast.Constant):
                             try:
                                 entry[kk.value] = ast.literal_eval(vv)
@@ -151,7 +150,9 @@ def find_agent_class(tree: ast.AST) -> ast.ClassDef | None:
     return None
 
 
-def find_run_method(klass: ast.ClassDef) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+def find_run_method(
+    klass: ast.ClassDef,
+) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
     for node in klass.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == "run":
             return node
@@ -159,18 +160,10 @@ def find_run_method(klass: ast.ClassDef) -> ast.FunctionDef | ast.AsyncFunctionD
 
 
 def find_runner_function(tree: ast.AST, agent_name: str) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
-    # Prefer the conventional name: run_<agent_name>.
     expected = f"run_{_camel_to_snake(agent_name)}"
     for node in tree.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == expected:
             return node
-    # Fallback: some modules use run_<name> instead of run_<name>_agent.
-    # Try the bare snake_case (e.g. run_synthesis for SynthesisAgent).
-    bare = f"run_{_camel_to_snake(agent_name).rstrip('_agent')}"
-    if bare != expected:
-        for node in tree.body:
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == bare:
-                return node
     return None
 
 
@@ -193,7 +186,12 @@ def has_decorator(node: ast.FunctionDef | ast.AsyncFunctionDef, name: str) -> bo
 def check_A1_has_agent_class(tree: ast.AST, src: Path) -> Check:
     klass = find_agent_class(tree)
     if klass is None:
-        return Check("A1", "inherits BaseAgent[AgentResponse]", False, f"no class in {src.name} inherits BaseAgent")
+        return Check(
+            "A1",
+            "inherits BaseAgent[AgentResponse]",
+            False,
+            f"no class in {src.name} inherits BaseAgent",
+        )
     return Check("A1", "inherits BaseAgent[AgentResponse]", True, f"class {klass.name}")
 
 
@@ -204,7 +202,12 @@ def check_A2_super_init(klass: ast.ClassDef) -> Check:
                 if isinstance(sub, ast.Call) and isinstance(sub.func, ast.Attribute):
                     if sub.func.attr == "__init__":
                         return Check("A2", "calls super().__init__", True)
-            return Check("A2", "calls super().__init__", False, "__init__ exists but does not call super().__init__")
+            return Check(
+                "A2",
+                "calls super().__init__",
+                False,
+                "__init__ exists but does not call super().__init__",
+            )
     return Check("A2", "calls super().__init__", False, "no __init__ defined")
 
 
@@ -213,7 +216,12 @@ def check_A3_run_method(klass: ast.ClassDef) -> Check:
     if run is None:
         return Check("A3", "defines async run(self, state)", False, "no `run` method")
     if not isinstance(run, ast.AsyncFunctionDef):
-        return Check("A3", "defines async run(self, state)", False, "`run` is sync; should be async")
+        return Check(
+            "A3",
+            "defines async run(self, state)",
+            False,
+            "`run` is sync; should be async",
+        )
     return Check("A3", "defines async run(self, state)", True)
 
 
@@ -227,7 +235,12 @@ def check_A4_ephemeris_decorator(
     lowered = source_text.lower()
     needs_ephemeris = any(kw in lowered for kw in EPHEMERIS_KEYWORDS)
     if not needs_ephemeris:
-        return Check("A4", "@require_ephemeris decorator", True, "not required for this agent (no ephemeris symbols)")
+        return Check(
+            "A4",
+            "@require_ephemeris decorator",
+            True,
+            "not required for this agent (no ephemeris symbols)",
+        )
 
     # Find any decorator named require_ephemeris anywhere in the class body.
     has_dec = False
@@ -239,7 +252,10 @@ def check_A4_ephemeris_decorator(
     if has_dec:
         return Check("A4", "@require_ephemeris decorator", True, "present on a method")
     return Check(
-        "A4", "@require_ephemeris decorator", False, "agent uses ephemeris symbols but no method has @require_ephemeris"
+        "A4",
+        "@require_ephemeris decorator",
+        False,
+        "agent uses ephemeris symbols but no method has @require_ephemeris",
     )
 
 
@@ -248,11 +264,24 @@ def check_A5_runner_function(tree: ast.AST, agent_name: str) -> Check:
     if fn is None:
         expected = f"run_{_camel_to_snake(agent_name)}"
         return Check(
-            "A5", f"exports run_<{agent_name}>(state)", False, f"expected a top-level `{expected}` async function"
+            "A5",
+            f"exports run_<{agent_name}>(state)",
+            False,
+            f"expected a top-level `{expected}` async function",
         )
     if not isinstance(fn, ast.AsyncFunctionDef):
-        return Check("A5", f"exports run_<{agent_name}>(state)", False, f"function `{fn.name}` should be async")
-    return Check("A5", f"exports run_<{agent_name}>(state)", True, f"function `{fn.name}` is async")
+        return Check(
+            "A5",
+            f"exports run_<{agent_name}>(state)",
+            False,
+            f"function `{fn.name}` should be async",
+        )
+    return Check(
+        "A5",
+        f"exports run_<{agent_name}>(state)",
+        True,
+        f"function `{fn.name}` is async",
+    )
 
 
 def check_A6_registry_entry(
@@ -271,14 +300,19 @@ def check_A6_registry_entry(
             "A6",
             "AGENT_AGENTS entry",
             False,
-            f"agent '{agent_name}' not in AGENT_AGENTS; add it in agents/gitagent_registry.py",
+            f"agent '{agent_name}' not in AGENT_AGENTS; " f"add it in agents/gitagent_registry.py",
         )
     weight = entry.get("weight", 0)
     if not (0.0 <= weight <= 1.0):
         return Check("A6", "AGENT_AGENTS entry", False, f"weight={weight} not in [0, 1]")
     domain = entry.get("domain", "")
     if domain not in ALLOWED_DOMAINS:
-        return Check("A6", "AGENT_AGENTS entry", False, f"domain '{domain}' not in {sorted(ALLOWED_DOMAINS)}")
+        return Check(
+            "A6",
+            "AGENT_AGENTS entry",
+            False,
+            f"domain '{domain}' not in {sorted(ALLOWED_DOMAINS)}",
+        )
     return Check("A6", "AGENT_AGENTS entry", True, f"weight={weight}, domain={domain}")
 
 
@@ -298,7 +332,12 @@ def check_A8_return_type(run: ast.FunctionDef | ast.AsyncFunctionDef | None) -> 
         return Check("A8", "run() return annotation", False, "run() lacks return type hint")
     hint = ast.unparse(ret)
     if "AgentResponse" not in hint:
-        return Check("A8", "run() return annotation", False, f"run() returns {hint!r}, expected AgentResponse")
+        return Check(
+            "A8",
+            "run() return annotation",
+            False,
+            f"run() returns {hint!r}, expected AgentResponse",
+        )
     return Check("A8", "run() return annotation", True, f"-> {hint}")
 
 
@@ -310,7 +349,12 @@ def check_A9_graceful(run: ast.FunctionDef | ast.AsyncFunctionDef | None, src_te
     for sub in ast.walk(run):
         if isinstance(sub, ast.Try):
             return Check("A9", "graceful degradation", True, "run() has try/except block")
-    return Check("A9", "graceful degradation", False, "run() has no try/except; consider wrapping external calls")
+    return Check(
+        "A9",
+        "graceful degradation",
+        False,
+        "run() has no try/except; consider wrapping external calls",
+    )
 
 
 # ─── Driver ────────────────────────────────────────────────────────────────
@@ -342,7 +386,7 @@ def validate(src: Path) -> list[Check]:
     ]
 
 
-def render(checks: list[Check], src: Path, fail_on: str = "warning") -> int:
+def render(checks: list[Check], src: Path) -> int:
     try:
         label = str(src.relative_to(REPO_ROOT))
     except ValueError:
@@ -353,16 +397,6 @@ def render(checks: list[Check], src: Path, fail_on: str = "warning") -> int:
         return 0
     passed = sum(1 for c in checks if c.passed)
     failed = [c for c in checks if not c.passed]
-    # Map --fail-on to severity threshold
-    # fail_on="error"   → only fail exit if any check has severity=="error" and not passed
-    # fail_on="warning" → fail exit on any failed check (default for backward compat)
-    # fail_on="never"   → always exit 0
-    blocking = []
-    if fail_on == "error":
-        blocking = [c for c in failed if c.severity == "error"]
-    elif fail_on == "warning":
-        blocking = list(failed)
-    # fail_on == "never" → blocking = []
     max_label = max(len(c.label) for c in checks)
     for c in checks:
         icon = GREEN("✔") if c.passed else RED("✖")
@@ -376,7 +410,7 @@ def render(checks: list[Check], src: Path, fail_on: str = "warning") -> int:
         print(RED(f"  {len(failed)} failed."))
     else:
         print(GREEN("  Ready to ship."))
-    return 0 if not blocking else 1
+    return 0 if not failed else 1
 
 
 def recommend_fixes(checks: list[Check]) -> None:
@@ -419,14 +453,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("target", nargs="?", default="agents/_impl", help="agent file or directory")
     parser.add_argument("--with-tests", action="store_true", help="also run the corresponding test file")
     parser.add_argument(
-        "--list-recommended-fixes", action="store_true", help="only print recommended fixes for failed checks"
-    )
-    parser.add_argument(
-        "--fail-on",
-        choices=["error", "warning", "never"],
-        default="warning",
-        help="exit non-zero on this severity or higher (default: warning). "
-        "Compatibility flag — used by .github/workflows/quality-gate.yml.",
+        "--list-recommended-fixes",
+        action="store_true",
+        help="only print recommended fixes for failed checks",
     )
     args = parser.parse_args(argv)
 
@@ -448,7 +477,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.list_recommended_fixes:
             recommend_fixes(checks)
         else:
-            overall |= render(checks, src, fail_on=args.fail_on)
+            overall |= render(checks, src)
         if args.with_tests:
             test = find_test_file(src)
             if test:

@@ -1,7 +1,5 @@
 """amre/similarity.py — Trajectory similarity + Q* estimation"""
 
-from __future__ import annotations
-
 import math
 
 from .trajectory import MarketState, Trajectory, trajectory_from_state

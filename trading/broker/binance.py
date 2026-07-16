@@ -233,7 +233,7 @@ class BinanceBroker(BaseBroker):
                 order_type=OrderType.MARKET,
                 quantity=float(order["amount"]),
                 price=float(order.get("price", 0)),
-                status=OrderStatus.FILLED if order["status"] == "closed" else OrderStatus.PENDING,
+                status=(OrderStatus.FILLED if order["status"] == "closed" else OrderStatus.PENDING),
                 filled_qty=float(order.get("filled", 0)),
             )
         except Exception:

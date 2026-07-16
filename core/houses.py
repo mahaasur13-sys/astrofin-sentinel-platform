@@ -3,8 +3,6 @@
 Michael P. Munkasey's "An Astrological House Formulary"
 """
 
-from __future__ import annotations
-
 import math
 from dataclasses import dataclass
 from datetime import datetime
@@ -136,7 +134,7 @@ def calculate_placidus_cusps(
     ra_mc: float,
     latitude: float,
     declination: float,
-) -> List[float]:
+) -> list[float]:
     """
     Расчёт куспидов по системе Placidus
 
@@ -185,7 +183,7 @@ def calculate_placidus_cusps(
     return cusps
 
 
-def calculate_porphyry_cusps(asc: float, mc: float) -> List[float]:
+def calculate_porphyry_cusps(asc: float, mc: float) -> list[float]:
     """
     Расчёт куспидов по системе Porphyry
 
@@ -232,7 +230,7 @@ def calculate_porphyry_cusps(asc: float, mc: float) -> List[float]:
     return cusps
 
 
-def calculate_equal_houses(asc: float) -> List[float]:
+def calculate_equal_houses(asc: float) -> list[float]:
     """
     Расчёт Equal Houses (от ASC)
 
@@ -247,7 +245,7 @@ def calculate_equal_houses(asc: float) -> List[float]:
     return [normalize_degrees(asc + i * 30) for i in range(12)]
 
 
-def calculate_whole_sign_houses(asc: float) -> List[float]:
+def calculate_whole_sign_houses(asc: float) -> list[float]:
     """
     Расчёт Whole Sign Houses
 
@@ -264,7 +262,7 @@ def calculate_whole_sign_houses(asc: float) -> List[float]:
     return [normalize_degrees(asc_sign_start + i * 30) for i in range(12)]
 
 
-def calculate_alcabitius_cusps(ra_asc: float, ra_mc: float) -> List[float]:
+def calculate_alcabitius_cusps(ra_asc: float, ra_mc: float) -> list[float]:
     """
     Расчёт куспидов по системе Alcabitius
 
@@ -313,7 +311,7 @@ def calculate_alcabitius_cusps(ra_asc: float, ra_mc: float) -> List[float]:
     return cusps_ra
 
 
-def normalize_degrees_custom(deg: float, is_ra: bool = False) -> float:
+def normalize_degrees(deg: float, is_ra: bool = False) -> float:
     """Нормализовать градусы
 
     Args:
@@ -352,7 +350,7 @@ class HouseCalculator:
         latitude: float,
         longitude: float,
         obliquity: float = 23.4393,
-    ) -> Dict:
+    ) -> dict:
         """
         Расчёт всех куспидов домов
 

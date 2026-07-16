@@ -12,6 +12,8 @@ Usage:
 
 import argparse
 import logging
+import os
+import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
@@ -40,11 +42,21 @@ def parse_args():
     p.add_argument("--validate-registry", action="store_true", help="Validate feature registry")
     p.add_argument("--continuous", action="store_true", help="Run continuous pipeline")
     p.add_argument("--interval", type=int, default=60, help="Sampling interval in seconds")
-    p.add_argument("--nodes", type=str, default="rtx-node,rk3576-node", help="Comma-separated node IDs")
+    p.add_argument(
+        "--nodes",
+        type=str,
+        default="rtx-node,rk3576-node",
+        help="Comma-separated node IDs",
+    )
     p.add_argument("--export-csv", action="store_true", help="Export CSV dataset")
     p.add_argument("--export-json", action="store_true", help="Export JSON dataset")
     p.add_argument("--export-parquet", action="store_true", help="Export Parquet dataset")
-    p.add_argument("--output", type=str, default="/tmp/ml_dataset", help="Output directory")
+    p.add_argument(
+        "--output",
+        type=str,
+        default=os.path.join(tempfile.gettempdir(), "ml_dataset"),
+        help="Output directory",
+    )
     p.add_argument("--horizon", type=int, default=30, help="Prediction horizon in minutes")
     p.add_argument("--embedding", action="store_true", help="Compute and show node embeddings")
     p.add_argument("--log-level", type=str, default="INFO", choices=["DEBUG", "INFO", "WARNING"])
@@ -91,7 +103,13 @@ def run_continuous(nodes: list[str], interval: int):
 # =============================================================================
 
 
-def run_export(output_dir: str, export_csv: bool, export_json: bool, export_parquet: bool, horizon: int):
+def run_export(
+    output_dir: str,
+    export_csv: bool,
+    export_json: bool,
+    export_parquet: bool,
+    horizon: int,
+):
     """Export ML dataset."""
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     exporter = DatasetExporter(horizon_minutes=horizon)
@@ -187,7 +205,13 @@ def main():
 
     do_export = args.export_csv or args.export_json or args.export_parquet
     if do_export:
-        run_export(args.output, args.export_csv, args.export_json, args.export_parquet, args.horizon)
+        run_export(
+            args.output,
+            args.export_csv,
+            args.export_json,
+            args.export_parquet,
+            args.horizon,
+        )
         return
 
     if args.embedding:

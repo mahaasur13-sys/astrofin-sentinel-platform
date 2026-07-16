@@ -99,7 +99,11 @@ def schedule(req: ScheduleRequest):
 
         # Step 1: Submit + admission check
         submitted, job_id, reason = engine.submit_job(
-            name=req.name, job_type=req.job_type, memory_gb=req.memory_gb, priority=req.priority, script_path=req.script
+            name=req.name,
+            job_type=req.job_type,
+            memory_gb=req.memory_gb,
+            priority=req.priority,
+            script_path=req.script,
         )
 
         if not submitted:
@@ -122,7 +126,12 @@ def schedule(req: ScheduleRequest):
 
         decision = "scheduled" if ok else "failed"
         SCHEDULER_REQUESTS.labels(job_type=req.job_type, decision=decision).inc()
-        return ScheduleResponse(submitted=ok, job_id=job_id, reason=msg, node=best_node.hostname if ok else None)
+        return ScheduleResponse(
+            submitted=ok,
+            job_id=job_id,
+            reason=msg,
+            node=best_node.hostname if ok else None,
+        )
 
     finally:
         SCHEDULER_LATENCY.observe(time.time() - start)
@@ -138,7 +147,11 @@ def get_scores(job_type: str = "gpu"):
 
         if job_type == "gpu" and node.gpu_count == 0:
             continue
-        score = _compute_score(node, job_type, {"gpu": 0.5, "cpu": 0.2, "mem": 0.15, "latency": 0.10, "locality": 0.05})
+        score = _compute_score(
+            node,
+            job_type,
+            {"gpu": 0.5, "cpu": 0.2, "mem": 0.15, "latency": 0.10, "locality": 0.05},
+        )
         result.append(
             {
                 "hostname": node.hostname,
@@ -170,7 +183,12 @@ def get_state():
     nodes = store.get_cluster_state()
     util = store.get_total_utilization()
     pending = len(store.get_pending_jobs(limit=1000))
-    return {"nodes": nodes["nodes"], "utilization": util, "pending_jobs": pending, "ts": nodes["ts"]}
+    return {
+        "nodes": nodes["nodes"],
+        "utilization": util,
+        "pending_jobs": pending,
+        "ts": nodes["ts"],
+    }
 
 
 @app.get("/metrics")
@@ -188,4 +206,4 @@ def health():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="info")
+    uvicorn.run(app, host=os.environ.get("BIND_HOST", "127.0.0.1"), port=8080, log_level="info")

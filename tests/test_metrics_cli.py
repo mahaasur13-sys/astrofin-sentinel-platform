@@ -1,11 +1,10 @@
-from __future__ import annotations
-
 import subprocess
 import sys
 import time
 from pathlib import Path
 
 import pytest
+
 ROOT = Path(__file__).parent.parent
 
 
@@ -30,9 +29,11 @@ def test_with_metrics_flag_registers_metrics():
     """
     from prometheus_client import REGISTRY, generate_latest
 
-    from tools.metrics_server import REQUEST_COUNT
-
-    REQUEST_COUNT._value.get() if hasattr(REQUEST_COUNT, "_value") else 0
+    # REQUEST_COUNT has labels (method, endpoint, status); touching it with
+    # .inc() without labels raises. We only need the import to succeed and
+    # the metric to be registered. The real assertion checks the /metrics
+    # output below.
+    from tools.metrics_server import REQUEST_COUNT  # noqa: F401
 
     proc = subprocess.Popen(
         [

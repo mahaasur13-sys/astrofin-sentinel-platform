@@ -5,11 +5,20 @@ Time Window Agent — entry timing and best trading windows.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +142,7 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
             return {"direction": "neutral", "summary": "insufficient 4H data"}
 
         closes = [d[0] for d in data]
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         hour = now.hour
 
         # Check if we're at start of 4H candle (higher volume expected)
@@ -168,7 +177,7 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
             return {"direction": "neutral", "summary": "insufficient 1D data"}
 
         closes = [d[0] for d in data]
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         weekday = now.weekday()  # 0=Monday
 
         # Check day-of-week patterns
@@ -231,11 +240,11 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
 
     async def _check_astro_timing(self, state: dict) -> dict:
         """Check astro timing windows."""
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         from astrology.vedic import get_choghadiya, get_current_nakshatra
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         choghadiya = get_choghadiya(now)
         nakshatra = get_current_nakshatra(now)
@@ -264,8 +273,3 @@ async def run_time_window_agent(state: dict) -> dict:
     agent = TimeWindowAgent()
     result = await agent.analyze(state)
     return {"time_window_signal": result.to_dict()}
-
-
-def create() -> TimeWindowAgent:
-    """Factory for 6-fn test contract."""
-    return TimeWindowAgent()

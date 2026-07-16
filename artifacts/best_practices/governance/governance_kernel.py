@@ -14,7 +14,18 @@ from pathlib import Path
 
 BASE = Path("/home/workspace/home-cluster-iac")
 LAYER_ORDER = ["v8", "v7", "v6", "v5", "fp", "ts", "v4", "lt", "acos", "infra"]
-LAYER_NUM = {"v8": 8, "v7": 7, "v6": 6, "v5": 5, "fp": 4, "ts": 3, "v4": 2, "lt": 1, "acos": 1, "infra": 0}
+LAYER_NUM = {
+    "v8": 8,
+    "v7": 7,
+    "v6": 6,
+    "v5": 5,
+    "fp": 4,
+    "ts": 3,
+    "v4": 2,
+    "lt": 1,
+    "acos": 1,
+    "infra": 0,
+}
 
 LAYER_BY_DIR = {
     "v8": "v8",
@@ -114,11 +125,25 @@ def compute_violations(layer_edges):
         for tgt in tgts:
             tn = LAYER_NUM.get(tgt, 0)
             if (src, tgt) in HARD_FORBIDDEN:
-                violations.append({"from": src, "to": tgt, "type": "HARD_FORBIDDEN", "severity": "critical"})
+                violations.append(
+                    {
+                        "from": src,
+                        "to": tgt,
+                        "type": "HARD_FORBIDDEN",
+                        "severity": "critical",
+                    }
+                )
             elif (src, tgt) in FORBIDDEN:
                 violations.append({"from": src, "to": tgt, "type": "FORBIDDEN", "severity": "high"})
             elif sn > tn:
-                violations.append({"from": src, "to": tgt, "type": "cross_layer_violation", "severity": "medium"})
+                violations.append(
+                    {
+                        "from": src,
+                        "to": tgt,
+                        "type": "cross_layer_violation",
+                        "severity": "medium",
+                    }
+                )
     return violations, reachability
 
 
@@ -183,7 +208,12 @@ def run():
 
     violations, reachability = compute_violations(layer_edges)
     adv_score, adv_find = adversarial_analysis(
-        violations, reachability, layer_edges, dynamic_findings, lt_side_effects, fp_impure
+        violations,
+        reachability,
+        layer_edges,
+        dynamic_findings,
+        lt_side_effects,
+        fp_impure,
     )
 
     static_conf = 0.95 if not violations else 0.7
@@ -225,11 +255,11 @@ def run():
         },
         "SECONDARY_CAUSE": {
             "layer": secondary["from"] if secondary else None,
-            "description": f"{secondary['type']} {secondary['from']}→{secondary['to']}" if secondary else None,
+            "description": (f"{secondary['type']} {secondary['from']}→{secondary['to']}" if secondary else None),
         },
         "FAILURE_MODE": {
             "type": primary["type"] if primary else "none",
-            "description": "Architecture isolation breach" if violations else "Clean dependency graph",
+            "description": ("Architecture isolation breach" if violations else "Clean dependency graph"),
         },
         "VIOLATIONS": violations,
         "FIX_APPLIED": None,
@@ -253,7 +283,7 @@ def run():
             "action": (
                 "block"
                 if status == "BLOCK"
-                else "allow" if status == "PASS" else "warn" if status == "WARN" else "escalate"
+                else ("allow" if status == "PASS" else "warn" if status == "WARN" else "escalate")
             )
         },
         "ESCALATION_MODE": overall < 0.65,

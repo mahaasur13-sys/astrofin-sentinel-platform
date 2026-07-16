@@ -24,8 +24,6 @@ Design:
     - All DBs in scope: core/history.db, backtest/metrics_history.db
 """
 
-from __future__ import annotations
-
 import argparse
 import re
 import sqlite3

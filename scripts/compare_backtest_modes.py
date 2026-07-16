@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Compare synthetic vs real agent backtest modes (CI-friendly)."""
 
-from __future__ import annotations
-
 import argparse
 import asyncio
 import sys

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """ROMA Multi-Tenant Manager — Per-tenant isolation, quotas, RBAC."""
+
 import sys
-sys.path.insert(0, '/home/workspace/roma-execution-bridge')
+
+sys.path.insert(0, "/home/workspace/roma-execution-bridge")
+
 
 class TenantManager:
     """Manages tenant lifecycle, quotas, and RBAC."""
@@ -15,7 +18,7 @@ class TenantManager:
                 "max_concurrent_jobs": 1,
                 "gpu_available": True,
                 "rbac_domain": "default",
-                "features": ["ml_training", "inference"]
+                "features": ["ml_training", "inference"],
             },
             "tenant-pro": {
                 "plan": "PRO",
@@ -24,7 +27,12 @@ class TenantManager:
                 "max_concurrent_jobs": 5,
                 "gpu_available": True,
                 "rbac_domain": "pro",
-                "features": ["ml_training", "inference", "simulation", "data_processing"]
+                "features": [
+                    "ml_training",
+                    "inference",
+                    "simulation",
+                    "data_processing",
+                ],
             },
             "tenant-enterprise": {
                 "plan": "ENTERPRISE",
@@ -33,8 +41,14 @@ class TenantManager:
                 "max_concurrent_jobs": 50,
                 "gpu_available": True,
                 "rbac_domain": "enterprise",
-                "features": ["ml_training", "inference", "simulation", "data_processing", "custom"]
-            }
+                "features": [
+                    "ml_training",
+                    "inference",
+                    "simulation",
+                    "data_processing",
+                    "custom",
+                ],
+            },
         }
 
     def get_tenant_info(self, tenant_id: str) -> dict:
@@ -48,7 +62,7 @@ class TenantManager:
                 "allowed": False,
                 "reason": f"Requested {requested_gpu_seconds}s exceeds {info['plan']} limit of {limit}s",
                 "upgrade_to": "PRO" if info["plan"] == "FREE" else "ENTERPRISE",
-                "limit": limit
+                "limit": limit,
             }
         return {"allowed": True, "remaining": limit - requested_gpu_seconds}
 

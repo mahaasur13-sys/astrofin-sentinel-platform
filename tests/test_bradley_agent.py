@@ -10,9 +10,9 @@ All tests are pure stubs by design — no live HTTP, no real ephemeris
 calls. They keep the contract honest and the CI pipeline green, while
 giving future contributors a working pytest skeleton to flesh out.
 """
+
 from __future__ import annotations
 
-import asyncio
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -25,7 +25,6 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from agents._impl import bradley_agent as _mod  # noqa: E402
-
 
 # ── fixtures ────────────────────────────────────────────────────────────
 
@@ -46,7 +45,10 @@ def happy_state() -> dict:
 
 def test_happy_path():
     """Well-formed state must not raise and must return a sane response."""
-    _instance = getattr(_mod, 'create', lambda: None)() or getattr(_mod, list(getattr(_mod, '__dict__', {}))[0])()
+    _instance = (
+        getattr(_mod, "create", lambda: None)()
+        or getattr(_mod, list(getattr(_mod, "__dict__", {}))[0])()
+    )
     assert _mod is not None  # type: ignore[name-defined]
 
 
@@ -80,7 +82,9 @@ def test_malformed_state():
 
 def test_data_source_unavailable():
     """If a data source raises, the response is degraded with a reason code."""
-    with patch("core.http_client.HTTPClient.get", side_effect=ConnectionError("data_room down")):
+    with patch(
+        "core.http_client.HTTPClient.get", side_effect=ConnectionError("data_room down")
+    ):
         # Stub-only: we don't actually call the agent's data path here.
         pass
     assert True

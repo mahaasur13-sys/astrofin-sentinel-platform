@@ -1,7 +1,5 @@
 """amre/trajectory.py — Market state + Trajectory + TrajectoryStep"""
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -56,7 +54,7 @@ def market_state_hash(ms: MarketState) -> str:
     import hashlib
 
     data = f"{ms.symbol}:{ms.price}:{ms.timeframe}:{ms.n_signals}:{ms.regime}"
-    return hashlib.md5(data.encode()).hexdigest()[:12]  # nosec B324 — content hash for trajectory key, not security
+    return hashlib.md5(data.encode()).hexdigest()[:12]
 
 
 def trajectory_from_state(ms: MarketState) -> Trajectory:

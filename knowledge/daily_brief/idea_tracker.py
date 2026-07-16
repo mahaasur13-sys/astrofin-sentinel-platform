@@ -19,7 +19,6 @@ Usage:
     python knowledge/daily_brief/idea_tracker.py --import IDEAS_JSON  # импорт из JSON
 """
 
-from __future__ import annotations
 import argparse
 import json
 import uuid
@@ -56,8 +55,8 @@ class Idea:
     linked_trajectories: list
     impact_score: float
     created_at: str
-    tested_at: Optional[str] = None
-    evaluated_at: Optional[str] = None
+    tested_at: str | None = None
+    evaluated_at: str | None = None
     tags: list = None
 
     def __post_init__(self):
@@ -78,7 +77,7 @@ def load_ideas() -> list:
     if not IDEAS_FILE.exists():
         return []
     ideas = []
-    with open(IDEAS_FILE, "r") as f:
+    with open(IDEAS_FILE) as f:
         for line in f:
             line = line.strip()
             if line:
@@ -195,7 +194,7 @@ def create_idea(text: str, source: str, category: str = "GENERAL") -> Idea:
     return idea
 
 
-def inject_idea(idea_id: str, trajectory_id: str = None) -> Optional[Idea]:
+def inject_idea(idea_id: str, trajectory_id: str = None) -> Idea | None:
     """
     Inject idea into KARL buffer.
     Returns updated idea or None if not found.
@@ -211,7 +210,7 @@ def inject_idea(idea_id: str, trajectory_id: str = None) -> Optional[Idea]:
     return None
 
 
-def mark_tested(idea_id: str, trajectory_ids: list) -> Optional[Idea]:
+def mark_tested(idea_id: str, trajectory_ids: list) -> Idea | None:
     """Mark idea as tested with linked trajectories."""
     ideas = load_ideas()
     for idea in ideas:
@@ -224,7 +223,7 @@ def mark_tested(idea_id: str, trajectory_ids: list) -> Optional[Idea]:
     return None
 
 
-def evaluate_idea(idea_id: str, reward: float) -> Optional[Idea]:
+def evaluate_idea(idea_id: str, reward: float) -> Idea | None:
     """
     Evaluate idea by final reward from trajectory.
     Updates impact_score and sets accepted/rejected status.

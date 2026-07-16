@@ -122,7 +122,11 @@ class WindowConfig:
 
 DEFAULT_WINDOWS = [
     WindowConfig(name="1m", size_seconds=60, aggregates=["mean", "std", "min", "max", "latest"]),
-    WindowConfig(name="5m", size_seconds=300, aggregates=["mean", "std", "min", "max", "latest", "slope", "p95"]),
+    WindowConfig(
+        name="5m",
+        size_seconds=300,
+        aggregates=["mean", "std", "min", "max", "latest", "slope", "p95"],
+    ),
     WindowConfig(name="15m", size_seconds=900, aggregates=["mean", "std", "max", "slope"]),
     WindowConfig(name="1h", size_seconds=3600, aggregates=["mean", "std", "max"]),
 ]

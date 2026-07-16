@@ -23,6 +23,7 @@ Versioning: SemVer; see pyproject.toml. Backward-compat aliases
 `MarketState`, `RiskConfigV2`, `RiskEngineV2`, `StrategyEvaluator`)
 match the legacy class names from S1.
 """
+
 from __future__ import annotations
 
 from .contracts import TraceRecord, TraceStoreProtocol

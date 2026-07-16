@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import resource
+import tempfile
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -65,7 +66,11 @@ class ExecutionSandbox:
                 False,
                 node_id,
                 violations=[
-                    SandboxViolation(ViolationType.MEMORY_EXCEED, node_id, f"Memory {mem} > {self.max_memory}")
+                    SandboxViolation(
+                        ViolationType.MEMORY_EXCEED,
+                        node_id,
+                        f"Memory {mem} > {self.max_memory}",
+                    )
                 ],
             )
         # Check fs write scope
@@ -75,7 +80,9 @@ class ExecutionSandbox:
                 node_id,
                 violations=[
                     SandboxViolation(
-                        ViolationType.FS_WRITE, node_id, f"Write to '{node['write_path']}' outside allowed scope"
+                        ViolationType.FS_WRITE,
+                        node_id,
+                        f"Write to '{node['write_path']}' outside allowed scope",
                     )
                 ],
             )
@@ -89,7 +96,9 @@ class ExecutionSandbox:
         # Check env mutation
         if node.get("env_mutate") and not self.allow_env_write:
             return SandboxResult(
-                False, node_id, violations=[SandboxViolation(ViolationType.ENV_MUTATE, node_id, "Env mutation blocked")]
+                False,
+                node_id,
+                violations=[SandboxViolation(ViolationType.ENV_MUTATE, node_id, "Env mutation blocked")],
             )
         return SandboxResult(True, node_id, output=node.get("output"))
 
@@ -98,7 +107,10 @@ class ExecutionSandbox:
 
 
 if __name__ == "__main__":
-    sandbox = ExecutionSandbox(allowed_dirs=["/tmp/scope"], max_memory_bytes=1_000_000_000)
+    sandbox = ExecutionSandbox(
+        allowed_dirs=[os.path.join(tempfile.gettempdir(), "scope")],
+        max_memory_bytes=1_000_000_000,
+    )
     result = sandbox.execute({"id": "test", "output": 42})
     print(f"Allowed: {result.allowed}, Output: {result.output}")
     result2 = sandbox.execute({"id": "bad", "write_path": "/etc/passwd"})

@@ -34,7 +34,11 @@ def slurm_worker_down(node: str = "rk3576") -> tuple[bool, str, str]:
             state, name = line.split("|")
             if name.strip() == node:
                 if state.strip() in ("DOWN", "DRAIN", "DRAIN*"):
-                    return True, f"slurm_node_{state.strip().lower()}_{node}", "critical"
+                    return (
+                        True,
+                        f"slurm_node_{state.strip().lower()}_{node}",
+                        "critical",
+                    )
                 return False, "", "ok"
         return True, f"slurm_node_not_found_{node}", "warning"
     except Exception as e:
@@ -124,7 +128,12 @@ def gpu_available() -> tuple[bool, str, str]:
     """Check if GPU is accessible and not in failure state."""
     try:
         out = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=gpu_name,temperature.gpu,utilization.gpu", "--format=csv,noheader"], timeout=5
+            [
+                "nvidia-smi",
+                "--query-gpu=gpu_name,temperature.gpu,utilization.gpu",
+                "--format=csv,noheader",
+            ],
+            timeout=5,
         ).decode()
         temp = int(out.strip().split(",")[1].strip())
         if temp > 90:

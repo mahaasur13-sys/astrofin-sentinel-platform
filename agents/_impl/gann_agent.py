@@ -6,9 +6,18 @@ from __future__ import annotations
 
 import logging
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +89,13 @@ class GannAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 40
 
-        reasoning = f"Gann angles: {angles['summary']}. Price square: {price_square['summary']}. Time clusters: {time_clusters['summary']}. Astro dates: {astro_dates['summary']}. Gann score: {gann_score:.2f}"
+        reasoning = (
+            f"Gann angles: {angles['summary']}. "
+            f"Price square: {price_square['summary']}. "
+            f"Time clusters: {time_clusters['summary']}. "
+            f"Astro dates: {astro_dates['summary']}. "
+            f"Gann score: {gann_score:.2f}"
+        )
 
         return AgentResponse(
             agent_name="GannAgent",
@@ -203,14 +218,14 @@ class GannAgent(BaseAgent[AgentResponse]):
 
     async def _check_astro_time_dates(self, state: dict) -> dict:
         """Check for Gann-style astro time dates."""
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         from core.ephemeris import HAS_SWISS_EPHEMERIS, _julian_day, calculate_planet
 
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         jd = _julian_day(now)
 
         # Check if any major planet is at a Gann degree (0°, 90°, 180°, 270°)
@@ -252,8 +267,3 @@ async def run_gann_agent(state: dict) -> dict:
     agent = GannAgent()
     result = await agent.analyze(state)
     return {"gann_signal": result.to_dict()}
-
-
-def create() -> GannAgent:
-    """Factory for 6-fn test contract."""
-    return GannAgent()

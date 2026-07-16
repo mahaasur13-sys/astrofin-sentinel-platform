@@ -5,6 +5,7 @@ Covers:
   - is_redis_backed() reflects REDIS_URL.
   - No Redis client is required at import time.
 """
+
 from __future__ import annotations
 
 import importlib
@@ -12,7 +13,9 @@ import importlib
 import pytest
 
 
-def test_rate_limit_module_imports_without_redis(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_rate_limit_module_imports_without_redis(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Module must import even if REDIS_URL is unset (no connection attempt)."""
     monkeypatch.delenv("REDIS_URL", raising=False)
     # Force fresh import to assert no eager connection.

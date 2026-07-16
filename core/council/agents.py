@@ -1,7 +1,5 @@
 """core/council/agents.py — AstroCouncil agents"""
 
-from __future__ import annotations
-
 from .types import AGENT_WEIGHTS, CouncilMember, Signal
 
 

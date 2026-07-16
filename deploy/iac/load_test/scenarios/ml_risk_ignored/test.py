@@ -44,7 +44,10 @@ class MLRiskIgnoredScenario:
                 "high_risk_selected": high_risk,
             },
             "failure_detected": failure,
-            "metrics": {"high_risk_critical_jobs": high_risk, "total_critical": len(self.critical_selections)},
+            "metrics": {
+                "high_risk_critical_jobs": high_risk,
+                "total_critical": len(self.critical_selections),
+            },
             "correction_applied": None,
             "result_after_fix": None,
         }

@@ -27,7 +27,7 @@ import logging
 import os
 import re
 import uuid
-from typing import Iterable
+from collections.abc import Iterable
 
 from flask import g, request
 
@@ -179,5 +179,5 @@ def install_security_middleware(
     _log.info(
         "[security_middleware] installed: CORS origins=%s, request-id=enabled, "
         "security-headers=enabled, json-error-handler=enabled",
-        allowed_origins if allowed_origins is not None else os.environ.get("ALLOWED_ORIGINS", "*"),
+        (allowed_origins if allowed_origins is not None else os.environ.get("ALLOWED_ORIGINS", "*")),
     )

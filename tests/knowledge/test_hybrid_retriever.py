@@ -11,7 +11,6 @@ import pytest
 from knowledge.bm25_retriever import Chunk
 from knowledge.hybrid_retriever import HybridRetriever, HybridScore
 
-
 # ─── Fixtures ───────────────────────────────────────────────────────────────
 
 

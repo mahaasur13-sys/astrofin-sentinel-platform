@@ -11,7 +11,6 @@ Usage:
     python knowledge/daily_digest/daily_digest_log.py --status PROPOSED
 """
 
-from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -73,7 +72,7 @@ class DigestLog:
                         source=parts[1],
                         key_ideas=parts[2].split(", ") if parts[2] else [],
                         status=parts[3],
-                        linked_atoms=parts[4].split(", ") if len(parts) > 4 and parts[4] else [],
+                        linked_atoms=(parts[4].split(", ") if len(parts) > 4 and parts[4] else []),
                     )
                     entries.append(entry)
 

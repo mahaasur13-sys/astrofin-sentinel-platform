@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Healthcheck для AstroFinSentinelV5 — проверка окружения и сервисов."""
-from __future__ import annotations
 
 import json
 import subprocess

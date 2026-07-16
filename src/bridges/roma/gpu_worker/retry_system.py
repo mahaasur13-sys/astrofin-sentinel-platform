@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """ROMA Job Retry System with Persistent Execution Guarantee"""
+
 import threading
 import uuid
-from enum import Enum
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Optional, Dict, List, Callable
 from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Optional
+
 
 class JobState(Enum):
     QUEUED = "queued"
@@ -14,6 +17,7 @@ class JobState(Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     COMMITTED = "committed"  # event store committed = job is done
+
 
 @dataclass
 class Job:
@@ -25,8 +29,9 @@ class Job:
     max_retries: int
     created_at: datetime
     updated_at: datetime
-    error: Optional[str] = None
-    result: Optional[dict] = None
+    error: str | None = None
+    result: dict | None = None
+
 
 class JobRetryManager:
     """
@@ -34,21 +39,23 @@ class JobRetryManager:
     Job is only considered done after COMMITTED state (event store commit).
     """
 
-    def __init__(self, max_retries: int = 3,
-                 base_backoff: float = 2.0,
-                 max_backoff: float = 60.0):
+    def __init__(self, max_retries: int = 3, base_backoff: float = 2.0, max_backoff: float = 60.0):
         self.max_retries = max_retries
         self.base_backoff = base_backoff
         self.max_backoff = max_backoff
-        self._jobs: Dict[str, Job] = {}
-        self._retry_queue: List[str] = []  # job_ids pending retry
+        self._jobs: dict[str, Job] = {}
+        self._retry_queue: list[str] = []  # job_ids pending retry
         self._mu = threading.Lock()
-        self._on_retry_callback: Optional[Callable] = None
-        self._on_fail_callback: Optional[Callable] = None
+        self._on_retry_callback: Callable | None = None
+        self._on_fail_callback: Callable | None = None
 
-    def enqueue(self, plugin_type: str, payload: dict,
-                job_id: Optional[str] = None,
-                max_retries: Optional[int] = None) -> Job:
+    def enqueue(
+        self,
+        plugin_type: str,
+        payload: dict,
+        job_id: str | None = None,
+        max_retries: int | None = None,
+    ) -> Job:
         job_id = job_id or f"job-{uuid.uuid4().hex[:12]}"
         max_retries = max_retries if max_retries is not None else self.max_retries
         job = Job(
@@ -59,7 +66,7 @@ class JobRetryManager:
             retries=0,
             max_retries=max_retries,
             created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            updated_at=datetime.utcnow(),
         )
         with self._mu:
             self._jobs[job_id] = job
@@ -113,7 +120,7 @@ class JobRetryManager:
             if job.retries < job.max_retries:
                 job.state = JobState.RETRYING
                 job.retries += 1
-                backoff = min(self.base_backoff ** job.retries, self.max_backoff)
+                backoff = min(self.base_backoff**job.retries, self.max_backoff)
                 job.updated_at = datetime.utcnow()
                 # Re-enqueue for retry
                 self._retry_queue.append(job_id)
@@ -133,21 +140,21 @@ class JobRetryManager:
                         pass
             return action
 
-    def get_next_retry(self) -> Optional[str]:
+    def get_next_retry(self) -> str | None:
         with self._mu:
             if not self._retry_queue:
                 return None
             return self._retry_queue.pop(0)
 
-    def get_job(self, job_id: str) -> Optional[Job]:
+    def get_job(self, job_id: str) -> Job | None:
         with self._mu:
             return self._jobs.get(job_id)
 
-    def get_jobs_by_state(self, state: JobState) -> List[Job]:
+    def get_jobs_by_state(self, state: JobState) -> list[Job]:
         with self._mu:
             return [j for j in self._jobs.values() if j.state == state]
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         with self._mu:
             total = len(self._jobs)
             by_state = {s.value: 0 for s in JobState}
@@ -157,10 +164,7 @@ class JobRetryManager:
                 "total_jobs": total,
                 "by_state": by_state,
                 "retry_queue_depth": len(self._retry_queue),
-                "success_rate": (
-                    by_state[JobState.COMMITTED.value] / total * 100
-                    if total > 0 else 0
-                )
+                "success_rate": (by_state[JobState.COMMITTED.value] / total * 100 if total > 0 else 0),
             }
 
     def on_retry(self, cb: Callable):
@@ -179,13 +183,13 @@ class PersistentExecutionGuarantee:
 
     def __init__(self, retry_manager: JobRetryManager):
         self.retry_mgr = retry_manager
-        self._execution_log: Dict[str, dict] = {}
+        self._execution_log: dict[str, dict] = {}
 
     def begin_execution(self, job_id: str) -> bool:
         """Mark job as started (in execution log)"""
         self._execution_log[job_id] = {
             "started_at": datetime.utcnow().isoformat(),
-            "state": "started"
+            "state": "started",
         }
         return self.retry_mgr.mark_running(job_id)
 
@@ -204,7 +208,7 @@ class PersistentExecutionGuarantee:
         self._execution_log[job_id]["state"] = "committed"
         return self.retry_mgr.mark_committed(job_id)
 
-    def get_execution_trace(self, job_id: str) -> Optional[dict]:
+    def get_execution_trace(self, job_id: str) -> dict | None:
         return self._execution_log.get(job_id)
 
     def verify_committed(self, job_id: str) -> bool:

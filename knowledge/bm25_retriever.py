@@ -9,13 +9,15 @@ The retriever does NOT mutate the input chunks — scored results are
 returned as new Chunk objects via dataclasses.replace with a populated
 `bm25_score` field.
 """
+
 from __future__ import annotations
 
 import math
 import re
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
 # Matches runs of word characters: letters (incl. Cyrillic + ёЁ) and digits.
 _TOKEN_RE = re.compile(r"[a-zA-Zа-яА-ЯёЁ0-9]+")
@@ -32,9 +34,9 @@ class Chunk:
     id: str
     content: str
     metadata: dict = field(default_factory=dict)
-    embedding: Optional[List[float]] = None
-    score: Optional[float] = None
-    bm25_score: Optional[float] = None
+    embedding: list[float] | None = None
+    score: float | None = None
+    bm25_score: float | None = None
 
 
 class BM25Retriever:
@@ -52,19 +54,17 @@ class BM25Retriever:
         k1: float = 1.5,
         b: float = 0.75,
     ) -> None:
-        self.chunks: List[Chunk] = list(chunks)
+        self.chunks: list[Chunk] = list(chunks)
         self.k1 = k1
         self.b = b
 
-        self._tokenized: List[List[str]] = [self._tokenize(c.content) for c in self.chunks]
+        self._tokenized: list[list[str]] = [self._tokenize(c.content) for c in self.chunks]
         n = len(self.chunks)
-        self._avgdl = (
-            sum(len(toks) for toks in self._tokenized) / n if n else 0.0
-        )
+        self._avgdl = sum(len(toks) for toks in self._tokenized) / n if n else 0.0
         self._idf: dict = self._compute_idf()
 
     @staticmethod
-    def _tokenize(text: str) -> List[str]:
+    def _tokenize(text: str) -> list[str]:
         return _TOKEN_RE.findall(text.lower())
 
     def _compute_idf(self) -> dict:
@@ -83,8 +83,8 @@ class BM25Retriever:
 
     def _score_doc(
         self,
-        query_tokens: List[str],
-        doc_tokens: List[str],
+        query_tokens: list[str],
+        doc_tokens: list[str],
         doc_len: int,
     ) -> float:
         if not doc_tokens or doc_len == 0 or self._avgdl == 0:
@@ -103,7 +103,7 @@ class BM25Retriever:
             score += idf * (num / den)
         return score
 
-    def retrieve(self, query: str, top_k: int = 10) -> List[Chunk]:
+    def retrieve(self, query: str, top_k: int = 10) -> list[Chunk]:
         """Return top-k chunks by BM25 score (descending), as new objects."""
         if top_k <= 0:
             return []
@@ -111,14 +111,14 @@ class BM25Retriever:
         if not query_tokens:
             return []
 
-        scored: List[tuple] = []
-        for idx, chunk in enumerate(self.chunks):
+        scored: list[tuple] = []
+        for idx, _chunk in enumerate(self.chunks):
             doc_len = len(self._tokenized[idx])
             s = self._score_doc(query_tokens, self._tokenized[idx], doc_len)
             scored.append((s, idx))
 
         scored.sort(key=lambda x: x[0], reverse=True)
-        results: List[Chunk] = []
+        results: list[Chunk] = []
         for s, idx in scored[:top_k]:
             results.append(replace(self.chunks[idx], bm25_score=s))
         return results

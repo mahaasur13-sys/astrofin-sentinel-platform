@@ -98,7 +98,7 @@ def _safe_float(name: str, default: float, min_val: float = 0.0) -> float:
 class RAGConfig(BaseModel):
     backend: Literal["pgvector", "faiss"] = "pgvector"  # RAG_BACKEND env var
     legacy_fallback: bool = True
-    pg_dsn: Optional[str] = None
+    pg_dsn: str | None = None
     faiss_dir: str = "knowledge/indexes"
     top_k: int = 5
     min_score: float = 0.5
@@ -112,7 +112,7 @@ class RAGConfig(BaseModel):
     hybrid_bm25_weight: float = 1.0
 
     @classmethod
-    def from_env(cls) -> "RAGConfig":
+    def from_env(cls) -> RAGConfig:
         """Build config from environment."""
         backend = os.getenv("RAG_BACKEND", "pgvector").lower()
         if backend not in ("pgvector", "faiss"):
@@ -146,7 +146,7 @@ class Document:
     domain: str = "general"
     source_type: str = "news"  # news | filing | report | ephemeris | social | macro
     metadata: dict = field(default_factory=dict)
-    doc_id: Optional[uuid.UUID] = None  # server-assigned if None
+    doc_id: uuid.UUID | None = None  # server-assigned if None
 
 
 @dataclass
@@ -156,7 +156,7 @@ class RetrievedChunk:
     title: str
     domain: str
     relevance_score: float
-    doc_id: Optional[uuid.UUID] = None
+    doc_id: uuid.UUID | None = None
     backend: str = ""  # which backend served this result
 
 
@@ -186,10 +186,10 @@ class RAGClient:
     singleton (preferred in app code).
     """
 
-    def __init__(self, config: Optional[RAGConfig] = None):
+    def __init__(self, config: RAGConfig | None = None):
         self.config = config or RAGConfig.from_env()
         self.embedding = EmbeddingClient()  # uses its own env
-        self._pg_pool: Optional[asyncpg.Pool] = None
+        self._pg_pool: asyncpg.Pool | None = None
         self._faiss_cache: dict[str, tuple[faiss.Index, list[dict]]] = {}
         self._check_config()
 
@@ -234,10 +234,14 @@ class RAGClient:
                 return await self._store_faiss(docs)
             except Exception as e:  # noqa: BLE001
                 RAG_ERRORS_TOTAL.labels(stage="store", kind=type(e).__name__).inc()
-                logger.error("rag_store_failed: backend=%s, error=%s", self.config.backend, str(e))
+                logger.error(
+                    "rag_store_failed: backend=%s, error=%s",
+                    self.config.backend,
+                    str(e),
+                )
                 raise
 
-    async def get_all_chunks(self, domain: Optional[str] = None) -> List["RetrievedChunk"]:
+    async def get_all_chunks(self, domain: str | None = None) -> list[RetrievedChunk]:
         """Return every chunk in `documents` (pgvector backend) as RetrievedChunk.
 
         Used by PersistentBM25Retriever (P2-03c) to build a lexical index over
@@ -375,9 +379,9 @@ class RAGClient:
     async def retrieve(
         self,
         query: str,
-        top_k: Optional[int] = None,
-        domain: Optional[str] = None,
-        min_score: Optional[float] = None,
+        top_k: int | None = None,
+        domain: str | None = None,
+        min_score: float | None = None,
     ) -> list[RetrievedChunk]:
         """Query active backend; on failure + legacy_fallback, retry FAISS.
 
@@ -462,7 +466,7 @@ class RAGClient:
         self,
         query: str,
         k: int,
-        domain: Optional[str],
+        domain: str | None,
         threshold: float,
     ) -> list[RetrievedChunk]:
         pool = await self._get_pg_pool()
@@ -502,7 +506,7 @@ class RAGClient:
         self,
         query: str,
         k: int,
-        domain: Optional[str],
+        domain: str | None,
         threshold: float,
     ) -> list[RetrievedChunk]:
         qvec = await self.embedding.embed_one(query)
@@ -546,7 +550,7 @@ class RAGClient:
         self._update_rag_metrics(deduped)
         return deduped[:k]
 
-    def _load_faiss_domain(self, domain: str) -> tuple[Optional[faiss.Index], list[dict]]:
+    def _load_faiss_domain(self, domain: str) -> tuple[faiss.Index | None, list[dict]]:
         if domain in self._faiss_cache:
             return self._faiss_cache[domain]
         faiss_dir = Path(self.config.faiss_dir)
@@ -607,7 +611,7 @@ _FAISS_WRITE_LOCK = asyncio.Lock()
 # ─── Singleton ──────────────────────────────────────────────────────────────
 
 
-_singleton: Optional[RAGClient] = None
+_singleton: RAGClient | None = None
 
 
 def get_rag_client() -> RAGClient:

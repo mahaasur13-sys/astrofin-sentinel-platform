@@ -47,7 +47,13 @@ class IdempotencyScenario:
         failure = len(duplicates) > 0
         result = {
             "scenario": "idempotency_failure",
-            "tags": ["#ACOS", "#LOAD_TEST", "#FAILURE_MODE", "#SELF_HEALING", "#INCIDENT"],
+            "tags": [
+                "#ACOS",
+                "#LOAD_TEST",
+                "#FAILURE_MODE",
+                "#SELF_HEALING",
+                "#INCIDENT",
+            ],
             "input": {},
             "observed_behavior": {
                 "duplicate_count": sum(duplicates.values()) - len(duplicates),

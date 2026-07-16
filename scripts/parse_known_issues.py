@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""scripts/parse_known_issues.py
 ================================
 Phase 6 - KNOWN_ISSUES.md parser for CI integration.

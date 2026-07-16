@@ -28,18 +28,22 @@ def wsgi_app(monkeypatch: pytest.MonkeyPatch):
         if mod == "web.wsgi" or mod == "core.auth":
             importlib.sys.modules.pop(mod, None)
     import core.settings as _cs
+
     if hasattr(_cs.get_settings, "cache_clear"):
         _cs.get_settings.cache_clear()
 
     import web.wsgi as wsgi
     from core.auth import reload_auth_state
+
     reload_auth_state()
 
     return wsgi.server
 
 
 def test_missing_api_key_returns_401(wsgi_app):
-    r = wsgi_app.test_client().get("/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"})
+    r = wsgi_app.test_client().get(
+        "/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"}
+    )
     assert r.status_code == 401
     body = r.get_json()
     assert body["code"] == "UNAUTHORIZED"
@@ -86,13 +90,17 @@ def test_auth_disabled_allows_request(monkeypatch: pytest.MonkeyPatch):
             importlib.sys.modules.pop(mod, None)
 
     from core.settings import get_settings
+
     get_settings.cache_clear()
 
     from web.wsgi import server
     from core.auth import reload_auth_state
+
     reload_auth_state()
 
-    r = server.test_client().get("/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"})
+    r = server.test_client().get(
+        "/api/ab/compare", query_string={"sid_a": "a", "sid_b": "b"}
+    )
     assert r.status_code == 200
 
 
@@ -116,10 +124,12 @@ def test_constant_time_compare_used(monkeypatch: pytest.MonkeyPatch):
             importlib.sys.modules.pop(mod, None)
 
     from core.settings import get_settings
+
     get_settings.cache_clear()
 
     from web.wsgi import server
     from core.auth import reload_auth_state
+
     reload_auth_state()
 
     r = server.test_client().get(

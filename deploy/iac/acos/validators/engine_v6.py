@@ -54,11 +54,18 @@ class EventSourcedEngine:
         self._log.emit(
             trace_id,
             "DAG_VALIDATED",
-            {"node_count": len(dag.get("nodes", [])), "edge_count": len(dag.get("edges", []))},
+            {
+                "node_count": len(dag.get("nodes", [])),
+                "edge_count": len(dag.get("edges", [])),
+            },
         )
 
         # Phase 3: Governance
-        self._log.emit(trace_id, "GOVERNANCE_APPROVED", {"reason": "passed", "decided_at": time.time()})
+        self._log.emit(
+            trace_id,
+            "GOVERNANCE_APPROVED",
+            {"reason": "passed", "decided_at": time.time()},
+        )
 
         # Phase 4: Node execution
         for node in dag.get("nodes", []):

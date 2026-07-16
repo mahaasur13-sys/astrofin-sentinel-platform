@@ -71,7 +71,11 @@ class PolicyOscillationScenario:
                 "burst_cycle": self.burst_cycle,
                 "retrain_interval": self.retrain_interval,
             },
-            "observed_behavior": {"policy_switches": [], "utilities": [], "workload_profile": []},
+            "observed_behavior": {
+                "policy_switches": [],
+                "utilities": [],
+                "workload_profile": [],
+            },
             "failure_detected": False,
             "metrics": {},
             "correction_applied": None,
@@ -173,8 +177,8 @@ class PolicyOscillationScenario:
             "switch_rate_per_min": round(switch_rate, 3),
             "utility_variance": round(variance, 4),
             "total_decisions": len(self.policy_history),
-            "policy_versions_seen": len(set(s.version for s in self.policy_history)),
-            "ml_versions_seen": len(set(s.ml_version for s in self.policy_history)),
+            "policy_versions_seen": len({s.version for s in self.policy_history}),
+            "ml_versions_seen": len({s.ml_version for s in self.policy_history}),
         }
 
     def _check_failure(self, metrics: dict) -> bool:
@@ -208,7 +212,7 @@ class PolicyOscillationScenario:
         return {
             "new_switch_rate_per_min": new_switches / (100 * 0.1) * 60,
             "alpha_after_fix": self.ema_alpha,
-            "improvement": "stabilized" if new_switches < self.total_switches else "not_improved",
+            "improvement": ("stabilized" if new_switches < self.total_switches else "not_improved"),
         }
 
 

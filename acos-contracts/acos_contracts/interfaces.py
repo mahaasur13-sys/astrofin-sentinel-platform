@@ -14,10 +14,11 @@ Design rules:
   * Signatures match the legacy concrete classes so existing code keeps
     compiling without modification.
 """
+
 from __future__ import annotations
 
-from typing import Any, Protocol, runtime_checkable
 from datetime import datetime
+from typing import Any, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -78,7 +79,7 @@ class DeterministicClock(Protocol):
     `datetime.utcnow` directly.
     """
 
-    def now(self) -> "datetime": ...  # noqa: F821 — forward ref to datetime
+    def now(self) -> datetime: ...  # noqa: F821 — forward ref to datetime
     def monotonic_ns(self) -> int: ...
     def isoformat(self) -> str: ...
 

@@ -3,8 +3,6 @@
 анализа ошибок и backtest не только результатов, но и решений.
 """
 
-from __future__ import annotations
-
 import hashlib
 import json
 from dataclasses import asdict, dataclass
@@ -293,7 +291,7 @@ class _MetaRLAuditLog:
         """Statistics for Meta-RL audit log."""
         if not self.records:
             return {"total": 0, "generations": 0}
-        gens = sorted(set(r.generation for r in self.records))
+        gens = sorted({r.generation for r in self.records})
         rewards = [r.reward for r in self.records]
         return {
             "total": len(self.records),

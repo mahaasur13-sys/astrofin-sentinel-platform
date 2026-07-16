@@ -1,0 +1,29 @@
+apiVersion: v2
+name: roma-execution-bridge
+description: |
+  ROMA — Economic-Aware Distributed Execution Control Plane for Kubernetes.
+  Closed-loop compute economy with GPU scheduling, event sourcing, Raft consensus,
+  Stripe billing, and multi-tenant SaaS control plane.
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - gpu-scheduling
+  - cost-aware
+  - execution-platform
+  - roma
+  - ai-workloads
+  - event-sourcing
+  - raft-consensus
+home: https://github.com/mahaasur13-sys/roma-execution-bridge
+sources:
+  - https://github.com/mahaasur13-sys/roma-execution-bridge
+maintainers:
+  - name: mahaasur13
+    email: mahaasur13@gmail.com
+    url: https://github.com/mahaasur13-sys
+
+dependencies:
+  - name: common
+    version: "1.x.x"
+    repository: https://charts.bitnami.com/bitnami

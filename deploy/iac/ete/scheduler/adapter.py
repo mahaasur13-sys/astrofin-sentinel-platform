@@ -23,7 +23,11 @@ class SchedulerAdapter:
             "route": target,
             "job_id": job.get("trace_id", str(uuid.uuid4())[:8]),
             "assignments": [
-                {"node_id": "node-1", "scheduler": target, "partition": "gpu" if target == "slurm" else "head"}
+                {
+                    "node_id": "node-1",
+                    "scheduler": target,
+                    "partition": "gpu" if target == "slurm" else "head",
+                }
             ],
         }
 

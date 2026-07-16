@@ -11,7 +11,6 @@ Usage:
     python knowledge/daily_digest/atom_proposer.py --propose-from findings.json
 """
 
-from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import datetime

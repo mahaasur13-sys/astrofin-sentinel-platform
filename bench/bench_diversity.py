@@ -1,12 +1,15 @@
 """Benchmark diversity_filter at n=1000 candidates x n=1000 pool."""
+
 from __future__ import annotations
-import sys, time
+
+import sys
+import time
+
 sys.path.insert(0, "/home/workspace")
 
-import numpy as np
-from strategies.generator import GeneratedStrategy, random_chromosome
 from meta_rl.strategy_pool import StrategyPool
 from meta_rl.types import EvaluationResult
+from strategies.generator import GeneratedStrategy, random_chromosome
 
 
 def build(n):
@@ -19,7 +22,16 @@ def build(n):
 
 
 class ScoredStrategy_shim:
-    __slots__ = ("strategy","reward","evaluation","generation","parent_ids","reward_history","id")
+    __slots__ = (
+        "strategy",
+        "reward",
+        "evaluation",
+        "generation",
+        "parent_ids",
+        "reward_history",
+        "id",
+    )
+
     def __init__(self, s, r, ev):
         self.strategy = s
         self.evaluation = ev
@@ -27,6 +39,7 @@ class ScoredStrategy_shim:
         self.parent_ids = ()
         self.reward_history = [r]
         self.id = s.id
+
     @property
     def reward(self):
         return self.reward_history[-1]

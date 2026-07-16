@@ -2,8 +2,6 @@
 agents._impl.types — Unified types for AstroFin Sentinel v5.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum

@@ -1,7 +1,5 @@
 """test_pressure_field.py — ATOM-COORD-001: 3 Critical Tests + Constraints"""
 
-from __future__ import annotations
-
 import pytest
 
 from core.coordination.pressure_field import (
@@ -160,9 +158,9 @@ class TestRegimeDiscount:
         b_delta = result[1].eff_conf - agents[1].eff_conf
 
         # A (EXTREME) должен усилиться МЕНЬШЕ чем B (NORMAL)
-        assert abs(b_delta) >= abs(a_delta), (
-            f"NORMAL agent should have stronger influence boost, got B_delta={b_delta:.4f}, A_delta={a_delta:.4f}"
-        )
+        assert abs(b_delta) >= abs(
+            a_delta
+        ), f"NORMAL agent should have stronger influence boost, got B_delta={b_delta:.4f}, A_delta={a_delta:.4f}"
 
 
 if __name__ == "__main__":

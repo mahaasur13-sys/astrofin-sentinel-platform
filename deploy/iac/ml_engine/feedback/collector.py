@@ -90,7 +90,15 @@ class FeedbackCollector:
                 VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT DO NOTHING
             """,
-                (node_id, "JOB_ENDED", job_id, job_state, exit_code, duration_seconds, queued_seconds),
+                (
+                    node_id,
+                    "JOB_ENDED",
+                    job_id,
+                    job_state,
+                    exit_code,
+                    duration_seconds,
+                    queued_seconds,
+                ),
             )
             conn.commit()
             cursor.close()

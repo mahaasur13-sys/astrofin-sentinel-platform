@@ -44,4 +44,8 @@ class TraceRecord:
         ca = d.get("created_at")
         if isinstance(ca, str):
             ca = datetime.fromisoformat(ca.replace("Z", "+00:00"))
-        return cls(trace_id=d["trace_id"], metadata=d.get("metadata", {}), created_at=ca or datetime.utcnow())
+        return cls(
+            trace_id=d["trace_id"],
+            metadata=d.get("metadata", {}),
+            created_at=ca or datetime.utcnow(),
+        )

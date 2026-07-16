@@ -50,8 +50,16 @@ FEATURE_REGISTRY: dict[str, dict[str, Any]] = {
     # --- Failure features ---
     "failure_count_1h": {"source": "failure_events", "window": 3600, "agg": "count"},
     "failure_count_24h": {"source": "failure_events", "window": 86400, "agg": "count"},
-    "last_failure_age_min": {"source": "failure_events", "window": 86400, "agg": "last_age_min"},
-    "consecutive_failures": {"source": "failure_events", "window": 86400, "agg": "consecutive"},
+    "last_failure_age_min": {
+        "source": "failure_events",
+        "window": 86400,
+        "agg": "last_age_min",
+    },
+    "consecutive_failures": {
+        "source": "failure_events",
+        "window": 86400,
+        "agg": "consecutive",
+    },
     # --- Ray features ---
     "ray_pending_tasks_5m": {"source": "ray_pending", "window": 300, "agg": "mean"},
     "ray_active_actors_5m": {"source": "ray_actors", "window": 300, "agg": "mean"},
@@ -60,7 +68,11 @@ FEATURE_REGISTRY: dict[str, dict[str, Any]] = {
     "slurm_queued_jobs_5m": {"source": "slurm_queued", "window": 300, "agg": "max"},
     "slurm_running_jobs_5m": {"source": "slurm_running", "window": 300, "agg": "mean"},
     # --- Composite features ---
-    "overload_score": {"source": "gpu_util", "window": 300, "agg": "overload_composite"},
+    "overload_score": {
+        "source": "gpu_util",
+        "window": 300,
+        "agg": "overload_composite",
+    },
     "health_score": {"source": "cpu_util", "window": 300, "agg": "health_composite"},
     "queue_volatility_5m": {"source": "queue_size", "window": 300, "agg": "volatility"},
 }

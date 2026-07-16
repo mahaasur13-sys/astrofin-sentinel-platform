@@ -8,9 +8,18 @@ import logging
 
 import numpy as np
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 from core.http_client import get_http_client
 
 logger = logging.getLogger(__name__)
@@ -97,7 +106,12 @@ class QuantAgent(BaseAgent[AgentResponse]):
 
         confidence = int(sum(scores) / len(scores) * 100) if scores else 50
 
-        reasoning = f"Momentum: {momentum['summary']}. MeanRev: {mean_reversion['signal']} ({mean_reversion['z_score']:.1f}σ). VolRegime: {volatility_regime['regime']}. Correlation: {correlation}"
+        reasoning = (
+            f"Momentum: {momentum['summary']}. "
+            f"MeanRev: {mean_reversion['signal']} ({mean_reversion['z_score']:.1f}σ). "
+            f"VolRegime: {volatility_regime['regime']}. "
+            f"Correlation: {correlation}"
+        )
 
         return AgentResponse(
             agent_name="QuantAgent",
@@ -240,8 +254,3 @@ async def run_quant_agent(state: dict) -> dict:
     agent = QuantAgent()
     result = await agent.analyze(state)
     return {"quant_signal": result.to_dict()}
-
-
-def create() -> QuantAgent:
-    """Factory for 6-fn test contract."""
-    return QuantAgent()

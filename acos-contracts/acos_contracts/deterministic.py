@@ -9,18 +9,19 @@ Long-term, all consumers will depend on `acos-contracts` only.
 Until then, `common/deterministic.py` re-exports the same names from
 `acos_contracts.deterministic` for backward compatibility.
 """
+
 from __future__ import annotations
 
 import hashlib
 import os
 import random
 import time
+import uuid as _uuid
+from collections.abc import Sequence
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Sequence
-
-import uuid as _uuid
+from typing import Any
 
 # Stable namespace for deterministic UUID5 derivation
 _NS = _uuid.UUID("12345678-1234-5678-1234-567812345678")
@@ -29,7 +30,7 @@ _NS = _uuid.UUID("12345678-1234-5678-1234-567812345678")
 _ctx = ContextVar("astrofin_deterministic_ctx", default=None)
 
 
-def set_current_context(ctx: "DeterministicContext | None") -> object:
+def set_current_context(ctx: DeterministicContext | None) -> object:
     return _ctx.set(ctx)
 
 
@@ -37,7 +38,7 @@ def reset_current_context(token: object) -> None:
     _ctx.reset(token)  # type: ignore[arg-type]
 
 
-def _current_or_default() -> "DeterministicContext":
+def _current_or_default() -> DeterministicContext:
     return _ctx.get() or DeterministicContext()
 
 
@@ -56,7 +57,7 @@ def deterministic_uuid(
     namespace: str = "astrofin",
 ) -> str:
     """UUIDv5-style deterministic identifier (replay-stable)."""
-    payload = f"{namespace}:{clock_ns}:{salt}".encode("utf-8")
+    payload = f"{namespace}:{clock_ns}:{salt}".encode()
     digest = hashlib.sha256(payload).hexdigest()
     return f"{digest[:8]}-{digest[8:12]}-{digest[12:16]}-{digest[16:20]}-{digest[20:32]}"
 
@@ -64,15 +65,15 @@ def deterministic_uuid(
 class DeterministicContext:
     """Bundle of deterministic primitives passed through call stacks."""
 
-    clock: "DeterministicClockImpl"
-    rng: "DeterministicRNG"
+    clock: DeterministicClockImpl
+    rng: DeterministicRNG
     seed: int
     started_at_ns: int = field(default_factory=time.monotonic_ns)
 
     def __init__(
         self,
-        clock: "DeterministicClock | None" = None,
-        rng: "DeterministicRNG | None" = None,
+        clock: DeterministicClock | None = None,
+        rng: DeterministicRNG | None = None,
         seed: int | None = None,
     ) -> None:
         self.clock = clock or DeterministicClockImpl()
@@ -90,13 +91,10 @@ class DeterministicContext:
         seed: int | str | bytes,
         *,
         frozen_at: datetime | str | None = None,
-        rng: "DeterministicRNG | None" = None,
-        clock: "DeterministicClock | None" = None,
-    ) -> "DeterministicContext":
-        derived_seed = (
-            seed if isinstance(seed, int)
-            else DeterministicRNG.from_seed(seed).seed
-        )
+        rng: DeterministicRNG | None = None,
+        clock: DeterministicClock | None = None,
+    ) -> DeterministicContext:
+        derived_seed = seed if isinstance(seed, int) else DeterministicRNG.from_seed(seed).seed
         return cls(
             clock=clock or DeterministicClockImpl(frozen_at=frozen_at),
             rng=rng or DeterministicRNG.from_seed(seed),
@@ -104,7 +102,7 @@ class DeterministicContext:
         )
 
     @classmethod
-    def frozen(cls, *, at: datetime, seed: int = 0) -> "DeterministicContext":
+    def frozen(cls, *, at: datetime, seed: int = 0) -> DeterministicContext:
         clock = DeterministicClockImpl(frozen_at=at)
         rng = DeterministicRNG(seed=seed)
         return cls(clock=clock, rng=rng, seed=seed)
@@ -172,13 +170,16 @@ class DeterministicRNG:
         self._state.shuffle(x)
 
     @classmethod
-    def from_seed(cls, seed: int | str | bytes) -> "DeterministicRNG":
+    def from_seed(cls, seed: int | str | bytes) -> DeterministicRNG:
         return cls(seed)
 
     def uuid4(self) -> str:
         seed_bytes = b"".join(
-            self._state.randbytes(4) if hasattr(self._state, "randbytes")
-            else self._state.getrandbits(32).to_bytes(4, "big")
+            (
+                self._state.randbytes(4)
+                if hasattr(self._state, "randbytes")
+                else self._state.getrandbits(32).to_bytes(4, "big")
+            )
             for _ in range(4)
         )
         digest = hashlib.sha1(seed_bytes).hexdigest()

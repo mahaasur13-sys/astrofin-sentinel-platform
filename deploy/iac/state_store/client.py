@@ -132,7 +132,14 @@ class StateStore:
                 VALUES (%s,%s,%s,%s,%s,%s)
                 RETURNING id
                 """,
-                (name, job_type, memory_gb, priority, partition_name or job_type, script_path),
+                (
+                    name,
+                    job_type,
+                    memory_gb,
+                    priority,
+                    partition_name or job_type,
+                    script_path,
+                ),
             )
             job_id = cur.fetchone()["id"]
         self._write_event(job_id, "JOB_CREATED", {"priority": priority, "memory_gb": memory_gb})
@@ -147,7 +154,11 @@ class StateStore:
         return JobState(**row)
 
     def update_job_status(
-        self, job_id: str, status: JobStatus, error_message: str = None, slurm_job_id: int = None
+        self,
+        job_id: str,
+        status: JobStatus,
+        error_message: str = None,
+        slurm_job_id: int = None,
     ) -> bool:
         with self._cursor() as cur:
             if slurm_job_id is not None:
@@ -188,9 +199,11 @@ class StateStore:
 
     def get_active_slurm_job_ids(self) -> list[int]:
         with self._cursor(dict_cursor=False) as cur:
-            cur.execute("""SELECT DISTINCT slurm_job_id FROM jobs
+            cur.execute(
+                """SELECT DISTINCT slurm_job_id FROM jobs
                    WHERE slurm_job_id IS NOT NULL
-                     AND status IN ('SCHEDULED','RUNNING','ADMITTED')""")
+                     AND status IN ('SCHEDULED','RUNNING','ADMITTED')"""
+            )
             return [r[0] for r in cur.fetchall()]
 
     def is_job_already_scheduled(self, job_id: str) -> bool:
@@ -249,7 +262,14 @@ class StateStore:
                            memory_used_gb=%s, health_score=%s,
                            status=%s, last_seen=NOW()
                        WHERE hostname=%s""",
-                    (gpu_load_pct, cpu_load_pct, memory_used_gb, health_score or 100, status.value, hostname),
+                    (
+                        gpu_load_pct,
+                        cpu_load_pct,
+                        memory_used_gb,
+                        health_score or 100,
+                        status.value,
+                        hostname,
+                    ),
                 )
             else:
                 cur.execute(
@@ -262,11 +282,13 @@ class StateStore:
 
     def get_healthy_nodes(self) -> list[NodeState]:
         with self._cursor() as cur:
-            cur.execute("""SELECT * FROM nodes
+            cur.execute(
+                """SELECT * FROM nodes
                    WHERE status IN ('HEALTHY','DEGRADED')
                    ORDER BY
                      CASE WHEN 'slurm_compute' = ANY(roles) THEN 0 ELSE 1 END,
-                     gpu_load_pct ASC""")
+                     gpu_load_pct ASC"""
+            )
             return [NodeState(**r) for r in cur.fetchall()]
 
     def get_node(self, hostname: str) -> NodeState | None:
@@ -343,7 +365,13 @@ class StateStore:
     # Failure recoveries
     # -------------------------------------------------------------------------
     def write_failure_recovery(
-        self, job_id: str, hostname: str, failure_type: str, recovery_action: str, attempt: int, success: bool
+        self,
+        job_id: str,
+        hostname: str,
+        failure_type: str,
+        recovery_action: str,
+        attempt: int,
+        success: bool,
     ) -> None:
         with self._cursor() as cur:
             cur.execute(

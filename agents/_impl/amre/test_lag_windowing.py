@@ -12,8 +12,6 @@ Tests:
     pytest agents/_impl/amre/test_lag_windowing.py -v
 """
 
-from __future__ import annotations
-
 import math
 
 from agents._impl.amre.lag_windowing import (
@@ -166,7 +164,7 @@ class TestWarmupBlend:
         lw = LagWindow()
 
         # Делаем 20 warmup решений
-        for i in range(WARMUP_THRESHOLD):
+        for _i in range(WARMUP_THRESHOLD):
             lw.add(confidence=50)
 
         # Следующее решение — mature

@@ -16,7 +16,10 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 REGISTRY_PATH = Path(
-    os.environ.get("MODEL_REGISTRY_PATH", "/home/workspace/home-cluster-iac/ml_engine/registry/models")
+    os.environ.get(
+        "MODEL_REGISTRY_PATH",
+        "/home/workspace/home-cluster-iac/ml_engine/registry/models",
+    )
 )
 
 

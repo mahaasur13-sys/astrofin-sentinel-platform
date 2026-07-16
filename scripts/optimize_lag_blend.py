@@ -21,8 +21,6 @@ Usage:
     python scripts/optimize_lag_blend.py --data data/logs.csv --update-env
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import logging
@@ -478,7 +476,9 @@ def main():
         sys.exit(1)
 
     logger.info(
-        f"[Run] metric={args.metric}, window={args.window}, blend=[{args.blend_min}, {args.blend_max}] step={args.blend_step}, data={data_label}"
+        f"[Run] metric={args.metric}, window={args.window}, "
+        f"blend=[{args.blend_min}, {args.blend_max}] step={args.blend_step}, "
+        f"data={data_label}"
     )
 
     results, best = run_optimization(

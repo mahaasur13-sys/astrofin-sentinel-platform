@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """agents/gitagent_exporter.py — Export all agents to GitAgent format (fixed YAML)"""
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import Union
 
@@ -16,7 +14,11 @@ AGENTS = {
         "domain": "research",
         "weight": 0.05,
         "description": "Identifies bullish factors and positive narratives for trading decisions",
-        "capabilities": ["bullish_narrative_discovery", "positive_momentum_identification", "opportunity_mapping"],
+        "capabilities": [
+            "bullish_narrative_discovery",
+            "positive_momentum_identification",
+            "opportunity_mapping",
+        ],
         "inputs": ["market_state", "news", "social_sentiment"],
         "outputs": ["bullish_signals", "opportunities"],
         "karl": {"reward_weight": 0.05, "supports_ttc": True, "supports_selfq": True},
@@ -29,7 +31,11 @@ AGENTS = {
         "domain": "research",
         "weight": 0.05,
         "description": "Identifies bearish risks and negative narratives for trading decisions",
-        "capabilities": ["bearish_risk_discovery", "negative_momentum_identification", "risk_mapping"],
+        "capabilities": [
+            "bearish_risk_discovery",
+            "negative_momentum_identification",
+            "risk_mapping",
+        ],
         "inputs": ["market_state", "news", "social_sentiment"],
         "outputs": ["bearish_signals", "risks"],
         "karl": {"reward_weight": 0.05, "supports_ttc": True, "supports_selfq": True},
@@ -62,7 +68,12 @@ AGENTS = {
         "domain": "sentiment",
         "weight": 0.10,
         "description": "Analyzes news, social media, and Fear & Greed Index for market sentiment",
-        "capabilities": ["news_sentiment", "social_media_analysis", "fear_greed_index", "reddit_twitter_analysis"],
+        "capabilities": [
+            "news_sentiment",
+            "social_media_analysis",
+            "fear_greed_index",
+            "reddit_twitter_analysis",
+        ],
         "inputs": ["news", "social_data", "fear_greed"],
         "outputs": ["sentiment_score", "confidence", "reasoning"],
         "karl": {"reward_weight": 0.10, "supports_ttc": True, "supports_selfq": True},
@@ -75,7 +86,12 @@ AGENTS = {
         "domain": "options",
         "weight": 0.15,
         "description": "Analyzes options flow, unusual activity, gamma exposure for market direction",
-        "capabilities": ["options_flow_analysis", "unusual_activity_detection", "gamma_exposure", "put_call_ratio"],
+        "capabilities": [
+            "options_flow_analysis",
+            "unusual_activity_detection",
+            "gamma_exposure",
+            "put_call_ratio",
+        ],
         "inputs": ["options_data", "market_state"],
         "outputs": ["signal", "confidence", "gamma_exposure"],
         "karl": {"reward_weight": 0.15, "supports_ttc": True, "supports_selfq": True},
@@ -88,7 +104,11 @@ AGENTS = {
         "domain": "fundamental",
         "weight": 0.05,
         "description": "Tracks insider transactions and institutional activity from SEC 13F filings",
-        "capabilities": ["insider_tracking", "sec_13f_analysis", "institutional_holding_changes"],
+        "capabilities": [
+            "insider_tracking",
+            "sec_13f_analysis",
+            "institutional_holding_changes",
+        ],
         "inputs": ["sec_filings", "insider_transactions"],
         "outputs": ["insider_signal", "confidence", "institutional_flow"],
         "karl": {"reward_weight": 0.05, "supports_ttc": False, "supports_selfq": False},
@@ -101,7 +121,12 @@ AGENTS = {
         "domain": "quant",
         "weight": 0.08,
         "description": "ML-based price prediction using historical patterns and features",
-        "capabilities": ["price_prediction", "pattern_recognition", "feature_based_ml", "regime_detection"],
+        "capabilities": [
+            "price_prediction",
+            "pattern_recognition",
+            "feature_based_ml",
+            "regime_detection",
+        ],
         "inputs": ["price_history", "features", "regime"],
         "outputs": ["predicted_direction", "confidence", "features_used"],
         "karl": {"reward_weight": 0.08, "supports_ttc": True, "supports_selfq": True},
@@ -114,7 +139,12 @@ AGENTS = {
         "domain": "technical",
         "weight": 0.05,
         "description": "Market structure analysis: support/resistance, patterns, order blocks",
-        "capabilities": ["market_structure", "support_resistance", "pattern_recognition", "order_block_identification"],
+        "capabilities": [
+            "market_structure",
+            "support_resistance",
+            "pattern_recognition",
+            "order_block_identification",
+        ],
         "inputs": ["price_data", "volume_profile"],
         "outputs": ["structure_signal", "key_levels", "confidence"],
         "karl": {"reward_weight": 0.05, "supports_ttc": True, "supports_selfq": True},
@@ -127,7 +157,12 @@ AGENTS = {
         "domain": "astro",
         "weight": 0.05,
         "description": "Market cycle analysis: 20/40/80 day cycles, phase detection, turn points",
-        "capabilities": ["cycle_detection", "phase_analysis", "turn_point_prediction", "jupiter_saturn_cycles"],
+        "capabilities": [
+            "cycle_detection",
+            "phase_analysis",
+            "turn_point_prediction",
+            "jupiter_saturn_cycles",
+        ],
         "inputs": ["price_history", "ephemeris"],
         "outputs": ["cycle_phase", "turn_probability", "confidence"],
         "karl": {"reward_weight": 0.05, "supports_ttc": True, "supports_selfq": True},
@@ -140,7 +175,11 @@ AGENTS = {
         "domain": "astro",
         "weight": 0.03,
         "description": "Bradley Siderograph model: planetary aspects correlation with S&P 500",
-        "capabilities": ["siderograph_generation", "planetary_aspect_analysis", "market_correlation"],
+        "capabilities": [
+            "siderograph_generation",
+            "planetary_aspect_analysis",
+            "market_correlation",
+        ],
         "inputs": ["ephemeris", "current_date"],
         "outputs": ["siderograph_score", "aspect_conflicts", "signal"],
         "karl": {"reward_weight": 0.03, "supports_ttc": True, "supports_selfq": True},
@@ -171,7 +210,12 @@ AGENTS = {
         "domain": "astro",
         "weight": 0.03,
         "description": "Muhurta/Choghadiya timing for optimal trade entry/exit windows",
-        "capabilities": ["choghadiya_analysis", "nakshatra_timing", "muhurta_windows", "rahu_kala_avoidance"],
+        "capabilities": [
+            "choghadiya_analysis",
+            "nakshatra_timing",
+            "muhurta_windows",
+            "rahu_kala_avoidance",
+        ],
         "inputs": ["date", "location", "trade_direction"],
         "outputs": ["best_windows", "avoid_windows", "confidence"],
         "karl": {"reward_weight": 0.03, "supports_ttc": False, "supports_selfq": False},
@@ -184,7 +228,11 @@ AGENTS = {
         "domain": "astro",
         "weight": 0.02,
         "description": "Multi-timeframe entry windows (4H/1D/1W) combined with astro timing",
-        "capabilities": ["multi_timeframe_windows", "astro_timing_sync", "window_alignment"],
+        "capabilities": [
+            "multi_timeframe_windows",
+            "astro_timing_sync",
+            "window_alignment",
+        ],
         "inputs": ["timeframes", "astro_data"],
         "outputs": ["aligned_windows", "confidence", "best_entry"],
         "karl": {"reward_weight": 0.02, "supports_ttc": True, "supports_selfq": True},
@@ -197,7 +245,12 @@ AGENTS = {
         "domain": "technical",
         "weight": 0.05,
         "description": "Elliott Wave analysis for wave counting and trend prediction",
-        "capabilities": ["wave_counting", "impulse_waves", "corrective_waves", "wave_personality"],
+        "capabilities": [
+            "wave_counting",
+            "impulse_waves",
+            "corrective_waves",
+            "wave_personality",
+        ],
         "inputs": ["price_data", "current_wave"],
         "outputs": ["wave_count", "next_target", "signal"],
         "karl": {"reward_weight": 0.05, "supports_ttc": True, "supports_selfq": True},
@@ -210,7 +263,12 @@ AGENTS = {
         "domain": "risk",
         "weight": 0.00,
         "description": "Dynamic risk assessment, position sizing, stop-loss recommendations",
-        "capabilities": ["risk_assessment", "position_sizing", "stop_loss_calculation", "volatility_regime_detection"],
+        "capabilities": [
+            "risk_assessment",
+            "position_sizing",
+            "stop_loss_calculation",
+            "volatility_regime_detection",
+        ],
         "inputs": ["price_data", "regime", "volatility"],
         "outputs": ["risk_score", "position_size", "stop_loss"],
         "karl": {"reward_weight": 0.00, "supports_ttc": False, "supports_selfq": False},
@@ -419,12 +477,18 @@ def generate_tests_yaml(agent: dict) -> str:
                     },
                     {
                         "name": "strong_bullish",
-                        "input": {"domain": agent["domain"], "price_data": "strong_uptrend"},
+                        "input": {
+                            "domain": agent["domain"],
+                            "price_data": "strong_uptrend",
+                        },
                         "expected": {"signal": "LONG", "confidence_min": 65},
                     },
                     {
                         "name": "strong_bearish",
-                        "input": {"domain": agent["domain"], "price_data": "strong_downtrend"},
+                        "input": {
+                            "domain": agent["domain"],
+                            "price_data": "strong_downtrend",
+                        },
                         "expected": {"signal": "SHORT", "confidence_min": 65},
                     },
                     {
@@ -457,7 +521,11 @@ def generate_tests_yaml(agent: dict) -> str:
                         "input": {"extreme_data": True},
                         "expected": {"confidence_max": 100},
                     },
-                    {"name": "confidence_min_0", "input": {"no_data": True}, "expected": {"confidence_min": 0}},
+                    {
+                        "name": "confidence_min_0",
+                        "input": {"no_data": True},
+                        "expected": {"confidence_min": 0},
+                    },
                 ],
             },
         ],
@@ -490,7 +558,7 @@ def generate_tools_py(agent: dict) -> str:
 '''
 
 
-def export_agent(agent_key: str, output_dir: Union[str, Path]) -> bool:
+def export_agent(agent_key: str, output_dir: str | Path) -> bool:
     if agent_key not in AGENTS:
         print(f" ❌ Unknown agent: {agent_key}")
         return False
@@ -511,7 +579,7 @@ def export_agent(agent_key: str, output_dir: Union[str, Path]) -> bool:
     return True
 
 
-def export_all(output_dir: Union[str, Path]) -> dict:
+def export_all(output_dir: str | Path) -> dict:
     out_path = Path(output_dir)
     results = {"success": [], "failed": []}
     for agent_key in AGENTS:
@@ -528,7 +596,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Export agents to GitAgent format")
     parser.add_argument("--all", action="store_true", help="Export all agents")
     parser.add_argument("--agent", type=str, help="Export specific agent")
-    parser.add_argument("--output", "-o", type=str, default="integrations/gitagent", help="Output directory")
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default="integrations/gitagent",
+        help="Output directory",
+    )
     args = parser.parse_args()
     if args.all:
         print("📦 Exporting all agents...")

@@ -6,11 +6,18 @@ from __future__ import annotations
 
 import logging
 
-import requests
-
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +83,12 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
 
         confidence = int(sum(scores) / len(scores) * 100) if scores else 50
 
-        reasoning = f"Valuation: {valuation['summary']}. Earnings: {earnings['summary']}. Growth: {growth['summary']}. MVRV: {onchain_data.get('mvrv_ratio', 'N/A')}"
+        reasoning = (
+            f"Valuation: {valuation['summary']}. "
+            f"Earnings: {earnings['summary']}. "
+            f"Growth: {growth['summary']}. "
+            f"MVRV: {onchain_data.get('mvrv_ratio', 'N/A')}"
+        )
 
         return AgentResponse(
             agent_name="FundamentalAgent",
@@ -128,30 +140,20 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
         return {"market_cap_rank": 999}
 
     async def _fetch_onchain_data(self, symbol: str) -> dict:
-        """Fetch on-chain metrics (simplified)."""
+        """Fetch on-chain metrics via data_room blueprint (R3)."""
         try:
-            # Alternative: use public APIs
-            coin_id = symbol.replace("USDT", "").lower()
-            url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart?vs_currency=usd&days=30"
-            resp = requests.get(url, timeout=10)
-            if resp.status_code == 200:
-                data = resp.json()
-                prices = data.get("prices", [])
-                if len(prices) > 1:
-                    current = prices[-1][1]
-                    ath = max(p[1] for p in prices)
-                    # MVRV approximation
-                    mvrv = current / (sum(p[1] for p in prices) / len(prices))
-                    return {
-                        "mvrv_ratio": round(mvrv, 2),
-                        "ath_distance_pct": round((ath - current) / ath * 100, 1),
-                        "volatility_30d": round(
-                            (max(p[1] for p in prices) - min(p[1] for p in prices)) / current * 100,
-                            1,
-                        ),
-                    }
-        except Exception as e:
-            logger.warning(f"[FundamentalAgent] Failed to fetch onchain data for {symbol}: {e}")
+            prices = dr_blueprint.get_klines(symbol, interval="1d", limit=30)
+            if len(prices) > 1:
+                current = prices[-1]
+                ath = max(prices)
+                mvrv = current / (sum(prices) / len(prices))
+                return {
+                    "mvrv_ratio": round(mvrv, 2),
+                    "ath_distance_pct": round((ath - current) / ath * 100, 1),
+                    "volatility_30d": round((max(prices) - min(prices)) / current * 100, 1),
+                }
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("fundamental onchain fallback for %s: %s", symbol, exc)
         return {"mvrv_ratio": 1.0, "ath_distance_pct": 50.0, "volatility_30d": 10.0}
 
     def _analyze_valuation(self, metadata: dict, onchain: dict, current_price: float) -> dict:
@@ -234,8 +236,3 @@ async def run_fundamental_agent(state: dict) -> dict:
     agent = FundamentalAgent()
     result = await agent.analyze(state)
     return {"fundamental_signal": result.to_dict()}
-
-
-def create() -> FundamentalAgent:
-    """Factory for 6-fn test contract."""
-    return FundamentalAgent()

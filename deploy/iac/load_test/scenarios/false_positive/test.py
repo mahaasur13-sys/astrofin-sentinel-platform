@@ -52,10 +52,20 @@ class FalsePositiveScenario:
         result = {
             "scenario": "false_positive_recovery",
             "tags": ["#ACOS", "#LOAD_TEST", "#FAILURE_MODE", "#SELF_HEALING", "#CEPH"],
-            "input": {"cooldown_sec": self.cooldown_sec, "debounce_sec": self.debounce_sec},
-            "observed_behavior": {"transient_recoveries": transient, "max_osd_restarts": max_restarts},
+            "input": {
+                "cooldown_sec": self.cooldown_sec,
+                "debounce_sec": self.debounce_sec,
+            },
+            "observed_behavior": {
+                "transient_recoveries": transient,
+                "max_osd_restarts": max_restarts,
+            },
             "failure_detected": failure,
-            "metrics": {"total_recoveries": total, "transient_recoveries": transient, "max_restarts": max_restarts},
+            "metrics": {
+                "total_recoveries": total,
+                "transient_recoveries": transient,
+                "max_restarts": max_restarts,
+            },
             "correction_applied": None,
             "result_after_fix": None,
         }
@@ -63,7 +73,10 @@ class FalsePositiveScenario:
             result["correction_applied"] = (
                 "correction_applied: cooldown 30->60s, debounce=5->10s, multi_signal_confirm=True"
             )
-            result["result_after_fix"] = {"status": "debounce logic applied", "transient_recoveries_expected": 0}
+            result["result_after_fix"] = {
+                "status": "debounce logic applied",
+                "transient_recoveries_expected": 0,
+            }
         return result
 
 

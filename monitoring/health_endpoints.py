@@ -242,4 +242,4 @@ async def system_metrics():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=os.environ.get("BIND_HOST", "127.0.0.1"), port=8000)

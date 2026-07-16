@@ -57,7 +57,12 @@ class EvolutionEngine:
         self._last_fix_type: FixType | None = None
         self._stuck_counter = 0
 
-    def record(self, cycle_result: CorrectionCycleResult, latency_before: float, p99_before: float) -> None:
+    def record(
+        self,
+        cycle_result: CorrectionCycleResult,
+        latency_before: float,
+        p99_before: float,
+    ) -> None:
         """Record correction cycle result for evolution tracking."""
         if cycle_result.decision is None:
             return

@@ -4,8 +4,6 @@ core/reward_engine.py — ATOM-STEP-6: Reward Engine for Online RL
 Computes trading rewards from market outcomes.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 
 
@@ -153,7 +151,11 @@ if __name__ == "__main__":
     rewards = engine.batch_compute(outcomes, astro_alignments, uncertainties)
     for i, r in enumerate(rewards):
         print(
-            f"Trade {i + 1}: reward={r.total_reward:.4f}  pnl={r.pnl_reward:.4f}  astro={r.astro_bonus:.4f}  risk={r.risk_penalty:.4f}  unc={r.uncertainty_penalty:.4f}"
+            f"Trade {i + 1}: reward={r.total_reward:.4f}  "
+            f"pnl={r.pnl_reward:.4f}  "
+            f"astro={r.astro_bonus:.4f}  "
+            f"risk={r.risk_penalty:.4f}  "
+            f"unc={r.uncertainty_penalty:.4f}"
         )
     stats = engine.summary_stats(rewards)
     print(f"\nSummary: {stats}")

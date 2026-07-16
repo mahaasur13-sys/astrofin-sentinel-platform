@@ -14,8 +14,6 @@ Usage:
     pos = orbit.at_jd(2460692.5)  # J2000.0
 """
 
-from __future__ import annotations
-
 import math
 from dataclasses import dataclass
 
@@ -189,7 +187,7 @@ class KeplerOrbit:
             true_anomaly=nu,
             mean_motion=self.elements.mean_motion,
             orbital_period=self.elements.orbital_period,
-            days_to_next_return=(360.0 - M) / self.elements.mean_motion if self.elements.mean_motion > 0 else 0,
+            days_to_next_return=((360.0 - M) / self.elements.mean_motion if self.elements.mean_motion > 0 else 0),
             is_retrograde=False,
             speed_deg_per_day=self.elements.mean_motion,
         )
@@ -342,7 +340,7 @@ if __name__ == "__main__":
         _sys.path.insert(0, _project_root)
 
     J2000 = 2451545.0
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc)
     # Approximate current JD
     now_jd = J2000 + (now - datetime.datetime(2000, 1, 1, 12, 0, 0)).total_seconds() / 86400.0
 

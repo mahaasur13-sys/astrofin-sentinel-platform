@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import datetime
 import os
 import re
@@ -29,7 +27,7 @@ def write_file(path, content):
 
 
 def run(cmd, capture=True):
-    return subprocess.run(cmd, shell=True, capture_output=capture, text=True)  # nosec B602 — dev CLI tool, not production entrypoint
+    return subprocess.run(cmd, shell=True, capture_output=capture, text=True)
 
 
 def is_protected_file(filepath):

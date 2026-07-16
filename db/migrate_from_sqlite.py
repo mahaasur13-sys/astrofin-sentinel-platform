@@ -12,12 +12,10 @@ Prerequisites:
     2. DB_BACKEND=postgresql
     3. All tables created via init_db_if_needed()
 """
-from __future__ import annotations
-
 
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -91,7 +89,7 @@ def migrate_sessions(sessions: list) -> dict:
                     "kpi_snapshot": {},
                     "metadata": {
                         "migrated_from": "sqlite",
-                        "migrated_at": datetime.utcnow().isoformat(),
+                        "migrated_at": datetime.now(timezone.utc).isoformat(),
                         "original_created_at": session.get("created_at"),
                     },
                 }

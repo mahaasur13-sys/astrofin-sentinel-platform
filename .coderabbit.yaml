@@ -33,10 +33,10 @@ reviews:
     - "!**/build/**"
     - "!**/.eggs/**"
     # ----- allow (override defaults) -----
-    - "!**/*.md"                # explicit allow (override CodeRabbit v2 default block on .md)
+    - "!**/*.md"
     - "!**/LICENSE"
     - "!**/CHANGELOG.md"
-    - "!**/*.txt"               # explicit allow for text documents
+    - "!**/*.txt"                  # allow текстовые документы
 
 # ==================== TRIGGER ====================
 # CodeRabbit работает ТОЛЬКО на pull_request (не на push, не на /review вручную).

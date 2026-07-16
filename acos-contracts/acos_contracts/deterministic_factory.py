@@ -12,6 +12,7 @@ or anywhere else) must keep the same SHA-256 derivation and the same
 
 See ADR-0002 for the full rationale.
 """
+
 from __future__ import annotations
 
 from typing import Protocol, runtime_checkable

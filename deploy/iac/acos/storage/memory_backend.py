@@ -18,7 +18,11 @@ class MemoryTraceStorage:
     def write(self, trace: dict) -> str:
         with self._lock:
             trace_id = trace.get("trace_id") or f"mem-{len(self._traces)}"
-            stored = {**trace, "trace_id": trace_id, "stored_at": datetime.utcnow().isoformat()}
+            stored = {
+                **trace,
+                "trace_id": trace_id,
+                "stored_at": datetime.utcnow().isoformat(),
+            }
             self._traces[trace_id] = stored
             return trace_id
 

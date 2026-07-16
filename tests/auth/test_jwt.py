@@ -23,7 +23,6 @@ from core.auth_jwt import (
 )
 from core.auth_refresh import RefreshError, register_refresh_route, rotate
 
-
 # ---------------------------------------------------------------------------
 # 1. issue + verify round-trip
 # ---------------------------------------------------------------------------

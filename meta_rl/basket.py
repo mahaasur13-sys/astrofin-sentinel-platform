@@ -7,14 +7,13 @@ from typing import Any
 
 import numpy as np
 
-# F821 fix: keep StrategyEvaluator import out of cycle
-from meta_rl.strategy_evaluator import StrategyEvaluator  # F821 fix
-
 # lazy import inside methods to avoid circular
 from meta_rl.backtest_adapter import BacktestEngineAdapter
+
+# F821 fix: keep StrategyEvaluator import out of cycle
+from meta_rl.strategy_evaluator import StrategyEvaluator  # F821 fix
 from meta_rl.types import BasketMetrics, SymbolMetrics
 from trading.risk_v2 import RiskEngineV2
-
 
 logger = logging.getLogger(__name__)
 

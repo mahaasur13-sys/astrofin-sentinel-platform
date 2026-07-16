@@ -1,0 +1,52 @@
+# =============================================================================
+# Sample RomaTenant — Free Tier Partner
+# =============================================================================
+
+apiVersion: roma.io/v1
+kind: RomaTenant
+metadata:
+  name: partner-acme-free
+  labels:
+    roma.io/partner: acme
+spec:
+  tenantId: partner-acme
+  displayName: "ACME Corp"
+  domain: "api.acme.com"
+  subdomain: "partner"
+  plan: free
+  tier: 1
+
+  branding:
+    logoUrl: "https://cdn.acme.com/logo-256.png"
+    primaryColor: "#FF5733"
+    secondaryColor: "#1E1E2E"
+    companyName: "ACME Corporation"
+    supportEmail: "support@acme.com"
+    websiteUrl: "https://acme.com"
+
+  compute:
+    gpuEnabled: false
+    maxWorkers: 4
+    memoryLimitGi: 8
+    cpuLimit: "2000m"
+
+  storage:
+    s3Bucket: "roma-acme-data"
+    storageQuotaGi: 50
+
+  networking:
+    allowedIpRanges:
+    - "10.0.0.0/8"
+
+  billing:
+    stripeCustomerId: "cus_xxxx"
+    billingEmail: "billing@acme.com"
+    invoicePrefix: "ACME"
+
+  features:
+    prometheusMetrics: false
+    advancedAnalytics: false
+    auditLogRetentionDays: 30
+
+  vaultSecrets:
+    apiKeySecretPath: "roma/tenants/acme/api-keys"

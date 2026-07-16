@@ -39,8 +39,17 @@ from typing import Any
 
 from prometheus_client import Counter, Histogram
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 
 logger = logging.getLogger(__name__)
 

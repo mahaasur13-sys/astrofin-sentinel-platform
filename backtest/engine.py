@@ -1,7 +1,5 @@
 """backtest/engine.py — G-01/G-03 Backtesting Engine (with real agent support + metrics)"""
 
-from __future__ import annotations
-
 import asyncio
 import math
 import random
@@ -370,7 +368,7 @@ class BacktestEngine:
                     )
                     signals = [
                         {
-                            "time": candles[-1].dt if candles else datetime.now(timezone.utc),
+                            "time": (candles[-1].dt if candles else datetime.now(timezone.utc)),
                             "price": candles[-1].close if candles else 0,
                             "signal": final_signal,
                             "confidence": final_confidence,
@@ -509,18 +507,18 @@ class BacktestEngine:
             shr = round((mean_r / std_r) * (252**0.5), 4) if std_r > 0 else 0.0
         else:
             shr = 0.0
-        return dict(
-            total_trades=total,
-            winning_trades=wins,
-            losing_trades=total - wins,
-            win_rate=round(wins / total * 100, 2) if total else 0.0,
-            avg_win_pct=round(sum(wl) / len(wl), 4) if wl else 0.0,
-            avg_loss_pct=round(sum(ll) / len(ll), 4) if ll else 0.0,
-            total_return_pct=round((eq - self.initial_capital) / self.initial_capital * 100, 2),
-            max_drawdown_pct=round(mdd, 2),
-            sharpe_ratio=shr,
-            avg_confidence=round(sum(t.confidence for t in trades) / total, 1) if total else 0,
-        )
+        return {
+            "total_trades": total,
+            "winning_trades": wins,
+            "losing_trades": total - wins,
+            "win_rate": round(wins / total * 100, 2) if total else 0.0,
+            "avg_win_pct": round(sum(wl) / len(wl), 4) if wl else 0.0,
+            "avg_loss_pct": round(sum(ll) / len(ll), 4) if ll else 0.0,
+            "total_return_pct": round((eq - self.initial_capital) / self.initial_capital * 100, 2),
+            "max_drawdown_pct": round(mdd, 2),
+            "sharpe_ratio": shr,
+            "avg_confidence": (round(sum(t.confidence for t in trades) / total, 1) if total else 0),
+        }
 
     def _save(self, r):
         with sqlite3.connect(str(self.results_db)) as conn:

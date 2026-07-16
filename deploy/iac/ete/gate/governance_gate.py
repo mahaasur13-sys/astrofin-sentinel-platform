@@ -42,7 +42,12 @@ class GovernanceGate:
         else:
             decision = Decision.APPROVED
             reason = "all constraints satisfied"
-        entry = {"dag_id": dag_id, "decision": decision.value, "reason": reason, "ts": str(uuid.uuid4())}
+        entry = {
+            "dag_id": dag_id,
+            "decision": decision.value,
+            "reason": reason,
+            "ts": str(uuid.uuid4()),
+        }
         self._decision_log.append(entry)
         return decision, reason
 
@@ -63,5 +68,8 @@ class GovernanceGate:
 
 if __name__ == "__main__":
     gate = GovernanceGate()
-    d, r = gate.pre_check({"dag_id": "test", "metadata": {"constraints": {"max_risk": 0.25}}}, {"risk_score": 0.1})
+    d, r = gate.pre_check(
+        {"dag_id": "test", "metadata": {"constraints": {"max_risk": 0.25}}},
+        {"risk_score": 0.1},
+    )
     print(f"Decision: {d.value}, Reason: {r}")

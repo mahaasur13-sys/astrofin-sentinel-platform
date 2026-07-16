@@ -41,7 +41,6 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 from tools.embedding_client import EmbeddingClient, EmbeddingConfig  # noqa: E402
 
-
 # ─── Config ───────────────────────────────────────────────────────────────────
 
 PG_DSN_ENV = "AFS_PG_DSN"
@@ -63,6 +62,10 @@ def _embed_openai(texts: list[str], api_key: str) -> list[list[float]]:
             "Authorization": f"Bearer {api_key}",
         },
     )
+    # nosec B310: hard-coded ollama localhost health check
+
+    # nosec B310: hard-coded embedding API endpoint from config
+
     with urllib.request.urlopen(req, timeout=60) as resp:
         data = json.loads(resp.read())
     return [d["embedding"] for d in data["data"]]
@@ -129,7 +132,13 @@ async def _migrate_domain(
                 inserted += 1
                 continue
             vec_str = "[" + ",".join(f"{x:.6f}" for x in vec) + "]"
-            metadata = json.dumps({"domain": domain, "chunk_id": chunk.get("id"), "title": chunk.get("title")})
+            metadata = json.dumps(
+                {
+                    "domain": domain,
+                    "chunk_id": chunk.get("id"),
+                    "title": chunk.get("title"),
+                }
+            )
             tokens = max(len(chunk["content"].split()), 1)
             result = await conn.execute(
                 INSERT_SQL,
@@ -147,9 +156,7 @@ async def _migrate_domain(
             if "INSERT 0 1" in result:
                 inserted += 1
 
-        sys.stdout.write(
-            f"\r  [{domain}] {i + len(batch)}/{len(chunks)} chunks processed ({inserted} inserted)"
-        )
+        sys.stdout.write(f"\r  [{domain}] {i + len(batch)}/{len(chunks)} chunks processed ({inserted} inserted)")
         sys.stdout.flush()
     print()
     return inserted
@@ -167,8 +174,7 @@ async def main(args: argparse.Namespace) -> int:
     api_key = os.environ.get(OPENAI_KEY_ENV)
     if not api_key and not args.dry_run and not args.use_stub_embeddings:
         print(
-            f"❌ {OPENAI_KEY_ENV} env var is required "
-            "(or use --dry-run / --use-stub-embeddings)",
+            f"❌ {OPENAI_KEY_ENV} env var is required " "(or use --dry-run / --use-stub-embeddings)",
             file=sys.stderr,
         )
         return 2
@@ -196,8 +202,7 @@ async def main(args: argparse.Namespace) -> int:
                 print(f"  ⚠  {domain}: no FAISS index, skipping")
                 continue
             assert index.ntotal == len(chunks), (
-                f"FAISS/JSON mismatch in {domain}: "
-                f"index.ntotal={index.ntotal} vs {len(chunks)} chunks"
+                f"FAISS/JSON mismatch in {domain}: " f"index.ntotal={index.ntotal} vs {len(chunks)} chunks"
             )
             print(f"  → {domain}: {len(chunks)} chunks (FAISS dim={index.d})")
             inserted = await _migrate_domain(

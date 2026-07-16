@@ -104,7 +104,10 @@ def escalate(message: str, severity: str):
 
             requests.post(
                 f"https://api.telegram.org/{telegram_bot_token}/sendMessage",
-                json={"chat_id": telegram_chat_id, "text": f"[{severity.upper()}] {message}"},
+                json={
+                    "chat_id": telegram_chat_id,
+                    "text": f"[{severity.upper()}] {message}",
+                },
                 timeout=10,
             )
         except Exception as e:
@@ -115,7 +118,11 @@ def escalate(message: str, severity: str):
         try:
             import requests
 
-            requests.post(slack_webhook, json={"text": f"[{severity.upper()}] {message}"}, timeout=10)
+            requests.post(
+                slack_webhook,
+                json={"text": f"[{severity.upper()}] {message}"},
+                timeout=10,
+            )
         except Exception as e:
             log.error(f"Slack escalation failed: {e}")
 
@@ -159,7 +166,10 @@ def run_cycle():
                     log.error(f"Recovery FAILED [{name}]: {msg}")
                     state[f"{name}_status"] = "failed"
                     if engine.attempt_counts[name] >= engine.MAX_RETRIES:
-                        escalate(f"{name} failed after {engine.MAX_RETRIES} attempts: {msg}", severity)
+                        escalate(
+                            f"{name} failed after {engine.MAX_RETRIES} attempts: {msg}",
+                            severity,
+                        )
                         engine.reset(name)
             else:
                 engine.reset(name)

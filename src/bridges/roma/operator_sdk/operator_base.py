@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """ROMA Operator SDK — Plugin → Declarative Controller Framework."""
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 
 @dataclass
 class CRDSpec:
@@ -10,9 +12,10 @@ class CRDSpec:
     kind: str
     version: str
     plural: str
-    schema: Dict[str, Any]
-    validation_rules: List[str]
-    defaults: Dict[str, Any]
+    schema: dict[str, Any]
+    validation_rules: list[str]
+    defaults: dict[str, Any]
+
 
 class RomaOperator(ABC):
     @property
@@ -24,18 +27,22 @@ class RomaOperator(ABC):
     @abstractmethod
     def define_crd(self) -> CRDSpec: ...
     @abstractmethod
-    def reconcile(self, desired_state: Dict, current_state: Dict) -> Dict: ...
-    def watch_events(self) -> List[str]:
+    def reconcile(self, _desired_state: dict, current_state: dict) -> dict: ...
+    def watch_events(self) -> list[str]:
         return ["ADD", "UPDATE", "DELETE"]
-    def default_policy(self) -> Dict[str, Any]:
+
+    def default_policy(self) -> dict[str, Any]:
         return {}
+
 
 def plugin_to_crd(plugin_class) -> CRDSpec:
     """Auto-generate CRD spec from plugin capabilities."""
     name = plugin_class.__name__.replace("Plugin", "").lower()
     kind = plugin_class.__name__.replace("Plugin", "")
-    caps = list(plugin_class().capabilities) if hasattr(plugin_class, 'capabilities') else []
-    resources = plugin_class().get_resource_requirements({}) if hasattr(plugin_class, 'get_resource_requirements') else {}
+    caps = list(plugin_class().capabilities) if hasattr(plugin_class, "capabilities") else []
+    resources = (
+        plugin_class().get_resource_requirements({}) if hasattr(plugin_class, "get_resource_requirements") else {}
+    )
     gpu = any("GPU" in str(c) for c in caps)
     schema = {
         "gpu_required": {"type": "boolean", "default": gpu},
@@ -52,7 +59,8 @@ def plugin_to_crd(plugin_class) -> CRDSpec:
         defaults={"priority": "NORMAL"},
     )
 
-def generate_controller_code(operator_class, name: str) -> str:
+
+def generate_controller_code(_operator_class, name: str) -> str:
     return f"""\
 # Auto-generated controller: {name}
 class {name}Reconciler:
@@ -62,6 +70,7 @@ class {name}Reconciler:
     def desired_state(self, spec):
         return spec
 """
+
 
 def generate_crd_yaml(crd: CRDSpec) -> str:
     schema_lines = []

@@ -10,8 +10,6 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from load_test.correction_loop.loop import CorrectionLoop
-from load_test.evolution.evolver import SystemEvolver
 
 SCENARIOS = [
     "policy_oscillation",
@@ -33,9 +31,18 @@ def run_scenario(name: str) -> dict:
             result = fn()
             result["status"] = "completed"
             return result
-        return {"scenario": name, "status": "no_run_function", "failure_detected": False}
+        return {
+            "scenario": name,
+            "status": "no_run_function",
+            "failure_detected": False,
+        }
     except Exception as e:
-        return {"scenario": name, "status": "error", "error": str(e), "failure_detected": False}
+        return {
+            "scenario": name,
+            "status": "error",
+            "error": str(e),
+            "failure_detected": False,
+        }
 
 
 def compute_tag_stats(results: list) -> dict:

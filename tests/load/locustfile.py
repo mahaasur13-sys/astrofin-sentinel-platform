@@ -17,26 +17,25 @@
     LOCUST_HEALTH_PATH  (по умолчанию /healthz)
     LOCUST_SECURE_PATH  (по умолчанию /secure)
 """
+
 from __future__ import annotations
 
 import os
-import random
 from locust import HttpUser, task, between, events
 
-
 HEALTH_PATH = os.getenv("LOCUST_HEALTH_PATH", "/healthz")
-READY_PATH  = os.getenv("LOCUST_READY_PATH",  "/readyz")
+READY_PATH = os.getenv("LOCUST_READY_PATH", "/readyz")
 METRICS_PATH = os.getenv("LOCUST_METRICS_PATH", "/metrics")
 DASHBOARD_PATH = os.getenv("LOCUST_DASHBOARD_PATH", "/")
-SECURE_PATH  = os.getenv("LOCUST_SECURE_PATH", "/secure")
+SECURE_PATH = os.getenv("LOCUST_SECURE_PATH", "/secure")
 
 # Weights — распределение нагрузки между endpoint'ами.
 # Healthcheck должен доминировать, чтобы проверить поведение под нагрузкой.
-WEIGHT_HEALTH    = 50
-WEIGHT_READY     = 20
-WEIGHT_METRICS   = 15
+WEIGHT_HEALTH = 50
+WEIGHT_READY = 20
+WEIGHT_METRICS = 15
 WEIGHT_DASHBOARD = 10
-WEIGHT_SECURE    = 5
+WEIGHT_SECURE = 5
 
 
 class AstroFinUser(HttpUser):
@@ -47,10 +46,12 @@ class AstroFinUser(HttpUser):
 
     # Базовые заголовки для всех запросов.
     def on_start(self):
-        self.client.headers.update({
-            "User-Agent": "locust-astrofin/1.0",
-            "Accept":     "application/json,text/html;q=0.9,*/*;q=0.5",
-        })
+        self.client.headers.update(
+            {
+                "User-Agent": "locust-astrofin/1.0",
+                "Accept": "application/json,text/html;q=0.9,*/*;q=0.5",
+            }
+        )
 
     @task(WEIGHT_HEALTH)
     def get_health(self):
@@ -112,6 +113,7 @@ class AstroFinUser(HttpUser):
 # ---------------------------------------------------------------------------
 # Lifecycle hooks — emit summary to GitHub Actions logs.
 # ---------------------------------------------------------------------------
+
 
 @events.test_start.add_listener
 def _on_test_start(environment, **kwargs):

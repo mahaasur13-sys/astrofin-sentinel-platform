@@ -71,8 +71,9 @@ def test_source_chain_binance_falls_back_to_synthetic_on_network_error():
     assert "synthetic" in chain  # fallback всегда есть
 
     # Принудительно гасим оба источника — synthetic должен сработать
-    with patch.object(a, "_fetch_binance", side_effect=ConnectionError("net down")), \
-         patch.object(a, "_fetch_coingecko", side_effect=ConnectionError("net down")):
+    with patch.object(
+        a, "_fetch_binance", side_effect=ConnectionError("net down")
+    ), patch.object(a, "_fetch_coingecko", side_effect=ConnectionError("net down")):
         data = a.fetch_ohlcv("BTCUSDT", interval="1h", limit=5)
     assert len(data) == 5
 
@@ -88,8 +89,22 @@ def test_get_latest_price_returns_close(adapter_synthetic):
     from datetime import datetime
 
     fixed = [
-        OHLCV(timestamp=datetime(2026, 1, 1), open=100.0, high=101.0, low=99.0, close=100.5, volume=1000.0),
-        OHLCV(timestamp=datetime(2026, 1, 2), open=100.5, high=102.0, low=100.0, close=101.5, volume=1100.0),
+        OHLCV(
+            timestamp=datetime(2026, 1, 1),
+            open=100.0,
+            high=101.0,
+            low=99.0,
+            close=100.5,
+            volume=1000.0,
+        ),
+        OHLCV(
+            timestamp=datetime(2026, 1, 2),
+            open=100.5,
+            high=102.0,
+            low=100.0,
+            close=101.5,
+            volume=1100.0,
+        ),
     ]
     with patch.object(adapter_synthetic, "fetch_ohlcv", return_value=fixed):
         price = adapter_synthetic.get_latest_price("BTCUSDT")

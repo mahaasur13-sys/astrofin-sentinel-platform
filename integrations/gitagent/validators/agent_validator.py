@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
 import yaml
-
-# SemVer: 1.2.3 или 1.2.3-pre.1 / 1.2.3+build. Без префикса v, без дат.
-SEMVER = re.compile(r"^\d+\.\d+\.\d+(?:[-+][\w.]+)?$")
 
 
 class Severity(Enum):
@@ -87,11 +83,7 @@ class AgentYamlValidator:
                     severity=Severity.ERROR,
                 )
             )
-        elif (
-            not isinstance(name, str)
-            or not name.replace("-", "").replace("_", "").isalnum()
-            or name.lower() != name
-        ):
+        elif not isinstance(name, str) or not name.replace("-", "").replace("_", "").isalnum() or name.lower() != name:
             result.valid = False
             result.errors.append(
                 ValidationIssue(
@@ -138,34 +130,6 @@ class AgentYamlValidator:
                     value=[],
                     expected="non-empty list",
                     message="Capabilities cannot be empty",
-                    severity=Severity.ERROR,
-                )
-            )
-
-        # Required fields: version, tools, rules, output_schema
-        for required_field in ("version", "tools", "rules", "output_schema"):
-            if required_field not in data:
-                result.valid = False
-                result.errors.append(
-                    ValidationIssue(
-                        path=required_field,
-                        value=None,
-                        expected="present",
-                        message=f"Required field missing: {required_field}",
-                        severity=Severity.ERROR,
-                    )
-                )
-
-        # Validate version format (semver)
-        version = data.get("version")
-        if isinstance(version, str) and not SEMVER.match(version):
-            result.valid = False
-            result.errors.append(
-                ValidationIssue(
-                    path="version",
-                    value=version,
-                    expected="semver (e.g. 1.2.3)",
-                    message="Invalid version format",
                     severity=Severity.ERROR,
                 )
             )

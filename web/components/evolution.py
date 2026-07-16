@@ -3,7 +3,6 @@
 Enhanced with real-time polling, live stats, progress tracking and professional quant UI.
 """
 
-from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 

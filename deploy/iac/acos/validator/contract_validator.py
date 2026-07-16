@@ -93,7 +93,9 @@ class DAGValidator:
                 except ValueError:
                     violations.append(
                         ContractViolation(
-                            f"Invalid EventType: {event_type}", f"/nodes/{node.get('id')}/event_type", "error"
+                            f"Invalid EventType: {event_type}",
+                            f"/nodes/{node.get('id')}/event_type",
+                            "error",
                         )
                     )
 
@@ -102,7 +104,14 @@ class DAGValidator:
     @staticmethod
     def validate_event(event: dict[str, Any]) -> list[ContractViolation]:
         violations = []
-        required_fields = ["event_id", "trace_id", "node_id", "event_type", "payload", "created_at"]
+        required_fields = [
+            "event_id",
+            "trace_id",
+            "node_id",
+            "event_type",
+            "payload",
+            "created_at",
+        ]
         for field in required_fields:
             if field not in event:
                 violations.append(ContractViolation(f"Missing field '{field}' in event", "/event", "error"))

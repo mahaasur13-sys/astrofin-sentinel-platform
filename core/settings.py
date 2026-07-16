@@ -268,8 +268,7 @@ class Settings(BaseSettings):
                 missing.append(f"{p} (file not found)")
         if missing:
             raise RuntimeError(
-                f"REFUSING TO START in env={self.env}: missing required "
-                f"secrets: {', '.join(missing)}"
+                f"REFUSING TO START in env={self.env}: missing required " f"secrets: {', '.join(missing)}"
             )
 
     def __repr__(self) -> str:  # pragma: no cover - safety only

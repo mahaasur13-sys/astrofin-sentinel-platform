@@ -58,7 +58,13 @@ class TunnelEvent:
 class AmneziaWGManager:
     """Manages AmneziaWG tunnel. C-8 refactored: start() = 7 lines."""
 
-    def __init__(self, event_log: EventLog, interface: str = "wg0", trace_id: str | None = None, max_attempts: int = 5):
+    def __init__(
+        self,
+        event_log: EventLog,
+        interface: str = "wg0",
+        trace_id: str | None = None,
+        max_attempts: int = 5,
+    ):
         self._log = event_log
         self._iface = interface
         self._trace_id = trace_id or "network-bootstrap"
@@ -78,7 +84,12 @@ class AmneziaWGManager:
 
     def _run_wg_quick(self, binary: str) -> bool:
         try:
-            r = subprocess.run(["sudo", binary, "up", self._iface], capture_output=True, text=True, timeout=15)
+            r = subprocess.run(
+                ["sudo", binary, "up", self._iface],
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
             return r.returncode == 0
         except (subprocess.OSError, subprocess.TimeoutExpired):
             return False
@@ -87,11 +98,17 @@ class AmneziaWGManager:
         conf = f"/etc/{binary}/{self._iface}.conf"
         try:
             r1 = subprocess.run(
-                ["sudo", binary, "set", self._iface, "conf", conf], capture_output=True, text=True, timeout=10
+                ["sudo", binary, "set", self._iface, "conf", conf],
+                capture_output=True,
+                text=True,
+                timeout=10,
             )
             if r1.returncode == 0:
                 subprocess.run(
-                    ["sudo", "ip", "link", "set", self._iface, "up"], capture_output=True, text=True, timeout=5
+                    ["sudo", "ip", "link", "set", self._iface, "up"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
                 return True
         except (subprocess.OSError, subprocess.TimeoutExpired):
@@ -99,7 +116,13 @@ class AmneziaWGManager:
         return False
 
     def _emit(self, event_type: str, message: str, **kw) -> None:
-        e = TunnelEvent(trace_id=self._trace_id, event_type=event_type, timestamp=time.time(), message=message, **kw)
+        e = TunnelEvent(
+            trace_id=self._trace_id,
+            event_type=event_type,
+            timestamp=time.time(),
+            message=message,
+            **kw,
+        )
         self._log.append(e)
 
     # CRITICAL-8: now 7 lines (was 23)
@@ -121,7 +144,11 @@ class AmneziaWGManager:
         for binary in ["awg-quick", "wg-quick"]:
             try:
                 if (
-                    subprocess.run(["sudo", binary, "down", self._iface], capture_output=True, timeout=10).returncode
+                    subprocess.run(
+                        ["sudo", binary, "down", self._iface],
+                        capture_output=True,
+                        timeout=10,
+                    ).returncode
                     == 0
                 ):
                     self._emit("TUNNEL_DOWN", f"{binary} down {self._iface}")
@@ -133,10 +160,20 @@ class AmneziaWGManager:
         return True
 
     def status(self) -> dict[str, Any]:
-        result = {"up": False, "interface": self._iface, "peers": [], "transfer_bytes": {}}
+        result = {
+            "up": False,
+            "interface": self._iface,
+            "peers": [],
+            "transfer_bytes": {},
+        }
         for binary in ["wg", "awg"]:
             try:
-                proc = subprocess.run([binary, "show", self._iface], capture_output=True, text=True, timeout=5)
+                proc = subprocess.run(
+                    [binary, "show", self._iface],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
                 if proc.returncode == 0:
                     result["up"] = True
                     result["output"] = proc.stdout

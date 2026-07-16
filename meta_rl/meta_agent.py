@@ -394,8 +394,8 @@ class MetaAgent:
                 "status": "ok",
                 "sessions_loaded": len(sessions),
                 "total_records": total_records,
-                "latest_drift_severity": drift_reports[-1].drift_severity if drift_reports else "none",
-                "latest_drift_score": drift_reports[-1].drift_score if drift_reports else 0.0,
+                "latest_drift_severity": (drift_reports[-1].drift_severity if drift_reports else "none"),
+                "latest_drift_score": (drift_reports[-1].drift_score if drift_reports else 0.0),
             }
         except Exception as e:
             logger.warning(f"[META-RL] Cross-session replay failed: {e}")

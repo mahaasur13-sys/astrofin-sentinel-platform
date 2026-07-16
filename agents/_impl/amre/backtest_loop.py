@@ -4,8 +4,6 @@
 state → decision → reward_evaluation → buffer.add
 """
 
-from __future__ import annotations
-
 from collections.abc import Callable, Generator
 from dataclasses import dataclass
 from datetime import datetime
@@ -236,13 +234,13 @@ class ContinuousBacktest:
             sharpe_ratio=self._compute_sharpe(all_train_rewards),
             max_drawdown=self._compute_max_drawdown(all_train_rewards),
             total_return=sum(all_train_rewards),
-            avg_confidence=sum(s.confidence for s in steps) / len(steps) if steps else 0,
+            avg_confidence=(sum(s.confidence for s in steps) / len(steps) if steps else 0),
             avg_error=sum(s.error for s in steps) / len(steps) if steps else 0,
             q_star_initial=q_star_initial,
             q_star_final=q_star_final,
             q_star_improvement=q_star_final - q_star_initial,
             oos_win_rate=len(oos_wins) / len(oos_steps) if oos_steps else 0,
-            oos_avg_error=sum(s.error for s in oos_steps) / len(oos_steps) if oos_steps else 0,
+            oos_avg_error=(sum(s.error for s in oos_steps) / len(oos_steps) if oos_steps else 0),
             regime=BacktestRegime.WALK_FORWARD,
             steps=all_steps,
         )

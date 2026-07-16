@@ -4,8 +4,6 @@
 - Regime-aware reward with drawdown penalty
 """
 
-from __future__ import annotations
-
 import math
 from dataclasses import dataclass
 from typing import Any
@@ -325,9 +323,7 @@ def compute_trajectory_reward(
         (
             1.0
             if _get(s, "signal", "NEUTRAL") in ("LONG", "BUY")
-            else -0.5
-            if _get(s, "signal") in ("SHORT", "SELL")
-            else 0
+            else -0.5 if _get(s, "signal") in ("SHORT", "SELL") else 0
         )
         * _get(s, "confidence", 50)
         / 100

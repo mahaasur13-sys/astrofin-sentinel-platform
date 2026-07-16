@@ -73,16 +73,28 @@ class StateDriftScenario:
         result = {
             "scenario": "state_drift_coupling",
             "tags": ["#ACOS", "#LOAD_TEST", "#FAILURE_MODE", "#ML_DRIFT"],
-            "input": {"feature_drift": self.feature_drift_point, "model_drift": self.model_drift_point},
-            "observed_behavior": {"corr_feature_model": round(fm_corr, 3), "corr_model_system": round(ms_corr, 3)},
+            "input": {
+                "feature_drift": self.feature_drift_point,
+                "model_drift": self.model_drift_point,
+            },
+            "observed_behavior": {
+                "corr_feature_model": round(fm_corr, 3),
+                "corr_model_system": round(ms_corr, 3),
+            },
             "failure_detected": failure,
-            "metrics": {"corr_feature_model": round(fm_corr, 3), "corr_model_system": round(ms_corr, 3)},
+            "metrics": {
+                "corr_feature_model": round(fm_corr, 3),
+                "corr_model_system": round(ms_corr, 3),
+            },
             "correction_applied": None,
             "result_after_fix": None,
         }
         if failure:
             result["correction_applied"] = "correction_applied: retraining triggered, feature pipeline rebuilt"
-            result["result_after_fix"] = {"status": "retraining initiated", "corr_expected": ">0.7"}
+            result["result_after_fix"] = {
+                "status": "retraining initiated",
+                "corr_expected": ">0.7",
+            }
         return result
 
 

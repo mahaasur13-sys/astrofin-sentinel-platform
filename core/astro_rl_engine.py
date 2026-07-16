@@ -1,14 +1,12 @@
 """core/astro_rl_engine.py - ATOM-STEP-6: Astro RL Engine"""
 
-from __future__ import annotations
-
 import sys as _sys
 
 _sys.path.insert(0, "")
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 @dataclass
@@ -30,7 +28,7 @@ class AstroState:
 
     def _compute_hash(self) -> str:
         data = f"{self.timestamp.isoformat()}:{self.jd:.4f}:{self.moon_longitude:.2f}:{self.jupiter_longitude:.2f}:{self.saturn_longitude:.2f}"
-        return hashlib.md5(data.encode()).hexdigest()[:8]  # nosec B324 — content hash for astro state, not security
+        return hashlib.md5(data.encode()).hexdigest()[:8]
 
 
 @dataclass
@@ -150,7 +148,7 @@ class AstroRLLoop:
     def status(self):
         return {
             "total_states": len(self._state_history),
-            "total_experiences": self.trainer.state.total_experiences if self.trainer else 0,
+            "total_experiences": (self.trainer.state.total_experiences if self.trainer else 0),
             "current_episode": self.trainer.state.episode if self.trainer else 0,
             "best_reward": self.trainer.state.best_reward if self.trainer else None,
         }
@@ -169,7 +167,7 @@ if __name__ == "__main__":
     rl = AstroRLLoop(AstroRLConfig(), re, tr)
     print("ATOM-STEP-6: Astro RL Engine")
     print("=" * 60)
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     for day in range(7):
         ts = now - timedelta(days=6 - day)
         jd = 2451545.0 + (ts - datetime(2000, 1, 1)).total_seconds() / 86425.0

@@ -7,8 +7,6 @@ Usage:
     python -m db.init --migrate    # migrate from SQLite
     python -m db.init --reset      # reset schema (DROP + CREATE)
 """
-from __future__ import annotations
-
 
 import argparse
 import sys
@@ -118,7 +116,8 @@ def _reset(force=False):
         engine = get_engine()
         with engine.connect() as conn:
             # Drop all TimescaleDB hypertables first
-            conn.exec_driver_sql("""
+            conn.exec_driver_sql(
+                """
                 SELECT drop_chunks('_timescaledb_cache.background_job', older_than => NULL);
                 DROP TABLE IF EXISTS sessions CASCADE;
                 DROP TABLE IF EXISTS agent_signals CASCADE;
@@ -135,7 +134,8 @@ def _reset(force=False):
                 DROP TABLE IF EXISTS astro_positions CASCADE;
                 DROP TABLE IF EXISTS karl_trajectories CASCADE;
                 DROP TABLE IF EXISTS karl_trajectory_steps CASCADE;
-            """)
+            """
+            )
         print("✅ Schema reset complete. Run without --reset to reinitialize.")
     except Exception as e:
         print(f"❌ Reset failed: {e}")

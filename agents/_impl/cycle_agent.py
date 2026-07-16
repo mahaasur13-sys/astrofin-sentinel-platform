@@ -5,11 +5,20 @@ Cycle Agent — market timing cycles analysis.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -219,7 +228,7 @@ class CycleAgent(BaseAgent[AgentResponse]):
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         jd = _julian_day(now)
 
         # Jupiter cycle (12 years — check position in zodiac)
@@ -254,8 +263,3 @@ async def run_cycle_agent(state: dict) -> dict:
     agent = CycleAgent()
     result = await agent.analyze(state)
     return {"cycle_signal": result.to_dict()}
-
-
-def create() -> CycleAgent:
-    """Factory for 6-fn test contract."""
-    return CycleAgent()

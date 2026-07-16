@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 import pytest
+
+
 @pytest.mark.unit
 def test_quant_agent_no_sync_requests():
     """Проверяем, что quant_agent.py больше не использует синхронный requests."""

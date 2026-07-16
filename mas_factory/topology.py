@@ -1,7 +1,5 @@
 """mas_factory/topology.py - ATOM-R-028: Dynamic SwitchNode + Topology Updater"""
 
-from __future__ import annotations
-
 import hashlib
 import json
 from dataclasses import asdict, dataclass, field
@@ -358,13 +356,15 @@ class TopologyUpdater:
         return {
             "total_changes": len(self.change_history),
             "current_version": self.versions[-1].version if self.versions else "v0",
-            "last_change": {
-                "id": self.change_history[-1].change_id,
-                "action": self.change_history[-1].action.value,
-                "reason": self.change_history[-1].reason,
-            }
-            if self.change_history
-            else None,
+            "last_change": (
+                {
+                    "id": self.change_history[-1].change_id,
+                    "action": self.change_history[-1].action.value,
+                    "reason": self.change_history[-1].reason,
+                }
+                if self.change_history
+                else None
+            ),
         }
 
 

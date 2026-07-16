@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from meta_rl.config import HYPEROPT_ENABLED
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -14,24 +13,25 @@ from meta_rl.config import (
     ALPHA_DECAY_REWARD_DROP_PCT,
     ALPHA_DECAY_WINDOW_GENS,
     DECAY_KILL_THRESHOLD,
+    HYPEROPT_ENABLED,
     MIN_DIVERSITY_POPULATION,
 )
 from meta_rl.meta_agent import KARL_META_UPDATE_ENABLED, MetaAgent
-from meta_rl.persistence import get_persistence
-from meta_rl.strategy_pool import ScoredStrategy
 from meta_rl.metrics import (
+    BEST_REWARD,
     EVOLUTION_RUNS,
     GENERATION_CURRENT,
-    BEST_REWARD,
+    GENERATION_DURATION,
+    GENERATIONS_TOTAL,
     MEAN_REWARD,
-    REWARD_STD,
     POPULATION_SIZE,
+    REWARD_STD,
     STRATEGIES_CREATED,
     STRATEGIES_EVALUATED,
     STRATEGY_EVALUATED_TOTAL,
-    GENERATIONS_TOTAL,
-    GENERATION_DURATION,
 )
+from meta_rl.persistence import get_persistence
+from meta_rl.strategy_pool import ScoredStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -244,8 +244,8 @@ class EvolutionEngine:
         POPULATION_SIZE.set(len(population))
         STRATEGIES_CREATED.inc(len(population))
         STRATEGIES_EVALUATED.inc(len(population))
-        GENERATIONS_TOTAL.inc()
-        GENERATION_DURATION.observe(time.time() - self._start_time)
+        GENERATIONS_TOTAL.set(GENERATIONS_TOTAL.get() + 1)
+        GENERATION_DURATION.set(time.time() - self._start_time)
 
         return EvolutionStats(
             generation=self.agent.generation,
@@ -381,17 +381,21 @@ class EvolutionEngine:
         )
 
     def get_best_strategy(self) -> ScoredStrategy | None:
-        """Loopcraft-compatible best strategy getter."""
-        # Приоритет: final elites после завершения run()
-        candidates = getattr(self, "_final_elites", None) or list(self.agent.pool or [])
-
-        if not candidates:
+        """Return best from final_elites, not full pool (avoids stale gen-1 false positives)."""
+        final = getattr(self, "_final_elites", None)
+        if final:
+            if not final:
+                return None
+            return max(
+                final,
+                key=lambda s: s.reward_history[-1] if s.reward_history else s.reward,
+            )
+        if not self._history:
             return None
-
-        return max(
-            candidates,
-            key=lambda s: s.reward_history[-1] if getattr(s, 'reward_history', None) else s.reward,
-        )
+        all_s = list(self.agent.pool)
+        if not all_s:
+            return None
+        return max(all_s, key=lambda s: s.reward_history[-1] if s.reward_history else s.reward)
 
     def convergence_report(self) -> dict:
         if len(self._history) < 2:

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """GPU Lock Manager — prevents double execution on same GPU"""
+
 import threading
-from typing import Optional, Dict, List
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Dict, List, Optional
+
 
 @dataclass
 class GPULock:
@@ -11,6 +13,7 @@ class GPULock:
     job_id: str
     acquired_at: datetime
     ttl_seconds: int
+
 
 class GPULockManager:
     """
@@ -20,12 +23,12 @@ class GPULockManager:
     """
 
     def __init__(self, default_ttl: int = 3600):
-        self._locks: Dict[str, GPULock] = {}
+        self._locks: dict[str, GPULock] = {}
         self._mu = threading.Lock()
         self.default_ttl = default_ttl
-        self._callbacks: Dict[str, callable] = {}  # gpu_id -> on_release callback
+        self._callbacks: dict[str, callable] = {}  # gpu_id -> on_release callback
 
-    def acquire(self, gpu_id: str, job_id: str, ttl: Optional[int] = None) -> bool:
+    def acquire(self, gpu_id: str, job_id: str, ttl: int | None = None) -> bool:
         """
         Acquire lock on GPU for job.
         Returns True if acquired, False if GPU is already locked.
@@ -43,7 +46,7 @@ class GPULockManager:
                 gpu_id=gpu_id,
                 job_id=job_id,
                 acquired_at=datetime.utcnow(),
-                ttl_seconds=ttl
+                ttl_seconds=ttl,
             )
             return True
 
@@ -67,14 +70,14 @@ class GPULockManager:
             age = (datetime.utcnow() - self._locks[gpu_id].acquired_at).total_seconds()
             return age < self._locks[gpu_id].ttl_seconds
 
-    def get_lock_holder(self, gpu_id: str) -> Optional[str]:
+    def get_lock_holder(self, gpu_id: str) -> str | None:
         """Return job_id holding the lock, or None."""
         with self._mu:
             if gpu_id in self._locks and self.is_locked(gpu_id):
                 return self._locks[gpu_id].job_id
             return None
 
-    def get_all_locks(self) -> List[GPULock]:
+    def get_all_locks(self) -> list[GPULock]:
         with self._mu:
             return [lock for lock in self._locks.values() if self.is_locked(lock.gpu_id)]
 
@@ -83,7 +86,8 @@ class GPULockManager:
         with self._mu:
             now = datetime.utcnow()
             expired = [
-                gpu_id for gpu_id, lock in self._locks.items()
+                gpu_id
+                for gpu_id, lock in self._locks.items()
                 if (now - lock.acquired_at).total_seconds() >= lock.ttl_seconds
             ]
             for gpu_id in expired:
@@ -102,16 +106,19 @@ class GPULockManager:
         """Register callback to fire when GPU is released."""
         self._callbacks[gpu_id] = cb
 
-    def stats(self) -> Dict:
+    def stats(self) -> dict:
         with self._mu:
             return {
                 "total_locks": len(self._locks),
                 "locked_gpus": list(self._locks.keys()),
                 "lock_details": [
-                    {"gpu_id": l.gpu_id, "job_id": l.job_id,
-                     "age_s": (datetime.utcnow() - l.acquired_at).total_seconds()}
+                    {
+                        "gpu_id": l.gpu_id,
+                        "job_id": l.job_id,
+                        "age_s": (datetime.utcnow() - l.acquired_at).total_seconds(),
+                    }
                     for l in self._locks.values()
-                ]
+                ],
             }
 
 

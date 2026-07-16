@@ -1,5 +1,4 @@
 """test_validator.py — ATOM-VALIDATE-001: Unit tests for AgentYamlValidator"""
-from __future__ import annotations
 
 import shutil
 import tempfile
@@ -8,16 +7,13 @@ from pathlib import Path
 import pytest
 import yaml
 
-try:
-    from integrations.gitagent.validators.agent_validator import (
-        AgentYamlValidator,
-        Severity,
-        ValidationIssue,
-        ValidationReport,
-        ValidationResult,
-    )
-except ModuleNotFoundError:
-    pytest.skip("agent_validator module not in repo (parked — G12)", allow_module_level=True)
+from integrations.gitagent.validators.agent_validator import (
+    AgentYamlValidator,
+    Severity,
+    ValidationIssue,
+    ValidationReport,
+    ValidationResult,
+)
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 

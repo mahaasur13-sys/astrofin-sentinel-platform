@@ -7,8 +7,6 @@ Features:
 - Graceful fallback to SQLite if PostgreSQL unavailable
 - Idempotent: safe to run multiple times
 """
-from __future__ import annotations
-
 
 import logging
 from pathlib import Path

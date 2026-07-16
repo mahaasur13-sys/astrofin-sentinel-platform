@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 from unittest.mock import AsyncMock, Mock, patch
 from agents._impl.market_analyst import MarketAnalystAgent

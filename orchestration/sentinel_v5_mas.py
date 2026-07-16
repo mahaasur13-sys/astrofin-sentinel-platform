@@ -1,6 +1,5 @@
 """orchestration/sentinel_v5_mas.py - ATOM-R-025: MASFactory Integration"""
 
-from __future__ import annotations
 import asyncio
 import logging
 import uuid
@@ -92,7 +91,7 @@ async def run_sentinel_v5_mas(
     results = await executor.run()
 
     signals = []
-    for role_id, result in results.items():
+    for _role_id, result in results.items():
         if isinstance(result, dict) and "signal" in result:
             signals.append(result)
     state["all_signals"] = signals

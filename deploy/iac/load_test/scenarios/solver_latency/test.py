@@ -89,7 +89,7 @@ class SolverLatencyScenario:
             "p50_ms": round(p50, 2),
             "p95_ms": round(p95, 2),
             "p99_ms": round(p99, 2),
-            "fallback_rate": round(fallbacks / len(self.results), 4) if self.results else 0,
+            "fallback_rate": (round(fallbacks / len(self.results), 4) if self.results else 0),
             "rejected_count": rejected,
             "total_jobs": len(self.results),
         }

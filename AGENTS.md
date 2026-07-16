@@ -1,12 +1,8 @@
 # AstroFin Sentinel V5 — Project Memory
 
-**Status:** ✅ Production-Beta — Phase B1 / 4.x consolidated (2026-07-13)
+**Status:** ✅ Production-Beta (2026-03-26)
 **Architecture:** RAG-First + LangGraph + Multi-Agent + Hybrid Signal
 **Pattern:** Internal Board of Directors (Совет Директоров)
-**Working dir:** `~/Projects/astrofin-sentinel-platform` (Felix) / `/home/workspace/Projects/astrofin-sentinel-platform` (Zo)
-**Inlined submodules:** AsurDev, atom-federation-core, atom-federation-os, ATOM-Consensus, Hermes Agent, home-cluster-iac — больше нет `.gitmodules`.
-
-> Изменения против версии 2026-03-26: перенесены 8 артефактов B1/4.x (см. PR #201), введён `data_room/`, `monitoring/health_endpoints.py`, `core/settings.py`, `web/middleware/`, `artifacts/best_practices/`, переименован `meta_rl/quant/metrics.py` → `meta_rl/quant/risk.py`, удалён `audit_repo/`, добавлены R-04..R-12 правила архитектурного линтера.
 
 ---
 
@@ -342,38 +338,9 @@ Tests: `backtest/test_metrics_agent.py` — 10/10 passing ✅
 ## Usage
 
 ```bash
-# Felix (локальная машина)
-cd ~/Projects/astrofin-sentinel-platform
-source .venv/bin/activate
+cd /home/workspace/AstroFinSentinelV5
 python -m orchestration.sentinel_v5 "Analyze BTC" BTCUSDT SWING
-
-# Zo (облако)
-cd /home/workspace/Projects/astrofin-sentinel-platform
-source .venv/bin/activate
-python -m orchestration.sentinel_v5 "Analyze BTC" BTCUSDT SWING
-
-# Дашборд (порт 8050)
-python -m web.app
-# Health endpoint
-curl http://localhost:8050/health  # → monitoring/health_endpoints.py
 ```
-
-### Data Room (новый сетевой шлюз — Phase B1/4.x)
-
-Все внешние HTTP-вызовы агентов должны идти через `data_room/`, **не** через прямой `import requests`:
-
-```python
-from data_room.blueprint import get_price, get_fundamentals, get_klines
-from data_room.resolvers import (  # resolvers/<provider>/*.py
-    coingecko, binance, sec_edgar, yahoo, feargreed
-)
-```
-
-`tools/data_provider.py` удалён как dead code.
-
-### Web Middleware
-
-`web/middleware/` — `@require_auth` декоратор для защиты роутов. Применяется точечно; web/data_room.py уже под защитой. Шаг 4.7 (см. TODO) закрывает оставшиеся 5 роутов.
 
 ---
 
@@ -395,15 +362,9 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 - [x] **ATOM-012: Enhanced KARL — reward calibration, delisted fallback, grounding integration**
 - [x] **ATOM-013: Full KARL integration in sentinel_v5.py (KARLSynthesisAgent)**
 - [x] **ATOM-015: KARL CLI integration, dashboard, JSONL persistence, HTML reports, continuous backtest command**
-- [x] **Phase B1 + 4.x consolidation (PR #200/#201, 2026-07-13):** inlined 6 submodules, restored 10 untracked artifacts (core/muhurtha.py, orchestration/langgraph_schema.py, monitoring/health_endpoints.py, tools/data_provider.py→data_room/, scripts/check_aspects.py, tests/integration/test_final_integration.py, docs/audit/ADD-B1-F13-FINDINGS.md, docs/audit/AUDIT_STEP1_REPORT.md)
-- [x] **Step 4.6: Arch linter 0 hard violations** (R3 3→0, R2 20→0)
-- [x] **Step 4.4: RAG proxy indirection (data_room.blueprint)**
-- [x] **Step 4.5: AMRE pre-commit hook installed**
-- [ ] **Step 4.7:** `@require_auth` on remaining 5 web routes OR migrate to `data_room` namespace
-- [ ] **Step 4.8+:** R3.5, R7-R12 architecture linter rules
-- [ ] Connect real data APIs (Polygon, Unusual Whales, SEC EDGAR via data_room resolvers)
+- [ ] Connect real data APIs (Polygon, Unusual Whales, SEC EDGAR)
 - [ ] Add Telegram bot for alerts
-- [ ] Build RAG index (FAISS/Chroma) — proxy already in place
+- [ ] Build RAG index (FAISS/Chroma)
 - [ ] Add visualizations
 - [x] **ATOM-017: Full agent pools (MACRO + ASTRO + TECHNICAL)** — 8 agents running
 - [ ] DB Migration: SQLite → PostgreSQL + TimescaleDB + pgvector (see `knowledge/DB_ARCHITECTURE_PROMPT.md`)
@@ -428,4 +389,3 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 ---
 
 ## CI Checks
-## Phase B2c (coverage threshold 10%) — завершён 2026-07-13 (PR #206, HEAD `900ebdd`)

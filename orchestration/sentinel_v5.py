@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import os
 import uuid
 from datetime import datetime, timezone
@@ -45,7 +44,9 @@ from agents._impl.amre.oap_optimizer import get_oap_optimizer
 
 OAP_WEIGHTING_ENABLED = True
 
-logger = logging.getLogger(__name__)
+from core.logging import get_logger as _get_logger
+
+logger = _get_logger(__name__)
 
 KARL_ENABLED = os.getenv("KARL_ENABLED", "true").lower() == "true"
 
@@ -212,6 +213,9 @@ async def run_sentinel_v5(
     session_id: str | None = None,
 ) -> dict:
     session_id = session_id or str(uuid.uuid4())[:8]
+    from core.logging import new_correlation_id, set_correlation_id
+
+    set_correlation_id(new_correlation_id(session_id))
 
     route_output = route_query(user_query)
     logger.info(f"[Router] Query type: {route_output.query_type.value}")
@@ -300,7 +304,7 @@ async def run_sentinel_v5(
         },
         "thompson_selections": thompson_selections,
         "agent_count": len(state["all_signals"]),
-        "final_recommendation": synthesis_result.to_dict() if synthesis_result else None,
+        "final_recommendation": (synthesis_result.to_dict() if synthesis_result else None),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 

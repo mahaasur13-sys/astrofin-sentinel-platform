@@ -6,7 +6,9 @@ from deploy.iac.ete.gate.governance_gate import Decision, GovernanceGate
 def _good_dag() -> dict:
     return {
         "dag_id": "DAG-OK",
-        "nodes": [{"id": f"n{i}", "action": "buy", "symbol": "BTC/USDT"} for i in range(3)],
+        "nodes": [
+            {"id": f"n{i}", "action": "buy", "symbol": "BTC/USDT"} for i in range(3)
+        ],
         "edges": [{"from": "n0", "to": "n1"}, {"from": "n1", "to": "n2"}],
     }
 

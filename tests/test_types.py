@@ -10,9 +10,9 @@ All tests are pure stubs by design — no live HTTP, no real ephemeris
 calls. They keep the contract honest and the CI pipeline green, while
 giving future contributors a working pytest skeleton to flesh out.
 """
+
 from __future__ import annotations
 
-import asyncio
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -23,8 +23,6 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-
-from agents._impl import types as _t  # noqa: E402
 
 
 # ── fixtures ────────────────────────────────────────────────────────────
@@ -80,7 +78,9 @@ def test_malformed_state():
 
 def test_data_source_unavailable():
     """If a data source raises, the response is degraded with a reason code."""
-    with patch("core.http_client.HTTPClient.get", side_effect=ConnectionError("data_room down")):
+    with patch(
+        "core.http_client.HTTPClient.get", side_effect=ConnectionError("data_room down")
+    ):
         # Stub-only: we don't actually call the agent's data path here.
         pass
     assert True

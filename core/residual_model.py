@@ -2,8 +2,6 @@
 core/residual_model.py - ATOM-STEP-4: Residual Correction Model
 """
 
-from __future__ import annotations
-
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -70,14 +68,13 @@ class ResidualModel:
 
     def print_comparison(self, jd: float, bodies=None):
         bodies = bodies or ["earth", "jupiter", "saturn"]
-        print(
-            f"""\n{"BODY":<10} {"KEPLER":>8} {"SWISS":>8} {"DELTA°":>8} {"DELTA'":>10} {"MODE"}"""  # noqa: F541
-        )
+        print(f"""\n{"BODY":<10} {"KEPLER":>8} {"SWISS":>8} {"DELTA°":>8} {"DELTA'":>10} {"MODE"}""")  # noqa: F541
         print("-" * 66)
         for body in bodies:
             rc = self.predict_correction(body, jd)
             print(
-                f"{body:<10} {rc.kepler_lon_deg:>8.3f} {rc.swiss_lon_deg:>8.3f} {rc.correction_deg:>8.4f} {rc.correction_arcmin:>10.2f} {self.mode}"
+                f"{body:<10} {rc.kepler_lon_deg:>8.3f} {rc.swiss_lon_deg:>8.3f} "
+                f"{rc.correction_deg:>8.4f} {rc.correction_arcmin:>10.2f} {self.mode}"
             )
 
 

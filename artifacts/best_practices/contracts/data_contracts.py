@@ -7,6 +7,7 @@ same data shape without importing each other.
 Backward compat: `AsurDev.acos.storage.schema` still re-exports
 `TraceRecord` from this module.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -40,11 +41,11 @@ class TraceRecord:
         return {
             "trace_id": self.trace_id,
             "metadata": self.metadata,
-            "created_at": ca.isoformat() if isinstance(ca, datetime) else (str(ca) if ca else None),
+            "created_at": (ca.isoformat() if isinstance(ca, datetime) else (str(ca) if ca else None)),
         }
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> "TraceRecord":
+    def from_dict(cls, d: dict[str, Any]) -> TraceRecord:
         ca_raw = d.get("created_at")
         ca: datetime | None = None
         if isinstance(ca_raw, str):

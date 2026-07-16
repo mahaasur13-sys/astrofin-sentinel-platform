@@ -16,6 +16,7 @@ Coverage:
 
 No network calls. All tests are <1s total.
 """
+
 from __future__ import annotations
 
 import time
@@ -30,21 +31,26 @@ from tools.embedding_client import (
     get_embedding_client,
 )
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def stub_client() -> EmbeddingClient:
     """Default test client: stub provider, 1536-dim, cache on."""
-    return EmbeddingClient(EmbeddingConfig(provider="stub", dimension=1536, cache_enabled=True))
+    return EmbeddingClient(
+        EmbeddingConfig(provider="stub", dimension=1536, cache_enabled=True)
+    )
 
 
 @pytest.fixture
 def no_cache_client() -> EmbeddingClient:
-    return EmbeddingClient(EmbeddingConfig(provider="stub", dimension=1536, cache_enabled=False))
+    return EmbeddingClient(
+        EmbeddingConfig(provider="stub", dimension=1536, cache_enabled=False)
+    )
 
 
 # ─── Stub determinism ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 async def test_stub_is_deterministic_across_instances(stub_client):
@@ -73,6 +79,7 @@ async def test_stub_custom_dimension():
 
 # ─── Validation ──────────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_ollama_rejects_1536():
     with pytest.raises(ValueError, match="Ollama does not support dimension 1536"):
@@ -92,6 +99,7 @@ def test_unknown_provider_rejected():
 
 
 # ─── Batch / order preservation ─────────────────────────────────────────────
+
 
 @pytest.mark.unit
 async def test_batch_preserves_order(stub_client):
@@ -116,11 +124,15 @@ async def test_batch_with_empty_and_none(stub_client):
 @pytest.mark.unit
 async def test_batch_chunks_correctly(stub_client):
     small_batch_client = EmbeddingClient(
-        EmbeddingConfig(provider="stub", dimension=1536, max_batch_size=2, cache_enabled=False)
+        EmbeddingConfig(
+            provider="stub", dimension=1536, max_batch_size=2, cache_enabled=False
+        )
     )
     # With max_batch_size=2, 5 texts should produce 3 provider calls.
     with patch.object(
-        small_batch_client, "_deterministic_vector", wraps=small_batch_client._deterministic_vector
+        small_batch_client,
+        "_deterministic_vector",
+        wraps=small_batch_client._deterministic_vector,
     ) as mock_det:
         await small_batch_client.embed([f"text_{i}" for i in range(5)])
         # 5 calls, regardless of chunking (we mock the per-text method)
@@ -129,6 +141,7 @@ async def test_batch_chunks_correctly(stub_client):
 
 
 # ─── Cache ───────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 async def test_cache_returns_same_vector(no_cache_client):
@@ -143,16 +156,23 @@ async def test_cache_ttl_expiry(stub_client):
     """Mock monotonic time to test TTL eviction."""
     stub_client.config.cache_ttl_seconds = 10
     await stub_client.embed_one("expiring text")
-    assert "expiring text" in [stub_client._cache[k][0] for k in stub_client._cache] or len(stub_client._cache) == 1
+    assert (
+        "expiring text" in [stub_client._cache[k][0] for k in stub_client._cache]
+        or len(stub_client._cache) == 1
+    )
     # Advance time beyond TTL
-    with patch("tools.embedding_client.time.monotonic", return_value=time.monotonic() + 100):
+    with patch(
+        "tools.embedding_client.time.monotonic", return_value=time.monotonic() + 100
+    ):
         cached = stub_client._cache_get("expiring text")
         assert cached is None  # expired
 
 
 @pytest.mark.unit
 async def test_cache_disabled(stub_client):
-    no_cache = EmbeddingClient(EmbeddingConfig(provider="stub", dimension=1536, cache_enabled=False))
+    no_cache = EmbeddingClient(
+        EmbeddingConfig(provider="stub", dimension=1536, cache_enabled=False)
+    )
     await no_cache.embed_one("no cache test")
     assert len(no_cache._cache) == 0
     await no_cache.aclose()
@@ -160,10 +180,12 @@ async def test_cache_disabled(stub_client):
 
 # ─── OpenAI error handling (mocked) ─────────────────────────────────────────
 
+
 @pytest.mark.unit
 async def test_openai_auth_error_raises_value_error():
     """401 from OpenAI must surface as ValueError('OPENAI_API_KEY is invalid')."""
     import openai
+
     c = EmbeddingClient(EmbeddingConfig(provider="openai", dimension=1536))
     # Build a mock 401 response, then trigger the real openai.AuthenticationError
     mock_resp = AsyncMock()
@@ -171,14 +193,18 @@ async def test_openai_auth_error_raises_value_error():
     mock_resp.body = None
     mock_response = AsyncMock()
     mock_response.embeddings.create = AsyncMock(
-        side_effect=openai.AuthenticationError("invalid api key", response=mock_resp, body=None)
+        side_effect=openai.AuthenticationError(
+            "invalid api key", response=mock_resp, body=None
+        )
     )
     # Use the actual openai error class
     with patch.object(c, "_get_openai_client", return_value=mock_response):
         # Simulate: directly call the method with patched client that raises AuthError
         c._openai_client = AsyncMock()
         c._openai_client.embeddings.create = AsyncMock(
-            side_effect=openai.AuthenticationError("invalid api key", response=mock_resp, body=None)
+            side_effect=openai.AuthenticationError(
+                "invalid api key", response=mock_resp, body=None
+            )
         )
         with pytest.raises(ValueError, match="OPENAI_API_KEY is invalid"):
             await c._embed_openai(["test"])
@@ -188,13 +214,18 @@ async def test_openai_auth_error_raises_value_error():
 @pytest.mark.unit
 async def test_openai_rate_limit_retries_then_raises():
     import openai
+
     c = EmbeddingClient(EmbeddingConfig(provider="openai", dimension=1536))
     c._openai_client = AsyncMock()
     c._openai_client.embeddings.create = AsyncMock(
-        side_effect=openai.RateLimitError("rate limited", response=AsyncMock(status_code=429), body=None)
+        side_effect=openai.RateLimitError(
+            "rate limited", response=AsyncMock(status_code=429), body=None
+        )
     )
     with patch("tools.embedding_client.asyncio.sleep", new=AsyncMock()) as mock_sleep:
-        with pytest.raises(RuntimeError, match="OpenAI embedding failed after 2 attempts"):
+        with pytest.raises(
+            RuntimeError, match="OpenAI embedding failed after 2 attempts"
+        ):
             await c._embed_openai(["test"])
         assert mock_sleep.call_count == 2  # one wait between 2 attempts
     await c.aclose()
@@ -202,13 +233,17 @@ async def test_openai_rate_limit_retries_then_raises():
 
 # ─── Ollama fallback ─────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 async def test_ollama_connection_error_falls_back_to_stub():
     import httpx
+
     c = EmbeddingClient(EmbeddingConfig(provider="ollama", dimension=768))
     with patch.object(c, "_get_httpx") as mock_httpx_factory:
         mock_client = AsyncMock()
-        mock_client.post = AsyncMock(side_effect=httpx.ConnectError("connection refused"))
+        mock_client.post = AsyncMock(
+            side_effect=httpx.ConnectError("connection refused")
+        )
         mock_httpx_factory.return_value = mock_client
         result = await c._embed_ollama(["test"])
     assert len(result) == 1
@@ -221,6 +256,7 @@ async def test_ollama_required_env_disables_fallback():
     """When OLLAMA_REQUIRED=1, connection error must raise, not fall back."""
     import os
     import httpx
+
     os.environ["OLLAMA_REQUIRED"] = "1"
     try:
         c = EmbeddingClient(EmbeddingConfig(provider="ollama", dimension=768))
@@ -237,6 +273,7 @@ async def test_ollama_required_env_disables_fallback():
 
 # ─── Sync wrapper ───────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_embed_sync_works_outside_loop(stub_client):
     result = stub_client.embed_sync(["hello"])
@@ -250,6 +287,7 @@ async def test_embed_sync_raises_inside_running_loop(stub_client):
 
 
 # ─── Singleton ──────────────────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 def test_singleton_identity():
@@ -272,6 +310,7 @@ def test_lazy_proxy_rejects_call():
 
 # ─── Config from_env ────────────────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_config_from_env(monkeypatch):
     monkeypatch.setenv("RAG_PROVIDER", "ollama")
@@ -291,6 +330,7 @@ def test_config_from_env_handles_bad_dim(monkeypatch):
 
 
 # ─── Async close lifecycle ──────────────────────────────────────────────────
+
 
 @pytest.mark.unit
 async def test_aclose_cleans_up_openai_client():

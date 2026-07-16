@@ -6,9 +6,18 @@ from __future__ import annotations
 
 import logging
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -223,14 +232,14 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
 
     async def _check_astro_bearish(self, state: dict) -> dict:
         """Check astro indicators for bearish bias."""
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         from core.ephemeris import HAS_SWISS_EPHEMERIS, _julian_day, calculate_planet
 
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         jd = _julian_day(now)
 
         saturn = calculate_planet("saturn", jd)
@@ -257,8 +266,3 @@ async def run_bear_researcher(state: dict) -> dict:
     agent = BearResearcherAgent()
     result = await agent.analyze(state)
     return {"bear_signal": result.to_dict()}
-
-
-def create() -> BearResearcherAgent:
-    """Factory for 6-fn test contract."""
-    return BearResearcherAgent()

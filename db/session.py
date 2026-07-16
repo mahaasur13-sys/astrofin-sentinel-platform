@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 """db/session.py — PostgreSQL Session Management (ATOM-DB-MIGRATION)

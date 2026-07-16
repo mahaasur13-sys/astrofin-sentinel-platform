@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -73,7 +72,7 @@ def build_comparison_chart(records_by_session: dict[str, list[dict]]) -> dict:
                 ev.get("win_rate", 0),
                 min(ev.get("trades", 1) / 50, 1),
                 1 - min(ev.get("max_drawdown", 0), 1),
-                abs(ev.get("risk_adjusted_pnl", 0)) if ev.get("risk_adjusted_pnl", 0) is not None else 0,
+                (abs(ev.get("risk_adjusted_pnl", 0)) if ev.get("risk_adjusted_pnl", 0) is not None else 0),
             ]
             labels = ["Sharpe", "Win%", "Trades", "Stability", "PnL"]
             fig.add_trace(
@@ -94,10 +93,10 @@ def build_comparison_chart(records_by_session: dict[str, list[dict]]) -> dict:
     fig.update_layout(
         template="plotly_dark",
         height=300,
-        margin=dict(l=40, r=20, t=40, b=30),
+        margin={"l": 40, "r": 20, "t": 40, "b": 30},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
+        legend={"orientation": "h", "yanchor": "bottom", "y": -0.25, "xanchor": "center", "x": 0.5},
         barmode="group",
     )
     return fig.to_dict()
@@ -127,8 +126,8 @@ def build_convergence_chart(gen_stats: list[dict]) -> dict:
             y=max_rw,
             mode="lines+markers",
             name="Best",
-            line=dict(color="#00d4ff", width=2),
-            marker=dict(size=6),
+            line={"color": "#00d4ff", "width": 2},
+            marker={"size": 6},
         ),
         row=1,
         col=1,
@@ -139,8 +138,8 @@ def build_convergence_chart(gen_stats: list[dict]) -> dict:
             y=mean_rw,
             mode="lines+markers",
             name="Mean",
-            line=dict(color="#ffd600", width=1.5, dash="dot"),
-            marker=dict(size=5),
+            line={"color": "#ffd600", "width": 1.5, "dash": "dot"},
+            marker={"size": 5},
         ),
         row=1,
         col=1,
@@ -153,7 +152,7 @@ def build_convergence_chart(gen_stats: list[dict]) -> dict:
             fill="toself",
             opacity=0.15,
             fillcolor="#ffd600",
-            line=dict(color="rgba(0,0,0,0)"),
+            line={"color": "rgba(0,0,0,0)"},
             name="±1 Std",
             showlegend=True,
         ),
@@ -179,9 +178,9 @@ def build_convergence_chart(gen_stats: list[dict]) -> dict:
     fig.update_layout(
         template="plotly_dark",
         height=250,
-        margin=dict(l=40, r=20, t=40, b=30),
+        margin={"l": 40, "r": 20, "t": 40, "b": 30},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+        legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5},
     )
     return fig.to_dict()

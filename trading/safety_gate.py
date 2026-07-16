@@ -87,8 +87,8 @@ class SafetyGate:
 
     def __init__(
         self,
-        portfolio: Optional[Any] = None,  # forward ref
-        market_mode: Optional["MarketMode"] = None,
+        portfolio: Any | None = None,  # forward ref
+        market_mode: MarketMode | None = None,
     ):
         self.portfolio = portfolio
         self.market_mode = market_mode

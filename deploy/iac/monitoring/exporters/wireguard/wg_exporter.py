@@ -1,3 +1,5 @@
+import os
+
 #!/usr/bin/env python3
 """
 WireGuard Prometheus Exporter
@@ -106,6 +108,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", 9343), Handler)
+    server = HTTPServer((os.environ.get("BIND_HOST", "127.0.0.1"), 9343), Handler)
     print("WireGuard exporter listening on :9343/metrics")
     server.serve_forever()

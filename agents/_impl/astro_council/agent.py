@@ -5,13 +5,10 @@ AstroCouncilAgent — координационный слой астро-дом�
 Применяет взвешенный консенсус с защитой от противоречий.
 """
 
-from __future__ import annotations
-
 import logging
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import AgentResponse, BaseAgent, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -45,19 +42,19 @@ class AstroCouncilAgent(BaseAgent[AgentResponse]):
 
     @track_agent_metrics
     async def run(self, state: dict) -> dict:
-        """Public entry point. Wraps aggregate() with the latency histogram
-        and defensive error handling so a single agent can never crash
-        the orchestrator."""
+        """Pattern A compliant run() with graceful degradation."""
         try:
             response = await self.aggregate(state)
             return {"astro_council_signal": response.to_dict()}
-        except EphemerisUnavailableError as e:
-            degraded = self._degraded(EPHEMERIS_UNAVAILABLE, str(e))
-            return {"astro_council_signal": degraded.to_dict()}
-        except Exception as e:  # noqa: BLE001 — last-resort guard
-            logger.exception("agent_run_unhandled", extra={"agent": self.name})
-            degraded = self._degraded(UNKNOWN, repr(e))
-            return {"astro_council_signal": degraded.to_dict()}
+        except Exception as e:  # noqa: BLE001 - last-resort guard
+            logger.exception("AstroCouncilAgent degraded")
+            degraded_inner = {
+                "signal": "NEUTRAL",
+                "confidence": 0.0,
+                "reason": f"degraded: {type(e).__name__} - {e!r}",
+                "metadata": {"source": "astro_council_fallback"},
+            }
+            return {"astro_council_signal": degraded_inner}
 
     async def aggregate(self, state: dict) -> AgentResponse:
         responses = {}
@@ -78,7 +75,11 @@ class AstroCouncilAgent(BaseAgent[AgentResponse]):
         return self._weighted_vote(responses)
 
     def _weighted_vote(self, responses: dict) -> AgentResponse:
-        votes = {SignalDirection.LONG: 0.0, SignalDirection.SHORT: 0.0, SignalDirection.NEUTRAL: 0.0}
+        votes = {
+            SignalDirection.LONG: 0.0,
+            SignalDirection.SHORT: 0.0,
+            SignalDirection.NEUTRAL: 0.0,
+        }
         total_weight = 0.0
         reasons = []
 
@@ -123,8 +124,3 @@ class AstroCouncilAgent(BaseAgent[AgentResponse]):
             confidence=confidence,
             reasoning=reasoning,
         )
-
-
-def create() -> AstroCouncilAgent:
-    """Factory for 6-fn test contract."""
-    return AstroCouncilAgent()

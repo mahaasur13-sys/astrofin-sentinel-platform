@@ -1,9 +1,8 @@
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 
 import pytest
+
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
@@ -21,7 +20,7 @@ def test_metrics_are_registered():
     import tools.metrics_server as ms
 
     # Увеличим тестовый счётчик
-    ms.REQUEST_COUNT.inc()
+    ms.REQUEST_COUNT.labels("GET", "/metrics", "200").inc()
     output = generate_latest(REGISTRY).decode()
     assert "astrofin_requests_total" in output
     assert "astrofin_broker_errors_total" in output

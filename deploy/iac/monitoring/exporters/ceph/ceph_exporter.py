@@ -1,3 +1,5 @@
+import os
+
 #!/usr/bin/env python3
 """
 Ceph Prometheus Exporter
@@ -127,6 +129,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", 9342), Handler)
+    server = HTTPServer((os.environ.get("BIND_HOST", "127.0.0.1"), 9342), Handler)
     print("Ceph exporter listening on :9342/metrics")
     server.serve_forever()

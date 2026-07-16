@@ -7,8 +7,6 @@ Tests:
   C4: record_run() with BacktestRun directly returns session_id
 """
 
-from __future__ import annotations
-
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -184,24 +182,24 @@ def test_record_run_with_backtest_run(tmp_db):
 
 
 def _make_run(session_id: str, symbol: str, **overrides) -> BacktestRun:
-    defaults = dict(
-        symbol=symbol,
-        start_date="2025-01-01",
-        end_date="2025-01-31",
-        timeframe="SWING",
-        win_rate=50.0,
-        sharpe_ratio=1.0,
-        total_trades=10,
-        winning_trades=5,
-        losing_trades=5,
-        avg_win_pct=2.5,
-        avg_loss_pct=-1.5,
-        total_return_pct=10.0,
-        max_drawdown_pct=5.0,
-        avg_confidence=60.0,
-        initial_capital=10000.0,
-        final_capital=11000.0,
-        created_at=datetime.now(timezone.utc).isoformat(),
-    )
+    defaults = {
+        "symbol": symbol,
+        "start_date": "2025-01-01",
+        "end_date": "2025-01-31",
+        "timeframe": "SWING",
+        "win_rate": 50.0,
+        "sharpe_ratio": 1.0,
+        "total_trades": 10,
+        "winning_trades": 5,
+        "losing_trades": 5,
+        "avg_win_pct": 2.5,
+        "avg_loss_pct": -1.5,
+        "total_return_pct": 10.0,
+        "max_drawdown_pct": 5.0,
+        "avg_confidence": 60.0,
+        "initial_capital": 10000.0,
+        "final_capital": 11000.0,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
     defaults.update(overrides)
     return BacktestRun(session_id=session_id, **defaults)

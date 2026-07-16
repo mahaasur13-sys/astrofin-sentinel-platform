@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 pytestmark = pytest.mark.skip(reason="Requires external Ralph agent")
@@ -41,7 +39,7 @@ def test_add():
     task = f"Создай файл {TARGET_FILE} с функцией add(a, b), которая возвращает сумму a+b. Затем убедись, что pytest {TEST_FILE} проходит."
     env = os.environ.copy()
     env["VSELM_API_KEY"] = os.getenv("VSELM_API_KEY", "sk-TEST")  # подставь реальный ключ при необходимости
-    result = subprocess.run(
+    subprocess.run(
         [sys.executable, "scripts/ralph_agent.py", task],
         capture_output=True,
         text=True,

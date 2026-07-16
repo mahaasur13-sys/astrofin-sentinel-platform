@@ -95,7 +95,7 @@ class ProbabilisticAdmissionController:
         poly = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))))
         return 1.0 - (1.0 / math.sqrt(2 * math.pi)) * math.exp(-0.5 * z * z) * poly
 
-    def should_reject(self, node_id: str, lookahead_minutes: int = 10) -> tuple[bool, float]:
+    def should_reject(self, node_id: str, _lookahead_minutes: int = 10) -> tuple[bool, float]:
         """
         Main decision: reject if P(overload in next M min) > threshold.
         Returns (should_reject, p_overload).

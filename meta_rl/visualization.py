@@ -1,5 +1,4 @@
 """meta_rl/visualization.py — ATOM-META-RL-011: Evolution Charts"""
-from __future__ import annotations
 
 import logging
 from pathlib import Path

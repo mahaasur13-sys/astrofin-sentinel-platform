@@ -159,7 +159,11 @@ class DriftAlignment:
         Compute correlation across three drift signals.
         Drift_Alignment = mean(corr(f1,f2), corr(f2,f3), corr(f1,f3))
         """
-        n = min(len(self._feature_history), len(self._model_error_history), len(self._system_drift_history))
+        n = min(
+            len(self._feature_history),
+            len(self._model_error_history),
+            len(self._system_drift_history),
+        )
         if n < 10:
             return AlignmentResult(
                 alignment_score=1.0,

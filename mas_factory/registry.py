@@ -1,7 +1,5 @@
 """mas_factory/registry.py - Agent Registry with capabilities"""
 
-from __future__ import annotations
-
 from typing import Any
 
 from mas_factory.topology import Role

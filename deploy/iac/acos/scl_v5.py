@@ -145,7 +145,11 @@ def test_full_flow():
 
 def test_trace_record():
     """INV9: TraceRecord normalization."""
-    tr = TraceRecord(trace_id="test-123", metadata={"decision": "APPROVED", "dag": {"nodes": 1}}, created_at=None)
+    tr = TraceRecord(
+        trace_id="test-123",
+        metadata={"decision": "APPROVED", "dag": {"nodes": 1}},
+        created_at=None,
+    )
     ok = tr.trace_id == "test-123" and tr.metadata["decision"] == "APPROVED" and tr.created_at is not None
     print(f"  [{'OK' if ok else 'FAIL'}] INV9 — TraceRecord normalized: {tr.trace_id}")
     return ok

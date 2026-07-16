@@ -138,7 +138,11 @@ class DatasetExporter:
             "test": events[val_end:],
         }
 
-        batch_data: dict[str, list[LabeledExample]] = {"train": [], "val": [], "test": []}
+        batch_data: dict[str, list[LabeledExample]] = {
+            "train": [],
+            "val": [],
+            "test": [],
+        }
 
         for split_name, split_events in splits.items():
             future_events = events  # full list for label look-ahead

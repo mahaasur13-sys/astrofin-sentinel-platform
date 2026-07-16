@@ -6,9 +6,18 @@ from __future__ import annotations
 
 import logging
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +82,12 @@ class ElliotAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 40
 
-        reasoning = f"Wave structure: {wave_count['summary']}. Fib targets: {fib_targets['summary']}. Corrective phase: {corrective['summary']}. Elliot score: {elliot_score:.2f}"
+        reasoning = (
+            f"Wave structure: {wave_count['summary']}. "
+            f"Fib targets: {fib_targets['summary']}. "
+            f"Corrective phase: {corrective['summary']}. "
+            f"Elliot score: {elliot_score:.2f}"
+        )
 
         return AgentResponse(
             agent_name="ElliotAgent",
@@ -245,8 +259,3 @@ async def run_elliot_agent(state: dict) -> dict:
     agent = ElliotAgent()
     result = await agent.analyze(state)
     return {"elliot_signal": result.to_dict()}
-
-
-def create() -> ElliotAgent:
-    """Factory for 6-fn test contract."""
-    return ElliotAgent()

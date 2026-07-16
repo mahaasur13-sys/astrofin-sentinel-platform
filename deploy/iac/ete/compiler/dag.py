@@ -76,7 +76,12 @@ class DAGCompiler:
 
     def compile(self, job: dict) -> dict:
         job_type = job.get("type", "compute")
-        dag = {"dag_id": str(uuid.uuid4())[:12], "nodes": [], "edges": [], "metadata": {}}
+        dag = {
+            "dag_id": str(uuid.uuid4())[:12],
+            "nodes": [],
+            "edges": [],
+            "metadata": {},
+        }
         if job_type == "agent":
             dag = self._compile_agent_job(job)
         elif job_type == "batch":
@@ -101,7 +106,12 @@ class DAGCompiler:
             priority=job.get("priority", 50),
             timeout_seconds=job.get("timeout", 300),
         )
-        return {"dag_id": dag_id, "nodes": [node.to_dict()], "edges": [], "metadata": {}}
+        return {
+            "dag_id": dag_id,
+            "nodes": [node.to_dict()],
+            "edges": [],
+            "metadata": {},
+        }
 
     def _compile_batch_job(self, job: dict) -> dict:
         dag_id = str(uuid.uuid4())[:12]
@@ -109,7 +119,10 @@ class DAGCompiler:
         nodes, edges = [], []
         prev_id = None
         for i, task in enumerate(tasks):
-            node = DAGNode(name=f"task:{i}:{task.get('name','unnamed')}", node_type=NodeType.COMPUTE)
+            node = DAGNode(
+                name=f"task:{i}:{task.get('name','unnamed')}",
+                node_type=NodeType.COMPUTE,
+            )
             nodes.append(node.to_dict())
             if prev_id:
                 edges.append({"from": prev_id, "to": node.node_id})
@@ -119,12 +132,27 @@ class DAGCompiler:
     def _compile_risk_job(self, job: dict) -> dict:
         dag_id = str(uuid.uuid4())[:12]
         node = DAGNode(name="risk:analysis", node_type=NodeType.RISK, layer=Layer.L8, priority=100)
-        return {"dag_id": dag_id, "nodes": [node.to_dict()], "edges": [], "metadata": {}}
+        return {
+            "dag_id": dag_id,
+            "nodes": [node.to_dict()],
+            "edges": [],
+            "metadata": {},
+        }
 
     def _compile_governance_job(self, job: dict) -> dict:
         dag_id = str(uuid.uuid4())[:12]
-        node = DAGNode(name="governance:validate", node_type=NodeType.GOVERNANCE, layer=Layer.L9, priority=100)
-        return {"dag_id": dag_id, "nodes": [node.to_dict()], "edges": [], "metadata": {}}
+        node = DAGNode(
+            name="governance:validate",
+            node_type=NodeType.GOVERNANCE,
+            layer=Layer.L9,
+            priority=100,
+        )
+        return {
+            "dag_id": dag_id,
+            "nodes": [node.to_dict()],
+            "edges": [],
+            "metadata": {},
+        }
 
     def validate_dag(self, dag: dict) -> tuple[bool, list[str]]:
         errors = []

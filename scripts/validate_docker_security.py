@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Validate docker-compose.yml for P0 security requirements."""
 
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 
@@ -27,15 +25,14 @@ def main():
     if "requirepass" not in str(redis_cmd) and "--requirepass" not in str(redis_cmd):
         errors.append("Redis: no --requirepass in command")
 
-    # 2. Grafana must not use default admin/admin (only if grafana is defined)
-    if "grafana" in services:
-        grafana = services["grafana"]
-        grafana_env = grafana.get("environment", {})
-        if isinstance(grafana_env, list):
-            grafana_env = {k: v for item in grafana_env for k, v in [item.split("=", 1)]}
-        pass_val = grafana_env.get("GF_SECURITY_ADMIN_PASSWORD", "admin")
-        if pass_val == "admin" or "${GRAFANA_ADMIN_PASSWORD:-admin}" in str(grafana.get("environment", "")):
-            errors.append("Grafana: default password 'admin' is still configured")
+    # 2. Grafana must not use default admin/admin
+    grafana = services.get("grafana", {})
+    grafana_env = grafana.get("environment", {})
+    if isinstance(grafana_env, list):
+        grafana_env = {k: v for item in grafana_env for k, v in [item.split("=", 1)]}
+    pass_val = grafana_env.get("GF_SECURITY_ADMIN_PASSWORD", "admin")
+    if pass_val == "admin" or "${GRAFANA_ADMIN_PASSWORD:-admin}" in str(grafana.get("environment", "")):
+        errors.append("Grafana: default password 'admin' is still configured")
 
     # 3. sslmode=disable anywhere (in environment or command)
     compose_str = yaml.dump(data)

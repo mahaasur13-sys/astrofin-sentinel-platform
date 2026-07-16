@@ -115,7 +115,12 @@ async def require_jwt(
         jti=claims.jti,
         raw=claims.to_dict(),
     )
-    logger.debug("auth.success sub=%s role=%s path=%s", principal.sub, principal.role, request.url.path)
+    logger.debug(
+        "auth.success sub=%s role=%s path=%s",
+        principal.sub,
+        principal.role,
+        request.url.path,
+    )
     return principal
 
 

@@ -1,7 +1,6 @@
-from __future__ import annotations
-
 # scripts/validate_blackrock_tests.py
 # Phase 4 - BlackRock six required tests per agent.
+
 import argparse
 import ast
 import sys
@@ -65,21 +64,21 @@ def main():
     print("  missing:    " + str(len(missing_files)) + " test files")
     print("  incomplete: " + str(len(incomplete_files)) + " test files (warn)")
 
-    if False:
+    if missing_files:
         print("--- Missing test files (HARD FAIL) ---")
         print("  agents without tests/test_<agent>.py:")
         for p in missing_files:
             print("    " + str(p))
 
-    if False:
+    if incomplete_files:
         print("--- Incomplete test files (WARN) ---")
         print("  test files missing some of the six required functions:")
         for p, fns in incomplete_files:
             print("    " + str(p) + " -> " + str(fns))
 
-    if False:
+    if missing_files:
         return 1
-    if False:
+    if incomplete_files:
         return 2
     return 0
 

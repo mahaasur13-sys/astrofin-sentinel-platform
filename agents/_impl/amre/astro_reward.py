@@ -1,6 +1,6 @@
 """amre/astro_reward.py - ATOM-021: Astro-enhanced Reward Function"""
 
-from __future__ import annotations
+"""Astronomically-informed reward for KARL trading decisions."""
 
 from typing import Any
 
@@ -176,5 +176,5 @@ def get_astro_market_phase(moon_longitude: float, sun_longitude: float = 0) -> d
         "sentiment": sentiment,
         "momentum": momentum,
         "lunar_day": lunar_day,
-        "favorable_for": "LONG" if "Waxing" in phase else "SHORT" if "Waning" in phase else "NEUTRAL",
+        "favorable_for": ("LONG" if "Waxing" in phase else "SHORT" if "Waning" in phase else "NEUTRAL"),
     }

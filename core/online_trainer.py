@@ -4,12 +4,10 @@ core/online_trainer.py — ATOM-STEP-6: Online RL Trainer
 Trains Kepler + market models online using REINFORCE-style policy gradient.
 """
 
-from __future__ import annotations
-
 import json
 import random
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @dataclass
@@ -308,7 +306,7 @@ class OnlineTrainer:
             pnl = random.gauss(0.5, 2.0) * pos * 100
             reward = pnl + 0.1 * astro * abs(pos)
             self.record_experience(
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 state_hash=f"state_{i}",
                 action_position_pct=pos,
                 reward=reward,
@@ -345,7 +343,9 @@ if __name__ == "__main__":
         update = result["update"]
         if update["updated"]:
             print(
-                f"  Ep {ep:2d}: reward={result['mean_reward']:+.4f}  base={trainer.params.base_position_pct:.4f}  best={trainer.state.best_reward:.4f}"
+                f"  Ep {ep:2d}: reward={result['mean_reward']:+.4f}  "
+                f"base={trainer.params.base_position_pct:.4f}  "
+                f"best={trainer.state.best_reward:.4f}"
             )
 
     print(f"\n  Best reward: {trainer.state.best_reward:.4f}")

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """ATOM-R-033: Production Optimization Test"""
 
-from __future__ import annotations
-
 import sys
 import time
 
@@ -116,7 +114,7 @@ def test_metrics():
     cprint("\n[TEST 5] Metrics Collection", "94")
     engine = ProductionMASEngine()
 
-    for i in range(3):
+    for _i in range(3):
         engine.run_sync({"intention": "ANALYZE", "symbol": "BTCUSDT", "timeframe": "SWING"})
 
     summary = engine.get_metrics_summary()

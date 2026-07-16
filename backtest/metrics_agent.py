@@ -14,8 +14,6 @@ Usage:
   summary = agent.get_summary()
 """
 
-from __future__ import annotations
-
 import sqlite3
 import statistics
 from dataclasses import asdict, dataclass

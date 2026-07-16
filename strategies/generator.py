@@ -1,7 +1,5 @@
 """strategies/generator.py — ATOM-STEP-11: Strategy Generator (Genetic Programming)"""
 
-from __future__ import annotations
-
 import random
 from dataclasses import dataclass, field
 
@@ -262,7 +260,7 @@ def evolve(
     mutation_rate: float = 0.20,
 ) -> list[GeneratedStrategy]:
     """Run genetic algorithm. Returns best strategies."""
-    for i, s in enumerate(population):
+    for _i, s in enumerate(population):
         s.set_fitness(fitness_fn(s))
 
     fitnesses = [s.fitness for s in population]
@@ -273,7 +271,12 @@ def evolve(
 
     for gen in range(1, n_generations + 1):
         sorted_strategies = [
-            s for s, f in sorted(zip(pop.strategies, pop.fitnesses, strict=False), key=lambda x: x[1], reverse=True)
+            s
+            for s, f in sorted(
+                zip(pop.strategies, pop.fitnesses, strict=False),
+                key=lambda x: x[1],
+                reverse=True,
+            )
         ]
         new_pop = list(sorted_strategies[:elite_size])
         current_gen = sorted_strategies[0].generation
@@ -302,7 +305,14 @@ def evolve(
             )
 
     print(f"\n  Best strategy fitness: {best_ever[1]:.2f}")
-    return [s for s, f in sorted(zip(pop.strategies, pop.fitnesses, strict=False), key=lambda x: x[1], reverse=True)]
+    return [
+        s
+        for s, f in sorted(
+            zip(pop.strategies, pop.fitnesses, strict=False),
+            key=lambda x: x[1],
+            reverse=True,
+        )
+    ]
 
 
 def fitness_from_backtest(strategy: GeneratedStrategy, market_history: list) -> float:

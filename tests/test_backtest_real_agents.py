@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime, timezone
 from unittest.mock import patch
 
@@ -7,13 +5,6 @@ import pytest
 
 # Импорт AstroCouncilAgent для проверки, что модуль доступен (patch использует строку)
 from backtest.engine import BacktestEngine
-
-# Skip the whole module: 11 async tests hang on agent.run() under CI sandbox.
-# Tracked under issue #125 (Tests + Coverage). Will be re-enabled once the
-# backtest engine stops waiting on the real agent pipeline during unit tests.
-pytestmark = pytest.mark.skip(
-    reason="flaky test, will be fixed separately — see issue #125"
-)
 
 
 @pytest.mark.asyncio
@@ -36,9 +27,9 @@ async def test_use_real_agents_does_not_generate_synthetic_signals():
 
         result = await engine.run(start_date="2025-01-01", end_date="2025-01-10", use_real_agents=True)
 
-        assert all("momentum=" not in t.signal_reasoning for t in result.trades), (
-            "Real agents should not produce synthetic momentum signals"
-        )
+        assert all(
+            "momentum=" not in t.signal_reasoning for t in result.trades
+        ), "Real agents should not produce synthetic momentum signals"
         assert mock_run.called, "Real agent was not called"
 
 

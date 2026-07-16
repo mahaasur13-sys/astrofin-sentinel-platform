@@ -2,8 +2,6 @@
 Self-Improvement: Agent generates + refines questions.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Any
 
@@ -109,7 +107,7 @@ class MetaQuestionBank:
                             return False
                         if isinstance(ctx_val, str):
                             ctx_val = ctx_val.strip()
-                        return eval(f"{ctx_val} {op} {val}", {"__builtins__": {}}, {})  # nosec B307 — sandboxed DSL eval with empty builtins
+                        return eval(f"{ctx_val} {op} {val}", {"__builtins__": {}}, {})
         except Exception:
             pass
         return False

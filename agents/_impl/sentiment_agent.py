@@ -8,9 +8,18 @@ import logging
 
 import httpx
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import (
+    EphemerisUnavailableError,
+    require_ephemeris,
+)
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.base_agent import (
+    EPHEMERIS_UNAVAILABLE,
+    UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +63,12 @@ class SentimentAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 45
 
-        reasoning = f"Fear & Greed: {fear_greed['summary']}. Funding rate: {funding_rate['summary']}. Price momentum: {price_momentum['summary']}. Sentiment score: {sentiment_score:.2f}"
+        reasoning = (
+            f"Fear & Greed: {fear_greed['summary']}. "
+            f"Funding rate: {funding_rate['summary']}. "
+            f"Price momentum: {price_momentum['summary']}. "
+            f"Sentiment score: {sentiment_score:.2f}"
+        )
 
         return AgentResponse(
             agent_name="SentimentAgent",
@@ -194,8 +208,3 @@ async def run_sentiment_agent(state: dict) -> dict:
     agent = SentimentAgent()
     result = await agent.analyze(state)
     return {"sentiment_signal": result.to_dict()}
-
-
-def create() -> SentimentAgent:
-    """Factory for 6-fn test contract."""
-    return SentimentAgent()

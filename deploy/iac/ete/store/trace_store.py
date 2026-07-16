@@ -5,6 +5,7 @@ Stores full DAG of every decision in the system.
 """
 
 import json
+import tempfile
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -96,7 +97,7 @@ class ExecutionTrace:
 
 
 class TraceStore:
-    def __init__(self, store_dir: str = "/tmp/ete_traces"):
+    def __init__(self, store_dir: str = os.path.join(tempfile.gettempdir(), "ete_traces")):
         self.store_dir = store_dir
         self._traces: dict[str, ExecutionTrace] = {}
         self._correlation_index: dict[str, list[str]] = {}

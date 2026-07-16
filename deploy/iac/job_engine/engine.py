@@ -158,7 +158,12 @@ class TelemetryJobEngine(JobEventHooks):
         with self._lock:
             job.state = new_state
         self.on_state_change(job, old_state, new_state)
-        self._write_event(job, new_state, job.last_error, f"transition_{old_state.value}_{new_state.value}")
+        self._write_event(
+            job,
+            new_state,
+            job.last_error,
+            f"transition_{old_state.value}_{new_state.value}",
+        )
         if extra:
             extra()
         return True

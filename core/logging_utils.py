@@ -16,7 +16,8 @@ secrets in the first place. Track coverage in `docs/slo.md` and
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 # JWT: three base64url segments separated by dots.

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # tests/test_healthcheck.py
 import json
 import subprocess

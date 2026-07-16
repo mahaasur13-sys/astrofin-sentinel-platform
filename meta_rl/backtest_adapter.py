@@ -297,5 +297,5 @@ class BacktestEngineAdapter:
             qty=getattr(trade, "size", 0.0),
             price=getattr(trade, "entry_price", 0.0),
             order_type="MARKET",
-            slippage_bp_estimate=market_data.get("slippage_bp", 5.0) if market_data else 5.0,
+            slippage_bp_estimate=(market_data.get("slippage_bp", 5.0) if market_data else 5.0),
         )

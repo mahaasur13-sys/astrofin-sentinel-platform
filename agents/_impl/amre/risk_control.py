@@ -8,8 +8,6 @@
 Все параметры управляются через env.
 """
 
-from __future__ import annotations
-
 import logging
 import os
 
@@ -58,13 +56,17 @@ def apply_position_lag_risk(current_position_pct: float, position_lag: float) ->
         # Перегрев: позиция слишком велика относительно средней → сокращаем
         new_pos = current_position_pct * RISK_REDUCTION_FACTOR
         logger.debug(
-            f"[RiskControl] position_lag={position_lag:+.3f} < {-RISK_POSITION_LAG_THRESHOLD} → REDUCE ×{RISK_REDUCTION_FACTOR}: {current_position_pct:.4f} → {new_pos:.4f}"
+            f"[RiskControl] position_lag={position_lag:+.3f} < {-RISK_POSITION_LAG_THRESHOLD} "
+            f"→ REDUCE ×{RISK_REDUCTION_FACTOR}: "
+            f"{current_position_pct:.4f} → {new_pos:.4f}"
         )
     elif position_lag > RISK_POSITION_LAG_THRESHOLD:
         # Недоторговка: позиция слишком мала → наращиваем
         new_pos = current_position_pct * RISK_INCREASE_FACTOR
         logger.debug(
-            f"[RiskControl] position_lag={position_lag:+.3f} > {+RISK_POSITION_LAG_THRESHOLD} → INCREASE ×{RISK_INCREASE_FACTOR}: {current_position_pct:.4f} → {new_pos:.4f}"
+            f"[RiskControl] position_lag={position_lag:+.3f} > {+RISK_POSITION_LAG_THRESHOLD} "
+            f"→ INCREASE ×{RISK_INCREASE_FACTOR}: "
+            f"{current_position_pct:.4f} → {new_pos:.4f}"
         )
     else:
         # Внутри порога — без изменений

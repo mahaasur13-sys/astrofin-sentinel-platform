@@ -69,12 +69,9 @@ class TestRewardConfig:
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
             RewardConfig()
-        reward_warnings = [
-            w for w in caught if "RewardConfig" in str(w.message)
-        ]
+        reward_warnings = [w for w in caught if "RewardConfig" in str(w.message)]
         assert reward_warnings == [], (
-            f"Default RewardConfig unexpectedly warned: "
-            f"{[str(w.message) for w in reward_warnings]}"
+            f"Default RewardConfig unexpectedly warned: " f"{[str(w.message) for w in reward_warnings]}"
         )
 
     def test_misweighted_construction_warns_and_renormalises(self):
@@ -85,19 +82,17 @@ class TestRewardConfig:
                 pnl_weight=0.30,
                 execution_cost_weight=0.20,  # total = 0.90
             )
-        total = (
-            cfg.sharpe_weight
-            + cfg.pnl_weight
-            + cfg.execution_cost_weight
-        )
+        total = cfg.sharpe_weight + cfg.pnl_weight + cfg.execution_cost_weight
         assert math.isclose(total, 1.0, abs_tol=1e-12)
         # Relative proportions preserved.
         assert math.isclose(
-            cfg.sharpe_weight / cfg.pnl_weight, 0.40 / 0.30,
+            cfg.sharpe_weight / cfg.pnl_weight,
+            0.40 / 0.30,
             abs_tol=1e-12,
         )
         assert math.isclose(
-            cfg.pnl_weight / cfg.execution_cost_weight, 0.30 / 0.20,
+            cfg.pnl_weight / cfg.execution_cost_weight,
+            0.30 / 0.20,
             abs_tol=1e-12,
         )
 
@@ -110,12 +105,9 @@ class TestRewardConfig:
                 pnl_weight=0.30,
                 execution_cost_weight=0.155,  # total = 1.005
             )
-        reward_warnings = [
-            w for w in caught if "RewardConfig" in str(w.message)
-        ]
+        reward_warnings = [w for w in caught if "RewardConfig" in str(w.message)]
         assert reward_warnings == [], (
-            f"Sum 1.005 (within tolerance) should not warn, got: "
-            f"{[str(w.message) for w in reward_warnings]}"
+            f"Sum 1.005 (within tolerance) should not warn, got: " f"{[str(w.message) for w in reward_warnings]}"
         )
 
 
@@ -291,9 +283,7 @@ class TestStabilityBonus:
             win_rate=1.0,
         )
         expected = calc.config.stability_bonus_scale * 0.5
-        assert math.isclose(
-            calc._stability_bonus(result), expected, abs_tol=1e-12
-        )
+        assert math.isclose(calc._stability_bonus(result), expected, abs_tol=1e-12)
 
 
 # ─── Pipeline-level golden tests ─────────────────────────────────────────────
@@ -313,13 +303,7 @@ class TestComputeGolden:
         """
         calc = RewardCalculator()
         result = _make_result(trades=10)
-        expected = (
-            0.55 * 0.5
-            + 0.30 * 0.5
-            - 0.0
-            - 0.15 * 0.0
-            + 0.10 * 0.5 * (10 / 20)
-        )
+        expected = 0.55 * 0.5 + 0.30 * 0.5 - 0.0 - 0.15 * 0.0 + 0.10 * 0.5 * (10 / 20)
         assert math.isclose(calc.compute(result), expected, abs_tol=1e-9)
 
     def test_clip_ceiling(self):

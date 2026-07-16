@@ -87,7 +87,7 @@ class Trainer:
     def train(
         self,
         output_dir: Path | None = None,
-        retrain: bool = False,
+        _retrain: bool = False,
         min_positive_ratio: float = 0.05,
         use_advanced_features: bool = True,
         use_smote: bool = True,
@@ -140,14 +140,26 @@ class Trainer:
 
         # Time-aware split
         train_df, val_df, test_df = time_aware_split(df, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15)
-        X_train, _X_val, X_test = X.loc[train_df.index], X.loc[val_df.index], X.loc[test_df.index]
+        X_train, _X_val, X_test = (
+            X.loc[train_df.index],
+            X.loc[val_df.index],
+            X.loc[test_df.index],
+        )
         yf_train, _yf_val, yf_test = (
             y_failure.loc[train_df.index],
             y_failure.loc[val_df.index],
             y_failure.loc[test_df.index],
         )
-        yq_train, _yq_val, yq_test = y_queue.loc[train_df.index], y_queue.loc[val_df.index], y_queue.loc[test_df.index]
-        yg_train, _yg_val, yg_test = y_gpu.loc[train_df.index], y_gpu.loc[val_df.index], y_gpu.loc[test_df.index]
+        yq_train, _yq_val, yq_test = (
+            y_queue.loc[train_df.index],
+            y_queue.loc[val_df.index],
+            y_queue.loc[test_df.index],
+        )
+        yg_train, _yg_val, yg_test = (
+            y_gpu.loc[train_df.index],
+            y_gpu.loc[val_df.index],
+            y_gpu.loc[test_df.index],
+        )
 
         registered = {}
 
@@ -186,7 +198,7 @@ class Trainer:
             version_id = self.registry.register(
                 model_name="failure_xgb",
                 model_file=model_path,
-                params=failure_model.get_params() if hasattr(failure_model, "get_params") else {},
+                params=(failure_model.get_params() if hasattr(failure_model, "get_params") else {}),
                 metrics=failure_metrics,
                 feature_names=feature_cols,
                 train_rows=len(X_train_bal),

@@ -2,7 +2,6 @@
 tests/test_kepler.py — ATOM-STEP-1: Kepler Engine Tests
 Tests core/kepler.py: orbital propagation, anomaly solving, Swiss Ephemeris validation.
 """
-from __future__ import annotations
 
 import math
 import sys

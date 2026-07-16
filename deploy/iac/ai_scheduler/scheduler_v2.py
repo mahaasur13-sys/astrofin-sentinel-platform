@@ -99,9 +99,14 @@ def submit(job_type: str = "gpu", script: str = "job.sh", partition: str | None 
     cmd = ["bash", str(Path(__file__).parent / "submit.sh"), partition, script, job_id]
     result = subprocess.run(cmd, capture_output=True, text=True)
 
-    return {"job_id": job_id, "stdout": result.stdout, "stderr": result.stderr, "rc": result.returncode}
+    return {
+        "job_id": job_id,
+        "stdout": result.stdout,
+        "stderr": result.stderr,
+        "rc": result.returncode,
+    }
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("SCHEDULER_PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+    uvicorn.run(app, host=os.environ.get("BIND_HOST", "127.0.0.1"), port=port, log_level="info")

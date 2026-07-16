@@ -1,6 +1,5 @@
 """web/callbacks.py — All callbacks (ATOM-META-RL-004)"""
 
-from __future__ import annotations
 import logging
 import traceback
 
@@ -225,9 +224,11 @@ def register_callbacks(app, get_engine_ref):
             ev.get("win_rate", 0),
             min(ev.get("trades", 0) / 30, 1),
             max(0, 1 - ev.get("max_drawdown", 0)),
-            max(0, min((ev.get("risk_adjusted_pnl", 0) + 1) / 2, 1))
-            if ev.get("risk_adjusted_pnl") is not None
-            else 0.5,
+            (
+                max(0, min((ev.get("risk_adjusted_pnl", 0) + 1) / 2, 1))
+                if ev.get("risk_adjusted_pnl") is not None
+                else 0.5
+            ),
         ]
         fig = go.Figure(
             go.Scatterpolar(
@@ -243,8 +244,8 @@ def register_callbacks(app, get_engine_ref):
             height=220,
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            margin=dict(l=20, r=20, t=20, b=20),
-            polar=dict(bgcolor="rgba(0,0,0,0)"),
+            margin={"l": 20, "r": 20, "t": 20, "b": 20},
+            polar={"bgcolor": "rgba(0,0,0,0)"},
         )
         return fig
 
@@ -262,7 +263,7 @@ def register_callbacks(app, get_engine_ref):
                     y=arr,
                     mode="lines",
                     name="Equity",
-                    line=dict(color="#00d4ff", width=1.5),
+                    line={"color": "#00d4ff", "width": 1.5},
                     fill="tozeroy",
                     fillcolor="rgba(0,212,255,0.15)",
                 )
@@ -276,7 +277,7 @@ def register_callbacks(app, get_engine_ref):
                     mode="lines",
                     fill="tozeroy",
                     fillcolor="rgba(255,80,80,0.3)",
-                    line=dict(color="#ff5252", width=1),
+                    line={"color": "#ff5252", "width": 1},
                     name="Drawdown %",
                 )
             )
@@ -287,20 +288,20 @@ def register_callbacks(app, get_engine_ref):
                 text=f"Max: {max_dd:.1f}%",
                 showarrow=True,
                 arrowhead=2,
-                font=dict(color="#ff5252", size=10),
+                font={"color": "#ff5252", "size": 10},
             )
         for f in (fig, dd_fig):
             f.update_layout(
                 template="plotly_dark",
                 height=220,
-                margin=dict(l=40, r=20, t=20, b=30),
+                margin={"l": 40, "r": 20, "t": 20, "b": 30},
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
-                yaxis=dict(
-                    title="Equity" if f is fig else "Drawdown %",
-                    showgrid=True,
-                    gridcolor="rgba(255,255,255,0.05)",
-                ),
+                yaxis={
+                    "title": "Equity" if f is fig else "Drawdown %",
+                    "showgrid": True,
+                    "gridcolor": "rgba(255,255,255,0.05)",
+                },
             )
         return fig, dd_fig
 
@@ -445,7 +446,7 @@ def register_callbacks(app, get_engine_ref):
                 y=max_rw,
                 mode="lines+markers",
                 name="Best",
-                line=dict(color="#00d4ff", width=2),
+                line={"color": "#00d4ff", "width": 2},
             )
         )
         fig.add_trace(
@@ -454,16 +455,16 @@ def register_callbacks(app, get_engine_ref):
                 y=mean_rw,
                 mode="lines+markers",
                 name="Mean",
-                line=dict(color="#ffd600", dash="dot"),
+                line={"color": "#ffd600", "dash": "dot"},
             )
         )
         fig.update_layout(
             template="plotly_dark",
             height=220,
-            margin=dict(l=40, r=20, t=20, b=30),
+            margin={"l": 40, "r": 20, "t": 20, "b": 30},
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            yaxis=dict(title="Reward", showgrid=True, gridcolor="rgba(255,255,255,0.05)"),
+            yaxis={"title": "Reward", "showgrid": True, "gridcolor": "rgba(255,255,255,0.05)"},
         )
         # Diversity chart
         div_fig = go.Figure()
@@ -480,10 +481,10 @@ def register_callbacks(app, get_engine_ref):
         div_fig.update_layout(
             template="plotly_dark",
             height=220,
-            margin=dict(l=40, r=20, t=20, b=30),
+            margin={"l": 40, "r": 20, "t": 20, "b": 30},
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            yaxis=dict(title="Std Dev", showgrid=True, gridcolor="rgba(255,255,255,0.05)"),
+            yaxis={"title": "Std Dev", "showgrid": True, "gridcolor": "rgba(255,255,255,0.05)"},
         )
         if progress >= 100:
             best = engine.get_best_strategy()
@@ -693,23 +694,32 @@ def register_callbacks(app, get_engine_ref):
             records = p.load_scored_strategies(sid)
             record = next((r for r in records if r.get("id") == s_id), None)
             if not record:
-                return make_toast(
-                    f"Strategy {s_id[:8]} not found in session",
-                    "Deploy Failed",
-                    "danger",
-                ), dash.no_update
+                return (
+                    make_toast(
+                        f"Strategy {s_id[:8]} not found in session",
+                        "Deploy Failed",
+                        "danger",
+                    ),
+                    dash.no_update,
+                )
             ss = ScoredStrategy.from_dict(record)
             agent = MetaAgent()
             agent.pool.add(ss)
             karl_state = agent.update_karl([ss])
             qstar = karl_state.get("current_q_star", 0.0)
-            return make_toast(
-                f"Strategy {s_id[:8]} deployed to KARL. Q*={qstar:+.4f}",
-                "Deploy Success",
-                "success",
-            ), True
+            return (
+                make_toast(
+                    f"Strategy {s_id[:8]} deployed to KARL. Q*={qstar:+.4f}",
+                    "Deploy Success",
+                    "success",
+                ),
+                True,
+            )
         except Exception as e:
-            return make_toast(f"Deploy error: {e}", "Deploy Failed", "danger"), dash.no_update
+            return (
+                make_toast(f"Deploy error: {e}", "Deploy Failed", "danger"),
+                dash.no_update,
+            )
 
     # ══════════════════════════════════════════════════════════════════════════
     # EXPLORER: PAPER TEST
@@ -754,7 +764,10 @@ def register_callbacks(app, get_engine_ref):
         path = os.path.join(out_dir, safe)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(strategy_data, f, indent=2, default=str, ensure_ascii=False)
-        return make_toast(f"Saved to data/exports/{safe}", "Export JSON", "success"), True
+        return (
+            make_toast(f"Saved to data/exports/{safe}", "Export JSON", "success"),
+            True,
+        )
 
     # ══════════════════════════════════════════════════════════════════════════
     # EXPLORER: EXPORT PYTHON
@@ -789,7 +802,10 @@ def register_callbacks(app, get_engine_ref):
         )
         with open(path, "w", encoding="utf-8") as f:
             f.write(py_code)
-        return make_toast(f"Saved to data/exports/{safe}", "Export Python", "success"), True
+        return (
+            make_toast(f"Saved to data/exports/{safe}", "Export Python", "success"),
+            True,
+        )
 
     # ══════════════════════════════════════════════════════════════════════════
     # EXPLORER: BACKTEST
@@ -943,9 +959,11 @@ def register_callbacks(app, get_engine_ref):
             for k, v in sorted(chrom.items())
         ]
         chrom_html = dbc.Table(
-            [html.Thead(html.Tr([html.Th("Parameter"), html.Th("Value")]))] + [html.Tbody(rows)]
-            if rows
-            else [html.Tbody()],
+            (
+                [html.Thead(html.Tr([html.Th("Parameter"), html.Th("Value")]))] + [html.Tbody(rows)]
+                if rows
+                else [html.Tbody()]
+            ),
             bordered=False,
             size="sm",
         )
@@ -961,17 +979,17 @@ def register_callbacks(app, get_engine_ref):
                     y=list(rh),
                     mode="lines+markers",
                     name="Reward",
-                    line=dict(color="#00d4ff", width=2),
-                    marker=dict(size=5),
+                    line={"color": "#00d4ff", "width": 2},
+                    marker={"size": 5},
                 )
             )
         rh_fig.update_layout(
             template="plotly_dark",
             height=200,
-            margin=dict(l=40, r=20, t=20, b=30),
+            margin={"l": 40, "r": 20, "t": 20, "b": 30},
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            yaxis=dict(title="Reward", showgrid=True, gridcolor="rgba(255,255,255,0.05)"),
+            yaxis={"title": "Reward", "showgrid": True, "gridcolor": "rgba(255,255,255,0.05)"},
         )
 
         # Signal chart (simulate from equity curve)
@@ -1030,16 +1048,16 @@ def register_callbacks(app, get_engine_ref):
         fig.update_layout(
             template="plotly_dark",
             height=220,
-            margin=dict(l=40, r=10, t=20, b=30),
+            margin={"l": 40, "r": 10, "t": 20, "b": 30},
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            yaxis=dict(
-                title="Signal",
-                tickvals=[-1, 0, 1],
-                ticktext=["SHORT", "NEUT", "LONG"],
-                showgrid=True,
-                gridcolor="rgba(255,255,255,0.05)",
-            ),
+            yaxis={
+                "title": "Signal",
+                "tickvals": [-1, 0, 1],
+                "ticktext": ["SHORT", "NEUT", "LONG"],
+                "showgrid": True,
+                "gridcolor": "rgba(255,255,255,0.05)",
+            },
             showlegend=False,
         )
         return fig

@@ -108,7 +108,13 @@ SIGNAL_CONSENSUS_QUALITY = (
 def record_agent_run(agent: str, signal: str, latency_s: float, confidence: int) -> None:
     """Idempotent: records a single agent run, including latency and confidence."""
     if not _HAS_PROM:
-        logger.debug("metrics stub: agent=%s signal=%s conf=%d lat=%.3fs", agent, signal, confidence, latency_s)
+        logger.debug(
+            "metrics stub: agent=%s signal=%s conf=%d lat=%.3fs",
+            agent,
+            signal,
+            confidence,
+            latency_s,
+        )
         return
     AGENT_RUNS_TOTAL.labels(agent=agent, signal=signal, ttc="false").inc()
     AGENT_LATENCY_SECONDS.labels(agent=agent, ttc="false").observe(latency_s)
@@ -142,7 +148,9 @@ def time_block(metric_name: str = "default") -> Any:
 
 
 def with_agent_timing(
-    agent: str, signal_getter: Callable[[Any], str], confidence_getter: Callable[[Any], int]
+    agent: str,
+    signal_getter: Callable[[Any], str],
+    confidence_getter: Callable[[Any], int],
 ) -> Callable:
     """Decorator: record latency + confidence of an agent's run() method.
 

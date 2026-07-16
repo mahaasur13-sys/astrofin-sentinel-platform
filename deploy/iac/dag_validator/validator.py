@@ -70,7 +70,7 @@ class DAGValidator:
         violations = []
         cycle_path = self._find_cycle(nodes, edges)
         if cycle_path:
-            violations.append(ViolationType.I1_CYCLE, None, f"Cycle: {' -> '.join(cycle_path)}"))
+            violations.append(Violation(ViolationType.I1_CYCLE, None, f"Cycle: {' -> '.join(cycle_path)}"))
         violations.extend(self._check_dependency_closure(nodes, edges))
         violations.extend(self._check_deterministic_order(nodes, edges, deterministic_seed))
         violations.extend(self._check_side_effects(nodes))
@@ -129,7 +129,13 @@ class DAGValidator:
         defined = set(nodes.keys())
         for src, dst in edges:
             if src not in defined:
-                violations.append(ViolationType.I2_MISSING_INPUT, dst, f"Edge source '{src}' not in graph"))
+                violations.append(
+                    Violation(
+                        ViolationType.I2_MISSING_INPUT,
+                        dst,
+                        f"Edge source '{src}' not in graph",
+                    )
+                )
         return violations
 
     def _check_deterministic_order(self, nodes: dict, edges: list, seed: int | None) -> list[Violation]:
@@ -156,11 +162,18 @@ class DAGValidator:
     def _check_side_effects(self, nodes: dict) -> list[Violation]:
         violations = []
         for nid, node in nodes.items():
-            if node.get("type") in {"global_write", "filesystem_write", "network_call", "env_mutate"} and not node.get(
-                "isolated"
-            ):
+            if node.get("type") in {
+                "global_write",
+                "filesystem_write",
+                "network_call",
+                "env_mutate",
+            } and not node.get("isolated"):
                 violations.append(
-                    ViolationType.I4_SIDE_EFFECT, nid, f"Node '{nid}' performs side effect without isolation")
+                    Violation(
+                        ViolationType.I4_SIDE_EFFECT,
+                        nid,
+                        f"Node '{nid}' performs side effect without isolation",
+                    )
                 )
         return violations
 
@@ -170,7 +183,10 @@ class DAGValidator:
 
 if __name__ == "__main__":
     validator = DAGValidator()
-    dag = {"nodes": [{"node_id": "a"}, {"node_id": "b"}, {"node_id": "c"}], "edges": [["a", "b"], ["b", "c"]]}
+    dag = {
+        "nodes": [{"node_id": "a"}, {"node_id": "b"}, {"node_id": "c"}],
+        "edges": [["a", "b"], ["b", "c"]],
+    }
     result = validator.validate(dag, seed=42)
     print(f"DAG valid: {result.valid}")
     print(f"Invariants: {result.invariants_satisfied}")

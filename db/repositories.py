@@ -3,8 +3,6 @@
 All repositories work with PostgreSQL when available,
 fall back gracefully to SQLite when not.
 """
-from __future__ import annotations
-
 
 import json
 import logging
@@ -354,9 +352,9 @@ def _row_to_karl(r) -> dict:
         "q_values": _l(r.q_values_json),
         "q_star": float(r.q_star) if r.q_star else None,
         "advantage": float(r.advantage) if r.advantage else None,
-        "uncertainty_aleatoric": float(r.uncertainty_aleatoric) if r.uncertainty_aleatoric else None,
-        "uncertainty_epistemic": float(r.uncertainty_epistemic) if r.uncertainty_epistemic else None,
-        "uncertainty_total": float(r.uncertainty_total) if r.uncertainty_total else None,
+        "uncertainty_aleatoric": (float(r.uncertainty_aleatoric) if r.uncertainty_aleatoric else None),
+        "uncertainty_epistemic": (float(r.uncertainty_epistemic) if r.uncertainty_epistemic else None),
+        "uncertainty_total": (float(r.uncertainty_total) if r.uncertainty_total else None),
         "confidence_raw": r.confidence_raw,
         "confidence_final": r.confidence_final,
         "confidence_adjustments": _l(r.confidence_adjustments_json),

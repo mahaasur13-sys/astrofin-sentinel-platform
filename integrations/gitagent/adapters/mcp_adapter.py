@@ -4,8 +4,6 @@ Integrates with Smithery MCP registry to search, install, and wrap MCP tools
 as GitAgent-compatible tools.
 """
 
-from __future__ import annotations
-
 import json
 import subprocess
 from pathlib import Path
@@ -26,9 +24,7 @@ class MCPAdapter:
     """
 
     def __init__(self, storage_path: str | None = None):
-        self.storage_path = (
-            Path(storage_path) if storage_path else Path.home() / ".gitagent" / "mcp"
-        )
+        self.storage_path = Path(storage_path) if storage_path else Path.home() / ".gitagent" / "mcp"
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self.installed_servers: dict[str, dict[str, Any]] = {}
         self._load_installed()
@@ -164,6 +160,13 @@ class MCPAdapter:
                     "name": "@modelcontextprotocol/server-google-calendar",
                     "description": "Google Calendar MCP",
                     "category": "calendar",
+                },
+            ],
+            "postgres": [
+                {
+                    "name": "@modelcontextprotocol/server-postgres",
+                    "description": "PostgreSQL database access",
+                    "category": "database",
                 },
             ],
             "memory": [
@@ -304,7 +307,11 @@ class MCPAdapter:
         install_path = self.storage_path / "servers" / install_id
         install_path.mkdir(parents=True, exist_ok=True)
 
-        result = {"status": "pending", "name": server_name, "install_path": str(install_path)}
+        result = {
+            "status": "pending",
+            "name": server_name,
+            "install_path": str(install_path),
+        }
 
         try:
             # Use Smithery CLI to install
@@ -316,9 +323,7 @@ class MCPAdapter:
                     json.dump(config, f)
                 cmd.extend(["--config", str(config_file)])
 
-            proc = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=120, cwd=install_path
-            )
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120, cwd=install_path)
 
             if proc.returncode == 0:
                 result["status"] = "installed"
@@ -417,7 +422,9 @@ class MCPAdapter:
         try:
             server_name = self.installed_servers[install_id]["name"]
             subprocess.run(
-                ["npx", "@smithery/cli", "remove", server_name], capture_output=True, timeout=30
+                ["npx", "@smithery/cli", "remove", server_name],
+                capture_output=True,
+                timeout=30,
             )
         except Exception:
             pass

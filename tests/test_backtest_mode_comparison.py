@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+
 ROOT = Path(__file__).parent.parent
 SCRIPT = ROOT / "scripts" / "compare_backtest_modes.py"
 

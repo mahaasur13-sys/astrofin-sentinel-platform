@@ -24,8 +24,8 @@ def _validate_agent_yaml(agent_yaml: dict[str, Any]) -> tuple[bool, str | None]:
     """
     try:
         from integrations.gitagent.validators.agent_validator import AgentYamlValidator
-    except ImportError:  # validator unavailable -> skip validation (best-effort)
-        return True, None
+    except Exception:  # noqa: BLE001
+        return True, None  # validator unavailable -> skip validation (best-effort)
     try:
         validator = AgentYamlValidator()
         if not validator.validate(agent_yaml):
@@ -96,7 +96,11 @@ def export_strategy(strategy: Any, version_tag: str = None, output_dir: str = No
         sharpe_val = eval_dict.get("sharpe", 0.0)
         regime = chrom.get("regime_filter", "ALL")
         conf_base = int(chrom.get("confidence_threshold", 60))
-        model_conf = {"provider": "astrofin", "name": "meta-rl", "confidence_base": conf_base}
+        model_conf = {
+            "provider": "astrofin",
+            "name": "meta-rl",
+            "confidence_base": conf_base,
+        }
         agent_yaml = {
             "name": slug,
             "description": f"Meta-RL strategy gen={gen} conf={conf_base}",
@@ -112,7 +116,11 @@ def export_strategy(strategy: Any, version_tag: str = None, output_dir: str = No
         is_valid, validation_error = _validate_agent_yaml(agent_yaml)
         if not is_valid:
             return ExportResult(
-                slug=slug, path=str(pkg), validated=False, errors=[validation_error or "YAML validation failed"], deduplicated=False
+                slug=slug,
+                path=str(pkg),
+                validated=False,
+                errors=[validation_error or "YAML validation failed"],
+                deduplicated=False,
             )
         # Deduplication: skip if identical agent.yaml already exists
         existing_yaml = pkg / "agent.yaml"
@@ -124,7 +132,13 @@ def export_strategy(strategy: Any, version_tag: str = None, output_dir: str = No
                 new_yaml_str = json.dumps(agent_yaml, sort_keys=True)
                 new_hash = hashlib.sha256(new_yaml_str.encode()).hexdigest()
                 if existing_hash == new_hash:
-                    return ExportResult(slug=slug, path=str(pkg), validated=True, errors=[], deduplicated=True)
+                    return ExportResult(
+                        slug=slug,
+                        path=str(pkg),
+                        validated=True,
+                        errors=[],
+                        deduplicated=True,
+                    )
             except Exception:
                 pass  # fall through to re-export
         pkg.mkdir(parents=True, exist_ok=True)

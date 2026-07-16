@@ -14,6 +14,7 @@ Usage:
 Dependencies:
     asyncpg >= 0.29  (added in this commit: pyproject.toml)
 """
+
 from __future__ import annotations
 
 import argparse
@@ -30,6 +31,7 @@ logger = logging.getLogger(__name__)
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MIGRATIONS_DIR = REPO_ROOT / "migrations_postgres"
 VERSION_RE = re.compile(r"^(\d{4})_.+\.sql$")
+
 
 def split_sql_script(sql):
     """Split SQL script into statements (commas, comments, blanks)."""

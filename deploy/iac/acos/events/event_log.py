@@ -22,12 +22,23 @@ class EventLog:
         self._last_hash = event.event_hash
         return event
 
-    def emit(self, trace_id: str, event_type: str, payload: dict | None = None, actor: str = "engine") -> Event:
+    def emit(
+        self,
+        trace_id: str,
+        event_type: str,
+        payload: dict | None = None,
+        actor: str = "engine",
+    ) -> Event:
         from acos.events.types import EventType
 
         if isinstance(event_type, str):
             event_type = EventType(event_type)
-        event = Event(trace_id=trace_id, event_type=event_type, payload=dict(payload) if payload else {}, actor=actor)
+        event = Event(
+            trace_id=trace_id,
+            event_type=event_type,
+            payload=dict(payload) if payload else {},
+            actor=actor,
+        )
         return self.append(event)
 
     def get_trace(self, trace_id: str) -> list[Event]:

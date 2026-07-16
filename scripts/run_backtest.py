@@ -1,7 +1,5 @@
 """scripts/run_backtest.py — ATOM-STEP-8: Backtest Runner"""
 
-from __future__ import annotations
-
 import random
 import sys
 from datetime import datetime, timedelta
@@ -90,7 +88,7 @@ def main():
                 "  First trade:",
                 result.trades[0].symbol,
                 result.trades[0].side,
-                "pnl=%+.2f%%" % result.trades[0].pnl_pct,
+                f"pnl={result.trades[0].pnl_pct:+.2f}%",
             )
         print()
         all_results.append(result)
@@ -98,8 +96,8 @@ def main():
     print("=" * 60)
     print("  PORTFOLIO SUMMARY")
     print("=" * 60)
-    print("  Symbols: %s" % ", ".join(symbols))
-    print("  Combined Return: %+.2f%%" % total_return)
+    print("  Symbols: {}".format(", ".join(symbols)))
+    print(f"  Combined Return: {total_return:+.2f}%")
     print("=" * 60)
 
 

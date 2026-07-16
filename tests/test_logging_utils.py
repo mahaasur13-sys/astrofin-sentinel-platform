@@ -1,4 +1,5 @@
 """Unit tests for core/logging_utils.py — PII scrubber."""
+
 from __future__ import annotations
 
 import structlog

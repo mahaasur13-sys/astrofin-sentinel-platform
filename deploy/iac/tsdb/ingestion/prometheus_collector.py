@@ -112,13 +112,19 @@ class PrometheusCollector:
                 continue
             points.append(
                 MetricPoint(
-                    timestamp=datetime.now(timezone.utc), metric=metric, node_id=node_id, value=value, labels=labels
+                    timestamp=datetime.now(timezone.utc),
+                    metric=metric,
+                    node_id=node_id,
+                    value=value,
+                    labels=labels,
                 )
             )
         return points
 
     def scrape_exporter(self, url: str, node_id: str):
         try:
+            # nosec B310: prometheus exporter endpoint, scheme controlled by config (http/https)
+
             with urlopen(url, timeout=10) as resp:
                 text = resp.read().decode("utf-8")
             points = self.parse_metrics(text, node_id)

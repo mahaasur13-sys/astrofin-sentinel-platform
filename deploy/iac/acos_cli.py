@@ -100,7 +100,12 @@ class ACOSCLI:
             if self.governance_gate:
                 decision, reason = self.governance_gate.pre_check(dag, {})
                 if "REJECT" in str(decision).upper():
-                    result = {"status": "REJECTED", "trace_id": trace_id, "decision": str(decision), "reason": reason}
+                    result = {
+                        "status": "REJECTED",
+                        "trace_id": trace_id,
+                        "decision": str(decision),
+                        "reason": reason,
+                    }
                     self._record(result, dag)
                     return result
 
@@ -163,7 +168,10 @@ class ACOSCLI:
         self.recorder.record_trace(trace)
 
     def get_trace(self, trace_id: str) -> dict:
-        return self.recorder.get_trace(trace_id) or {"error": f"Trace {trace_id} not found", "trace_id": trace_id}
+        return self.recorder.get_trace(trace_id) or {
+            "error": f"Trace {trace_id} not found",
+            "trace_id": trace_id,
+        }
 
     def list_traces(self, filters=None) -> list:
         return self.recorder.list_traces(filters)
@@ -219,7 +227,11 @@ def main():
         job = (
             json.loads(args.job_json)
             if args.job_json
-            else {"type": args.job_type, "agent_type": args.agent_type, "priority": args.priority}
+            else {
+                "type": args.job_type,
+                "agent_type": args.agent_type,
+                "priority": args.priority,
+            }
         )
         result = cli.submit(job)
         print(json.dumps(result, indent=2, default=str))

@@ -1,7 +1,5 @@
 """amre/replay_buffer.py — Replay Buffer for trajectory learning"""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Any
 

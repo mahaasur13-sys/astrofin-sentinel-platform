@@ -18,7 +18,11 @@ CONFIG_FILE = CONFIG_DIR / "monitoring.json"
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
 BACKENDS = {
-    "grafana": {"port": 3000, "url": "http://localhost:3000", "label": "Grafana Web UI"},
+    "grafana": {
+        "port": 3000,
+        "url": "http://localhost:3000",
+        "label": "Grafana Web UI",
+    },
     "beszel": {"port": 8090, "url": "http://localhost:8090", "label": "Beszel Web UI"},
     "perses": {"port": 8080, "url": "http://localhost:8080", "label": "Perses Web UI"},
     "grafatui": {"port": None, "url": "terminal", "label": "Grafatui Terminal"},
@@ -66,6 +70,8 @@ def cmd_status() -> int:
     try:
         import urllib.request
 
+        # nosec B310: hard-coded internal monitor endpoint, http://localhost is intentional
+
         req = urllib.request.urlopen(f"{victoria_url}/health", timeout=3)
         vm_up = req.status == 200
     except Exception:
@@ -103,7 +109,11 @@ def cmd_switch(backend: str) -> int:
         from acos.events.types import EventType
 
         log = EventLog()
-        log.emit("acos-monitor", EventType.DAG_CREATED, {"action": "MONITOR_SWITCH", "from": old, "to": backend})
+        log.emit(
+            "acos-monitor",
+            EventType.DAG_CREATED,
+            {"action": "MONITOR_SWITCH", "from": old, "to": backend},
+        )
         print("  ✅ Event logged to EventLog")
     except Exception:
         print("  ⚠️  EventLog unavailable")

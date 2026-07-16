@@ -3,8 +3,6 @@
 Note: Using Text columns instead of JSONB for maximum compatibility.
 JSON stored as text is handled by the repository layer.
 """
-from __future__ import annotations
-
 
 import enum
 

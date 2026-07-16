@@ -126,12 +126,12 @@ class SyntheticScheduler:
             scheduled=sum(1 for r in completed if r.scheduled),
             completed=sum(1 for r in completed if r.exit_code == 0),
             failed=sum(1 for r in completed if r.exit_code != 0),
-            p50_wait_sec=float(sorted(wait_times)[len(wait_times) // 2]) if wait_times else 0,
-            p99_wait_sec=float(sorted(wait_times)[int(len(wait_times) * 0.99)]) if len(wait_times) > 10 else 0,
-            p50_runtime_sec=float(sorted(runtimes)[len(runtimes) // 2]) if runtimes else 0,
-            p99_runtime_sec=float(sorted(runtimes)[int(len(runtimes) * 0.99)]) if len(runtimes) > 10 else 0,
+            p50_wait_sec=(float(sorted(wait_times)[len(wait_times) // 2]) if wait_times else 0),
+            p99_wait_sec=(float(sorted(wait_times)[int(len(wait_times) * 0.99)]) if len(wait_times) > 10 else 0),
+            p50_runtime_sec=(float(sorted(runtimes)[len(runtimes) // 2]) if runtimes else 0),
+            p99_runtime_sec=(float(sorted(runtimes)[int(len(runtimes) * 0.99)]) if len(runtimes) > 10 else 0),
             queue_depth_peak=max_queue,
-            node_states={k: v for k, v in self.nodes.items()},
+            node_states=dict(self.nodes.items()),
         )
 
     def _try_schedule(self, job: Job) -> bool:

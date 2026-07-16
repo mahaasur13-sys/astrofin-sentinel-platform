@@ -1,5 +1,4 @@
 """tests/test_council.py — AstroCouncil Tests"""
-from __future__ import annotations
 
 import pytest
 

@@ -82,7 +82,7 @@ class AuthConfig:
     algorithm: str = "RS256"
 
     @classmethod
-    def from_env(cls) -> "AuthConfig":
+    def from_env(cls) -> AuthConfig:
         return cls(
             private_key_path=os.getenv("JWT_PRIVATE_KEY_PATH", "keys/jwt_private.pem"),
             public_key_path=os.getenv("JWT_PUBLIC_KEY_PATH", "keys/jwt_public.pem"),

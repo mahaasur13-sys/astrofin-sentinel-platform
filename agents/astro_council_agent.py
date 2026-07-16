@@ -7,19 +7,15 @@ AstroFin Sentinel v5 — AstroCouncil Agent
 Финальный сигнал = взвешенная комбинация всех голосов.
 """
 
-from __future__ import annotations
-
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
+from agents._impl.ephemeris_decorator import require_ephemeris
 from agents._impl.synthesis_agent import AGENT_WEIGHTS, CATEGORY_WEIGHTS
 from agents._impl.types import TradingSignal
 from agents.base_agent import AgentResponse, BaseAgent
-from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +81,6 @@ class AstroCouncilAgent(BaseAgent):
         """Register a sub-agent."""
         self._sub_agents[name] = agent
 
-    @track_agent_metrics
     @require_ephemeris
     async def run(self, context: dict[str, Any]) -> AgentResponse:
         """
@@ -95,45 +90,39 @@ class AstroCouncilAgent(BaseAgent):
         2. Параллельно все суб-агенты
         3. TradingSignal.from_agents для финального взвешивания
         """
-        try:
-            dt = context.get("datetime") or datetime.utcnow()
-            symbol = context.get("symbol", "BTC")
-            price = context.get("price") or context.get("current_price") or 100.0
+        dt = context.get("datetime") or datetime.now(timezone.utc)
+        symbol = context.get("symbol", "BTC")
+        price = context.get("price") or context.get("current_price") or 100.0
 
-            # 1. Критичный вызов Swiss Ephemeris
-            eph = self._call_ephemeris(dt)
+        # 1. Критичный вызов Swiss Ephemeris
+        eph = self._call_ephemeris(dt)
 
-            # 2. Параллельный запуск всех суб-агентов
-            responses = await self._run_sub_agents(context)
+        # 2. Параллельный запуск всех суб-агентов
+        responses = await self._run_sub_agents(context)
 
-            # 3. Гибридное взвешивание
-            final_signal = TradingSignal.from_agents(
-                symbol=symbol,
-                responses=responses,
-                entry_price=price,
-                weights=self._weights,
-            )
+        # 3. Гибридное взвешивание
+        final_signal = TradingSignal.from_agents(
+            symbol=symbol,
+            responses=responses,
+            entry_price=price,
+            weights=self._weights,
+        )
 
-            return AgentResponse(
-                agent_name="AstroCouncil",
-                signal=final_signal.signal.value,
-                confidence=final_signal.confidence,
-                reasoning=final_signal.summary,
-                sources=[],
-                metadata={
-                    "astro_yoga": eph.get("yoga", "unknown"),
-                    "astro_score": eph.get("score", 50),
-                    "ephemeris": {k: v for k, v in eph.items() if k != "error"},
-                    "total_agents": len(responses),
-                    "weights": self._weights,
-                    "final_signal": final_signal.to_dict(),
-                },
-            )
-        except EphemerisUnavailableError as e:
-            return self._degraded(EPHEMERIS_UNAVAILABLE, str(e))
-        except Exception as e:  # noqa: BLE001 — last-resort guard
-            logger.exception("agent_run_unhandled", extra={"agent": self.name})
-            return self._degraded(UNKNOWN, repr(e))
+        return AgentResponse(
+            agent_name="AstroCouncil",
+            signal=final_signal.signal.value,
+            confidence=final_signal.confidence,
+            reasoning=final_signal.summary,
+            sources=[],
+            metadata={
+                "astro_yoga": eph.get("yoga", "unknown"),
+                "astro_score": eph.get("score", 50),
+                "ephemeris": {k: v for k, v in eph.items() if k != "error"},
+                "total_agents": len(responses),
+                "weights": self._weights,
+                "final_signal": final_signal.to_dict(),
+            },
+        )
 
     async def _run_sub_agents(self, context: dict[str, Any]) -> list[AgentResponse]:
         """Параллельно запускает Thompson-selected суб-агентов.

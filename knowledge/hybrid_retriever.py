@@ -19,6 +19,7 @@ Adapter contract: both retrievers must expose a method called `retrieve`
 that returns a list of `Chunk` (or any object with `.id`). Vector side is
 async (matches RAGClient); BM25 side is sync (pure-Python, no I/O).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -30,13 +31,13 @@ from .bm25_retriever import Chunk
 class _VectorRetrieverLike(Protocol):
     """Async retriever returning Chunk-like objects with `.id`."""
 
-    async def retrieve(self, query: str, top_k: int) -> List[Chunk]: ...
+    async def retrieve(self, query: str, top_k: int) -> list[Chunk]: ...
 
 
 class _BM25RetrieverLike(Protocol):
     """Sync retriever returning Chunk-like objects with `.id`."""
 
-    def retrieve(self, query: str, top_k: int) -> List[Chunk]: ...
+    def retrieve(self, query: str, top_k: int) -> list[Chunk]: ...
 
 
 @dataclass
@@ -49,8 +50,8 @@ class HybridScore:
 
     chunk: Chunk
     hybrid_score: float
-    vector_rank: Optional[int] = None
-    bm25_rank: Optional[int] = None
+    vector_rank: int | None = None
+    bm25_rank: int | None = None
 
 
 class HybridRetriever:
@@ -84,7 +85,7 @@ class HybridRetriever:
         self.vector_weight = vector_weight
         self.bm25_weight = bm25_weight
 
-    async def retrieve(self, query: str, top_k: int = 10) -> List[HybridScore]:
+    async def retrieve(self, query: str, top_k: int = 10) -> list[HybridScore]:
         """Top-`top_k` chunks by weighted RRF, descending by hybrid_score.
 
         Implementation notes:
@@ -120,7 +121,7 @@ class HybridRetriever:
         for c in bm25_results:
             chunk_by_id.setdefault(c.id, c)
 
-        fused: List[HybridScore] = []
+        fused: list[HybridScore] = []
         for chunk_id, src_ranks in ranks.items():
             score = 0.0
             v_rank = src_ranks.get("vector")
@@ -133,12 +134,14 @@ class HybridRetriever:
             if chunk is None:
                 # Should be unreachable: we just iterated over these lists.
                 continue
-            fused.append(HybridScore(
-                chunk=chunk,
-                hybrid_score=score,
-                vector_rank=v_rank,
-                bm25_rank=b_rank,
-            ))
+            fused.append(
+                HybridScore(
+                    chunk=chunk,
+                    hybrid_score=score,
+                    vector_rank=v_rank,
+                    bm25_rank=b_rank,
+                )
+            )
 
         fused.sort(key=lambda x: x.hybrid_score, reverse=True)
         return fused[:top_k]

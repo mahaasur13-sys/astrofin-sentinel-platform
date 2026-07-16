@@ -1,0 +1,49 @@
+# =============================================================================
+# ROMA PVCs — Longhorn / Rook Ceph
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: roma-checkpoints
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+    app.kubernetes.io/component: storage
+spec:
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: longhorn  # or rook-cephfs for RWX
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: roma-models
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+    app.kubernetes.io/component: storage
+spec:
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: 200Gi
+  storageClassName: longhorn  # or rook-cephfs for RWX
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: roma-event-store
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+    app.kubernetes.io/component: storage
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: longhorn  # or rook-ceph-block

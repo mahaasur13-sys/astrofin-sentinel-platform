@@ -6,8 +6,6 @@ scripts/translate_comments.py
 Строковые литералы и docstring не изменяются.
 """
 
-from __future__ import annotations
-
 import re
 import sys
 from pathlib import Path
@@ -24,7 +22,7 @@ CYRILLIC_PATTERN = re.compile(r"[А-Яа-яЁё]")
 COMMENT_LINE_PATTERN = re.compile(r"^(\s*#)\s*(.*)$")  # строка, начинающаяся с # (возможно с отступом)
 
 
-def extract_comment_text(line: str) -> Tuple[str, str, str] | None:
+def extract_comment_text(line: str) -> tuple[str, str, str] | None:
     """Если строка является однострочным комментарием с кириллицей,
     возвращает (отступ, '# ', текст комментария)."""
     match = COMMENT_LINE_PATTERN.match(line)
@@ -50,7 +48,7 @@ def process_file(filepath: Path) -> bool:
     """Обрабатывает один .py файл, заменяет русские комментарии на английские.
     Возвращает True, если были изменения."""
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             lines = f.readlines()
     except Exception as e:
         print(f"  ❌ Ошибка чтения {filepath}: {e}")

@@ -67,7 +67,12 @@ class DeterministicReplayer:
                     steps_executed += 1
                 except Exception as e:
                     divergence_points.append(
-                        {"node_id": node_data["node_id"], "layer": layer, "error": str(e), "position": steps_executed}
+                        {
+                            "node_id": node_data["node_id"],
+                            "layer": layer,
+                            "error": str(e),
+                            "position": steps_executed,
+                        }
                     )
 
         duration_ms = (time.time() - start) * 1000
@@ -111,6 +116,11 @@ class CorrelationEngine:
             baseline = baseline_nodes.get(node_id)
             if baseline and current["data"] != baseline["data"]:
                 divergences.append(
-                    {"node_id": node_id, "layer": layer, "baseline": baseline["data"], "current": current["data"]}
+                    {
+                        "node_id": node_id,
+                        "layer": layer,
+                        "baseline": baseline["data"],
+                        "current": current["data"],
+                    }
                 )
         return divergences

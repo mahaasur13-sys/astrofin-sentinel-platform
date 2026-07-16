@@ -1,283 +1,43 @@
-# =============================================================================
-# AstroFin Sentinel Platform — unified docker-compose
-# =============================================================================
-# Services:
-#   - app          : web dashboard (Dash + Flask + gunicorn)         port 8050
-#   - ml-engine    : ML inference API (FastAPI + uvicorn)            port 8081
-#   - feature-pipeline : ACOS feature builder (one-shot / cron)      port 8090
-#   - gpu-worker   : ROMA execution GPU worker (CUDA)               port 8000
-#   - postgres     : TimescaleDB (metrics storage)                   port 5432
-#   - redis        : job/cache broker                                port 6379
-#   - prometheus   : metrics scrape                                   port 9090
-#
-# Notes:
-#   - ACOS (Governance/Execution/Trace): containerisation deferred —
-#     host-only systemd services via Ansible. See home-cluster-iac/acos.
-#   - AmneziaWG VPN: NOT containerised — requires host kernel module.
-#     Provisioned by home-cluster-iac/deploy_amneziawg.sh.
-# =============================================================================
-
-version: "3.9"
-
-x-common-env: &common-env
-  ENV: production
-  PYTHONUNBUFFERED: "1"
-  PYTHONDONTWRITEBYTECODE: "1"
-  TZ: UTC
-
+version: '3.8'
 services:
-  # -----------------------------------------------------------------------
-  # Web Dashboard
-  # -----------------------------------------------------------------------
   app:
-    build:
-      context: .
-      dockerfile: web/Dockerfile
-    image: astrofin/web:1.0.0
-    container_name: astrofin-web
+    build: .
     ports:
       - "8050:8050"
-    environment:
-      <<: *common-env
-      DATABASE_URL: postgresql+psycopg2://astrofin:astrofin@postgres:5432/astrofin
-      REDIS_URL: redis://redis:6379/0
-      ML_ENGINE_URL: http://ml-engine:8081
-      PROMETHEUS_MULTIPROC_DIR: /tmp
     env_file:
       - .env.example
     depends_on:
-      postgres:
-        condition: service_started
-      redis:
-        condition: service_started
-      ml-engine:
-        condition: service_started
-    volumes:
-      - ./logs/web:/app/logs
+      - postgres
+      - redis
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8050/health')"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    security_opt:
-      - "no-new-privileges:true"
-    cap_drop:
-      - "ALL"
-    networks:
-      - astrofin
 
-  # -----------------------------------------------------------------------
-  # ML Inference API (FastAPI)
-  # -----------------------------------------------------------------------
-  ml-engine:
-    build:
-      context: ./AsurDev
-      dockerfile: ml_engine/Dockerfile
-    image: acos/ml-engine:6.0.0
-    container_name: acos-ml-engine
-    ports:
-      - "8081:8081"
-    environment:
-      <<: *common-env
-      ML_MODEL_PATH: /app/models/failure_xgb_v2.pkl
-      ML_FEATURES_PATH: /app/models/features.txt
-      DATABASE_URL: postgresql+psycopg2://astrofin:astrofin@postgres:5432/astrofin
-    depends_on:
-      postgres:
-        condition: service_started
-    volumes:
-      - ./AsurDev/ml_engine/models:/app/models:ro
-      - ./AsurDev/ml_engine:/app/ml_engine:ro
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8081/health')"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
-    security_opt:
-      - "no-new-privileges:true"
-    cap_drop:
-      - "ALL"
-    networks:
-      - astrofin
-
-  # -----------------------------------------------------------------------
-  # Feature Pipeline (ACOS)
-  # -----------------------------------------------------------------------
-  feature-pipeline:
-    build:
-      context: ./deploy/iac
-      dockerfile: feature_pipeline/Dockerfile
-    image: acos/feature-pipeline:6.0.0
-    container_name: acos-feature-pipeline
-    ports:
-      - "8090:8090"
-    environment:
-      <<: *common-env
-      DATABASE_URL: postgresql+psycopg2://astrofin:astrofin@postgres:5432/astrofin
-      REDIS_URL: redis://redis:6379/0
-      PIPELINE_MODE: continuous
-      PIPELINE_INTERVAL_SEC: "60"
-    depends_on:
-      postgres:
-        condition: service_started
-      redis:
-        condition: service_started
-    volumes:
-      - ./deploy/iac/feature_pipeline:/app/feature_pipeline:ro
-      - feature-data:/app/data
-    restart: unless-stopped
-    security_opt:
-      - "no-new-privileges:true"
-    cap_drop:
-      - "ALL"
-    networks:
-      - astrofin
-
-  # -----------------------------------------------------------------------
-  # GPU Worker (ROMA execution bridge) — only on NVIDIA hosts
-  # -----------------------------------------------------------------------
-  gpu-worker:
-    build:
-      context: ./src/bridges/roma
-      dockerfile: gpu_worker/Dockerfile
-    image: roma/gpu-worker:1.0.0
-    container_name: roma-gpu-worker
-    # Profile: only runs when GPU profile is activated:  docker compose --profile gpu up
-    profiles: ["gpu"]
-    runtime: nvidia
-    environment:
-      <<: *common-env
-      NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,utility
-      GPU_WORKER_HOST: 0.0.0.0
-      GPU_WORKER_PORT: "8000"
-      WORKER_ID: gpu-worker-${HOSTNAME:-local}
-      REDIS_URL: redis://redis:6379/1
-    ports:
-      - "8000:8000"
-    depends_on:
-      redis:
-        condition: service_started
-    volumes:
-      - ./src/bridges/roma/gpu_worker:/app/gpu_worker:ro
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    security_opt:
-      - "no-new-privileges:true"
-    cap_drop:
-      - "ALL"
-    networks:
-      - astrofin
-
-  # -----------------------------------------------------------------------
-  # PostgreSQL / TimescaleDB
-  # -----------------------------------------------------------------------
   postgres:
     image: timescale/timescaledb:latest-pg16
-    container_name: astrofin-postgres
     environment:
       POSTGRES_USER: astrofin
-      # In production, set POSTGRES_PASSWORD via the deploy/secrets manager (see
-      # .env.prod.enc.yaml + SOPS). The default below is only used for local
-      # `docker compose config` validation; `docker compose up` will fail loudly
-      # if you forget to override it in a non-dev environment.
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+      POSTGRES_PASSWORD: astrofin
       POSTGRES_DB: astrofin
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./deploy/monitoring/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U astrofin -d astrofin"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    security_opt:
-      - "no-new-privileges:true"
-    cap_drop:
-      - "ALL"
-    networks:
-      - astrofin
 
-  # -----------------------------------------------------------------------
-  # Redis
-  # -----------------------------------------------------------------------
   redis:
     image: redis:7-alpine
-    container_name: astrofin-redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-changeme}"]
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    security_opt:
-      - "no-new-privileges:true"
-    cap_drop:
-      - "ALL"
-    networks:
-      - astrofin
 
-  # -----------------------------------------------------------------------
-  # Prometheus
-  # -----------------------------------------------------------------------
   prometheus:
-    image: prom/prometheus:latest
-    container_name: astrofin-prometheus
+    image: prom/prometheus
     ports:
-      - "127.0.0.1:9090:9090"
+      - "9090:9090"
     volumes:
-      - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--web.enable-lifecycle"
-    depends_on:
-      - app
-    security_opt:
-      - "no-new-privileges:true"
-    cap_drop:
-      - "ALL"
-    networks:
-      - astrofin
-
-# =============================================================================
-# ACOS Governance/Execution/Trace — placeholder
-# -----------------------------------------------------------------------------
-# Containerisation deferred: currently deployed as host systemd services via
-# Ansible. To enable once Dockerfile is created, remove the next comment
-# block and add an `acos:` service here.
-# =============================================================================
-
-# =============================================================================
-# AmneziaWG VPN — host-only
-# -----------------------------------------------------------------------------
-# Requires kernel module built on host (dkms). Provisioned via
-# home-cluster-iac/deploy_amneziawg.sh. Do NOT containerise.
-# =============================================================================
 
 volumes:
   postgres_data:
   redis_data:
   prometheus_data:
-  feature-data:
-
-networks:
-  astrofin:
-    driver: bridge
-    name: astrofin

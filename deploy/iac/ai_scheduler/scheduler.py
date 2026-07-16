@@ -90,7 +90,13 @@ def get_prometheus_metric(query: str, default: float = 0.0) -> float:
     """Query Prometheus HTTP API, return float value or default."""
     try:
         result = subprocess.run(
-            ["curl", "-s", "--max-time", "3", f"{PROMETHEUS_URL}/api/v1/query?query={query}"],
+            [
+                "curl",
+                "-s",
+                "--max-time",
+                "3",
+                f"{PROMETHEUS_URL}/api/v1/query?query={query}",
+            ],
             capture_output=True,
             text=True,
             timeout=5,
@@ -112,13 +118,15 @@ def get_node_metrics_prometheus(hostname: str, ip: str) -> NodeMetrics:
     gpu_util = get_prometheus_metric(f"DCGM_FI_DEV_GPU_UTIL{labels}", 0.0)
     gpu_mem = get_prometheus_metric(f"DCGM_FI_DEV_FB_USED{labels}", 0.0) / 12.0  # normalize to %
     cpu_util = get_prometheus_metric(
-        f'100 - (avg by (instance) (irate({{__name__=~"node_cpu.*",{labels}}}[5m])) * 100)', 0.0
+        f'100 - (avg by (instance) (irate({{__name__=~"node_cpu.*",{labels}}}[5m])) * 100)',
+        0.0,
     )
     mem_util = get_prometheus_metric(f"node_memory_MemAvailable{{{labels}}}", 0.0)
     mem_total = get_prometheus_metric(f"node_memory_MemTotal{{{labels}}}", 1.0)
     memory_util = ((mem_total - mem_util) / mem_total * 100) if mem_total > 0 else 50.0
     disk_util = get_prometheus_metric(
-        f"100 - (node_filesystem_avail{{{labels}}}) / (node_filesystem_size{{{labels}}}) * 100", 0.0
+        f"100 - (node_filesystem_avail{{{labels}}}) / (node_filesystem_size{{{labels}}}) * 100",
+        0.0,
     )
     latency = get_prometheus_metric(f"probe_duration_seconds{{{labels}}}*1000", 1.0)
 
@@ -153,9 +161,18 @@ def get_node_metrics_fallback(hostname: str, ip: str) -> NodeMetrics:
 # =============================================================================
 
 NODE_REGISTRY = {
-    "rtx-node": {"ip": "10.20.20.10", "capabilities": ["gpu", "slurm", "ceph_osd", "ray_head"]},
-    "rk3576-node": {"ip": "10.20.20.20", "capabilities": ["cpu", "ceph_osd", "ray_worker"]},
-    "vps-node": {"ip": "10.40.40.30", "capabilities": ["cpu", "vps", "slurm_backup", "ceph_mon"]},
+    "rtx-node": {
+        "ip": "10.20.20.10",
+        "capabilities": ["gpu", "slurm", "ceph_osd", "ray_head"],
+    },
+    "rk3576-node": {
+        "ip": "10.20.20.20",
+        "capabilities": ["cpu", "ceph_osd", "ray_worker"],
+    },
+    "vps-node": {
+        "ip": "10.40.40.30",
+        "capabilities": ["cpu", "vps", "slurm_backup", "ceph_mon"],
+    },
 }
 
 
@@ -190,7 +207,11 @@ def route_job(job: JobRequest) -> ScheduleResponse:
 
         # Compute score
         gpu_required = job.gpu_required or job.job_type in ("gpu", "inference")
-        metrics.compute_score(gpu_required=gpu_required, data_locality=job.data_locality, priority=job.priority)
+        metrics.compute_score(
+            gpu_required=gpu_required,
+            data_locality=job.data_locality,
+            priority=job.priority,
+        )
         nodes.append(metrics)
 
     # Filter alive nodes
@@ -260,7 +281,11 @@ def list_nodes() -> dict:
 def health_check() -> dict:
     """Scheduler health."""
     try:
-        subprocess.run(["curl", "-s", "--max-time", "2", f"{PROMETHEUS_URL}/-/healthy"], capture_output=True, timeout=3)
+        subprocess.run(
+            ["curl", "-s", "--max-time", "2", f"{PROMETHEUS_URL}/-/healthy"],
+            capture_output=True,
+            timeout=3,
+        )
         prom_status = "ok"
     except Exception:
         prom_status = "unreachable"
@@ -288,4 +313,4 @@ def cli_route():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="info")
+    uvicorn.run(app, host=os.environ.get("BIND_HOST", "127.0.0.1"), port=8080, log_level="info")

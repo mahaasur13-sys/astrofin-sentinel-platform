@@ -1,7 +1,5 @@
 """backtest/atom_014_stress_test.py — ATOM-014: KARL Stress Test"""
 
-from __future__ import annotations
-
 import asyncio
 import os
 import sys
@@ -194,11 +192,11 @@ async def run_karl_mode(bars, interval=24):
                 "regime": state["regime"],
                 "pnl_pct": round(pnl, 4),
                 "reward": round(reward, 4),
-                "passed": synth.get("metadata", {}).get("amre_passed", True) if synth.get("metadata") else True,
+                "passed": (synth.get("metadata", {}).get("amre_passed", True) if synth.get("metadata") else True),
                 "karl_confidence": synth.get("confidence", 50),
-                "uncertainty": synth.get("metadata", {}).get("uncertainty", {}).get("total", 0.5)
-                if synth.get("metadata")
-                else 0.5,
+                "uncertainty": (
+                    synth.get("metadata", {}).get("uncertainty", {}).get("total", 0.5) if synth.get("metadata") else 0.5
+                ),
             }
         )
     return {
@@ -297,7 +295,7 @@ async def main():
         drift_q = avg(q1, "q_star") - avg(q4, "q_star")
         drift_unc = avg(q4, "uncertainty_total") - avg(q1, "uncertainty_total")
         audit_drift = {
-            "status": "stable" if abs(drift_conf) < 10 and abs(drift_unc) < 0.15 else "degrading",
+            "status": ("stable" if abs(drift_conf) < 10 and abs(drift_unc) < 0.15 else "degrading"),
             "confidence_drift": round(drift_conf, 2),
             "q_star_drift": round(drift_q, 4),
             "uncertainty_drift": round(drift_unc, 4),
