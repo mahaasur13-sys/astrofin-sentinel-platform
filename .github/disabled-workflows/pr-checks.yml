@@ -1,0 +1,125 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main, master, develop]
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_DEFAULT: "3.12"
+
+jobs:
+  size:
+    name: Diff size
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check diff size
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 - <<'PY'
+          import os, subprocess
+          base = os.environ["BASE"]; head = os.environ["HEAD"]
+          try:
+              out = subprocess.check_output(
+                  ["git", "diff", "--shortstat", f"{base}...{head}"], text=True
+              ).strip()
+          except subprocess.CalledProcessError as e:
+              print(f"::warning::git diff failed: {e}")
+              raise sys.exit(0)
+          print(f"diff: {out}")
+          # Parse "N files changed, M insertions(+), K deletions(-)"
+          files = 0
+          for tok in out.split(","):
+              tok = tok.strip()
+              if "files changed" in tok:
+                  files = int(tok.split()[0])
+          if files > 800:
+              print(f"::error::PR too large: {files} files changed (limit 800)")
+              raise SystemExit(1)
+          if files > 400:
+              print(f"::warning::Large PR: {files} files changed")
+          PY
+
+  title:
+    name: Conventional commit title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate PR title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+          title = os.environ["TITLE"].strip()
+          # Conventional: type(scope)?: subject
+          pat = re.compile(
+              r"^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)"
+              r"(\([a-z0-9_-]+\))?!?: .+",
+              re.IGNORECASE,
+          )
+          if not pat.match(title):
+              print(f"::error::PR title must follow Conventional Commits")
+              print(f"  got:      {title!r}")
+              print(f"  expected: <type>(<scope>): <subject>")
+              print(f"  types:    feat, fix, chore, docs, style, refactor, perf, test, build, ci, revert")
+              sys.exit(1)
+          print(f"OK: {title!r}")
+          PY
+
+  description:
+    name: Description template
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check required sections
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+          body = os.environ.get("BODY", "") or ""
+          required = ["## Summary", "## Test plan"]
+          missing = [h for h in required if h.lower() not in body.lower()]
+          if missing:
+              print("::error::PR description is missing required sections:")
+              for h in missing:
+                  print(f"  - {h}")
+              sys.exit(1)
+          print(f"OK: description has {len(required)} required sections")
+          PY
+
+  architecture:
+    name: Architecture linter
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run architecture linter
+        run: python3 scripts/architecture_linter.py
+
+  data-room:
+    name: Data room contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate data room
+        run: bash scripts/ci_validate_data_room.sh
