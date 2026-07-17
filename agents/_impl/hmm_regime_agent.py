@@ -48,9 +48,8 @@ class HMMRegimeAgent(BaseAgent[AgentResponse]):
         if self._model is None:
             self._model = hmm.GaussianHMM(
                 n_components=self._n_states,
-                covariance_type="full",
-                n_iter=100,
-                random_state=42,
+                covariance_type="diag",
+                n_iter=200, tol=1e-3, random_state=42, init_params="stmc",
             )
         return self._model
 
