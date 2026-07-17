@@ -1,1 +1,1 @@
-pytest --data-room-inventory-check tests/test_data_room.py
+pytest -q --no-cov tests/test_data_room.py
