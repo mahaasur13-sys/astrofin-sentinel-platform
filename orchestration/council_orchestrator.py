@@ -51,6 +51,7 @@ class CouncilOrchestrator:
         agent_responses: List[AgentResponse],
         final_signal: AgentResponse,
         config: dict | None = None,
+        is_backtest: bool = False,
     ) -> dict:
         """Полный торговый цикл: KARL → RiskEngine → validation → execution result.
 
@@ -82,14 +83,27 @@ class CouncilOrchestrator:
                 f"Reason: {risk_reason}\n"
                 f"Time: {datetime.now(timezone.utc).isoformat()}"
             )
-            asyncio.create_task(send_telegram_message(alert_msg))
+            if not is_backtest:
+                asyncio.create_task(send_telegram_message(alert_msg))
 
-            return {"action": "STOP", "size": 0.0, "risk_reason": risk_reason, "blocked": True}
+            return {
+                "action": "STOP",
+                "size": 0.0,
+                "risk_reason": risk_reason,
+                "blocked": True,
+                "signal": final_signal.signal.name,
+            }
 
         # 4. NEUTRAL check
         if final_signal.signal == SignalDirection.NEUTRAL:
             logger.info("Council consensus is NEUTRAL. No action.")
-            return {"action": "NEUTRAL", "size": 0.0, "risk_reason": "consensus NEUTRAL", "blocked": False}
+            return {
+                "action": "NEUTRAL",
+                "size": 0.0,
+                "risk_reason": "consensus NEUTRAL",
+                "blocked": False,
+                "signal": final_signal.signal.name,
+            }
 
         # 5. Execution artifact (broker call site)
         logger.info(
