@@ -1,144 +1,84 @@
-# Dashboard Evaluation: LangGraph vs n8n
+# Dashboard Evaluation: LangGraph and n8n
 
-## Executive Summary
+## Recommendation
 
-For AstroFinSentinelV5's dashboard and workflow orchestration needs, **LangGraph is the recommended primary choice** with n8n as a secondary option for specific data ingestion pipelines. This hybrid approach provides the best of both worlds: LangGraph's robust state management for complex multi-agent workflows, combined with n8n's strength in event-driven data streams.
+Use **LangGraph as the primary orchestration and state layer** and add **n8n only at the data-ingestion and event-delivery boundary**. AstroFinSentinelV5 already has a LangGraph-oriented state schema and a Python-native agent council. Its agents return a shared `AgentResponse`, run in-process, and require explicit conflict arbitration, audit trails, checkpointing, and graceful degradation. Moving that decision loop into n8n would introduce a second orchestration model and make typed state, retries, and KARL arbitration harder to control.
 
-## LangGraph Evaluation
+n8n is still useful where it is strongest: scheduled API polling, RSS/news collection, webhooks, normalization, and notifications. It should write validated, provenance-bearing records into the Data Room or PostgreSQL/TimescaleDB and emit an event for the Python orchestrator. n8n must not become the source of trading truth or bypass `data_room/`; external data remains subject to the existing RAG-first and provenance rules. Start with LangGraph and existing persistence, then add n8n after one ingestion workflow has a clear operational need.
 
-### Strengths for AstroFinSentinelV5
+## LangGraph fit
 
-**1. State Management for Multi-Agent Orchestration**
-AstroFinSentinelV5 already uses LangGraph internally (`langgraph_schema.py`, `orchestration/sentinel_v5.py`). LangGraph provides:
-- Deterministic state machines for agent coordination
-- Checkpointing for crash recovery
-- Explicit multi-agent subgraph support
-- Shared state across specialized agents (AstroCouncil, FundamentalAgent, QuantAgent, etc.)
+LangGraph is a good fit for:
 
-**2. Complex Workflow Graphs**
-The agent system involves cyclic, conditional workflows:
-```
-AstroCouncil (supervisor)
-├── FundamentalAgent ─┐
-├── QuantAgent ───────┼──► SynthesisAgent ──► RiskAgent
-├── MacroAgent ───────┘
-└── SentimentAgent
-```
-LangGraph handles this DAG structure naturally with conditional edges.
+- Parallel execution of Fundamental, Macro, Quant, OptionsFlow, Sentiment, Technical, and Astro agents.
+- Conditional routing when data quality is low, an agent degrades, or RiskAgent vetoes execution.
+- Explicit state containing symbol, timeframe, source provenance, agent responses, conflicts, KARL adjustments, and final signal.
+- Checkpointing and replay for backtests, incident recovery, and audit review.
+- Human approval gates before any future execution adapter is allowed to place an order.
 
-**3. Production Readiness**
-LangGraph is trusted by Klarna, LinkedIn, Uber, and Replit for production workloads. It offers:
-- Built-in human-in-the-loop moderation
-- Real-time state streaming
-- Multiple checkpoint backends (SQLite, Postgres, Redis)
+The main integration points are `langgraph_schema.py`, `orchestration/sentinel_v5.py`, `agents/_impl/synthesis_agent.py`, `core/checkpoint.py`, `core/history_db.py`, and the audit/KARL modules under `agents/_impl/amre/`. The exported GitAgent agents can be represented as graph nodes, but their canonical implementations remain in `agents/_impl/`.
 
-### Integration Points
+## n8n fit
 
-- **Existing**: `AstroFinSentinelV5/orchestration/sentinel_v5.py` uses LangGraph
-- **Opportunity**: Extend to include TechnicalAgent, BullBot/BearBot, RiskAgent
-- **Benefit**: Unified state management across all 9+ agents
+n8n is appropriate for low-code operational workflows:
 
-## n8n Evaluation
+- Scheduled collection of market, macro, earnings, and news data.
+- RSS and news-feed fan-in for SentimentAgent.
+- Webhook-driven market or calendar events.
+- Alert routing to email, Telegram, Slack, or incident systems.
+- Retry, rate-limit, and dead-letter handling around external connectors.
 
-### Strengths for AstroFinSentinelV5
+n8n is not the right place for KARL synthesis, weighted conflict resolution, risk vetoes, agent checkpoint state, or the authoritative trading signal. Those responsibilities belong to the Python/LangGraph boundary, where the existing contracts and tests apply.
 
-**1. Data Ingestion Pipelines**
-n8n excels at:
-- Polling financial APIs (Yahoo Finance, CoinMarketCap)
-- RSS/News feed aggregation
-- Webhook receivers for market events
-- Scheduled data refresh
-
-**2. Event-Driven Actions**
-- Trigger agent workflows on market events
-- Send alerts via Slack/Email/Telegram
-- Sync data to external databases
-
-**3. No-Code Workflow Design**
-Non-technical team members can modify data ingestion flows without touching Python code.
-
-### Limitations
-
-- Not designed for complex agent state management
-- Agent orchestration would require custom Python nodes
-- Less suitable for the cyclic, LLM-driven decision workflows
-
-## Recommendation: Hybrid Architecture
-
-### Architecture Diagram
+## Suggested architecture
 
 ```mermaid
-graph TB
-    subgraph Dashboard["Dashboard Layer"]
-        UI[Streamlit/Gradio UI]
-        State[LangGraph State]
-    end
+graph LR
+    Sources[External APIs, RSS, Webhooks]
+    N8N[n8n ingestion and event workflows]
+    Room[Data Room + provenance checks]
+    Store[(PostgreSQL / TimescaleDB)]
+    Graph[LangGraph state graph]
+    Council[Parallel AstroFin agent council]
+    Synthesis[KARL / SynthesisAgent]
+    Risk[RiskAgent veto and sizing]
+    Audit[Audit log and checkpoints]
+    UI[Existing web dashboard]
+    Alerts[Alerts and human approval]
 
-    subgraph Orchestration["LangGraph Orchestration"]
-        AC[AstroCouncil<br/>Supervisor]
-        FA[FundamentalAgent]
-        QA[QuantAgent]
-        MA[MacroAgent]
-        TA[TechnicalAgent]
-        SA[SentimentAgent]
-        RA[RiskAgent]
-        Syn[SynthesisAgent]
-    end
-
-    subgraph Data["n8n Data Layer"]
-        n8n[n8n Workflows]
-        APIs[Yahoo Finance<br/>CoinMarketCap<br/>News API]
-        DB[(PostgreSQL<br/>DuckDB)]
-    end
-
-    n8n -->|Data Streams| APIs
-    APIs -->|Market Data| n8n
-    n8n -->|Ingest| DB
-    DB -->|Query| Orchestration
-    
-    UI <-->|State Updates| State
-    State <-->|Agent Execution| Orchestration
-    
-    AC <-->|Supervises| FA
-    AC <-->|Supervises| QA
-    AC <-->|Supervises| MA
-    AC <-->|Supervises| TA
-    AC <-->|Supervises| SA
-    AC <-->|Supervises| Syn
-    Syn -->|Analysis| RA
+    Sources --> N8N
+    N8N --> Room
+    Room --> Store
+    Store --> Graph
+    Graph --> Council
+    Council --> Synthesis
+    Synthesis --> Risk
+    Risk --> Audit
+    Graph --> Audit
+    Audit --> UI
+    Risk --> Alerts
+    N8N --> Alerts
+    UI --> Graph
 ```
 
-### Responsibilities
+## Responsibility boundaries
 
-| Layer | Technology | Responsibilities |
-|-------|------------|-----------------|
-| Agent Orchestration | **LangGraph** | Multi-agent coordination, state management, decision flows |
-| Data Ingestion | **n8n** | API polling, webhooks, data normalization |
-| Persistence | PostgreSQL/DuckDB | Historical data, backtest results |
-| Dashboard | Streamlit/Gradio | Visualization, user interaction |
+| Boundary | Owner | Contract |
+|---|---|---|
+| External collection and scheduling | n8n | Retries, connector auth, normalized payload, event metadata |
+| Data quality and provenance | Data Room | Canonical source, quality score, conflict journal, degradation state |
+| Agent execution and graph state | LangGraph/Python | Typed state, parallel nodes, conditional edges, checkpoints |
+| Conflict arbitration and final synthesis | SynthesisAgent/KARL | Weighted signal, conflict record, confidence adjustments |
+| Risk refusal and position sizing | RiskAgent | Dynamic risk, stop loss, veto/approval decision |
+| Persistence and replay | PostgreSQL/TimescaleDB + audit modules | History, checkpoints, JSONL audit trail |
+| Visualization and human approval | Existing web dashboard | Read state, display provenance/conflicts, request approval |
 
-### Implementation Strategy
+## Rollout sequence
 
-**Phase 1: Strengthen LangGraph Foundation**
-1. Export all agents (TechnicalAgent, BullBot, BearBot, RiskAgent, SentimentAgent, SynthesisAgent)
-2. Implement LangGraph supervisor pattern for all agents
-3. Add checkpointing with SQLite for crash recovery
+1. Keep the current Python orchestration path as the production source of truth.
+2. Add LangGraph nodes/checkpoints around the existing canonical agents; do not duplicate agent logic in n8n.
+3. Add one n8n workflow for a non-destructive ingestion path, such as RSS/news aggregation, writing only through the Data Room contract.
+4. Add metrics for freshness, provenance quality, ingestion failures, graph latency, degraded agents, and risk vetoes.
+5. Add further n8n workflows only when a connector or event trigger removes measurable operational work.
 
-**Phase 2: Add n8n for Data**
-1. Deploy n8n as sidecar service
-2. Create workflows for:
-   - Daily market data refresh
-   - News aggregation pipeline
-   - Alert routing
-3. Connect to existing DuckDB backtest database
-
-**Phase 3: Dashboard Integration**
-1. Use LangGraph state as source of truth
-2. n8n pushes data to shared database
-3. Streamlit UI reads from database and LangGraph state
-
-## Conclusion
-
-LangGraph is the clear choice for AstroFinSentinelV5's agent orchestration layer due to its existing usage, robust state management, and suitability for complex multi-agent workflows. n8n complements it perfectly for data ingestion and event-driven pipelines. This hybrid approach avoids the limitations of forcing either technology beyond its strengths.
-
-**Recommendation**: Implement Phase 1 (LangGraph expansion) immediately, then add n8n for data layer in Phase 2.
+**Decision:** LangGraph first; n8n complementary, not a replacement. This preserves the platform's in-process, auditable multi-agent architecture while allowing n8n to handle integration-heavy workflows safely.
