@@ -28,6 +28,7 @@ from agents._impl.sentiment_agent import SentimentAgent, run_sentiment_agent
 from agents._impl.synthesis_agent import SynthesisAgent
 from agents._impl.technical_agent import TechnicalAgent, run_technical_agent
 from agents._impl.time_window_agent import TimeWindowAgent, run_time_window_agent
+from agents._impl.hmm_regime_agent import HMMRegimeAgent, run_hmm_regime_agent
 from agents.astro_council_agent import AstroCouncilAgent
 from agents.base_agent import AgentResponse, BaseAgent, SignalDirection
 from agents.karl_synthesis import KARLSynthesisAgent
@@ -77,4 +78,6 @@ __all__ = [
     "AgentResponse",
     "SignalDirection",
     "KARLSynthesisAgent",
+    "HMMRegimeAgent",
+    "run_hmm_regime_agent",
 ]
