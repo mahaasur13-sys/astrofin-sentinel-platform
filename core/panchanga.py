@@ -94,16 +94,8 @@ KARANA_NAMES = [
     "Chatuspada",
     "Naga",
 ]
-CHOGHADIYA_SEQ = [
-    "Amrit",
-    "Shubh",
-    "Labh",
-    "Charj",
-    "Kaal",
-    "Udveg",
-    "Vyaghata",
-    "Mando",
-]
+# Standard Choghadiya names (same sequence as _CHOGHADIYA_TABLE["Sunrise"])
+CHOGHADIYA_SEQ = ["Amrit", "Shubh", "Labh", "Charj", "Kaal", "Udveg", "Vyaghata", "Mando"]
 
 NAKSHATRA_LORDS = [
     "Ketu",
@@ -306,7 +298,12 @@ def get_karana(moon_degree: float) -> dict:
 
 
 def get_choghadiya(dt: datetime) -> list[dict]:
-    """Return Choghadiya periods for the day (sunrise to sunset, 8 periods)."""
+    """Return Choghadiya periods for the day (sunrise to sunset, 8 periods).
+    
+    Standard sequence rotates daily based on weekday starting offset.
+    Qualities: Amrit (Best/Nectar), Shubh (Good), Labh (Gain), Char/Chara (Neutral),
+    Kaal/Kala (Loss), Udveg (Bad), Vyaghata/Roga (Evil), Mando (waste).
+    """
     sunrise = _sunrise(dt)
     results = []
     for i in range(8):
@@ -317,11 +314,11 @@ def get_choghadiya(dt: datetime) -> list[dict]:
             "Amrit": "auspicious",
             "Shubh": "auspicious",
             "Labh": "profitable",
-            "Charj": "energetic",
+            "Charj": "neutral",
             "Kaal": "inauspicious",
-            "Udveg": "anxious",
-            "Vyaghata": "difficult",
-            "Mando": "slow",
+            "Udveg": "inauspicious",
+            "Vyaghata": "inauspicious",
+            "Mando": "inauspicious",
         }.get(chog_name, "neutral")
         icons = {
             "Amrit": "🌊",
@@ -345,6 +342,59 @@ def get_choghadiya(dt: datetime) -> list[dict]:
             }
         )
     return results
+
+
+# ─── Night Choghadiya Support ────────────────────────────────────────────────
+
+def _night_choghadiya_table(weekday_offset: int) -> list[str]:
+    """Night Choghadiya sequence: 8 periods, offset by weekday."""
+    seq = ["Amrit", "Shubh", "Labh", "Charj", "Kaal", "Udveg", "Vyaghata", "Mando"]
+    return seq[weekday_offset % 8:] + seq[:weekday_offset % 8]
+
+
+def _night_start_end(dt: datetime) -> tuple[datetime, datetime]:
+    """Return night period bracket: today sunset → tomorrow sunrise."""
+    today_sunset = _sunset(dt)
+    tomorrow_sunrise = _sunrise(dt + timedelta(days=1))
+    return today_sunset, tomorrow_sunrise
+
+
+def get_night_choghadiya(dt: datetime) -> list[dict]:
+    """Return Night Choghadiya periods (sunset → next sunrise, 8 periods)."""
+    night_start, night_end = _night_start_end(dt)
+    night_duration = (night_end - night_start).total_seconds()
+    period_seconds = night_duration / 8
+    wday = dt.weekday()
+    seq = _night_choghadiya_table(wday)
+    results = []
+    for i in range(8):
+        start = night_start + timedelta(seconds=i * period_seconds)
+        end = night_start + timedelta(seconds=(i + 1) * period_seconds)
+        name = seq[i]
+        quality = {
+            "Amrit": "auspicious", "Shubh": "auspicious", "Labh": "profitable",
+            "Charj": "neutral", "Kaal": "inauspicious",
+            "Udveg": "inauspicious", "Vyaghata": "inauspicious", "Mando": "inauspicious",
+        }.get(name, "neutral")
+        results.append({
+            "period": i + 1,
+            "name": name,
+            "start": start.strftime("%H:%M"),
+            "end": end.strftime("%H:%M"),
+            "quality": quality,
+            "icon": {"Amrit": "🌊", "Shubh": "✅", "Labh": "💰", "Charj": "⚡",
+                     "Kaal": "⛔", "Udveg": "🔴", "Vyaghata": "⚠️", "Mando": "🐌"}.get(name, "❓"),
+            "recommended": quality == "auspicious",
+        })
+    return results
+
+
+def get_all_choghadiya(dt: datetime) -> dict[str, list[dict]]:
+    """Return both day and night Choghadiya periods."""
+    return {
+        "day": get_choghadiya(dt),
+        "night": get_night_choghadiya(dt),
+    }
 
 
 def get_muhurta_score(choghadiya_name: str, nakshatra: dict, tithi: dict, yoga: dict) -> dict:
