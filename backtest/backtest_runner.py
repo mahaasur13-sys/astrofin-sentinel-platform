@@ -11,6 +11,7 @@ import numpy as np
 from core.base_agent import AgentResponse, SignalDirection
 from orchestration.council_orchestrator import CouncilOrchestrator
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -130,7 +131,7 @@ class BacktestRunner:
             self.position = notional / current_price if signal_name == "LONG" else -notional / current_price
             self.entry_price = current_price
 
-    async def run(self, ohlcv: list, symbol: str = "BTCUSDT") -> BacktestStats:
+    async def run(self, ohlcv: list, symbol: str = "BTCUSDT", regime_detector=None) -> BacktestStats:
         """Run backtest over historical OHLCV data.
 
         Args:
@@ -147,35 +148,39 @@ class BacktestRunner:
             window = ohlcv[max(0, i - lookback) : i + 1]
             current_price = ohlcv[i]["close"]
 
-            # Detect regime from recent returns
-            recent_closes = [c["close"] for c in window[-20:]]
-            returns = np.diff(np.log(recent_closes))
-            mean_ret = np.mean(returns) if len(returns) > 0 else 0
-            agg_std = np.std(returns) if len(returns) > 0 else 0.02
-
-            # Heuristic regime detection (same as HMM would do):
-            #   bull: positive mean, low vol
-            #   sideways: small mean, any vol
-            #   bear: negative mean, high vol
-            if mean_ret > 0.001 and agg_std < 0.03:
-                regime = 0  # bull
-                probs = [0.7, 0.2, 0.1]
-            elif mean_ret < -0.001 and agg_std > 0.025:
-                regime = 2  # bear
-                probs = [0.1, 0.2, 0.7]
+            # Regime tracking: extract from HMM response metadata below
+            regime = 1  # default sideways, updated from HMM metadata after response
+            # Regime annotation (via RegimeDetector or fallback heuristics)
+            if regime_detector is not None:
+                regime_label, probs, is_anomaly = regime_detector.annotate(i)
             else:
-                regime = 1  # sideways
-                probs = [0.1, 0.8, 0.1]
+                regime_label = "sideways"
+                probs = [0.33, 0.34, 0.33]
+                is_anomaly = False
 
-            # Anomaly: extreme daily move (>3 std)
-            today_return = returns[-1] if len(returns) > 0 else 0
-            is_anomaly = abs(today_return) > (agg_std * 3) if agg_std > 0 else False
+            # Store regime annotation for later analysis
+            self._regime_annotations[i] = (regime_label, probs, is_anomaly)
 
-            responses = self._build_responses(
-                hmm_regime=regime,
-                is_anomaly=is_anomaly,
-                probs=probs,
-            )
+            responses = [
+                AgentResponse(
+                    agent_name="QuantAgent",
+                    signal=SignalDirection.LONG,
+                    confidence=80,
+                    reasoning="Backtest simulated Quant response",
+                ),
+                AgentResponse(
+                    agent_name="HMMRegimeAgent",
+                    signal=SignalDirection.AVOID if is_anomaly else SignalDirection.NEUTRAL,
+                    confidence=90 if is_anomaly else 50,
+                    reasoning=f"HMM regime={regime_label} (via RegimeDetector)",
+                    metadata={
+                        "regime": 0 if regime_label == "bull" else 1 if regime_label == "sideways" else 2,
+                        "regime_probabilities": probs,
+                        "is_anomaly": is_anomaly,
+                        "log_likelihood": -20.0 if is_anomaly else -3.0,
+                    },
+                ),
+            ]
 
             final_signal = AgentResponse(
                 agent_name="AstroCouncil",
