@@ -72,12 +72,20 @@ class BacktestRunner:
         """Build synthetic agent responses for backtest simulation."""
         responses: list[AgentResponse] = []
 
-        # QuantAgent — always bullish in simulation for testing purposes
+        # QuantAgent — regime-aware (bear → SHORT, sideways → NEUTRAL)
+        quant_signal = SignalDirection.LONG
+        quant_conf = 80
+        if regime_label == "bear":
+            quant_signal = SignalDirection.SHORT
+            quant_conf = 70
+        elif regime_label == "sideways":
+            quant_signal = SignalDirection.NEUTRAL
+            quant_conf = 55
         responses.append(
             AgentResponse(
                 agent_name="QuantAgent",
-                signal=SignalDirection.LONG,
-                confidence=80,
+                signal=quant_signal,
+                confidence=quant_conf,
                 reasoning="Backtest simulated Quant response",
             )
         )
