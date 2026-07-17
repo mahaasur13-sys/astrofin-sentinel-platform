@@ -139,6 +139,16 @@ class HMMRegimeAgent(BaseAgent[AgentResponse]):
 
     @track_agent_metrics
     async def run(self, state: dict) -> AgentResponse:
+        """
+        Точка входа агента. Выполняет анализ рыночного режима через HMM,
+        оборачивает логику в трекинг метрик и обрабатывает исключения.
+
+        Args:
+            state: Текущее состояние среды платформы, содержит 'symbol' и 'ohlcv'.
+
+        Returns:
+            AgentResponse: Сигнал (LONG/SHORT/NEUTRAL/AVOID) с метаданными режима.
+        """
         try:
             return await self.analyze(state)
         except Exception as e:
