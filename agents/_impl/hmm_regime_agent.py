@@ -40,7 +40,11 @@ class HMMRegimeAgent(BaseAgent[AgentResponse]):
         self._model: Any = None
         self._n_states = 3  # bull (0), sideways (1), bear (2)
         self._lookback = 120
-        self._anomaly_threshold = -15.0  # log-likelihood below which = anomaly  # Log-likelihood below which market is anomalous
+        self._anomaly_threshold = -15.0  # log-likelihood below which market is anomalous
+
+    def set_pretrained_model(self, regime_detector):
+        """Inject a pre-trained RegimeDetector for backtest/production inference-only mode."""
+        self._external_detector = regime_detector  # log-likelihood below which = anomaly  # Log-likelihood below which market is anomalous
 
     def _init_model(self):
         if not HAS_HMM:
@@ -100,7 +104,12 @@ class HMMRegimeAgent(BaseAgent[AgentResponse]):
             )
 
         features = self._extract_features(ohlcv)
-        regime, probs, log_likelihood, is_anomaly = self._predict_regime(features)
+
+        # Use pre-trained detector if available
+        if hasattr(self, '_external_detector') and self._external_detector is not None:
+            regime, probs, log_likelihood, is_anomaly = self._external_detector.predict(ohlcv)
+        else:
+            regime, probs, log_likelihood, is_anomaly = self._predict_regime(features)
 
         regime_map = {0: SignalDirection.LONG, 1: SignalDirection.NEUTRAL, 2: SignalDirection.SHORT}
         base_signal = regime_map.get(regime, SignalDirection.NEUTRAL)
