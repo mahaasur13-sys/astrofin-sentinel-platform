@@ -10,6 +10,7 @@ from agents.karl_synthesis import resolve_conflict
 
 # ─── Fixtures ──────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def risk_engine():
     engine = RiskEngineV2(RiskConfigV2())
@@ -37,6 +38,7 @@ def quant_response(signal=SignalDirection.LONG, confidence=80):
 
 
 # ─── RiskEngineV2.adjust_position_size tests ───────────────────────────────────
+
 
 def test_no_hmm_data(risk_engine):
     size, reason = risk_engine.adjust_position_size(1000, [])
@@ -74,6 +76,7 @@ def test_normal_unchanged(risk_engine):
 
 # ─── KARL resolve_conflict tests ───────────────────────────────────────────────
 
+
 def test_no_conflict_normal_case():
     quant = quant_response(SignalDirection.LONG, 80)
     hmm = hmm_response()
@@ -98,4 +101,3 @@ def test_partial_anomaly_high_confidence():
     result = resolve_conflict(quant, hmm)
     assert result.confidence == 0
     assert result.signal == SignalDirection.NEUTRAL
-
