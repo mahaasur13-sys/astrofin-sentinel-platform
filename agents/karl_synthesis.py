@@ -570,6 +570,28 @@ class KARLSynthesisAgent(SynthesisAgent):
 
 # ─── Global singleton ─────────────────────────────────────────────────────────
 
+
+def resolve_conflict(quant_response, hmm_response):
+    """
+    KARL arbitration: when HMM signals AVOID but Quant wants LONG/SHORT,
+    temper confidence by p_anomaly. Falls to NEUTRAL below 50%.
+    """
+    if hmm_response.signal == 3 and quant_response.signal in [1, 2]:
+        p_anomaly = 1.0 if hmm_response.metadata.get("is_anomaly", False) else 0.0
+        if p_anomaly > 0:
+            original_conf = quant_response.confidence
+            new_conf = int(original_conf * (1 - p_anomaly))
+            quant_response.confidence = new_conf
+            quant_response.reasoning += (
+                f" | KARL: Quant bullish but HMM anomaly detected "
+                f"— confidence tempered ({original_conf} -> {new_conf})."
+            )
+            if new_conf < 50:
+                quant_response.signal = 0
+        return quant_response
+    return quant_response
+
+
 _KARL_AGENT: Optional["KARLSynthesisAgent"] = None
 
 

@@ -179,6 +179,31 @@ class RiskEngineV2:
             )
         return "APPROVED", vol_size, "OK"
 
+    def adjust_position_size(self, base_size: float, agent_responses: list) -> tuple[float, str]:
+        """
+        HMM metadata subscriber — dynamically rescales position
+        size based on regime probabilities and anomaly flags.
+
+        Returns (adjusted_size, reason).
+        """
+        hmm_response = next((r for r in agent_responses if r.agent_name == "HMMRegimeAgent"), None)
+        if not hmm_response or not hmm_response.metadata:
+            return base_size, "No HMM data"
+        metadata = hmm_response.metadata
+        is_anomaly = metadata.get("is_anomaly", False)
+        probs = metadata.get("regime_probabilities", [])
+        if is_anomaly:
+            return 0.0, "STOP: HMM anomaly detected (log_likelihood breach)"
+        if len(probs) < 3:
+            return base_size, "Insufficient HMM probabilities"
+        p_sideways = probs[1]
+        p_bear = probs[2]
+        if p_sideways > 0.7:
+            return base_size * 0.5, f"Tempered by 0.5x: Sideways regime probability {p_sideways:.2f}"
+        if p_bear > 0.6:
+            return base_size * 0.3, f"Tempered by 0.3x: Bear regime probability {p_bear:.2f}"
+        return base_size, "Normal risk parameters"
+
     def record_return(self, symbol, ret):
         if self._return_history and symbol in self._return_history[-1]:
             self._return_history[-1][symbol] = ret
