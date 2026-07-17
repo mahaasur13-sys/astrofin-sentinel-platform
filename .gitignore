@@ -15,3 +15,5 @@ reports/*.json
 !reports/.gitkeep
 logs/
 tmp/
+.zo_scratch/
+.zo_scratch/
