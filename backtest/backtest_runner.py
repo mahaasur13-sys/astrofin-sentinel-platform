@@ -66,6 +66,7 @@ class BacktestRunner:
         self.position = 0.0
         self.entry_price = 0.0
         self.stats = BacktestStats(peak_equity=initial_capital, final_equity=initial_capital)
+        self._regime_annotations: dict[int, tuple[str, list[float], bool]] = {}
 
     def _build_responses(self, hmm_regime: int = 1, is_anomaly: bool = False, probs=None) -> list[AgentResponse]:
         """Build synthetic agent responses for backtest simulation."""
