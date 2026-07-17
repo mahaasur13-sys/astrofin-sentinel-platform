@@ -42,6 +42,10 @@ class HMMRegimeAgent(BaseAgent[AgentResponse]):
         self._lookback = 120
         self._anomaly_threshold = -15.0  # log-likelihood below which = anomaly  # Log-likelihood below which market is anomalous
 
+    def set_pretrained_model(self, regime_detector):
+        """Inject a pre-trained RegimeDetector for backtest/production inference-only mode."""
+        self._external_detector = regime_detector
+
     def _init_model(self):
         if not HAS_HMM:
             return None

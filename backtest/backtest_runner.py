@@ -9,6 +9,7 @@ from typing import Any
 import numpy as np
 
 from core.base_agent import AgentResponse, SignalDirection
+from agents._impl.hmm_regime_agent import HMMRegimeAgent
 from orchestration.council_orchestrator import CouncilOrchestrator
 
 
