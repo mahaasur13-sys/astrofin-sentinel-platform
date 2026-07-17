@@ -38,7 +38,7 @@ class HMMRegimeAgent(BaseAgent[AgentResponse]):
             weight=0.10,
         )
         self._model: Any = None
-        self._n_states = 3  # bull, bear, sideways
+        self._n_states = 3  # bull (0), sideways (1), bear (2)
         self._lookback = 120
         self._anomaly_threshold = -15.0  # log-likelihood below which = anomaly  # Log-likelihood below which market is anomalous
 
