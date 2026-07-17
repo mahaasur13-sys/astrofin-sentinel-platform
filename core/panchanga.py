@@ -239,11 +239,47 @@ def _julian_day(dt: datetime) -> float:
     return jd + dt.hour / 24.0 + dt.minute / 1440.0
 
 
-def _sunrise(dt: datetime, lat: float = 25.20, lon: float = 55.27) -> datetime:
-    """Approximate sunrise for Dubai. Returns datetime at ~06:15 GST."""
-    dubai_tz = timezone(timedelta(hours=4))
-    base = dt.replace(hour=6, minute=15, second=0, microsecond=0, tzinfo=dubai_tz)
-    return base
+def _sunrise(dt: datetime, lat: float = 53.20, lon: float = 50.10) -> datetime:
+    """Astronomical sunrise for Samara (lat 53.20N, lon 50.10E). NOAA solar calculator."""
+    return _solar_event(dt, lat, lon, is_sunrise=True)
+
+
+def _sunset(dt: datetime, lat: float = 53.20, lon: float = 50.10) -> datetime:
+    """Astronomical sunset for Samara."""
+    return _solar_event(dt, lat, lon, is_sunrise=False)
+
+
+import math as _m
+def _solar_event(dt, lat, lon, is_sunrise):
+    y, m, d_ = dt.year, dt.month, dt.day
+    if m <= 2:
+        y -= 1; m += 12
+    jd = int(365.25*(y+4716))+int(30.6001*(m+1))+d_+2-int(y/100)+int(y/400)-1524.5
+    jc = (jd-2451545.0)/36525.0
+    gl = (280.46646+jc*(36000.76983+jc*0.0003032))%360
+    ga = 357.52911+jc*(35999.05029-0.0001537*jc)
+    ec = 0.016708634-jc*(0.000042037+0.0000001267*jc)
+    ar = _m.radians(ga)
+    eqc = _m.sin(ar)*(1.914602-jc*(0.004817+0.000014*jc))+_m.sin(2*ar)*(0.019993-0.000101*jc)+_m.sin(3*ar)*0.000289
+    tl = gl+eqc
+    om = 125.04-1934.136*jc
+    al = tl-0.00569-0.00478*_m.sin(_m.radians(om))
+    obq = 23+(26+((21.448-jc*(46.815+jc*(0.00059-jc*0.001813))))/60)/60
+    obc = obq+0.00256*_m.cos(_m.radians(om))
+    decl = _m.degrees(_m.asin(_m.sin(_m.radians(obc))*_m.sin(_m.radians(al))))
+    yf = _m.tan(_m.radians(obc/2))**2
+    et = 4*_m.degrees(yf*_m.sin(2*_m.radians(gl))-2*ec*_m.sin(ar)+4*ec*yf*_m.sin(ar)*_m.cos(2*_m.radians(gl))-0.5*yf**2*_m.sin(4*_m.radians(gl))-1.25*ec**2*_m.sin(2*ar))
+    zen = 90.833
+    cha = (_m.cos(_m.radians(zen))-_m.sin(_m.radians(lat))*_m.sin(_m.radians(decl)))/(_m.cos(_m.radians(lat))*_m.cos(_m.radians(decl)))
+    cha = max(-1.0, min(1.0, cha))
+    ha = _m.degrees(_m.acos(cha))
+    sn = 12.0-et/60.0-lon/15.0
+    ute = sn-ha/15.0 if is_sunrise else sn+ha/15.0
+    ute %= 24
+    sh = (ute+4)%24
+    h = int(sh); mi = int((sh-h)*60); s = int(((sh-h)*60-mi)*60)
+    from datetime import timezone, timedelta as td
+    return dt.replace(hour=h, minute=mi, second=s, microsecond=0, tzinfo=timezone(td(hours=4)))
 
 
 def get_nakshatra(moon_degree: float) -> dict:
@@ -305,10 +341,13 @@ def get_choghadiya(dt: datetime) -> list[dict]:
     Kaal/Kala (Loss), Udveg (Bad), Vyaghata/Roga (Evil), Mando (waste).
     """
     sunrise = _sunrise(dt)
+    sunset = _sunset(dt)
+    day_seconds = (sunset - sunrise).total_seconds()
+    period_seconds = max(60, day_seconds / 8)
     results = []
     for i in range(8):
-        period_start = sunrise + timedelta(hours=i)
-        period_end = period_start + timedelta(hours=1)
+        period_start = sunrise + timedelta(seconds=i * period_seconds)
+        period_end = period_start + timedelta(seconds=period_seconds)
         chog_name = _CHOGHADIYA_TABLE["Sunrise"][i]
         quality = {
             "Amrit": "auspicious",
