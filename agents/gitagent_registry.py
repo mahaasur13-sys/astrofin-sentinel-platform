@@ -182,6 +182,16 @@ AGENT_AGENTS: dict[str, dict] = {
         "path": "agents._impl.market_analyst",
         "method": "run_market_analyst",
     },
+    "HMMRegimeAgent": {
+        "name": "HMMRegimeAgent",
+        "domain": "quant",
+        "weight": 0.10,
+        "karl": True,
+        "ttc": False,
+        "selfq": False,
+        "path": "agents._impl.hmm_regime_agent",
+        "method": "run_hmm_regime_agent",
+    },
     "InsiderAgent": {
         "name": "InsiderAgent",
         "domain": "fundamental",
