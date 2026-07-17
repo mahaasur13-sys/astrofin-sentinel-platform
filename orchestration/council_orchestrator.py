@@ -1,9 +1,12 @@
 """CouncilOrchestrator — Agent → KARL → RiskEngine → Execution pipeline."""
 
+import asyncio
 import logging
+from datetime import datetime, timezone
 from typing import List
 
 from core.base_agent import AgentResponse, SignalDirection
+from utils.telegram_notifier import send_telegram_message
 from agents.karl_synthesis import resolve_conflict
 
 logger = logging.getLogger(__name__)
@@ -71,6 +74,16 @@ class CouncilOrchestrator:
         # 3. STOP check (hard block)
         if adjusted_size <= 0.0:
             logger.warning("🛑 [RISK STOP] Trade blocked. Reason: %s", risk_reason)
+
+            symbol = cfg.get("symbol", "UNKNOWN")
+            alert_msg = (
+                f"🛑 *RISK STOP BLOCKED TRADE*\n"
+                f"Symbol: `{symbol}`\n"
+                f"Reason: {risk_reason}\n"
+                f"Time: {datetime.now(timezone.utc).isoformat()}"
+            )
+            asyncio.create_task(send_telegram_message(alert_msg))
+
             return {"action": "STOP", "size": 0.0, "risk_reason": risk_reason, "blocked": True}
 
         # 4. NEUTRAL check
