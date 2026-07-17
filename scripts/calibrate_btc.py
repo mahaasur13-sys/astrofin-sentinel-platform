@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Self-contained BTC calibration with RegimeDetector + production pipeline."""
 from __future__ import annotations
+import os
 
 import sys, os, json, asyncio, logging
 sys.path.insert(0, "/home/workspace")
@@ -20,7 +21,7 @@ def load_ohlcv(path: str) -> list[dict]:
     with open(path) as f:
         return [json.loads(l) for l in f if l.strip()]
 
-def run_sweep(label: str, sideways_mult: float, bear_mult: float, anomaly_threshold: float) -> dict:
+async def run_sweep(label: str, sideways_mult: float, bear_mult: float, anomaly_threshold: float) -> dict:
     """Run one calibration pass."""
     ohlcv = load_ohlcv(CACHE) if os.path.exists(CACHE) else generate_random_ohlcv(500, seed=42)
     n = len(ohlcv)
@@ -34,7 +35,7 @@ def run_sweep(label: str, sideways_mult: float, bear_mult: float, anomaly_thresh
     
     orch = CouncilOrchestrator(risk_engine=risk)
     runner = BacktestRunner(orch, initial_capital=10000)
-    stats = asyncio.run(runner.run(ohlcv, regime_detector=detector))
+    stats = await runner.run(ohlcv, regime_detector=detector)
     
     d = stats.to_dict()
     d["label"] = label
@@ -52,7 +53,7 @@ async def main():
     results = []
     for label, sm, bm, ath in param_grid:
         logger.info(f"Calibrating: {label} (sideways={sm}, bear={bm}, anomaly={ath})")
-        d = run_sweep(label, sm, bm, ath)
+        d = await run_sweep(label, sm, bm, ath)
         results.append(d)
     
     # Print table
@@ -62,8 +63,8 @@ async def main():
     print("-" * 70)
     pf = lambda d: round(d["wins"]/d["losses"],2) if d.get("losses",0) > 0 else float("inf")
     for r in results:
-        print(f"{r['label']:<12} {r['trades']:>8} {r['win_rate_pct']:>7.1f}% {r['max_drawdown_pct']:>7.1f}% {r['total_return_pct']:>7.1f}% {pf(r):>8.2f}")
-    print("=" * 70)
+        wr = r['win_rate'] * 100
+        print(f"{r['label']:<12} {r['trades']:>8} {wr:>7.1f}% {r['max_drawdown_pct']:>7.1f}% {r['total_return_pct']:>7.1f}% {pf(r):>8.2f}")
     
     # Pick best by return
     best = max(results, key=lambda r: r["total_return_pct"])
@@ -72,11 +73,11 @@ async def main():
     # Save report
     report_path = "/home/workspace/backtest/data_cache/CALIBRATION_REPORT.md"
     with open(report_path, "w") as f:
-        f.write(f"# HMM-KARL Calibration Report ({len(ohlcv)} bars)\n\n")
+        f.write(f"# HMM-KARL Calibration Report\n\n")
         f.write(f"| Config | Trades | WinRate | MaxDD | Return | PF |\n")
         f.write(f"|--------|--------|---------|-------|--------|----|\n")
         for r in results:
-            f.write(f"| {r['label']} | {r['trades']} | {r['win_rate_pct']:.1f}% | {r['max_drawdown_pct']:.1f}% | {r['total_return_pct']:.1f}% | {pf(r):.2f} |\n")
+            f.write(f"| {r['label']} | {r['trades']} | {r["win_rate"]*100:.1f}% | {r['max_drawdown_pct']:.1f}% | {r['total_return_pct']:.1f}% | {pf(r):.2f} |\n")
         f.write(f"\n**Recommended:** `{best['label']}` (sideways_mult={best['sideways_mult']}, bear_mult={best['bear_mult']}, anomaly_threshold={best['anomaly_threshold']})\n")
     
     print(f"\nReport saved: {report_path}")

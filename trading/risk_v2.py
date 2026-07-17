@@ -55,11 +55,13 @@ class RiskState:
 
 
 class RiskEngineV2:
-    def __init__(self, config: RiskConfigV2 | None = None):
+    def __init__(self, config: RiskConfigV2 | None = None, sideways_mult: float = 0.5, bear_mult: float = 0.3):
         self.config = config or RiskConfigV2()
         self._positions: dict = {}
         self._equity_history: list = []
         self._return_history: list = []
+        self.sideways_mult = sideways_mult
+        self.bear_mult = bear_mult
 
     def update_position(self, pos: AssetPosition) -> None:
         pos.unrealized_pnl = pos.notional_value - pos.entry_price * abs(pos.notional_value) / max(
@@ -199,9 +201,9 @@ class RiskEngineV2:
         p_sideways = probs[1]
         p_bear = probs[2]
         if p_sideways > 0.7:
-            return base_size * 0.5, f"Tempered by 0.5x: Sideways regime probability {p_sideways:.2f}"
+            return base_size * self.sideways_mult, f"Tempered by {self.sideways_mult}x: sideways {p_sideways:.2f}"
         if p_bear > 0.6:
-            return base_size * 0.3, f"Tempered by 0.3x: Bear regime probability {p_bear:.2f}"
+            return base_size * self.bear_mult, f"Tempered by {self.bear_mult}x: bear {p_bear:.2f}"
         return base_size, "Normal risk parameters"
 
     def record_return(self, symbol, ret):

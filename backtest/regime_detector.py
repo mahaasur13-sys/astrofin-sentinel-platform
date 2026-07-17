@@ -36,11 +36,11 @@ _DEFAULT_LOOKBACK = 120  # trailing bars for anomaly detection
 class RegimeDetector:
     """Fit a 3-state GaussianHMM and annotate OHLCV bars."""
 
-    def __init__(self, lookback: int = _DEFAULT_LOOKBACK) -> None:
+    def __init__(self, lookback: int = _DEFAULT_LOOKBACK, anomaly_threshold: float = -15.0) -> None:
         self._model: hmm.GaussianHMM | None = None
         self._regime_labels: List[str] = []  # per-bar
         self._log_lik: List[float] = []  # per-bar (trailing window score)
-        self._anomaly_threshold: float = -15.0
+        self._anomaly_threshold: float = anomaly_threshold
         self._lookback = lookback
         self._feature_cache: np.ndarray | None = None
 
@@ -91,6 +91,9 @@ class RegimeDetector:
 
         # Trailing log-likelihood per bar
         self._log_lik = [0.0] * self._lookback
+
+        # Compute state→label mapping once after fit
+        self._state_map_cache = self._compute_state_map()
         for i in range(self._lookback, len(ohlcv)):
             win = features[i - self._lookback : i + 1]
             try:
@@ -117,14 +120,12 @@ class RegimeDetector:
 
         probs = {"bull": 0.33, "sideways": 0.34, "bear": 0.33}
         if self._model is not None and self._feature_cache is not None and idx >= 0:
-            try:
-                feat = self._feature_cache[idx].reshape(1, -1)
-                raw_probs = self._model.predict_proba(feat)[0]
-                sorted_states = self._get_state_order()
-                for s, p in enumerate(raw_probs):
+            feat = self._feature_cache[idx].reshape(1, -1)
+            raw_probs = self._model.predict_proba(feat)[0]
+            sorted_states = self._state_map_cache if self._state_map_cache else ["bull", "sideways", "bear"]
+            for s, p in enumerate(raw_probs):
+                if s < len(sorted_states):
                     probs[sorted_states[s]] = float(p)
-            except Exception:
-                pass
 
         probs_list = [probs["bull"], probs["sideways"], probs["bear"]]
         return (regime, probs_list, is_anomaly)
@@ -148,23 +149,36 @@ class RegimeDetector:
 
         return np.column_stack([rets, vol_ann, vol_rel])
 
-    def _get_state_order(self) -> List[str]:
-        """Return labels for states 0,1,2 in model order."""
-        if not self._regime_labels:
+    def _compute_state_map(self) -> List[str]:
+        """Precompute state→label mapping once after fit using mean returns per state."""
+        if not self._regime_labels or self._model is None or self._feature_cache is None:
             return ["bull", "sideways", "bear"]
-        # The first bar's state index tells us which model state maps to which label
-        # We need: model state 0 → bull/sideways/bear label
-        # Build mapping from all bars
-        mapping: dict[int, str] = {}
-        for i, label in enumerate(self._regime_labels):
-            if self._feature_cache is not None and i < len(self._feature_cache):
-                state = int(np.argmax(self._model.predict_proba(self._feature_cache[i].reshape(1, -1))[0]))  # type: ignore[union-attr]
-                mapping[state] = label
-        # Fill missing
-        for s in range(_N_STATES):
-            if s not in mapping:
-                mapping[s] = "sideways"
-        return [mapping[s] for s in range(_N_STATES)]
+        try:
+            states = self._model.predict(self._feature_cache)
+            # Compute mean return per HMM state
+            rets = np.diff(np.log(np.array([1.0] + [b["close"] for b in [{"close": c} for c in [100.0] * len(self._regime_labels)]])))
+            state_ret = {}
+            for s in range(_N_STATES):
+                mask = states == s
+                if mask.sum() > 0:
+                    state_ret[s] = float(np.mean(self._feature_cache[mask, 0]))
+                else:
+                    state_ret[s] = 0.0
+            # Sort states by mean return: highest → bull, middle → sideways, lowest → bear
+            sorted_states = sorted(range(_N_STATES), key=lambda s: state_ret.get(s, 0.0), reverse=True)
+            label_order: list = ["sideways"] * _N_STATES
+            if _N_STATES >= 3:
+                label_order[sorted_states[0]] = "bull"
+                label_order[sorted_states[1]] = "sideways"
+                label_order[sorted_states[2]] = "bear"
+            elif _N_STATES == 2:
+                label_order[sorted_states[0]] = "bull"
+                label_order[sorted_states[1]] = "bear"
+            else:
+                label_order[sorted_states[0]] = "bull"
+            return label_order
+        except Exception:
+            return ["bull", "sideways", "bear"]
 
     def _fallback(self, ohlcv: List[dict]) -> None:
         """Heuristic regime detection when hmmlearn is unavailable."""
