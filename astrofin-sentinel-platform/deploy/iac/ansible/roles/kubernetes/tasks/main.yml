@@ -1,0 +1,111 @@
+# ============================================================
+# Role: kubernetes — Lightweight K8s layer on Slurm head
+# ============================================================
+
+- name: Ensure containerd is installed
+  ansible.builtin.apt:
+    name: containerd
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Configure containerd for K8s
+  ansible.builtin.copy:
+    dest: /etc/containerd/config.toml
+    content: |
+      version = 2
+      [plugins."io.containerd.grpc.v1.cri"]
+        [plugins."io.containerd.grpc.v1.cri".containerd_runtimes]
+          [plugins."io.containerd.grpc.v1.cri".containerd_runtimes.runc]
+            runtime_type = "io.containerd.runc.v2"
+            [plugins."io.containerd.grpc.v1.cri".containerd_runtimes.runc.options]
+              BinaryName = "/usr/sbin/runc"
+  notify: Restart containerd
+
+- name: Install Kubernetes apt repo
+  ansible.builtin.apt_repository:
+    repo: "deb http://apt.kubernetes.io kubernetes-xenial main"
+    state: present
+    filename: kubernetes
+  when: ansible_os_family == "Debian"
+
+- name: Install kubeadm kubelet kubectl
+  ansible.builtin.apt:
+    name: kubeadm, kubelet, kubectl
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Hold K8s packages at current version
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  when: ansible_os_family == "Debian"
+  loop:
+    - kubeadm
+    - kubelet
+    - kubectl
+
+- name: Initialize K8s control plane (kubeadm)
+  ansible.builtin.command:
+    cmd: >
+      kubeadm init
+      --pod-network-cidr=10.244.0.0/16
+      --service-cidr=10.96.0.0/12
+      --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_host'] | default(inventory_hostname) }}
+  when: "'k8s_control' in group_names"
+  register: kubeadm_init_result
+  failed_when: false
+
+- name: Setup kubeconfig for root
+  ansible.builtin.command:
+    cmd: mkdir -p /root/.kube && cp /etc/kubernetes/admin.conf /root/.kube/config && chmod 600 /root/.kube/config
+  when: "'k8s_control' in group_names"
+
+- name: Install Calico CNI
+  ansible.builtin.command:
+    cmd: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+  when: "'k8s_control' in group_names"
+
+- name: Generate kubeadm join command
+  ansible.builtin.command:
+    cmd: kubeadm token create --print-join-command
+  when: "'k8s_control' in group_names"
+  register: kubeadm_token
+
+- name: Store kubeadm join command
+  ansible.builtin.set_fact:
+    kubeadm_join_command: "{{ kubeadm_token.stdout }}"
+
+- name: Join K8s worker nodes
+  ansible.builtin.command:
+    cmd: "{{ hostvars[groups['k8s_control'][0]]['kubeadm_join_command'] }}"
+  when: "'k8s_worker' in group_names"
+  register: worker_join_result
+  failed_when: false
+
+- name: Create kubeconfig for regular user
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: "0755"
+  when: ansible_user is defined
+
+- name: Copy admin.conf to user kubeconfig
+  ansible.builtin.copy:
+    remote_src: true
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    owner: "{{ ansible_user }}"
+    mode: "0644"
+  when: ansible_user is defined
+
+- name: Restart containerd
+  ansible.builtin.service:
+    name: containerd
+    state: restarted
+  handlers:
+    - name: Restart containerd
+      ansible.builtin.service:
+        name: containerd
+        state: restarted

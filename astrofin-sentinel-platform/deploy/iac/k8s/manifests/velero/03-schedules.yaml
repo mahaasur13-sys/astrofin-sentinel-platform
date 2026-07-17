@@ -1,0 +1,111 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: daily-backup
+  namespace: velero
+spec:
+  schedule: "0 2 * * *"  # 02:00 daily
+  ttl:
+    expiration: 720h  # 30 days
+  includedNamespaces:
+  - roma
+  - gpu-workloads
+  - monitoring
+  - asurdev
+  storageLocation: default
+  hooks:
+    resources:
+    - name: postgres-backup
+      includedNamespaces:
+      - roma
+      labelSelector:
+        matchLabels:
+          app: postgres
+      pre:
+      - exec:
+          container: postgres
+          command: ["/bin/sh", "-c", "pg_dump -U postgres roma > /backups/pre-drill-backup.sql"]
+          onError: Fail
+          timeout: 300s
+    - name: timescaledb-backup
+      includedNamespaces:
+      - asurdev
+      labelSelector:
+        matchLabels:
+          app: timescaledb
+      pre:
+      - exec:
+          container: timescaledb
+          command: ["/bin/sh", "-c", "pg_dump -U postgres asurdev > /backups/asurdev-pre-backup.sql"]
+          onError: Continue
+          timeout: 300s
+    - name: ml-models-backup
+      includedNamespaces:
+      - asurdev
+      labelSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values:
+          - ml-api
+          - ml-models
+      pre:
+      - exec:
+          container: ml-api
+          command: ["/bin/sh", "-c", "sync && fuser -k /models || true"]
+          onError: Continue
+          timeout: 60s
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: weekly-backup
+  namespace: velero
+spec:
+  schedule: "0 3 * * 0"  # 03:00 every Sunday
+  ttl:
+    expiration: 2160h  # 90 days
+  includedNamespaces:
+  - roma
+  - gpu-workloads
+  - monitoring
+  - asurdev
+  storageLocation: default
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: asurdev-models-backup
+  namespace: velero
+spec:
+  schedule: "0 4 * * *"  # 04:00 daily — ML models + TimescaleDB dedicated schedule
+  ttl:
+    expiration: 720h  # 30 days
+  includedNamespaces:
+  - asurdev
+  storageLocation: default
+  includedResources:
+  - persistentvolumeclaims
+  - persistentvolumes
+  - deployments
+  - statefulsets
+  hooks:
+    resources:
+    - name: timescaledb-backup-hook
+      includedNamespaces:
+      - asurdev
+      labelSelector:
+        matchLabels:
+          app: timescaledb
+      pre:
+      - exec:
+          container: timescaledb
+          command: ["/bin/sh", "-c", "pg_dump -U postgres asurdev > /backups/asurdev-pre-backup.sql"]
+          onError: Continue
+          timeout: 300s
+      post:
+      - exec:
+          container: timescaledb
+          command: ["/bin/sh", "-c", "rm -f /backups/asurdev-pre-backup.sql"]
+          onError: Continue
+          timeout: 60s

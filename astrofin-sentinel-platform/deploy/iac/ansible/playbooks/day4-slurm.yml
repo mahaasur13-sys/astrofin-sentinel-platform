@@ -1,0 +1,33 @@
+---
+- name: Day 4 — Slurm HA cluster
+  hosts: all
+  become: true
+  tasks:
+    - name: Install Munge
+      apt:
+        name: [munge, munge-tools, slurmctld, slurmd, slurm-client]
+        state: present
+
+    - name: Create slurm user
+      user:
+        name: slurm
+        system: true
+        create_home: false
+
+    - name: Configure slurm.conf
+      copy:
+        dest: /etc/slurm/slurm.conf
+        content: |
+          ClusterName=home-cluster
+          ControlMachine=rtx3060
+          ControlAddr=192.168.10.11
+          SlurmUser=slurm
+          StateSaveLocation=/var/spool/slurm/ctrl
+          SlurmdSpoolDir=/var/spool/slurm/d
+          AuthType=auth/munge
+          GresTypes=gpu
+          PartitionName=compute Nodes=ALL Default=YES State=UP
+          PartitionName=gpu Nodes=rtx3060 Default=NO State=UP
+        mode: '0644'
+        owner: slurm
+        group: slurm

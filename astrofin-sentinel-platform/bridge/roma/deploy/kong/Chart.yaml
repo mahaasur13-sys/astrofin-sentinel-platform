@@ -1,0 +1,31 @@
+# =============================================================================
+# Kong Gateway Helm Chart — Sprint 2 Task 2
+# Role: API Gateway with Rate Limiting, Tenant Routing, Branding Injection
+# =============================================================================
+
+apiVersion: v2
+name: roma-kong
+version: 1.0.0
+appVersion: "3.6"
+description: |
+  ROMA API Gateway (Kong) — multi-tenant, rate-limited, brandable
+  Features:
+  - Rate limiting by tenant (free: 100 req/min, pro: 1000, ent: unlimited)
+  - Tenant routing via X-Tenant-ID header
+  - Dynamic branding injection (CSS/logo per tenant)
+  - Prometheus plugin for observability
+  - JWT authentication
+  - CORS configuration
+keywords:
+  - kong
+  - api-gateway
+  - multi-tenant
+  - rate-limiting
+maintainers:
+  - name: asurdev
+sources:
+  - https://github.com/mahaasur13-sys/roma-execution-bridge
+dependencies:
+  - name: kong
+    version: "2.36.0"
+    repository: "https://charts.konghq.com"

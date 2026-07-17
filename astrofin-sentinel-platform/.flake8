@@ -1,0 +1,9 @@
+[flake8]
+max-line-length = 120
+extend-ignore =
+    E203, W503, E501, F824, C901, F401, E402, E702, E701, E741,
+    F403, F811, E721, BLE001
+exclude =
+    .venv, venv, __pycache__, .git, .pytest_cache, node_modules,
+    audit_repo, tests, bench, graphify-out, pop-os-setup,
+    acos-contracts, scripts, build, dist, *.egg-info

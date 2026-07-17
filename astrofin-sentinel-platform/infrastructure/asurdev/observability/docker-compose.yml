@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: acos_prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus_rules.yml:/etc/prometheus/rules.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - acos_net
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: acos_grafana
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - acos_net
+    depends_on:
+      - prometheus
+
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: acos_loki
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - ./loki-config.yml:/etc/loki/config.yml:ro
+      - loki_data:/loki
+    networks:
+      - acos_net
+
+  node_exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: acos_node_exporter
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - acos_net
+
+  awg_exporter:
+    image: python:3.12-slim
+    container_name: acos_awg_exporter
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9111:9111"
+    volumes:
+      - ./awg_exporter.py:/app/awg_exporter.py:ro
+    command: ["python", "/app/awg_exporter.py"]
+    networks:
+      - acos_net
+
+networks:
+  acos_net:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  loki_data:

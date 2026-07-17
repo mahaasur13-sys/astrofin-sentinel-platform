@@ -1,0 +1,15 @@
+[Unit]
+Description=Ray worker node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root
+ExecStart=/usr/local/bin/ray start --address={{ ray_head_ip | default('10.20.20.10') }}:6379 --num-gpus=1
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

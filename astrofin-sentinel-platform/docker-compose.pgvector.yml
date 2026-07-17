@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: astrofin-pgvector
+    restart: unless-stopped
+    ports:
+      - "${PGPORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${PGDATABASE:-astrofin}
+      POSTGRES_USER: ${PGUSER:-astrofin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+      PGPORT: 5432
+    volumes:
+      - pgvector_data:/var/lib/postgresql/data
+      - ./migrations_postgres/0009_pgvector.sql:/docker-entrypoint-initdb.d/0009_pgvector.sql:ro
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=vector"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "log_min_duration_statement=500ms"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-astrofin} -d ${PGDATABASE:-astrofin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  pgvector_data:

@@ -1,0 +1,46 @@
+labels:
+  - name: area:core
+    files:
+      - core/**
+  - name: area:orchestration
+    files:
+      - orchestration/**
+  - name: area:agents
+    files:
+      - agents/**
+  - name: area:meta-rl
+    files:
+      - meta_rl/**
+  - name: area:kernel
+    files:
+      - kernel/**
+  - name: area:bridge
+    files:
+      - bridge/**
+  - name: area:trading
+    files:
+      - trading/**
+  - name: area:web
+    files:
+      - web/**
+  - name: area:tests
+    files:
+      - tests/**
+  - name: area:docs
+    files:
+      - docs/**
+      - "*.md"
+  - name: area:ci
+    files:
+      - .github/**
+  - name: area:infrastructure
+    files:
+      - infrastructure/**
+  - name: area:data-room
+    files:
+      - data-room/**
+  - name: dependencies
+    files:
+      - requirements*.txt
+      - pyproject.toml
+      - setup.py

@@ -1,0 +1,3 @@
+[bandit]
+exclude: .venv,venv,tests,__pycache__,.git,.pytest_cache,data,audit_repo,scripts,bench,graphify-out,pop-os-setup,acos-contracts
+skips: B101,B102,B104,B108,B301,B307,B310,B324,B701

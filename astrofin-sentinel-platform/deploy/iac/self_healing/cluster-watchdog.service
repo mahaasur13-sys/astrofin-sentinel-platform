@@ -1,0 +1,12 @@
+[Unit]
+Description=Cluster Self-Healing Watchdog
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/cluster/self_healing/systemd_watchdog.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

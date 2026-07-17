@@ -1,0 +1,20 @@
+---
+- name: Day 2 — AmneziaWG VPN mesh
+  hosts: all
+  become: true
+  tasks:
+    - name: Install AmneziaWG
+      shell: |
+        curl -fsSL https://raw.githubusercontent.com/amnezia-vpn/amnezia-wireguard-linux-package/main/install.sh | bash
+      args:
+        creates: /usr/bin/amnezia-daemon
+
+    - name: Generate WireGuard keys
+      shell: |
+        wg genkey | tee /tmp/private.key | wg pubkey > /tmp/public.key
+        PRIVATE_KEY=$(cat /tmp/private.key)
+        PUBLIC_KEY=$(cat /tmp/public.key)
+        echo "PRIVATE_KEY=${PRIVATE_KEY}" >> /etc/environment
+        echo "PUBLIC_KEY=${PUBLIC_KEY}" >> /etc/environment
+      args:
+        creates: /tmp/public.key

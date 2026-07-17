@@ -1,0 +1,47 @@
+name: Setup AstroFin Python (uv)
+
+description: 'Reusable composite action: setup Python via uv with lock-based caching'
+
+# Replaces the pip-based setup. See ADR-0010 and TD-03 in AUDIT_2026-07-09.md.
+# Usage:
+#   steps:
+#     - uses: actions/checkout@v4
+#     - uses: ./.github/actions/setup-astrofin-python/action.yml
+#       with:
+#         python-version: '3.12'
+#         install-dev: 'true'
+
+inputs:
+  python-version:
+    description: 'Python version to install'
+    required: false
+    default: '3.12'
+  install-dev:
+    description: 'Install dev dependencies (pytest, ruff, mypy, etc.)'
+    required: false
+    default: 'true'
+  enable-cache:
+    description: 'Enable uv cache for faster builds'
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: ${{ inputs.enable-cache }}
+        cache-dependency-glob: 'uv.lock|pyproject.toml'
+
+    - name: Setup Python ${{ inputs.python-version }}
+      run: uv python install ${{ inputs.python-version }}
+
+    - name: Sync dependencies
+      shell: bash
+      run: |
+        if [ "${{ inputs.install-dev }}" = "true" ]; then
+          uv sync --extra dev
+        else
+          uv sync
+        fi

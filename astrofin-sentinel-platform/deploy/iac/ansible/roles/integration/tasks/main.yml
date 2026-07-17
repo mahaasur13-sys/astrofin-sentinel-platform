@@ -1,0 +1,128 @@
+# ============================================================
+# Role: integration — Day 7: Job routing + Slurm↔Ray bridge
+# ============================================================
+
+- name: Create integration directory
+  ansible.builtin.file:
+    path: /opt/cluster/integration
+    state: directory
+    mode: "0755"
+
+- name: Generate Slurm→Ray bridge script
+  ansible.builtin.template:
+    dest: /opt/cluster/integration/slurm_ray_bridge.sh
+    mode: "0755"
+    src: slurm_ray_bridge.sh.j2
+
+- name: Generate job routing daemon
+  ansible.builtin.copy:
+    dest: /opt/cluster/integration/job_router.py
+    mode: "0755"
+    content: |
+      #!/usr/bin/env python3
+      """Job router — routes batch jobs to Slurm or Ray based on workload type."""
+      import sys
+      import yaml
+      import subprocess
+      import time
+
+      def get_slurm_partitions():
+          try:
+              result = subprocess.run(
+                  ["sinfo", "-p", "gpu", "-o", "%P,%a,%D,%c,%m,%G"],
+                  capture_output=True, text=True
+              )
+              return result.stdout.strip()
+          except Exception as e:
+              return f"ERROR: {e}"
+
+      def get_ray_cluster_status():
+          try:
+              result = subprocess.run(
+                  ["ray", "status"],
+                  capture_output=True, text=True
+              )
+              return result.stdout.strip()
+          except Exception as e:
+              return f"Ray not available: {e}"
+
+      def route_job(job_type, args):
+          if job_type == "ray":
+              return run_ray_job(args)
+          elif job_type == "slurm":
+              return run_slurm_job(args)
+          else:
+              return f"Unknown job type: {job_type}"
+
+      def run_slurm_job(args):
+          cmd = ["sbatch", "--export=ALL," + ",".join(args.get("env", []))]
+          cmd.extend(args.get("script", []))
+          result = subprocess.run(cmd, capture_output=True, text=True)
+          return result.stdout + result.stderr
+
+      def run_ray_job(args):
+          cmd = ["ray", "submit", args.get("cluster", "")]
+          cmd.extend(args.get("script", []))
+          result = subprocess.run(cmd, capture_output=True, text=True)
+          return result.stdout + result.stderr
+
+      def main():
+          print("Job Router Daemon started")
+          print("Slurm partitions:", get_slurm_partitions())
+          print("Ray status:", get_ray_cluster_status())
+          while True:
+              time.sleep(60)
+
+      if __name__ == "__main__":
+          main()
+  notify: Restart job_router
+
+- name: Create job router systemd service
+  ansible.builtin.template:
+    dest: /etc/systemd/system/job-router.service
+    mode: "0644"
+    src: job-router.service.j2
+  when: "'slurm_control' in group_names"
+
+- name: Reload systemd and start job-router
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: job-router
+    state: started
+    enabled: true
+  when: "'slurm_control' in group_names"
+  handlers:
+    - name: Restart job-router
+      ansible.builtin.systemd:
+        name: job-router
+        state: restarted
+
+- name: Create Ceph→Slurm storage mount
+  ansible.builtin.file:
+    path: /mnt/cephshared
+    state: directory
+    mode: "0755"
+
+- name: Mount Ceph shared volume via fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "10.200.1.1:/ /mnt/cephshared ceph defaults,_netdev 0 0"
+    state: present
+  when: "'ceph_mon' in group_names"
+  notify: Remount ceph
+
+- name: Symlink Ceph volume to Slurm spool
+  ansible.builtin.file:
+    src: /mnt/cephshared/slurm_spool
+    dest: /var/spool/slurm/shared
+    state: link
+    force: true
+  when: "'slurm_control' in group_names"
+  notify: Restart slurmctld
+
+- name: Remount all filesystems
+  ansible.builtin.command: mount -a
+  changed_when: false
+  handlers:
+    - name: Remount ceph
+      ansible.builtin.command: mount -a

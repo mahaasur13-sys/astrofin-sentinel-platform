@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: roma-system
+  labels:
+    name: roma-system
+    pop-os.tech/role: execution-platform

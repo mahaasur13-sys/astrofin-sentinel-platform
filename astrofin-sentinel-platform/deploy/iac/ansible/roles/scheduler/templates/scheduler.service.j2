@@ -1,0 +1,16 @@
+[Unit]
+Description=AI Scheduler — Policy Engine
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/scheduler
+ExecStart=/usr/bin/python3 /opt/scheduler/scheduler.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

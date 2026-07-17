@@ -1,0 +1,823 @@
+{
+  "graph_hash": "3e6e538dc8f657fc4774085f3c8f9a757b1a6b535721ae3570c147527733fa69",
+  "nodes": [
+    {
+      "calls": [
+        {
+          "file": "alignment/adlr.py",
+          "name": "run"
+        }
+      ],
+      "file": "alignment/adlr.py",
+      "is_entry": true,
+      "line": 90,
+      "name": "run"
+    },
+    {
+      "calls": [
+        {
+          "file": "alignment/convergence.py",
+          "name": "commit_merge"
+        }
+      ],
+      "file": "alignment/convergence.py",
+      "is_entry": true,
+      "line": 138,
+      "name": "commit_merge"
+    },
+    {
+      "calls": [
+        {
+          "file": "alignment/test_adlr.py",
+          "name": "run_tests"
+        }
+      ],
+      "file": "alignment/test_adlr.py",
+      "is_entry": true,
+      "line": 98,
+      "name": "run_tests"
+    },
+    {
+      "calls": [
+        {
+          "file": "alignment/test_bcil.py",
+          "name": "run_tests"
+        }
+      ],
+      "file": "alignment/test_bcil.py",
+      "is_entry": true,
+      "line": 119,
+      "name": "run_tests"
+    },
+    {
+      "calls": [
+        {
+          "file": "alignment/test_convergence.py",
+          "name": "commit_merge"
+        },
+        {
+          "file": "alignment/test_convergence.py",
+          "name": "commit_merge"
+        },
+        {
+          "file": "alignment/test_convergence.py",
+          "name": "run_tests"
+        }
+      ],
+      "file": "alignment/test_convergence.py",
+      "is_entry": true,
+      "line": 109,
+      "name": "run_tests"
+    },
+    {
+      "calls": [
+        {
+          "file": "alignment/test_gcpl.py",
+          "name": "run_tests"
+        }
+      ],
+      "file": "alignment/test_gcpl.py",
+      "is_entry": true,
+      "line": 163,
+      "name": "run_tests"
+    },
+    {
+      "calls": [
+        {
+          "file": "alignment/ust.py",
+          "name": "verify"
+        },
+        {
+          "file": "alignment/ust.py",
+          "name": "verify"
+        },
+        {
+          "file": "alignment/ust.py",
+          "name": "verify"
+        },
+        {
+          "file": "alignment/ust.py",
+          "name": "verify"
+        }
+      ],
+      "file": "alignment/ust.py",
+      "is_entry": true,
+      "line": 59,
+      "name": "verify"
+    },
+    {
+      "calls": [
+        {
+          "file": "alignment/v106_liveness_proof.py",
+          "name": "verify"
+        }
+      ],
+      "file": "alignment/v106_liveness_proof.py",
+      "is_entry": true,
+      "line": 162,
+      "name": "verify"
+    },
+    {
+      "calls": [
+        {
+          "file": "chaos/harness.py",
+          "name": "run"
+        }
+      ],
+      "file": "chaos/harness.py",
+      "is_entry": true,
+      "line": 127,
+      "name": "run"
+    },
+    {
+      "calls": [
+        {
+          "file": "chaos/harness.py",
+          "name": "run"
+        }
+      ],
+      "file": "chaos/harness.py",
+      "is_entry": true,
+      "line": 437,
+      "name": "run_scenario"
+    },
+    {
+      "calls": [],
+      "file": "chaos/replay_validator.py",
+      "is_entry": true,
+      "line": 274,
+      "name": "finalize_trace"
+    },
+    {
+      "calls": [],
+      "file": "coherence/invariant.py",
+      "is_entry": true,
+      "line": 285,
+      "name": "verify_offline"
+    },
+    {
+      "calls": [],
+      "file": "consistency/cross_layer_invariant_engine.py",
+      "is_entry": true,
+      "line": 342,
+      "name": "verify"
+    },
+    {
+      "calls": [],
+      "file": "consistency_v2/realtime_divergence_detector.py",
+      "is_entry": true,
+      "line": 403,
+      "name": "verify"
+    },
+    {
+      "calls": [],
+      "file": "consistency_v2/streaming_invariant_engine.py",
+      "is_entry": true,
+      "line": 380,
+      "name": "verify"
+    },
+    {
+      "calls": [],
+      "file": "core/federation/bft_consensus.py",
+      "is_entry": true,
+      "line": 396,
+      "name": "finalize_commit"
+    },
+    {
+      "calls": [],
+      "file": "core/federation/consensus.py",
+      "is_entry": true,
+      "line": 60,
+      "name": "commit_count"
+    },
+    {
+      "calls": [],
+      "file": "core/federation/consensus.py",
+      "is_entry": true,
+      "line": 275,
+      "name": "verify_ledger_chain"
+    },
+    {
+      "calls": [
+        {
+          "file": "core/federation/distributed_ledger.py",
+          "name": "verify_chain"
+        },
+        {
+          "file": "core/federation/distributed_ledger.py",
+          "name": "verify_chain"
+        }
+      ],
+      "file": "core/federation/distributed_ledger.py",
+      "is_entry": true,
+      "line": 42,
+      "name": "verify_chain"
+    },
+    {
+      "calls": [
+        {
+          "file": "core/federation/distributed_ledger.py",
+          "name": "verify_chain"
+        },
+        {
+          "file": "core/federation/distributed_ledger.py",
+          "name": "verify_chain"
+        }
+      ],
+      "file": "core/federation/distributed_ledger.py",
+      "is_entry": true,
+      "line": 223,
+      "name": "verify_full_chain"
+    },
+    {
+      "calls": [
+        {
+          "file": "core/federation/federated_gateway.py",
+          "name": "verify"
+        }
+      ],
+      "file": "core/federation/federated_gateway.py",
+      "is_entry": true,
+      "line": 123,
+      "name": "execute"
+    },
+    {
+      "calls": [],
+      "file": "core/federation/quorum_certificate.py",
+      "is_entry": true,
+      "line": 43,
+      "name": "commit_count"
+    },
+    {
+      "calls": [],
+      "file": "core/federation/quorum_certificate.py",
+      "is_entry": true,
+      "line": 59,
+      "name": "verify_binding"
+    },
+    {
+      "calls": [],
+      "file": "core/federation/quorum_certificate.py",
+      "is_entry": true,
+      "line": 101,
+      "name": "commit_count"
+    },
+    {
+      "calls": [],
+      "file": "core/proof/proof_verifier.py",
+      "is_entry": true,
+      "line": 110,
+      "name": "verify"
+    },
+    {
+      "calls": [],
+      "file": "core/proof/proof_verifier.py",
+      "is_entry": true,
+      "line": 150,
+      "name": "verify_stateless"
+    },
+    {
+      "calls": [
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_entrypoint"
+        },
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_dominator"
+        },
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_no_external_mutation"
+        }
+      ],
+      "file": "core/runtime/runtime_guard.py",
+      "is_entry": true,
+      "line": 147,
+      "name": "verify_entrypoint"
+    },
+    {
+      "calls": [
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_entrypoint"
+        },
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_dominator"
+        },
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_no_external_mutation"
+        }
+      ],
+      "file": "core/runtime/runtime_guard.py",
+      "is_entry": true,
+      "line": 191,
+      "name": "verify_dominator"
+    },
+    {
+      "calls": [
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_entrypoint"
+        },
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_dominator"
+        },
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_no_external_mutation"
+        }
+      ],
+      "file": "core/runtime/runtime_guard.py",
+      "is_entry": true,
+      "line": 245,
+      "name": "verify_no_external_mutation"
+    },
+    {
+      "calls": [
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_entrypoint"
+        },
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_dominator"
+        },
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_no_external_mutation"
+        }
+      ],
+      "file": "core/runtime/runtime_guard.py",
+      "is_entry": true,
+      "line": 471,
+      "name": "verify_runtime_ast_integrity"
+    },
+    {
+      "calls": [
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_entrypoint"
+        },
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_dominator"
+        },
+        {
+          "file": "core/runtime/runtime_guard.py",
+          "name": "verify_no_external_mutation"
+        }
+      ],
+      "file": "core/runtime/runtime_guard.py",
+      "is_entry": true,
+      "line": 511,
+      "name": "verify_runtime_graph_integrity"
+    },
+    {
+      "calls": [
+        {
+          "file": "federation/bootstrap/cluster_simulator.py",
+          "name": "run"
+        },
+        {
+          "file": "federation/bootstrap/cluster_simulator.py",
+          "name": "run_scenario"
+        }
+      ],
+      "file": "federation/bootstrap/cluster_simulator.py",
+      "is_entry": true,
+      "line": 189,
+      "name": "run"
+    },
+    {
+      "calls": [
+        {
+          "file": "federation/bootstrap/cluster_simulator.py",
+          "name": "run"
+        },
+        {
+          "file": "federation/bootstrap/cluster_simulator.py",
+          "name": "run_scenario"
+        }
+      ],
+      "file": "federation/bootstrap/cluster_simulator.py",
+      "is_entry": true,
+      "line": 347,
+      "name": "run_scenario"
+    },
+    {
+      "calls": [
+        {
+          "file": "federation/bootstrap/cluster_simulator.py",
+          "name": "run"
+        },
+        {
+          "file": "federation/bootstrap/cluster_simulator.py",
+          "name": "run_scenario"
+        }
+      ],
+      "file": "federation/bootstrap/cluster_simulator.py",
+      "is_entry": true,
+      "line": 360,
+      "name": "run_all"
+    },
+    {
+      "calls": [],
+      "file": "federation/byzantine/message_signatures.py",
+      "is_entry": true,
+      "line": 35,
+      "name": "verify"
+    },
+    {
+      "calls": [],
+      "file": "federation/delta_gossip/anti_entropy.py",
+      "is_entry": true,
+      "line": 263,
+      "name": "verify_proof"
+    },
+    {
+      "calls": [],
+      "file": "federation/delta_gossip/dag_hash_modes.py",
+      "is_entry": true,
+      "line": 124,
+      "name": "verify_consistency"
+    },
+    {
+      "calls": [
+        {
+          "file": "federation/proof_enriched_gossip.py",
+          "name": "verify_proof_from_message"
+        },
+        {
+          "file": "federation/proof_enriched_gossip.py",
+          "name": "verify_proof_from_message"
+        }
+      ],
+      "file": "federation/proof_enriched_gossip.py",
+      "is_entry": true,
+      "line": 215,
+      "name": "verify_proof_from_message"
+    },
+    {
+      "calls": [
+        {
+          "file": "federation/security/inbound_security_gate.py",
+          "name": "verify"
+        },
+        {
+          "file": "federation/security/inbound_security_gate.py",
+          "name": "verify"
+        },
+        {
+          "file": "federation/security/inbound_security_gate.py",
+          "name": "verify"
+        },
+        {
+          "file": "federation/security/inbound_security_gate.py",
+          "name": "verify"
+        }
+      ],
+      "file": "federation/security/inbound_security_gate.py",
+      "is_entry": true,
+      "line": 82,
+      "name": "verify"
+    },
+    {
+      "calls": [
+        {
+          "file": "federation/security/signed_envelope.py",
+          "name": "verify"
+        },
+        {
+          "file": "federation/security/signed_envelope.py",
+          "name": "verify"
+        },
+        {
+          "file": "federation/security/signed_envelope.py",
+          "name": "verify"
+        },
+        {
+          "file": "federation/security/signed_envelope.py",
+          "name": "verify"
+        },
+        {
+          "file": "federation/security/signed_envelope.py",
+          "name": "verify"
+        }
+      ],
+      "file": "federation/security/signed_envelope.py",
+      "is_entry": true,
+      "line": 105,
+      "name": "verify"
+    },
+    {
+      "calls": [],
+      "file": "federation/semantic/v910.py",
+      "is_entry": true,
+      "line": 87,
+      "name": "verify_integrity"
+    },
+    {
+      "calls": [
+        {
+          "file": "orchestration/ExecutionGateway/execution_gateway.py",
+          "name": "verify"
+        },
+        {
+          "file": "orchestration/ExecutionGateway/execution_gateway.py",
+          "name": "verify_runtime_ast_integrity"
+        },
+        {
+          "file": "orchestration/ExecutionGateway/execution_gateway.py",
+          "name": "verify_runtime_graph_integrity"
+        },
+        {
+          "file": "orchestration/ExecutionGateway/execution_gateway.py",
+          "name": "apply_mutation"
+        }
+      ],
+      "file": "orchestration/ExecutionGateway/execution_gateway.py",
+      "is_entry": true,
+      "line": 238,
+      "name": "execute"
+    },
+    {
+      "calls": [
+        {
+          "file": "orchestration/ExecutionGateway/execution_gateway.py",
+          "name": "verify"
+        },
+        {
+          "file": "orchestration/ExecutionGateway/execution_gateway.py",
+          "name": "verify_runtime_ast_integrity"
+        },
+        {
+          "file": "orchestration/ExecutionGateway/execution_gateway.py",
+          "name": "verify_runtime_graph_integrity"
+        },
+        {
+          "file": "orchestration/ExecutionGateway/execution_gateway.py",
+          "name": "apply_mutation"
+        }
+      ],
+      "file": "orchestration/ExecutionGateway/execution_gateway.py",
+      "is_entry": true,
+      "line": 377,
+      "name": "execute_proof_carried"
+    },
+    {
+      "calls": [
+        {
+          "file": "orchestration/consistency/invariant_contract/invariant_contract.py",
+          "name": "enforce"
+        },
+        {
+          "file": "orchestration/consistency/invariant_contract/invariant_contract.py",
+          "name": "enforce_from_results"
+        }
+      ],
+      "file": "orchestration/consistency/invariant_contract/invariant_contract.py",
+      "is_entry": true,
+      "line": 471,
+      "name": "enforce"
+    },
+    {
+      "calls": [
+        {
+          "file": "orchestration/consistency/invariant_contract/invariant_contract.py",
+          "name": "enforce"
+        },
+        {
+          "file": "orchestration/consistency/invariant_contract/invariant_contract.py",
+          "name": "enforce_from_results"
+        }
+      ],
+      "file": "orchestration/consistency/invariant_contract/invariant_contract.py",
+      "is_entry": true,
+      "line": 533,
+      "name": "enforce_from_results"
+    },
+    {
+      "calls": [
+        {
+          "file": "orchestration/consistency/invariant_contract/invariant_contract.py",
+          "name": "enforce"
+        },
+        {
+          "file": "orchestration/consistency/invariant_contract/invariant_contract.py",
+          "name": "enforce_from_results"
+        }
+      ],
+      "file": "orchestration/consistency/invariant_contract/invariant_contract.py",
+      "is_entry": true,
+      "line": 549,
+      "name": "enforcement_history"
+    },
+    {
+      "calls": [],
+      "file": "orchestration/phase2/plan_graph.py",
+      "is_entry": true,
+      "line": 141,
+      "name": "finalize_plan"
+    },
+    {
+      "calls": [],
+      "file": "orchestration/v8_2b_controlled_autocorrection/mutation_executor.py",
+      "is_entry": true,
+      "line": 40,
+      "name": "accepted"
+    },
+    {
+      "calls": [],
+      "file": "orchestration/v8_2b_controlled_autocorrection/mutation_executor.py",
+      "is_entry": true,
+      "line": 113,
+      "name": "apply_mutation"
+    },
+    {
+      "calls": [
+        {
+          "file": "proof/proof_kernel.py",
+          "name": "finalize"
+        },
+        {
+          "file": "proof/proof_kernel.py",
+          "name": "verify"
+        },
+        {
+          "file": "proof/proof_kernel.py",
+          "name": "verify"
+        }
+      ],
+      "file": "proof/proof_kernel.py",
+      "is_entry": true,
+      "line": 139,
+      "name": "verify"
+    },
+    {
+      "calls": [],
+      "file": "proof/proof_trace.py",
+      "is_entry": true,
+      "line": 257,
+      "name": "finalize"
+    },
+    {
+      "calls": [
+        {
+          "file": "proof/temporal_verifier.py",
+          "name": "verify"
+        }
+      ],
+      "file": "proof/temporal_verifier.py",
+      "is_entry": true,
+      "line": 76,
+      "name": "verify"
+    },
+    {
+      "calls": [
+        {
+          "file": "proof/temporal_verifier.py",
+          "name": "verify"
+        }
+      ],
+      "file": "proof/temporal_verifier.py",
+      "is_entry": true,
+      "line": 157,
+      "name": "verify_batch"
+    },
+    {
+      "calls": [
+        {
+          "file": "proof/verification_engine.py",
+          "name": "verify"
+        }
+      ],
+      "file": "proof/verification_engine.py",
+      "is_entry": true,
+      "line": 70,
+      "name": "verify"
+    },
+    {
+      "calls": [
+        {
+          "file": "proof/verification_engine.py",
+          "name": "verify"
+        }
+      ],
+      "file": "proof/verification_engine.py",
+      "is_entry": true,
+      "line": 110,
+      "name": "verify_batch"
+    },
+    {
+      "calls": [
+        {
+          "file": "resilience/decision_lattice.py",
+          "name": "verify_lattice"
+        }
+      ],
+      "file": "resilience/decision_lattice.py",
+      "is_entry": true,
+      "line": 392,
+      "name": "verify_lattice"
+    },
+    {
+      "calls": [
+        {
+          "file": "rpc/test_rpc.py",
+          "name": "run_one"
+        },
+        {
+          "file": "rpc/test_rpc.py",
+          "name": "run_one"
+        }
+      ],
+      "file": "rpc/test_rpc.py",
+      "is_entry": true,
+      "line": 321,
+      "name": "run_one"
+    },
+    {
+      "calls": [],
+      "file": "sbs/adapters.py",
+      "is_entry": true,
+      "line": 140,
+      "name": "verify_replay_integrity"
+    },
+    {
+      "calls": [],
+      "file": "sbs/runtime.py",
+      "is_entry": true,
+      "line": 147,
+      "name": "enforce"
+    },
+    {
+      "calls": [],
+      "file": "sbs/system_contract.py",
+      "is_entry": true,
+      "line": 62,
+      "name": "verify"
+    },
+    {
+      "calls": [],
+      "file": "sbs/system_contract.py",
+      "is_entry": true,
+      "line": 87,
+      "name": "verify_all"
+    },
+    {
+      "calls": [
+        {
+          "file": "scripts/execution_algebra_validator.py",
+          "name": "run"
+        }
+      ],
+      "file": "scripts/execution_algebra_validator.py",
+      "is_entry": true,
+      "line": 68,
+      "name": "run"
+    },
+    {
+      "calls": [
+        {
+          "file": "tests/test_v9_3_federation_binding.py",
+          "name": "run_all"
+        },
+        {
+          "file": "tests/test_v9_3_federation_binding.py",
+          "name": "verify_proof_from_message"
+        },
+        {
+          "file": "tests/test_v9_3_federation_binding.py",
+          "name": "verify_proof_from_message"
+        }
+      ],
+      "file": "tests/test_v9_3_federation_binding.py",
+      "is_entry": true,
+      "line": 352,
+      "name": "run_all"
+    },
+    {
+      "calls": [
+        {
+          "file": "tools/symbolic_execution_checker.py",
+          "name": "run"
+        }
+      ],
+      "file": "tools/symbolic_execution_checker.py",
+      "is_entry": true,
+      "line": 227,
+      "name": "run"
+    }
+  ],
+  "stats": {
+    "entry_nodes": 64,
+    "files_scanned": 302,
+    "total_edges": 81,
+    "total_nodes": 64
+  },
+  "version": "9.0+P0.2"
+}

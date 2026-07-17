@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: roma-config
+  namespace: roma-system
+data:
+  APP_ENV: "production"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  PYTHONUNBUFFERED: "1"
+  ENABLE_RAFT: "true"
+  ENABLE_STRIPE_BILLING: "true"
+  ENABLE_PLUGINS: "true"
+  ENABLE_OBSERVABILITY: "true"
+  # Redis
+  REDIS_HOST: "roma-redis"
+  REDIS_PORT: "6379"
+  # PostgreSQL
+  POSTGRES_HOST: "roma-postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "roma"
+  # MinIO / S3
+  S3_ENDPOINT: "http://roma-minio:9000"
+  S3_ACCESS_KEY: "minioadmin"
+  S3_BUCKET: "roma-artifacts"

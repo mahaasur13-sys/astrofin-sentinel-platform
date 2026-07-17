@@ -1,0 +1,76 @@
+# Minimal Velero deployment (no persistent install — use helm or system76-power if preferred)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: velero
+  namespace: velero
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: velero
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: velero
+    spec:
+      containers:
+      - name: velero
+        image: velero/velero:v1.14.1
+        args:
+        - server
+        - --features=EnableCSI
+        - --default-snapshot-move-data=false
+        - --kubeconfig=/etc/kubeconfig/kubeconfig
+        env:
+        - name: AWS_SHARED_CREDENTIALS_FILE
+          value: /credentials/cloud
+        - name: VELERO_SCRATCH_DIR
+          value: /scratch
+        volumeMounts:
+        - name: scratch
+          mountPath: /scratch
+        - name: credentials
+          mountPath: /credentials
+        ports:
+        - name: http-monitoring
+          containerPort: 9090
+        resources:
+          requests:
+            cpu: 500m
+            memory: 256Mi
+          limits:
+            cpu: "1"
+            memory: 512Mi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccountName: velero
+      volumes:
+      - name: scratch
+        emptyDir: {}
+      - name: credentials
+        secret:
+          secretName: velero-s3-credentials
+      tolerations:
+      - effect: NoExecute
+        operator: Exists
+      - effect: NoSchedule
+        operator: Exists
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: velero
+  namespace: velero
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: velero-clusterRoleBinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: velero
+  namespace: velero

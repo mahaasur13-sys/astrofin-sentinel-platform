@@ -1,0 +1,136 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g. 5.1.0)"
+        required: true
+        default: "5.1.0"
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_DEFAULT: "3.12"
+
+jobs:
+  # -------------------------------------------------------------------------
+  # 1. Build & validate the tagged commit.
+  # -------------------------------------------------------------------------
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_DEFAULT }}
+      - name: Read version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Verify pyproject version
+        run: |
+          VER=${{ steps.version.outputs.version }}
+          grep -E "^version\s*=\s*\"$VER\"" pyproject.toml \
+            || (echo "::error::pyproject.toml version does not match tag ($VER)"; exit 1)
+      - name: Build sdist + wheel
+        run: |
+          pip install build
+          python -m build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ steps.version.outputs.version }}
+          path: dist/
+          retention-days: 30
+
+  # -------------------------------------------------------------------------
+  # 2. Generate changelog slice since previous tag.
+  # -------------------------------------------------------------------------
+  changelog:
+    name: Generate changelog
+    runs-on: ubuntu-latest
+    needs: validate
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compute changelog
+        id: cl
+        run: |
+          VER=${{ needs.validate.outputs.version }}
+          PREV=$(git tag --sort=-v:refname | sed -n '2p' || echo "")
+          {
+            echo "## What's Changed in v$VER"
+            if [ -n "$PREV" ]; then
+              echo ""
+              echo "Comparing $PREV...v$VER"
+              echo ""
+              git log "$PREV..HEAD" --pretty=format:"- %s (%h)" --no-merges
+            else
+              git log --pretty=format:"- %s (%h)" --no-merges -n 100
+            fi
+          } > changelog-$VER.md
+          echo "Generated changelog:"
+          cat changelog-$VER.md | head -30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog-*.md
+          retention-days: 30
+
+  # -------------------------------------------------------------------------
+  # 3. Create GitHub release with the changelog.
+  # -------------------------------------------------------------------------
+  github-release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+      - changelog
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ needs.validate.outputs.version }}
+          path: dist/
+      - name: Download changelog
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog
+          path: _changelog/
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VER=${{ needs.validate.outputs.version }}
+          if [ "${{ github.event_name }}" = "push" ]; then
+            gh release create "v$VER" \
+              dist/* \
+              --title "v$VER" \
+              --notes-file "_changelog/changelog-$VER.md" \
+              --target "$GITHUB_SHA"
+          else
+            echo "Manual dispatch — release not created (use a tag to trigger)."
+          fi

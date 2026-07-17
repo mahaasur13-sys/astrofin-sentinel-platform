@@ -1,0 +1,11 @@
+groups:
+  - name: test
+    rules:
+      - alert: Watchdog
+        expr: vector(1)
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Test alert from AstroFin Sentinel V5"
+          description: "This alert verifies that Alertmanager → Slack communication works."

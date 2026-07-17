@@ -1,0 +1,147 @@
+# =============================================================================
+# ANSIBLE PLAYBOOK — Home Cluster Configuration
+# =============================================================================
+# Usage:
+#   ansible-playbook -i inventory.ini playbook.yml
+#   ansible-playbook -i inventory.ini playbook.yml --tags wireguard
+#   ansible-playbook -i inventory.ini playbook.yml --tags slurm
+# =============================================================================
+
+- name: Home Cluster — Full Configuration
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    cluster_name: home-cluster
+    wireguard_net: "10.40.40.0/24"
+
+  tasks:
+    - name: Common — base packages
+      package:
+        name:
+          - curl
+          - wget
+          - git
+          - htop
+          - tmux
+          - vim
+          - net-tools
+          - gnupg2
+        state: present
+
+    - name: Common — /etc/hosts cluster entries
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item.ip }} {{ item.hostname }}"
+        state: present
+      loop:
+        - { ip: "10.20.20.10", hostname: "rtx-node" }
+        - { ip: "10.20.20.20", hostname: "rk3576-node" }
+
+  post_tasks:
+    - name: Show node info
+      debug:
+        msg: "Configured {{ inventory_hostname }} — {{ ansible_facts['fqdn'] }}"
+
+- name: Configure RTX GPU Node
+  hosts: rtx_node
+  become: true
+  vars:
+    nvidia_driver: "550"
+  tasks:
+    - name: Verify NVIDIA GPU
+      command: nvidia-smi --query-gpu=name --format=csv,noheader
+      register: gpu_check
+      changed_when: false
+
+    - name: Install NVIDIA driver (if not present)
+      package:
+        name: "nvidia-driver-{{ nvidia_driver }}"
+        state: present
+      when: gpu_check.rc != 0
+
+    - name: Install CUDA toolkit
+      package:
+        name: nvidia-cuda-toolkit
+        state: present
+
+    - name: Install Docker + NVIDIA container toolkit
+      block:
+        - name: Docker — install
+          apt:
+            name: docker.io
+            state: present
+
+        - name: Docker — enable
+          systemd:
+            name: docker
+            enabled: true
+            state: started
+
+        - name: NVIDIA container toolkit — install
+          apt:
+            name: nvidia-container-toolkit
+            state: present
+
+        - name: NVIDIA container toolkit — configure
+          command: nvidia-ctk runtime configure --runtime=docker
+          notify: Restart Docker
+      when: false  # set true if Docker needed on RTX
+
+    - name: Slurm — install controller
+      package:
+        name:
+          - slurmctld
+          - slurm-client
+          - munge
+        state: present
+
+    - name: Slurm — create munge key
+      command: create-munge-key -f
+      when: false  # run manually on controller
+
+  handlers:
+    - name: Restart Docker
+      systemd:
+        name: docker
+        state: restarted
+
+- name: Configure RK3576 Edge Node
+  hosts: rk3576_node
+  become: true
+  tasks:
+    - name: Install ARM-optimized packages
+      package:
+        name:
+          - python3-pip
+          - libopenblas-dev
+          - liblapack-dev
+          - gfortran
+        state: present
+
+    - name: Install Ray (lightweight worker)
+      pip:
+        name: ray
+        extra_args: --user
+      when: false  # installed via day5 script
+
+- name: Configure MikroTik Router
+  hosts: mikrotik
+  vars:
+    ansible_network_os: community.network.routeros
+  tasks:
+    - name: MikroTik — check connectivity
+      uri:
+        url: "https://{{ inventory_hostname }}/rest/interface"
+        method: GET
+        user: "{{ hostvars[inventory_hostname].ansible_user }}"
+        password: "{{ ansible_ssh_pass | default('') }}"
+        validate_certs: false
+      register: mikrotik_check
+      ignore_errors: true
+      changed_when: false
+
+    - name: MikroTik — show warning
+      debug:
+        msg: "Configure VLANs manually via /ip/vlan or use scripts/day1-network.sh"
+      when: mikrotik_check.failed | default(true)

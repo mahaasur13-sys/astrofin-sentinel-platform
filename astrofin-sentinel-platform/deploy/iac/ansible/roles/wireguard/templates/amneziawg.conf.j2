@@ -1,0 +1,11 @@
+[Interface]
+PrivateKey = {{ amneziawg_private_key }}
+Address = {{ node_mesh_ip }}/24
+PostUp = iptables -A FORWARD -i amneziawg -j ACCEPT; iptables -A FORWARD -o amneziawg -j ACCEPT; iptables -t nat -A POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE
+PostDown = iptables -D FORWARD -i amneziawg -j ACCEPT; iptables -D FORWARD -o amneziawg -j ACCEPT; iptables -t nat -D POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE
+
+[Peer]
+PublicKey = {{ amneziawg_public_key_rtx }}
+Endpoint = 10.20.20.10:51820
+AllowedIPs = 10.20.20.0/24, 10.99.99.0/24
+PersistentKeepalive = 25

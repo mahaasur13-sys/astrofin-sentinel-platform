@@ -1,0 +1,16 @@
+[
+  {
+    "severity": "EXTERNAL_EXECUTION_PATH",
+    "file": "core/federation/federated_gateway.py",
+    "line": 123,
+    "name": "execute",
+    "description": "execute() at core/federation/federated_gateway.py:123 is an execution entry point that does NOT delegate through ExecutionGateway \u2014 bypass detected",
+    "path": [
+      "S0",
+      "G1",
+      "...",
+      "ACT"
+    ],
+    "fix": "Delegate execute() to ExecutionGateway.execute() or mark as @deprecated and redirect"
+  }
+]

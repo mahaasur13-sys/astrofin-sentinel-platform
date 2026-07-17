@@ -1,0 +1,14 @@
+velero_version: "v1.14.1"
+velero_namespace: "velero"
+velero_s3_url: "http://localhost:9000"
+velero_s3_bucket: "velero"
+velero_s3_access_key: "minioadmin"
+velero_s3_secret_key: "minioadmin"
+velero_backup_namespaces:
+  - roma
+  - gpu-workloads
+  - monitoring
+velero_schedule_daily: "0 2 * * *"
+velero_schedule_weekly: "0 3 * * 0"
+velero_ttl_daily: "720h"
+velero_ttl_weekly: "2160h"

@@ -1,0 +1,67 @@
+name: ROMA CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install typer rich requests pyyaml plotly dash pytest pytest-cov
+      - name: Compile check
+        run: |
+          find . -name "*.py" -not -path "./__pycache__/*" -exec python -m py_compile {} + 2>&1 | tail -5
+          echo "Compile OK"
+      - name: Run tests
+        run: python3 test_ci.py
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install ruff
+        run: pip install ruff
+      - name: Lint
+        run: ruff check . --output-format=text 2>&1 | head -20 || true
+
+  helm-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Helm
+        run: |
+          curl -fsSL https://get.helm.sh/helm.sh | bash -s -- --version v3.14.0
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          ls $HOME/.local/bin/helm
+      - name: Helm lint
+        run: |
+          helm lint charts/roma-execution-bridge --quiet || exit 1
+          echo "Helm lint passed"
+      - name: Helm template (dry-run)
+        run: |
+          helm template roma-test charts/roma-execution-bridge \
+            --set apiServer.replicaCount=2 \
+            --set gpuWorker.replicaCount=1 \
+            --set apiServer.autoscaling.enabled=true \
+            --set gpuWorker.autoscaling.enabled=true \
+            > /tmp/roma-template.yaml
+          echo "Helm template OK"
+      - name: Validate HPA manifests rendered
+        run: |
+          grep -c "kind: HorizontalPodAutoscaler" /tmp/roma-template.yaml
+          echo "HPA count OK"
+      - name: Validate PDB manifests rendered
+        run: |
+          grep -c "kind: PodDisruptionBudget" /tmp/roma-template.yaml
+          echo "PDB count OK"

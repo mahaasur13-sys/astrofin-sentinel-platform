@@ -1,0 +1,39 @@
+# TimescaleDB Ingestion Service — Configuration
+db:
+  host: "localhost"
+  port: 5432
+  database: "cluster_metrics"
+  user: "cluster"
+  password: "CHANGE_ME"
+
+scrape:
+  interval_seconds: 15
+
+targets:
+  # node_exporters (standard)
+  - url: "http://10.20.20.10:9100/metrics"
+    node_id: "rtx-node"
+  - url: "http://10.20.20.20:9100/metrics"
+    node_id: "rk3576"
+
+  # GPU metrics
+  - url: "http://10.20.20.10:9400/metrics"
+    node_id: "rtx-node"
+
+  # Slurm exporter
+  - url: "http://10.20.20.10:9341/metrics"
+    node_id: "rtx-node"
+
+  # Ceph exporter
+  - url: "http://10.20.20.10:9342/metrics"
+    node_id: "rtx-node"
+
+  # WireGuard exporter
+  - url: "http://10.20.20.10:9343/metrics"
+    node_id: "rtx-node"
+  - url: "http://10.20.20.20:9343/metrics"
+    node_id: "rk3576"
+
+  # Ray
+  - url: "http://10.20.20.10:8265/metrics"
+    node_id: "rtx-node"

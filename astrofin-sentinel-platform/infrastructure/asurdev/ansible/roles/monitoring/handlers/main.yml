@@ -1,0 +1,9 @@
+- name: Restart Prometheus
+  docker_container:
+    name: prometheus
+    state: restarted
+
+- name: Restart Grafana
+  docker_container:
+    name: grafana
+    state: restarted

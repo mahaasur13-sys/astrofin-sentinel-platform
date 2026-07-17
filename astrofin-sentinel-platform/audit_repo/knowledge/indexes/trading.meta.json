@@ -1,0 +1,44 @@
+[
+  {
+    "id": "691aaa484733",
+    "content": "f* = (bp - q) / b\nWhere: b = odds received, p = win probability, q = 1 - p\n\nFor crypto: use fractional Kelly (25-50%) due to high variance.",
+    "source": "trading/position_sizing.md",
+    "title": "Kelly Criterion",
+    "domain": "trading"
+  },
+  {
+    "id": "ea21e3a982a2",
+    "content": "Position Size = Account Risk × Risk Per Trade / Distance to Stop Loss\n\n| Account Size | Max Risk Per Trade | Max Total Exposure |\n|-------------|--------------------|--------------------|\n| < $1,000 | 2% | 10% |\n| $1,000 - $10,000 | 1-2% | 15% |\n| > $10,000 | 0.5-1% | 20% |",
+    "source": "trading/position_sizing.md",
+    "title": "Risk-Based Sizing",
+    "domain": "trading"
+  },
+  {
+    "id": "8cc271736635",
+    "content": "- Max 3 losing trades per session → stop trading for the day\n- Max 5% daily drawdown → stop for the day\n- Max 10% weekly drawdown → review system",
+    "source": "trading/position_sizing.md",
+    "title": "Session Limits",
+    "domain": "trading"
+  },
+  {
+    "id": "49c9bca263c5",
+    "content": "1. **Never risk more than 1-2% of capital on a single trade**\n2. **Always use stop losses** — no exceptions\n3. **Diversify across uncorrelated assets**\n4. **Keep a cash reserve** — minimum 20% not deployed",
+    "source": "trading/risk_management.md",
+    "title": "Core Rules",
+    "domain": "trading"
+  },
+  {
+    "id": "9d4e8ab5c9b7",
+    "content": "Adjust position size based on:\n- Account equity curve (reduce when drawdown > 5%)\n- Current volatility (smaller positions in high VIX periods)\n- Confidence score from AstroFin signals\n\n| Signal Confidence | Position Size Multiplier |\n|-------------------|-------------------------|\n| 90-100% | 1.5× base |\n| 70-89% | 1.0× base |\n| 50-69% | 0.5× base |\n| < 50% | Skip trade |",
+    "source": "trading/risk_management.md",
+    "title": "Dynamic Risk Scaling",
+    "domain": "trading"
+  },
+  {
+    "id": "7c90aecba66b",
+    "content": "- Drawdown > 5%: reduce risk by 50%\n- Drawdown > 10%: halt trading, review system\n- Drawdown > 20%: trading account is suspended",
+    "source": "trading/risk_management.md",
+    "title": "Drawdown Rules",
+    "domain": "trading"
+  }
+]

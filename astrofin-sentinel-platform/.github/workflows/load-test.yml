@@ -1,0 +1,89 @@
+name: Load test (Locust)
+
+# Периодический и ручной запуск Locust против staging.
+# Результаты (HTML-отчёт + CSV) загружаются как artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      users:
+        description: 'Одновременных пользователей'
+        required: false
+        default: '50'
+      spawn_rate:
+        description: 'Скорость спавна (польз./сек.)'
+        required: false
+        default: '5'
+      run_time:
+        description: 'Длительность (например 2m)'
+        required: false
+        default: '2m'
+      target_host:
+        description: 'Базовый URL (по умолчанию staging из secret)'
+        required: false
+        default: ''
+  schedule:
+    # Каждое воскресенье в 03:00 UTC
+    - cron: "0 3 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  load-test:
+    name: Locust — staging soak
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TARGET_HOST: ${{ github.event.inputs.target_host || secrets.STAGING_HEALTH_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Locust
+        run: pip install --quiet "locust==2.31.8"
+
+      - name: Validate target
+        run: |
+          if [ -z "${TARGET_HOST}" ]; then
+            echo "::error::TARGET_HOST/STAGING_HEALTH_URL is empty."
+            exit 1
+          fi
+          # Strip trailing slash and any path; we need only origin.
+          ORIGIN=$(echo "${TARGET_HOST}" | sed -E 's#^(https?://[^/]+).*#\1#')
+          echo "origin=${ORIGIN}" >> "$GITHUB_OUTPUT"
+          echo "Target origin: ${ORIGIN}"
+
+      - name: Run Locust
+        env:
+          USERS:     ${{ github.event.inputs.users || '50' }}
+          SPAWN:     ${{ github.event.inputs.spawn_rate || '5' }}
+          RUN_TIME:  ${{ github.event.inputs.run_time || '2m' }}
+          ORIGIN:    ${{ steps.validate.outputs.origin }}
+        run: |
+          mkdir -p reports
+          locust \
+            -f tests/load/locustfile.py \
+            --headless \
+            --host "${ORIGIN}" \
+            --users "${USERS}" \
+            --spawn-rate "${SPAWN}" \
+            --run-time "${RUN_TIME}" \
+            --html reports/load-test.html \
+            --csv  reports/load-test \
+            --exit-code-on-error 1 \
+            --only-summary
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: locust-report
+          path: reports/
+          retention-days: 30

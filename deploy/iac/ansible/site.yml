@@ -1,0 +1,51 @@
+---
+# site.yml — Main Ansible playbook for home-cluster-iac
+- name: Bootstrap home cluster (Day 1-7)
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    cluster_name: home-cluster
+    primary_ip: 192.168.10.11
+
+  tasks:
+    - name: Ensure required packages installed
+      apt:
+        name:
+          - curl
+          - wget
+          - git
+          - python3
+          - python3-pip
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+        state: present
+
+    - name: Include Day 1 network configuration
+      import_playbook: ansible/playbooks/day1-network.yml
+      when: day|default(1) | int <= 1
+
+    - name: Include Day 2 VPN mesh
+      import_playbook: ansible/playbooks/day2-vpn.yml
+      when: day|default(1) | int <= 2
+
+    - name: Include Day 3 compute base
+      import_playbook: ansible/playbooks/day3-compute.yml
+      when: day|default(1) | int <= 3
+
+    - name: Include Day 4 Slurm cluster
+      import_playbook: ansible/playbooks/day4-slurm.yml
+      when: day|default(1) | int <= 4
+
+    - name: Include Day 5 Ray runtime
+      import_playbook: ansible/playbooks/day5-ray.yml
+      when: day|default(1) | int <= 5
+
+    - name: Include Day 6 Ceph storage
+      import_playbook: ansible/playbooks/day6-ceph.yml
+      when: day|default(1) | int <= 6
+
+    - name: Include Day 7 integration
+      import_playbook: ansible/playbooks/day7-integration.yml
+      when: day|default(1) | int <= 7

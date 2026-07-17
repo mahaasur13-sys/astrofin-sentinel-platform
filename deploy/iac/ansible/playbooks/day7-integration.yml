@@ -1,0 +1,57 @@
+---
+- name: Day 7 — Integration layer
+  hosts: all
+  become: true
+  tasks:
+    - name: Install AI job router
+      copy:
+        dest: /usr/local/bin/ai-job-router.py
+        content: |
+          #!/usr/bin/env python3
+          """AI Job Router — dispatches jobs to Slurm or Ray based on resource needs."""
+          import argparse, subprocess
+
+          def route_to_slurm(cmd, gpu=1, time_limit="1:00:00"):
+              sbatch_cmd = ["sbatch", "-G", str(gpu), "-t", time_limit]
+              if gpu > 0:
+                  sbatch_cmd += ["--partition=gpu", "--gres=gpu:1", "--wrap", cmd]
+              else:
+                  sbatch_cmd += ["--partition=compute", "--wrap", cmd]
+              result = subprocess.run(sbatch_cmd, capture_output=True, text=True)
+              return result.stdout.strip()
+
+          def route_to_ray(cmd):
+              result = subprocess.run(
+                  ["python3", "-c", f"import ray; ray.init(); exec({repr(cmd)})"],
+                  capture_output=True, text=True
+              )
+              return f"Ray task submitted: {result.stdout}"
+
+          if __name__ == "__main__":
+              parser = argparse.ArgumentParser()
+              parser.add_argument("--slurm", action="store_true")
+              parser.add_argument("--ray", action="store_true")
+              parser.add_argument("--gpu", type=int, default=1)
+              parser.add_argument("--time", default="1:00:00")
+              parser.add_argument("cmd", nargs="*")
+              args = parser.parse_args()
+              cmd_str = " ".join(args.cmd)
+              if args.slurm:
+                  print(route_to_slurm(cmd_str, args.gpu, args.time))
+              elif args.ray:
+                  print(route_to_ray(cmd_str))
+              else:
+                  print(route_to_slurm(cmd_str, args.gpu, args.time) if args.gpu > 0 else route_to_ray(cmd_str))
+        mode: '0755'
+
+    - name: Install Prometheus monitoring
+      apt:
+        name: [prometheus, node-exporter]
+        state: present
+      notify: restart prometheus
+
+  handlers:
+    - name: restart prometheus
+      service:
+        name: prometheus
+        state: restarted

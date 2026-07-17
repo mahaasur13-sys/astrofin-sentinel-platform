@@ -1,0 +1,39 @@
+---
+- name: Create self-healing directory
+  file:
+    path: "{{ cluster_root }}/self_healing"
+    state: directory
+    owner: root
+    mode: '0755'
+
+- name: Deploy systemd watchdog script
+  copy:
+    src: systemd_watchdog.sh
+    dest: "{{ cluster_root }}/self_healing/systemd_watchdog.sh"
+    owner: root
+    mode: '0755'
+
+- name: Deploy systemd service
+  template:
+    src: cluster-watchdog.service.j2
+    dest: /etc/systemd/system/cluster-watchdog.service
+  notify: daemon-reload
+
+- name: Deploy systemd timer
+  template:
+    src: cluster-watchdog.timer.j2
+    dest: /etc/systemd/system/cluster-watchdog.timer
+  notify: daemon-reload
+
+- name: Enable and start watchdog timer
+  systemd:
+    name: cluster-watchdog.timer
+    state: started
+    enabled: true
+
+- name: Create log directory
+  file:
+    path: /var/log/cluster
+    state: directory
+    owner: root
+    mode: '0755'

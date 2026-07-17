@@ -1,0 +1,12 @@
+# slurmdbd.conf.j2
+DbdAddr={{ slurm_db_host | default('127.0.0.1') }}
+DbdPort={{ slurm_db_port | default(6819) }}
+SlurmUser=slurm
+LogFile={{ slurm_log_dir }}/slurmdbd.log
+PidFile=/var/run/slurmdbd.pid
+StorageType=accounting_storage/mysql
+StorageHost={{ slurm_db_host | default('127.0.0.1') }}
+StoragePort={{ slurm_db_port | default(3306) }}
+StorageUser={{ slurm_db_user }}
+StoragePass={{ slurm_db_pass | default('') }}
+StorageLoc={{ slurm_db_name | default('slurm_acct_db') }}

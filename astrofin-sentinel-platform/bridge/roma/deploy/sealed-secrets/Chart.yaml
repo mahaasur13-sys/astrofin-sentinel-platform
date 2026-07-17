@@ -1,0 +1,6 @@
+apiVersion: v2
+name: roma-sealed-secrets
+description: SealedSecrets for GitOps-safe ROMA secret management
+type: application
+version: 0.1.0
+appVersion: "0.26.0"
