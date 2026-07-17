@@ -24,7 +24,7 @@ def run_sweep(label: str, sideways_mult: float, bear_mult: float, anomaly_thresh
     """Run one calibration pass."""
     ohlcv = load_ohlcv(CACHE) if os.path.exists(CACHE) else generate_random_ohlcv(500, seed=42)
     n = len(ohlcv)
-    detector = RegimeDetector(n_bars=n)
+    detector = RegimeDetector(lookback=120)
     detector.fit(ohlcv)
     
     risk = RiskEngineV2()
