@@ -194,14 +194,14 @@ def _get_tz_offset_hours(dt: datetime) -> float:
     return 0.0
 
 
-def _sunrise(dt: datetime, lat: float = 25.20, lon: float = 55.27) -> datetime:
+def _sunrise(dt: datetime, lat: float = 25.20, lon: float = 55.27, tz_offset_hours: float = 4.0) -> datetime:
     """Astronomical sunrise for given location — defaults Dubai. NOAA solar calculator."""
-    return _solar_event(dt, lat, lon, is_sunrise=True)
+    return _solar_event(dt, lat, lon, is_sunrise=True, tz_offset_hours=tz_offset_hours)
 
 
-def _sunset(dt: datetime, lat: float = 25.20, lon: float = 55.27) -> datetime:
+def _sunset(dt: datetime, lat: float = 25.20, lon: float = 55.27, tz_offset_hours: float = 4.0) -> datetime:
     """Astronomical sunset for given location — defaults Dubai."""
-    return _solar_event(dt, lat, lon, is_sunrise=False)
+    return _solar_event(dt, lat, lon, is_sunrise=False, tz_offset_hours=tz_offset_hours)
 
 
 def _solar_event(dt, lat, lon, is_sunrise, tz_offset_hours: float = 4.0):
