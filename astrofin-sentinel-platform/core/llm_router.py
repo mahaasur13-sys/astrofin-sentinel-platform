@@ -105,14 +105,44 @@ def local_llm(prompt: str) -> str:
     return response["message"]["content"]
 
 
+# ── Circuit Breaker for OpenRouter ─────────────────────────────────────
+_openrouter_fail_count = 0
+_openrouter_fail_window: list[float] = []
+CB_THRESHOLD = 5
+CB_WINDOW_S = 60.0
+CB_COOLDOWN_S = 30.0
+_openrouter_open_at = 0.0
+
+
 def cloud_llm(prompt: str) -> str:
-    client = _get_cloud_client()
-    resp = client.chat.completions.create(
-        model="auto",
-        messages=[{"role": "user", "content": prompt}],
-        extra_headers={"HTTP-Referer": "https://astrofin.io"},
-    )
-    return resp.choices[0].message.content
+    global _openrouter_fail_count, _openrouter_fail_window, _openrouter_open_at
+    now = time.monotonic()
+    cutoff = now - CB_WINDOW_S
+    _openrouter_fail_window = [t for t in _openrouter_fail_window if t > cutoff]
+    if len(_openrouter_fail_window) >= CB_THRESHOLD:
+        if now - _openrouter_open_at > CB_COOLDOWN_S:
+            _openrouter_fail_window.clear()
+            _openrouter_fail_count = 0
+        else:
+            return _ollama_fallback(prompt)
+    try:
+        client = _get_cloud_client()
+        resp = client.chat.completions.create(
+            model="auto",
+            messages=[{"role": "user", "content": prompt}],
+            extra_headers={"HTTP-Referer": "https://astrofin.io"},
+        )
+        return resp.choices[0].message.content
+    except Exception:
+        _openrouter_fail_count += 1
+        _openrouter_fail_window.append(now)
+        if len(_openrouter_fail_window) >= CB_THRESHOLD:
+            _openrouter_open_at = now
+        return _ollama_fallback(prompt)
+
+
+def _ollama_fallback(prompt: str) -> str:
+    return local_llm(prompt)
 
 
 def route(prompt: str, session_id: str = None) -> str:

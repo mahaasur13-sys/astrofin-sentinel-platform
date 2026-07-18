@@ -1,26 +1,36 @@
 """
 AstroFin Sentinel v5 — Base Agent
 RAG-first agent implementation with knowledge retrieval.
+ADR-001 Sprint 3: Message-based interface (on_message, publish_event, contextvars)
 """
-
 from __future__ import annotations
 
+import asyncio
+import contextvars
+import copy
 import logging
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
+
+if TYPE_CHECKING:
+    from core.envelopes import TaskEnvelope, ResultEnvelope
+    from core.message_broker import MessageBroker
+    from core.outbox import Outbox
 
 logger = logging.getLogger(__name__)
 
 
-# ─── Standard degradation reason constants ───────────────────────────────────
-# All machine-readable; agents must use these (or extend the list with a new
-# constant) when calling self._degraded(...) so dashboards and the
-# compliance linter can reason about it.
+# ─── Context propagation (ADR-001 Риск #2, P3-07) ────────────────────
+_current_envelope: contextvars.ContextVar["TaskEnvelope | None"] = (
+    contextvars.ContextVar("_current_envelope", default=None)
+)
 
+
+# ─── Standard degradation reason constants ───────────────────────────
 EPHEMERIS_UNAVAILABLE: str = "EPHEMERIS_UNAVAILABLE"
 DATA_ROOM_TIMEOUT: str = "DATA_ROOM_TIMEOUT"
 DATA_ROOM_ERROR: str = "DATA_ROOM_ERROR"
@@ -28,16 +38,14 @@ RAG_UNAVAILABLE: str = "RAG_UNAVAILABLE"
 TIMEOUT: str = "TIMEOUT"
 UNKNOWN: str = "UNKNOWN"
 
-VALID_DEGRADATION_REASONS: frozenset[str] = frozenset(
-    {
-        EPHEMERIS_UNAVAILABLE,
-        DATA_ROOM_TIMEOUT,
-        DATA_ROOM_ERROR,
-        RAG_UNAVAILABLE,
-        TIMEOUT,
-        UNKNOWN,
-    }
-)
+VALID_DEGRADATION_REASONS: frozenset[str] = frozenset({
+    EPHEMERIS_UNAVAILABLE,
+    DATA_ROOM_TIMEOUT,
+    DATA_ROOM_ERROR,
+    RAG_UNAVAILABLE,
+    TIMEOUT,
+    UNKNOWN,
+})
 
 
 class SignalDirection(str, Enum):
@@ -55,7 +63,7 @@ class AgentResponse:
     signal: SignalDirection
     confidence: int  # 0 — 100
     reasoning: str
-    sources: list[str] = field(default_factory=list)  # RAG chunk IDs
+    sources: list[str] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     session_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
@@ -65,7 +73,6 @@ class AgentResponse:
             raise ValueError(f"confidence must be 0-100, got {self.confidence}")
 
     def to_dict(self) -> dict:
-        # Handle both string signals (new) and enum signals (old)
         signal_value = (
             self.signal.value if hasattr(self.signal, "value") else self.signal
         )
@@ -88,16 +95,15 @@ class BaseAgent(ABC, Generic[T]):
     """
     Базовый класс для всех агентов v5.
 
-    Каждый агент:
-    1. Имеет instructions.md (загружается при инициализации)
-    2. Может запрашивать RAG через self.retrieve()
+    Агент:
+    1. Имеет instructions.md
+    2. Запрашивает RAG через self.retrieve()
     3. Возвращает AgentResponse
 
-    Встроенные помощники:
-        - self._degraded(reason, msg): стандартный «пониженный» AgentResponse.
-          Используйте его в `run()`/`analyze()` на любом except, чтобы одна
-          ошибка не вывела из строя весь оркестратор. Reasons — из
-          `core.base_agent` (EPHEMERIS_UNAVAILABLE / DATA_ROOM_TIMEOUT / UNKNOWN / ...).
+    ADR-001 Sprint 3:
+    4. Принимает TaskEnvelope через on_message() (не сырой dict)
+    5. Пробрасывает trace context через contextvars (Риск #2 fix)
+    6. Публикует события через publish_event() с outbox (Риск #4 fix)
     """
 
     def __init__(
@@ -111,10 +117,8 @@ class BaseAgent(ABC, Generic[T]):
         self.weight = weight
         self.domain = domain
         self.instructions_md = ""
-        # Start with a no-op degraded retriever; the real HybridRetriever
-        # (pgvector + BM25) is constructed lazily on first await of
-        # _get_retriever(). This keeps __init__ cheap and lets tests
-        # patch.object(self._retriever, "retrieve") safely.
+        self._broker: "MessageBroker | None" = None
+        self._outbox: "Outbox | None" = None
         self._retriever = _DegradedRetriever()
 
         if instructions_path:
@@ -124,26 +128,9 @@ class BaseAgent(ABC, Generic[T]):
             except FileNotFoundError:
                 self.instructions_md = f"# {name}\n\nInstructions not found."
 
+    # ── Degraded Response ────────────────────────────────────────────
+
     def _degraded(self, reason: str, msg: str = "") -> "AgentResponse":
-        """
-        Build a uniform degraded AgentResponse.
-
-        Args:
-            reason: One of the standard constants
-                    (EPHEMERIS_UNAVAILABLE, DATA_ROOM_TIMEOUT, UNKNOWN, ...).
-            msg:    Human-readable detail (kept in reasoning, not metadata).
-
-        Returns:
-            AgentResponse(signal=NEUTRAL, confidence=0,
-                          metadata={"degraded": True,
-                                    "degradation_reason": reason}).
-
-        Notes:
-            Centralized in BaseAgent so every agent inherits it. Use from
-            `run()` on any exception — never re-raise from the public entry
-            point. If your failure is unusual, add a new constant to
-            `core/base_agent.py` rather than passing a free-form string.
-        """
         if reason not in VALID_DEGRADATION_REASONS:
             logger.warning(
                 "agent_used_non_standard_degradation_reason",
@@ -158,22 +145,15 @@ class BaseAgent(ABC, Generic[T]):
             metadata={"degraded": True, "degradation_reason": reason},
         )
 
-    async def _get_retriever(self):
-        """
-        Lazy factory for the hybrid RAG retriever.
+    # ── RAG ──────────────────────────────────────────────────────────
 
-        Returns the cached HybridRetriever on subsequent calls. Falls back to
-        a degraded stub (returning empty chunks) if the RAG stack cannot be
-        initialised — agents stay runnable, just without knowledge.
-        """
+    async def _get_retriever(self):
         if self._retriever is not None:
             return self._retriever
-
         try:
             from knowledge.hybrid_retriever import HybridRetriever
-
             self._retriever = HybridRetriever.create()
-        except Exception as exc:  # noqa: BLE001 — degraded fallback
+        except Exception as exc:
             logger.warning(
                 "rag_retriever_init_failed",
                 extra={"agent": self.name, "error": str(exc)},
@@ -181,32 +161,14 @@ class BaseAgent(ABC, Generic[T]):
             self._retriever = _DegradedRetriever()
         return self._retriever
 
-    async def retrieve(
-        self,
-        query: str,
-        domain: str = None,
-        top_k: int = 5,
-    ) -> list[dict]:
-        """
-        Запрос к RAG базе знаний (async, hybrid BM25+vector с RRF).
-
-        Использовать когда:
-        - Вопрос выходит за рамки instructions.md
-        - Нужен факт из авторитетного источника
-        - Требуется подтверждение перед выводом
-
-        Returns an empty list on RAG failure; callers should treat that as
-        «no knowledge» rather than raising.
-        """
+    async def retrieve(self, query: str, domain: str = None, top_k: int = 5) -> list[dict]:
         try:
             retriever = await self._get_retriever()
             chunks = await retriever.retrieve(
-                query=query,
-                domain=domain or self.domain,
-                top_k=top_k,
+                query=query, domain=domain or self.domain, top_k=top_k
             )
             return chunks or []
-        except Exception as exc:  # noqa: BLE001 — degraded fallback
+        except Exception as exc:
             logger.warning(
                 "rag_retrieve_failed",
                 extra={"agent": self.name, "query": query[:80], "error": str(exc)},
@@ -214,20 +176,16 @@ class BaseAgent(ABC, Generic[T]):
             return []
 
     def format_retrieval(self, chunks: list[dict]) -> str:
-        """Форматировать результаты RAG для включения в ответ."""
         if not chunks:
             return "• RAG: нет релевантных источников"
-
         lines = ["• RAG источники:"]
         for i, chunk in enumerate(chunks, 1):
             lines.append(
                 f"  [{i}] {chunk['source']} (релевантность: {chunk['relevance_score']:.0%})"
             )
-            # Add first 100 chars of content as preview
             lines.append(f"      → {chunk['title']}")
             preview = chunk["content"][:100].replace("\n", " ")
             lines.append(f"      → {preview}...")
-
         return "\n".join(lines)
 
     @abstractmethod
@@ -244,23 +202,9 @@ class BaseAgent(ABC, Generic[T]):
         pass
 
     async def _build_prompt(
-        self,
-        user_task: str,
-        extra_context: str = "",
-        use_rag: bool = True,
+        self, user_task: str, extra_context: str = "", use_rag: bool = True
     ) -> str:
-        """
-        Build system prompt for the agent.
-
-        Includes:
-        1. Instructions.md
-        2. RAG chunks if enabled and domain is known
-        3. Extra context
-        """
-        parts = [
-            f"# Instructions for {self.name}\n\n{self.instructions_md}",
-        ]
-
+        parts = [f"# Instructions for {self.name}\n\n{self.instructions_md}"]
         if use_rag:
             try:
                 chunks = await self.retrieve(user_task, top_k=5)
@@ -270,58 +214,116 @@ class BaseAgent(ABC, Generic[T]):
                     parts.append("• RAG: нет релевантных источников")
             except Exception:
                 parts.append("• RAG currently unavailable (Ollama down)")
-
         if extra_context:
             parts.append(f"\n# Current Context\n\n{extra_context}")
-
         return "\n\n".join(parts)
 
     def generate(self, prompt: str, session_id: str | None = None) -> str:
-        """
-        RAG-first agent generation.
-
-        1. Retrieve relevant knowledge via RAG index.
-        2. Augment the prompt with retrieved context.
-        3. Route the augmented prompt through LLM router.
-
-        Args:
-            prompt:     The user/agent prompt to route.
-            session_id: Optional caching key for LLM routing decisions.
-
-        Returns:
-            LLM completion text.
-        """
         from core.llm_router import route
-
-        # === RAG retrieval ===
         try:
             from knowledge.rag_index import retrieve_context
             context = retrieve_context(prompt)
         except Exception:
             context = ""
-
-        # Augment prompt with retrieved knowledge
-        if context:
-            augmented = f"Context:\n{context}\n\nQuestion: {prompt}"
-        else:
-            augmented = prompt
-
+        augmented = f"Context:\n{context}\n\nQuestion: {prompt}" if context else prompt
         sid = session_id or self.name[:8]
         return route(augmented, session_id=sid)
 
-class _DegradedRetriever:
-    """
-    No-op retriever used when the real RAG stack is unavailable
-    (e.g. pgvector pool cannot be created in CI).
+    # ── ADR-001 Sprint 3: Message-based interface ────────────────────
 
-    Returns an empty chunk list for any query; agents continue to function
-    but without knowledge augmentation.
-    """
+    def set_broker(self, broker: "MessageBroker", outbox: "Outbox | None" = None) -> None:
+        """Установить брокер сообщений и опциональный outbox."""
+        self._broker = broker
+        self._outbox = outbox
+
+    @property
+    def context_envelope(self) -> "TaskEnvelope | None":
+        """Текущий TaskEnvelope из contextvars (trace propagation)."""
+        return _current_envelope.get()
+
+    @property
+    def context_task_id(self) -> str | None:
+        """task_id текущего TaskEnvelope (P3-07 trace propagation)."""
+        env = _current_envelope.get()
+        return env.task_id if env else None
+
+    @property
+    def context_traceparent(self) -> str | None:
+        """traceparent текущего TaskEnvelope для W3C distributed tracing."""
+        env = _current_envelope.get()
+        return env.traceparent if env else None
+
+    async def on_message(self, envelope: "TaskEnvelope") -> "ResultEnvelope":
+        """Обработать входящий TaskEnvelope.
+
+        Вызывается MessageBroker-ом при получении сообщения.
+        Не переопределять — переопределяйте run().
+
+        Что делает:
+        1. Deep-copy state_snapshot (Риск #1 fix)
+        2. Пробрасывает envelope в contextvars (Риск #2 fix, P3-07)
+        3. Вызывает self.run() с изолированным состоянием
+        4. Возвращает ResultEnvelope
+        """
+        from core.envelopes import ResultEnvelope, TaskStatus
+
+        isolated_state = copy.deepcopy(envelope.state_snapshot)
+        token = _current_envelope.set(envelope)
+
+        try:
+            agent_response = await self.run(isolated_state)
+
+            return ResultEnvelope(
+                task_id=envelope.task_id,
+                agent_name=self.name,
+                trace_id=envelope.trace_id,
+                status=TaskStatus.COMPLETED,
+                result=agent_response if isinstance(agent_response, dict) else (agent_response.to_dict() if hasattr(agent_response, "to_dict") else {}),
+                schema_version=envelope.schema_version,
+            )
+
+        except Exception as exc:
+            logger.error(
+                "agent_on_message_error",
+                extra={"agent": self.name, "task_id": envelope.task_id, "error": str(exc)},
+            )
+            return ResultEnvelope.from_envelope(
+                envelope=envelope,
+                status=TaskStatus.FAILED,
+                result={"error": str(exc)},
+                agent_name=self.name,
+            )
+
+        finally:
+            _current_envelope.reset(token)
+
+    async def publish_event(self, channel: str, payload: dict) -> None:
+        """Опубликовать событие через брокер с outbox-фолбэком (Риск #4 fix).
+
+        Args:
+            channel: канал публикации (например "karl.audit")
+            payload: dict с данными события
+        """
+        if self._broker is None:
+            logger.debug("publish_event_no_broker", extra={"agent": self.name, "channel": channel})
+            return
+
+        from core.message_broker import BrokerUnavailable
+
+        try:
+            await self._broker.publish(channel, payload)
+        except BrokerUnavailable:
+            if self._outbox:
+                self._outbox.store(channel, payload)
+                logger.debug("publish_event_outbox_fallback", extra={"agent": self.name, "channel": channel})
+            else:
+                logger.warning("publish_event_lost", extra={"agent": self.name, "channel": channel})
+
+
+class _DegradedRetriever:
+    """No-op retriever when RAG stack is unavailable."""
 
     async def retrieve(
-        self,
-        query: str,
-        domain: str | None = None,
-        top_k: int = 5,
+        self, query: str, domain: str | None = None, top_k: int = 5
     ) -> list[dict]:
         return []
