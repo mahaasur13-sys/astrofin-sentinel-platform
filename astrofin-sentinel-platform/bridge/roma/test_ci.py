@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """ROMA CI Test Suite — Corrected APIs (9/9 passing)"""
-import sys
-sys.path.insert(0, '.')
+import sys; sys.path.insert(0, '.')
 
-passed = 0
-failed = 0
+passed = 0; failed = 0
 def test(name, fn):
     global passed, failed
     try:

@@ -14,50 +14,28 @@ class BillingEvent(str, Enum):
     PAYMENT_FAILED = "payment_failed"
 
 class SubscriptionStatus(str, Enum):
-    ACTIVE = "active"
-    PAST_DUE = "past_due"
-    CANCELLED = "cancelled"
-    TRIALING = "trialing"
+    ACTIVE = "active"; PAST_DUE = "past_due"; CANCELLED = "cancelled"; TRIALING = "trialing"
 
 @dataclass
 class StripeCustomer:
-    id: str
-    org_id: str
-    email: str
-    stripe_customer_id: str = ""
-    created_at: float = field(default_factory=time.time)
+    id: str; org_id: str; email: str
+    stripe_customer_id: str = ""; created_at: float = field(default_factory=time.time)
 
 @dataclass
 class Subscription:
-    id: str
-    org_id: str
-    tier: str
-    status: SubscriptionStatus
-    current_period_start: float
-    current_period_end: float
+    id: str; org_id: str; tier: str
+    status: SubscriptionStatus; current_period_start: float; current_period_end: float
     cancel_at_period_end: bool = False
 
 @dataclass
 class UsageRecord:
-    id: str
-    org_id: str
-    key_id: str
-    gpu_seconds: float
-    cost: float
-    job_id: str = ""
-    plugin: str = ""
-    timestamp: float = field(default_factory=time.time)
+    id: str; org_id: str; key_id: str; gpu_seconds: float; cost: float
+    job_id: str = ""; plugin: str = ""; timestamp: float = field(default_factory=time.time)
 
 @dataclass
 class Invoice:
-    id: str
-    org_id: str
-    items: List[Dict]
-    total: float
-    status: str
-    currency: str = "USD"
-    due_date: float = 0
-    paid_at: float = 0
+    id: str; org_id: str; items: List[Dict]; total: float; status: str
+    currency: str = "USD"; due_date: float = 0; paid_at: float = 0
     created_at: float = field(default_factory=time.time)
 
 GPU_RATES = {"RTX3060": 0.000055, "RTX4090": 0.000139, "A100": 0.000555, "H100": 0.001389}
@@ -124,18 +102,15 @@ class StripeIntegration:
 
     def pay_invoice(self, invoice_id: str, org_id: str) -> bool:
         inv = self._invoices.get(f"{org_id}:{invoice_id}")
-        if not inv or inv.status == "paid":
-            return False
-        inv.status = "paid"
-        inv.paid_at = time.time()
+        if not inv or inv.status == "paid": return False
+        inv.status = "paid"; inv.paid_at = time.time()
         return True
 
     def estimate_job_cost(self, gpu_seconds: float, gpu_model: str = "A100",
                           tier: str = "pro") -> float:
         rate = GPU_RATES.get(gpu_model, GPU_RATES["A100"])
         mult = TIER_MULT.get(tier, 1.0)
-        if mult == 0:
-            return 0.0
+        if mult == 0: return 0.0
         return gpu_seconds * rate * mult
 
     def get_balance(self, org_id: str) -> float:
@@ -143,8 +118,7 @@ class StripeIntegration:
 
 class WebhookSimulator:
     def __init__(self, stripe: StripeIntegration):
-        self.stripe = stripe
-        self._events: List[Dict] = []
+        self.stripe = stripe; self._events: List[Dict] = []
 
     def simulate_payment_success(self, org_id: str, invoice_id: str, amount_cents: int):
         e = {"type": "payment_intent.succeeded", "org_id": org_id,

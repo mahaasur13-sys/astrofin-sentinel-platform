@@ -428,3 +428,46 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 ---
 
 ## CI Checks
+## P1 — LLM Router Integration (2026-07-18)
+
+**Модуль:** `core/llm_router.py`
+
+Все LLM-запросы агентов теперь идут через `core/llm_router.py`, а не через прямые вызовы `openai.ChatCompletion`.
+
+### Правила работы с роутером
+
+1. **Вызов:** `BaseAgent.generate(prompt, session_id=None)` → внутри вызывает `route(prompt, session_id)`
+2. **RAG-first:** Перед вызовом LLM агент получает контекст из `knowledge/rag_index.retrieve_context(prompt)`
+3. **Классификация:** Простые запросы → Ollama (локально), сложные → OpenRouter (облако)
+4. **Кэш сессий:** TTL 5 минут, исключает повторную классификацию
+5. **Логирование:** JSONL в `logs/llm_requests.jsonl`
+
+### RAG Index (2026-07-18)
+
+**Модуль:** `knowledge/rag_index.py`
+
+- FAISS индекс с sentence-transformers эмбеддингами
+- Тестовые документы по финансовой отчётности
+- `retrieve_context(query, top_k=3)` → строка с релевантными чанками
+- `init_index()` → инициализация (ленивая, вызывается при первом `generate()`)
+
+### API & Frontend (P2 — 2026-07-18)
+
+- **Бэкенд:** FastAPI в `api/main.py` (порт 8000)
+- **Фронтенд:** React + Redux Toolkit в `web-react/` (порт 5173)
+- **Маршрутизация:** `api/v1/agent/run` принимает `{agentId, prompt}`, вызывает `BaseAgent.generate()`
+- **CORS:** разрешён для `localhost:5173`
+
+### Start Commands
+
+```bash
+# FastAPI backend
+uvicorn api.main:app --port 8000
+
+# React dev server
+cd web-react && npm run dev
+```
+
+### SEC EDGAR
+
+**Resolver:** `data_room/resolvers/sec_edgar.py` — заглушка с `fetch_10k(ticker)`. Возвращает кэшированный текст или placeholder для CI.

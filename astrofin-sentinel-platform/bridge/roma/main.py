@@ -1,4 +1,3 @@
-# ruff: noqa: F821
 """
 ROMA Execution Bridge – FastAPI + Pydantic v2
 In-memory storage (will be SQLite later).
@@ -158,6 +157,7 @@ async def submit_atom_cluster(payload: dict):
 
     # Create ATOMCluster CR if not exists
     try:
+        from k8s.roma_controller import create_atomcluster
         create_atomcluster(cluster_name, cluster_spec)
     except Exception:
         pass  # Already exists

@@ -56,7 +56,7 @@ def mount_gateway_routes(app, gateway_config: GatewayConfig = None):
         app.state.gateway_config = gateway_config
 
         for tenant_id, tenant_cfg in gateway_config.tenants.items():
-            rate_limit_dependency(
+            _rate_dep = rate_limit_dependency(
                 requests_per_minute=tenant_cfg.rate_limit.requests_per_minute,
                 burst_size=tenant_cfg.rate_limit.burst_size,
                 use_redis=tenant_cfg.rate_limit.use_redis,

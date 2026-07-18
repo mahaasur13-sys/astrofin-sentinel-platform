@@ -15,7 +15,7 @@ from backtest.regime_detector import RegimeDetector
 from orchestration.council_orchestrator import CouncilOrchestrator
 from trading.risk_v2 import RiskEngineV2
 
-CACHE = "/home/workspace/backtest/data_cache/btc_coingecko_365d.jsonl"
+CACHE = "/home/workspace/astrofin-sentinel-platform/backtest/data_cache/btc_coingecko_365d.jsonl"
 
 def load_ohlcv(path: str) -> list[dict]:
     with open(path) as f:
@@ -71,7 +71,7 @@ async def main():
     print(f"\nBest config: {best['label']} (return={best['total_return_pct']:.1f}%)")
     
     # Save report
-    report_path = "/home/workspace/backtest/data_cache/CALIBRATION_REPORT.md"
+    report_path = "/home/workspace/astrofin-sentinel-platform/backtest/data_cache/CALIBRATION_REPORT.md"
     with open(report_path, "w") as f:
         f.write(f"# HMM-KARL Calibration Report\n\n")
         f.write(f"| Config | Trades | WinRate | MaxDD | Return | PF |\n")

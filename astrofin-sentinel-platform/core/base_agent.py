@@ -276,6 +276,38 @@ class BaseAgent(ABC, Generic[T]):
 
         return "\n\n".join(parts)
 
+    def generate(self, prompt: str, session_id: str | None = None) -> str:
+        """
+        RAG-first agent generation.
+
+        1. Retrieve relevant knowledge via RAG index.
+        2. Augment the prompt with retrieved context.
+        3. Route the augmented prompt through LLM router.
+
+        Args:
+            prompt:     The user/agent prompt to route.
+            session_id: Optional caching key for LLM routing decisions.
+
+        Returns:
+            LLM completion text.
+        """
+        from core.llm_router import route
+
+        # === RAG retrieval ===
+        try:
+            from knowledge.rag_index import retrieve_context
+            context = retrieve_context(prompt)
+        except Exception:
+            context = ""
+
+        # Augment prompt with retrieved knowledge
+        if context:
+            augmented = f"Context:\n{context}\n\nQuestion: {prompt}"
+        else:
+            augmented = prompt
+
+        sid = session_id or self.name[:8]
+        return route(augmented, session_id=sid)
 
 class _DegradedRetriever:
     """

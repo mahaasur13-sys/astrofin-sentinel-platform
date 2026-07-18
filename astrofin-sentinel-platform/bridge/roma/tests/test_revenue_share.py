@@ -1,6 +1,5 @@
 """Tests for RevenueShareCalculator + Stripe Webhook."""
-import sys
-sys.path.insert(0, '.')
+import sys; sys.path.insert(0, '.')
 
 class MockLedger:
     def get_monthly_revenue(self, tid):

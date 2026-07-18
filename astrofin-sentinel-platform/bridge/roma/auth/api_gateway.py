@@ -3,8 +3,6 @@
 from functools import wraps
 from typing import Dict, Callable, Optional, Tuple
 import time
-from auth.engine import AuthEngine, KeyType
-from auth.quota_engine import QuotaEngine
 
 # ── In-Memory Rate Limiter (Token Bucket) ────────────────────────────────────
 class RateLimiter:
@@ -136,6 +134,8 @@ class APIGateway:
 
 
 if __name__ == "__main__":
+    from auth.engine import AuthEngine, KeyType
+    from auth.quota_engine import QuotaEngine
     from billing.metering import MeteringEngine
     auth = AuthEngine()
     auth.create_tenant("tenant-test", "Test Tenant", "PRO")

@@ -142,7 +142,7 @@ services:
   # -----------------------------------------------------------------------
   gpu-worker:
     build:
-      context: ./src/bridges/roma
+      context: ./bridge/roma
       dockerfile: gpu_worker/Dockerfile
     image: roma/gpu-worker:1.0.0
     container_name: roma-gpu-worker
@@ -163,7 +163,7 @@ services:
       redis:
         condition: service_started
     volumes:
-      - ./src/bridges/roma/gpu_worker:/app/gpu_worker:ro
+      - ./bridge/roma/gpu_worker:/app/gpu_worker:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
