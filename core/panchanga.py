@@ -3,6 +3,7 @@ Muhurta, Nakshatra, Tithi, Yoga, Karana, Choghadiya
 """
 
 from datetime import datetime, timedelta, timezone
+import math
 from agents._impl.ephemeris_decorator import require_ephemeris
 
 SIDEREAL_YEAR = 365.25636
@@ -213,20 +214,20 @@ def _solar_event(dt, lat, lon, is_sunrise, tz_offset_hours: float = 4.0):
     gl = (280.46646+jc*(36000.76983+jc*0.0003032))%360
     ga = 357.52911+jc*(35999.05029-0.0001537*jc)
     ec = 0.016708634-jc*(0.000042037+0.0000001267*jc)
-    ar = _m.radians(ga)
-    eqc = _m.sin(ar)*(1.914602-jc*(0.004817+0.000014*jc))+_m.sin(2*ar)*(0.019993-0.000101*jc)+_m.sin(3*ar)*0.000289
+    ar = math.radians(ga)
+    eqc = math.sin(ar)*(1.914602-jc*(0.004817+0.000014*jc))+math.sin(2*ar)*(0.019993-0.000101*jc)+math.sin(3*ar)*0.000289
     tl = gl+eqc
     om = 125.04-1934.136*jc
-    al = tl-0.00569-0.00478*_m.sin(_m.radians(om))
+    al = tl-0.00569-0.00478*math.sin(math.radians(om))
     obq = 23+(26+((21.448-jc*(46.815+jc*(0.00059-jc*0.001813))))/60)/60
-    obc = obq+0.00256*_m.cos(_m.radians(om))
-    decl = _m.degrees(_m.asin(_m.sin(_m.radians(obc))*_m.sin(_m.radians(al))))
-    yf = _m.tan(_m.radians(obc/2))**2
-    et = 4*_m.degrees(yf*_m.sin(2*_m.radians(gl))-2*ec*_m.sin(ar)+4*ec*yf*_m.sin(ar)*_m.cos(2*_m.radians(gl))-0.5*yf**2*_m.sin(4*_m.radians(gl))-1.25*ec**2*_m.sin(2*ar))
+    obc = obq+0.00256*math.cos(math.radians(om))
+    decl = math.degrees(math.asin(math.sin(math.radians(obc))*math.sin(math.radians(al))))
+    yf = math.tan(math.radians(obc/2))**2
+    et = 4*math.degrees(yf*math.sin(2*math.radians(gl))-2*ec*math.sin(ar)+4*ec*yf*math.sin(ar)*math.cos(2*math.radians(gl))-0.5*yf**2*math.sin(4*math.radians(gl))-1.25*ec**2*math.sin(2*ar))
     zen = 90.833
-    cha = (_m.cos(_m.radians(zen))-_m.sin(_m.radians(lat))*_m.sin(_m.radians(decl)))/(_m.cos(_m.radians(lat))*_m.cos(_m.radians(decl)))
+    cha = (math.cos(math.radians(zen))-math.sin(math.radians(lat))*math.sin(math.radians(decl)))/(math.cos(math.radians(lat))*math.cos(math.radians(decl)))
     cha = max(-1.0, min(1.0, cha))
-    ha = _m.degrees(_m.acos(cha))
+    ha = math.degrees(math.acos(cha))
     sn = 12.0-et/60.0-lon/15.0
     ute = sn-ha/15.0 if is_sunrise else sn+ha/15.0
     ute %= 24
