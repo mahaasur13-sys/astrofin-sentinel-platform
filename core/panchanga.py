@@ -232,8 +232,7 @@ def _solar_event(dt, lat, lon, is_sunrise, tz_offset_hours: float = 4.0):
     ute %= 24
     sh = (ute + tz_offset_hours) % 24
     h = int(sh); mi = int((sh - h) * 60); s = int(((sh - h) * 60 - mi) * 60)
-    from datetime import timezone, timedelta as td
-    return dt.replace(hour=h, minute=mi, second=s, microsecond=0, tzinfo=timezone(td(hours=tz_offset_hours)))
+    return dt.replace(hour=h, minute=mi, second=s, microsecond=0, tzinfo=timezone(timedelta(hours=tz_offset_hours)))
 
 
 def get_nakshatra(moon_degree: float) -> dict:
@@ -400,7 +399,7 @@ def calculate_panchanga(dt: datetime) -> dict:
     pos = get_planetary_positions(dt)
     moon_deg = pos.get("Moon", {"degrees": 0})["degrees"]
     sun_deg = pos.get("Sun", {"degrees": 0})["degrees"]
-    moon_sign = int(moon_deg / 30) % 12  # clamp for 360.0
+    moon_sign = int(moon_deg / 30) % 12 % 12  # clamp for 360.0
     rashi = TROPICAL_RASHI[moon_sign]
     nak = get_nakshatra(moon_deg)
     tit = get_tithi(moon_deg, sun_deg)
@@ -426,6 +425,7 @@ def calculate_panchanga(dt: datetime) -> dict:
 
     return {
         "datetime": dt.isoformat(),
+        "location": {"lat": lat, "lon": lon},
         "nakshatra": nak,
         "tithi": tit,
         "yoga": yog,
@@ -436,3 +436,4 @@ def calculate_panchanga(dt: datetime) -> dict:
         "best_muhurta": best_muhurta,
         "muhurta_score": muhurta_score,
     }
+# test
