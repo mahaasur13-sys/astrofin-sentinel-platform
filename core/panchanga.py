@@ -5,8 +5,6 @@ Muhurta, Nakshatra, Tithi, Yoga, Karana, Choghadiya
 from datetime import datetime, timedelta, timezone
 from agents._impl.ephemeris_decorator import require_ephemeris
 
-from agents._impl.ephemeris_decorator import require_ephemeris
-
 SIDEREAL_YEAR = 365.25636
 LUNAR_MONTH = 27.3217
 TROPICAL_RASHI = [
@@ -95,7 +93,7 @@ KARANA_NAMES = [
     "Naga",
 ]
 # Standard Choghadiya names (same sequence as _CHOGHADIYA_TABLE["Sunrise"])
-CHOGHADIYA_SEQ = ["Amrit", "Shubh", "Labh", "Charj", "Kaal", "Udveg", "Vyaghata", "Mando"]
+CHOGHADIYA_BASE = ["Amrit", "Kala", "Shubh", "Roga", "Udveg", "Chara", "Labh"]
 
 NAKSHATRA_LORDS = [
     "Ketu",
@@ -144,113 +142,69 @@ TITHI_NAMES = [
     ("Amavasya", 30),
 ]
 
-_CHOGHADIYA_TABLE = {
-    "Sunrise": [
-        "Amrit",
-        "Shubh",
-        "Labh",
-        "Charj",
-        "Kaal",
-        "Udveg",
-        "Vyaghata",
-        "Mando",
-    ],
-    "Sunrise+1": [
-        "Shubh",
-        "Labh",
-        "Charj",
-        "Kaal",
-        "Udveg",
-        "Vyaghata",
-        "Mando",
-        "Amrit",
-    ],
-    "Sunrise+2": [
-        "Labh",
-        "Charj",
-        "Kaal",
-        "Udveg",
-        "Vyaghata",
-        "Mando",
-        "Amrit",
-        "Shubh",
-    ],
-    "Sunrise+3": [
-        "Charj",
-        "Kaal",
-        "Udveg",
-        "Vyaghata",
-        "Mando",
-        "Amrit",
-        "Shubh",
-        "Labh",
-    ],
-    "Sunrise+4": [
-        "Kaal",
-        "Udveg",
-        "Vyaghata",
-        "Mando",
-        "Amrit",
-        "Shubh",
-        "Labh",
-        "Charj",
-    ],
-    "Sunrise+5": [
-        "Udveg",
-        "Vyaghata",
-        "Mando",
-        "Amrit",
-        "Shubh",
-        "Labh",
-        "Charj",
-        "Kaal",
-    ],
-    "Sunrise+6": [
-        "Vyaghata",
-        "Mando",
-        "Amrit",
-        "Shubh",
-        "Labh",
-        "Charj",
-        "Kaal",
-        "Udveg",
-    ],
-    "Sunrise+7": [
-        "Mando",
-        "Amrit",
-        "Shubh",
-        "Labh",
-        "Charj",
-        "Kaal",
-        "Udveg",
-        "Vyaghata",
-    ],
+# Weekday → day lord name → offset in CHOGHADIYA_BASE
+_DAY_LORD_NAMES: dict[int, str] = {
+    0: "Amrit",   # Monday (Moon)
+    1: "Roga",    # Tuesday (Mars)
+    2: "Labh",    # Wednesday (Mercury)
+    3: "Shubh",   # Thursday (Jupiter)
+    4: "Chara",   # Friday (Venus)
+    5: "Kala",    # Saturday (Saturn)
+    6: "Udveg",   # Sunday (Sun)
+}
+
+def _day_choghadiya_names(weekday: int) -> list[str]:
+    """Return 8 Choghadiya names for the day, starting from day lord."""
+    idx = CHOGHADIYA_BASE.index(_DAY_LORD_NAMES.get(weekday, "Amrit"))
+    result: list[str] = [CHOGHADIYA_BASE[(idx + i) % 7] for i in range(7)]
+    result.append(CHOGHADIYA_BASE[idx])  # 8th period = day lord repeat
+    return result
+
+def _night_choghadiya_names(weekday: int) -> list[str]:
+    """Return 8 Choghadiya names for night, offset from day lord + 5."""
+    idx = CHOGHADIYA_BASE.index(_DAY_LORD_NAMES.get(weekday, "Amrit"))
+    night_idx = (idx + 5) % 7
+    result: list[str] = [CHOGHADIYA_BASE[(night_idx + i) % 7] for i in range(7)]
+    result.append(CHOGHADIYA_BASE[night_idx])  # 8th period = night lord repeat
+    return result
+
+# CHOGHADIYA quality/icon/scores maps (name → value)
+_CHOG_QUALITY: dict[str, str] = {
+    "Amrit": "auspicious", "Shubh": "auspicious", "Labh": "profitable",
+    "Chara": "neutral", "Kala": "inauspicious",
+    "Udveg": "inauspicious", "Roga": "inauspicious",
+}
+_CHOG_ICON: dict[str, str] = {
+    "Amrit": "🌊", "Shubh": "✅", "Labh": "💰", "Chara": "⚡",
+    "Kala": "⛔", "Udveg": "🔴", "Roga": "⚠️",
+}
+_CHOG_SCORE: dict[str, int] = {
+    "Amrit": 90, "Shubh": 85, "Labh": 75, "Chara": 70,
+    "Kala": 20, "Udveg": 15, "Roga": 25,
 }
 
 
-def _julian_day(dt: datetime) -> float:
-    """Convert datetime to Julian Day."""
-    y, m, d = dt.year, dt.month, dt.day
-    if m <= 2:
-        y, m = y - 1, m + 12
-    A = int(y / 100)
-    B = 2 - A + int(A / 4)
-    jd = int(365.25 * (y + 4716)) + int(30.6001 * (m + 1)) + d + B - 1524.5
-    return jd + dt.hour / 24.0 + dt.minute / 1440.0
+
+def _get_tz_offset_hours(dt: datetime) -> float:
+    """Return UTC offset in hours from a timezone-aware datetime, else 0."""
+    if dt.tzinfo is not None:
+        off = dt.tzinfo.utcoffset(dt)
+        if off is not None:
+            return off.total_seconds() / 3600.0
+    return 0.0
 
 
-def _sunrise(dt: datetime, lat: float = 53.20, lon: float = 50.10) -> datetime:
-    """Astronomical sunrise for Samara (lat 53.20N, lon 50.10E). NOAA solar calculator."""
+def _sunrise(dt: datetime, lat: float = 25.20, lon: float = 55.27) -> datetime:
+    """Astronomical sunrise for given location — defaults Dubai. NOAA solar calculator."""
     return _solar_event(dt, lat, lon, is_sunrise=True)
 
 
-def _sunset(dt: datetime, lat: float = 53.20, lon: float = 50.10) -> datetime:
-    """Astronomical sunset for Samara."""
+def _sunset(dt: datetime, lat: float = 25.20, lon: float = 55.27) -> datetime:
+    """Astronomical sunset for given location — defaults Dubai."""
     return _solar_event(dt, lat, lon, is_sunrise=False)
 
 
-import math as _m
-def _solar_event(dt, lat, lon, is_sunrise):
+def _solar_event(dt, lat, lon, is_sunrise, tz_offset_hours: float = 4.0):
     y, m, d_ = dt.year, dt.month, dt.day
     if m <= 2:
         y -= 1; m += 12
@@ -276,10 +230,10 @@ def _solar_event(dt, lat, lon, is_sunrise):
     sn = 12.0-et/60.0-lon/15.0
     ute = sn-ha/15.0 if is_sunrise else sn+ha/15.0
     ute %= 24
-    sh = (ute+4)%24
-    h = int(sh); mi = int((sh-h)*60); s = int(((sh-h)*60-mi)*60)
+    sh = (ute + tz_offset_hours) % 24
+    h = int(sh); mi = int((sh - h) * 60); s = int(((sh - h) * 60 - mi) * 60)
     from datetime import timezone, timedelta as td
-    return dt.replace(hour=h, minute=mi, second=s, microsecond=0, tzinfo=timezone(td(hours=4)))
+    return dt.replace(hour=h, minute=mi, second=s, microsecond=0, tzinfo=timezone(td(hours=tz_offset_hours)))
 
 
 def get_nakshatra(moon_degree: float) -> dict:
@@ -293,7 +247,7 @@ def get_nakshatra(moon_degree: float) -> dict:
         "number": nak_num + 1,
         "lord": lord,
         "pada": pada,
-        "degree_in_nakshatra": round((moon_degree * 27 / 360 - nak_num) * 360 / 13.33, 2),
+        "degree_in_nakshatra": round((moon_degree * 27 / 360 - nak_num) * (360 / 27), 2),
     }
 
 
@@ -304,7 +258,7 @@ def get_tithi(moon_degree: float, sun_degree: float) -> dict:
         diff += 360
     tithi_num = int(diff * 30 / 360)
     tithi_num = min(tithi_num, 29)
-    name, num = TITHI_NAMES[tithi_num]
+    name = TITHI_NAMES[tithi_num]
     is_waxing = tithi_num < 15
     return {
         "name": name,
@@ -333,42 +287,24 @@ def get_karana(moon_degree: float) -> dict:
     }
 
 
-def get_choghadiya(dt: datetime) -> list[dict]:
+def get_choghadiya(dt: datetime, lat: float = 25.20, lon: float = 55.27) -> list[dict]:
     """Return Choghadiya periods for the day (sunrise to sunset, 8 periods).
     
-    Standard sequence rotates daily based on weekday starting offset.
-    Qualities: Amrit (Best/Nectar), Shubh (Good), Labh (Gain), Char/Chara (Neutral),
-    Kaal/Kala (Loss), Udveg (Bad), Vyaghata/Roga (Evil), Mando (waste).
+    Defaults to Dubai (25.20°N, 55.27°E).  Pass lat/lon for other locations.
     """
-    sunrise = _sunrise(dt)
-    sunset = _sunset(dt)
+    tz_off = _get_tz_offset_hours(dt)
+    sunrise = _sunrise(dt, lat, lon, tz_off)
+    sunset = _sunset(dt, lat, lon, tz_off)
     day_seconds = (sunset - sunrise).total_seconds()
     period_seconds = max(60, day_seconds / 8)
     results = []
+    day_names = _day_choghadiya_names(dt.weekday())
     for i in range(8):
         period_start = sunrise + timedelta(seconds=i * period_seconds)
         period_end = period_start + timedelta(seconds=period_seconds)
-        chog_name = _CHOGHADIYA_TABLE["Sunrise"][i]
-        quality = {
-            "Amrit": "auspicious",
-            "Shubh": "auspicious",
-            "Labh": "profitable",
-            "Charj": "neutral",
-            "Kaal": "inauspicious",
-            "Udveg": "inauspicious",
-            "Vyaghata": "inauspicious",
-            "Mando": "inauspicious",
-        }.get(chog_name, "neutral")
-        icons = {
-            "Amrit": "🌊",
-            "Shubh": "✅",
-            "Labh": "💰",
-            "Charj": "⚡",
-            "Kaal": "⛔",
-            "Udveg": "🔴",
-            "Vyaghata": "⚠️",
-            "Mando": "🐌",
-        }
+        chog_name = day_names[i]
+        quality = _CHOG_QUALITY.get(chog_name, "neutral")
+        icons = _CHOG_ICON.get(chog_name, "❓")
         results.append(
             {
                 "period": i + 1,
@@ -376,7 +312,7 @@ def get_choghadiya(dt: datetime) -> list[dict]:
                 "start": period_start.strftime("%H:%M"),
                 "end": period_end.strftime("%H:%M"),
                 "quality": quality,
-                "icon": icons.get(chog_name, "❓"),
+                "icon": icons,
                 "recommended": quality == "auspicious",
             }
         )
@@ -385,44 +321,34 @@ def get_choghadiya(dt: datetime) -> list[dict]:
 
 # ─── Night Choghadiya Support ────────────────────────────────────────────────
 
-def _night_choghadiya_table(weekday_offset: int) -> list[str]:
-    """Night Choghadiya sequence: 8 periods, offset by weekday."""
-    seq = ["Amrit", "Shubh", "Labh", "Charj", "Kaal", "Udveg", "Vyaghata", "Mando"]
-    return seq[weekday_offset % 8:] + seq[:weekday_offset % 8]
-
-
-def _night_start_end(dt: datetime) -> tuple[datetime, datetime]:
+def _night_start_end(dt: datetime, lat: float = 25.20, lon: float = 55.27) -> tuple[datetime, datetime]:
     """Return night period bracket: today sunset → tomorrow sunrise."""
-    today_sunset = _sunset(dt)
-    tomorrow_sunrise = _sunrise(dt + timedelta(days=1))
+    tz_off = _get_tz_offset_hours(dt)
+    today_sunset = _sunset(dt, lat, lon, tz_off)
+    tomorrow_sunrise = _sunrise(dt + timedelta(days=1), lat, lon, tz_off)
     return today_sunset, tomorrow_sunrise
 
 
-def get_night_choghadiya(dt: datetime) -> list[dict]:
+def get_night_choghadiya(dt: datetime, lat: float = 25.20, lon: float = 55.27) -> list[dict]:
     """Return Night Choghadiya periods (sunset → next sunrise, 8 periods)."""
-    night_start, night_end = _night_start_end(dt)
+    night_start, night_end = _night_start_end(dt, lat, lon)
     night_duration = (night_end - night_start).total_seconds()
     period_seconds = night_duration / 8
     wday = dt.weekday()
-    seq = _night_choghadiya_table(wday)
+    seq = _night_choghadiya_names(wday)
     results = []
     for i in range(8):
         start = night_start + timedelta(seconds=i * period_seconds)
         end = night_start + timedelta(seconds=(i + 1) * period_seconds)
         name = seq[i]
-        quality = {
-            "Amrit": "auspicious", "Shubh": "auspicious", "Labh": "profitable",
-            "Charj": "neutral", "Kaal": "inauspicious",
-            "Udveg": "inauspicious", "Vyaghata": "inauspicious", "Mando": "inauspicious",
-        }.get(name, "neutral")
+        quality = _CHOG_QUALITY.get(name, "neutral")
         results.append({
             "period": i + 1,
             "name": name,
             "start": start.strftime("%H:%M"),
             "end": end.strftime("%H:%M"),
             "quality": quality,
-            "icon": {"Amrit": "🌊", "Shubh": "✅", "Labh": "💰", "Charj": "⚡",
-                     "Kaal": "⛔", "Udveg": "🔴", "Vyaghata": "⚠️", "Mando": "🐌"}.get(name, "❓"),
+            "icon": _CHOG_ICON.get(name, "❓"),
             "recommended": quality == "auspicious",
         })
     return results
@@ -438,16 +364,7 @@ def get_all_choghadiya(dt: datetime) -> dict[str, list[dict]]:
 
 def get_muhurta_score(choghadiya_name: str, nakshatra: dict, tithi: dict, yoga: dict) -> dict:
     """Calculate overall muhurta score (0-100)."""
-    base = {
-        "Amrit": 90,
-        "Shubh": 85,
-        "Labh": 75,
-        "Charj": 70,
-        "Kaal": 20,
-        "Udveg": 15,
-        "Vyaghata": 25,
-        "Mando": 30,
-    }.get(choghadiya_name, 50)
+    base = _CHOG_SCORE.get(choghadiya_name, 50)
     nak_bonus = {
         "Pushya": 15,
         "Rohini": 10,
@@ -477,20 +394,36 @@ def get_muhurta_score(choghadiya_name: str, nakshatra: dict, tithi: dict, yoga: 
 
 @require_ephemeris
 def calculate_panchanga(dt: datetime) -> dict:
-    """Calculate full panchanga for a given datetime in Dubai."""
+    """Calculate full panchanga for a given datetime and location.  Defaults to Dubai (25.20°N, 55.27°E)."""
     from core.ephemeris import get_planetary_positions
 
     pos = get_planetary_positions(dt)
     moon_deg = pos.get("Moon", {"degrees": 0})["degrees"]
     sun_deg = pos.get("Sun", {"degrees": 0})["degrees"]
-    moon_sign = int(moon_deg / 30)
+    moon_sign = int(moon_deg / 30) % 12  # clamp for 360.0
     rashi = TROPICAL_RASHI[moon_sign]
     nak = get_nakshatra(moon_deg)
     tit = get_tithi(moon_deg, sun_deg)
     yog = get_yoga(moon_deg, sun_deg)
-    kar = get_karana(moon_deg)
-    choghadiya = get_choghadiya(dt)
-    muhurta_score = get_muhurta_score(choghadiya[0]["name"], nak, tit, yog) if choghadiya else {"score": 50}
+    kar = get_karana(moon_deg, sun_deg)
+    choghadiya = get_choghadiya(dt, lat, lon)
+    night_choghadiya = get_night_choghadiya(dt, lat, lon)
+
+    # Active Choghadiya at dt (not just period 1)
+    all_chog = choghadiya + night_choghadiya
+    active_chog = next(
+        (c for c in all_chog if c["start"] <= dt.strftime("%H:%M") < c["end"]),
+        choghadiya[0] if choghadiya else None,
+    )
+    muhurta_score = get_muhurta_score(active_chog["name"], nak, tit, yog) if active_chog else {"score": 50}
+
+    # Best muhurta — only auspicious, or None
+    auspicious = [c for c in all_chog if c["name"] in ("Amrit", "Shubh", "Labh")]
+    best_muhurta = max(
+        auspicious,
+        key=lambda x: {"Amrit": 4, "Shubh": 3, "Labh": 2}.get(x["name"], 0),
+    ) if auspicious else None
+
     return {
         "datetime": dt.isoformat(),
         "nakshatra": nak,
@@ -499,11 +432,7 @@ def calculate_panchanga(dt: datetime) -> dict:
         "karana": kar,
         "moon_rashi": rashi,
         "choghadiya": choghadiya,
-        "best_muhurta": max(
-            choghadiya,
-            key=lambda x: {"Amrit": 4, "Shubh": 3, "Labh": 2}.get(x["name"], 0),
-        )
-        if choghadiya
-        else None,
+        "night_choghadiya": night_choghadiya,
+        "best_muhurta": best_muhurta,
         "muhurta_score": muhurta_score,
     }
