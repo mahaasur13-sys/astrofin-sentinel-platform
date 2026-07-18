@@ -274,15 +274,19 @@ def get_yoga(moon_degree: float, sun_degree: float) -> dict:
     return {"name": YOGA_NAMES[yoga_num], "number": yoga_num + 1}
 
 
-def get_karana(moon_degree: float) -> dict:
+def get_karana(moon_degree: float, sun_degree: float = 0.0) -> dict:
     """Return karana (half of tithi)."""
-    tithi = int(moon_degree * 30 / 360) % 30
-    karana_num = tithi % 7
-    if tithi == 0 or tithi == 14:
-        karana_num = 7
+    diff = (moon_degree - sun_degree) % 360
+    half_tithi = int(diff * 60 / 360)
+    if half_tithi == 0:
+        name = "Kimstughna"
+    elif half_tithi >= 57:
+        name = ["Sakuni", "Catuspada", "Naga"][half_tithi - 57]
+    else:
+        name = KARANA_NAMES[(half_tithi - 1) % 7]
     return {
-        "name": KARANA_NAMES[karana_num],
-        "number": karana_num + 1 if karana_num < 7 else 8,
+        "name": name,
+        "number": half_tithi + 1,
     }
 
 
@@ -399,7 +403,7 @@ def calculate_panchanga(dt: datetime) -> dict:
     pos = get_planetary_positions(dt)
     moon_deg = pos.get("Moon", {"degrees": 0})["degrees"]
     sun_deg = pos.get("Sun", {"degrees": 0})["degrees"]
-    moon_sign = int(moon_deg / 30) % 12 % 12  # clamp for 360.0
+    moon_sign = int(moon_deg / 30) % 12 % 12 % 12  # clamp for 360.0
     rashi = TROPICAL_RASHI[moon_sign]
     nak = get_nakshatra(moon_deg)
     tit = get_tithi(moon_deg, sun_deg)

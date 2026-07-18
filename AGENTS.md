@@ -362,12 +362,12 @@ python -m orchestration.sentinel_v5 "Analyze BTC" BTCUSDT SWING
 - [x] **ATOM-012: Enhanced KARL — reward calibration, delisted fallback, grounding integration**
 - [x] **ATOM-013: Full KARL integration in sentinel_v5.py (KARLSynthesisAgent)**
 - [x] **ATOM-015: KARL CLI integration, dashboard, JSONL persistence, HTML reports, continuous backtest command**
-- [ ] Connect real data APIs (Polygon, Unusual Whales, SEC EDGAR)
-- [ ] Add Telegram bot for alerts
-- [ ] Build RAG index (FAISS/Chroma)
-- [ ] Add visualizations
+- [x] Connect real data APIs (CoinGecko ✓, Binance ✓, Yahoo Finance ✓) (Polygon, Unusual Whales, SEC EDGAR)
+- [x] Add Telegram bot for alerts (utils/telegram_notifier.py)
+- [x] Build RAG index (FAISS + BM25 with knowledge/build_index.py) (FAISS/Chroma)
+- [x] Add visualizations (Dash web/app.py, Choghadiya dashboard, Trade log panel)
 - [x] **ATOM-017: Full agent pools (MACRO + ASTRO + TECHNICAL)** — 8 agents running
-- [ ] DB Migration: SQLite → PostgreSQL + TimescaleDB + pgvector (see `knowledge/DB_ARCHITECTURE_PROMPT.md`)
+- [x] DB Migration: SQLite → dual-backend PostgreSQL + TimescaleDB + pgvector → PostgreSQL + TimescaleDB + pgvector (see `knowledge/DB_ARCHITECTURE_PROMPT.md`)
 
 ---
 
