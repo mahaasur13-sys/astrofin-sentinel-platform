@@ -397,7 +397,7 @@ def get_muhurta_score(choghadiya_name: str, nakshatra: dict, tithi: dict, yoga: 
 
 
 @require_ephemeris
-def calculate_panchanga(dt: datetime) -> dict:
+def calculate_panchanga(dt: datetime, lat: float = 25.20, lon: float = 55.27) -> dict:
     """Calculate full panchanga for a given datetime and location.  Defaults to Dubai (25.20°N, 55.27°E)."""
     from core.ephemeris import get_planetary_positions
 
