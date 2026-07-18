@@ -1,139 +1,170 @@
-"""Tests for MCP Adapter"""
+"""Tests for the Smithery MCP adapter and GitAgent CLI."""
+
+from __future__ import annotations
 
 import json
-import pytest
-from pathlib import Path
+import subprocess
 import sys
+from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from adapters.mcp_adapter import MCPAdapter
 
 
-class TestMCPAdapter:
-    """Test suite for MCPAdapter."""
-
-    def test_init(self, tmp_path):
-        """Test adapter initialization."""
-        adapter = MCPAdapter(storage_path=str(tmp_path))
-        assert adapter.storage_path == tmp_path
-        assert isinstance(adapter.installed_servers, dict)
-
-    def test_search_returns_results(self):
-        """Test that search returns actual MCP servers."""
-        adapter = MCPAdapter()
-        results = adapter.mcp_search("github")
-        assert isinstance(results, list)
-        assert len(results) > 0
-        # Check first result has expected fields
-        if isinstance(results[0], dict):
-            assert "name" in results[0] or "qualifiedName" in results[0]
-
-    def test_search_with_category(self):
-        """Test search with category filter."""
-        adapter = MCPAdapter()
-        results = adapter.mcp_search("finance", category="financial")
-        assert isinstance(results, list)
-
-    def test_fallback_servers(self):
-        """Test fallback server database."""
-        adapter = MCPAdapter()
-        fallback = adapter._get_fallback_servers("github")
-        assert len(fallback) > 0
-        assert fallback[0]["name"] == "@smithery/github"
-
-    def test_wrap_tool(self):
-        """Test tool wrapping."""
-        adapter = MCPAdapter()
-        tool_def = {"name": "test_tool", "description": "A test tool", "inputSchema": {"type": "object"}}
-        wrapped = adapter.wrap_tool(tool_def)
-        assert wrapped["name"] == "test_tool"
-        assert wrapped["description"] == "A test tool"
-        assert wrapped["server"] == "unknown"
-        assert "original_def" in wrapped
-
-    def test_install_returns_pending(self):
-        """Test install returns proper structure."""
-        adapter = MCPAdapter()
-        # This will fail due to no auth, but should return proper structure
-        result = adapter.mcp_install("@smithery/filesystem")
-        assert "status" in result
-        assert result["status"] in ["pending", "installed", "failed", "timeout"]
-        assert "name" in result
-
-    def test_list_tools_empty(self):
-        """Test list tools with no installed servers."""
-        adapter = MCPAdapter(storage_path="/tmp/nonexistent")
-        tools = adapter.mcp_list_tools()
-        assert tools == []
-
-    def test_recommended_servers(self):
-        """Test recommended servers list."""
-        adapter = MCPAdapter()
-        servers = adapter.get_recommended_servers()
-        assert len(servers) >= 10
-        assert all("name" in s for s in servers)
-        assert all("description" in s for s in servers)
-
-    def test_search_deduplication(self):
-        """Test that search results are deduplicated."""
-        adapter = MCPAdapter()
-        results = adapter.mcp_search("github")
-        names = []
-        for r in results:
-            if isinstance(r, dict):
-                name = r.get("name", r.get("qualifiedName", ""))
-                names.append(name)
-        assert len(names) == len(set(names)), "Duplicate server names found"
+def test_init_uses_empty_state(tmp_path: Path) -> None:
+    adapter = MCPAdapter(storage_path=tmp_path)
+    assert adapter.storage_path == tmp_path
+    assert adapter.installed_servers == {}
 
 
-class TestCLICommands:
-    """Test CLI command execution."""
+def test_search_normalizes_and_deduplicates(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    adapter = MCPAdapter(storage_path=tmp_path)
+    monkeypatch.setattr(
+        adapter,
+        "_api_search",
+        lambda query, page_size: [{"qualifiedName": "a"}, {"name": "a"}, {"name": "b"}],
+    )
+    assert [item["name"] for item in adapter.mcp_search("finance")] == ["a", "b"]
 
-    def test_list_agents_command(self):
-        """Test list-agents CLI command."""
-        import subprocess
 
-        result = subprocess.run(
-            ["python", "-m", "adapters.cli", "list-agents"],
+def test_search_cli_fallback(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    adapter = MCPAdapter(storage_path=tmp_path)
+    monkeypatch.setattr(
+        adapter, "_api_search", lambda query, page_size: (_ for _ in ()).throw(OSError("offline"))
+    )
+    monkeypatch.setattr(
+        adapter,
+        "_run_cli",
+        lambda args, timeout=None: {"ok": True, "payload": {"servers": [{"name": "github"}]}},
+    )
+    assert adapter.mcp_search("github")[0]["name"] == "github"
+
+
+def test_wrap_tool() -> None:
+    wrapped = MCPAdapter().wrap_tool(
+        {"name": "search", "description": "Search", "inputSchema": {"type": "object"}},
+        "github",
+        "github",
+    )
+    assert wrapped["name"] == "search"
+    assert wrapped["input_schema"] == {"type": "object"}
+    assert wrapped["server"] == "github"
+    assert wrapped["protocol"] == "mcp"
+
+
+def test_install_persists_connection(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    adapter = MCPAdapter(storage_path=tmp_path)
+    monkeypatch.setattr(adapter, "_run_cli", lambda args, timeout=None: {"ok": True, "payload": {}})
+    result = adapter.mcp_install("owner/server", {"token": "configured"})
+    assert result["status"] == "installed"
+    assert "owner-server" in adapter.installed_servers
+    assert json.loads((tmp_path / "installed_servers.json").read_text())
+
+
+def test_list_tools_wraps_cli_tools(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    adapter = MCPAdapter(storage_path=tmp_path)
+    adapter.installed_servers = {"github": {"name": "owner/github"}}
+    monkeypatch.setattr(
+        adapter,
+        "_run_cli",
+        lambda args, timeout=None: {"ok": True, "payload": {"tools": [{"name": "issues"}]}},
+    )
+    tools = adapter.mcp_list_tools()
+    assert tools[0]["name"] == "issues"
+    assert tools[0]["connection_id"] == "github"
+
+
+def test_recommended_servers_cover_required_capabilities() -> None:
+    capabilities = {item["capability"] for item in MCPAdapter.get_recommended_servers()}
+    assert {
+        "market-data",
+        "crypto-market-data",
+        "financial-news",
+        "economic-calendar",
+        "github-operations",
+    } <= capabilities
+
+
+def test_api_payload_without_names_uses_fallback(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    adapter = MCPAdapter(storage_path=tmp_path)
+    monkeypatch.setattr(adapter, "_api_search", lambda query, page_size: [{}])
+    results = adapter.mcp_search("crypto")
+    assert results
+    assert all(item["name"] for item in results)
+
+
+def test_export_import_round_trip_all_supported_agents(tmp_path: Path) -> None:
+    env = {**__import__("os").environ, "PYTHONPATH": str(Path(__file__).parents[3])}
+    for name in [
+        "AstroCouncil",
+        "FundamentalAgent",
+        "QuantAgent",
+        "MacroAgent",
+        "TechnicalAgent",
+        "BullBot",
+        "BearBot",
+        "RiskAgent",
+        "SentimentAgent",
+        "SynthesisAgent",
+    ]:
+        exported = subprocess.run(
+            [
+                "python",
+                "-m",
+                "integrations.gitagent.adapters.cli",
+                "export-agent",
+                name,
+                "--output",
+                str(tmp_path),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path(__file__).parent.parent,
+            env=env,
+            check=False,
         )
-        assert result.returncode == 0
-        agents = json.loads(result.stdout)
-        assert "AstroCouncil" in agents
-        assert "TechnicalAgent" in agents
-
-    def test_mcp_recommended_command(self):
-        """Test mcp-recommended CLI command."""
-        import subprocess
-
-        result = subprocess.run(
-            ["python", "-m", "adapters.cli", "mcp-recommended"],
+        payload = json.loads(exported.stdout)
+        assert exported.returncode == 0
+        assert payload["status"] == "exported"
+        imported = subprocess.run(
+            [
+                "python",
+                "-m",
+                "integrations.gitagent.adapters.cli",
+                "import-agent",
+                payload["file"],
+            ],
             capture_output=True,
             text=True,
-            cwd=Path(__file__).parent.parent,
+            env=env,
+            check=False,
         )
-        assert result.returncode == 0
-        servers = json.loads(result.stdout)
-        assert len(servers) >= 10
-
-    def test_mcp_search_command(self):
-        """Test mcp-search CLI command."""
-        import subprocess
-
-        result = subprocess.run(
-            ["python", "-m", "adapters.cli", "mcp-search", "github"],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).parent.parent,
-        )
-        assert result.returncode == 0
-        results = json.loads(result.stdout)
-        assert isinstance(results, list)
-        assert len(results) > 0
+        assert json.loads(imported.stdout)["status"] == "imported"
 
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+def test_cli_list_agents_and_mcp_list(tmp_path: Path) -> None:
+    env = {**__import__("os").environ, "PYTHONPATH": str(Path(__file__).parents[3])}
+    result = subprocess.run(
+        ["python", "-m", "integrations.gitagent.adapters.cli", "list-agents"],
+        capture_output=True,
+        text=True,
+        env=env,
+        check=False,
+    )
+    assert result.returncode == 0
+    assert "TechnicalAgent" in json.loads(result.stdout)
+    result = subprocess.run(
+        ["python", "-m", "integrations.gitagent.adapters.cli", "mcp-list"],
+        capture_output=True,
+        text=True,
+        env=env,
+        check=False,
+    )
+    assert result.returncode == 0
+    assert isinstance(json.loads(result.stdout), dict)

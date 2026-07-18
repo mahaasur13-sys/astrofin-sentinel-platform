@@ -1,516 +1,350 @@
-"""
-MCP Adapter for Smithery/GitHub Tools
-Integrates with Smithery MCP registry to search, install, and wrap MCP tools
-as GitAgent-compatible tools.
-"""
+"""Smithery MCP registry and connection adapter for GitAgent."""
+
+from __future__ import annotations
 
 import json
+import os
+import re
 import subprocess
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
 import httpx
 
 
 class MCPAdapter:
-    """
-    MCP Adapter that integrates with Smithery registry to search, install,
-    and wrap MCP tools as GitAgent-compatible tools.
+    """Discover Smithery servers and expose their MCP tools to GitAgent.
 
-    Supports:
-    - Smithery CLI (`npx @smithery/cli`) for server management
-    - Direct REST API for registry queries
-    - Dynamic MCP server installation and tool wrapping
+    The adapter intentionally manages Smithery connections rather than copying
+    arbitrary server packages into the application. This keeps credentials and
+    server runtimes outside the AstroFin process.
     """
 
-    def __init__(self, storage_path: Optional[str] = None):
-        self.storage_path = Path(storage_path) if storage_path else Path.home() / ".gitagent" / "mcp"
+    api_base = "https://api.smithery.ai"
+    registry_path = "/servers"
+
+    def __init__(
+        self,
+        storage_path: str | Path | None = None,
+        *,
+        api_key: str | None = None,
+        cli: str = "smithery",
+    ) -> None:
+        self.storage_path = Path(storage_path or Path.home() / ".gitagent" / "mcp")
         self.storage_path.mkdir(parents=True, exist_ok=True)
+        self.api_key = api_key or os.getenv("SMITHERY_API_KEY")
+        self.cli = cli
         self.installed_servers: dict[str, dict[str, Any]] = {}
         self._load_installed()
 
-        # Smithery API base
-        self.api_base = "https://api.smithery.dev/v1"
-        # Fallback registry API
-        self.registry_api = "https://registry.smithery.ai"
+    @property
+    def _state_file(self) -> Path:
+        return self.storage_path / "installed_servers.json"
 
-    def _load_installed(self):
-        """Load previously installed servers from disk."""
-        config_file = self.storage_path / "installed_servers.json"
-        if config_file.exists():
-            try:
-                with open(config_file) as f:
-                    self.installed_servers = json.load(f)
-            except (json.JSONDecodeError, IOError):
-                self.installed_servers = {}
+    def _load_installed(self) -> None:
+        if not self._state_file.exists():
+            return
+        try:
+            payload = json.loads(self._state_file.read_text())
+        except (OSError, json.JSONDecodeError):
+            return
+        if isinstance(payload, dict):
+            self.installed_servers = payload
 
-    def _save_installed(self):
-        """Persist installed servers to disk."""
-        config_file = self.storage_path / "installed_servers.json"
-        with open(config_file, "w") as f:
-            json.dump(self.installed_servers, f, indent=2)
+    def _save_installed(self) -> None:
+        self._state_file.write_text(json.dumps(self.installed_servers, indent=2, sort_keys=True))
 
-    def _get_fallback_servers(self, query: str) -> list[dict[str, Any]]:
-        """Get fallback server list for common queries when network is unavailable."""
-        query_lower = query.lower()
-        fallback_db = {
-            "github": [
-                {
-                    "name": "@smithery/github",
-                    "description": "GitHub API integration for code, issues, PRs",
-                    "category": "development",
-                },
-                {
-                    "name": "@modelcontextprotocol/server-github",
-                    "description": "GitHub MCP server",
-                    "category": "development",
-                },
-            ],
-            "filesystem": [
-                {"name": "@smithery/filesystem", "description": "Local filesystem operations", "category": "system"},
-                {
-                    "name": "@modelcontextprotocol/server-filesystem",
-                    "description": "Filesystem MCP server",
-                    "category": "system",
-                },
-            ],
-            "search": [
-                {
-                    "name": "@modelcontextprotocol/server-brave-search",
-                    "description": "Web search capabilities",
-                    "category": "search",
-                },
-                {"name": "@smithery/brave-search", "description": "Brave Search API integration", "category": "search"},
-            ],
-            "slack": [
-                {
-                    "name": "@modelcontextprotocol/server-slack",
-                    "description": "Slack messaging integration",
-                    "category": "communication",
-                },
-                {"name": "@smithery/slack", "description": "Slack API MCP server", "category": "communication"},
-            ],
-            "postgres": [
-                {
-                    "name": "@modelcontextprotocol/server-postgres",
-                    "description": "PostgreSQL database access",
-                    "category": "database",
-                },
-                {"name": "@smithery/postgres", "description": "PostgreSQL MCP server", "category": "database"},
-            ],
-            "finance": [
-                {
-                    "name": "yahoo-finance-mcp",
-                    "description": "Yahoo Finance data (stocks, crypto, options)",
-                    "category": "financial",
-                },
-                {"name": "bloomberg-mcp", "description": "Bloomberg API integration", "category": "financial"},
-            ],
-            "crypto": [
-                {"name": "coinmarketcap-mcp", "description": "Cryptocurrency price data", "category": "crypto"},
-                {"name": "binance-mcp", "description": "Binance crypto exchange API", "category": "crypto"},
-            ],
-            "news": [
-                {"name": "newsapi-mcp", "description": "News API for financial news aggregation", "category": "news"},
-                {"name": "rss-mcp", "description": "RSS feed reader for news aggregation", "category": "news"},
-            ],
-            "calendar": [
-                {"name": "google-calendar-mcp", "description": "Google Calendar integration", "category": "calendar"},
-                {
-                    "name": "@modelcontextprotocol/server-google-calendar",
-                    "description": "Google Calendar MCP",
-                    "category": "calendar",
-                },
-            ],
-            "postgres": [
-                {
-                    "name": "@modelcontextprotocol/server-postgres",
-                    "description": "PostgreSQL database access",
-                    "category": "database",
-                },
-            ],
-            "memory": [
-                {
-                    "name": "@modelcontextprotocol/server-memory",
-                    "description": "Persistent memory storage",
-                    "category": "system",
-                },
-            ],
+    def _headers(self) -> dict[str, str]:
+        return {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+
+    def _api_search(self, query: str, page_size: int) -> list[dict[str, Any]]:
+        params = {
+            "q": query,
+            "page": 1,
+            "pageSize": min(max(page_size, 1), 100),
+            "topK": max(10, min(page_size * 2, 500)),
+        }
+        with httpx.Client(timeout=15.0) as client:
+            response = client.get(
+                f"{self.api_base}{self.registry_path}", params=params, headers=self._headers()
+            )
+            response.raise_for_status()
+            return self._extract_servers(response.json())
+
+    @staticmethod
+    def _extract_servers(payload: Any) -> list[dict[str, Any]]:
+        if isinstance(payload, list):
+            return [item for item in payload if isinstance(item, dict)]
+        if not isinstance(payload, dict):
+            return []
+        for key in ("servers", "results", "data", "items"):
+            value = payload.get(key)
+            if isinstance(value, list):
+                return [item for item in value if isinstance(item, dict)]
+        return [payload] if payload.get("name") or payload.get("qualifiedName") else []
+
+    @staticmethod
+    def _server_name(server: dict[str, Any]) -> str:
+        return str(
+            server.get("name") or server.get("qualifiedName") or server.get("qualified_name") or ""
+        )
+
+    @staticmethod
+    def _normalize_servers(servers: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        normalized: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for server in servers:
+            name = MCPAdapter._server_name(server)
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            item = dict(server)
+            item["name"] = name
+            normalized.append(item)
+        return normalized
+
+    def _run_cli(self, args: list[str], timeout: int | None = None) -> dict[str, Any]:
+        command_args = [arg for arg in args if arg != "--json"]
+        command = [self.cli, "--json", *command_args]
+        try:
+            completed = subprocess.run(
+                command, capture_output=True, text=True, timeout=timeout or 60, check=False
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return {"ok": False, "error": str(exc)}
+        if completed.returncode != 0:
+            return {"ok": False, "error": completed.stderr.strip() or completed.stdout.strip()}
+        output = completed.stdout.strip()
+        try:
+            payload: Any = json.loads(output) if output else {}
+        except json.JSONDecodeError:
+            payload = {"output": output}
+        return {"ok": True, "payload": payload}
+
+    def _fallback_servers(self, query: str) -> list[dict[str, Any]]:
+        catalog = [
+            {
+                "name": "parichay-pothepalli/financial-research-mcp",
+                "capability": "market-data",
+                "description": "Financial statements, prices, crypto data, news, and SEC filings.",
+            },
+            {
+                "name": "financialdata-net/financialdata-mcp",
+                "capability": "market-data",
+                "description": "Stocks, ETFs, indices, forex, crypto, commodities, derivatives, and event calendars.",
+            },
+            {
+                "name": "coinmarketcap/coinmarketcap-mcp",
+                "capability": "crypto-market-data",
+                "description": "Cryptocurrency prices, market statistics, and asset metadata.",
+            },
+            {
+                "name": "openclaw/finnhub",
+                "capability": "financial-news",
+                "description": "Quotes, company news, financial statements, earnings, and market calendars.",
+            },
+            {
+                "name": "google-calendar/google-calendar-mcp",
+                "capability": "economic-calendar",
+                "description": "Calendar integration for scheduled research and event reminders.",
+            },
+            {
+                "name": "github/github-mcp-server",
+                "capability": "github-operations",
+                "description": "Repositories, issues, pull requests, and code operations.",
+            },
+        ]
+        terms = set(re.findall(r"[a-z0-9]+", query.lower()))
+        if not terms:
+            return catalog
+        return [
+            item
+            for item in catalog
+            if terms
+            & set(
+                re.findall(
+                    r"[a-z0-9]+",
+                    f"{item['name']} {item['capability']} {item['description']}".lower(),
+                )
+            )
+        ]
+
+    def mcp_search(
+        self, query: str, category: str | None = None, *, page_size: int = 20
+    ) -> list[dict[str, Any]]:
+        """Search Smithery's registry, falling back to CLI and known capability hints."""
+        results: list[dict[str, Any]] = []
+        try:
+            results = self._api_search(query, page_size)
+        except (httpx.HTTPError, OSError, ValueError):
+            cli = self._run_cli(["--json", "mcp", "search", query], timeout=45)
+            if cli["ok"]:
+                results = self._extract_servers(cli["payload"])
+        results = self._normalize_servers(results)
+        if not results:
+            results = self._fallback_servers(query)
+        results = self._normalize_servers(results)
+        if category:
+            category_lower = category.lower()
+            results = [item for item in results if category_lower in json.dumps(item).lower()]
+        return results[:page_size]
+
+    @staticmethod
+    def _connection_id(server_name: str) -> str:
+        return re.sub(r"[^a-zA-Z0-9_-]+", "-", server_name).strip("-").lower()
+
+    def mcp_install(self, server_name: str, config: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Create a Smithery MCP connection and persist its non-secret metadata."""
+        if not server_name:
+            return {"status": "failed", "error": "server_name is required"}
+        connection_id = self._connection_id(server_name)
+        args = ["mcp", "add", server_name, "--id", connection_id, "--json"]
+        if config:
+            args.extend(["--config", json.dumps(config, separators=(",", ":"))])
+        result = self._run_cli(args, timeout=120)
+        if not result["ok"]:
+            return {
+                "status": "failed",
+                "name": server_name,
+                "connection_id": connection_id,
+                "error": result.get("error", "Smithery CLI failed"),
+            }
+        metadata = result.get("payload") if isinstance(result.get("payload"), dict) else {}
+        self.installed_servers[connection_id] = {
+            "name": server_name,
+            "connection_id": connection_id,
+            "metadata": metadata,
+        }
+        self._save_installed()
+        return {
+            "status": "installed",
+            "name": server_name,
+            "connection_id": connection_id,
+            "metadata": metadata,
         }
 
-        for key, servers in fallback_db.items():
-            if key in query_lower:
-                return servers
-        return []
-
-    def mcp_search(self, query: str, category: Optional[str] = None) -> list[dict[str, Any]]:
-        """
-        Search Smithery registry for MCP servers matching query.
-
-        Args:
-            query: Search query (e.g., "github", "crypto", "calendar")
-            category: Optional category filter (financial, crypto, news, calendar)
-
-        Returns:
-            List of matching MCP server definitions
-        """
-        results = []
-
-        # Try Smithery CLI first
-        try:
-            result = subprocess.run(
-                ["npx", "@smithery/cli", "search", query, "--json"],
-                capture_output=True,
-                text=True,
-                timeout=30,
-                cwd=self.storage_path,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                try:
-                    cli_results = json.loads(result.stdout)
-                    # CLI might return a dict with keys like "servers" - extract properly
-                    if isinstance(cli_results, dict):
-                        if "servers" in cli_results:
-                            results.extend(cli_results["servers"])
-                        elif "results" in cli_results:
-                            results.extend(cli_results["results"])
-                        elif "data" in cli_results:
-                            results.extend(cli_results["data"])
-                        elif isinstance(cli_results.get("name"), str):
-                            # Single server dict
-                            results.append(cli_results)
-                    elif isinstance(cli_results, list):
-                        results.extend(cli_results)
-                except json.JSONDecodeError:
-                    # If stdout isn't JSON, treat each line as a potential server name
-                    for line in result.stdout.strip().split("\n"):
-                        line = line.strip()
-                        if line and not line.startswith("{"):
-                            results.append({"name": line, "description": ""})
-        except (subprocess.SubprocessError, FileNotFoundError, Exception):
-            pass
-
-        # Try REST API as fallback
-        try:
-            import urllib3
-
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            with httpx.Client(timeout=15.0, verify=False, http2=True) as client:
-                resp = client.get(f"{self.api_base}/servers", params={"q": query, "limit": 20})
-                if resp.status_code == 200:
-                    api_results = resp.json()
-                    if isinstance(api_results, dict):
-                        # Extract servers from response (handle {"servers": [...]} format)
-                        if "servers" in api_results:
-                            results.extend(api_results["servers"])
-                        # Also check for "results" key
-                        elif "results" in api_results:
-                            results.extend(api_results["results"])
-                        # If it's a direct list in "data" key
-                        elif "data" in api_results:
-                            results.extend(api_results["data"])
-                    elif isinstance(api_results, list):
-                        results.extend(api_results)
-        except Exception:
-            pass
-
-        # If no results from API or CLI, use fallback mock data for common queries
-        if not results:
-            results = self._get_fallback_servers(query)
-
-        # Deduplicate by name
-        seen = set()
-        unique_results = []
-        for r in results:
-            # Handle both string and dict results
-            if isinstance(r, str):
-                name = r
-            elif isinstance(r, dict):
-                name = r.get("name", r.get("qualified_name", ""))
-            else:
-                continue
-            if name and name not in seen:
-                seen.add(name)
-                unique_results.append(r)
-
-        # Filter by category if specified
-        if category:
-            category_keywords = {
-                "financial": ["finance", "stock", "trading", "bloomberg", "yahoo"],
-                "crypto": ["crypto", "bitcoin", "ethereum", "defi", "binance"],
-                "news": ["news", "rss", "feed", "media"],
-                "calendar": ["calendar", "schedule", "google-calendar"],
-            }
-            keywords = category_keywords.get(category.lower(), [])
-            filtered = []
-            for r in unique_results:
-                desc = r.get("description", "").lower()
-                name = r.get("name", "").lower()
-                if any(kw in desc or kw in name for kw in keywords):
-                    filtered.append(r)
-            return filtered
-
-        return unique_results[:20]
-
-    def mcp_install(self, server_name: str, config: Optional[dict[str, Any]] = None) -> dict[str, Any]:
-        """
-        Install an MCP server from Smithery registry.
-
-        Args:
-            server_name: Server name (e.g., "@smithery/github", "yahoo-finance")
-            config: Optional configuration dict for the server
-
-        Returns:
-            Installation result with status and server details
-        """
-        install_id = f"mcp_{server_name.replace('/', '_').replace('@', '')}"
-        install_path = self.storage_path / "servers" / install_id
-        install_path.mkdir(parents=True, exist_ok=True)
-
-        result = {"status": "pending", "name": server_name, "install_path": str(install_path)}
-
-        try:
-            # Use Smithery CLI to install
-            cmd = ["npx", "@smithery/cli", "mcp", "add", server_name]
-            if config:
-                # Write config to temp file
-                config_file = install_path / "config.json"
-                with open(config_file, "w") as f:
-                    json.dump(config, f)
-                cmd.extend(["--config", str(config_file)])
-
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120, cwd=install_path)
-
-            if proc.returncode == 0:
-                result["status"] = "installed"
-                result["stdout"] = proc.stdout
-
-                # Save server info
-                self.installed_servers[install_id] = {
-                    "name": server_name,
-                    "install_path": str(install_path),
-                    "config": config or {},
-                }
-                self._save_installed()
-            else:
-                result["status"] = "failed"
-                result["stderr"] = proc.stderr
-
-        except subprocess.TimeoutExpired:
-            result["status"] = "timeout"
-        except FileNotFoundError:
-            # npx not available, try direct npm install
-            try:
-                npm_name = server_name if server_name.startswith("@") else f"@{server_name}"
-                subprocess.run(["npm", "install", "-g", npm_name], capture_output=True, timeout=60)
-                result["status"] = "installed"
-                self.installed_servers[install_id] = {
-                    "name": server_name,
-                    "install_path": str(install_path),
-                    "config": config or {},
-                }
-                self._save_installed()
-            except Exception as e:
-                result["status"] = "failed"
-                result["error"] = str(e)
-        except Exception as e:
-            result["status"] = "failed"
-            result["error"] = str(e)
-
-        return result
-
     def mcp_list_tools(self) -> list[dict[str, Any]]:
-        """
-        List all available tools from installed MCP servers.
-
-        Returns:
-            List of tool definitions from all installed servers
-        """
-        tools = []
-
-        for install_id, server_info in self.installed_servers.items():
-            server_name = server_info["name"]
-            install_path = server_info.get("install_path", "")
-
-            # Try to get tools via Smithery CLI
-            try:
-                result = subprocess.run(
-                    ["npx", "@smithery/cli", "tools", server_name, "--json"],
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                    cwd=install_path or self.storage_path,
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    try:
-                        server_tools = json.loads(result.stdout)
-                        for tool in server_tools:
-                            tool["_server"] = server_name
-                            tool["_install_id"] = install_id
-                        tools.extend(server_tools)
-                    except json.JSONDecodeError:
-                        pass
-            except Exception:
-                pass
-
-            # Also check for server manifest
-            if install_path:
-                manifest_path = Path(install_path) / "manifest.json"
-                if manifest_path.exists():
-                    try:
-                        with open(manifest_path) as f:
-                            manifest = json.load(f)
-                            if "tools" in manifest:
-                                for tool in manifest["tools"]:
-                                    tool["_server"] = server_name
-                                    tool["_install_id"] = install_id
-                                tools.extend(manifest["tools"])
-                    except (json.JSONDecodeError, IOError):
-                        pass
-
+        """List and wrap tools from every persisted Smithery connection."""
+        tools: list[dict[str, Any]] = []
+        for connection_id, server in self.installed_servers.items():
+            result = self._run_cli(["--json", "tool", "list", connection_id], timeout=60)
+            if not result["ok"]:
+                continue
+            payload = result.get("payload")
+            raw_tools = payload.get("tools", []) if isinstance(payload, dict) else payload
+            if not isinstance(raw_tools, list):
+                continue
+            for tool in raw_tools:
+                if isinstance(tool, dict):
+                    tools.append(self.wrap_tool(tool, server["name"], connection_id))
         return tools
 
-    def mcp_uninstall(self, install_id: str) -> dict[str, str]:
-        """Uninstall an MCP server."""
-        if install_id not in self.installed_servers:
-            return {"status": "error", "message": f"Server {install_id} not found"}
-
-        try:
-            server_name = self.installed_servers[install_id]["name"]
-            subprocess.run(["npx", "@smithery/cli", "remove", server_name], capture_output=True, timeout=30)
-        except Exception:
-            pass
-
-        del self.installed_servers[install_id]
-        self._save_installed()
-
-        return {"status": "success", "message": f"Uninstalled {install_id}"}
-
-    def wrap_tool(self, tool_def: dict[str, Any]) -> dict[str, Any]:
-        """
-        Wrap an MCP tool definition as a GitAgent-compatible tool.
-
-        Args:
-            tool_def: Raw tool definition from MCP server
-
-        Returns:
-            GitAgent-compatible tool definition
-        """
+    def wrap_tool(
+        self, tool_def: dict[str, Any], server: str | None = None, connection_id: str | None = None
+    ) -> dict[str, Any]:
+        """Convert an MCP tool schema into the stable GitAgent tool shape."""
         return {
-            "name": tool_def.get("name", "unnamed_tool"),
-            "description": tool_def.get("description", ""),
+            "name": str(tool_def.get("name", "unnamed_tool")),
+            "description": str(tool_def.get("description", "")),
             "input_schema": tool_def.get("inputSchema", tool_def.get("input_schema", {})),
-            "server": tool_def.get("_server", "unknown"),
+            "server": server or tool_def.get("_server", "unknown"),
+            "connection_id": connection_id or tool_def.get("_connection_id"),
+            "protocol": "mcp",
             "original_def": tool_def,
         }
 
-    def get_recommended_servers(self) -> list[dict[str, Any]]:
-        """
-        Get recommended MCP servers for financial/trading agents.
+    def call_tool(
+        self, connection_id: str, tool_name: str, arguments: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Call a connected MCP tool through Smithery CLI."""
+        result = self._run_cli(
+            ["tool", "call", connection_id, tool_name, json.dumps(arguments or {}), "--json"],
+            timeout=120,
+        )
+        if result["ok"]:
+            return {
+                "status": "ok",
+                "connection_id": connection_id,
+                "tool": tool_name,
+                "result": result.get("payload"),
+            }
+        return {
+            "status": "failed",
+            "connection_id": connection_id,
+            "tool": tool_name,
+            "error": result.get("error", "Smithery CLI failed"),
+        }
 
-        Returns:
-            List of recommended servers with descriptions
-        """
+    def mcp_uninstall(self, connection_id: str) -> dict[str, str]:
+        """Remove a Smithery connection and its local metadata."""
+        if connection_id not in self.installed_servers:
+            return {"status": "error", "message": f"Connection {connection_id} not found"}
+        result = self._run_cli(["mcp", "remove", connection_id, "--json"], timeout=60)
+        if not result["ok"]:
+            return {"status": "failed", "message": result.get("error", "Smithery CLI failed")}
+        self.installed_servers.pop(connection_id)
+        self._save_installed()
+        return {"status": "success", "message": f"Uninstalled {connection_id}"}
+
+    @classmethod
+    def get_recommended_servers(cls) -> list[dict[str, str]]:
         return [
             {
-                "name": "@smithery/github",
-                "description": "GitHub API integration for code, issues, PRs",
-                "category": "development",
-                "relevance": "high",
+                "name": "parichay-pothepalli/financial-research-mcp",
+                "capability": "market-data",
+                "description": "Prices, financial statements, crypto data, news, and SEC filings.",
             },
             {
-                "name": "@smithery/filesystem",
-                "description": "Local filesystem operations",
-                "category": "system",
-                "relevance": "high",
+                "name": "financialdata-net/financialdata-mcp",
+                "capability": "market-data",
+                "description": "Cross-asset prices and economic/earnings calendars.",
             },
             {
-                "name": "@modelcontextprotocol/server-brave-search",
-                "description": "Web search capabilities",
-                "category": "search",
-                "relevance": "high",
+                "name": "coinmarketcap/coinmarketcap-mcp",
+                "capability": "crypto-market-data",
+                "description": "Crypto prices and market statistics.",
             },
             {
-                "name": "@modelcontextprotocol/server-slack",
-                "description": "Slack messaging integration",
-                "category": "communication",
-                "relevance": "medium",
+                "name": "openclaw/finnhub",
+                "capability": "financial-news",
+                "description": "Company news, quotes, filings, earnings, and calendars.",
             },
             {
-                "name": "@modelcontextprotocol/server-postgres",
-                "description": "PostgreSQL database access",
-                "category": "database",
-                "relevance": "high",
+                "name": "google-calendar/google-calendar-mcp",
+                "capability": "economic-calendar",
+                "description": "Calendar events and scheduled research.",
             },
             {
-                "name": "yahoo-finance-mcp",
-                "description": "Yahoo Finance data (stocks, crypto, options)",
-                "category": "financial",
-                "relevance": "high",
-            },
-            {
-                "name": "coinmarketcap-mcp",
-                "description": "Cryptocurrency price data and market info",
-                "category": "crypto",
-                "relevance": "high",
-            },
-            {
-                "name": "newsapi-mcp",
-                "description": "News API for financial news aggregation",
-                "category": "news",
-                "relevance": "high",
-            },
-            {
-                "name": "google-calendar-mcp",
-                "description": "Google Calendar integration for scheduling",
-                "category": "calendar",
-                "relevance": "medium",
-            },
-            {
-                "name": "stripe-mcp",
-                "description": "Stripe payment and billing data",
-                "category": "financial",
-                "relevance": "medium",
+                "name": "github/github-mcp-server",
+                "capability": "github-operations",
+                "description": "GitHub issues, pull requests, repositories, and code.",
             },
         ]
 
 
-def main():
-    """CLI entry point for MCP adapter."""
+if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="MCP Adapter for GitAgent")
-    parser.add_argument("command", choices=["search", "install", "list", "tools", "recommended"])
-    parser.add_argument("query", nargs="?", help="Search query or server name")
-    parser.add_argument("--category", help="Category filter (financial, crypto, news, calendar)")
-    parser.add_argument("--config", help="JSON config file for server")
-
+    parser = argparse.ArgumentParser(description="Smithery MCP adapter")
+    parser.add_argument(
+        "command", choices=["search", "install", "list", "tools", "call", "recommended"]
+    )
+    parser.add_argument("value", nargs="?", help="Search query, server name, or connection id")
+    parser.add_argument("--tool", help="Tool name for call")
+    parser.add_argument("--arguments", default="{}", help="JSON arguments for call")
+    parser.add_argument("--category")
     args = parser.parse_args()
     adapter = MCPAdapter()
-
     if args.command == "search":
-        results = adapter.mcp_search(args.query or "", category=args.category)
-        print(json.dumps(results, indent=2))
-
+        output = adapter.mcp_search(args.value or "", category=args.category)
     elif args.command == "install":
-        config = None
-        if args.config:
-            with open(args.config) as f:
-                config = json.load(f)
-        result = adapter.mcp_install(args.query, config=config)
-        print(json.dumps(result, indent=2))
-
+        output = adapter.mcp_install(args.value or "")
     elif args.command == "list":
-        servers = adapter.installed_servers
-        print(json.dumps(servers, indent=2))
-
+        output = adapter.installed_servers
     elif args.command == "tools":
-        tools = adapter.mcp_list_tools()
-        print(json.dumps(tools, indent=2))
-
-    elif args.command == "recommended":
-        servers = adapter.get_recommended_servers()
-        print(json.dumps(servers, indent=2))
-
-
-if __name__ == "__main__":
-    main()
+        output = adapter.mcp_list_tools()
+    elif args.command == "call":
+        output = adapter.call_tool(args.value or "", args.tool or "", json.loads(args.arguments))
+    else:
+        output = adapter.get_recommended_servers()
+    print(json.dumps(output, indent=2))

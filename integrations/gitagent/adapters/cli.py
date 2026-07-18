@@ -1,268 +1,131 @@
-"""
-GitAgent CLI Adapter
-Command-line interface for exporting and importing agents with MCP tool integration.
-"""
+"""GitAgent CLI for agent export/import and Smithery MCP connections."""
+
+from __future__ import annotations
 
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .mcp_adapter import MCPAdapter
 
+AGENT_NAMES = [
+    "AstroCouncil",
+    "FundamentalAgent",
+    "QuantAgent",
+    "MacroAgent",
+    "TechnicalAgent",
+    "BullBot",
+    "BearBot",
+    "RiskAgent",
+    "SentimentAgent",
+    "SynthesisAgent",
+]
 
-# =============================================================================
-# Agent Export/Import Functions
-# =============================================================================
+AGENT_KEYS = {
+    "AstroCouncil": "astrocouncilagent",
+    "FundamentalAgent": "fundamentalagent",
+    "QuantAgent": "quantagent",
+    "MacroAgent": "macroagent",
+    "TechnicalAgent": "technical_agent",
+    "BullBot": "bull_researcher",
+    "BearBot": "bear_researcher",
+    "RiskAgent": "risk_agent",
+    "SentimentAgent": "sentiment_agent",
+    "SynthesisAgent": "synthesisagent",
+}
 
 
 def export_agent(agent_name: str, output_dir: str = "./exported_agents") -> dict[str, Any]:
-    """
-    Export an agent from AstroFinSentinelV5 to GitAgent format.
-
-    Args:
-        agent_name: Name of agent to export (e.g., "TechnicalAgent", "AstroCouncil")
-        output_dir: Directory to save exported agent
-
-    Returns:
-        Export result with status and file paths
-    """
+    """Export a registered agent definition to GitAgent JSON."""
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-
-    # Import from AstroFinSentinelV5
     try:
-        from AstroFinSentinelV5.agents import (
-            astro_council_agent,
-            fundamental_agent,
-            quant_agent,
-            macro_agent,
-            technical_agent,
-            bull_researcher,
-            bear_researcher,
-            risk_agent,
-            sentiment_agent,
-            synthesis_agent,
-        )
+        from agents.gitagent_exporter import AGENTS
 
-        agent_map = {
-            "AstroCouncil": astro_council_agent,
-            "FundamentalAgent": fundamental_agent,
-            "QuantAgent": quant_agent,
-            "MacroAgent": macro_agent,
-            "TechnicalAgent": technical_agent,
-            "BullBot": bull_researcher,
-            "BearBot": bear_researcher,
-            "RiskAgent": risk_agent,
-            "SentimentAgent": sentiment_agent,
-            "SynthesisAgent": synthesis_agent,
-        }
-
-        if agent_name not in agent_map:
+        key = AGENT_KEYS.get(agent_name, agent_name)
+        definition = AGENTS.get(key)
+        if definition is None:
             return {"status": "error", "message": f"Agent {agent_name} not found"}
-
-        agent_module = agent_map[agent_name]
-
-        # Extract agent definition
-        agent_def = {
+        data = {
             "name": agent_name,
-            "module": agent_module.__name__,
-            "description": getattr(agent_module, "__doc__", ""),
-            "tools": getattr(agent_module, "tools", []),
-            "instructions": getattr(agent_module, "instructions", ""),
+            "module": "agents._impl",
+            "description": definition.get("description", ""),
+            "tools": definition.get("capabilities", []),
+            "instructions": definition.get("description", ""),
+            "weight": definition.get("weight", 0.0),
+            "domain": definition.get("domain", "unknown"),
         }
-
-        # Save to file
-        output_file = output_path / f"{agent_name.lower()}_agent.json"
-        with open(output_file, "w") as f:
-            json.dump(agent_def, f, indent=2)
-
-        return {
-            "status": "exported",
-            "agent": agent_name,
-            "file": str(output_file),
-        }
-
-    except ImportError as e:
-        return {"status": "error", "message": f"Cannot import AstroFinSentinelV5: {e}"}
+    except ImportError as exc:
+        return {"status": "error", "message": f"Cannot import agent registry: {exc}"}
+    output_file = output_path / f"{agent_name.lower()}_agent.json"
+    output_file.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    return {"status": "exported", "agent": agent_name, "file": str(output_file)}
 
 
 def import_agent(agent_file: str) -> dict[str, Any]:
-    """
-    Import an agent from GitAgent format into working memory.
-
-    Args:
-        agent_file: Path to agent JSON file
-
-    Returns:
-        Import result with agent definition
-    """
+    """Load and validate a GitAgent JSON definition."""
     try:
-        with open(agent_file) as f:
-            agent_def = json.load(f)
-
-        return {
-            "status": "imported",
-            "agent": agent_def.get("name", "unknown"),
-            "definition": agent_def,
-        }
+        definition = json.loads(Path(agent_file).read_text())
     except FileNotFoundError:
         return {"status": "error", "message": f"File not found: {agent_file}"}
-    except json.JSONDecodeError as e:
-        return {"status": "error", "message": f"Invalid JSON: {e}"}
+    except json.JSONDecodeError as exc:
+        return {"status": "error", "message": f"Invalid JSON: {exc}"}
+    return {
+        "status": "imported",
+        "agent": definition.get("name", "unknown"),
+        "definition": definition,
+    }
 
 
 def list_agents() -> list[str]:
-    """List all exported agents in the export directory."""
-    return [
-        "AstroCouncil",
-        "FundamentalAgent",
-        "QuantAgent",
-        "MacroAgent",
-        "TechnicalAgent",
-        "BullBot",
-        "BearBot",
-        "RiskAgent",
-        "SentimentAgent",
-        "SynthesisAgent",
-    ]
+    """List all agents exported by this integration."""
+    return AGENT_NAMES.copy()
 
 
-# =============================================================================
-# MCP Integration Commands
-# =============================================================================
+def main() -> None:
+    parser = argparse.ArgumentParser(description="GitAgent CLI")
+    subparsers = parser.add_subparsers(dest="command")
 
+    export_parser = subparsers.add_parser("export-agent")
+    export_parser.add_argument("agent_name")
+    export_parser.add_argument("--output", "-o", default="./exported_agents")
+    import_parser = subparsers.add_parser("import-agent")
+    import_parser.add_argument("agent_file")
+    subparsers.add_parser("list-agents")
 
-def mcp_search_cli(query: str, category: Optional[str] = None) -> list[dict[str, Any]]:
-    """
-    Search Smithery registry for MCP servers.
-
-    Args:
-        query: Search query
-        category: Optional category filter
-
-    Returns:
-        List of matching servers
-    """
-    adapter = MCPAdapter()
-    return adapter.mcp_search(query, category=category)
-
-
-def mcp_install_cli(server_name: str, config: Optional[dict[str, Any]] = None) -> dict[str, Any]:
-    """
-    Install an MCP server from Smithery.
-
-    Args:
-        server_name: Server name to install
-        config: Optional configuration dict
-
-    Returns:
-        Installation result
-    """
-    adapter = MCPAdapter()
-    return adapter.mcp_install(server_name, config=config)
-
-
-def mcp_list_cli() -> dict[str, Any]:
-    """
-    List installed MCP servers.
-
-    Returns:
-        Dict of installed servers
-    """
-    adapter = MCPAdapter()
-    return adapter.installed_servers
-
-
-def mcp_tools_cli() -> list[dict[str, Any]]:
-    """
-    List available tools from installed MCP servers.
-
-    Returns:
-        List of tool definitions
-    """
-    adapter = MCPAdapter()
-    return adapter.mcp_list_tools()
-
-
-# =============================================================================
-# Main CLI Entry Point
-# =============================================================================
-
-
-def main():
-    parser = argparse.ArgumentParser(description="GitAgent CLI - Agent export/import with MCP integration")
-    subparsers = parser.add_subparsers(dest="command", help="Commands")
-
-    # Export command
-    export_parser = subparsers.add_parser("export-agent", help="Export agent from AstroFinSentinelV5")
-    export_parser.add_argument("agent_name", help="Name of agent to export")
-    export_parser.add_argument("--output", "-o", default="./exported_agents", help="Output directory")
-
-    # Import command
-    import_parser = subparsers.add_parser("import-agent", help="Import agent from file")
-    import_parser.add_argument("agent_file", help="Path to agent JSON file")
-
-    # List command
-    subparsers.add_parser("list-agents", help="List all available agents")
-
-    # MCP commands
-    mcp_search_parser = subparsers.add_parser("mcp-search", help="Search Smithery MCP registry")
-    mcp_search_parser.add_argument("query", help="Search query")
-    mcp_search_parser.add_argument("--category", "-c", help="Category filter (financial, crypto, news, calendar)")
-
-    mcp_install_parser = subparsers.add_parser("mcp-install", help="Install MCP server from Smithery")
-    mcp_install_parser.add_argument("server_name", help="Server name to install")
-    mcp_install_parser.add_argument("--config", help="JSON config file")
-
-    subparsers.add_parser("mcp-list", help="List installed MCP servers")
-
-    subparsers.add_parser("mcp-list-tools", help="List tools from MCP servers")
-
-    subparsers.add_parser("mcp-recommended", help="Show recommended MCP servers")
+    search_parser = subparsers.add_parser("mcp-search", aliases=["mcp_search"])
+    search_parser.add_argument("query")
+    search_parser.add_argument("--category", "-c")
+    install_parser = subparsers.add_parser("mcp-install", aliases=["mcp_install"])
+    install_parser.add_argument("server_name")
+    install_parser.add_argument("--config")
+    subparsers.add_parser("mcp-list", aliases=["mcp_list"])
+    subparsers.add_parser("mcp-list-tools", aliases=["mcp_list_tools"])
+    subparsers.add_parser("mcp-recommended")
 
     args = parser.parse_args()
-
-    if not args.command:
+    if args.command == "export-agent":
+        output = export_agent(args.agent_name, args.output)
+    elif args.command == "import-agent":
+        output = import_agent(args.agent_file)
+    elif args.command == "list-agents":
+        output = list_agents()
+    elif args.command in {"mcp-search", "mcp_search"}:
+        output = MCPAdapter().mcp_search(args.query, category=args.category)
+    elif args.command in {"mcp-install", "mcp_install"}:
+        config = json.loads(Path(args.config).read_text()) if args.config else None
+        output = MCPAdapter().mcp_install(args.server_name, config=config)
+    elif args.command in {"mcp-list", "mcp_list"}:
+        output = MCPAdapter().installed_servers
+    elif args.command in {"mcp-list-tools", "mcp_list_tools"}:
+        output = MCPAdapter().mcp_list_tools()
+    elif args.command == "mcp-recommended":
+        output = MCPAdapter.get_recommended_servers()
+    else:
         parser.print_help()
         return
-
-    if args.command == "export-agent":
-        result = export_agent(args.agent_name, args.output)
-        print(json.dumps(result, indent=2))
-
-    elif args.command == "import-agent":
-        result = import_agent(args.agent_file)
-        print(json.dumps(result, indent=2))
-
-    elif args.command == "list-agents":
-        agents = list_agents()
-        print(json.dumps(agents, indent=2))
-
-    elif args.command == "mcp-search":
-        result = mcp_search_cli(args.query, args.category)
-        print(json.dumps(result, indent=2))
-
-    elif args.command == "mcp-install":
-        config = None
-        if args.config:
-            with open(args.config) as f:
-                config = json.load(f)
-        result = mcp_install_cli(args.server_name, config=config)
-        print(json.dumps(result, indent=2))
-
-    elif args.command == "mcp-list":
-        result = mcp_list_cli()
-        print(json.dumps(result, indent=2))
-
-    elif args.command == "mcp-list-tools":
-        result = mcp_tools_cli()
-        print(json.dumps(result, indent=2))
-
-    elif args.command == "mcp-recommended":
-        adapter = MCPAdapter()
-        result = adapter.get_recommended_servers()
-        print(json.dumps(result, indent=2))
+    print(json.dumps(output, indent=2, ensure_ascii=False))
 
 
 if __name__ == "__main__":
