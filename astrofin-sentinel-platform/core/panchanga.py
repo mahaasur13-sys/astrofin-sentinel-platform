@@ -117,6 +117,21 @@ NAKSHATRA_LORDS = [
     "Ketu",
     "Venus",
     "Sun",
+    "Moon",
+    "Mars",
+    "Rahu",
+    "Jupiter",
+    "Saturn",
+    "Mercury",
+    "Ketu",
+    "Venus",
+    "Sun",
+    "Moon",
+    "Mars",
+    "Rahu",
+    "Jupiter",
+    "Saturn",
+    "Mercury",
 ]
 TITHI_NAMES = [
     ("Shukla Pratipad", 1),
@@ -402,9 +417,9 @@ def calculate_panchanga(dt: datetime) -> dict:
     """Calculate full panchanga for a given datetime in Dubai."""
     from core.ephemeris import get_planetary_positions
 
-    pos = get_planetary_positions(dt)
-    moon_deg = pos.get("Moon", {"degrees": 0})["degrees"]
-    sun_deg = pos.get("Sun", {"degrees": 0})["degrees"]
+    pos = get_planetary_positions(dt, sidereal=True)
+    moon_deg = pos.get("moon", None).longitude if pos.get("moon") else 0
+    sun_deg = pos.get("sun", None).longitude if pos.get("sun") else 0
     moon_sign = int(moon_deg / 30)
     rashi = TROPICAL_RASHI[moon_sign]
     nak = get_nakshatra(moon_deg)

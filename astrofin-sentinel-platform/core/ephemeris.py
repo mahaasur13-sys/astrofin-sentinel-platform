@@ -174,7 +174,7 @@ class SwissEphemerisProvider:
     ) -> dict[str, PlanetPosition]:
         flags = 1
         if sidereal and self._available and self._swe is not None:
-            flags |= 256
+            import swisseph as _swe; flags |= _swe.FLG_SIDEREAL
             try:
                 self._swe.set_sid_mode(1)
             except Exception:
@@ -315,7 +315,7 @@ def calculate_natal_chart(
     jd = _julian_day(birth_time)
     flags = 1
     if use_sidereal and HAS_SWISS_EPHEMERIS and swe is not None:
-        flags |= 256
+        import swisseph as _swe; flags |= _swe.FLG_SIDEREAL
         try:
             swe.set_sid_mode(ayanamsha)
         except Exception:
