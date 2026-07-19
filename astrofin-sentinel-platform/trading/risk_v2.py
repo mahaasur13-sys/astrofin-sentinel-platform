@@ -173,6 +173,52 @@ class RiskEngineV2:
         size = base_size * vol_scalar * kelly
         return self._clamp_size(size)
 
+
+    def get_current_params(
+        self, observations=None, hmm_probs=None, nakshatra=None
+    ):
+        """Return current risk parameters, optionally modulated by Nakshatra.
+
+        Sprint 6: integrates trading.vedic.nakshatra_risk.NAKSHATRA_RISK
+        as a multiplier on max_leverage, position_size, and stop_loss.
+
+        Returns:
+            dict with keys: max_leverage, position_size_pct, stop_loss_multiplier,
+            nakshatra_multiplier, nakshatra_name
+        """
+        state = self.get_state()
+        eq = max(state.total_equity, 1_000.0)
+        base = {
+            "max_leverage": 3.0,
+            "position_size_pct": min(0.20, 50_000.0 / eq),
+            "stop_loss_multiplier": 1.0,
+            "nakshatra_multiplier": 1.0,
+            "nakshatra_name": nakshatra or "",
+            "equity": eq,
+            "drawdown": state.current_drawdown,
+        }
+
+        if nakshatra:
+            from trading.vedic.nakshatra_risk import get_nakshatra_multiplier, is_dangerous_nakshatra
+
+            mult = get_nakshatra_multiplier(nakshatra)
+            base["nakshatra_multiplier"] = mult
+            base["max_leverage"] *= mult
+            base["position_size_pct"] *= (mult * 0.85)
+
+            if mult > 1.15:
+                base["stop_loss_multiplier"] = 1.20
+            elif is_dangerous_nakshatra(nakshatra):
+                base["stop_loss_multiplier"] = 1.50
+
+        if hmm_probs and isinstance(hmm_probs, dict):
+            reg = hmm_probs.get("regime", "NORMAL")
+            kelly = {"LOW": 1.0, "NORMAL": 0.75, "HIGH": 0.50, "EXTREME": 0.20}
+            base["position_size_pct"] *= kelly.get(reg.upper(), 0.75)
+
+        base["position_size_pct"] = min(base["position_size_pct"], 0.50)
+        return base
+
     def pre_trade_check(
         self, symbol, proposed_notional, realized_vol=0.0, regime="NORMAL"
     ):

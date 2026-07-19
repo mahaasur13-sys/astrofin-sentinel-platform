@@ -71,6 +71,9 @@ class InProcessBroker(MessageBroker):
             w.cancel()
         self._workers.clear()
 
+
+    async def close(self) -> None:
+        await self.stop()
     async def _worker_loop(self) -> None:
         while self._started:
             try:

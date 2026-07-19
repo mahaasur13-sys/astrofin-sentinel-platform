@@ -192,6 +192,10 @@ class OutboxStore:
         """Закрыть outbox (no-op для тестов)."""
         pass
 
+    async def stop(self) -> None:
+        """Async stop — delegates to sync close."""
+        self.close()
+
     def fetch_pending(self, limit: int = 10) -> list[dict]:
         """Извлечь PENDING события с next_retry_at <= now."""
         now = time.time()

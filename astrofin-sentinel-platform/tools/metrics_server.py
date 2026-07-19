@@ -82,6 +82,7 @@ RAG_QUERY_CACHE_MISSES = Counter(
 AGENT_DURATION = Histogram(
     "astrofin_agent_duration_seconds",
     "Agent execution duration",
+    labelnames=("agent_name",),
     buckets=(0.1, 0.5, 1, 2, 5, 10, 30),
 )
 from meta_rl.metrics import *  # re-export
