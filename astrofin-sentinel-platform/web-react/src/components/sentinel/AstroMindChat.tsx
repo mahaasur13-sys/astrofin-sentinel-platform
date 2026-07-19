@@ -5,6 +5,20 @@ interface ChatMessage {
   content: string;
 }
 
+interface Aspect {
+  planet1: string;
+  planet2: string;
+  type: string;
+  orb: number;
+  signature: string;
+}
+
+interface AstroData {
+  aspects: Aspect[];
+  source: string;
+  timestamp: string;
+}
+
 interface AstroMindChatProps {
   isOpen: boolean;
   onToggle: () => void;
@@ -21,7 +35,6 @@ const FALLBACK_RESPONSES: Record<string, string> = {
   'Какой текущий режим?': 'Режим: BULL (81%). Рекомендация: Лонг. Leverage 1.6×.',
   'Оцени риск': 'Risk 2.0% (NORMAL). VaR 95: 3.2%. Max DD: 8.5%. Safety Gate: SAFE ✅.',
   'Дай торговую рекомендацию': 'Ensemble: HOLD → BUY bias (confidence 0.72). Fundamental +0.65, Quant +0.58, Astro +0.41. Рекомендуемый размер позиции: 2.0% от портфеля.',
-  'Покажи астро-факторы': 'Muhurta Score: 90/100. Choghadiya: Amrit (06:15-07:15). Nakshatra: Pushya. Jupiter trine Venus — благоприятный аспект.',
 };
 
 export default function AstroMindChat({ isOpen, onToggle }: AstroMindChatProps) {
@@ -30,11 +43,54 @@ export default function AstroMindChat({ isOpen, onToggle }: AstroMindChatProps) 
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [astroData, setAstroData] = useState<AstroData | null>(null);
+  const [astroError, setAstroError] = useState<string | null>(null);
   const messagesEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEnd.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    fetch('/api/v1/astro/aspects')
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((d: AstroData) => setAstroData(d))
+      .catch(e => setAstroError(e.message));
+  }, []);
+
+  const formatAspects = (data: AstroData): string => {
+    const trines = data.aspects.filter(a => a.type === 'trine');
+    const squares = data.aspects.filter(a => a.type === 'square');
+    const sextiles = data.aspects.filter(a => a.type === 'sextile');
+    const conjunctions = data.aspects.filter(a => a.type === 'conjunction');
+
+    let out = `☉ Muhurta Score: 90/100. Choghadiya: Amrit (06:15-07:15). Nakshatra: Pushya.\n\n`;
+    out += `🌌 Актуальные аспекты (Swiss Ephemeris, ${new Date(data.timestamp).toLocaleString('ru-RU')}):\n\n`;
+
+    if (trines.length) {
+      out += `△ Трины (благоприятные, 120°):\n`;
+      trines.forEach(a => out += `  • ${a.signature} (orb ${a.orb}°)\n`);
+      out += `\n`;
+    }
+    if (squares.length) {
+      out += `□ Квадраты (напряжённые, 90°):\n`;
+      squares.forEach(a => out += `  • ${a.signature} (orb ${a.orb}°)\n`);
+      out += `\n`;
+    }
+    if (sextiles.length) {
+      out += `⚹ Секстили (возможности, 60°):\n`;
+      sextiles.forEach(a => out += `  • ${a.signature} (orb ${a.orb}°)\n`);
+      out += `\n`;
+    }
+    if (conjunctions.length) {
+      out += `☌ Соединения:\n`;
+      conjunctions.forEach(a => out += `  • ${a.signature} (orb ${a.orb}°)\n`);
+    }
+    return out;
+  };
 
   const handleSend = (text?: string) => {
     const msg = (text ?? input).trim();
@@ -44,8 +100,17 @@ export default function AstroMindChat({ isOpen, onToggle }: AstroMindChatProps) 
     setLoading(true);
 
     setTimeout(() => {
-      const response = FALLBACK_RESPONSES[msg]
-        ?? 'Проанализировал ситуацию. Рынок стабилен, каких-либо значительных аномалий не обнаружено. Рекомендую следить за режимом и уровнями риска.';
+      let response: string;
+      if (msg === 'Покажи астро-факторы') {
+        response = astroData
+          ? formatAspects(astroData)
+          : astroError
+            ? `⚠️ Ошибка получения аспектов: ${astroError}. Эфемериды — источник правды.`
+            : '⏳ Загружаю аспекты с эфемерид...';
+      } else {
+        response = FALLBACK_RESPONSES[msg]
+          ?? 'Проанализировал ситуацию. Рынок стабилен, значительных аномалий не обнаружено.';
+      }
       setMessages((prev) => [...prev, { role: 'ai', content: response }]);
       setLoading(false);
     }, 600 + Math.random() * 800);
@@ -62,22 +127,20 @@ export default function AstroMindChat({ isOpen, onToggle }: AstroMindChatProps) 
     return (
       <button
         onClick={onToggle}
-        className="glass-card neon-glow-accent"
         style={{
           position: 'fixed',
-          bottom: 24,
-          right: 24,
-          width: 52,
-          height: 52,
+          bottom: 16,
+          right: 16,
+          width: 60,
+          height: 60,
           borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '1.3rem',
-          cursor: 'pointer',
-          border: 'none',
-          zIndex: 1000,
+          border: '1px solid var(--accent)',
+          background: 'var(--bg-primary)',
           color: 'var(--accent)',
+          fontSize: '1.5rem',
+          cursor: 'pointer',
+          zIndex: 1000,
+          boxShadow: '0 0 20px var(--accent-glow)',
         }}
         title="AstroMind Chat"
       >
@@ -87,112 +150,137 @@ export default function AstroMindChat({ isOpen, onToggle }: AstroMindChatProps) 
   }
 
   return (
-    <div
-      className="glass-panel"
-      style={{
-        position: 'fixed',
-        bottom: 24,
-        right: 24,
-        width: 400,
-        height: 560,
+    <div style={{
+      position: 'fixed',
+      bottom: 16,
+      right: 16,
+      width: 380,
+      height: 520,
+      borderRadius: 10,
+      border: '1px solid var(--border)',
+      background: 'var(--bg-panel)',
+      display: 'flex',
+      flexDirection: 'column',
+      zIndex: 1000,
+      boxShadow: '0 0 40px rgba(0,0,0,0.5), 0 0 20px var(--accent-glow)',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '10px 14px',
         display: 'flex',
-        flexDirection: 'column',
-        zIndex: 1000,
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          padding: '12px 16px',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: '1.1rem' }}>🧠</span>
-          <div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>AstroMind</div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--bull)' }}>● Online</div>
-          </div>
-        </div>
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid var(--border)',
+      }}>
+        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent)' }}>
+          🧠 AstroMind · {astroData ? astroData.aspects.length + ' aspects' : astroError ? 'err' : 'loading...'}
+        </span>
         <button
           onClick={onToggle}
-          style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1rem' }}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            fontSize: '1rem',
+          }}
         >
           ✕
         </button>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Messages */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '12px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+      }}>
         {messages.map((m, i) => (
-          <div
-            key={i}
-            style={{
-              alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-              maxWidth: '85%',
-              padding: '8px 12px',
-              borderRadius: m.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
-              background: m.role === 'user' ? 'var(--accent)' : 'var(--bg-card)',
-              color: m.role === 'user' ? '#fff' : 'var(--text-primary)',
-              fontSize: '0.8rem',
-              lineHeight: 1.5,
-              border: m.role === 'ai' ? '1px solid var(--border)' : 'none',
-            }}
-          >
+          <div key={i} style={{
+            alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+            maxWidth: '85%',
+            padding: '8px 12px',
+            borderRadius: 8,
+            background: m.role === 'user' ? 'var(--bull-glow)' : 'var(--bg-primary)',
+            border: m.role === 'user' ? 'none' : '1px solid var(--border)',
+            fontSize: '0.78rem',
+            color: 'var(--text-primary)',
+            whiteSpace: 'pre-wrap',
+            lineHeight: 1.5,
+          }}>
             {m.content}
           </div>
         ))}
         {loading && (
-          <div style={{ alignSelf: 'flex-start', padding: '8px 12px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            ⏳ Думаю...
+          <div style={{
+            alignSelf: 'flex-start',
+            padding: '8px 12px',
+            borderRadius: 8,
+            background: 'var(--bg-primary)',
+            border: '1px solid var(--border)',
+            fontSize: '0.78rem',
+            color: 'var(--text-secondary)',
+          }}>
+            ⏳ Анализирую...
           </div>
         )}
         <div ref={messagesEnd} />
       </div>
 
-      <div style={{ padding: '8px 12px', borderTop: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-        {QUICK_QUESTIONS.map((q) => (
+      {/* Quick questions */}
+      <div style={{
+        display: 'flex',
+        gap: 4,
+        padding: '6px 10px',
+        flexWrap: 'wrap',
+        borderTop: '1px solid var(--border)',
+      }}>
+        {QUICK_QUESTIONS.map(q => (
           <button
             key={q}
             onClick={() => handleSend(q)}
             disabled={loading}
             style={{
-              padding: '4px 10px',
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border)',
-              borderRadius: 14,
-              color: 'var(--text-secondary)',
               fontSize: '0.68rem',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              transition: 'border-color 0.2s',
+              padding: '4px 8px',
+              borderRadius: 4,
+              border: '1px solid var(--border)',
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              cursor: loading ? 'default' : 'pointer',
+              opacity: loading ? 0.5 : 1,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
           >
             {q}
           </button>
         ))}
       </div>
 
-      <div style={{ padding: '10px 12px', borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
+      {/* Input */}
+      <div style={{
+        padding: '8px 10px',
+        borderTop: '1px solid var(--border)',
+        display: 'flex',
+        gap: 6,
+      }}>
         <input
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Спроси о рынке..."
           disabled={loading}
           style={{
             flex: 1,
-            padding: '8px 12px',
-            background: 'var(--bg-card)',
+            background: 'var(--bg-primary)',
             border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
+            borderRadius: 4,
+            padding: '6px 10px',
             color: 'var(--text-primary)',
-            fontSize: '0.8rem',
+            fontSize: '0.78rem',
             outline: 'none',
           }}
         />
@@ -200,15 +288,14 @@ export default function AstroMindChat({ isOpen, onToggle }: AstroMindChatProps) 
           onClick={() => handleSend()}
           disabled={loading || !input.trim()}
           style={{
-            padding: '8px 14px',
-            background: 'var(--accent)',
+            background: loading ? 'var(--border)' : 'var(--accent)',
             border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            color: '#fff',
+            borderRadius: 4,
+            padding: '6px 12px',
+            color: 'var(--bg-primary)',
+            fontSize: '0.78rem',
             fontWeight: 600,
-            fontSize: '0.8rem',
-            cursor: 'pointer',
-            opacity: loading || !input.trim() ? 0.5 : 1,
+            cursor: loading ? 'default' : 'pointer',
           }}
         >
           →

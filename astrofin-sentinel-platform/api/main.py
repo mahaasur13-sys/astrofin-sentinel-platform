@@ -3,18 +3,19 @@ AstroFin Sentinel API — FastAPI backend for React frontend.
 
 Endpoints:
     GET  /api/v1/dashboard        — full dashboard state (agents, regime, ensemble)
+    GET  /api/v1/astro/aspects    — current astrological aspects from ephemeris
     POST /api/v1/agent/run        — run an agent with LLM routing
     WS   /ws/agent/{agent_id}     — WebSocket real-time agent streaming
     GET  /health                  — health check
 """
 
+from datetime import datetime, timezone
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
 from core.base_agent import BaseAgent
-from core.llm_router import route
 
 app = FastAPI(title="AstroFin Sentinel API", version="0.4.0")
 
@@ -97,6 +98,30 @@ def health():
     return {"status": "ok", "version": "0.4.0"}
 
 
+@app.get("/api/v1/astro/aspects")
+def get_astro_aspects():
+    """Current astrological aspects from Swiss Ephemeris — source of truth."""
+    from core.ephemeris import get_planetary_positions
+    from core.aspects import AspectsEngine
+
+    now = datetime.now(timezone.utc)
+    positions = get_planetary_positions(now)
+    engine = AspectsEngine()
+    report = engine.compute(positions)
+
+    return {
+        "timestamp": now.isoformat(),
+        "aspects": [{
+            "planet1": a.planet1,
+            "planet2": a.planet2,
+            "type": a.aspect_type.value if hasattr(a.aspect_type, 'value') else str(a.aspect_type),
+            "orb": round(a.orb, 2),
+            "signature": a.signature,
+        } for a in report.aspects],
+        "source": "swiss_ephemeris",
+    }
+
+
 @app.get("/api/v1/dashboard", response_model=DashboardResponse)
 def get_dashboard():
     agents = [DashboardAgent(**a) for a in AGENT_DEFS]
@@ -122,6 +147,7 @@ def get_dashboard():
 
 @app.post("/api/v1/agent/run", response_model=AgentResponse)
 def run_agent(req: AgentRequest):
+    from core.llm_router import route  # lazy import — sentence_transformers blocks
     agent = _ApiAgent(
         name=req.agentId,
         instructions_path=None,
@@ -144,3 +170,34 @@ async def agent_websocket(websocket: WebSocket, agent_id: str):
             await websocket.send_json(result)
     except WebSocketDisconnect:
         pass
+
+# ── Astro Aspects (lazy ephemeris) ──────────────────────────────────
+
+@app.get("/api/v1/astro/aspects")
+def get_astro_aspects():
+    """Real-time aspects from Swiss Ephemeris + AspectsEngine."""
+    from datetime import datetime
+    from core.ephemeris import get_planetary_positions
+    from core.aspects import AspectsEngine
+
+    dt = datetime.utcnow()
+    positions = get_planetary_positions(dt)
+    engine = AspectsEngine()
+    report = engine.compute(positions)
+
+    aspects = []
+    for a in report.aspects:
+        aspects.append({
+            "planet1": a.planet1,
+            "planet2": a.planet2,
+            "type": a.aspect_type.value,
+            "orb": round(a.orb, 2),
+            "signature": a.signature,
+        })
+
+    return {
+        "source": "Swiss Ephemeris + AspectsEngine",
+        "timestamp": dt.isoformat(),
+        "aspects": aspects,
+        "summary": report.summary,
+    }
