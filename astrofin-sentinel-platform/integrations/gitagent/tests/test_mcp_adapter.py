@@ -59,6 +59,33 @@ class TestMCPAdapter:
         assert wrapped["server"] == "unknown"
         assert "original_def" in wrapped
 
+    def test_wrap_tools(self):
+        """Test batch tool wrapping."""
+        adapter = MCPAdapter()
+        wrapped = adapter.wrap_tools([{"name": "one"}, {"name": "two"}])
+        assert [tool["name"] for tool in wrapped] == ["one", "two"]
+
+    def test_redacts_credentials_before_persisting(self, tmp_path, monkeypatch):
+        """Test that connection metadata cannot persist credential values."""
+        adapter = MCPAdapter(storage_path=tmp_path)
+        monkeypatch.setattr(
+            adapter,
+            "_run_cli",
+            lambda *args, **kwargs: __import__("subprocess").CompletedProcess(
+                args=[], returncode=0, stdout="{}", stderr=""
+            ),
+        )
+        result = adapter.mcp_install(
+            "example/server",
+            config={"api_key": "secret", "nested": {"token": "secret-token"}},
+        )
+        assert result["status"] == "installed"
+        persisted = json.loads((tmp_path / "installed_servers.json").read_text())
+        assert persisted["example-server"]["config"] == {
+            "api_key": "[REDACTED]",
+            "nested": {"token": "[REDACTED]"},
+        }
+
     def test_install_returns_pending(self):
         """Test install returns proper structure."""
         adapter = MCPAdapter()
