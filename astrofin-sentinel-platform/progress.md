@@ -1,6 +1,46 @@
 
 ---
 
+## 2026-07-19 — Sprint 3 + Sprint 4 Complete
+
+### Sprint 3: Hub-and-Spoke Architecture (ADR-001) ✅
+
+**Commit:** `088f5fb`
+
+**New modules:**
+- `core/envelopes.py` — TaskEnvelope/ResultEnvelope, W3C traceparent, deepcopy isolation
+- `core/circuit_breaker.py` — 3-phase state machine, CBState Enum, CircuitBreakerRegistry
+- `core/message_broker.py` — MessageBroker ABC + InProcessBroker worker pool + RedisBroker stub + BrokerStats
+- `core/outbox.py` — OutboxStore (SQLite WAL), OutboxConfig, OutboxRetryWorker, OutboxStatus
+- `core/base_agent.py` — on_message(), publish_event(), set_broker(), context_envelope (P3-07)
+- `orchestration/sentinel_v5_broker.py` — Hub-and-Spoke orchestrator
+
+**Tests:** `tests/test_sprint3.py` — **32/32 passed** ✅
+
+**Risks closed:**
+- Risk #1: Shared mutable state → deepcopy in TaskEnvelope.__post_init__
+- Risk #2: Lost task_id in run() → contextvars.ContextVar
+- Risk #3: Global CB → per-provider CircuitBreakerRegistry
+- Risk #4: Fire-and-forget publish → OutboxStore + retry worker
+
+### Sprint 4: RedisBroker + Distributed Tracing + WebSocket ✅
+
+**Commit:** `9089ef4`
+
+**New:**
+- RedisBroker (Redis Streams + PubSub), idempotent close()
+- WebSocket `/ws/agent/{agent_id}` endpoint
+- Distributed tracing via W3C traceparent (P3-06/P3-07)
+
+**Tests:** `tests/test_sprint4.py` — **22/23 passed** (96%) ✅
+
+**2 skipped:** SentinelV5Broker integration — require real agents + Swisseph
+
+### Healthcheck
+  - Ollama: ✅ (llama3.2:1b, qwen2.5-coder:14b, phi4)
+  - PostgreSQL: N/A (expected)
+  - Redis: ✅
+
 ## Knowledge Base ✅ STARTED (2026-03-27)
 
 | Страница | Статус |

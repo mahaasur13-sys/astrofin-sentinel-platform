@@ -132,15 +132,6 @@ class BrokerAnalysisResult:
     def _as_dict(self) -> dict:
         return {r.agent_name: {"signal": r.signal, "confidence": r.confidence, "reasoning": r.reasoning} for r in self.agent_results}
 
-    def __contains__(self, agent_name: str) -> bool:
-        return any(r.agent_name == agent_name for r in self.agent_results)
-
-    def __getitem__(self, agent_name: str) -> dict:
-        for r in self.agent_results:
-            if r.agent_name == agent_name:
-                return {"signal": r.signal, "confidence": r.confidence, "reasoning": r.reasoning}
-        raise KeyError(agent_name)
-
 
 class SentinelV5Broker:
     """Hub-and-Spoke обёртка для реального sentinel_v5.py.
@@ -490,67 +481,13 @@ class SentinelV5Broker:
                 agent_results=all_results,
                 errors=errors,
             )
-            for name in agent_names:
-                agent = self._agents.get(name)
-                if agent is None:
-                    errors.append(f"Unknown agent: {name}")
-                    continue
-                envelope = TaskEnvelope.new(agent_name=name, state=state)
-                try:
-                    result_env = await agent.on_message(envelope)
-                    all_results.append(AgentResult(
-                        agent_name=name,
-                        result=result_env.result,
-                        is_success=(result_env.status == TaskStatus.COMPLETED),
-                        error=result_env.error,
-                        execution_time_ms=result_env.execution_time_ms,
-                    ))
-                except Exception as e:
-                    all_results.append(AgentResult(
-                        agent_name=name,
-                        result={},
-                        is_success=False,
-                        error=str(e),
-                    ))
-                    errors.append(f"Agent {name} error: {e}")
-            return BrokerAnalysisResult(
+return BrokerAnalysisResult(
                 session_id=session_id,
                 trace_id=trace_id,
                 agent_results=all_results,
                 errors=errors,
             )
 
-
-        # Short-circuit: direct dispatch for custom agents (tests)
-        if agent_names and self._agents:
-            custom_agents = [self._agents[n] for n in agent_names if n in self._agents]
-            if custom_agents:
-                for i, agent in enumerate(custom_agents):
-                    try:
-                        result = await agent.run(state)
-                        all_results.append(AgentResult(
-                            agent_name=agent_names[i],
-                            result=result if isinstance(result, dict) else {"signal": str(result)},
-                            is_success=True,
-                            latency_ms=0,
-                        ))
-                    except Exception as e:
-                        all_results.append(AgentResult(
-                            agent_name=agent_names[i],
-                            result={"error": str(e)},
-                            is_success=False,
-                            latency_ms=0,
-                        ))
-                        errors.append(str(e))
-                return BrokerAnalysisResult(
-                    session_id=session_id,
-                    trace_id=trace_id,
-                    agent_results=all_results,
-                    errors=errors,
-                )
-
-        # Параллельный запуск всех flows
-        flow_tasks = []
 
         if include_technical:
             tech_agents = thompson_selections.get("technical", []) if thompson_selections else None
