@@ -32,6 +32,29 @@ class TaskStatus(str, Enum):
 
 @dataclass
 class TaskEnvelope:
+    def to_dict(self) -> dict:
+        return {
+            "task_id": self.task_id,
+            "agent_name": self.agent_name,
+            "deadline_epoch": self.deadline_epoch,
+            "state_snapshot": self.state_snapshot,
+            "traceparent": self.traceparent,
+            "priority": self.priority.value if hasattr(self.priority, "value") else self.priority,
+            "schema_version": self.schema_version,
+            "metadata": self.metadata,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "TaskEnvelope":
+        """Deserialize from dict (JSON round-trip)."""
+        return cls(
+            agent_name=data.get("agent_name", ""),
+            state_snapshot=data.get("state_snapshot", {}),
+            deadline_epoch=data.get("deadline_epoch", 0.0),
+            priority=data.get("priority", "NORMAL"),
+            metadata=data.get("metadata", {}),
+        )
+
     """Конверт с задачей для агента.
 
     Отправляется оркестратором → агенту через MessageBroker.

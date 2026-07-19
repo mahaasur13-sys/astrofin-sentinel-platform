@@ -138,6 +138,7 @@ markers = [
   "unit: fast unit tests with no external deps (default)",
   "integration: tests that hit network/DB/disk",
   "slow: tests that take >1s",
+  "sprint4: Sprint 4 Hub-and-Spoke integration tests",
 ]
 
 [tool.ruff.lint]
