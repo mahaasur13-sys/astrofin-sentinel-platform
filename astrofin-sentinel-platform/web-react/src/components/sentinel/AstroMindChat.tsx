@@ -5,115 +5,147 @@ interface ChatMessage {
   content: string;
 }
 
-interface Aspect {
+interface AspectItem {
   planet1: string;
   planet2: string;
   type: string;
+  icon: string;
   orb: number;
-  signature: string;
+  score: number;
 }
 
-interface AstroData {
-  aspects: Aspect[];
-  source: string;
-  timestamp: string;
+interface AstroInterpretation {
+  verdict: 'favourable' | 'caution' | 'avoid';
+  verdict_icon: string;
+  verdict_text: string;
+  composite_score: number;
+  muhurta_score: number;
+  nakshatra: string;
+  nakshatra_grade: string;
+  nakshatra_multiplier: number;
+  choghadiya_current: { name: string; icon: string; quality: string; recommended: boolean };
+  choghadiya_slots: Array<{ period: number; name: string; start: string; end: string; icon: string; quality: string }>;
+  top_favourable: AspectItem[];
+  top_unfavourable: AspectItem[];
 }
 
-interface AstroMindChatProps {
-  isOpen: boolean;
-  onToggle: () => void;
-}
-
-const QUICK_QUESTIONS = [
-  'Какой текущий режим?',
-  'Оцени риск',
-  'Дай торговую рекомендацию',
-  'Покажи астро-факторы',
-];
-
-const FALLBACK_RESPONSES: Record<string, string> = {
-  'Какой текущий режим?': 'Режим: BULL (81%). Рекомендация: Лонг. Leverage 1.6×.',
-  'Оцени риск': 'Risk 2.0% (NORMAL). VaR 95: 3.2%. Max DD: 8.5%. Safety Gate: SAFE ✅.',
-  'Дай торговую рекомендацию': 'Ensemble: HOLD → BUY bias (confidence 0.72). Fundamental +0.65, Quant +0.58, Astro +0.41. Рекомендуемый размер позиции: 2.0% от портфеля.',
-};
-
-export default function AstroMindChat({ isOpen, onToggle }: AstroMindChatProps) {
+const AstroMindChat: React.FC<{ isOpen: boolean; onToggle: () => void }> = ({ isOpen, onToggle }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'ai', content: '🧠 AstroMind online. Спроси о режиме, риске, сделке или астро-факторах.' },
+    { role: 'ai', content: '🧠 AstroMind online. Спроси о режиме, риске, сделке или нажми быстрый вопрос.' },
   ]);
   const [input, setInput] = useState('');
+  const [astroData, setAstroData] = useState<AstroInterpretation | null>(null);
   const [loading, setLoading] = useState(false);
-  const [astroData, setAstroData] = useState<AstroData | null>(null);
-  const [astroError, setAstroError] = useState<string | null>(null);
-  const messagesEnd = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEnd.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  useEffect(() => {
-    fetch('/api/v1/astro/aspects')
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((d: AstroData) => setAstroData(d))
-      .catch(e => setAstroError(e.message));
+    fetchAstroData();
   }, []);
 
-  const formatAspects = (data: AstroData): string => {
-    const trines = data.aspects.filter(a => a.type === 'trine');
-    const squares = data.aspects.filter(a => a.type === 'square');
-    const sextiles = data.aspects.filter(a => a.type === 'sextile');
-    const conjunctions = data.aspects.filter(a => a.type === 'conjunction');
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    let out = `☉ Muhurta Score: 90/100. Choghadiya: Amrit (06:15-07:15). Nakshatra: Pushya.\n\n`;
-    out += `🌌 Актуальные аспекты (Swiss Ephemeris, ${new Date(data.timestamp).toLocaleString('ru-RU')}):\n\n`;
-
-    if (trines.length) {
-      out += `△ Трины (благоприятные, 120°):\n`;
-      trines.forEach(a => out += `  • ${a.signature} (orb ${a.orb}°)\n`);
-      out += `\n`;
+  const fetchAstroData = async () => {
+    try {
+      const res = await fetch('/api/v1/astro/interpretation');
+      const data = await res.json();
+      setAstroData(data);
+    } catch (e) {
+      console.warn('Astro interpretation fetch failed:', e);
     }
-    if (squares.length) {
-      out += `□ Квадраты (напряжённые, 90°):\n`;
-      squares.forEach(a => out += `  • ${a.signature} (orb ${a.orb}°)\n`);
-      out += `\n`;
-    }
-    if (sextiles.length) {
-      out += `⚹ Секстили (возможности, 60°):\n`;
-      sextiles.forEach(a => out += `  • ${a.signature} (orb ${a.orb}°)\n`);
-      out += `\n`;
-    }
-    if (conjunctions.length) {
-      out += `☌ Соединения:\n`;
-      conjunctions.forEach(a => out += `  • ${a.signature} (orb ${a.orb}°)\n`);
-    }
-    return out;
   };
 
-  const handleSend = (text?: string) => {
-    const msg = (text ?? input).trim();
-    if (!msg || loading) return;
-    setMessages((prev) => [...prev, { role: 'user', content: msg }]);
-    setInput('');
+  const formatAspectVerdict = (d: AstroInterpretation): string => {
+    const lines: string[] = [];
+    lines.push(`**${d.verdict_icon} Вердикт: ${d.verdict === 'favourable' ? 'Благоприятно' : d.verdict === 'caution' ? 'Осторожно' : 'Избегать'}** (${d.composite_score}/100)`);
+    lines.push('');
+    lines.push(`**Muhurta Score:** ${d.muhurta_score}/100`);
+    lines.push(`**Nakshatra:** ${d.nakshatra} (${d.nakshatra_grade}, ×${d.nakshatra_multiplier})`);
+    lines.push(`**Choghadiya:** ${d.choghadiya_current.icon || ''} ${d.choghadiya_current.name} (${d.choghadiya_current.quality || '—'})`);
+    lines.push('');
+    lines.push('**Благоприятные аспекты:**');
+    for (const a of d.top_favourable) {
+      lines.push(`  ✅ ${a.icon} ${a.planet1} ${a.type} ${a.planet2} (+${a.score.toFixed(1)})`);
+    }
+    lines.push('');
+    lines.push('**Неблагоприятные аспекты:**');
+    for (const a of d.top_unfavourable) {
+      lines.push(`  ⛔ ${a.icon} ${a.planet1} ${a.type} ${a.planet2} (${a.score.toFixed(1)})`);
+    }
+    lines.push('');
+    lines.push(`🕐 Ближайшие окна: ${d.choghadiya_slots.filter(s => s.quality === 'auspicious' || s.quality === 'profitable').slice(0, 2).map(s => `${s.icon} ${s.name} ${s.start}-${s.end}`).join(', ') || 'нет'}`);
+    lines.push('');
+    lines.push(`> ${d.verdict_text}`);
+    return lines.join('\n');
+  };
+
+  const getQuickReplies = (): string[] => {
+    if (!astroData) return ['Загрузка данных...'];
+    const verdict = astroData.verdict === 'favourable' ? '🟢 Удача' : astroData.verdict === 'avoid' ? '🔴 Риск' : '🟡 Нейтрально';
+    const muhurta = `⭐ Muhurta: ${astroData.muhurta_score}/100`;
+    const choghadiya = `🕐 ${astroData.choghadiya_current.icon} ${astroData.choghadiya_current.name}`;
+    return [verdict, muhurta, '📊 Показать астро-факторы', choghadiya];
+  };
+
+  const handleQuickReply = (text: string) => {
+    if (!astroData) return;
+    setMessages(prev => [...prev, { role: 'user', content: text }]);
     setLoading(true);
 
     setTimeout(() => {
       let response: string;
-      if (msg === 'Покажи астро-факторы') {
-        response = astroData
-          ? formatAspects(astroData)
-          : astroError
-            ? `⚠️ Ошибка получения аспектов: ${astroError}. Эфемериды — источник правды.`
-            : '⏳ Загружаю аспекты с эфемерид...';
+      if (text === '📊 Показать астро-факторы') {
+        response = formatAspectVerdict(astroData);
+      } else if (text.includes('Muhurta')) {
+        response = `**⭐ Muhurta Score: ${astroData.muhurta_score}/100**\n\n` +
+          `Nakshatra: ${astroData.nakshatra} (${astroData.nakshatra_grade})\n` +
+          `Choghadiya: ${astroData.choghadiya_current.name}\n\n` +
+          `${astroData.muhurta_score >= 80 ? '✅ Отличное время для входа' : astroData.muhurta_score >= 50 ? '⚠️ Входить осторожно' : '🚫 Лучше подождать'}`;
+      } else if (text.includes('Удача')) {
+        const favCount = astroData.top_favourable.length;
+        const unfavCount = astroData.top_unfavourable.length;
+        response = `**${astroData.verdict_icon} ${astroData.verdict_text}**\n\n` +
+          `Благоприятных аспектов: ${favCount}\n` +
+          `Неблагоприятных: ${unfavCount}\n` +
+          `Composite: ${astroData.composite_score}/100\n\n` +
+          `${favCount > unfavCount ? '✅ Баланс в пользу благоприятных' : '⚠️ Дисбаланс — осторожнее'}`;
       } else {
-        response = FALLBACK_RESPONSES[msg]
-          ?? 'Проанализировал ситуацию. Рынок стабилен, значительных аномалий не обнаружено.';
+        response = `**${astroData.choghadiya_current.icon} ${astroData.choghadiya_current.name}** (${astroData.choghadiya_current.quality || '—'})\n\n` +
+          `Рекомендация: ${astroData.choghadiya_current.recommended ? '✅ Входить можно' : '⚠️ Лучше подождать'}\n\n` +
+          `Ближайшие окна:\n` +
+          astroData.choghadiya_slots.filter(s => s.recommended).slice(0, 3).map(s => `• ${s.icon} ${s.name} ${s.start}-${s.end}`).join('\n');
       }
-      setMessages((prev) => [...prev, { role: 'ai', content: response }]);
+
+      setMessages(prev => [...prev, { role: 'ai', content: response }]);
       setLoading(false);
-    }, 600 + Math.random() * 800);
+    }, 500);
+  };
+
+  const handleSend = () => {
+    if (!input.trim() || loading) return;
+    const text = input.trim();
+    setMessages(prev => [...prev, { role: 'user', content: text }]);
+    setInput('');
+    setLoading(true);
+
+    fetch('/api/v1/agent/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agentId: 'astromind', prompt: text }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        setMessages(prev => [...prev, { role: 'ai', content: data?.result || 'Нет ответа от агента' }]);
+      })
+      .catch(() => {
+        if (astroData) {
+          setMessages(prev => [...prev, { role: 'ai', content: formatAspectVerdict(astroData) }]);
+        } else {
+          setMessages(prev => [...prev, { role: 'ai', content: '⚠️ API недоступен. Попробуйте позже.' }]);
+        }
+      })
+      .finally(() => setLoading(false));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -125,177 +157,116 @@ export default function AstroMindChat({ isOpen, onToggle }: AstroMindChatProps) 
 
   if (!isOpen) {
     return (
-      <button
+      <div
         onClick={onToggle}
-        style={{
-          position: 'fixed',
-          bottom: 16,
-          right: 16,
-          width: 60,
-          height: 60,
-          borderRadius: '50%',
-          border: '1px solid var(--accent)',
-          background: 'var(--bg-primary)',
-          color: 'var(--accent)',
-          fontSize: '1.5rem',
-          cursor: 'pointer',
-          zIndex: 1000,
-          boxShadow: '0 0 20px var(--accent-glow)',
-        }}
         title="AstroMind Chat"
+        style={{
+          position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+          width: 52, height: 52, borderRadius: '50%',
+          background: 'var(--accent)', color: '#000',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', boxShadow: '0 0 20px var(--accent-glow)',
+          fontSize: '1.5rem', fontWeight: 700, userSelect: 'none',
+        }}
       >
         🧠
-      </button>
+      </div>
     );
   }
 
   return (
     <div style={{
-      position: 'fixed',
-      bottom: 16,
-      right: 16,
-      width: 380,
-      height: 520,
-      borderRadius: 10,
-      border: '1px solid var(--border)',
-      background: 'var(--bg-panel)',
-      display: 'flex',
-      flexDirection: 'column',
-      zIndex: 1000,
-      boxShadow: '0 0 40px rgba(0,0,0,0.5), 0 0 20px var(--accent-glow)',
+      position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+      width: 380, height: 520, borderRadius: 14,
+      background: 'var(--bg-card)', border: '1px solid var(--border)',
+      display: 'flex', flexDirection: 'column',
+      boxShadow: '0 0 30px rgba(0,0,0,0.5)',
     }}>
-      {/* Header */}
-      <div style={{
-        padding: '10px 14px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottom: '1px solid var(--border)',
+      <div onClick={onToggle} style={{
+        padding: '12px 16px', borderBottom: '1px solid var(--border)',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600,
+        color: 'var(--accent)',
       }}>
-        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent)' }}>
-          🧠 AstroMind · {astroData ? astroData.aspects.length + ' aspects' : astroError ? 'err' : 'loading...'}
+        <span>🧠 AstroMind</span>
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+          {astroData ? `${astroData.verdict_icon} ${astroData.composite_score}/100` : ''}
         </span>
-        <button
-          onClick={onToggle}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            fontSize: '1rem',
-          }}
-        >
-          ✕
-        </button>
       </div>
 
-      {/* Messages */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '12px 14px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-      }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
         {messages.map((m, i) => (
           <div key={i} style={{
-            alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-            maxWidth: '85%',
-            padding: '8px 12px',
-            borderRadius: 8,
-            background: m.role === 'user' ? 'var(--bull-glow)' : 'var(--bg-primary)',
-            border: m.role === 'user' ? 'none' : '1px solid var(--border)',
-            fontSize: '0.78rem',
-            color: 'var(--text-primary)',
-            whiteSpace: 'pre-wrap',
-            lineHeight: 1.5,
+            marginBottom: 10,
+            textAlign: m.role === 'user' ? 'right' : 'left',
           }}>
-            {m.content}
+            <div style={{
+              display: 'inline-block', maxWidth: '85%', padding: '8px 12px',
+              borderRadius: 10,
+              background: m.role === 'user' ? 'var(--accent)' : 'var(--bg-secondary)',
+              color: m.role === 'user' ? '#000' : 'var(--text)',
+              fontSize: '0.82rem', lineHeight: 1.5,
+              whiteSpace: 'pre-wrap', textAlign: 'left',
+            }}>
+              {m.content}
+            </div>
           </div>
         ))}
         {loading && (
-          <div style={{
-            alignSelf: 'flex-start',
-            padding: '8px 12px',
-            borderRadius: 8,
-            background: 'var(--bg-primary)',
-            border: '1px solid var(--border)',
-            fontSize: '0.78rem',
-            color: 'var(--text-secondary)',
-          }}>
-            ⏳ Анализирую...
+          <div style={{ textAlign: 'left', marginBottom: 10 }}>
+            <span style={{ color: 'var(--accent)', fontSize: '0.8rem' }}>⏳ Думаю...</span>
           </div>
         )}
-        <div ref={messagesEnd} />
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick questions */}
       <div style={{
-        display: 'flex',
-        gap: 4,
-        padding: '6px 10px',
-        flexWrap: 'wrap',
-        borderTop: '1px solid var(--border)',
+        padding: '8px 12px', borderTop: '1px solid var(--border)',
+        display: 'flex', gap: 6, flexWrap: 'wrap',
       }}>
-        {QUICK_QUESTIONS.map(q => (
+        {getQuickReplies().map((qr, i) => (
           <button
-            key={q}
-            onClick={() => handleSend(q)}
+            key={i}
+            onClick={() => handleQuickReply(qr)}
             disabled={loading}
             style={{
-              fontSize: '0.68rem',
-              padding: '4px 8px',
-              borderRadius: 4,
-              border: '1px solid var(--border)',
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              cursor: loading ? 'default' : 'pointer',
+              fontSize: '0.7rem', padding: '4px 10px', borderRadius: 14,
+              background: 'var(--bg-secondary)', color: 'var(--text-secondary)',
+              border: '1px solid var(--border)', cursor: loading ? 'default' : 'pointer',
               opacity: loading ? 0.5 : 1,
             }}
           >
-            {q}
+            {qr}
           </button>
         ))}
       </div>
 
-      {/* Input */}
       <div style={{
-        padding: '8px 10px',
-        borderTop: '1px solid var(--border)',
-        display: 'flex',
-        gap: 6,
+        padding: '8px 12px', borderTop: '1px solid var(--border)',
+        display: 'flex', gap: 8,
       }}>
         <input
-          type="text"
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Спроси о рынке..."
+          placeholder="Спроси о сделке..."
           disabled={loading}
           style={{
-            flex: 1,
-            background: 'var(--bg-primary)',
-            border: '1px solid var(--border)',
-            borderRadius: 4,
-            padding: '6px 10px',
-            color: 'var(--text-primary)',
-            fontSize: '0.78rem',
+            flex: 1, padding: '8px 12px', borderRadius: 8,
+            background: 'var(--bg-secondary)', color: 'var(--text)',
+            border: '1px solid var(--border)', fontSize: '0.82rem',
             outline: 'none',
           }}
         />
         <button
-          onClick={() => handleSend()}
+          onClick={handleSend}
           disabled={loading || !input.trim()}
           style={{
-            background: loading ? 'var(--border)' : 'var(--accent)',
-            border: 'none',
-            borderRadius: 4,
-            padding: '6px 12px',
-            color: 'var(--bg-primary)',
-            fontSize: '0.78rem',
-            fontWeight: 600,
-            cursor: loading ? 'default' : 'pointer',
+            padding: '8px 16px', borderRadius: 8,
+            background: loading || !input.trim() ? 'var(--bg-secondary)' : 'var(--accent)',
+            color: loading || !input.trim() ? 'var(--text-secondary)' : '#000',
+            border: 'none', cursor: loading || !input.trim() ? 'default' : 'pointer',
+            fontSize: '0.82rem', fontWeight: 600,
           }}
         >
           →
@@ -303,4 +274,6 @@ export default function AstroMindChat({ isOpen, onToggle }: AstroMindChatProps) 
       </div>
     </div>
   );
-}
+};
+
+export default AstroMindChat;
