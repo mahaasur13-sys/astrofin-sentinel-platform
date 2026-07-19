@@ -1,118 +1,101 @@
 #!/usr/bin/env python3
-"""Sprint 7: Vedic Backtest Runner.
+"""Sprint 7-8: Vedic Backtest Runner — synthetic 6-month BTC backtest.
 
 Usage:
     cd /home/workspace/astrofin-sentinel-platform
     source venv/bin/activate
-    python tools/run_vedic_backtest.py                    # synthetic 60-day BTC
-    python tools/run_vedic_backtest.py --days 90 --symbol ETHUSDT
-    python tools/run_vedic_backtest.py --min-muhurta 70 --exclude-dangerous
+    PYTHONPATH=. python tools/run_vedic_backtest.py              # 90-day default
+    PYTHONPATH=. python tools/run_vedic_backtest.py --days 180   # 6 months
+    PYTHONPATH=. python tools/run_vedic_backtest.py --min-muhurta 70
 """
 
-import argparse
-import random
-import sys
-from datetime import datetime, timedelta
+import argparse, random, sys
+from datetime import datetime, timedelta, timezone
 
 def main():
-    parser = argparse.ArgumentParser(description="Vedic Backtest Runner")
-    parser.add_argument("--days", type=int, default=60, help="Number of backtest days")
-    parser.add_argument("--symbol", default="BTCUSDT", help="Trading symbol")
-    parser.add_argument("--base-price", type=float, default=50000.0)
-    parser.add_argument("--min-muhurta", type=int, default=50, help="Minimum Muhurta score")
-    parser.add_argument("--exclude-dangerous", action="store_true", default=True)
-    parser.add_argument("--seed", type=int, default=42)
-    args = parser.parse_args()
-
+    p = argparse.ArgumentParser(description="Vedic Backtest Runner")
+    p.add_argument("--days", type=int, default=90)
+    p.add_argument("--symbol", default="BTCUSDT")
+    p.add_argument("--base-price", type=float, default=50000.0)
+    p.add_argument("--min-muhurta", type=int, default=50)
+    p.add_argument("--exclude-dangerous", action="store_true", default=True)
+    p.add_argument("--seed", type=int, default=42)
+    args = p.parse_args()
     random.seed(args.seed)
 
     from trading.backtester import BacktestConfig, Backtester
-    from backtest.vedic_backtest import (
-        annotate_trade, vedic_filter, VedicPerformanceMatrix,
-    )
+    from backtest.vedic_backtest import annotate_trade, vedic_filter, VedicPerformanceMatrix
 
-    print("═" * 75)
-    print(f"  VEDIC BACKTEST — {args.symbol} {args.days}d @ ${args.base_price:,.0f}")
-    print(f"  Filter: min Muhurta ≥ {args.min_muhurta}, exclude dangerous: {args.exclude_dangerous}")
-    print("═" * 75)
+    TZ = timezone(timedelta(hours=4))
+    start = datetime(2026, 1, 19, 6, 0, tzinfo=TZ)
+    SYM = args.symbol
 
-    # Generate synthetic price data
-    dt = datetime(2026, 6, 1)
-    prices = []
-    p = args.base_price
+    print("=" * 72)
+    print(f"  VEDIC BACKTEST — {SYM} {args.days}d @ ${args.base_price:,.0f}")
+    print(f"  Filter: Muhurta ≥ {args.min_muhurta}, exclude_dangerous={args.exclude_dangerous}, seed={args.seed}")
+    print("=" * 72)
+
+    prices_raw, signals_raw = [], []
+    p_price = args.base_price
     for i in range(args.days):
-        change = random.gauss(0, 0.025) * p
-        p = max(p + change, p * 0.3)
-        prices.append((dt + timedelta(days=i), round(p, 2)))
+        dt = start + timedelta(days=i)
+        ret = random.gauss(0.0003, 0.025) + random.gauss(0.0002, 0.03)
+        p_price = max(p_price * (1 + ret), p_price * 0.5)
+        prices_raw.append((dt, round(p_price, 2)))
+        if i >= 3:
+            r = random.random()
+            sig = "LONG" if r < 0.35 else ("SHORT" if r < 0.60 else "NEUTRAL")
+            signals_raw.append({"timestamp": dt, "symbol": SYM, "signal": sig,
+                                "confidence": random.randint(45, 95)})
 
-    print(f"\n  Generated {len(prices)} daily candles")
+    prices = {SYM: prices_raw}
+    config = BacktestConfig(initial_capital=10000.0, risk_per_trade_pct=2.0,
+                            stop_loss_pct=5.0, take_profit_pct=10.0)
 
-    # Generate synthetic signals (alternating LONG/SHORT with random conf)
-    signals = []
-    for i, (day_dt, price) in enumerate(prices):
-        if i < 3:
-            continue
-        bias = random.choice(["LONG", "SHORT", "NEUTRAL"])
-        conf = random.randint(30, 95)
-        signals.append((day_dt, bias, conf, price))
-
-    print(f"  Generated {len(signals)} synthetic signals\n")
-
-    # Run standard backtest
-    config = BacktestConfig(
-        initial_capital=10000.0,
-        risk_per_trade_pct=2.0,
-        stop_loss_pct=5.0,
-        take_profit_pct=10.0,
-    )
+    # ALL (unfiltered)
     bt = Backtester(config)
+    all_sigs = [s for s in signals_raw if s["signal"] != "NEUTRAL"]
+    res_all = bt.run(all_sigs, prices)
+    print(f"\n  UNFILTERED: {len(res_all.trades)} trades")
 
-    for day_dt, signal, conf, price in signals:
-        if signal == "NEUTRAL":
-            continue
-        side = "LONG" if signal == "LONG" else "SHORT"
-        bt.on_signal(args.symbol, side, price, day_dt, conf / 100.0 * config.risk_per_trade_pct)
+    # VEDIC-filtered
+    filtered = vedic_filter(res_all.trades, min_muhurta=args.min_muhurta,
+                            exclude_dangerous=args.exclude_dangerous)
+    print(f"  VEDIC (≥{args.min_muhurta} Muhurta): {len(filtered)} passed")
 
-    result = bt.finalize()
-    all_trades = result.trades
-
-    print(result.print_summary() if hasattr(result, 'print_summary') else f"  Total trades: {len(all_trades)}")
-
-    # ── Vedic annotation ──
-    vedic_trades = [annotate_trade(t, t.entry_time) for t in all_trades]
-    print(f"\n  📿 Annotated {len(vedic_trades)} trades with Vedic metadata")
-
-    # ── Vedic filter ──
-    filtered = vedic_filter(all_trades, min_muhurta=args.min_muhurta, exclude_dangerous=args.exclude_dangerous)
-    print(f"  🔍 Vedic filter: {len(filtered)}/{len(all_trades)} trades passed")
-
-    # ── Performance matrix ──
+    # Nakshatra Matrix
     matrix = VedicPerformanceMatrix()
-    for vt in vedic_trades:
-        matrix.add_trade(vt)
+    for t in res_all.trades:
+        try:
+            vt = annotate_trade(t, t.entry_time)
+            matrix.add_trade(vt)
+        except Exception:
+            pass
 
     print()
     print(matrix.summary())
 
-    # ── Compare: all vs Vedic-filtered ──
-    if filtered and len(filtered) < len(all_trades):
-        bt2 = Backtester(config)
-        for day_dt, signal, conf, price in signals:
-            if signal == "NEUTRAL":
-                continue
-            side = "LONG" if signal == "LONG" else "SHORT"
-            bt2.on_signal(args.symbol, side, price, day_dt, conf / 100.0 * config.risk_per_trade_pct)
-        result2 = bt2.finalize()
-        # Re-filter
-        result2.trades = [t for t in result2.trades if t in filtered]
-        print(f"\n  📊 COMPARISON: All vs Vedic-filtered")
-        print(f"     All trades: {len(all_trades)} | Filtered: {len(filtered)} ({(1-len(filtered)/max(len(all_trades),1))*100:.0f}% removed)")
+    # Comparison
+    def stats(label, trades):
+        if not trades:
+            return f"  {label}: 0 trades"
+        wins = sum(1 for t in trades if t.pnl_pct > 0)
+        pnl = sum(t.pnl_pct for t in trades)
+        wr = wins / len(trades) * 100
+        avg = pnl / len(trades)
+        return (f"  {label:30s} {len(trades):4d} trades  "
+                f"W:{wr:5.1f}%  Avg:{avg*100:+6.2f}%  Σ:{pnl*100:+7.2f}%")
+
+    print("\n📊 COMPARISON:")
+    print(stats("ALL (unfiltered)", res_all.trades))
+    vedic_trades = [t for t in res_all.trades if t in filtered]
+    print(stats("VEDIC (≥70 Muhurta)", vedic_trades))
 
     if matrix.best_nakshatra():
         print(f"\n  🏆 Best Nakshatra:  {matrix.best_nakshatra()}")
     if matrix.worst_nakshatra():
         print(f"  📉 Worst Nakshatra: {matrix.worst_nakshatra()}")
-
+    print()
 
 if __name__ == "__main__":
     main()
