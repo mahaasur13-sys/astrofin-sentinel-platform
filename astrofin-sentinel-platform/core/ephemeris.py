@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Protocol, runtime_checkable
 
-from common.deterministic import utc_now_deterministic
+from acos_contracts.deterministic import utc_now_deterministic
 
 # ─── Swiss Ephemeris availability check ─────────────────────────────────────
 try:
