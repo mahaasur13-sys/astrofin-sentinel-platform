@@ -92,7 +92,7 @@ function formatDashboard(d: any): string {
   if (d.agent_analysis && Object.keys(d.agent_analysis).length > 0) {
     lines.push(``, `### 📊 Детальный анализ агентов:`, ``);
     Object.entries(d.agent_analysis).forEach(([name, analysis]: [string, any]) => {
-      lines.push(`**${name}:** ${analysis.signal || 'HOLD'} (conf: ${Math.round((analysis.confidence || 0) * 100)}%) — ${analysis.reasoning || ''}`);
+      lines.push(`**${name}:** ${analysis.signal || 'HOLD'} (conf: ${Math.round(analysis.confidence || 0)}%) — ${analysis.reasoning || ''}`);
     });
   }
   return lines.join('\n');

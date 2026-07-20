@@ -85,7 +85,7 @@ class DashboardResponse(BaseModel):
     regime: RegimeProbs
     ensemble: EnsembleSignal
     safety_gate: str = "SAFE"
-    pnl: float = 2847.0
+    pnl: float = 0.0
     mode: str = "Live"
     agent_analysis: dict = {}
 
