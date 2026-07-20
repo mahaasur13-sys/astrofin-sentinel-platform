@@ -140,19 +140,40 @@ def get_dashboard():
     agent_results = {}
     try:
         random.seed(42)
-        base_price = 87000.0
-        prices = []
-        b = base_price
-        for _ in range(90):
-            drift = (random.random() - 0.48) * 200
-            vol = random.gauss(0, 800)
-            close = b + drift + vol
-            high = close + abs(random.gauss(0, 300))
-            low = close - abs(random.gauss(0, 300))
-            ts = 1784390400000 + _ * 86400000
-            open_ = low + abs(random.gauss(0, 200))
-            prices.append([ts, open_, high, low, close, 1000 + random.random() * 500])
-            b = close
+        real_price = 64290.0
+        try:
+            import httpx
+            import asyncio
+            async def _fetch_cg():
+                async with httpx.AsyncClient(timeout=10) as cg:
+                    r = await cg.get("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart",
+                        params={"vs_currency": "usd", "days": 90})
+                    if r.status_code == 200:
+                        data = r.json()
+                        raw = data.get("prices", [])
+                        if len(raw) >= 90:
+                            return raw[-1][1], raw[-90:]
+                    return None, None
+            loop = asyncio.get_event_loop()
+            price_val, price_raw = loop.run_until_complete(_fetch_cg())
+            if price_val is not None and price_raw is not None:
+                real_price = price_val
+                prices = [[int(p[0]), p[1]*0.99, p[1]*1.01, p[1]*0.99, p[1], 5000] for p in price_raw]
+        except Exception:
+            pass
+        if 'prices' not in dir() or not prices:
+            real_price = 64290.0
+            base_price = real_price * 0.90
+            prices = []
+            b = base_price
+            for _ in range(90):
+                drift = (random.random() - 0.48) * 150
+                vol = random.gauss(0, 600)
+                close = b + drift + vol
+                ts = 1784390400000 + _ * 86400000
+                prices.append([ts, close*0.99, close*1.01, close*0.99, close, 5000])
+                b = close
+            prices[-1][4] = real_price
         for agent_key, fname, clsname in [
             ("gann", "gann_agent.py", "GannAgent"),
             ("bradley", "bradley_agent.py", "BradleyAgent"),
