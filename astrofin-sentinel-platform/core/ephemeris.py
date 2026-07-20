@@ -23,7 +23,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Protocol, runtime_checkable
 
-from acos_contracts.deterministic import utc_now_deterministic
+from datetime import datetime, timezone
+
+
+def _utc_now_deterministic() -> datetime:
+    """Local shim for utc_now_deterministic (acos_contracts not installed)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 # ─── Swiss Ephemeris availability check ─────────────────────────────────────
 try:
@@ -338,10 +343,10 @@ def get_current_positions(
 ) -> NatalChart:
     """Get current planetary positions for electional astrology.
 
-    Now uses `common.deterministic.utc_now_deterministic()` so that
+    Now uses `common.deterministic._utc_now_deterministic()` so that
     shadow-run / replay tests get a stable timestamp instead of wall-clock.
     """
-    now = utc_now_deterministic()
+    now = _utc_now_deterministic()
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     return calculate_natal_chart(now, latitude, longitude, use_sidereal)
