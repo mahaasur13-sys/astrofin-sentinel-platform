@@ -1,9 +1,11 @@
 {
   "name": "BullBot",
-  "module": "unified-platform.domain.astrofin.agents.registry",
-  "acos_job_type": "astrofin_bull",
-  "acos_layer": "L5",
-  "description": "Bull case scenario construction - Research bullish opportunities",
-  "tools": ["bullish_scenarios", "upside_analysis", "catalyst_research"],
-  "instructions": "Construct bull case scenarios for assets. Identify catalysts, upside targets, and favorable conditions. Research positive factors and growth potential."
+  "module": "agents._impl.bull_researcher",
+  "class": "BullResearcherAgent",
+  "description": "BullResearcher — ищет бычий кейс для актива.\n\n    Responsibilities:\n    1. Scan for bullish chart patterns\n    2. Analyze positive fundamental/news catalysts\n    3. Identify support zones and accumulation\n    4. Cross-reference with astro indicators (Jupiter, Moon phases)\n\n    Weight: 15%",
+  "domain": "trading",
+  "weight": 0.15,
+  "tools": [],
+  "instructions": "",
+  "source": "agents/_impl"
 }
