@@ -10,6 +10,7 @@ Endpoints:
 """
 
 from datetime import datetime, timezone
+from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -299,3 +300,9 @@ def get_interpretation():
             for a in sorted([a for a in aspect_records if "unfavourable" in a["label"]], key=lambda x: x["score"])[:5]
         ],
     }
+
+# ── Serve React production build (after all API routes) ──
+import os
+react_dist = os.path.join(os.path.dirname(__file__), "..", "web-react", "dist")
+if os.path.isdir(react_dist):
+    app.mount("/", StaticFiles(directory=react_dist, html=True), name="react")

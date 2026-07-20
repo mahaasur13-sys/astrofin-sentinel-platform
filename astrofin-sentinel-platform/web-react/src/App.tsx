@@ -19,6 +19,16 @@ interface AgentItem {
   status: string;
 }
 
+interface AgentAnalysis {
+  agent: string;
+  signal: string;
+  confidence: number;
+  reasoning: string;
+  sources: string[];
+  metadata: Record<string, unknown>;
+  price: number;
+}
+
 interface DashboardData {
   agents: AgentItem[];
   regime: Record<Regime, number>;
@@ -26,6 +36,7 @@ interface DashboardData {
   safety_gate: string;
   pnl: number;
   mode: string;
+  agent_analysis: Record<string, AgentAnalysis>;
 }
 
 function generateEquityData(days: number): { date: string; equity: number; regime: Regime }[] {
@@ -63,6 +74,55 @@ function mapSafetyStatus(s: string): SafetyStatus {
   if (lower === 'warning' || lower === 'yellow') return 'warning';
   if (lower === 'danger' || lower === 'red') return 'danger';
   return 'stopped';
+}
+
+
+function AgentAnalysisCards({ analysis }: { analysis: Record<string, AgentAnalysis> }) {
+  const agents = [
+    { key: 'gann', label: 'Gann', color: 'var(--gann)', desc: 'Углы Ганна' },
+    { key: 'bradley', label: 'Bradley', color: 'var(--bullish)', desc: 'Сезонность' },
+    { key: 'elliot', label: 'Elliot', color: 'var(--accent)', desc: 'Волны' },
+  ];
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 14 }}>
+      {agents.map(({ key, label, color, desc }) => {
+        const a = analysis[key];
+        if (!a) return null;
+        const md = a.metadata || {};
+        const sigColor = a.signal === 'LONG' ? 'var(--bull)' : a.signal === 'SHORT' ? 'var(--bear)' : 'var(--sideways)';
+        return (
+          <div key={key} className="glass-panel" style={{ padding: '14px 16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div>
+                <span style={{ fontWeight: 700, fontSize: '0.9rem', color }}>{label}</span>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginLeft: 6 }}>{desc}</span>
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '0.85rem', color: sigColor }}>{a.signal} {a.confidence}%</span>
+            </div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 6 }}>
+              {a.reasoning.slice(0, 120)}{a.reasoning.length > 120 ? '…' : ''}
+            </div>
+            {key === 'gann' && md.angles && (
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                {(md.angles as Array<Record<string,unknown>>).slice(0, 3).map((ang: Record<string,unknown>, i: number) => (
+                  <div key={i}>{String(ang.angle || '')}: {String(ang.action || '')}</div>
+                ))}
+              </div>
+            )}
+            {key === 'elliot' && md.wave_count && (
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                Waves: {String(md.wave_count)} · Fib: {String((md.fib_targets as Record<string,unknown>)?.primary || '—')}
+              </div>
+            )}
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: 4, opacity: 0.6 }}>
+              Price: {a.price?.toLocaleString?.() || a.price}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function App() {
@@ -305,6 +365,7 @@ export default function App() {
           <EquityCurve data={equityData.slice(-45)} height={280} />
 
           <AgentPerformanceGrid agents={agents} onRunAgent={handleRunAgent} />
+          {dashboard?.agent_analysis && <AgentAnalysisCards analysis={dashboard.agent_analysis} />}
         </section>
 
         {/* Right Sidebar */}
