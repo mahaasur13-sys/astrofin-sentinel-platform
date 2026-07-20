@@ -3,7 +3,7 @@ import RegimeRadar from './components/sentinel/RegimeRadar';
 import SafetyGateCard from './components/sentinel/SafetyGateCard';
 import EquityCurve from './components/sentinel/EquityCurve';
 import AgentPerformanceGrid from './components/sentinel/AgentPerformanceGrid';
-import AstroMindChat from './components/sentinel/AstroMindChat';
+import AstroMindChatV2 from "./components/sentinel/AstroMindChatV2";
 
 type Regime = 'bull' | 'bear' | 'sideways' | 'high_vol' | 'anomaly';
 type Signal = 'buy' | 'sell' | 'hold' | 'strong_buy' | 'strong_sell';
@@ -412,7 +412,7 @@ export default function App() {
       </footer>
 
       {/* AstroMind Chat */}
-      <AstroMindChat isOpen={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
+      <AstroMindChatV2 />
     </main>
   );
 }

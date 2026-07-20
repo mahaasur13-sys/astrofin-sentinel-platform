@@ -1,272 +1,335 @@
+// VBUILD-20260720-v2
+if (typeof window !== "undefined") { window.__AstroMindChat = AstroMindChat; }
 import { useState, useRef, useEffect } from 'react';
 
+// ────────────────────────────────────── types
+interface AstroResponse {
+  interpretation: {
+    verdict: string;
+    verdict_text: string;
+    composite_score: number;
+    muhurta_score: number;
+    nakshatra: string;
+    nakshatra_grade: string;
+    choghadiya_current: { name: string; icon: string; quality: string; start: string; end: string };
+  };
+  aspects: { top_favourable: Array<{planet1:string;planet2:string;type:string;icon:string;orb:number;score:number}>; top_unfavourable: Array<{planet1:string;planet2:string;type:string;icon:string;orb:number;score:number}> };
+  agents?: { gann?: {signal:string;confidence:number}; bradley?: {signal:string;confidence:number}; elliot?: {signal:string;confidence:number} };
+  dashboard?: { agents: Array<{name:string;signal:string;confidence:number;weight:number;status:string}> };
+}
+
 interface ChatMessage {
-  role: 'user' | 'ai';
+  role: 'user' | 'assistant';
   content: string;
 }
 
-interface AspectItem {
-  planet1: string;
-  planet2: string;
-  type: string;
-  icon: string;
-  orb: number;
-  score: number;
-}
+const QUICK_BUTTONS = [
+  { id: 'luck', label: 'Удача', icon: '🟢', color: '#22c55e' },
+  { id: 'muhurta', label: 'Muhurta: 90/100', icon: '⭐', color: '#eab308' },
+  { id: 'factors', label: 'Показать астро-факторы', icon: '🔮', color: '#a78bfa' },
+  { id: 'amrit', label: 'Amrit', icon: '💎', color: '#3b82f6' },
+  { id: 'agents', label: 'Все 13 агентов + консенсус', icon: '🤖', color: '#f97316' },
+];
 
-interface AstroInterpretation {
-  verdict: 'favourable' | 'caution' | 'avoid';
-  verdict_icon: string;
-  verdict_text: string;
-  composite_score: number;
-  muhurta_score: number;
-  nakshatra: string;
-  nakshatra_grade: string;
-  nakshatra_multiplier: number;
-  choghadiya_current: { name: string; icon: string; quality: string; recommended: boolean };
-  choghadiya_slots: Array<{ period: number; name: string; start: string; end: string; icon: string; quality: string }>;
-  top_favourable: AspectItem[];
-  top_unfavourable: AspectItem[];
-}
-
-const AstroMindChat: React.FC<{ isOpen: boolean; onToggle: () => void }> = ({ isOpen, onToggle }) => {
+// ────────────────────────────────────── component
+export default function AstroMindChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'ai', content: '🧠 AstroMind online. Спроси о режиме, риске, сделке или нажми быстрый вопрос.' },
+    { role: 'assistant', content: '👋 **AstroMind AI** готов. Задайте вопрос или нажмите быструю кнопку.' },
   ]);
   const [input, setInput] = useState('');
-  const [astroData, setAstroData] = useState<AstroInterpretation | null>(null);
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [astroData, setAstroData] = useState<AstroResponse | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchAstroData();
-  }, []);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const fetchAstroData = async () => {
-    try {
-      const res = await fetch('/api/v1/astro/interpretation');
-      const data = await res.json();
-      setAstroData(data);
-    } catch (e) {
-      console.warn('Astro interpretation fetch failed:', e);
-    }
+  const addMessages = (msgs: ChatMessage[]) => {
+    setMessages((prev) => [...prev, ...msgs]);
   };
 
-  const formatAspectVerdict = (d: AstroInterpretation): string => {
+  // ─── interpretation fetch
+  const fetchInterpretation = async () => {
+    try {
+      const r = await fetch('/api/v1/astro/interpretation');
+      if (!r.ok) throw new Error('API error');
+      return await r.json();
+    } catch { return null; }
+  };
+
+  const fetchDashboard = async () => {
+    try {
+      const r = await fetch('/api/v1/dashboard');
+      if (!r.ok) throw new Error('API error');
+      return await r.json();
+    } catch { return null; }
+  };
+
+  const fetchAgent = async (name: string) => {
+    try {
+      const r = await fetch(`/api/v1/agent/analyze/${name}?symbol=BTCUSDT&price=64550`);
+      if (!r.ok) throw new Error('API error');
+      return await r.json();
+    } catch { return null; }
+  };
+
+  // ─── format agent consensus response
+  const formatConsensusResponse = (
+    data: AstroResponse,
+    dash: any
+  ): string => {
+    const interp = data.interpretation;
+    const agents = dash?.agent_analysis || {};
+
+    const agentNames: Record<string, string> = {
+      fundamental: 'Fundamental', macro: 'Macro', quant: 'Quant',
+      options_flow: 'OptionsFlow', sentiment: 'Sentiment', technical: 'Technical',
+      bull_researcher: 'BullResearcher', bear_researcher: 'BearResearcher',
+      bradley: 'Bradley', gann: 'Gann', elliot: 'Elliot',
+      cycle: 'Cycle', electoral: 'Electoral', time_window: 'TimeWindow',
+    };
+
     const lines: string[] = [];
-    lines.push(`**${d.verdict_icon} Вердикт: ${d.verdict === 'favourable' ? 'Благоприятно' : d.verdict === 'caution' ? 'Осторожно' : 'Избегать'}** (${d.composite_score}/100)`);
+    lines.push('### 🔮 Решения 13 агентов:');
     lines.push('');
-    lines.push(`**Muhurta Score:** ${d.muhurta_score}/100`);
-    lines.push(`**Nakshatra:** ${d.nakshatra} (${d.nakshatra_grade}, ×${d.nakshatra_multiplier})`);
-    lines.push(`**Choghadiya:** ${d.choghadiya_current.icon || ''} ${d.choghadiya_current.name} (${d.choghadiya_current.quality || '—'})`);
-    lines.push('');
-    lines.push('**Благоприятные аспекты:**');
-    for (const a of d.top_favourable) {
-      lines.push(`  ✅ ${a.icon} ${a.planet1} ${a.type} ${a.planet2} (+${a.score.toFixed(1)})`);
+
+    let longVotes = 0, shortVotes = 0, neutralVotes = 0;
+    let totalConf = 0, count = 0;
+
+    const keys = Object.keys(agents);
+    if (keys.length === 0) {
+      // Fallback: use dashboard agent list
+      const dashAgents = dash?.agents || [];
+      for (const a of dashAgents) {
+        const signal = a.signal || 'NEUTRAL';
+        const conf = a.confidence || 50;
+        lines.push(`**${a.name || a.id}:** ${signal === 'LONG' ? '🟢' : signal === 'SHORT' ? '🔴' : '🟡'} ${signal} | Confidence: ${conf}%`);
+        if (signal === 'LONG') longVotes++;
+        else if (signal === 'SHORT') shortVotes++;
+        else neutralVotes++;
+        totalConf += conf;
+        count++;
+      }
+    } else {
+      for (const [key, agent] of Object.entries(agents) as [string, any][]) {
+        const signal = agent?.signal || 'NEUTRAL';
+        const conf = agent?.confidence || 50;
+        const name = agentNames[key] || key;
+        lines.push(`**${name}:** ${signal === 'LONG' ? '🟢' : signal === 'SHORT' ? '🔴' : '🟡'} ${signal} | Confidence: ${conf}%`);
+        if (signal === 'LONG') longVotes++;
+        else if (signal === 'SHORT') shortVotes++;
+        else neutralVotes++;
+        totalConf += conf;
+        count++;
+      }
     }
+
     lines.push('');
-    lines.push('**Неблагоприятные аспекты:**');
-    for (const a of d.top_unfavourable) {
-      lines.push(`  ⛔ ${a.icon} ${a.planet1} ${a.type} ${a.planet2} (${a.score.toFixed(1)})`);
+    lines.push('### 🧠 Финальное совместное решение:');
+    lines.push('');
+
+    const avgConf = count > 0 ? Math.round(totalConf / count) : 50;
+    const finalSignal = longVotes > shortVotes + neutralVotes ? '🟢 LONG'
+      : shortVotes > longVotes + neutralVotes ? '🔴 SHORT'
+      : longVotes > shortVotes ? '🟡 NEUTRAL (LONG bias)'
+      : shortVotes > longVotes ? '🟡 NEUTRAL (SHORT bias)'
+      : '🟡 NEUTRAL';
+
+    lines.push(`**Action:** ${finalSignal}`);
+    lines.push(`**Confidence:** ${avgConf}%`);
+    lines.push('');
+    lines.push('**Астро-факторы:**');
+    lines.push(`- Muhurta: ${interp.muhurta_score}/100 (${interp.nakshatra}, ${interp.nakshatra_grade})`);
+    lines.push(`- Choghadiya: ${interp.choghadiya_current.name} ${interp.choghadiya_current.icon} (${interp.choghadiya_current.quality})`);
+    lines.push(`- Composite Score: ${interp.composite_score}`);
+    lines.push('');
+
+    const fav = data.aspects?.top_favourable || [];
+    const unf = data.aspects?.top_unfavourable || [];
+    if (fav.length > 0) {
+      lines.push('**Благоприятные аспекты:**');
+      for (const a of fav.slice(0, 3)) {
+        lines.push(`- ${a.icon} ${a.planet1} ${a.type} ${a.planet2} (orb: ${a.orb}°)`);
+      }
     }
-    lines.push('');
-    lines.push(`🕐 Ближайшие окна: ${d.choghadiya_slots.filter(s => s.quality === 'auspicious' || s.quality === 'profitable').slice(0, 2).map(s => `${s.icon} ${s.name} ${s.start}-${s.end}`).join(', ') || 'нет'}`);
-    lines.push('');
-    lines.push(`> ${d.verdict_text}`);
+    if (unf.length > 0) {
+      lines.push('**Напряжённые аспекты:**');
+      for (const a of unf.slice(0, 3)) {
+        lines.push(`- ${a.icon} ${a.planet1} ${a.type} ${a.planet2} (orb: ${a.orb}°)`);
+      }
+    }
+
     return lines.join('\n');
   };
 
-  const getQuickReplies = (): string[] => {
-    if (!astroData) return ['Загрузка данных...'];
-    const verdict = astroData.verdict === 'favourable' ? '🟢 Удача' : astroData.verdict === 'avoid' ? '🔴 Риск' : '🟡 Нейтрально';
-    const muhurta = `⭐ Muhurta: ${astroData.muhurta_score}/100`;
-    const choghadiya = `🕐 ${astroData.choghadiya_current.icon} ${astroData.choghadiya_current.name}`;
-    return [verdict, muhurta, '📊 Показать астро-факторы', choghadiya];
-  };
-
-  const handleQuickReply = (text: string) => {
-    if (!astroData) return;
-    setMessages(prev => [...prev, { role: 'user', content: text }]);
+  // ─── quick reply handler
+  const handleQuickReply = async (btnId: string) => {
+    addMessages([{ role: 'user', content: QUICK_BUTTONS.find((b) => b.id === btnId)?.label || btnId }]);
     setLoading(true);
 
-    setTimeout(() => {
-      let response: string;
-      if (text === '📊 Показать астро-факторы') {
-        response = formatAspectVerdict(astroData);
-      } else if (text.includes('Muhurta')) {
-        response = `**⭐ Muhurta Score: ${astroData.muhurta_score}/100**\n\n` +
-          `Nakshatra: ${astroData.nakshatra} (${astroData.nakshatra_grade})\n` +
-          `Choghadiya: ${astroData.choghadiya_current.name}\n\n` +
-          `${astroData.muhurta_score >= 80 ? '✅ Отличное время для входа' : astroData.muhurta_score >= 50 ? '⚠️ Входить осторожно' : '🚫 Лучше подождать'}`;
-      } else if (text.includes('Удача')) {
-        const favCount = astroData.top_favourable.length;
-        const unfavCount = astroData.top_unfavourable.length;
-        response = `**${astroData.verdict_icon} ${astroData.verdict_text}**\n\n` +
-          `Благоприятных аспектов: ${favCount}\n` +
-          `Неблагоприятных: ${unfavCount}\n` +
-          `Composite: ${astroData.composite_score}/100\n\n` +
-          `${favCount > unfavCount ? '✅ Баланс в пользу благоприятных' : '⚠️ Дисбаланс — осторожнее'}`;
-      } else {
-        response = `**${astroData.choghadiya_current.icon} ${astroData.choghadiya_current.name}** (${astroData.choghadiya_current.quality || '—'})\n\n` +
-          `Рекомендация: ${astroData.choghadiya_current.recommended ? '✅ Входить можно' : '⚠️ Лучше подождать'}\n\n` +
-          `Ближайшие окна:\n` +
-          astroData.choghadiya_slots.filter(s => s.recommended).slice(0, 3).map(s => `• ${s.icon} ${s.name} ${s.start}-${s.end}`).join('\n');
-      }
+    const interp = await fetchInterpretation();
+    const dash = await fetchDashboard();
 
-      setMessages(prev => [...prev, { role: 'ai', content: response }]);
-      setLoading(false);
-    }, 500);
+    if (btnId === 'luck') {
+      if (interp) {
+        const i = interp.interpretation;
+        const text = i.composite_score >= 70
+          ? `🌟 **Благоприятно!** Score: ${i.composite_score}/100\nMuhurta: ${i.muhurta_score}/100 · Nakshatra: ${i.nakshatra} (${i.nakshatra_grade})\nChoghadiya: ${i.choghadiya_current.name} ${i.choghadiya_current.icon}\nРекомендация: ${i.verdict_text}`
+          : `🟡 **Caution.** Score: ${i.composite_score}/100\nMuhurta: ${i.muhurta_score}/100 · Лучше дождаться более сильного окна.`;
+        addMessages([{ role: 'assistant', content: text }]);
+      } else {
+        addMessages([{ role: 'assistant', content: '⚠️ Астро-данные временно недоступны.' }]);
+      }
+    } else if (btnId === 'muhurta') {
+      if (interp) {
+        const i = interp.interpretation;
+        addMessages([{ role: 'assistant', content: `⭐ **Muhurta: ${i.muhurta_score}/100**\nNakshatra: **${i.nakshatra}** (${i.nakshatra_grade})\nChoghadiya: **${i.choghadiya_current.name}** ${i.choghadiya_current.icon}\nКачество: *${i.choghadiya_current.quality}*\nОкно: ${i.choghadiya_current.start} – ${i.choghadiya_current.end}\n\n${i.muhurta_score >= 70 ? '✅ Отличное время для входа!' : i.muhurta_score >= 50 ? '🟡 Приемлемо, но с осторожностью.' : '🔴 Лучше воздержаться.'}` }]);
+      }
+    } else if (btnId === 'factors') {
+      if (interp) {
+        const fav = interp.aspects?.top_favourable || [];
+        const unf = interp.aspects?.top_unfavourable || [];
+        let text = '🔮 **Астрологические факторы:**\n\n';
+        if (fav.length > 0) { text += '**Благоприятные:**\n'; for (const a of fav.slice(0,5)) text += `- ${a.icon} ${a.planet1} ${a.type} ${a.planet2} (orb: ${a.orb}°)\n`; }
+        if (unf.length > 0) { text += '\n**Напряжённые:**\n'; for (const a of unf.slice(0,5)) text += `- ${a.icon} ${a.planet1} ${a.type} ${a.planet2} (orb: ${a.orb}°)\n`; }
+        if (fav.length === 0 && unf.length === 0) text += 'Нет значимых аспектов в данный момент.';
+        addMessages([{ role: 'assistant', content: text }]);
+      }
+    } else if (btnId === 'amrit') {
+      if (interp) {
+        const c = interp.interpretation.choghadiya_current;
+        addMessages([{ role: 'assistant', content: `💎 **Amrit период**\nВремя: ${c.start} – ${c.end}\nТекущий Choghadiya: **${c.name}** ${c.icon}\nКачество: *${c.quality}*\n\nAmrit — наиболее благоприятный период суток для любых начинаний.` }]);
+      }
+    } else if (btnId === 'agents') {
+      if (interp && dash) {
+        const [gann, bradley, elliot] = await Promise.all([
+          fetchAgent('gann'), fetchAgent('bradley'), fetchAgent('elliot'),
+        ]);
+        const fullData: AstroResponse = {
+          ...interp,
+          agents: { gann, bradley, elliot },
+          dashboard: dash,
+        };
+        const text = formatConsensusResponse(fullData, dash);
+        addMessages([{ role: 'assistant', content: text }]);
+      } else {
+        addMessages([{ role: 'assistant', content: '⚠️ Не удалось загрузить данные агентов.' }]);
+      }
+    }
+
+    setAstroData(interp);
+    setLoading(false);
   };
 
-  const handleSend = () => {
+  // ─── free text submit
+  const handleSubmit = async () => {
     if (!input.trim() || loading) return;
-    const text = input.trim();
-    setMessages(prev => [...prev, { role: 'user', content: text }]);
+    addMessages([{ role: 'user', content: input }]);
     setInput('');
     setLoading(true);
 
-    fetch('/api/v1/agent/run', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agentId: 'astromind', prompt: text }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        setMessages(prev => [...prev, { role: 'ai', content: data?.result || 'Нет ответа от агента' }]);
-      })
-      .catch(() => {
-        if (astroData) {
-          setMessages(prev => [...prev, { role: 'ai', content: formatAspectVerdict(astroData) }]);
-        } else {
-          setMessages(prev => [...prev, { role: 'ai', content: '⚠️ API недоступен. Попробуйте позже.' }]);
-        }
-      })
-      .finally(() => setLoading(false));
-  };
+    const interp = await fetchInterpretation();
+    const dash = await fetchDashboard();
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+    if (interp && dash) {
+      const text = formatConsensusResponse(interp, dash);
+      addMessages([{ role: 'assistant', content: text }]);
+    } else {
+      addMessages([{ role: 'assistant', content: '⚠️ Не удалось получить данные. Проверьте соединение с API.' }]);
     }
+
+    setAstroData(interp);
+    setLoading(false);
   };
 
-  if (!isOpen) {
-    return (
-      <div
-        onClick={onToggle}
-        title="AstroMind Chat"
-        style={{
-          position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-          width: 52, height: 52, borderRadius: '50%',
-          background: 'var(--accent)', color: '#000',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', boxShadow: '0 0 20px var(--accent-glow)',
-          fontSize: '1.5rem', fontWeight: 700, userSelect: 'none',
-        }}
-      >
-        🧠
-      </div>
-    );
-  }
-
+  // ────────────────────────────────────── render
   return (
+      
     <div style={{
-      position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-      width: 380, height: 520, borderRadius: 14,
-      background: 'var(--bg-card)', border: '1px solid var(--border)',
-      display: 'flex', flexDirection: 'column',
-      boxShadow: '0 0 30px rgba(0,0,0,0.5)',
+      display: 'flex', flexDirection: 'column', height: '100%',
+      background: 'var(--bg-primary, #0a0a0f)', color: 'var(--text-primary, #e0e0e0)',
+      borderRadius: 8, overflow: 'hidden', fontFamily: 'monospace',
     }}>
-      <div onClick={onToggle} style={{
-        padding: '12px 16px', borderBottom: '1px solid var(--border)',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600,
-        color: 'var(--accent)',
-      }}>
-        <span>🧠 AstroMind</span>
-        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-          {astroData ? `${astroData.verdict_icon} ${astroData.composite_score}/100` : ''}
-        </span>
-      </div>
-
-      <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
-        {messages.map((m, i) => (
-          <div key={i} style={{
-            marginBottom: 10,
-            textAlign: m.role === 'user' ? 'right' : 'left',
-          }}>
-            <div style={{
-              display: 'inline-block', maxWidth: '85%', padding: '8px 12px',
-              borderRadius: 10,
-              background: m.role === 'user' ? 'var(--accent)' : 'var(--bg-secondary)',
-              color: m.role === 'user' ? '#000' : 'var(--text)',
-              fontSize: '0.82rem', lineHeight: 1.5,
-              whiteSpace: 'pre-wrap', textAlign: 'left',
-            }}>
-              {m.content}
-            </div>
-          </div>
-        ))}
-        {loading && (
-          <div style={{ textAlign: 'left', marginBottom: 10 }}>
-            <span style={{ color: 'var(--accent)', fontSize: '0.8rem' }}>⏳ Думаю...</span>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
+      {/* Quick buttons */}
       <div style={{
-        padding: '8px 12px', borderTop: '1px solid var(--border)',
-        display: 'flex', gap: 6, flexWrap: 'wrap',
+        display: 'flex', gap: 8, padding: '12px 16px', flexWrap: 'wrap',
+        borderBottom: '1px solid var(--border, #1a1a2e)',
+        background: 'rgba(10,10,20,0.95)',
       }}>
-        {getQuickReplies().map((qr, i) => (
+        {QUICK_BUTTONS.map((btn) => (
           <button
-            key={i}
-            onClick={() => handleQuickReply(qr)}
+            key={btn.id}
+            onClick={() => handleQuickReply(btn.id)}
             disabled={loading}
             style={{
-              fontSize: '0.7rem', padding: '4px 10px', borderRadius: 14,
-              background: 'var(--bg-secondary)', color: 'var(--text-secondary)',
-              border: '1px solid var(--border)', cursor: loading ? 'default' : 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', borderRadius: 20, border: `1px solid ${btn.color}40`,
+              background: `${btn.color}15`, color: btn.color, cursor: loading ? 'wait' : 'pointer',
+              fontSize: 13, fontWeight: 600, transition: 'all 0.2s',
               opacity: loading ? 0.5 : 1,
             }}
+            onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.background = `${btn.color}25`; e.currentTarget.style.borderColor = btn.color; }}}
+            onMouseLeave={(e) => { if (!loading) { e.currentTarget.style.background = `${btn.color}15`; e.currentTarget.style.borderColor = `${btn.color}40`; }}}
           >
-            {qr}
+            <span style={{ fontSize: 16 }}>{btn.icon}</span>
+            {btn.label}
           </button>
         ))}
       </div>
 
+      {/* Messages */}
       <div style={{
-        padding: '8px 12px', borderTop: '1px solid var(--border)',
-        display: 'flex', gap: 8,
+        flex: 1, overflowY: 'auto', padding: '12px 16px',
+        display: 'flex', flexDirection: 'column', gap: 10,
+      }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{
+            alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+            maxWidth: '85%',
+            background: m.role === 'user' ? 'var(--accent, #3b82f6)' : 'rgba(20,20,40,0.8)',
+            color: m.role === 'user' ? '#fff' : 'var(--text-primary, #e0e0e0)',
+            padding: '10px 14px', borderRadius: 12,
+            fontSize: 13, lineHeight: 1.6,
+            whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+            border: m.role === 'assistant' ? '1px solid var(--border, #1a1a2e)' : 'none',
+          }}>
+            <Markdown text={m.content} />
+          </div>
+        ))}
+        {loading && (
+          <div style={{ alignSelf: 'flex-start', padding: '8px 14px', color: 'var(--text-muted, #666)', fontSize: 12 }}>
+            ⏳ Анализирую...
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div style={{
+        display: 'flex', gap: 8, padding: '10px 16px',
+        borderTop: '1px solid var(--border, #1a1a2e)',
+        background: 'rgba(10,10,20,0.95)',
       }}>
         <input
           value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Спроси о сделке..."
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+          placeholder="Задайте вопрос о рынке..."
           disabled={loading}
           style={{
             flex: 1, padding: '8px 12px', borderRadius: 8,
-            background: 'var(--bg-secondary)', color: 'var(--text)',
-            border: '1px solid var(--border)', fontSize: '0.82rem',
-            outline: 'none',
+            border: '1px solid var(--border, #1a1a2e)',
+            background: 'rgba(0,0,0,0.3)', color: '#e0e0e0',
+            fontSize: 13, fontFamily: 'monospace', outline: 'none',
           }}
         />
         <button
-          onClick={handleSend}
+          onClick={handleSubmit}
           disabled={loading || !input.trim()}
           style={{
-            padding: '8px 16px', borderRadius: 8,
-            background: loading || !input.trim() ? 'var(--bg-secondary)' : 'var(--accent)',
-            color: loading || !input.trim() ? 'var(--text-secondary)' : '#000',
-            border: 'none', cursor: loading || !input.trim() ? 'default' : 'pointer',
-            fontSize: '0.82rem', fontWeight: 600,
+            padding: '8px 16px', borderRadius: 8, border: 'none',
+            background: loading ? '#333' : 'var(--accent, #3b82f6)',
+            color: '#fff', cursor: loading ? 'wait' : 'pointer',
+            fontSize: 13, fontWeight: 600,
           }}
         >
           →
@@ -274,6 +337,19 @@ const AstroMindChat: React.FC<{ isOpen: boolean; onToggle: () => void }> = ({ is
       </div>
     </div>
   );
-};
+}
 
-export default AstroMindChat;
+// ─── simple markdown renderer (bold, italic, code, headings)
+function Markdown({ text }: { text: string }) {
+  if (!text) return null;
+  const html = text
+    .replace(/### (.*)/g, '<h4 style="margin:6px 0;color:var(--accent,#3b82f6)">$1</h4>')
+    .replace(/## (.*)/g, '<h3 style="margin:6px 0;color:var(--accent,#3b82f6)">$1</h3>')
+    .replace(/# (.*)/g, '<h2 style="margin:6px 0;color:var(--accent,#3b82f6)">$1</h2>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br/>')
+    .replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px">$1</code>')
+    .replace(/- (.*)/g, '<li style="margin-left:12px">$1</li>');
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+}
