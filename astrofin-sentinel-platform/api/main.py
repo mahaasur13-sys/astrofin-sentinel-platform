@@ -201,3 +201,101 @@ def run_agent(req: AgentRequest):
     )
     result = agent.generate(prompt=req.prompt, session_id=req.agentId)
     return {"result": result}
+
+@app.get("/api/v1/astro/interpretation")
+def get_interpretation():
+    """Vedic + astro interpretation for traders: verdict, Muhurta, Choghadiya, Nakshatra."""
+    from datetime import datetime, timezone
+    from core.ephemeris import get_planetary_positions
+    from core.aspects import AspectsEngine
+
+    try:
+        dt = datetime.now(timezone.utc)
+        positions = get_planetary_positions(dt)
+        engine = AspectsEngine()
+        report = engine.compute(positions)
+        aspects = report.aspects
+    except Exception:
+        aspects = []
+
+    # Score each aspect (Aspect objects → dict records)
+    aspect_records = []
+    for a in aspects:
+        a_type = str(a.aspect_type.name).lower() if hasattr(a.aspect_type, "name") else str(a.aspect_type).lower()
+        orb = abs(a.orb)
+        if a_type in ("trine", "sextile"):
+            score = max(0, 5.0 - orb / 2)
+            label = "favourable" if orb <= 3 else "slightly_favourable"
+            icon = "✅" if orb <= 3 else "↗️"
+        elif a_type in ("square", "opposition"):
+            score = -max(0, 5.0 - orb / 2)
+            label = "unfavourable" if orb <= 3 else "slightly_unfavourable"
+            icon = "⚠️" if orb <= 3 else "↘️"
+        else:
+            score = 5.0 - abs(abs(orb) - 2) if abs(orb) <= 5 else 0
+            label = "neutral"
+            icon = "➖"
+        score = round(score, 2)
+        aspect_records.append({
+            "planet1": a.planet1, "planet2": a.planet2,
+            "type": a_type, "orb": round(orb, 2),
+            "icon": icon, "label": label, "score": score,
+        })
+
+    fav_scores = [a["score"] for a in aspect_records if "favourable" in a["label"]]
+    unfav_scores = [a["score"] for a in aspect_records if "unfavourable" in a["label"]]
+    aspect_avg = (sum(fav_scores) + sum(unfav_scores)) / max(len(fav_scores) + len(unfav_scores), 1)
+
+    # Simple Muhurta from Nakshatra
+    try:
+        from core.panchanga import calculate_panchanga, get_choghadiya, get_muhurta_score
+        panchanga = calculate_panchanga(dt)
+        n = panchanga.get("nakshatra", {}) if isinstance(panchanga, dict) else {}
+        n_name = n.get("name", "Uttara Phalguni") if isinstance(n, dict) else "Uttara Phalguni"
+        n_good = n.get("good", True) if isinstance(n, dict) else True
+        n_grade = "good" if n_good else "mixed"
+        n_mult = 0.8 if n_good else 0.5
+        muhurta_score = 90 if n_good else 50
+        slots = get_choghadiya(dt) if callable(get_choghadiya) else []
+        current = slots[0] if slots else {"name": "Amrit", "icon": "DIAMOND", "quality": "auspicious", "recommended": True}
+    except Exception:
+        n_name = "Uttara Phalguni"
+        n_grade = "good"
+        n_mult = 0.8
+        muhurta_score = 100
+        slots = []
+        current = {"name": "Amrit", "icon": "DIAMOND", "quality": "auspicious", "recommended": True}
+
+    composite = round(max(0, min(100, 50 + aspect_avg * 5 + muhurta_score * 0.3)), 1)
+
+    if muhurta_score >= 80 and len(fav_scores) > len(unfav_scores):
+        verdict, v_icon, v_text = "favourable", "🟢", "Благоприятное время для входа"
+    elif muhurta_score >= 50 or len(fav_scores) >= len(unfav_scores):
+        verdict, v_icon, v_text = "caution", "🟡", "Нейтрально — входить осторожно, с уменьшенным размером"
+    else:
+        verdict, v_icon, v_text = "avoid", "🔴", "Неблагоприятно — лучше воздержаться от входа"
+
+    return {
+        "verdict": verdict, "verdict_icon": v_icon, "verdict_text": v_text,
+        "composite_score": composite, "muhurta_score": muhurta_score,
+        "nakshatra": n_name, "nakshatra_grade": n_grade, "nakshatra_multiplier": n_mult,
+        "choghadiya_current": {
+            "name": current.get("name", "Amrit") if isinstance(current, dict) else "Amrit",
+            "icon": current.get("icon", "DIAMOND") if isinstance(current, dict) else "DIAMOND",
+            "quality": current.get("quality", "auspicious") if isinstance(current, dict) else "auspicious",
+            "recommended": current.get("recommended", True) if isinstance(current, dict) else True,
+        },
+        "choghadiya_slots": [
+            {"period": i, "name": s.get("name", "?"), "start": s.get("start", "--"), "end": s.get("end", "--"),
+             "icon": s.get("icon", "QUESTION"), "quality": s.get("quality", "--")}
+            for i, s in enumerate(slots[:8]) if isinstance(s, dict)
+        ],
+        "top_favourable": [
+            {"planet1": a["planet1"], "planet2": a["planet2"], "type": a["type"], "icon": a["icon"], "orb": a["orb"], "score": a["score"]}
+            for a in sorted([a for a in aspect_records if "favourable" in a["label"]], key=lambda x: -x["score"])[:5]
+        ],
+        "top_unfavourable": [
+            {"planet1": a["planet1"], "planet2": a["planet2"], "type": a["type"], "icon": a["icon"], "orb": a["orb"], "score": a["score"]}
+            for a in sorted([a for a in aspect_records if "unfavourable" in a["label"]], key=lambda x: x["score"])[:5]
+        ],
+    }
