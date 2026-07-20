@@ -105,9 +105,10 @@ function AgentAnalysisCards({ analysis }: { analysis: Record<string, AgentAnalys
             </div>
             {key === 'gann' && md.angles && (
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                {(md.angles as Array<Record<string,unknown>>).slice(0, 3).map((ang: Record<string,unknown>, i: number) => (
-                  <div key={i}>{String(ang.angle || '')}: {String(ang.action || '')}</div>
-                ))}
+                Score: {(md.angles as Record<string,unknown>).score?.toString() || '—'}
+                {(md.angles as Record<string,unknown>).summary && (
+                  <div>{String((md.angles as Record<string,unknown>).summary)}</div>
+                )}
               </div>
             )}
             {key === 'elliot' && md.wave_count && (
