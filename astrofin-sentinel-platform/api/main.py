@@ -29,19 +29,19 @@ app.add_middleware(
 
 
 AGENT_DEFS = [
-    {"id": "1",  "name": "FundamentalAgent",  "weight": 0.20, "domain": "fundamental"},
-    {"id": "2",  "name": "QuantAgent",        "weight": 0.20, "domain": "quant"},
-    {"id": "3",  "name": "MacroAgent",        "weight": 0.15, "domain": "macro"},
-    {"id": "4",  "name": "OptionsFlowAgent",  "weight": 0.15, "domain": "options"},
-    {"id": "5",  "name": "SentimentAgent",    "weight": 0.10, "domain": "sentiment"},
-    {"id": "6",  "name": "TechnicalAgent",    "weight": 0.10, "domain": "technical"},
-    {"id": "7",  "name": "BullResearcher",    "weight": 0.05, "domain": "research"},
-    {"id": "8",  "name": "BearResearcher",    "weight": 0.05, "domain": "research"},
-    {"id": "9",  "name": "BradleyAgent",      "weight": 0.03, "domain": "astro"},
-    {"id": "10", "name": "ElectoralAgent",    "weight": 0.03, "domain": "astro"},
-    {"id": "11", "name": "GannAgent",         "weight": 0.03, "domain": "astro"},
-    {"id": "12", "name": "CycleAgent",        "weight": 0.05, "domain": "astro"},
-    {"id": "13", "name": "TimeWindowAgent",   "weight": 0.02, "domain": "astro"},
+    {"id": "1",  "name": "FundamentalAgent",  "weight": 0.20, "domain": "fundamental", "signal": "idle", "confidence": 0.0},
+    {"id": "2",  "name": "QuantAgent",        "weight": 0.20, "domain": "quant",       "signal": "idle", "confidence": 0.0},
+    {"id": "3",  "name": "MacroAgent",        "weight": 0.15, "domain": "macro",       "signal": "idle", "confidence": 0.0},
+    {"id": "4",  "name": "OptionsFlowAgent",  "weight": 0.15, "domain": "options",     "signal": "idle", "confidence": 0.0},
+    {"id": "5",  "name": "SentimentAgent",    "weight": 0.10, "domain": "sentiment",   "signal": "idle", "confidence": 0.0},
+    {"id": "6",  "name": "TechnicalAgent",    "weight": 0.10, "domain": "technical",   "signal": "idle", "confidence": 0.0},
+    {"id": "7",  "name": "BullResearcher",    "weight": 0.05, "domain": "research",    "signal": "idle", "confidence": 0.0},
+    {"id": "8",  "name": "BearResearcher",    "weight": 0.05, "domain": "research",    "signal": "idle", "confidence": 0.0},
+    {"id": "9",  "name": "BradleyAgent",      "weight": 0.03, "domain": "astro",       "signal": "idle", "confidence": 0.0},
+    {"id": "10", "name": "ElectoralAgent",    "weight": 0.03, "domain": "astro",       "signal": "idle", "confidence": 0.0},
+    {"id": "11", "name": "GannAgent",         "weight": 0.03, "domain": "astro",       "signal": "idle", "confidence": 0.0},
+    {"id": "12", "name": "CycleAgent",        "weight": 0.05, "domain": "astro",       "signal": "idle", "confidence": 0.0},
+    {"id": "13", "name": "TimeWindowAgent",   "weight": 0.02, "domain": "astro",       "signal": "idle", "confidence": 0.0},
 ]
 
 
@@ -59,8 +59,8 @@ class DashboardAgent(BaseModel):
     name: str
     weight: float
     domain: str
-    signal: str = "hold"
-    confidence: float = 0.5
+    signal: str = "idle"
+    confidence: float = 0
     status: str = "idle"
 
 
@@ -128,11 +128,11 @@ def get_astro_aspects():
 def get_dashboard():
     agents = [DashboardAgent(**a) for a in AGENT_DEFS]
 
-    buy_count = sum(1 for a in AGENT_DEFS if a["id"] in ("1", "3", "5", "7", "9", "11", "13"))
-    sell_count = sum(1 for a in AGENT_DEFS if a["id"] in ("4", "8"))
+    buy_count = sum(1 for a in agents if a.signal == "LONG")
+    sell_count = sum(1 for a in agents if a.signal == "SHORT")
     hold_count = 13 - buy_count - sell_count
 
-    net_signal = "BUY" if buy_count > sell_count else "SELL" if sell_count > buy_count else "HOLD"
+    net_signal = "HOLD" if buy_count + sell_count == 0 else ("BUY" if buy_count > sell_count else "SELL" if sell_count > buy_count else "HOLD")
 
 
     # Launch real Gann/Bradley/Elliot agents for dashboard
