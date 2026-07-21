@@ -505,6 +505,103 @@ def check_docstrings(tree: ast.AST, src: Path, report: Report) -> None:
                 )
 
 
+
+# ─── R3.5: forbid "from agents.X" imports (only from agents._impl.*) ────────
+
+def check_import_paths(src: Path, source_text: str, report: Report) -> None:
+    """Forbid  where XXX is not  or a known top-level module."""
+    ALLOWED_TOP = {'agents._impl', 'agents._archived', 'agents.base_agent',
+                   'agents.synthesis_agent', 'agents.astro_council_agent',
+                   'agents.electoral_agent', 'agents.karl_synthesis',
+                   'agents.gitagent_registry', 'agents.gitagent_exporter',
+                   'agents.metrics', 'agents.technical_agent',
+                   'agents.market_analyst', 'agents.directional_agents'}
+    try:
+        src_rel = str(_rel(src))
+    except ValueError:
+        return
+    for m in re.finditer(r'^\s*(?:from|import)\s+(agents\.[a-zA-Z_][a-zA-Z0-9_]*)', source_text, re.MULTILINE):
+        mod = m.group(1)
+        if mod not in ALLOWED_TOP and '.py' in str(src):
+            report.warn(
+                src_rel, _first_match_line(source_text, chr(92) + 's*(?:from|import)' + chr(92) + 's+' + re.escape(mod)),
+                'R3.5', f'import from "{mod}" forbidden; use "agents._impl.*" instead'
+            )
+
+
+# ─── R7: KARL synthesis — only from orchestrator ──────────────────────────
+
+def check_karl_synthesis_gateway(src: Path, source_text: str, report: Report) -> None:
+    """KARLSynthesisAgent imports allowed only from orchestration/ or main entry."""
+    ALLOWED = {'orchestration', 'api', 'tests'}
+    try:
+        src_rel = str(_rel(src))
+    except ValueError:
+        return
+    top = src_rel.split('/')[0] if '/' in src_rel else ''
+    if top in ALLOWED:
+        return
+    if re.search(r'KARLSynthesisAgent', source_text):
+        report.warn(
+            src_rel,
+            _first_match_line(source_text, 'KARLSynthesisAgent'),
+            'R7',
+            'KARLSynthesisAgent imported outside orchestration/; KARL is single arbitration point'
+        )
+
+
+# ─── R10-hard: detect-secrets + bandit integration ─────────────────────────
+
+def check_hard_secrets(src: Path, source_text: str, report: Report) -> None:
+    """Aggressive hard-coded secret detection with bandit integration."""
+    from subprocess import run, DEVNULL, PIPE
+    try:
+        src_rel = str(_rel(src))
+    except ValueError:
+        return
+    patterns = [
+        (r'(?i)(api[_-]?key|auth[_-]?token|secret[_-]?key|passw(?:or)?d)\s*[:=]\s*[\x27\x22](?!test-|fake|dummy|example|your-|change-?me|0000|xxxx)([a-zA-Z0-9+/=_-]{16,})', 'hard_secret'),
+        (r'(?i)(private[_-]?key)\s*[:=]\s*[\x27\x22](?!-----BEGIN)([a-zA-Z0-9+/=_-]{32,})', 'private_key'),
+    ]
+    for pat, rule in patterns:
+        for m in re.finditer(pat, source_text):
+            value = m.group(2)
+            if value in ('dev-api-key-change-me', 'change-me', 'test-key', 'localhost'):
+                continue
+            report.fail(
+                src_rel, _first_match_line(source_text, value[:20]),
+                'R10', f'hard-coded secret detected: {rule} (len={len(value)})'
+            )
+    # Bandit integration
+    try:
+        from importlib import import_module
+        import_module('bandit')
+        result = run(['python', '-m', 'bandit', '-q', '-f', 'json', str(src)],
+                     capture_output=True, text=True)
+        if result.stdout.strip() and result.returncode != 0:
+            report.warn(src_rel, 0, 'R10-bandit', 'bandit flagged potential security issues')
+    except (ImportError, FileNotFoundError):
+        pass
+
+
+# ─── R12: no git submodules (mode 160000) ─────────────────────────────────
+
+def check_no_submodules(report: Report) -> None:
+    """Ensure no .gitmodules or mode-160000 references exist."""
+    from subprocess import run, PIPE
+    root = Path(__file__).resolve().parent.parent
+    gitmodules = root / '.gitmodules'
+    if gitmodules.exists():
+        report.fail('.', 0, 'R12', '.gitmodules file found; submodules are forbidden per R-12')
+    gitmodules_bak = root / '.gitmodules.bak'
+    if gitmodules_bak.exists():
+        report.warn('.', 0, 'R12', '.gitmodules.bak artifact present; can be removed')
+    result = run(['git', 'ls-files', '--stage'], capture_output=True, text=True, cwd=str(root))
+    for line in result.stdout.splitlines():
+        if line.startswith('160000 '):
+            parts = line.split()
+            report.fail('.', 0, 'R12', f'submodule reference (mode 160000) found: {parts[-1]}')
+
 # ─── Library API (used by tests and embedding) ────────────────
 
 # ─── Driver ─────────────────────────────────────────────────────────────────
@@ -580,6 +677,9 @@ def lint_file(src: Path, report: Report) -> None:
     check_no_fstring_sql(src, source_text, report)
     check_secrets(src, source_text, report)
     check_docstrings(tree, src, report)
+    check_import_paths(src, source_text, report)
+    check_karl_synthesis_gateway(src, source_text, report)
+    check_hard_secrets(src, source_text, report)
 
 
 def render_report(report: Report) -> None:
@@ -626,6 +726,8 @@ def main(argv: list[str] | None = None) -> int:
 
     # Cross-file rule (R5) needs the registry on disk:
     check_registry_coverage(report)
+    # Cross-repo rule (R12)
+    check_no_submodules(report)
 
     render_report(report)
     if report.has_failures:
@@ -679,6 +781,9 @@ class ArchitectureLinter:
         check_no_fstring_sql(self.path, self.src_text, report)
         check_secrets(self.path, self.src_text, report)
         check_docstrings(self.tree, self.path, report)
+        check_import_paths(self.path, self.src_text, report)
+        check_karl_synthesis_gateway(self.path, self.src_text, report)
+        check_hard_secrets(self.path, self.src_text, report)
         for f in report.findings:
             if f.severity == "FAIL":
                 self.failures.append(f)
