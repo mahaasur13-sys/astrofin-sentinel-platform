@@ -76,6 +76,12 @@ dev = [
   "fastapi>=0.109.0",
 ]
 
+rag = [
+  "sentence-transformers>=2.2.2,<5.0",
+  "faiss-cpu>=1.7.4",
+  "rank-bm25>=0.2.2",
+]
+
 [project.scripts]
 astrofin = "orchestration.sentinel_v5:cli"
 astrofin-karl = "orchestration.karl_cli:cli"
