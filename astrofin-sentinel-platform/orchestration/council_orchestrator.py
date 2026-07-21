@@ -6,8 +6,15 @@ from datetime import datetime, timezone
 from typing import List
 
 from core.base_agent import AgentResponse, SignalDirection
-from utils.telegram_notifier import send_telegram_message
 from agents.karl_synthesis import resolve_conflict
+
+try:
+    try:
+    from utils.telegram_notifier import send_telegram_message
+except ImportError:
+    send_telegram_message = None  # Optional: not available in test/CI
+except ImportError:
+    send_telegram_message = None
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +90,8 @@ class CouncilOrchestrator:
                 f"Reason: {risk_reason}\n"
                 f"Time: {datetime.now(timezone.utc).isoformat()}"
             )
-            if not is_backtest:
+            if not is_backtest and send_telegram_message is not None:
+                if send_telegram_message is not None:
                 asyncio.create_task(send_telegram_message(alert_msg))
 
             return {

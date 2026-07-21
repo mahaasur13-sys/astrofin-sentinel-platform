@@ -379,6 +379,63 @@ _tracker: CalibrationTracker | None = None
 _tracker_lock = threading.Lock()
 
 
+@property
+    def calibration_accuracy(self) -> float:
+        """Average calibration score across all agents (0.0–1.0)."""
+        with self._lock:
+            conn = self._connect()
+            try:
+                cur = conn.execute(
+                    """SELECT AVG(ABS(predicted_confidence - 
+                        CASE WHEN actual_outcome = 'correct' THEN 1.0 ELSE 0.0 END))
+                    FROM calibration_events
+                    WHERE actual_outcome IS NOT NULL"""
+                )
+                row = cur.fetchone()
+                if row and row[0] is not None:
+                    return max(0.0, 1.0 - row[0])
+                return 0.0
+            finally:
+                conn.close()
+
+    def detect_drift(self, window: int = 50) -> dict:
+        """Check if recent calibration deviates from baseline."""
+        with self._lock:
+            conn = self._connect()
+            try:
+                cur = conn.execute(
+                    """SELECT AVG(ABS(predicted_confidence - 
+                        CASE WHEN actual_outcome = 'correct' THEN 1.0 ELSE 0.0 END))
+                    FROM (
+                        SELECT * FROM calibration_events
+                        WHERE actual_outcome IS NOT NULL
+                        ORDER BY event_ts DESC
+                        LIMIT ?
+                    )""", (window,)
+                )
+                recent = cur.row
+                recent_error = recent[0] if recent and recent[0] is not None else 0.0
+
+                cur = conn.execute(
+                    """SELECT AVG(ABS(predicted_confidence - 
+                        CASE WHEN actual_outcome = 'correct' THEN 1.0 ELSE 0.0 END))
+                    FROM calibration_events
+                    WHERE actual_outcome IS NOT NULL"""
+                )
+                all_row = cur.fetchone()
+                baseline_error = all_row[0] if all_row and all_row[0] is not None else 0.0
+
+                drifted = recent_error > baseline_error * 1.5 if baseline_error > 0 else False
+                return {
+                    "recent_error": round(recent_error, 4),
+                    "baseline_error": round(baseline_error, 4),
+                    "drifted": drifted,
+                    "window": window,
+                }
+            finally:
+                conn.close()
+
+
 def get_calibration_tracker() -> CalibrationTracker:
     """Return the process-wide CalibrationTracker singleton."""
     global _tracker
