@@ -400,13 +400,13 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 - [x] **Step 4.4: RAG proxy indirection (data_room.blueprint)**
 - [x] **Step 4.5: AMRE pre-commit hook installed**
 - [x] **Step 4.7:** `@require_auth` on 4 production API routes ✅ (P0/SEC-01)
-- [ ] **Step 4.8+:** R3.5, R7-R12 architecture linter rules
+- [x] **Step 4.8a:** R3.5, R7, R10, R12 — 4 новых правила ✅ (PR #246)
 - [ ] Connect real data APIs (Polygon, Unusual Whales, SEC EDGAR via data_room resolvers)
 - [ ] Add Telegram bot for alerts
-- [ ] Build RAG index (FAISS/Chroma) — proxy already in place
+- [x] **Step 4.8b:** Production RAG index — 102 docs → 1981 чанков, FAISS+BM25+RRF ✅
 - [ ] Add visualizations
 - [x] **ATOM-017: Full agent pools (MACRO + ASTRO + TECHNICAL)** — 8 agents running
-- [ ] DB Migration: SQLite → PostgreSQL + TimescaleDB + pgvector (see `knowledge/DB_ARCHITECTURE_PROMPT.md`)
+- [x] **Step 4.8c:** PostgreSQL + TimescaleDB + pgvector — DatabaseManager, Dual-Write ✅
 
 ---
 

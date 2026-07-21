@@ -155,11 +155,19 @@ class Settings(BaseSettings):
     redis_host: str = Field(default="localhost")
     redis_port: int = Field(default=6379, ge=1, le=65_535)
 
-    # ── RAG / Knowledge ───────────────────────────────────────────────
-    rag_backend: str = Field(default="pgvector")
+    # ── Production RAG Configuration (Phase 4.8b) ────────────────────────
+    RAG_MODEL_NAME: str = Field(default="intfloat/multilingual-e5-large")
+    RAG_INDEX_PATH: str = Field(default="data/rag_index")
+    RAG_TOP_K: int = Field(default=3)
+    RAG_ENABLED: bool = Field(default=True)
+
+    # ── Database — Dual-Write Migration (Phase 4.8c) ──────────────
+    ENABLE_DUAL_WRITE: bool = Field(default=True, description="Write to both PG and SQLite")
+    SQLITE_FALLBACK_PATH: str = Field(default="data/astrofin.db")
+    DB_POOL_SIZE: int = Field(default=10, ge=1)
+    DB_MAX_OVERFLOW: int = Field(default=20, ge=0)
+
     afs_pg_dsn: SecretStr = Field(default=SecretStr(""))
-    rag_legacy_fallback: bool = Field(default=True)
-    rag_faiss_dir: str = Field(default="knowledge/indexes")
 
     # ── Web app / Dash ────────────────────────────────────────────────
     secret_key: SecretStr = Field(default=SecretStr(""))
