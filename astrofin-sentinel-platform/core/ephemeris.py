@@ -23,7 +23,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Protocol, runtime_checkable
 
-from common.deterministic import utc_now_deterministic
+from datetime import datetime, timezone
+
+
+def _utc_now_deterministic() -> datetime:
+    """Local shim for utc_now_deterministic (acos_contracts not installed)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 # ─── Swiss Ephemeris availability check ─────────────────────────────────────
 try:
@@ -174,7 +179,7 @@ class SwissEphemerisProvider:
     ) -> dict[str, PlanetPosition]:
         flags = 1
         if sidereal and self._available and self._swe is not None:
-            flags |= 256
+            import swisseph as _swe; flags |= _swe.FLG_SIDEREAL
             try:
                 self._swe.set_sid_mode(1)
             except Exception:
@@ -315,7 +320,7 @@ def calculate_natal_chart(
     jd = _julian_day(birth_time)
     flags = 1
     if use_sidereal and HAS_SWISS_EPHEMERIS and swe is not None:
-        flags |= 256
+        import swisseph as _swe; flags |= _swe.FLG_SIDEREAL
         try:
             swe.set_sid_mode(ayanamsha)
         except Exception:
@@ -338,10 +343,10 @@ def get_current_positions(
 ) -> NatalChart:
     """Get current planetary positions for electional astrology.
 
-    Now uses `common.deterministic.utc_now_deterministic()` so that
+    Now uses `common.deterministic._utc_now_deterministic()` so that
     shadow-run / replay tests get a stable timestamp instead of wall-clock.
     """
-    now = utc_now_deterministic()
+    now = _utc_now_deterministic()
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     return calculate_natal_chart(now, latitude, longitude, use_sidereal)

@@ -231,3 +231,47 @@ shell: ## Войти в shell указанного сервиса (SERVICE=app)
 lint: ## Запустить pre-commit на всех файлах
 	@command -v pre-commit >/dev/null || pip install pre-commit
 	pre-commit run --all-files
+# -----------------------------------------------------------------------------
+# Local Development (docker-compose.dev.yml + FastAPI + Vite)
+# -----------------------------------------------------------------------------
+COMPOSE_DEV := docker-compose.dev.yml
+
+.PHONY: dev
+dev: dev-infra ## Запустить всё: DB + Ollama + FastAPI + Vite
+	@echo "Starting backend (FastAPI :8000) and frontend (Vite :5173)..."
+	@trap 'kill 0' EXIT; \
+	( . venv/bin/activate && uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload ) & \
+	( cd web-react && npm run dev -- --host 0.0.0.0 --port 5173 ) & \
+	wait
+
+.PHONY: dev-infra
+dev-infra: ## Поднять DB + Ollama (docker compose)
+	@echo "Starting dev infrastructure (PostgreSQL + Ollama)..."
+	docker-compose -f $(COMPOSE_DEV) up -d
+	@sleep 2
+	@echo "Infrastructure ready: PostgreSQL :5432, Ollama :11434"
+	@echo "Run 'ollama pull llama3.2:1b' if model not yet downloaded"
+
+.PHONY: dev-backend
+dev-backend: ## Запустить только FastAPI
+	@echo "Starting FastAPI on http://localhost:8000 ..."
+	. venv/bin/activate && uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+
+.PHONY: dev-frontend
+dev-frontend: ## Запустить только Vite React
+	@echo "Starting Vite on http://localhost:5173 ..."
+	cd web-react && npm run dev -- --host 0.0.0.0 --port 5173
+
+.PHONY: dev-down
+dev-down: ## Остановить dev-инфраструктуру
+	docker-compose -f $(COMPOSE_DEV) down
+
+.PHONY: test-unit
+test-unit: ## Запустить только unit-тесты (без integration)
+	@echo "Running unit tests only..."
+	. venv/bin/activate && python -m pytest -m "not integration" -v -o "addopts="
+
+.PHONY: test-all
+test-all: ## Запустить все тесты (включая integration)
+	@echo "Running ALL tests..."
+	. venv/bin/activate && python -m pytest -v -o "addopts="

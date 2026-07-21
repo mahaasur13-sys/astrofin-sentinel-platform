@@ -1,7 +1,7 @@
 import re
 
 # --- 1. HMMRegimeAgent: add set_pretrained_model method ---
-with open("/home/workspace/agents/_impl/hmm_regime_agent.py") as f:
+with open("/home/workspace/astrofin-sentinel-platform/agents/_impl/hmm_regime_agent.py") as f:
     content = f.read()
 
 # Add set_pretrained_model before _init_model
@@ -26,12 +26,12 @@ if "self._external_detector" not in content:
     )
     content = content.replace(old, new)
 
-with open("/home/workspace/agents/_impl/hmm_regime_agent.py", "w") as f:
+with open("/home/workspace/astrofin-sentinel-platform/agents/_impl/hmm_regime_agent.py", "w") as f:
     f.write(content)
 print("✅ 1. HMMRegimeAgent patched")
 
 # --- 2. BacktestRunner: wire real HMM agent into run() ---
-with open("/home/workspace/backtest/backtest_runner.py") as f:
+with open("/home/workspace/astrofin-sentinel-platform/backtest/backtest_runner.py") as f:
     content = f.read()
 
 # Add import
@@ -109,7 +109,7 @@ if "_build_responses" in content:
     pattern = re.compile(r'    async def run\(self, ohlcv: list.*?\n(?=    def _simulate_trade)', re.DOTALL)
     content = pattern.sub(new_run + '\n\n', content)
 
-with open("/home/workspace/backtest/backtest_runner.py", "w") as f:
+with open("/home/workspace/astrofin-sentinel-platform/backtest/backtest_runner.py", "w") as f:
     f.write(content)
 print("✅ 2. BacktestRunner patched")
 

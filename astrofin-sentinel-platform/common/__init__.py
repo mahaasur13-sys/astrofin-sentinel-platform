@@ -1,26 +1,38 @@
-"""astrofin.common — DEPRECATED compatibility shim.
+"""Common utilities — local self-contained implementations."""
 
-This package was the historical internal source of truth for cross-module
-abstractions. It now re-exports symbols from the standalone
-`acos_contracts` package (v0.1.0+). Domain code MUST import from
-`acos_contracts` directly; this module exists only to keep a few legacy
-import paths (`from common.interfaces import AgentResponseProtocol`,
-etc.) working during the migration window.
+from common.deterministic import (
+    DeterministicClockImpl,
+    DeterministicContext,
+    DeterministicRNG,
+    deterministic_uuid,
+    require_entropy_source,
+    reset_current_context,
+    set_current_context,
+    utc_now_deterministic,
+    uuid4_deterministic,
+)
 
-Importing this package must remain cheap and side-effect-free so it can be
-pulled from any layer without creating cycles.
-"""
-
-from __future__ import annotations
-
-from acos_contracts import (
-    interfaces,
-    contracts,
-    deterministic,
+from common.interfaces import (
+    AgentResponseProtocol,
+    BaseAgentProtocol,
+    DeterministicClock,
+    EphemerisProtocol,
+    SignalDirectionProtocol,
 )
 
 __all__ = [
-    "interfaces",
-    "contracts",
-    "deterministic",
+    "DeterministicClockImpl",
+    "DeterministicContext",
+    "DeterministicRNG",
+    "deterministic_uuid",
+    "require_entropy_source",
+    "reset_current_context",
+    "set_current_context",
+    "utc_now_deterministic",
+    "uuid4_deterministic",
+    "AgentResponseProtocol",
+    "BaseAgentProtocol",
+    "DeterministicClock",
+    "EphemerisProtocol",
+    "SignalDirectionProtocol",
 ]

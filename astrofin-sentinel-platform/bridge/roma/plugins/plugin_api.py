@@ -54,8 +54,9 @@ class IPlugin(ABC):
     async def on_init(self, config: Dict[str, Any]) -> None: ...
 
     @abstractmethod
-    async def on_execute(self, task: 'ROMATask', context: 'ExecutionContext') -> 'PluginResult': ...
+    @abstractmethod
 
+    async def on_execute(self, task: "ROMATask", context: "ExecutionContext") -> "PluginResult": ...  # noqa: F821 (protocol)
     @abstractmethod
     async def on_validate(self, task: 'ROMATask') -> 'ValidationResult': ...
 
@@ -228,11 +229,5 @@ PLUGIN_REGISTRY = {
 
 def get_plugin(name: str) -> IPlugin:
     cls = PLUGIN_REGISTRY.get(name)
-    if not cls:
-        raise ValueError(f"Plugin '{name}' not registered")
+    if not cls: raise ValueError(f"Plugin '{name}' not registered")
     return cls()
-
-# Type checking imports
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from bridge.roma.context_execution import ExecutionContext  # noqa: F401

@@ -64,7 +64,7 @@ class RedisTokenBucket:
             results = pipe.execute()
             current = results[0]
             window = current * 60.0 / self.burst
-            max(0, window - (now - self.redis.get(f"{self.key}:reset") or now))
+            _retry_after = max(0, window - (now - self.redis.get(f"{self.key}:reset") or now))
             allowed = current <= self.burst
             if allowed:
                 self.redis.setex(f"{self.key}:reset", 60, str(now))

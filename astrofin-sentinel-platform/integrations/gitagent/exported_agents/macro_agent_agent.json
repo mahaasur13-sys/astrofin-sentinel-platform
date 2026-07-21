@@ -1,14 +1,11 @@
 {
   "name": "MacroAgent",
-  "module": "unified-platform.domain.astrofin.agents.registry",
-  "acos_job_type": "astrofin_macro",
-  "acos_layer": "L6",
-  "description": "Macroeconomic analysis - Fed policy, GDP, CPI, geopolitical events",
-  "tools": [
-    "fed_watch",
-    "economic_indicators",
-    "geopolitical_risk",
-    "currency_analysis"
-  ],
-  "instructions": "Monitor macroeconomic factors: Federal Reserve policy, GDP growth, inflation (CPI/PPI), geopolitical events, currency movements. Assess macro regime and its impact on asset classes."
+  "module": "agents._impl.macro_agent",
+  "class": "MacroAgent",
+  "description": "MacroAgent — фундаментальный макроэкономический анализ.\n\n    Responsibilities:\n    1. VIX analysis (fear index)\n    2. DXY (dollar index) directional signal\n    3. Geopolitical risk scoring via RAG\n    4. Weighted macro signal aggregation\n\n    Weight: 15% (part of 20% Fundamental+Macro block)",
+  "domain": "macro",
+  "weight": 0.15,
+  "tools": [],
+  "instructions": "",
+  "source": "agents/_impl"
 }

@@ -1,6 +1,5 @@
 """ROMA Developer Onboarding — 0-to-job in 30 seconds."""
-import sys
-sys.path.insert(0, '/home/workspace/roma-execution-bridge')
+import sys; sys.path.insert(0, '/home/workspace/roma-execution-bridge')
 from auth.api_keys import APIKeyManager
 from cost.predictor import CostPredictor
 

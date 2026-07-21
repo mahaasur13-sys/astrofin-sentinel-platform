@@ -9,29 +9,17 @@ class BillingLedger:
     def __init__(self):
         self._entries: list[dict] = []
 
-    def append(
-        self,
-        tenant_id: str,
-        entry_type: str,
-        amount: float,
-        currency: str = "USD",
-        metadata: dict = None,
-        partner_id: str = None,
-        revenue_share_percent: float = 0.0,
-    ) -> None:
-        meta = metadata or {}
+    def append(self, tenant_id: str, entry_type: str, amount: float, currency: str = "USD", metadata: dict = None, partner_id: str = None, revenue_share_percent: float = None) -> None:
         entry = {
             "ledger_id": f"led-{len(self._entries) + 1:06d}",
             "timestamp": time.time(),
             "tenant_id": tenant_id,
             "type": entry_type,
             "amount": amount,
+    "partner_id": partner_id or "platform",
+    "revenue_share_percent_applied": revenue_share_percent,
             "currency": currency,
-            "partner_id": partner_id or meta.get("partner_id") or "platform",
-            "revenue_share_percent_applied": revenue_share_percent
-            if revenue_share_percent
-            else meta.get("revenue_share_percent", 0.0),
-            "metadata": meta,
+            "metadata": metadata or {},
         }
         self._entries.append(entry)
 

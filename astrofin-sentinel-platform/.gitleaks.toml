@@ -17,7 +17,7 @@ useDefault = true
 description = "Known placeholders and example fixtures"
 paths = [
     '''deploy/iac/terraform/modules/kubernetes/main.tf''',
-    '''src/bridges/roma/billing/stripe_client.py''',
+    '''bridge/roma/billing/stripe_client.py''',
     '''.secrets.baseline''',
     '''.gitleaks.toml''',
     '''.gitleaksignore''',

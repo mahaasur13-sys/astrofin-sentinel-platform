@@ -59,6 +59,60 @@ class TestMCPAdapter:
         assert wrapped["server"] == "unknown"
         assert "original_def" in wrapped
 
+    def test_wrap_tools(self):
+        """Test batch tool wrapping."""
+        adapter = MCPAdapter()
+        wrapped = adapter.wrap_tools([{"name": "one"}, {"name": "two"}])
+        assert [tool["name"] for tool in wrapped] == ["one", "two"]
+    def test_round_trip_install_list_wrap_and_call(self, tmp_path, monkeypatch):
+        """Test the install-to-tool-call path with three MCP tools."""
+        import subprocess
+
+        adapter = MCPAdapter(storage_path=tmp_path)
+        tool_defs = [
+            {"name": "get_quote", "description": "Get a quote", "inputSchema": {"type": "object"}},
+            {"name": "get_news", "description": "Get news", "inputSchema": {"type": "object"}},
+            {"name": "get_calendar", "description": "Get events", "inputSchema": {"type": "object"}},
+        ]
+
+        def fake_run(arguments, timeout=60):
+            if arguments[:2] == ["mcp", "add"]:
+                return subprocess.CompletedProcess(arguments, 0, "{}", "")
+            if arguments[:2] == ["tool", "call"]:
+                return subprocess.CompletedProcess(arguments, 0, '{"ok":true}', "")
+            raise AssertionError(f"Unexpected Smithery command: {arguments}")
+
+        monkeypatch.setattr(adapter, "_run_cli", fake_run)
+        installed = adapter.mcp_install("astrofin/market-data")
+        assert installed["status"] == "installed"
+        adapter.installed_servers[installed["connection_id"]]["tools"] = tool_defs
+
+        wrapped = adapter.mcp_list_tools()
+        assert [tool["name"] for tool in wrapped] == ["get_quote", "get_news", "get_calendar"]
+        assert all(tool["connection_id"] == installed["connection_id"] for tool in wrapped)
+        assert adapter.call_tool(installed["connection_id"], "get_quote", {"symbol": "BTCUSDT"}) == {"ok": True}
+
+    def test_redacts_credentials_before_persisting(self, tmp_path, monkeypatch):
+        """Test that connection metadata cannot persist credential values."""
+        adapter = MCPAdapter(storage_path=tmp_path)
+        monkeypatch.setattr(
+            adapter,
+            "_run_cli",
+            lambda *args, **kwargs: __import__("subprocess").CompletedProcess(
+                args=[], returncode=0, stdout="{}", stderr=""
+            ),
+        )
+        result = adapter.mcp_install(
+            "example/server",
+            config={"api_key": "secret", "nested": {"token": "secret-token"}},
+        )
+        assert result["status"] == "installed"
+        persisted = json.loads((tmp_path / "installed_servers.json").read_text())
+        assert persisted["example-server"]["config"] == {
+            "api_key": "[REDACTED]",
+            "nested": {"token": "[REDACTED]"},
+        }
+
     def test_install_returns_pending(self):
         """Test install returns proper structure."""
         adapter = MCPAdapter()

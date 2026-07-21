@@ -50,7 +50,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
         """
         symbol = state.get("symbol", "BTCUSDT")
 
-        price_data = await self._fetch_ohlcv(symbol, "1d", 365)
+        price_data = state.get("_price_data", []) or await self._fetch_ohlcv(symbol, "1D", 365)
         if not price_data:
             return AgentResponse(
                 agent_name="BradleyAgent",
@@ -110,15 +110,16 @@ class BradleyAgent(BaseAgent[AgentResponse]):
         import httpx
 
         try:
-            url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}-USDT&interval={interval}&limit={limit}"
+            inst_id = symbol if "-" in symbol else symbol + "-USDT"
+            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval}&limit={limit}"
             async with httpx.AsyncClient() as client:
                 resp = await client.get(url, timeout=10)
                 resp.raise_for_status()
                 data = resp.json()
-                return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
+                return [[float(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
             logger.warning(
-                f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}"
+                f"Failed to fetch OHLCV data for {symbol} with interval {interval} and limit {limit}"
             )
             return []
 

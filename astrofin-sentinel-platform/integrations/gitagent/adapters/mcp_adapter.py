@@ -297,6 +297,19 @@ class MCPAdapter:
             unique = [item for item in unique if self._category_match(item, category)]
         return unique[:20]
 
+    @staticmethod
+    def _redact_config(value: Any) -> Any:
+        """Redact common credential fields before writing connection metadata."""
+        sensitive = ("key", "token", "secret", "password", "credential", "authorization")
+        if isinstance(value, dict):
+            return {
+                key: "[REDACTED]" if any(word in key.lower() for word in sensitive) else MCPAdapter._redact_config(item)
+                for key, item in value.items()
+            }
+        if isinstance(value, list):
+            return [MCPAdapter._redact_config(item) for item in value]
+        return value
+
     def mcp_install(
         self, server_name: str, config: dict[str, Any] | None = None
     ) -> dict[str, Any]:
@@ -332,7 +345,7 @@ class MCPAdapter:
         server_info = {
             "name": qualified_name,
             "connection_id": connection_id,
-            "config": config or {},
+            "config": self._redact_config(config or {}),
         }
         self.installed_servers[connection_id] = server_info
         self._save_installed()
@@ -429,6 +442,10 @@ class MCPAdapter:
             "connection_id": connection_id,
             "original_def": tool_def,
         }
+
+    def wrap_tools(self, tool_defs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Convert multiple MCP definitions to GitAgent tool definitions."""
+        return [self.wrap_tool(tool_def) for tool_def in tool_defs]
 
     def get_recommended_servers(self) -> list[dict[str, Any]]:
         """Return verified starting points and discovery queries for AstroFin."""

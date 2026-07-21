@@ -1,0 +1,44 @@
+version: "3.9"
+
+# AstroFin Sentinel V5 — Development Environment
+# Usage: docker compose -f docker-compose.dev.yml up -d
+# Then:   make dev
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: astrofin-dev-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: astrofin
+      POSTGRES_PASSWORD: astrofin_dev
+      POSTGRES_DB: astrofin_dev
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U astrofin"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: astrofin-dev-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # Fallback: if no GPU, remove the deploy section above
+    # and add: environment: - OLLAMA_NUM_THREADS=4
+
+volumes:
+  pgdata_dev:
+  ollama_data:

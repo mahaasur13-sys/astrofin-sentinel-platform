@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 
-import requests
+import aiohttp
 
 from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
@@ -44,6 +44,7 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             domain="fundamental",
             weight=0.12,
         )
+        self._session: aiohttp.ClientSession | None = None
 
     @require_ephemeris
     async def analyze(self, state: dict) -> AgentResponse:
@@ -122,24 +123,26 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             # CoinGecko free API
             coin_id = symbol.replace("USDT", "").lower()
             url = f"https://api.coingecko.com/api/v3/coins/{coin_id}"
-            resp = requests.get(url, timeout=10)
-            if resp.status_code == 200:
-                data = resp.json()
-                return {
-                    "name": data.get("name", ""),
-                    "market_cap_rank": data.get("market_cap_rank", 999),
-                    "market_cap": data.get("market_data", {})
-                    .get("market_cap", {})
-                    .get("usd", 0),
-                    "volume_24h": data.get("market_data", {})
-                    .get("total_volume", {})
-                    .get("usd", 0),
-                    "price_change_24h": data.get("market_data", {}).get(
-                        "price_change_percentage_24h", 0
-                    ),
-                    "ath": data.get("market_data", {}).get("ath", {}).get("usd", 0),
-                    "atl": data.get("market_data", {}).get("atl", {}).get("usd", 0),
-                }
+            if self._session is None:
+                self._session = aiohttp.ClientSession()
+            async with self._session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                if resp.status_code == 200:
+                    data = await resp.json()
+                    return {
+                        "name": data.get("name", ""),
+                        "market_cap_rank": data.get("market_cap_rank", 999),
+                        "market_cap": data.get("market_data", {})
+                        .get("market_cap", {})
+                        .get("usd", 0),
+                        "volume_24h": data.get("market_data", {})
+                        .get("total_volume", {})
+                        .get("usd", 0),
+                        "price_change_24h": data.get("market_data", {}).get(
+                            "price_change_percentage_24h", 0
+                        ),
+                        "ath": data.get("market_data", {}).get("ath", {}).get("usd", 0),
+                        "atl": data.get("market_data", {}).get("atl", {}).get("usd", 0),
+                    }
         except Exception:
             pass
         return {"market_cap_rank": 999}
@@ -150,25 +153,27 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             # Alternative: use public APIs
             coin_id = symbol.replace("USDT", "").lower()
             url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart?vs_currency=usd&days=30"
-            resp = requests.get(url, timeout=10)
-            if resp.status_code == 200:
-                data = resp.json()
-                prices = data.get("prices", [])
-                if len(prices) > 1:
-                    current = prices[-1][1]
-                    ath = max(p[1] for p in prices)
-                    # MVRV approximation
-                    mvrv = current / (sum(p[1] for p in prices) / len(prices))
-                    return {
-                        "mvrv_ratio": round(mvrv, 2),
-                        "ath_distance_pct": round((ath - current) / ath * 100, 1),
-                        "volatility_30d": round(
-                            (max(p[1] for p in prices) - min(p[1] for p in prices))
-                            / current
-                            * 100,
-                            1,
-                        ),
-                    }
+            if self._session is None:
+                self._session = aiohttp.ClientSession()
+            async with self._session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                if resp.status_code == 200:
+                    data = await resp.json()
+                    prices = data.get("prices", [])
+                    if len(prices) > 1:
+                        current = prices[-1][1]
+                        ath = max(p[1] for p in prices)
+                        # MVRV approximation
+                        mvrv = current / (sum(p[1] for p in prices) / len(prices))
+                        return {
+                            "mvrv_ratio": round(mvrv, 2),
+                            "ath_distance_pct": round((ath - current) / ath * 100, 1),
+                            "volatility_30d": round(
+                                (max(p[1] for p in prices) - min(p[1] for p in prices))
+                                / current
+                                * 100,
+                                1,
+                            ),
+                        }
         except Exception as e:
             logger.warning(
                 f"[FundamentalAgent] Failed to fetch onchain data for {symbol}: {e}"

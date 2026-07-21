@@ -12,10 +12,7 @@ log = logging.getLogger("job_store")
 
 class JobStore:
     def __init__(self, path: str = "/tmp/roma_jobs.json"):
-        self._path = path
-        self._jobs: Dict[str, Job] = {}
-        self._lock = threading.RLock()
-        self._seq = 0
+        self._path = path; self._jobs: Dict[str, Job] = {}; self._lock = threading.RLock(); self._seq = 0
         self._load()
 
     def _load(self):
@@ -38,91 +35,58 @@ class JobStore:
             self._seq += 1
             job = Job(id=f"job-{self._seq:05d}-{uuid.uuid4().hex[:8]}",
                       plugin=plugin, payload=payload, gpu_allocated=gpu, ttl_seconds=ttl, max_retries=max_retries)
-            self._jobs[job.id] = job
-            self._save()
+            self._jobs[job.id] = job; self._save()
             log.info(f"SUBMITTED: {job.id} ({plugin})")
             return job
 
     def schedule(self, job_id: str, worker_id: str) -> bool:
         with self._lock:
             j = self._jobs.get(job_id)
-            if not j or j.status != JobStatus.SUBMITTED:
-                return False
-            j.status = JobStatus.SCHEDULED
-            j.worker_id = worker_id
-            j.scheduled_at = time.time()
-            self._save()
-            log.info(f"SCHEDULED: {job_id} -> {worker_id}")
-            return True
+            if not j or j.status != JobStatus.SUBMITTED: return False
+            j.status = JobStatus.SCHEDULED; j.worker_id = worker_id; j.scheduled_at = time.time()
+            self._save(); log.info(f"SCHEDULED: {job_id} -> {worker_id}"); return True
 
     def start(self, job_id: str) -> bool:
         with self._lock:
             j = self._jobs.get(job_id)
-            if not j or j.status != JobStatus.SCHEDULED:
-                return False
-            j.status = JobStatus.RUNNING
-            j.started_at = time.time()
-            self._save()
-            log.info(f"STARTED: {job_id}")
-            return True
+            if not j or j.status != JobStatus.SCHEDULED: return False
+            j.status = JobStatus.RUNNING; j.started_at = time.time(); self._save()
+            log.info(f"STARTED: {job_id}"); return True
 
     def complete(self, job_id: str) -> bool:
         with self._lock:
             j = self._jobs.get(job_id)
-            if not j or j.status != JobStatus.RUNNING:
-                return False
-            j.status = JobStatus.COMPLETED
-            j.completed_at = time.time()
-            self._save()
-            log.info(f"COMPLETED: {job_id}")
-            return True
+            if not j or j.status != JobStatus.RUNNING: return False
+            j.status = JobStatus.COMPLETED; j.completed_at = time.time(); self._save()
+            log.info(f"COMPLETED: {job_id}"); return True
 
     def commit(self, job_id: str) -> bool:
         with self._lock:
             j = self._jobs.get(job_id)
-            if not j or j.status != JobStatus.COMPLETED:
-                return False
-            j.status = JobStatus.COMMITTED
-            self._save()
-            log.info(f"COMMITTED: {job_id}")
-            return True
+            if not j or j.status != JobStatus.COMPLETED: return False
+            j.status = JobStatus.COMMITTED; self._save(); log.info(f"COMMITTED: {job_id}"); return True
 
     def fail(self, job_id: str, error: str) -> bool:
         with self._lock:
             j = self._jobs.get(job_id)
-            if not j or j.status not in (JobStatus.RUNNING, JobStatus.SCHEDULED):
-                return False
-            j.status = JobStatus.FAILED
-            j.error = error
-            j.completed_at = time.time()
-            self._save()
-            log.warning(f"FAILED: {job_id} - {error}")
-            return True
+            if not j or j.status not in (JobStatus.RUNNING, JobStatus.SCHEDULED): return False
+            j.status = JobStatus.FAILED; j.error = error; j.completed_at = time.time()
+            self._save(); log.warning(f"FAILED: {job_id} - {error}"); return True
 
     def requeue(self, job_id: str) -> bool:
         with self._lock:
             j = self._jobs.get(job_id)
-            if not j:
-                return False
+            if not j: return False
             if not j.is_retryable():
-                j.status = JobStatus.DEAD
-                self._save()
-                log.error(f"DEAD (no retries): {job_id}")
-                return False
-            j.status = JobStatus.PENDING_RETRY
-            j.worker_id = None
-            j.retry_count += 1
-            self._save()
-            log.info(f"REQUEUED: {job_id} (attempt {j.retry_count}/{j.max_retries})")
-            return True
+                j.status = JobStatus.DEAD; self._save(); log.error(f"DEAD (no retries): {job_id}"); return False
+            j.status = JobStatus.PENDING_RETRY; j.worker_id = None; j.retry_count += 1
+            self._save(); log.info(f"REQUEUED: {job_id} (attempt {j.retry_count}/{j.max_retries})"); return True
 
     def advance_pending(self) -> List[Job]:
         with self._lock:
             ready = [j for j in self._jobs.values() if j.status == JobStatus.PENDING_RETRY]
-            for j in ready:
-                j.status = JobStatus.SUBMITTED
-            if ready:
-                self._save()
+            for j in ready: j.status = JobStatus.SUBMITTED
+            if ready: self._save()
             return ready
 
     def get(self, job_id: str) -> Optional[Job]:

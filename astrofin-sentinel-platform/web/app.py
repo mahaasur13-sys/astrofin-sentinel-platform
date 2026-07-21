@@ -179,6 +179,10 @@ app.layout = dbc.Container(
                     label="📡 Live",
                     value="tab-live",
                 ),
+                dcc.Tab(
+                    label="🤖 13 Agents Live",
+                    value="tab-agents-live",
+                ),
             ],
         ),
         html.Div(
@@ -206,6 +210,7 @@ def update_clock(_):
 
 # ── Register callbacks ──────────────────────────────────────────────────────────
 from web.callbacks import register_callbacks
+from web.components.agents_live import agents_live_tab
 from web.sessions_callbacks import register_sessions_callbacks
 
 register_callbacks(app, _engine_ref)
