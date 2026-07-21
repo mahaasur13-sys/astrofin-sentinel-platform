@@ -7,12 +7,13 @@ from __future__ import annotations
 
 import asyncio
 import contextvars
+import time
 import copy
 import logging
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Generic, TypeVar
 
@@ -65,7 +66,7 @@ class AgentResponse:
     reasoning: str
     sources: list[str] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     session_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
 
     def __post_init__(self):

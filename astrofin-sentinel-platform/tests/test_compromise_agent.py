@@ -56,6 +56,11 @@ for stub_name in [
 
 # ── 2. Stub tools.metrics_server which pulls in meta_rl.metrics ────────
 class _StubModule(types.ModuleType):
+    def __init__(self, name):
+        super().__init__(name)
+        self.__file__ = None
+        self.__path__ = None
+
     def __getattr__(self, name):
         return _StubModule(name)
 

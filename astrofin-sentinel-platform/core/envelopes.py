@@ -62,6 +62,7 @@ class TaskEnvelope:
 
     task_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     agent_name: str = ""
+    agent_type: str = ""
     task_type: str = "analyze"
     state_snapshot: dict[str, Any] = field(default_factory=dict)
     deadline_epoch: float = 0.0
@@ -214,6 +215,22 @@ class ResultEnvelope:
         if not self.trace_id:
             self.trace_id = self.task_id
 
+    @property
+    def is_success(self) -> bool:
+        return self.status == TaskStatus.COMPLETED and not self.error
+
+    @property
+    def is_success(self) -> bool:
+        return self.status == TaskStatus.COMPLETED
+
+    @property
+    def is_error(self) -> bool:
+        return self.status == TaskStatus.FAILED
+
+    @property
+    def response(self) -> dict[str, Any]:
+        return self.result
+
     @classmethod
     def from_envelope(
         cls,
@@ -223,6 +240,7 @@ class ResultEnvelope:
         error: str = "",
         execution_time_ms: float = 0.0,
         agent_name: str = "",
+    agent_type: str = ""
     ) -> "ResultEnvelope":
         return cls(
             task_id=envelope.task_id,

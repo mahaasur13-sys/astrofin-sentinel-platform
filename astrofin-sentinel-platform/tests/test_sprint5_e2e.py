@@ -81,7 +81,7 @@ class TestEnsembleVoting13Agents:
             env = TaskEnvelope.new(
                 agent_name=name,
                 state=state,
-                deadline=time.time() + 120,
+                deadline_seconds=120,
             )
             result = await broker.send(env, agent.on_message)
             results.append(result)
@@ -134,7 +134,7 @@ class TestCircuitBreakerIntegrated:
         env = TaskEnvelope.new(
             agent_name="fundamental",
             state={"ticker": "BTCUSDT", "timeframe": "1D"},
-            deadline=time.time() + 120,
+            deadline_seconds=120,
         )
 
         # If open, broker should still handle it (CB check is optional per-agent)
