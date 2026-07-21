@@ -19,6 +19,21 @@ from pathlib import Path
 
 WS = Path("/home/workspace")
 
+
+# ── 0. Cleanup fixture to restore sys.modules after test ───────────────
+import pytest as _pytest
+_original_modules = dict(sys.modules)
+
+@_pytest.fixture(autouse=True)
+def _cleanup_modules():
+    yield
+    for key in list(sys.modules):
+        if key not in _original_modules:
+            del sys.modules[key]
+    for key, mod in _original_modules.items():
+        if key not in sys.modules:
+            sys.modules[key] = mod
+
 # ── 1. Stub the broken chain BEFORE any user code imports it ─────────────
 # (Pre-existing project issue: integrations.gitagent is mostly empty.)
 for stub_name in [

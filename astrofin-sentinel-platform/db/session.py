@@ -177,3 +177,17 @@ def wait_for_postgres(max_retries: int = 10, retry_delay: float = 2.0) -> bool:
 
 def get_db_stats() -> dict:
     return get_db_manager().get_stats()
+
+
+# Backward compatibility alias for db/karl_replay.py
+@contextmanager
+def pg_session():
+    """Backward-компатибельная PG сессия с авто-коммитом."""
+    with get_db_manager().session(use_pg=True) as s:
+        yield s
+
+
+def is_postgres_available() -> bool:
+    """Check if PG connection can be established."""
+    mgr = get_db_manager()
+    return mgr.pg_engine is not None and mgr.pg_session_factory is not None

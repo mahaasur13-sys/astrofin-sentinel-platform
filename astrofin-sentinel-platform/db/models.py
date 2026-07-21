@@ -195,9 +195,9 @@ class AgentSelectionLog(Base):
 
 class KARLDecisionRecord(Base):
     __tablename__ = "karl_decision_records"
-    decision_id = Column(UUID(as_uuid=True), primary_key=True)
+    decision_id = Column(String(255), primary_key=True)
     session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="SET NULL")
+        String(255), ForeignKey("sessions.session_id", ondelete="SET NULL")
     )
     symbol = Column(String(20))
     price = Column(Numeric(20, 8))
