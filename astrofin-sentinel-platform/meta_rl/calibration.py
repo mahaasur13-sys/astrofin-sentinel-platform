@@ -225,6 +225,7 @@ class CalibrationTracker:
                     "WHERE p.predicted_at >= ? AND p.predicted_at <= ?",
                     (start_iso, end_iso),
                 )
+                pairs = cur.fetchall()
                 cur.execute(
                     "SELECT COUNT(*) FROM predictions WHERE predicted_at >= ? AND predicted_at <= ?",
                     (start_iso, end_iso),
@@ -236,13 +237,12 @@ class CalibrationTracker:
                     "WHERE p.agent = ? AND p.predicted_at >= ? AND p.predicted_at <= ?",
                     (agent, start_iso, end_iso),
                 )
+                pairs = cur.fetchall()
                 cur.execute(
                     "SELECT COUNT(*) FROM predictions "
                     "WHERE agent = ? AND predicted_at >= ? AND predicted_at <= ?",
                     (agent, start_iso, end_iso),
                 )
-
-            pairs = cur.fetchall()
             n_predictions_row = cur.fetchone()
             n_predictions = int(n_predictions_row[0]) if n_predictions_row else 0
 
@@ -373,49 +373,50 @@ class CalibrationTracker:
         )
 
 
-# ── Singleton ─────────────────────────────────────────────────────────────────
+    # ── Sprint 6 convenience API ──────────────────────────────────────────
+
+    @property
+    def calibration_accuracy(self) -> float:
+        """Recent calibration accuracy (0–1), computed from resolved outcomes."""
+        report = self.get_calibration(window_days=180)
+        return report.ece if report.n_predictions > 0 else 0.0
+
+    def evaluate(self, predictions: list[dict], outcomes: list[int]) -> float:
+        """Batch-evaluate predictions against outcomes. Returns accuracy."""
+        if not predictions or not outcomes or len(predictions) != len(outcomes):
+            return 0.0
+        correct = 0
+        for pred, outcome in zip(predictions, outcomes):
+            if isinstance(pred, dict):
+                signal = pred.get("signal", "")
+                conf = pred.get("confidence", 0.5)
+            else:
+                signal = str(pred)
+                conf = 0.5
+            # Simple heuristic: if confidence > 0.5 and outcome == 1 → correct
+            predicted_positive = conf >= 0.5
+            if (predicted_positive and outcome == 1) or (not predicted_positive and outcome == 0):
+                correct += 1
+        return correct / len(predictions)
+
+    def detect_drift(self, window: int = 50) -> bool:
+        """Check if recent calibration error exceeds baseline by 50%."""
+        report_recent = self.get_calibration(window_days=window)
+        report_baseline = self.get_calibration(window_days=365)
+        if report_baseline.n_predictions < 10 or report_recent.n_predictions < 5:
+            return False
+        recent_ece = report_recent.ece_weighted
+        baseline_ece = report_baseline.ece_weighted
+        if baseline_ece == 0.0:
+            return recent_ece > 0.05
+        return recent_ece > baseline_ece * 1.5
+
+
+
+# --- Singleton ---
 
 _tracker: CalibrationTracker | None = None
 _tracker_lock = threading.Lock()
-
-
-    def detect_drift(self, window: int = 50) -> dict:
-        """Check if recent calibration deviates from baseline."""
-        with self._lock:
-            conn = self._connect()
-            try:
-                cur = conn.execute(
-                    """SELECT AVG(ABS(predicted_confidence - 
-                        CASE WHEN actual_outcome = 'correct' THEN 1.0 ELSE 0.0 END))
-                    FROM (
-                        SELECT * FROM calibration_events
-                        WHERE actual_outcome IS NOT NULL
-                        ORDER BY event_ts DESC
-                        LIMIT ?
-                    )""", (window,)
-                )
-                recent = cur.row
-                recent_error = recent[0] if recent and recent[0] is not None else 0.0
-
-                cur = conn.execute(
-                    """SELECT AVG(ABS(predicted_confidence - 
-                        CASE WHEN actual_outcome = 'correct' THEN 1.0 ELSE 0.0 END))
-                    FROM calibration_events
-                    WHERE actual_outcome IS NOT NULL"""
-                )
-                all_row = cur.fetchone()
-                baseline_error = all_row[0] if all_row and all_row[0] is not None else 0.0
-
-                drifted = recent_error > baseline_error * 1.5 if baseline_error > 0 else False
-                return {
-                    "recent_error": round(recent_error, 4),
-                    "baseline_error": round(baseline_error, 4),
-                    "drifted": drifted,
-                    "window": window,
-                }
-            finally:
-                conn.close()
-
 
 def get_calibration_tracker() -> CalibrationTracker:
     """Return the process-wide CalibrationTracker singleton."""

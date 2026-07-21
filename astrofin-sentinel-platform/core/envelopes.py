@@ -196,7 +196,9 @@ class ResultEnvelope:
 
     task_id: str = ""
     agent_name: str = ""
+    agent_type: str = ""
     trace_id: str = ""
+    traceparent: str = ""
     status: TaskStatus = TaskStatus.COMPLETED
     result: dict[str, Any] = field(default_factory=dict)
     error: str = ""
@@ -226,6 +228,7 @@ class ResultEnvelope:
             task_id=envelope.task_id,
             agent_name=agent_name or envelope.agent_name,
             trace_id=envelope.trace_id,
+            traceparent=envelope.traceparent,
             status=status,
             result=result or {},
             error=error,

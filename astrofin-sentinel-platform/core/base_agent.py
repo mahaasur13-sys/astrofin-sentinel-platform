@@ -300,10 +300,13 @@ class BaseAgent(ABC, Generic[T]):
             return ResultEnvelope(
                 task_id=envelope.task_id,
                 agent_name=self.name,
+                agent_type=envelope.agent_type,
                 trace_id=envelope.trace_id,
+                traceparent=envelope.traceparent,
                 status=TaskStatus.COMPLETED,
                 result=agent_response if isinstance(agent_response, dict) else (agent_response.to_dict() if hasattr(agent_response, "to_dict") else {}),
                 schema_version=envelope.schema_version,
+                execution_time_ms=(time.time() - envelope.created_at_epoch) * 1000,
             )
 
         except Exception as exc:

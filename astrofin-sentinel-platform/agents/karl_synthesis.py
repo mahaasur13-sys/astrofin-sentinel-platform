@@ -598,5 +598,5 @@ def get_karl_agent() -> KARLSynthesisAgent:
 
 def resolve_conflict(agent_a, agent_b):
     """Resolve conflict between two agents by reducing both weights by 10%."""
-    agent_a.weight = max(0.0, agent_a.weight - 0.10)
-    agent_b.weight = max(0.0, agent_b.weight - 0.10)
+    agent_a.metadata["weight"] = max(0.0, agent_a.metadata.get("weight", 0.10) - 0.10)
+    agent_b.metadata["weight"] = max(0.0, agent_b.metadata.get("weight", 0.10) - 0.10)

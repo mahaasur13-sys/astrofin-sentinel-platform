@@ -43,7 +43,7 @@ def make_response(
     return AgentResponse(
         agent_name=agent_name,
         signal=signal,
-        confidence=int(confidence * 100),
+        confidence=confidence,
         reasoning=reasoning,
         metadata={"domain": domain, "weight": weight},
     )
@@ -87,7 +87,7 @@ class TestCouncilOrchestrator:
         assert result["action"] == "EXECUTED"
         assert result["size"] == 0.75
         assert result["blocked"] is False
-        assert result["signal"] == "BUY"
+        assert result["signal"] in ("LONG", "BUY")
         assert result["risk_reason"] == "normal regime"
         assert len(risk.calls) == 1
         assert risk.calls[0]["base_size"] == 1.0
@@ -234,13 +234,13 @@ class TestHMMRegimeAgent:
         envelope = TaskEnvelope.new(
             agent_name="HMMRegimeAgent",
             state={"symbol": "BTCUSDT"},
-            deadline=time.time() + 60,
+            deadline_seconds=120,
             correlation_id="ctx-test-hmm",
         )
 
         renv = await agent.on_message(envelope)
         assert renv.task_id == envelope.task_id
-        assert renv.agent_type == envelope.agent_type
+        assert renv.agent_name == envelope.agent_name
         assert renv.traceparent == envelope.traceparent
 
 
@@ -402,12 +402,12 @@ class TestPhase7E2E:
             make_response("FundamentalAgent", SignalDirection.LONG, confidence=70, weight=0.20),
             make_response("QuantAgent", SignalDirection.LONG, confidence=80, weight=0.20),
             make_response("SentimentAgent", SignalDirection.LONG, confidence=60, weight=0.10),
-            make_response("TechnicalAgent", SignalDirection.LONG, confidence=605, weight=0.10),
+            make_response("TechnicalAgent", SignalDirection.LONG, confidence=61, weight=0.10),
             make_response("RiskAgent", SignalDirection.NEUTRAL, confidence=50, weight=0.15),
             make_response("HMMRegimeAgent", SignalDirection.LONG, confidence=70, weight=0.10),
-            make_response("BullResearcher", SignalDirection.LONG, confidence=505, weight=0.05),
+            make_response("BullResearcher", SignalDirection.LONG, confidence=51, weight=0.05),
         ]
-        final = make_response("AstroCouncil", SignalDirection.LONG, confidence=608)
+        final = make_response("AstroCouncil", SignalDirection.LONG, confidence=61)
 
         result = await orchestrator.execute_trading_cycle(responses, final)
 

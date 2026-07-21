@@ -46,8 +46,33 @@ class RegimeDetector:
 
     # ── public API ─────────────────────────────────────────────────────
 
-    def fit(self, ohlcv: List[dict]) -> None:
+
+    def predict(self, returns: "np.ndarray") -> list:
+        """Predict regime labels for a returns array (test convenience).
+        Returns int labels: 0=bear, 1=sideways, 2=bull."""
+        LABEL_TO_INT = {"bear": 0, "sideways": 1, "bull": 2}
+        ohlcv = [{"close": 100.0 * (1.0 + float(np.sum(returns[:i+1])))} for i in range(len(returns))]
+        self.fit(ohlcv)
+        return [LABEL_TO_INT[l] for l in self._regime_labels]
+
+    def detect_anomalies(
+        self, returns: "np.ndarray", window: int | None = None, threshold: float | None = None
+    ) -> list:
+        """Detect anomaly bars from a returns array.
+        If window is set, computes rolling log-likelihood anomalies."""
+        if threshold is not None:
+            self._anomaly_threshold = threshold
+        if window is None or window <= 0:
+            window = _WINDOW
+        ohlcv = [{"close": 100.0 * (1.0 + float(np.sum(returns[:i+1])))} for i in range(len(returns))]
+        self.fit(ohlcv)
+        return [ll < self._anomaly_threshold for ll in self._log_lik]
+
+    def fit(self, ohlcv):
         """Fit HMM on *all* historical data and annotate every bar."""
+        # Handle raw numpy arrays (test convenience)
+        if isinstance(ohlcv, np.ndarray):
+            ohlcv = [{"close": 100.0 * (1.0 + float(np.sum(ohlcv[:i+1])))} for i in range(len(ohlcv))]
         if not HAS_HMM:
             logger.warning("hmmlearn not available; fallback to heuristics")
             self._fallback(ohlcv)
