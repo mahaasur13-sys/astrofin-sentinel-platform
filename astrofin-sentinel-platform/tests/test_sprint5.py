@@ -95,13 +95,7 @@ class TestSprint5E2E:
         agent_names = ["FundamentalAgent", "MacroAgent", "SentimentAgent"]
 
         # Gather baseline
-        import importlib
-        fns = []
-        for name in agent_names:
-            mod_path = f"agents._impl.{name.lower()}"
-            fn_name = f"run_{name.lower()}"
-            mod = importlib.import_module(mod_path)
-            fns.append(getattr(mod, fn_name))
+        fns = [_lazy_import(n) for n in agent_names]
 
         t0 = time.perf_counter()
         gather_results = await asyncio.gather(
