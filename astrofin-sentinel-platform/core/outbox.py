@@ -27,6 +27,10 @@ import logging
 import sqlite3
 import time
 import uuid
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from core.message_broker import MessageBroker  # pragma: no cover
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -177,7 +181,7 @@ class OutboxStore:
             ).fetchone()
             attempts = row["attempts"] if row else 0
             delay = self.config.retry_interval * (self.config.retry_backoff ** attempts)
-            next_at = time.time()
+            next_at = time.time() + delay
             conn.execute(
                 """UPDATE outbox_events
                    SET status = ?, last_error = ?, next_retry_at = ?

@@ -116,6 +116,15 @@ class MLPredictorAgent(BaseAgent[AgentResponse]):
         try:
             import aiohttp
             timeout = aiohttp.ClientTimeout(total=10)
+            interval_map = {
+                "1H": "1h",
+                "4H": "4h",
+                "1D": "1d",
+                "1W": "1w",
+                "SWING": "1d",
+            }
+            interval = interval_map.get(timeframe, "1d")
+
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.get(f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit=100") as resp:
                     data = await resp.json()

@@ -110,7 +110,8 @@ class BradleyAgent(BaseAgent[AgentResponse]):
         import httpx
 
         try:
-            url = f"https://www.okx.com/api/v5/market/candles?instId={symbol if "-" in symbol else symbol + "-USDT"}&bar={interval}&limit={limit}"
+            inst_id = symbol if "-" in symbol else symbol + "-USDT"
+            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval}&limit={limit}"
             async with httpx.AsyncClient() as client:
                 resp = await client.get(url, timeout=10)
                 resp.raise_for_status()

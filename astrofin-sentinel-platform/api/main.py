@@ -139,7 +139,10 @@ def get_dashboard():
 
 
     # Launch real Gann/Bradley/Elliot agents for dashboard
-    import random, math, asyncio, importlib.util
+    import random
+    import math
+    import asyncio
+    import importlib.util
     agent_results = {}
     try:
         random.seed(42)
@@ -219,11 +222,11 @@ def get_dashboard():
 @require_api_key
 def run_agent(req: AgentRequest):
     """Return decisions from agents with real ephemeris, aspects, and honest ensemble."""
-    import time, importlib, random
+    import time
+    import importlib
+    import random
     from datetime import datetime, timezone
     start = time.time()
-    agent_id = req.agentId.strip() if req.agentId else ""
-    prompt = req.prompt.strip() if req.prompt else "Analyze BTC"
 
     # ── 1. Real ephemeris & aspects ──
     try:
@@ -238,13 +241,14 @@ def run_agent(req: AgentRequest):
                      "orb": round(a.orb, 2), "score": round(a.score, 2)}
                     for a in report.aspects] if hasattr(report, 'aspects') else []
         muhurta_score = 100  # placeholder — real panchanga call
-    except Exception as e:
+    except Exception:
         aspects = []
         muhurta_score = 50
 
     # ── 2. CoinGecko real price ──
     try:
-        import urllib.request, json
+        import urllib.request
+        import json
         url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
         req_url = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req_url, timeout=5) as resp:

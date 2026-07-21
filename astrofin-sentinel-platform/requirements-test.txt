@@ -1,0 +1,14 @@
+# Test and development dependencies
+-r requirements-core.txt
+
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-cov>=7.0.0
+pytest-timeout>=2.0.0
+
+# Linting & security
+ruff>=0.15.0
+bandit[toml]>=1.7.0
+
+# Test-only extras
+flask>=3.0.0
