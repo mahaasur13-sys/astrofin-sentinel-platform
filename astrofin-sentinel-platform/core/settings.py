@@ -161,6 +161,12 @@ class Settings(BaseSettings):
     RAG_TOP_K: int = Field(default=3)
     RAG_ENABLED: bool = Field(default=True)
 
+    # ── Database — Dual-Write Migration (Phase 4.8c) ──────────────
+    ENABLE_DUAL_WRITE: bool = Field(default=True, description="Write to both PG and SQLite")
+    SQLITE_FALLBACK_PATH: str = Field(default="data/astrofin.db")
+    DB_POOL_SIZE: int = Field(default=10, ge=1)
+    DB_MAX_OVERFLOW: int = Field(default=20, ge=0)
+
     afs_pg_dsn: SecretStr = Field(default=SecretStr(""))
 
     # ── Web app / Dash ────────────────────────────────────────────────

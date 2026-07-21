@@ -76,6 +76,11 @@ dev = [
   "fastapi>=0.109.0",
 ]
 
+db = [
+  "psycopg[binary]>=3.1.18,<4",
+  "pgvector>=0.2.4,<1",
+]
+
 rag = [
   "sentence-transformers>=2.2.2,<5.0",
   "faiss-cpu>=1.7.4",
