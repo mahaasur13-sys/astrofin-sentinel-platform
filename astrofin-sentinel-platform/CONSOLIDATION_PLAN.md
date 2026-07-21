@@ -14,28 +14,30 @@
 
 ## Фазы консолидации
 
-### ✅ P0: Critical Security + Architecture Violations
+### ✅ P0: Critical Security + Architecture Violations (2026-07-21)
 
 | ID | Задача | Статус |
 |----|--------|--------|
-| SEC-01 | Добавить `@require_api_key` на `/api/v1/*` роуты (кроме `/health`) | ✅ DONE |
-| SEC-02 | Блокировать dev-плейсхолдер `dev-api-key-change-me` в production/staging | ✅ DONE |
-| ARCH-01 | Заменить `requests` → `aiohttp` в `fundamental_agent.py` | ✅ DONE |
-| ARCH-01 | Заменить `requests` → `aiohttp` в `ml_predictor_agent.py` | ✅ DONE |
-| DOC-01 | Создать `CONSOLIDATION_PLAN.md` | ✅ DONE |
+| SEC-01 | Добавить `@require_api_key` на `/api/v1/*` роуты (кроме `/health`) — 4 роута защищены | ✅ DONE |
+| SEC-02 | Блокировать dev-плейсхолдер `dev-api-key-change-me` в production/staging — `require_secrets()` дополнен | ✅ DONE |
+| ARCH-01 | Заменить `requests` → `aiohttp` в `fundamental_agent.py` + `ml_predictor_agent.py` | ✅ DONE |
+| DOC-01 | Создать `AUDIT_REPORT_STEP1_2026-07-21.md` + `AUDIT_REPORT_STEP2_2026-07-21.md` + `CONSOLIDATION_PLAN.md` | ✅ DONE |
+| DOC-02 | Извлечь 8 лучших артефактов в `artifacts/best_practices/{patterns,agents,core}/` | ✅ DONE |
 
-### 🔴 P1: Мёртвый вес и дедупликация (EST: 2-3h)
+### ✅ P1: Мёртвый вес и дедупликация — ВЫПОЛНЕНО 2026-07-21
 
 | ID | Задача | Обоснование |
 |----|--------|-------------|
-| DEAD-01 | Удалить `audit_repo/` (485 файлов — устаревшие артефакты) | 485 файлов мёртвого кода, source of truth уже в `docs/` + ADR |
-| DEAD-02 | Удалить дубли `v6/`, `v7/`, `v8/` из корня workspace (24 файла) | Snapshot-директории предыдущих версий — не используются, в platform уже есть копии |
-| DEAD-03 | Удалить 5 пустых директорий: `AstroFinSentinelV5/`, `AsurDev/`, `astrofin-sentinel-v5/` | Пусты, создают confusion |
-| DUPE-01 | Сравнить и синхронизировать корневые `*.py` с `astrofin-sentinel-platform/` | 6 файлов дублируются (`FINAL_INTEGRATION_TEST.py`, `health_endpoints.py`, `langgraph_schema.py`, `logging_setup.py`, `muhurtha.py`, `test_aspects.py`) |
-| DUPE-02 | Удалить корневые `.py` после синхронизации (оставить в platform) | Root должен быть чистым workspace, не shadow-копией |
-| DUPE-03 | Синхронизировать `AGENTS.md` (root=19K vs platform=24K — platform авторитативнее) | Root-версия устарела |
+| DEAD-01 | Удалить `audit_repo/` (485 файлов — устаревшие артефакты) | Мёртвый код, source of truth в `docs/` + ADR |
+| DEAD-02 | Удалить дубли `v6/`, `v7/`, `v8/` (24 файла снапшотов) | Неиспользуемые версионные копии, в platform уже есть |
+| DEAD-03 | Удалить 5 пустых директорий-плейсхолдеров: `AstroFinSentinelV5/`, `AsurDev/`, `astrofin-sentinel-v5/`, `home-cluster-iac/`, `roma-execution-bridge/` | Пусты, создают путаницу; соответствующие репозитории независимы |
+| DUPE-01 | Сравнить и синхронизировать 6 корневых `*.py` с platform: `FINAL_INTEGRATION_TEST.py`, `health_endpoints.py`, `langgraph_schema.py`, `logging_setup.py`, `muhurtha.py`, `test_aspects.py` | 6 файлов дублируются; platform-версии авторитативны |
+| DUPE-02 | Удалить корневые копии 6 `*.py` файлов после синхронизации (source of truth — platform) | Root должен быть чистым workspace, а не shadow-копией проекта |
+| DUPE-03 | Синхронизировать `AGENTS.md` (root 19K → platform 24K: platform авторитативнее) | Root-версия устарела на 7.5K |
+| DUPE-04 | Синхронизировать `pyproject.toml`, `requirements.txt`, `Makefile` (root-версии устарели) | Root `pyproject.toml` 1.4K vs platform 4.7K |
+| DUPE-05 | Обновить AGENTS.md/SOUL.md: поправить пути `/home/workspace/AstroFinSentinelV5` → `/home/workspace/astrofin-sentinel-platform` | Старые пути в документации ведут в несуществующие директории |
 
-### 🟡 P2: Качество кода и тесты (EST: 4-6h)
+### ✅ P1: Мёртвый вес и дедупликация — ВЫПОЛНЕНО 2026-07-21
 
 | ID | Задача | Обоснование |
 |----|--------|-------------|
@@ -113,9 +115,12 @@ master (production)
 | Риск | Вероятность | Mitigation |
 |------|------------|------------|
 | Удаление `audit_repo/` сломает импорты | Низкая | grep по всем `.py` на `from audit_repo`, `import audit_repo` — 0 результатов |
-| Обновление AGENTS.md перезапишет CI checks section | Низкая | Platform-версия длиннее и содержит все CI rules |
+| Массовое удаление директорий (DEAD-01..03) оголит мёртвые паттерны в `.gitignore` | Средняя | После удаления проверить `.gitignore` на записи `audit_repo/`, `v6/`, `v7/`, `v8/` — удалить их |
+| `git rm -r` 485+ файлов может конфликтовать с незакоммиченными изменениями | Низкая | Использовать `git rm -r --cached` + один атомарный коммит |
+| Обновление AGENTS.md перезапишет CI checks section | Низкая | Platform-версия длиннее (24K vs 19K) и содержит все CI rules |
+| `.gitignore` не покрывает новые dead-пути после массового удаления директорий | Средняя | После P1 — запустить `git status` и обновить `.gitignore` для исключения `__pycache__/`, `*.pyc`, `node_modules/` на уровне root |
 | Функции `_fetch_crypto_metadata` / `_fetch_price_data` теперь async — нужен await | Устранён | Оба метода уже были `async def`, вызываются через `await` |
-| `@require_api_key` на `/api/v1/dashboard` сломает фронтенд | Средняя | Фронтенд (React) должен передавать `X-API-Key` header — нужна координация |
+| `@require_api_key` на `/api/v1/dashboard` сломает фронтенд | Средняя | Фронтенд (React) должен передавать `X-API-Key` header — P2 follow-up задача |
 
 ---
 

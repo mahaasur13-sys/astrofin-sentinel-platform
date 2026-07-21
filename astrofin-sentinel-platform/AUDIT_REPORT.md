@@ -1,285 +1,401 @@
-# Architecture & Code Audit Report
+# Architecture & Code Audit Report — AstroFin Sentinel Platform
 
-**Date:** 2026-07-18
-**Project:** AstroFin Sentinel V5
-**Audit scope:** Full codebase (P0 dedup completed)
-**Auditor:** Zo Computer (autonomous agent)
-
----
-
-## 1. Executive Summary
-
-| Metric | Value | Status |
-|--------|-------|--------|
-| **Code health (Ruff)** | 0 errors | ✅ All checks passed |
-| **TypeScript health** | 0 errors, build: 140ms | ✅ |
-| **npm vulnerabilities** | 0 (info:0 low:0 moderate:0 high:0 critical:0) | ✅ |
-| **Focused test coverage** (core/api/knowledge) | 66% | 🟡 Above 60% target |
-| **Full project coverage** | 3% (5265 statements) | 🔴 Needs expansion |
-| **Outdated Python packages** | 20 | 🟡 Mostly NVIDIA CUDA pins |
-| **GitHub Actions workflows** | 17 | ✅ Strong CI/CD |
-| **Test files** | 109 | ✅ Large test suite |
-| **P0 deduplication** | ROMA: 4→1 copy, Level-1: 13 dirs removed | ✅ Complete |
-
-### Verdict
-
-The codebase is **clean after P0 dedup**, with strong CI/CD infrastructure and good
-architecture. The main gap is **test coverage** — only focused modules reach 66%,
-the full project is at 3%. The second gap is **developer experience** — no unified
-`make dev` command for local development (FastAPI + Vite + Ollama).
+**Date:** 2026-07-21  
+**Auditor:** Senior Architect & Code Auditor (Zo Agent)  
+**Scope:** Full workspace + all 24 connected GitHub repositories  
+**Report Version:** 1.0 (Step 1 — Inventory & Baseline)
 
 ---
 
-## 2. Architecture & Structure
+## Executive Summary
 
-### 2.1 Monorepo Topology
+Проведён глубокий аудит единого master-проекта AstroFin Sentinel Platform. Выявлена **критическая проблема дублирования**: workspace root (`/home/workspace`) и подпапка `astrofin-sentinel-platform/` содержат **один и тот же Git-репозиторий**, но с **разной степенью синхронизации**. Из 54 top-level директорий — **43 дублируются** (80%). Из 38+ `.md` файлов корня — **все дублируются** внутри `astrofin-sentinel-platform/`.
+
+Проект — это **монолитное Python-ядро** (290K LOC) с React-фронтендом (278K TS/TSX LOC), 27 активными AI-агентами, оркестратором, KARL-синтезом, RAG-слоем и инфраструктурным кодом (K8s, Docker, CI/CD).
+
+---
+
+## 1. Inventory Map
+
+### 1.1 Primary Git Repositories (Source of Truth)
+
+| Repository | GitHub | Relevance | Branch | Status |
+|---|---|---|---|---|
+| **astrofin-sentinel-platform** | `mahaasur13-sys/astrofin-sentinel-platform` | **PRIMARY** — основной продукт | `feature/architecture-consolidation` (local), `master` (remote HEAD) | Активно разрабатывается |
+| astrofin-sentinel-v5 | `mahaasur13-sys/astrofin-sentinel-v5` | Предшественник (legacy) | `main` | Заморожен |
+| AstroFinSentinelV5 | `mahaasur13-sys/AstroFinSentinelV5` | Старый репо (пустой локально) | `master` | Archived |
+| AsurDev | `mahaasur13-sys/AsurDev` | Пустой локально | `main` | Unknown |
+
+### 1.2 Federation / ATOM Ecosystem (Sister Projects)
+
+| Repository | Purpose |
+|---|---|
+| **astrofin-federation-stack** | Federation stack: ATOM kernel + ROMA bridge + AsurDev infra |
+| **atom-federation-os** | Federation OS monorepo |
+| **ATOMFederationOS** | GoA, REDEREF, DESC event-sourcing, K8s controllers |
+| **atom-federation** | Federation + messaging (MessageQueue, Gossip, BFT) |
+| **atom-federation-core** | K8s control plane: deterministic controllers, EventStore |
+| **atom-kernel** | Deterministic execution kernel (clock, UUID, RNG, GEB) |
+| **atom-agent** | Deterministic agent executor (sandbox, checkpoint, SBS) |
+| **atom-operator** | K8s Operator (CRDs: ATOMCluster, Workflow, Task) |
+| **atom-runtime** | Runtime layer |
+| **atom-router** | REDEREF-style adaptive router (Thompson sampling, cost-aware) |
+| **roma-execution-bridge** | ROMA execution bridge |
+| **home-cluster-iac** | Home cluster infrastructure-as-code |
+
+### 1.3 Infra/Support Repos
+
+| Repository | Purpose |
+|---|---|
+| **pop-os-setup** | Pop!_OS 24.04 workstation auto-setup (26 stages) |
+| **integrations-gitagent** | GitAgent MCP integration |
+| **_afs_token_probe_DO_NOT_USE** | Token probe (should be deleted) |
+| **VIMANA_MAIN_PROJECT_SHANTI** | DDEV-проект SHANTI (legacy) |
+| **ollama-transfer-template** | Ollama transfer template (legacy) |
+
+### 1.4 Workspace Physical Layout
 
 ```
-astrofin-sentinel-platform/
-├── core/          ← LLM Router, BaseAgent, ephemeris, volatility
-├── agents/        ← Multi-agent council (14 agents, astro+quant+fundamental)
-│   └── _impl/     ← Active agent implementations
-├── api/           ← FastAPI (P2) — transport layer
-├── web-react/     ← React + RTK (P2) — frontend
-├── knowledge/     ← RAG Index (FAISS), hybrid retriever
-├── data_room/     ← Network gateway (R-01 compliance)
-├── orchestration/ ← LangGraph-based agent orchestration
-├── bridge/roma/   ← ROMA execution bridge (canonical, post-P0)
-├── kernel/atom-federation/ ← SBS distributed systems verification (standalone)
-├── meta_rl/      ← Meta-RL training pipeline
-├── backtest/     ← Backtesting framework
-├── deploy/       ← Docker, monitoring, Grafana dashboards
-└── integrations/ ← GitAgent MCP, external adapters
+/home/workspace/                          ← GIT REPO (same as astrofin-sentinel-platform)
+├── .git/                                 ← points to astrofin-sentinel-platform
+├── astrofin-sentinel-platform/           ← ALSO A GIT REPO (same remote!)
+│   ├── agents/                           ← 27 active agents in _impl/
+│   ├── api/                              ← FastAPI back-end
+│   ├── core/                             ← ~45 core modules (ephemeris, aspects, auth, etc.)
+│   ├── orchestration/                    ← sentinel_v5.py, router, council orchestration
+│   ├── web/                              ← Dash (legacy UI)
+│   ├── web-react/                        ← React + Vite + Redux (current UI)
+│   ├── data_room/                        ← Data access layer (blueprint)
+│   ├── knowledge/                        ← RAG + FAISS/pgvector indexes
+│   ├── trading/                          ← Backtester, safety gate, portfolio, monitoring
+│   ├── meta_rl/                          ← Thompson Sampling, AB testing
+│   ├── db/                               ← SQLAlchemy models + migrations
+│   ├── tests/                            ← 120 test files
+│   ├── docs/                             ← 80+ .md docs incl. 9 ADRs
+│   ├── v6/, v7/, v8/                     ← Version snapshots (7-10 files each)
+│   ├── audit_repo/                       ← 485 files — legacy audit copy
+│   ├── deploy/, infrastructure/, k8s/    ← DevOps artifacts
+│   └── ...
+├── [43 DUPLICATE directories]            ← Mirror astrofin-sentinel-platform/
+├── [38 DUPLICATE .md files]              ← Mirror astrofin-sentinel-platform/
+└── [7 DUPLICATE .py files at root]       ← Mirror astrofin-sentinel-platform/
 ```
 
-### 2.2 Layer Separation (Clean Architecture)
+### 1.5 Empty/Derelict Directories
+
+| Directory | Status |
+|---|---|
+| `AstroFinSentinelV5/` | Empty — legacy placeholder |
+| `AsurDev/` | Empty — legacy placeholder |
+| `astrofin-sentinel-v5/` | Empty — legacy placeholder |
+| `roma-execution-bridge/` | Empty — legacy placeholder |
+| `home-cluster-iac/` | Empty — legacy placeholder |
+| `pop-os-setu` | Stale file (typo'd name) |
+
+---
+
+## 2. Duplication Analysis
+
+### 2.1 Directory Duplication (Root vs Platform)
+
+**43 из 54 директорий корня** дублируются внутри `astrofin-sentinel-platform/`:
 
 ```
-  [Transport]    api/main.py (FastAPI)  ← HTTP
-       │
-  [Application]  orchestration/sentinel_v5.py  ← LangGraph
-       │
-  [Domain]       core/base_agent.py  ← Business logic
-       │              │
-  [Infra]    knowledge/rag_index   core/llm_router
-             (FAISS + embeddings)   (Ollama/OpenRouter)
+acos-contracts, ai_scheduler, artifacts, astrology, atom-core,
+audit_repo, bench, bridge, common, config, data, db, deploy,
+docs, examples, feature_pipeline, gpu_worker, infrastructure,
+k8s, kernel, l10_self_healing, l11_verifier, l9_ebl, mas_factory,
+migrations, migrations_postgres, ml_engine, models, monitoring,
+pop-os-setup, research, scheduler_v3, schema, scripts, security,
+slsa4, src, strategies, tests, tools, training, v6, v7, v8
 ```
 
-**Assessment:** ✅ `api/main.py` correctly separates transport from domain.
-It uses Pydantic schemas (`AgentRequest`, `AgentResponse`) as DTOs and delegates
-to `BaseAgent.generate()`. No business logic leaks into HTTP handlers.
+**Root-only directories** (10): `AstroFinSentinelV5`, `AsurDev`, `Knowledge`, `Trash`, `astrofin-sentinel-platform`, `astrofin-sentinel-v5`, `home-cluster-iac`, `reports`, `roma-execution-bridge`, `utils`
 
-`core/base_agent.py` follows **SOLID principles**:
-- **S**: Single responsibility — agent lifecycle, RAG, generation
-- **O**: Open for extension via abstract `run()` method
-- **L**: Liskov substitution — all agents return `AgentResponse`
-- **I**: Interface segregation — minimal ABC with `run()` only
-- **D**: Dependency inversion — router and RAG injected lazily
+### 2.2 File Duplication
 
-### 2.3 kernel/atom-federation
+| Type | Count | Examples |
+|---|---|---|
+| Markdown docs | **38 files** | `AGENTS.md`, `SOUL.md`, `AUDIT_*.md`, `SPRINT_*.md`, etc. |
+| Python files (root) | **7 files** | `data_provider.py`, `health_endpoints.py`, `langgraph_schema.py`, `logging_setup.py`, `muhurtha.py`, `test_aspects.py`, `FINAL_INTEGRATION_TEST.py` |
+| Config files | Multiple | `.coderabbit.yaml`, `.pre-commit-config.yaml`, `.flake8`, `.gitleaks.toml`, `Dockerfile`, `Makefile`, `docker-compose.yml`, etc. |
 
-| Property | Value |
-|----------|-------|
-| Files | 218 Python |
-| Status | **Standalone external package** |
-| Version | 0.6.0 |
-| Tests | 55/55 PASS |
-| Name | ATOMFederationOS — SBS v1 |
+### 2.3 Git Repository Identity Crisis
 
-**Purpose:** System Boundary Spec — distributed systems correctness verification
-(Raft/Paxos, split-brain, consensus). Used by `kernel/atom-federation/audit_v3.py`
-which has `sys.path.insert` references to `/home/workspace/agents` (fixed in P0.2).
+Корень и `astrofin-sentinel-platform/` — это **один и тот же Git remote** (`mahaasur13-sys/astrofin-sentinel-platform`), но они могут расходиться в состоянии:
 
-**Verdict:** 🟡 Standalone — not tightly coupled. Should be factored out as a
-separate package or remain as-is with clear import boundaries.
+```bash
+# Root: branch feature/architecture-consolidation (HEAD: 85e039f)
+# Platform: branch feature/architecture-consolidation (HEAD: 85e039f)  
+# Current: identical HEAD — но структура разная!
+```
 
-### 2.4 ROMA Execution Bridge
-
-**Status:** ✅ Canonical copy at `bridge/roma/` (post-P0 dedup).
-ROMA is the closed-loop execution SaaS platform with Stripe billing, K8s scheduler,
-GPU worker, and SaaS control plane. 87 Python files, feature-complete.
-
-**Integration:** Referenced by `docker-compose.yml` for GPU worker service.
-Not coupled to AstroFin core — ROMA is a separate product.
+**Проблема:** Git-операции в корне затрагивают только файлы корня. Файлы внутри `astrofin-sentinel-platform/` отслеживаются *отдельным* git-репозиторием. Это означает, что `git push` из корня не отправляет изменения из `astrofin-sentinel-platform/`, и наоборот.
 
 ---
 
-## 3. Code Quality & Best Practices
+## 3. Architecture Map
 
-### 3.1 Linting
+### 3.1 Monolith Structure
 
-| Tool | Result |
-|------|--------|
-| Ruff (Python) | 0 errors — All checks passed |
-| TypeScript (tsc) | 0 errors — build: 140ms |
-| npm audit | 0 vulnerabilities |
+```
+┌─────────────────────────────────────────────────────────┐
+│                   ASTROFIN SENTINEL V5                   │
+├─────────────────────────────────────────────────────────┤
+│  ENTRY POINTS                                            │
+│  ├── orchestration/sentinel_v5.py     (CLI)              │
+│  ├── api/main.py                      (FastAPI)          │
+│  ├── web/app.py                       (Dash legacy)      │
+│  └── web-react/                       (React SPA)        │
+├─────────────────────────────────────────────────────────┤
+│  AGENT LAYER (27 agents)                                 │
+│  ├── agents/base_agent.py             (BaseAgent)        │
+│  ├── agents/_impl/types.py            (TradingSignal)    │
+│  ├── agents/_impl/     ← 27 active implementations       │
+│  │   ├── fundamental_agent.py   (20%)                    │
+│  │   ├── quant_agent.py         (20%)                    │
+│  │   ├── macro_agent.py         (15%)                    │
+│  │   ├── options_flow_agent.py  (15%)                    │
+│  │   ├── sentiment_agent.py     (10%)                    │
+│  │   ├── technical_agent.py     (10%)                    │
+│  │   ├── bull_researcher.py     (5%)                     │
+│  │   ├── bear_researcher.py     (5%)                     │
+│  │   ├── cycle_agent.py         (5%)                     │
+│  │   ├── bradley_agent.py       (3%)                     │
+│  │   ├── electoral_agent.py     (3%)                     │
+│  │   ├── gann_agent.py          (3%)                     │
+│  │   ├── time_window_agent.py   (2%)                     │
+│  │   ├── elliot_agent.py        (—)                      │
+│  │   ├── hmm_regime_agent.py    (—)                      │
+│  │   ├── insider_agent.py       (—)                      │
+│  │   ├── risk_agent.py          (—)                      │
+│  │   ├── ml_predictor_agent.py  (—)                      │
+│  │   ├── compromise_agent.py    (—)                      │
+│  │   ├── astro_council/agent.py (coordinator)            │
+│  │   └── synthesis_agent.py     (KARL synthesis)         │
+│  └── agents/_archived/      ← 7 archived duplicates      │
+├─────────────────────────────────────────────────────────┤
+│  CORE LAYER (~45 modules)                                │
+│  ├── ephemeris.py       (Swiss Ephemeris wrapper)        │
+│  ├── aspects.py         (Astrological aspects engine)     │
+│  ├── panchanga.py       (Hindu calendar)                 │
+│  ├── houses.py          (Astrological houses)            │
+│  ├── volatility.py      (Volatility regime)              │
+│  ├── history_db.py      (SQLite session persistence)     │
+│  ├── checkpoint.py       (State checkpointing)            │
+│  ├── auth_jwt.py         (JWT authentication)             │
+│  ├── thompson.py         (Thompson sampling)              │
+│  ├── kepler*.py          (Kepler calibration models)     │
+│  ├── rag_client.py       (RAG client)                    │
+│  ├── ensemble_voting.py  (Ensemble consensus)            │
+│  └── ...                                                 │
+├─────────────────────────────────────────────────────────┤
+│  DATA LAYER                                              │
+│  ├── data_room/blueprint.py  (Data access contract)      │
+│  ├── data_room/resolvers/    (API resolvers)             │
+│  ├── db/models.py            (SQLAlchemy models)         │
+│  ├── db/session.py           (DB sessions)               │
+│  └── knowledge/              (RAG index)                 │
+├─────────────────────────────────────────────────────────┤
+│  INFRASTRUCTURE                                          │
+│  ├── Dockerfile + docker-compose.yml                     │
+│  ├── deploy/docker/, deploy/iac/, k8s/                   │
+│  ├── .github/workflows/      (CI/CD)                    │
+│  └── .pre-commit-config.yaml (Code quality)              │
+└─────────────────────────────────────────────────────────┘
+```
 
-### 3.2 SOLID Compliance in Core Modules
+### 3.2 Tech Stack
 
-**Best practice — LLM Router (`core/llm_router.py`):**
-- Lazy initialization pattern (OpenAI client, SentenceTransformer)
-- Separation of concerns: classify → route → log
-- Session caching with TTL
-- JSONL logging for audit trail
-- Graceful degradation (no crash without API key)
+| Layer | Technology |
+|---|---|
+| **Backend** | Python 3.12, FastAPI, LangGraph, PyTorch, FAISS, pgvector |
+| **Frontend** | React 19, TypeScript 6, Vite 8, Redux Toolkit, React Router 7 |
+| **Database** | PostgreSQL + TimescaleDB + pgvector (primary), SQLite (fallback) |
+| **Cache** | Redis |
+| **ML/RL** | Thompson Sampling, HMM, PPO, Custom Reward Models (AMRE) |
+| **Astro** | Swiss Ephemeris (pyswisseph), Panchanga, Vedic |
+| **Observability** | OpenTelemetry, structlog, Prometheus, Grafana |
+| **Infra** | Docker, Kubernetes (k3s), Helm, ArgoCD |
+| **CI/CD** | GitHub Actions, pre-commit hooks (Ruff, Bandit, gitleaks) |
 
-→ **Copied to `artifacts/best_practices/llm_router_exemplar.py`** as reference implementation.
+### 3.3 Lines of Code
 
-**Best practice — RTK Slice (`web-react/src/features/agents/agentsSlice.ts`):**
-- Clean Redux Toolkit patterns (createSlice, createAsyncThunk)
-- Typed payloads with `PayloadAction<T>`
-- Proper error/loading/success state management
-
-→ **Copied to `artifacts/best_practices/rtk_slice_exemplar.ts`** as reference implementation.
-
-### 3.3 Anti-patterns Found
-
-| File | Issue | Severity |
-|------|-------|----------|
-| `bridge/roma/auth/engine.py:190` | F-string with escaped quotes (Python 3.12 violation — pre-existing, not our code) | Low |
-| Multiple ROMA files | Pre-existing F821 undefined-names in `if __name__` blocks | Low |
-| `core/base_agent.py:60` | `datetime.utcnow()` deprecated (use `datetime.now(datetime.UTC)`) | Low |
-
-All anti-patterns are **external to the AstroFin core** (ROMA bridge) or cosmetic.
-
----
-
-## 4. Security & Reliability
-
-### 4.1 Secrets Management
-
-- ✅ No hardcoded API keys found (all via `os.getenv()`)
-- ✅ `.env.example` present, `.env` in `.gitignore`
-- ✅ GitHub secret scanning workflow active (`secret-scan.yml`)
-- ✅ 17 CI workflows including security scans
-
-### 4.2 Error Handling
-
-- ✅ `core/base_agent.py` has `_degraded()` method for graceful fallback
-- ✅ `_DegradedRetriever` class for RAG-unavailable scenarios
-- ✅ Structured logging via `structlog` (`core/logging.py`)
-- ⚠️ Bare `except` in `bridge/roma/saas/webhooks/stripe_connect.py` (pre-existing, fixed in P0 final sweep)
-
-### 4.3 Test Coverage
-
-| Module | Coverage | Tests |
-|--------|----------|-------|
-| `api/main.py` | **100%** | 6 |
-| `knowledge/rag_index.py` | **77%** | 5 |
-| `core/llm_router.py` | **51%** | 6 |
-| `core/base_agent.py` | **40%** | — |
-| **Focused total** | **66%** | **17/17** |
-| **Full project** | **3%** | 109 test files |
-
-**Note:** Full project coverage is misleading — 109 test files exist but many
-have collection errors due to PostgreSQL/TimescaleDB dependencies in CI.
-The focused coverage (core/api/knowledge) is the meaningful metric.
-
----
-
-## 5. Performance & Scalability
-
-### 5.1 LLM Router Bottlenecks
-
-| Component | Latency | Impact |
-|-----------|---------|--------|
-| SentenceTransformer load | ~10s (one-time) | Cold start |
-| `classify_complexity()` | ~50ms | Per-request |
-| Ollama `llama3.2:1b` | 1–3s | Local queries |
-| OpenRouter API | 2–8s | Cloud queries |
-| RAG `retrieve_context()` | ~100ms | Per-request |
-
-**Optimization opportunities:**
-- Warm the SentenceTransformer model at app startup (not first request)
-- Consider `functools.lru_cache` on `classify_complexity` for repeated prompts
-- Batch RAG initialization
-
-### 5.2 Frontend Bundle
-
-| Metric | Value |
-|--------|-------|
-| JS bundle | 219.78 kB (70.80 kB gzip) |
-| Build time | 140ms |
-| CSS | 1.78 kB (0.81 kB gzip) |
-
-✅ Acceptable for an internal dashboard.
+| Type | Lines |
+|---|---|
+| Python | **290,209** |
+| TypeScript/TSX | **278,520** |
+| Markdown (docs) | **84,970** |
+| **Total** | **~653,699** |
 
 ---
 
-## 6. Dependencies & Infrastructure
+## 4. Key Findings (Step 1)
 
-### 6.1 Top-5 Outdated Python Packages
+### 🔴 Critical
 
-| Package | Current | Latest | Risk |
-|---------|---------|--------|------|
-| `pandas` | 2.3.3 | 3.0.3 | 🟡 Breaking changes (Apache Arrow backend) |
-| `pip` | 23.2.1 | 26.1.2 | Low |
-| `pydantic_core` | 2.46.4 | 2.47.0 | Low |
-| `tokenizers` | 0.22.2 | 0.23.1 | Low |
-| `mpmath` | 1.3.0 | 1.4.1 | Low |
+### 🔴 Critical — CONFIRMED: File Drift Between Root and Platform
 
-**Note:** 15/20 outdated packages are NVIDIA CUDA libraries (pinned by `torch`).
-These should not be manually upgraded.
+| File | Root Size | Platform Size | Verdict |
+|---|---|---|---|
+|  | 19,261 B | 23,765 B | **DIFFER** — platform версия новее (7.5K больше) |
+|  | 4,642 B | 4,642 B | ✅ IDENTICAL |
+|  | 486 B | 507 B | **DIFFER** |
+|  | 1,432 B | 4,732 B | **DIFFER** — platform версия в 3.3× больше |
+|  | 9,893 B | 11,749 B | **DIFFER** — platform версия новее |
 
-### 6.2 npm Audit
+**Вывод:** Platform-версии — авторитетные. Root-версии устарели. Это доказывает, что активная разработка велась в , а root — замороженная копия.
 
-| Severity | Count |
-|----------|-------|
-| Critical | 0 |
-| High | 0 |
-| Moderate | 0 |
-| Low | 0 |
-| Info | 0 |
-| **Total** | **0** |
+| # | Finding | Impact |
+|---|---|---|
+| **F-1** | **Double Git repo** — root и `astrofin-sentinel-platform/` указывают на один remote, но независимы | Git push из корня ≠ push из platform. Неопределённость source of truth. |
+| **F-2** | **43 дублирующихся директорий** (80% от всех) | Кто редактирует корень, кто platform? Дрейф контента неизбежен. |
+| **F-3** | **38 дублирующихся .md файлов** | AGENTS.md, SOUL.md, AUDIT_*.md — какая версия авторитетна? |
 
-### 6.3 CI/CD Coverage
+### 🟠 High
 
-✅ **Strong**: 17 GitHub Actions workflows:
+| # | Finding | Impact |
+|---|---|---|
+| **F-4** | **6 пустых директорий** — `AstroFinSentinelV5`, `AsurDev`, `astrofin-sentinel-v5`, etc. | Мусор, сбивает с толку при навигации |
+| **F-5** | **audit_repo/** — 485 файлов, дублирует функциональность `agents/`, `core/`, `web/` | Устаревшая копия; может содержать secrets |
+| **F-6** | **v6, v7, v8** — старые version snapshots (7-10 файлов каждая) | Неиспользуемый код; занимает место |
+| **F-7** | **venv без pytest и ruff** — `pip list` показывает только 16 пакетов | Невозможно запустить тесты и линтер локально |
+| **F-8** | **7 корневых .py файлов** — дубликаты `data_provider.py`, `muhurtha.py` etc. | Какая версия импортируется? |
 
-| Workflow | Purpose |
-|----------|---------|
-| `ci.yml` | Lint + test + build |
-| `lint.yml` | Ruff |
-| `pr-checks.yml` | Pre-merge validation |
-| `security.yml` | Bandit |
-| `secret-scan.yml` | detect-secrets |
-| `coderabbit-pr-review.yml` | AI code review |
-| `coverage.yml` | Test coverage tracking |
-| `deploy.yml` | Production deployment |
-| `release.yml` | Release automation |
-| `nightly.yml` | Nightly full test suite |
-| `load-test.yml` | Performance testing |
-| `compose-check.yml` | Docker compose validation |
+### 🟡 Medium
 
-### 6.4 Developer Experience Gaps
+| # | Finding | Impact |
+|---|---|---|
+| **F-9** | **24 GitHub репозитория** — многие архивные/неактивные (`_afs_token_probe_DO_NOT_USE`, `VIMANA_MAIN_PROJECT_SHANTI`) | Шум в GitHub org |
+| **F-10** | **11 веток на remote** — 4 dependabot, 3 feature, main, master | Ветки `main` и `master` расходятся |
+| **F-11** | **AGENTS.md (19K) + SOUL.md (4.6K)** — богатая, но частично противоречивая документация | AGENTS.md говорит "7 корневых дублей архивированы", но они до сих пор на месте |
+| **F-12** | **456 .md файлов** — документационный шум | Многие устарели (SPRINT_1.md, DAILY_REPORT_*.md) |
 
-| Gap | Impact | Priority |
-|-----|--------|----------|
-| No `make dev` target | Must start FastAPI, Vite, Ollama separately | 🔴 High |
-| No root `docker-compose.yml` for local dev | No one-command local setup | 🔴 High |
-| Makefile targets Docker-only | `make up` requires Docker, not suitable for local | 🟡 Medium |
-| Outdated `pandas` 2.3.3 | 3.0.3 has breaking changes — needs migration plan | 🟡 Medium |
+### ⚪ Low
+
+| # | Finding |
+|---|---|
+| **F-13** | `pop-os-setu` — файл с опечаткой в имени |
+| **F-14** | `.patch_optionb.py` — патч-файл в корне |
+| **F-15** | `nano` — файл без расширения в корне |
 
 ---
 
-## 7. Recommendations
+## 5. GitHub Repository Health
 
-### P0 (Immediate — next sprint)
-1. **Add `make dev` target** — start FastAPI + Vite + Ollama in one command
-2. **Write `docker-compose.dev.yml`** — local development environment
-3. **`make dev-frontend`** + **`make dev-backend`** — individual service targets
+### Active (разрабатываются)
+- ✅ `astrofin-sentinel-platform` — основной продукт
 
-### P1 (Next phase)
-4. **Expand test coverage** — target key agents (fundamental, macro, quant)
-5. **CI fix** — resolve collection errors in full test suite (PostgreSQL deps)
-6. **`pandas` migration** — plan upgrade path from 2.3.3 to 3.0.3
+### Sister (связанные, активны)
+- ✅ `astrofin-federation-stack`, `atom-federation-os`, `ATOMFederationOS`
+- ✅ `atom-kernel`, `atom-agent`, `atom-operator`, `atom-federation-core`
+- ✅ `atom-router`, `roma-execution-bridge`, `home-cluster-iac`
 
-### P2 (Future)
-7. **kernel/atom-federation** — consider extracting as separate package
-8. **Preload SentenceTransformer** at API startup
-9. **Structured logging** — migrate remaining `print()` calls to `structlog`
+### Standalone Utility
+- ✅ `pop-os-setup`, `integrations-gitagent`
+
+### Dead / To Be Archived
+- ❌ `_afs_token_probe_DO_NOT_USE` — удалить
+- ❌ `VIMANA_MAIN_PROJECT_SHANTI` — legacy
+- ❌ `ollama-transfer-template`, `ollama-transfer-templateRobot` — legacy
+- ❌ `asurdev-workspace-backup-20260326` — старый backup
 
 ---
 
-*Report generated by Zo Computer autonomous audit agent.*
-*AUDIT_2026-07-18.md*
+## 6. Next Steps (Step 2)
+
+Перед началом глубокого аудита (Шаг 2) необходимо **разрешить проблему дублирования (F-1, F-2, F-3)**:
+
+### Priority A: Resolve Source of Truth
+
+1. **Подтвердить:** какой путь — корень или `astrofin-sentinel-platform/` — должен быть **единственным source of truth**.
+2. **Вариант A:** Удалить `astrofin-sentinel-platform/` как подпапку, работать только в корне.
+3. **Вариант B:** Перенести все изменения в `astrofin-sentinel-platform/`, сделать корень чистым gateway.
+4. **Рекомендация:** Вариант B — `astrofin-sentinel-platform/` как source of truth, корень очистить.
+
+### Priority B: Cleanup
+
+5. Удалить 6 пустых директорий.
+6. Архивировать `v6/`, `v7/`, `v8/`, `audit_repo/`.
+7. Удалить 7 дублирующихся `.py` файлов из корня.
+8. Консолидировать 38 `.md` файлов — выбрать авторитетные версии.
+
+### Priority C: Begin Deep Audit (Step 2)
+
+После консолидации — глубокий аудит по всем категориям.
+
+---
+
+## Appendix A: Full Directory Comparison
+
+| Directory | Root | Platform | Verdict |
+|---|---|---|---|
+| acos-contracts | ✅ | ✅ | DUPLICATE |
+| ai_scheduler | ✅ | ✅ | DUPLICATE |
+| artifacts | ✅ | ✅ | DUPLICATE |
+| astrology | ✅ | ✅ | DUPLICATE |
+| atom-core | ✅ | ✅ | DUPLICATE |
+| audit_repo | ✅ | ✅ | DUPLICATE |
+| bench | ✅ | ✅ | DUPLICATE |
+| bridge | ✅ | ✅ | DUPLICATE |
+| common | ✅ | ✅ | DUPLICATE |
+| config | ✅ | ✅ | DUPLICATE |
+| data | ✅ | ✅ | DUPLICATE |
+| db | ✅ | ✅ | DUPLICATE |
+| deploy | ✅ | ✅ | DUPLICATE |
+| docs | ✅ | ✅ | DUPLICATE |
+| examples | ✅ | ✅ | DUPLICATE |
+| feature_pipeline | ✅ | ✅ | DUPLICATE |
+| gpu_worker | ✅ | ✅ | DUPLICATE |
+| infrastructure | ✅ | ✅ | DUPLICATE |
+| k8s | ✅ | ✅ | DUPLICATE |
+| kernel | ✅ | ✅ | DUPLICATE |
+| l10_self_healing | ✅ | ✅ | DUPLICATE |
+| l11_verifier | ✅ | ✅ | DUPLICATE |
+| l9_ebl | ✅ | ✅ | DUPLICATE |
+| mas_factory | ✅ | ✅ | DUPLICATE |
+| migrations | ✅ | ✅ | DUPLICATE |
+| migrations_postgres | ✅ | ✅ | DUPLICATE |
+| ml_engine | ✅ | ✅ | DUPLICATE |
+| models | ✅ | ✅ | DUPLICATE |
+| monitoring | ✅ | ✅ | DUPLICATE |
+| pop-os-setup | ✅ | ✅ | DUPLICATE |
+| research | ✅ | ✅ | DUPLICATE |
+| scheduler_v3 | ✅ | ✅ | DUPLICATE |
+| schema | ✅ | ✅ | DUPLICATE |
+| scripts | ✅ | ✅ | DUPLICATE |
+| security | ✅ | ✅ | DUPLICATE |
+| slsa4 | ✅ | ✅ | DUPLICATE |
+| src | ✅ | ✅ | DUPLICATE |
+| strategies | ✅ | ✅ | DUPLICATE |
+| tests | ✅ | ✅ | DUPLICATE |
+| tools | ✅ | ✅ | DUPLICATE |
+| training | ✅ | ✅ | DUPLICATE |
+| v6 | ✅ | ✅ | DUPLICATE |
+| v7 | ✅ | ✅ | DUPLICATE |
+| v8 | ✅ | ✅ | DUPLICATE |
+| AstroFinSentinelV5 | ✅ | ❌ | ROOT-ONLY (empty) |
+| AsurDev | ✅ | ❌ | ROOT-ONLY (empty) |
+| Knowledge | ✅ | ❌ | ROOT-ONLY |
+| Trash | ✅ | ❌ | ROOT-ONLY (system) |
+| astrofin-sentinel-v5 | ✅ | ❌ | ROOT-ONLY (empty) |
+| home-cluster-iac | ✅ | ❌ | ROOT-ONLY (empty) |
+| reports | ✅ | ❌ | ROOT-ONLY |
+| roma-execution-bridge | ✅ | ❌ | ROOT-ONLY (empty) |
+| utils | ✅ | ❌ | ROOT-ONLY |
+| agents | ❌ | ✅ | PLATFORM-ONLY |
+| api | ❌ | ✅ | PLATFORM-ONLY |
+| backtest | ❌ | ✅ | PLATFORM-ONLY |
+| core | ❌ | ✅ | PLATFORM-ONLY |
+| data_room | ❌ | ✅ | PLATFORM-ONLY |
+| integrations | ❌ | ✅ | PLATFORM-ONLY |
+| knowledge | ❌ | ✅ | PLATFORM-ONLY |
+| logs | ❌ | ✅ | PLATFORM-ONLY |
+| meta_rl | ❌ | ✅ | PLATFORM-ONLY |
+| observability | ❌ | ✅ | PLATFORM-ONLY |
+| orchestration | ❌ | ✅ | PLATFORM-ONLY |
+| trading | ❌ | ✅ | PLATFORM-ONLY |
+| web | ❌ | ✅ | PLATFORM-ONLY |
+| web-react | ❌ | ✅ | PLATFORM-ONLY |
+
+**Итого:** 43 дубликата, 10 root-only (6 пустых), 13 platform-only (основной код).
