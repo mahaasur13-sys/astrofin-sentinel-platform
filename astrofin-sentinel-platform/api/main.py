@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from core.base_agent import BaseAgent
+from core.auth import require_api_key
 
 app = FastAPI(title="AstroFin Sentinel API", version="0.4.0")
 
@@ -101,6 +102,7 @@ def health():
 
 
 @app.get("/api/v1/astro/aspects")
+@require_api_key
 def get_astro_aspects():
     """Current astrological aspects from Swiss Ephemeris — source of truth."""
     from core.ephemeris import get_planetary_positions
@@ -125,6 +127,7 @@ def get_astro_aspects():
 
 
 @app.get("/api/v1/dashboard", response_model=DashboardResponse)
+@require_api_key
 def get_dashboard():
     agents = [DashboardAgent(**a) for a in AGENT_DEFS]
 
@@ -213,6 +216,7 @@ def get_dashboard():
 
 
 @app.post("/api/v1/agent/run")
+@require_api_key
 def run_agent(req: AgentRequest):
     """Return decisions from agents with real ephemeris, aspects, and honest ensemble."""
     import time, importlib, random
@@ -342,6 +346,8 @@ def run_agent(req: AgentRequest):
     }
 
 
+@app.get("/api/v1/astro/interpretation")
+@require_api_key
 def get_interpretation():
     """Vedic + astro interpretation for traders: verdict, Muhurta, Choghadiya, Nakshatra."""
     from datetime import datetime, timezone

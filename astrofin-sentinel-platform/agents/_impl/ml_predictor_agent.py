@@ -114,19 +114,11 @@ class MLPredictorAgent(BaseAgent[AgentResponse]):
     async def _fetch_price_data(self, symbol: str, timeframe: str) -> list:
         """Fetch price data for ML model."""
         try:
-            import requests
-
-            interval_map = {
-                "1H": "1h",
-                "4H": "4h",
-                "1D": "1d",
-                "1W": "1w",
-                "SWING": "1d",
-            }
-            interval = interval_map.get(timeframe, "1d")
-            url = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit=100"
-            resp = requests.get(url, timeout=10)
-            data = resp.json()
+            import aiohttp
+            timeout = aiohttp.ClientTimeout(total=10)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit=100") as resp:
+                    data = await resp.json()
             return [float(x[4]) for x in data]  # close prices
         except Exception:
             return []

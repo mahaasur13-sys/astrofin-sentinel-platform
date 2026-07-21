@@ -254,6 +254,9 @@ class Settings(BaseSettings):
         missing: list[str] = []
         if not self.api_key.get_secret_value().strip():
             missing.append("API_KEY")
+        # Block shipment of dev placeholder into production
+        if "dev-api-key-change-me" in self.api_key.get_secret_value() or "change-me" in self.api_key.get_secret_value():
+            missing.append("API_KEY (placeholder — set a real key)")
         if not self.redis_url.get_secret_value().strip():
             missing.append("REDIS_URL")
         if not self.database_url.get_secret_value().strip():

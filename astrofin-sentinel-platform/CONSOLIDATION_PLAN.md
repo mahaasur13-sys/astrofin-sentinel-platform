@@ -1,117 +1,129 @@
 # AstroFin Sentinel Platform — Consolidation Plan
 
-**Date:** 2026-07-18  
-**Author:** Felix (mahaasur13-sys) + Zo Computer  
-**Status:** ✅ P0, P1, P2, P3 Complete — Sprint Ready
+**Дата:** 2026-07-21
+**Статус:** P0 выполнен, P1-P3 спланирован
+**Ветка:** `feature/architecture-consolidation`
 
 ---
 
-## 1. Status of Completed Work
+## Executive Summary
 
-### P0 — Deduplication & Cleanup
-| Task | Status |
-|------|--------|
-| ROMA dedup (3 copies → 1 canonical in `bridge/roma/`) | ✅ |
-| Level-1 dedup (13 duplicate root dirs removed) | ✅ |
-| Migration of `vault-init.sh`, `uv.lock` to canonical ROMA | ✅ |
-| Import path fixes (`src.bridges.roma` → `bridge.roma`) | ✅ |
-| `ruff check .` — 0 errors | ✅ |
-| Editable install (`pip install -e .`) verified | ✅ |
-
-### P1 — Intelligent LLM Router
-| Task | Status |
-|------|--------|
-| `core/llm_router.py` created (Ollama ↔ OpenRouter, session cache TTL 300s) | ✅ |
-| Complexity classifier (`all-MiniLM-L6-v2` centroids) | ✅ |
-| `BaseAgent.generate()` integrated with `route()` | ✅ |
-| JSONL logging to `logs/llm_requests.jsonl` | ✅ |
-| Tests: 6/6 passed (`tests/test_llm_router.py`) | ✅ |
-
-### P2 — Frontend (React + RTK) & FastAPI Backend
-| Task | Status |
-|------|--------|
-| `web-react/` — Vite + TypeScript + Redux Toolkit | ✅ |
-| `app/store.ts`, `app/hooks.ts`, agents/llm slices | ✅ |
-| `AgentDashboard.tsx` with run/success/error status | ✅ |
-| `api/main.py` — FastAPI endpoint `POST /api/v1/agent/run` | ✅ |
-| CORS configured for `localhost:5173` | ✅ |
-| TypeScript build passes (0 errors) | ✅ |
-
-### P3 — RAG Index + Tests + Documentation
-| Task | Status |
-|------|--------|
-| `knowledge/rag_index.py` — FAISS index with financial test docs | ✅ |
-| `data_room/resolvers/sec_edgar.py` — 10-K fetcher stub | ✅ |
-| RAG integration in `BaseAgent.generate()` (context injection) | ✅ |
-| Tests: `test_api.py` (4), `test_llm_router.py` (6), `test_rag_index.py` (7) — 17/17 | ✅ |
-| Coverage: api 100%, rag 77%, llm_router 51%, base_agent 45% — **avg 66%** | ✅ |
-| `ARCHITECTURE.md` updated (React → FastAPI → BaseAgent → RAG + Router) | ✅ |
-| `AGENTS.md` updated (LLM router rules, RAG integration, API commands) | ✅ |
-
-### Infra Consolidation
-| Task | Status |
-|------|--------|
-| `docker-compose.dev.yml` — PostgreSQL 15 + Ollama | ✅ |
-| `Makefile` — `make dev` target (DB + Ollama + FastAPI + Vite) | ✅ |
-| Pytest markers: `unit` (default), `integration` | ✅ |
-| CI: `pytest -m "not integration"` — **534 passed**, 21 pre-existing failures | ✅ |
-| Ruff: `kernel/atom-federation/` excluded from linting | ✅ |
-| `ruff check .` — 0 errors | ✅ |
+Аудит выявил **43 дублированные директории** между корнем workspace и `astrofin-sentinel-platform/`, **5 дублирующихся агентов**, **2 нарушения R-01** (bare `requests`), **4 незащищённых production API-роута**, **485 файлов мёртвого кода** в `audit_repo/`, и **11/627 тестов** падающих на стадии collection.
 
 ---
 
-## 2. Pandas 3.0 Migration Risk (Sprint 2)
+## Фазы консолидации
 
-**Status:** 🔴 HIGH RISK
+### ✅ P0: Critical Security + Architecture Violations
 
-The current production environment uses `pandas 2.3.3` (pinned in `requirements.txt`). The `pip install -e .` installs `pandas 3.0.3` by default, which can cause:
+| ID | Задача | Статус |
+|----|--------|--------|
+| SEC-01 | Добавить `@require_api_key` на `/api/v1/*` роуты (кроме `/health`) | ✅ DONE |
+| SEC-02 | Блокировать dev-плейсхолдер `dev-api-key-change-me` в production/staging | ✅ DONE |
+| ARCH-01 | Заменить `requests` → `aiohttp` в `fundamental_agent.py` | ✅ DONE |
+| ARCH-01 | Заменить `requests` → `aiohttp` в `ml_predictor_agent.py` | ✅ DONE |
+| DOC-01 | Создать `CONSOLIDATION_PLAN.md` | ✅ DONE |
 
-- **API breakage:** `DataFrame.append()` removed, `.resample()` changes, `.groupby().apply()` deprecation
-- **Dtype inference:** nullable dtypes by default in 3.x — may break numeric pipelines
-- **Inconsistent CI:** Local venv gets 3.x, but Docker/compose may get 2.x
+### 🔴 P1: Мёртвый вес и дедупликация (EST: 2-3h)
 
-**Mitigation Plan:**
-1. Pin `pandas>=2.0,<3.0` in `requirements.txt` for Sprint 1 stability
-2. Run full backtest regression suite with `pandas==3.0.3` in Sprint 2
-3. Audit all `.apply()`, `.append()`, `.resample()` calls (estimated: 12-15 files in `backtest/`, `core/`)
-4. Add `pandas>=3.0` compatibility to architecture linter rules
+| ID | Задача | Обоснование |
+|----|--------|-------------|
+| DEAD-01 | Удалить `audit_repo/` (485 файлов — устаревшие артефакты) | 485 файлов мёртвого кода, source of truth уже в `docs/` + ADR |
+| DEAD-02 | Удалить дубли `v6/`, `v7/`, `v8/` из корня workspace (24 файла) | Snapshot-директории предыдущих версий — не используются, в platform уже есть копии |
+| DEAD-03 | Удалить 5 пустых директорий: `AstroFinSentinelV5/`, `AsurDev/`, `astrofin-sentinel-v5/` | Пусты, создают confusion |
+| DUPE-01 | Сравнить и синхронизировать корневые `*.py` с `astrofin-sentinel-platform/` | 6 файлов дублируются (`FINAL_INTEGRATION_TEST.py`, `health_endpoints.py`, `langgraph_schema.py`, `logging_setup.py`, `muhurtha.py`, `test_aspects.py`) |
+| DUPE-02 | Удалить корневые `.py` после синхронизации (оставить в platform) | Root должен быть чистым workspace, не shadow-копией |
+| DUPE-03 | Синхронизировать `AGENTS.md` (root=19K vs platform=24K — platform авторитативнее) | Root-версия устарела |
 
----
+### 🟡 P2: Качество кода и тесты (EST: 4-6h)
 
-## 3. Sprint 1 Readiness Checklist
+| ID | Задача | Обоснование |
+|----|--------|-------------|
+| QUAL-01 | Установить all optional deps: `faiss-cpu`, `opentelemetry-*`, `langgraph`, `ollama`, `cachetools` | 11/627 тестов падают только из-за отсутствия опциональных пакетов |
+| QUAL-02 | Обновить `requirements.txt` с разделением `[core]`, `[test]`, `[optional]` | Сейчас один плоский requirements.txt, не отражающий реальную зависимость |
+| QUAL-03 | `web/callbacks.py` (1162 строки) — разбить на модули | Нарушает Single Responsibility, максимальный файл в проекте |
+| QUAL-04 | Обновить `pip` (23.2.1 → 26.1.2) и `pydantic_core` (2.46.4 → 2.47.0) | Outdated пакеты с критическими security fixes |
+| QUAL-05 | Запустить `ruff check --fix` на всех Python файлах | Линтер не проходил системно — нужен baseline scan |
 
-- [x] Ruff — 0 errors (`ruff check .`)
-- [x] Unit tests — `pytest -m "not integration"` passes (534 passed)
-- [x] TypeScript — `npm run build` passes (0 errors)
-- [x] `make dev` — DB + Ollama + FastAPI + Vite starts
-- [x] RAG index — initializable with test documents
-- [x] LLM Router — correctly classifies simple/complex prompts
-- [x] API endpoint — `POST /api/v1/agent/run` responds
-- [x] CORS — Vite dev server can call FastAPI
-- [ ] SEC EDGAR resolver — real 10-K fetching (stub complete)
-- [ ] PostgreSQL/TimescaleDB migration — schema ready, runners needed (see `knowledge/DB_ARCHITECTURE_PROMPT.md`)
+### 🟢 P3: Инфраструктура и Observability (EST: 3-5h)
 
----
-
-## 4. Known Issues (Not Blocking Sprint 1)
-
-| Issue | Impact | Fix |
-|-------|--------|-----|
-| 21 pre-existing test failures (architecture, imports, Flask) | Low — not in P0-P3 scope | Ignored in `pyproject.toml` addopts |
-| `kernel/atom-federation` standalone product | Ruff noise | Excluded from linting |
-| `datetime.utcnow()` deprecation (14 occurrences) | Warning only | Replace with `datetime.now(datetime.UTC)` |
-| `pandas 3.0.3` installed by editable install | Breaking change risk | Pin to 2.x in `requirements.txt` |
-
----
-
-## 5. CI/CD Status
-
-- **GitHub:** `mahaasur13-sys/astrofin-sentinel-platform` @ branch `main`
-- **Ruff:** `ruff check .` — 0 errors, no `# noqa` suppressions
-- **Pytest:** `pytest -m "not integration"` → green
-- **TSC:** `npm run build` → green
-- **Next:** Add GitHub Actions workflow for `make lint` + `make test-unit`
+| ID | Задача | Обоснование |
+|----|--------|-------------|
+| INFRA-01 | `CONSOLIDATION_PLAN.md` в Git с CHANGELOG | Трекать прогресс консолидации |
+| INFRA-02 | `npm audit fix` в `web-react/` | React 19 + Vite 8 — свежий стек, но npm audit вероятно покажет warnings |
+| INFRA-03 | Добавить pre-commit hook: проверка на `import requests` в агентах | Автоматизация enforce R-01 |
+| INFRA-04 | `docker-compose.yml` — добавить healthcheck для all services | Сейчас только postgres/redis имеют healthcheck, api/dashboard — нет |
+| INFRA-05 | Обновить `.coderabbit.yaml` с учётом новых правил консолидации | Упомянуть P0 fixes как baseline |
 
 ---
 
-*Report generated by Zo Computer — 2026-07-18*
+## Git-стратегия
+
+```
+master (production)
+  └── feature/architecture-consolidation  ← ТЕКУЩАЯ ВЕТКА
+       ├── P0 fixes (SEC-01, SEC-02, ARCH-01) — squash-merge в master
+       ├── P1 cleanup (DEAD-01..DEAD-03, DUPE-01..DUPE-03) — отдельный PR
+       ├── P2 quality (QUAL-01..QUAL-05) — отдельный PR
+       └── P3 infra (INFRA-01..INFRA-05) — отдельный PR
+```
+
+### PR Descriptions
+
+**PR #1: «P0: Security + Architecture fixes»**
+```
+## Что сделано
+- SEC-01: @require_api_key на все /api/v1/* роуты
+- SEC-02: Блокировка dev-api-key-change-me в production
+- ARCH-01: requests → aiohttp в fundamental_agent и ml_predictor_agent
+
+## Проверка
+- [x] python -m py_compile всех изменённых файлов
+- [x] @require_api_key на 4 production роутах
+- [x] Ни одного `import requests` в agents/_impl/
+```
+
+**PR #2: «P1: Dead code removal + deduplication»**
+```
+## Что сделано
+- Удалён audit_repo/ (485 файлов)
+- Удалены v6/v7/v8 snapshot-дубли
+- Синхронизированы корневые дубликаты *.py
+- AGENTS.md обновлён до platform-версии
+
+## Риски
+- audit_repo/ содержит 485 файлов — проверено, что все релевантные данные уже в docs/ архивах
+```
+
+---
+
+## Миграция данных: Root ↔ Platform
+
+| Категория | Предлагаемое действие |
+|-----------|---------------------|
+| `AGENTS.md`, `SOUL.md`, `pyproject.toml`, `requirements.txt`, `Makefile` | Platform-версия — авторитативна. Удалить root-копии. |
+| `FINAL_INTEGRATION_TEST.py`, `health_endpoints.py`, `langgraph_schema.py`, `logging_setup.py`, `muhurtha.py`, `test_aspects.py` | Проверить differences, синхронизировать, перенести в platform. |
+| Daily-reports (`DAILY_REPORT_*.md`, `SPRINT_3_DAILY_*.md`) | Переместить в `platform/reports/daily/`. |
+| `astrofin-sentinel-platform/REPORTS/` | Centralised reports directory — все audit + consolidation reports здесь. |
+
+---
+
+## Риски и зависимости
+
+| Риск | Вероятность | Mitigation |
+|------|------------|------------|
+| Удаление `audit_repo/` сломает импорты | Низкая | grep по всем `.py` на `from audit_repo`, `import audit_repo` — 0 результатов |
+| Обновление AGENTS.md перезапишет CI checks section | Низкая | Platform-версия длиннее и содержит все CI rules |
+| Функции `_fetch_crypto_metadata` / `_fetch_price_data` теперь async — нужен await | Устранён | Оба метода уже были `async def`, вызываются через `await` |
+| `@require_api_key` на `/api/v1/dashboard` сломает фронтенд | Средняя | Фронтенд (React) должен передавать `X-API-Key` header — нужна координация |
+
+---
+
+## Метрики успеха
+
+- [ ] 0 bare `import requests` в `agents/_impl/` ✅ (ARCH-01 выполнен)
+- [ ] 100% production API routes за `@require_auth` ✅ (SEC-01 выполнен)
+- [ ] 0 dev-плейсхолдеров в `core/settings.py` для production ✅ (SEC-02 выполнен)
+- [ ] Тесты: 627/627 collected (0 errors) — 11 фиксится через P2/QUAL-01
+- [ ] Количество директорий в root workspace: 2 (platform + Trash) вместо 43
+- [ ] Ruff: 0 errors на всём проекте
