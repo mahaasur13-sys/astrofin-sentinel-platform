@@ -449,6 +449,16 @@ def get_interpretation():
         ],
     }
 
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from fastapi.responses import Response
+
+
+@app.get("/metrics", include_in_schema=False)
+async def metrics_endpoint():
+    """Prometheus metrics endpoint — scraped by prometheus.yml."""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 # ── Serve React production build (after all API routes) ──
 import os
 react_dist = os.path.join(os.path.dirname(__file__), "..", "web-react", "dist")

@@ -199,7 +199,12 @@ class RAGIndex:
         for idx in all_indices:
             rrf_scores[idx] = dense_scores.get(idx, 0.0) + sparse_scores.get(idx, 0.0)
 
+        import time as _time
+        _t0 = _time.perf_counter()
         sorted_indices = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
+        if _HAS_PROM and RAG_RETRIEVAL_DURATION:
+            RAG_RETRIEVAL_DURATION.observe(_time.perf_counter() - _t0)
+
         results: list[Chunk] = []
         for idx, score in sorted_indices:
             chunk = self.chunks[idx].model_copy()
