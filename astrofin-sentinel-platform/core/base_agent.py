@@ -112,6 +112,7 @@ class BaseAgent(ABC, Generic[T]):
         instructions_path: str = None,
         domain: str = None,
         weight: float = 0.0,
+        use_rag: bool = False,
     ):
         self.name = name
         self.weight = weight
@@ -120,6 +121,7 @@ class BaseAgent(ABC, Generic[T]):
         self._broker: "MessageBroker | None" = None
         self._outbox: "Outbox | None" = None
         self._retriever = _DegradedRetriever()
+        self.use_rag = use_rag
 
         if instructions_path:
             try:
@@ -159,6 +161,7 @@ class BaseAgent(ABC, Generic[T]):
                 extra={"agent": self.name, "error": str(exc)},
             )
             self._retriever = _DegradedRetriever()
+        self.use_rag = use_rag
         return self._retriever
 
     async def retrieve(self, query: str, domain: str = None, top_k: int = 5) -> list[dict]:
@@ -218,6 +221,27 @@ class BaseAgent(ABC, Generic[T]):
             parts.append(f"\n# Current Context\n\n{extra_context}")
         return "\n\n".join(parts)
 
+
+    def _get_rag_context(self, query: str) -> str:
+        if not getattr(self, "use_rag", False):
+            return ""
+        rag = get_rag()
+        if not rag:
+            return ""
+        try:
+            from core.settings import settings; chunks = rag.retrieve(query, top_k=settings.RAG_TOP_K)
+            if not chunks:
+                return ""
+            ctx = "--- RELEVANT KNOWLEDGE BASE CONTEXT ---"
+            for j, c in enumerate(chunks):
+                src = c.metadata.get("source", "unknown")
+                ctx += f"[{j+1}] (Source: {src}) {c.text}"
+            ctx += "--- END CONTEXT ---"
+            logger.info("rag_context_enriched", agent=self.name, chunks_used=len(chunks))
+            return ctx
+        except Exception as e:
+            logger.error("rag_retrieval_failed", agent=self.name, error=str(e))
+            return ""
     def generate(self, prompt: str, session_id: str | None = None) -> str:
         from core.llm_router import route
         try:
