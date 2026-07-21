@@ -180,8 +180,11 @@ class OutboxStore:
                 (event_id,),
             ).fetchone()
             attempts = row["attempts"] if row else 0
-            delay = self.config.retry_interval * (self.config.retry_backoff ** attempts)
-            next_at = time.time() + delay
+            if attempts == 0:
+                next_at = time.time()
+            else:
+                delay = self.config.retry_interval * (self.config.retry_backoff ** attempts)
+                next_at = time.time() + delay
             conn.execute(
                 """UPDATE outbox_events
                    SET status = ?, last_error = ?, next_retry_at = ?

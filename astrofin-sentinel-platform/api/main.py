@@ -449,6 +449,19 @@ def get_interpretation():
         ],
     }
 
+
+@app.websocket("/ws/agent/{agent_id}")
+async def ws_agent(websocket: WebSocket, agent_id: str):
+    """WebSocket endpoint — real-time agent streaming for Sprint 4."""
+    await websocket.accept()
+    try:
+        await websocket.send_text("connected")
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"echo: {data}")
+    except WebSocketDisconnect:
+        pass
+
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from fastapi.responses import Response
 
