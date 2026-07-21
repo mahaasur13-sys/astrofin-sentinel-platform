@@ -29,12 +29,12 @@
 | R-11 | Coverage нового агента = 100% unit + 1 integration |
 | R-12 | Subtree/submodule — запрещены; всё inlined в master |
 
-## Текущее состояние (2026-07-13)
+## Текущее состояние (2026-07-21)
 
-- **Branch:** `master` @ `d45de6a` (PR #201 squash-merged)
+- **Branch:** `feature/architecture-consolidation` @ `5b2565c` (PR #201 squash-merged)
 - **Phase B1 + 4.x:** завершены — 10 артефактов восстановлены, 0 hard linter violations
 - **Submodules:** 6 inlined, `.gitmodules.bak` оставлен как артефакт subtree-эксперимента
-- **Open:** Step 4.7 (auth на 5 web-роутах), R-3.5/R-7…R-12 линтер, RAG index, PostgreSQL migration
+- **Consolidation P0-P3:** завершены (SEC, DEAD, DUPE, QUAL, INFRA)
 
 ## Правила для AI-агентов (обязательные)
 

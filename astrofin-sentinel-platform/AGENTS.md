@@ -399,7 +399,7 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 - [x] **Step 4.6: Arch linter 0 hard violations** (R3 3→0, R2 20→0)
 - [x] **Step 4.4: RAG proxy indirection (data_room.blueprint)**
 - [x] **Step 4.5: AMRE pre-commit hook installed**
-- [ ] **Step 4.7:** `@require_auth` on remaining 5 web routes OR migrate to `data_room` namespace
+- [x] **Step 4.7:** `@require_auth` on 4 production API routes ✅ (P0/SEC-01)
 - [ ] **Step 4.8+:** R3.5, R7-R12 architecture linter rules
 - [ ] Connect real data APIs (Polygon, Unusual Whales, SEC EDGAR via data_room resolvers)
 - [ ] Add Telegram bot for alerts
