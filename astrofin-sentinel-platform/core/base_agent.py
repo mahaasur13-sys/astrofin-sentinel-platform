@@ -327,3 +327,21 @@ class _DegradedRetriever:
         self, query: str, domain: str | None = None, top_k: int = 5
     ) -> list[dict]:
         return []
+
+# ── Phase 5.3: RAG Singleton + Agent Integration ──────────────────────
+
+_rag_instance: "RAGIndex | None" = None
+
+def get_rag() -> "RAGIndex | None":
+    """Ленивый потокобезопасный Singleton для Production RAGIndex."""
+    global _rag_instance
+    if _rag_instance is not None:
+        return _rag_instance
+    try:
+        from knowledge.rag_index import RAGIndex
+        _rag_instance = RAGIndex()
+        logger.info("RAGIndex singleton initialized", chunks=len(_rag_instance.chunks))
+    except Exception as exc:
+        logger.warning("Failed to initialize RAGIndex", error=str(exc))
+        _rag_instance = None
+    return _rag_instance
