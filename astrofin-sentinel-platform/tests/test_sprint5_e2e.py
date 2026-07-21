@@ -23,8 +23,8 @@ from agents._impl.fundamental_agent import FundamentalAgent
 from agents._impl.quant_agent import QuantAgent
 from agents._impl.macro_agent import MacroAgent
 from agents._impl.sentiment_agent import SentimentAgent
-from agents._impl.bull_researcher import BullResearcher
-from agents._impl.bear_researcher import BearResearcher
+from agents._impl.bull_researcher import BullResearcherAgent as BullResearcher
+from agents._impl.bear_researcher import BearResearcherAgent as BearResearcher
 from agents._impl.risk_agent import RiskAgent
 
 
@@ -80,7 +80,7 @@ class TestEnsembleVoting13Agents:
         for name, agent in agents.items():
             env = TaskEnvelope.new(
                 agent_name=name,
-                state_snapshot=state,
+                state=state,
                 deadline=time.time() + 120,
             )
             result = await broker.send(env, agent.on_message)
@@ -133,7 +133,7 @@ class TestCircuitBreakerIntegrated:
 
         env = TaskEnvelope.new(
             agent_name="fundamental",
-            state_snapshot={"ticker": "BTCUSDT", "timeframe": "1D"},
+            state={"ticker": "BTCUSDT", "timeframe": "1D"},
             deadline=time.time() + 120,
         )
 

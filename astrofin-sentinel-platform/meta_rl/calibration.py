@@ -379,25 +379,6 @@ _tracker: CalibrationTracker | None = None
 _tracker_lock = threading.Lock()
 
 
-@property
-    def calibration_accuracy(self) -> float:
-        """Average calibration score across all agents (0.0–1.0)."""
-        with self._lock:
-            conn = self._connect()
-            try:
-                cur = conn.execute(
-                    """SELECT AVG(ABS(predicted_confidence - 
-                        CASE WHEN actual_outcome = 'correct' THEN 1.0 ELSE 0.0 END))
-                    FROM calibration_events
-                    WHERE actual_outcome IS NOT NULL"""
-                )
-                row = cur.fetchone()
-                if row and row[0] is not None:
-                    return max(0.0, 1.0 - row[0])
-                return 0.0
-            finally:
-                conn.close()
-
     def detect_drift(self, window: int = 50) -> dict:
         """Check if recent calibration deviates from baseline."""
         with self._lock:

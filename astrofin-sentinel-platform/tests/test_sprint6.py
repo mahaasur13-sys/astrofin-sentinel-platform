@@ -37,16 +37,15 @@ def make_response(
     signal: SignalDirection = SignalDirection.NEUTRAL,
     confidence: float = 0.5,
     reasoning: str = "test",
-    domain: str = "quant",
     weight: float = 0.10,
+    domain: str = "quant",
 ) -> AgentResponse:
     return AgentResponse(
         agent_name=agent_name,
         signal=signal,
-        confidence=confidence,
+        confidence=int(confidence * 100),
         reasoning=reasoning,
-        domain=domain,
-        weight=weight,
+        metadata={"domain": domain, "weight": weight},
     )
 
 
@@ -78,10 +77,10 @@ class TestCouncilOrchestrator:
         orchestrator = CouncilOrchestrator(risk, config={"symbol": "BTCUSDT"})
 
         responses = [
-            make_response("FundamentalAgent", SignalDirection.BUY, confidence=0.7),
-            make_response("QuantAgent", SignalDirection.BUY, confidence=0.8),
+            make_response("FundamentalAgent", SignalDirection.LONG, confidence=70),
+            make_response("QuantAgent", SignalDirection.LONG, confidence=80),
         ]
-        final_signal = make_response("AstroCouncil", SignalDirection.BUY, confidence=0.6)
+        final_signal = make_response("AstroCouncil", SignalDirection.LONG, confidence=60)
 
         result = await orchestrator.execute_trading_cycle(responses, final_signal)
 
@@ -100,9 +99,9 @@ class TestCouncilOrchestrator:
         risk = FakeRiskEngine()
         orchestrator = CouncilOrchestrator(risk)
 
-        quant = make_response("QuantAgent", SignalDirection.BUY, confidence=0.8)
-        hmm = make_response("HMMRegimeAgent", SignalDirection.SELL, confidence=0.7)
-        other = make_response("FundamentalAgent", SignalDirection.BUY, confidence=0.6)
+        quant = make_response("QuantAgent", SignalDirection.LONG, confidence=80)
+        hmm = make_response("HMMRegimeAgent", SignalDirection.SHORT, confidence=70)
+        other = make_response("FundamentalAgent", SignalDirection.LONG, confidence=60)
 
         # KARL should not raise — it resolves the conflict internally
         result = orchestrator._apply_karl_arbitration([quant, hmm, other])
@@ -120,7 +119,7 @@ class TestCouncilOrchestrator:
         orchestrator = CouncilOrchestrator(risk)
 
         responses = [
-            make_response("FundamentalAgent", SignalDirection.BUY),
+            make_response("FundamentalAgent", SignalDirection.LONG),
             make_response("QuantAgent", SignalDirection.NEUTRAL),
         ]
         result = orchestrator._apply_karl_arbitration(responses)
@@ -134,8 +133,8 @@ class TestCouncilOrchestrator:
         risk = FakeRiskEngine(adjust_result=0.0, reason="extreme volatility")
         orchestrator = CouncilOrchestrator(risk, config={"symbol": "ETHUSDT"})
 
-        responses = [make_response("QuantAgent", SignalDirection.BUY, confidence=0.9)]
-        final = make_response("AstroCouncil", SignalDirection.BUY, confidence=0.85)
+        responses = [make_response("QuantAgent", SignalDirection.LONG, confidence=90)]
+        final = make_response("AstroCouncil", SignalDirection.LONG, confidence=85)
 
         result = await orchestrator.execute_trading_cycle(
             responses, final, is_backtest=True
@@ -154,7 +153,7 @@ class TestCouncilOrchestrator:
         risk = FakeRiskEngine(adjust_result=0.5, reason="ok")
         orchestrator = CouncilOrchestrator(risk)
 
-        responses = [make_response("FundamentalAgent", SignalDirection.HOLD)]
+        responses = [make_response("FundamentalAgent", SignalDirection.NEUTRAL)]
         final = make_response("AstroCouncil", SignalDirection.NEUTRAL)
 
         result = await orchestrator.execute_trading_cycle(responses, final)
@@ -171,8 +170,8 @@ class TestCouncilOrchestrator:
         risk = FakeRiskEngine(adjust_result=2.0, reason="aggressive")
         orchestrator = CouncilOrchestrator(risk, config={"base_position_size": 1.0})
 
-        responses = [make_response("QuantAgent", SignalDirection.BUY, confidence=0.9)]
-        final = make_response("AstroCouncil", SignalDirection.BUY, confidence=0.8)
+        responses = [make_response("QuantAgent", SignalDirection.LONG, confidence=90)]
+        final = make_response("AstroCouncil", SignalDirection.LONG, confidence=80)
 
         result = await orchestrator.execute_trading_cycle(
             responses, final, config={"base_position_size": 2.0}
@@ -188,7 +187,7 @@ class TestCouncilOrchestrator:
         risk = FakeRiskEngine(adjust_result=0.33, reason="conservative")
         orchestrator = CouncilOrchestrator(risk)
 
-        responses = [make_response("QuantAgent", SignalDirection.BUY)]
+        responses = [make_response("QuantAgent", SignalDirection.LONG)]
         size, reason = orchestrator.adjust_through_risk(base_size=0.5, agent_responses=responses)
 
         assert size == 0.33
@@ -256,8 +255,8 @@ class TestKARLConflictResolution:
         """Opposite signals: confidence is adjusted, not erased."""
         from agents.karl_synthesis import resolve_conflict
 
-        quant = make_response("QuantAgent", SignalDirection.BUY, confidence=0.85)
-        hmm = make_response("HMMRegimeAgent", SignalDirection.SELL, confidence=0.75)
+        quant = make_response("QuantAgent", SignalDirection.LONG, confidence=85)
+        hmm = make_response("HMMRegimeAgent", SignalDirection.SHORT, confidence=75)
 
         # KARL modifies in-place
         quant_before = quant.confidence
@@ -272,8 +271,8 @@ class TestKARLConflictResolution:
         """Same signal: no conflict, agents unchanged."""
         from agents.karl_synthesis import resolve_conflict
 
-        quant = make_response("QuantAgent", SignalDirection.BUY, confidence=0.80)
-        hmm = make_response("HMMRegimeAgent", SignalDirection.BUY, confidence=0.70)
+        quant = make_response("QuantAgent", SignalDirection.LONG, confidence=80)
+        hmm = make_response("HMMRegimeAgent", SignalDirection.LONG, confidence=70)
 
         resolve_conflict(quant, hmm)
         # Same direction — amplification expected
@@ -400,15 +399,15 @@ class TestPhase7E2E:
 
         # Simulated agent responses from all 7 pools
         responses = [
-            make_response("FundamentalAgent", SignalDirection.BUY, confidence=0.7, domain="fundamental", weight=0.20),
-            make_response("QuantAgent", SignalDirection.BUY, confidence=0.8, domain="quant", weight=0.20),
-            make_response("SentimentAgent", SignalDirection.BUY, confidence=0.6, domain="sentiment", weight=0.10),
-            make_response("TechnicalAgent", SignalDirection.BUY, confidence=0.65, domain="technical", weight=0.10),
-            make_response("RiskAgent", SignalDirection.NEUTRAL, confidence=0.5, domain="risk", weight=0.15),
-            make_response("HMMRegimeAgent", SignalDirection.BUY, confidence=0.7, domain="quant", weight=0.10),
-            make_response("BullResearcher", SignalDirection.BUY, confidence=0.55, domain="research", weight=0.05),
+            make_response("FundamentalAgent", SignalDirection.LONG, confidence=70, weight=0.20),
+            make_response("QuantAgent", SignalDirection.LONG, confidence=80, weight=0.20),
+            make_response("SentimentAgent", SignalDirection.LONG, confidence=60, weight=0.10),
+            make_response("TechnicalAgent", SignalDirection.LONG, confidence=605, weight=0.10),
+            make_response("RiskAgent", SignalDirection.NEUTRAL, confidence=50, weight=0.15),
+            make_response("HMMRegimeAgent", SignalDirection.LONG, confidence=70, weight=0.10),
+            make_response("BullResearcher", SignalDirection.LONG, confidence=505, weight=0.05),
         ]
-        final = make_response("AstroCouncil", SignalDirection.BUY, confidence=0.68)
+        final = make_response("AstroCouncil", SignalDirection.LONG, confidence=608)
 
         result = await orchestrator.execute_trading_cycle(responses, final)
 
@@ -425,10 +424,10 @@ class TestPhase7E2E:
         orchestrator = CouncilOrchestrator(risk, config={"symbol": "ETHUSDT"})
 
         responses = [
-            make_response("QuantAgent", SignalDirection.BUY, confidence=0.85),
-            make_response("HMMRegimeAgent", SignalDirection.SELL, confidence=0.80),
+            make_response("QuantAgent", SignalDirection.LONG, confidence=85),
+            make_response("HMMRegimeAgent", SignalDirection.SHORT, confidence=80),
         ]
-        final = make_response("AstroCouncil", SignalDirection.BUY, confidence=0.45)
+        final = make_response("AstroCouncil", SignalDirection.LONG, confidence=45)
 
         result = await orchestrator.execute_trading_cycle(responses, final)
 

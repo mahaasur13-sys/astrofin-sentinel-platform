@@ -592,3 +592,11 @@ def get_karl_agent() -> KARLSynthesisAgent:
     if _KARL_AGENT is None:
         _KARL_AGENT = KARLSynthesisAgent()
     return _KARL_AGENT
+
+
+# ── Sprint 6: conflict resolution stub ─────────────────────────────────────
+
+def resolve_conflict(agent_a, agent_b):
+    """Resolve conflict between two agents by reducing both weights by 10%."""
+    agent_a.weight = max(0.0, agent_a.weight - 0.10)
+    agent_b.weight = max(0.0, agent_b.weight - 0.10)
