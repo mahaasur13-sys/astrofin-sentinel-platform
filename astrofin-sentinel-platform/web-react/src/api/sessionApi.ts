@@ -21,14 +21,32 @@ export interface SessionDetailResponse {
   broker_fee?: number;
 }
 
+
+export interface SessionListItem {
+  id: string;
+  timestamp: string;
+  symbol: string;
+  signal: string;
+  confidence: number;
+  final_pnl?: number;
+}
+
+export interface SessionListResponse {
+  items: SessionListItem[];
+  total: number;
+}
+
 export const sessionApi = createApi({
   reducerPath: 'sessionApi',
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v1' }),
   endpoints: (builder) => ({
+    getSessionsList: builder.query<SessionListResponse, { skip?: number; limit?: number }>({
+      query: ({ skip = 0, limit = 50 }) => `/sessions/?skip=${skip}&limit=${limit}`,
+    }),
     getSessionDetails: builder.query<SessionDetailResponse, string>({
       query: (sessionId) => `/sessions/${sessionId}/details`,
     }),
   }),
 });
 
-export const { useGetSessionDetailsQuery } = sessionApi;
+export const { useGetSessionDetailsQuery, useGetSessionsListQuery } = sessionApi;

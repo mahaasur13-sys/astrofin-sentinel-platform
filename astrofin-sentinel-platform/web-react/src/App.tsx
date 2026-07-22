@@ -4,6 +4,9 @@ import SafetyGateCard from './components/sentinel/SafetyGateCard';
 import EquityCurve from './components/sentinel/EquityCurve';
 import AgentPerformanceGrid from './components/sentinel/AgentPerformanceGrid';
 import AstroMindChatV2 from "./components/sentinel/AstroMindChatV2";
+import SessionTable from "./components/SessionTable";
+import ContextDrawer from "./components/ContextDrawer";
+import ContextDrawer from "./components/ContextDrawer";
 
 type Regime = 'bull' | 'bear' | 'sideways' | 'high_vol' | 'anomaly';
 type Signal = 'buy' | 'sell' | 'hold' | 'strong_buy' | 'strong_sell';
@@ -411,8 +414,13 @@ export default function App() {
         </div>
       </footer>
 
+      {/* Phase 5.5: Live Session Table — pulls from API */}
+      <SessionTable />
       {/* AstroMind Chat */}
       <AstroMindChatV2 />
+
+      {{/* Drawer — глобальный, перекрывает всё при dispatch(openContextDrawer) */}}
+      <ContextDrawer />
     </main>
   );
 }

@@ -27,3 +27,16 @@ class SessionDetailResponse(BaseModel):
     broker_executed_price: Optional[float] = None
     broker_slippage: Optional[float] = None
     broker_fee: Optional[float] = None
+
+class SessionListItem(BaseModel):
+    id: str
+    timestamp: datetime
+    symbol: str
+    signal: str
+    confidence: float
+    final_pnl: Optional[float] = None
+
+
+class SessionListResponse(BaseModel):
+    items: list[SessionListItem]
+    total: int
