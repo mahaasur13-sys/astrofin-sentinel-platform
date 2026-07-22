@@ -4,6 +4,10 @@ import SafetyGateCard from './components/sentinel/SafetyGateCard';
 import EquityCurve from './components/sentinel/EquityCurve';
 import AgentPerformanceGrid from './components/sentinel/AgentPerformanceGrid';
 import AstroMindChatV2 from "./components/sentinel/AstroMindChatV2";
+import SessionTable from "./components/SessionTable";
+import ContextDrawer from "./components/ContextDrawer";
+import SessionTable from "./components/SessionTable";
+import ContextDrawer from "./components/ContextDrawer";
 
 type Regime = 'bull' | 'bear' | 'sideways' | 'high_vol' | 'anomaly';
 type Signal = 'buy' | 'sell' | 'hold' | 'strong_buy' | 'strong_sell';
@@ -411,8 +415,18 @@ export default function App() {
         </div>
       </footer>
 
+      {/* Phase 5.5: Session Table + Context Drawer */}
+      <SessionTable
+        rows={[
+          {{ id: "sess_001", timestamp: "2026-07-22T10:00:00Z", symbol: "BTC/USDT", signal: "BUY", confidence: 0.85, final_pnl: 120.50 }},
+          {{ id: "sess_002", timestamp: "2026-07-22T11:00:00Z", symbol: "ETH/USDT", signal: "SELL", confidence: 0.62, final_pnl: -15.00 }},
+        ]}
+      />
       {/* AstroMind Chat */}
       <AstroMindChatV2 />
+
+      {{/* Drawer — глобальный, перекрывает всё при dispatch(openContextDrawer) */}}
+      <ContextDrawer />
     </main>
   );
 }
