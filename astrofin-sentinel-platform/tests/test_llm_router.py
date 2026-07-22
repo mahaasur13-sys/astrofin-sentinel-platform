@@ -1,6 +1,7 @@
 """Tests for Intelligent LLM Router (P1)."""
 
 import pytest
+pytest.importorskip("sentence_transformers", reason="optional dep for LLM router")
 from core.llm_router import classify_complexity
 
 
