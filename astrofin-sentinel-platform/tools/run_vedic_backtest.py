@@ -12,6 +12,10 @@ Usage:
 import argparse, random, sys
 from datetime import datetime, timedelta, timezone
 
+import logging
+log = logging.getLogger(__name__)
+
+
 def main():
     p = argparse.ArgumentParser(description="Vedic Backtest Runner")
     p.add_argument("--days", type=int, default=90)
@@ -30,10 +34,10 @@ def main():
     start = datetime(2026, 1, 19, 6, 0, tzinfo=TZ)
     SYM = args.symbol
 
-    print("=" * 72)
-    print(f"  VEDIC BACKTEST — {SYM} {args.days}d @ ${args.base_price:,.0f}")
-    print(f"  Filter: Muhurta ≥ {args.min_muhurta}, exclude_dangerous={args.exclude_dangerous}, seed={args.seed}")
-    print("=" * 72)
+    log.info("=" * 72)
+    log.info(f"  VEDIC BACKTEST — {SYM} {args.days}d @ ${args.base_price:,.0f}")
+    log.info(f"  Filter: Muhurta ≥ {args.min_muhurta}, exclude_dangerous={args.exclude_dangerous}, seed={args.seed}")
+    log.info("=" * 72)
 
     prices_raw, signals_raw = [], []
     p_price = args.base_price
@@ -56,12 +60,12 @@ def main():
     bt = Backtester(config)
     all_sigs = [s for s in signals_raw if s["signal"] != "NEUTRAL"]
     res_all = bt.run(all_sigs, prices)
-    print(f"\n  UNFILTERED: {len(res_all.trades)} trades")
+    log.info(f"\n  UNFILTERED: {len(res_all.trades)} trades")
 
     # VEDIC-filtered
     filtered = vedic_filter(res_all.trades, min_muhurta=args.min_muhurta,
                             exclude_dangerous=args.exclude_dangerous)
-    print(f"  VEDIC (≥{args.min_muhurta} Muhurta): {len(filtered)} passed")
+    log.info(f"  VEDIC (≥{args.min_muhurta} Muhurta): {len(filtered)} passed")
 
     # Nakshatra Matrix
     matrix = VedicPerformanceMatrix()
@@ -70,10 +74,10 @@ def main():
             vt = annotate_trade(t, t.entry_time)
             matrix.add_trade(vt)
         except Exception:
-            pass
+            log.warning("Vedic backtest failed", exc_info=True)
 
-    print()
-    print(matrix.summary())
+    log.info()
+    log.info(matrix.summary())
 
     # Comparison
     def stats(label, trades):
@@ -86,16 +90,16 @@ def main():
         return (f"  {label:30s} {len(trades):4d} trades  "
                 f"W:{wr:5.1f}%  Avg:{avg*100:+6.2f}%  Σ:{pnl*100:+7.2f}%")
 
-    print("\n📊 COMPARISON:")
-    print(stats("ALL (unfiltered)", res_all.trades))
+    log.info("\n📊 COMPARISON:")
+    log.info(stats("ALL (unfiltered)", res_all.trades))
     vedic_trades = [t for t in res_all.trades if t in filtered]
-    print(stats("VEDIC (≥70 Muhurta)", vedic_trades))
+    log.info(stats("VEDIC (≥70 Muhurta)", vedic_trades))
 
     if matrix.best_nakshatra():
-        print(f"\n  🏆 Best Nakshatra:  {matrix.best_nakshatra()}")
+        log.info(f"\n  🏆 Best Nakshatra:  {matrix.best_nakshatra()}")
     if matrix.worst_nakshatra():
-        print(f"  📉 Worst Nakshatra: {matrix.worst_nakshatra()}")
-    print()
+        log.info(f"  📉 Worst Nakshatra: {matrix.worst_nakshatra()}")
+    log.info()
 
 if __name__ == "__main__":
     main()

@@ -19,6 +19,10 @@ from pathlib import Path
 import faiss
 import numpy as np
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ─── Ollama embeddings ────────────────────────────────────────────────────────
 
 DIM = 768  # nomic-embed-text output dimension
@@ -124,34 +128,34 @@ def cmd_build(args):
     for d in domains:
         domain_chunks_dir = chunks_dir / d
         if not domain_chunks_dir.exists():
-            print(f"⚠️  {domain_chunks_dir} does not exist, skipping {d}")
+            log.info(f"⚠️  {domain_chunks_dir} does not exist, skipping {d}")
             continue
 
         index_path = indexes_dir / f"{d}.index"
         meta_path = indexes_dir / f"{d}.meta.json"
 
         if index_path.exists() and not args.rebuild:
-            print(f"  {d}: index exists (use --rebuild to overwrite)")
+            log.info(f"  {d}: index exists (use --rebuild to overwrite)")
             continue
 
-        print(f"  {d}: loading chunks…")
+        log.info(f"  {d}: loading chunks…")
         chunks = load_chunks(domain_chunks_dir)
         if not chunks:
-            print(f"  ⚠️  {d}: no chunks found, skipping")
+            log.info(f"  ⚠️  {d}: no chunks found, skipping")
             continue
-        print(f"  {d}: {len(chunks)} chunks, building index…")
+        log.info(f"  {d}: {len(chunks)} chunks, building index…")
 
         index, _ = build_index(chunks, d)
         save_index(index, chunks, index_path, meta_path)
-        print(f"  ✅ {d}: {index.ntotal} vectors → {index_path}")
+        log.info(f"  ✅ {d}: {index.ntotal} vectors → {index_path}")
 
 
 def cmd_stats(args):
     kb_dir = Path(__file__).parent
     indexes_dir = kb_dir / "indexes"
 
-    print("\n📊 RAG Index Statistics")
-    print("─" * 45)
+    log.info("\n📊 RAG Index Statistics")
+    log.info("─" * 45)
 
     domains = ["astrology", "technical", "trading"]
     total = 0
@@ -159,11 +163,11 @@ def cmd_stats(args):
         index_path = indexes_dir / f"{d}.index"
         meta_path = indexes_dir / f"{d}.meta.json"
         if not index_path.exists():
-            print(f"  {d:12s}: ❌ no index")
+            log.info(f"  {d:12s}: ❌ no index")
             continue
         index = faiss.read_index(str(index_path))
         chunks = json.loads(meta_path.read_text(encoding="utf-8"))
-        print(
+        log.info(
             f"  {d:12s}: ✅ {index.ntotal:3d} chunks  ({', '.join(c['title'][:25] for c in chunks[:3])}…)"
         )
         total += index.ntotal
@@ -172,11 +176,11 @@ def cmd_stats(args):
     indexes_dir / "all.meta.json"
     if all_path.exists():
         index = faiss.read_index(str(all_path))
-        print(f"  {'all':12s}: ✅ {index.ntotal:3d} chunks (combined)")
+        log.info(f"  {'all':12s}: ✅ {index.ntotal:3d} chunks (combined)")
 
-    print(f"\n  Total: {total} chunks indexed")
+    log.info(f"\n  Total: {total} chunks indexed")
     if total == 0:
-        print("  Run: python build_index.py --rebuild")
+        log.info("  Run: python build_index.py --rebuild")
 
 
 def cmd_search(args):
@@ -188,7 +192,7 @@ def cmd_search(args):
     meta_path = indexes_dir / f"{domain}.meta.json"
 
     if not index_path.exists():
-        print(
+        log.info(
             f"❌ No index for domain '{domain}'. Run: python build_index.py --domain {domain}"
         )
         sys.exit(1)
@@ -201,14 +205,14 @@ def cmd_search(args):
     k = min(args.top_k, index.ntotal)
     scores, indices = index.search(q, k)
 
-    print(f"\n🔍 Top-{k} results for: «{args.query}» [{domain}]\n")
+    log.info(f"\n🔍 Top-{k} results for: «{args.query}» [{domain}]\n")
     for score, idx in zip(scores[0], indices[0], strict=False):
         if idx < 0:
             continue
         c = chunks[idx]
-        print(f"  [{score:.3f}] {c['source']} → {c['title']}")
-        print(f"         {c['content'][:150]}…")
-        print()
+        log.info(f"  [{score:.3f}] {c['source']} → {c['title']}")
+        log.info(f"         {c['content'][:150]}…")
+        log.info()
 
 
 if __name__ == "__main__":

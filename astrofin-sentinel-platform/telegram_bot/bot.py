@@ -13,7 +13,6 @@ import logging
 import os
 import sys
 import time
-from typing import Any
 
 from telegram import Update
 from telegram.constants import ParseMode
@@ -196,8 +195,8 @@ class AstroFinBot:
 async def main() -> None:
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     if not token:
-        print("Error: TELEGRAM_BOT_TOKEN not set in environment.")
-        print("Export it or add to .env:  export TELEGRAM_BOT_TOKEN=123456:ABC...")
+        log.info("Error: TELEGRAM_BOT_TOKEN not set in environment.")
+        log.info("Export it or add to .env:  export TELEGRAM_BOT_TOKEN=123456:ABC...")
         sys.exit(1)
 
     logging.basicConfig(

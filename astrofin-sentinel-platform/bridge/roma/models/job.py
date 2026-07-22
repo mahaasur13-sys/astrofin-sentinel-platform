@@ -1,7 +1,9 @@
-from sqlalchemy import Column, String, Boolean, Integer, DateTime, JSON
-from db.engine import Base
 import uuid
 from datetime import datetime, timezone
+
+from db.engine import Base
+from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, String
+
 
 class Job(Base):
     __tablename__ = "jobs"

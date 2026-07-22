@@ -124,7 +124,7 @@ def _selftest() -> int:
             assert r.status == 200, r.status
         with urllib.request.urlopen("http://127.0.0.1:18080/readyz", timeout=2) as r:
             assert r.status == 200, r.status
-        print("selftest: OK")
+        log.info("selftest: OK")
         return 0
     finally:
         server.shutdown()

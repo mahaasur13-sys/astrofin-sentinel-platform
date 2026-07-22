@@ -8,6 +8,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 BASE = Path(__file__).parent.parent
 DBs = {
     "sessions (history)": BASE / "core" / "history.db",
@@ -55,7 +59,7 @@ def get_counts():
 def save_snapshot(rows):
     """Append a snapshot row to the backtest DB for trend tracking."""
     if not SNAPSHOT_TBL.exists():
-        print(f"  [monitor] {SNAPSHOT_TBL} not found — skipping snapshot")
+        log.info(f"  [monitor] {SNAPSHOT_TBL} not found — skipping snapshot")
         return
     try:
         con = sqlite3.connect(SNAPSHOT_TBL)
@@ -78,20 +82,20 @@ def save_snapshot(rows):
         con.commit()
         con.close()
     except Exception as e:
-        print(f"  [monitor] snapshot failed: {e}")
+        log.info(f"  [monitor] snapshot failed: {e}")
 
 
 def main():
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
-    print(f"\n=== DB Monitor {now} ===\n")
+    log.info(f"\n=== DB Monitor {now} ===\n")
 
     rows = get_counts()
     for name, count, dist in rows:
         emoji = "✅" if isinstance(count, int) else "❌"
-        print(f"  {emoji} {name}: {count}")
+        log.info(f"  {emoji} {name}: {count}")
         if dist:
             for k, v in sorted(dist.items(), key=lambda x: -x[1]):
-                print(f"       ├─ {k}: {v}")
+                log.info(f"       ├─ {k}: {v}")
 
     save_snapshot(rows)
 
@@ -109,16 +113,16 @@ def main():
                 GROUP BY source
                 ORDER BY source
             """)
-            print("\n  --- Trend (from snapshots) ---")
+            log.info("\n  --- Trend (from snapshots) ---")
             for row in cur.fetchall():
                 src, mn, mx, n = row
                 delta = mx - mn
-                print(f"    {src}: min={mn} max={mx} delta=+{delta} ({n} snapshots)")
+                log.info(f"    {src}: min={mn} max={mx} delta=+{delta} ({n} snapshots)")
             con.close()
         except Exception as e:
-            print(f"  [monitor] trend query failed: {e}")
+            log.info(f"  [monitor] trend query failed: {e}")
 
-    print()
+    log.info()
     return 0 if all(isinstance(c, int) for _, c, _ in rows) else 1
 
 

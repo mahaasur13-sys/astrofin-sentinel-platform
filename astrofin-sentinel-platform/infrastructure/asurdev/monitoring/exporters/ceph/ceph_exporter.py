@@ -5,8 +5,12 @@ Exports: OSD up/down, PG states, storage utilization, MON quorum
 Endpoint: /metrics  (text format for Prometheus)
 """
 import json
+import logging
 import subprocess
 from http.server import BaseHTTPRequestHandler, HTTPServer
+
+log = logging.getLogger(__name__)
+
 
 CEPH_CMD = ["ceph", "-f", "json"]
 METRICS = {}
@@ -119,5 +123,5 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", 9342), Handler)
-    print("Ceph exporter listening on :9342/metrics")
+    log.info("Ceph exporter listening on :9342/metrics")
     server.serve_forever()

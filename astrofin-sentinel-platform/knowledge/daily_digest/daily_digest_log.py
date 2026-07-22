@@ -162,21 +162,21 @@ class DigestLog:
         entries = sorted(entries, key=lambda x: x.date, reverse=True)[:limit]
 
         if not entries:
-            print("No entries found.")
+            log.info("No entries found.")
             return
 
-        print(f"\n{'=' * 80}")
-        print(f"  📔 DAILY DIGEST LOG — {len(entries)} entries")
-        print(f"{'=' * 80}\n")
-        print(f"{'Date':<12} {'Source':<12} {'Status':<12} {'Key Ideas':<35} {'ATOMs'}")
-        print("-" * 80)
+        log.info(f"\n{'=' * 80}")
+        log.info(f"  📔 DAILY DIGEST LOG — {len(entries)} entries")
+        log.info(f"{'=' * 80}\n")
+        log.info(f"{'Date':<12} {'Source':<12} {'Status':<12} {'Key Ideas':<35} {'ATOMs'}")
+        log.info("-" * 80)
 
         for e in entries:
             ideas = ", ".join(e.key_ideas[:2])[:33]
             atoms = ", ".join(e.linked_atoms) if e.linked_atoms else "—"
-            print(f"{e.date:<12} {e.source:<12} {e.status:<12} {ideas:<35} {atoms}")
+            log.info(f"{e.date:<12} {e.source:<12} {e.status:<12} {ideas:<35} {atoms}")
 
-        print(f"\nTotal: {len(entries)} entries")
+        log.info(f"\nTotal: {len(entries)} entries")
 
     def get_stats(self) -> dict:
         """Get statistics."""
@@ -221,7 +221,7 @@ def main():
             ideas = [i.strip() for i in args.ideas.split(",")]
 
         entry = log.add_entry(args.log, args.source, ideas, args.status)
-        print(f"Logged: {entry.date} [{entry.status}]")
+        log.info(f"Logged: {entry.date} [{entry.status}]")
         return
 
     if args.update:
@@ -231,20 +231,20 @@ def main():
 
         entry = log.update_status(args.update, args.status or "PROCESSED", atoms)
         if entry:
-            print(f"Updated: {entry.date} → {entry.status}")
+            log.info(f"Updated: {entry.date} → {entry.status}")
         else:
-            print(f"Entry not found: {args.update}")
+            log.info(f"Entry not found: {args.update}")
         return
 
     if args.stats:
         stats = log.get_stats()
-        print(f"\n{'=' * 50}")
-        print("  📊 DIGEST LOG STATISTICS")
-        print(f"{'=' * 50}")
-        print(f"  Total digests: {stats.get('total', 0)}")
-        print("\n  By status:")
+        log.info(f"\n{'=' * 50}")
+        log.info("  📊 DIGEST LOG STATISTICS")
+        log.info(f"{'=' * 50}")
+        log.info(f"  Total digests: {stats.get('total', 0)}")
+        log.info("\n  By status:")
         for status, count in stats.get("by_status", {}).items():
-            print(f"    {status}: {count}")
+            log.info(f"    {status}: {count}")
         return
 
     if args.list:

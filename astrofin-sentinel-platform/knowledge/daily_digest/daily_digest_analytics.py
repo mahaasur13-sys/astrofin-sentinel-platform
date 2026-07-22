@@ -14,6 +14,10 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class Category(Enum):
     TOOLS_AND_FRAMEWORKS = "TOOLS_AND_FRAMEWORKS"
@@ -453,47 +457,47 @@ class DigestAnalyzer:
 
     def print_report(self):
         if not self.current_analysis:
-            print("No analysis loaded. Run analyze() first.")
+            log.info("No analysis loaded. Run analyze() first.")
             return
 
         a = self.current_analysis
 
-        print(f"\n{'=' * 70}")
-        print(f"  📊 DAILY DIGEST ANALYSIS — {a.date}")
-        print(f"{'=' * 70}")
+        log.info(f"\n{'=' * 70}")
+        log.info(f"  📊 DAILY DIGEST ANALYSIS — {a.date}")
+        log.info(f"{'=' * 70}")
 
-        print(
+        log.info(
             f"\n📈 Всего находок: {a.total_findings} | Высокая релевантность: {len(a.high_relevance_findings)}"
         )
 
         if a.category_breakdown:
-            print("\n📋 Категории:")
+            log.info("\n📋 Категории:")
             for cat, count in sorted(a.category_breakdown.items(), key=lambda x: -x[1]):
                 bar = "█" * count
-                print(f"   {cat:<25} {bar} ({count})")
+                log.info(f"   {cat:<25} {bar} ({count})")
 
-        print(f"\n{'=' * 70}")
-        print("  🔥 HIGH RELEVANCE FINDINGS (≥0.5)")
-        print(f"{'=' * 70}")
+        log.info(f"\n{'=' * 70}")
+        log.info("  🔥 HIGH RELEVANCE FINDINGS (≥0.5)")
+        log.info(f"{'=' * 70}")
 
         for f in sorted(a.high_relevance_findings, key=lambda x: -x.relevance_score):
-            print(f"\n  [{f.relevance_score:.2f}] {f.title[:60]}")
-            print(f"       📂 {f.category} | 📡 {f.source}")
+            log.info(f"\n  [{f.relevance_score:.2f}] {f.title[:60]}")
+            log.info(f"       📂 {f.category} | 📡 {f.source}")
             if f.source_url:
-                print(f"       🔗 {f.source_url[:60]}")
+                log.info(f"       🔗 {f.source_url[:60]}")
             if f.potential_applications:
-                print("       ✅ Применения:")
+                log.info("       ✅ Применения:")
                 for app in f.potential_applications[:2]:
-                    print(f"          • {app[:70]}")
+                    log.info(f"          • {app[:70]}")
             if f.risks:
-                print("       ⚠️ Риски:")
+                log.info("       ⚠️ Риски:")
                 for risk in f.risks[:1]:
-                    print(f"          • {risk[:70]}")
+                    log.info(f"          • {risk[:70]}")
 
-        print(f"\n{'=' * 70}")
-        print("  💡 SUMMARY")
-        print(f"{'=' * 70}")
-        print(f"\n{a.summary}\n")
+        log.info(f"\n{'=' * 70}")
+        log.info("  💡 SUMMARY")
+        log.info(f"{'=' * 70}")
+        log.info(f"\n{a.summary}\n")
 
 
 if __name__ == "__main__":
@@ -519,6 +523,6 @@ if __name__ == "__main__":
     analysis = analyzer.analyze()
 
     if args.json:
-        print(analyzer.to_json())
+        log.info(analyzer.to_json())
     else:
         analyzer.print_report()

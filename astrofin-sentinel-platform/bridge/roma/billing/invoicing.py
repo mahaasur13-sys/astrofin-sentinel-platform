@@ -1,8 +1,12 @@
 """ROMA Invoicing — Invoice generation, payment tracking."""
+import logging
+import time
+import uuid
 from dataclasses import dataclass
 from typing import Dict, List
-import uuid
-import time
+
+log = logging.getLogger(__name__)
+
 
 @dataclass
 class Invoice:
@@ -46,4 +50,4 @@ if __name__ == "__main__":
          {"desc": "Plugin executions (10x)", "cost": 0.01}],
         period_start=time.time() - 86400, period_end=time.time())
     ie.issue(inv.invoice_id)
-    print(f"Invoice {inv.invoice_id}: ${inv.total:.4f} [{inv.status}]")
+    log.info(f"Invoice {inv.invoice_id}: ${inv.total:.4f} [{inv.status}]")

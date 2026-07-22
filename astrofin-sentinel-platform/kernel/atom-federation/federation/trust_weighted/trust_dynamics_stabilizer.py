@@ -34,6 +34,10 @@ from dataclasses import dataclass
 
 from .node_weights import NodeWeightsSnapshot
 from .trust_feedback_dampener import (
+
+import logging
+log = logging.getLogger(__name__)
+
     DampenerConfig,
     TrustFeedbackDampener,
     TrustUpdateResult,
@@ -377,7 +381,7 @@ def _test_trust_dynamics_stabilizer():
     assert len(report.trust_after) == 3
     for node_id, trust in report.trust_after.items():
         assert 0.0 < trust <= 1.0, f"Trust out of range for {node_id}: {trust}"
-    print("✅ Case 1: diverse votes → consensus valid")
+    log.info("✅ Case 1: diverse votes → consensus valid")
 
     # Case 2: partial lock (3 accept + 1 abstain at n=4) — low entropy, not unanimous → phase lock
     # n=4, 3 bins: with 3 accept + 1 abstain, H = -3/4*log2(3/4) - 1/4*log2(1/4) ≈ 0.811
@@ -406,7 +410,7 @@ def _test_trust_dynamics_stabilizer():
     assert entropy.is_phase_locked is True, f"Expected phase lock at floor=0.90, H={entropy.shannon_entropy:.3f}"
     assert report2.consensus_overridden is True
     assert report2.blocked_reason == "phase_locking_detected"
-    print(f"✅ Case 2: partial homogeneous vote (2+1) at high floor → phase_locked={entropy.is_phase_locked}, blocked={report2.blocked_reason}")
+    log.info(f"✅ Case 2: partial homogeneous vote (2+1) at high floor → phase_locked={entropy.is_phase_locked}, blocked={report2.blocked_reason}")
 
     # Case 3: mixed votes not phase-locked
     votes_mixed = {"node_A": 1.0, "node_B": -0.5, "node_C": 0.0}
@@ -420,7 +424,7 @@ def _test_trust_dynamics_stabilizer():
         epoch=3,
     )
     assert report3.entropy_stats.is_phase_locked is False
-    print(f"✅ Case 3: mixed votes → not phase-locked (H={report3.entropy_stats.shannon_entropy:.3f})")
+    log.info(f"✅ Case 3: mixed votes → not phase-locked (H={report3.entropy_stats.shannon_entropy:.3f})")
 
     # Case 4: anti-monopoly hard ceiling
     am = AntiMonopolyConstraint(dominance_cap=0.5)
@@ -437,7 +441,7 @@ def _test_trust_dynamics_stabilizer():
     adjusted, stats = am.check_and_adjust(snap4, proposed)
     assert stats.is_constrained is True
     assert adjusted["dominator"] <= 0.5, f"Expected ≤0.5, got {adjusted['dominator']}"
-    print(f"✅ Case 4: anti-monopoly caps dominator at {adjusted['dominator']:.2f}")
+    log.info(f"✅ Case 4: anti-monopoly caps dominator at {adjusted['dominator']:.2f}")
 
     # Case 5: entropy floor gating
     monitor = ConsensusEntropyMonitor(entropy_floor=0.30)
@@ -446,9 +450,9 @@ def _test_trust_dynamics_stabilizer():
     stats_unanimous = monitor.compute_entropy({"A": 1.0, "B": 1.0, "C": 1.0})
     # Unanimous (all accept or all reject) at low entropy = valid, NOT locked
     assert stats_unanimous.is_phase_locked is False, "unanimous all-accept should not be phase lock"
-    print("✅ Case 5: entropy floor allows unanimous votes, gates partial homogeneity")
+    log.info("✅ Case 5: entropy floor allows unanimous votes, gates partial homogeneity")
 
-    print("\n✅ v9.7 TrustDynamicsStabilizer — all checks passed")
+    log.info("\n✅ v9.7 TrustDynamicsStabilizer — all checks passed")
 
 
 if __name__ == "__main__":

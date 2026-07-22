@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 
 try:
     import psycopg2
@@ -17,8 +16,7 @@ try:
 except ImportError:
     psycopg2 = None
 
-from core.history_db import HistoryDB, save_session, get_session, list_sessions, session_stats
-
+from core.history_db import HistoryDB
 
 _INIT_PG_SQL = """
 CREATE TABLE IF NOT EXISTS sessions (

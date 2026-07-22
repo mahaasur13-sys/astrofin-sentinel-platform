@@ -19,7 +19,7 @@ Usage:
 
     # Or query state:
     score = ctrl.stability_score()
-    print(ctrl.dump())
+    log.info(ctrl.dump())
 """
 
 from __future__ import annotations
@@ -32,6 +32,10 @@ from resilience.healer import HealingAction, HealingResult, SelfHealingControlPl
 from resilience.metrics_engine import StabilityMetricsEngine, StabilitySnapshot
 from resilience.policy_engine import PolicyAction, PolicyEngine
 from resilience.reactor import ReactionAction, ResilienceReactor
+
+import logging
+log = logging.getLogger(__name__)
+
 
 __all__ = ["ClosedLoopResilienceController"]
 

@@ -1,9 +1,13 @@
 """ROMA SaaS - Stripe Billing Integration."""
+import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+log = logging.getLogger(__name__)
+
 
 class BillingEvent(str, Enum):
     SUBSCRIPTION_CREATED = "subscription_created"
@@ -142,31 +146,31 @@ if __name__ == "__main__":
     s = StripeIntegration()
     w = WebhookSimulator(s)
 
-    print("=== ROMA SaaS Stripe Demo ===\n")
+    log.info("=== ROMA SaaS Stripe Demo ===\n")
 
     c = s.create_customer("org_acme", "billing@acme.com")
-    print(f"[1] Customer: {c.id}")
+    log.info(f"[1] Customer: {c.id}")
 
     sub = s.create_subscription("org_acme", "pro")
-    print(f"[2] Subscription: {sub.id} | {sub.status.value} | tier={sub.tier}")
+    log.info(f"[2] Subscription: {sub.id} | {sub.status.value} | tier={sub.tier}")
 
     job_specs = [(3600, "ml_training", "job-yolo-1"), (7200, "inference", "job-inf-1"), (18000, "ml_training", "job-llm-1")]
     for gpu_s, plugin, job in job_specs:
         cost = s.estimate_job_cost(gpu_s, "A100", "pro")
         s.record_usage("org_acme", c.id[:12], gpu_s, cost, job, plugin)
-    print(f"[3] Usage: {len(s.get_usage('org_acme'))} records")
+    log.info(f"[3] Usage: {len(s.get_usage('org_acme'))} records")
 
     u = s.get_usage_summary("org_acme")
-    print(f"[4] Summary: {u['total_gpu_seconds']:.0f}s | ${u['total_cost']:.4f} | {u['jobs']} jobs")
+    log.info(f"[4] Summary: {u['total_gpu_seconds']:.0f}s | ${u['total_cost']:.4f} | {u['jobs']} jobs")
 
     inv = s.generate_invoice("org_acme")
-    print(f"[5] Invoice: {inv.id} | ${inv.total:.4f} | {len(inv.items)} items")
+    log.info(f"[5] Invoice: {inv.id} | ${inv.total:.4f} | {len(inv.items)} items")
 
     evt = w.simulate_payment_success("org_acme", inv.id, int(inv.total * 100))
-    print(f"[6] Payment: {evt['type']} | ${evt['amount_cents']/100:.4f}")
+    log.info(f"[6] Payment: {evt['type']} | ${evt['amount_cents']/100:.4f}")
 
-    print(f"\n[7] Balance: ${s.get_balance('org_acme'):.4f}")
+    log.info(f"\n[7] Balance: ${s.get_balance('org_acme'):.4f}")
     est = s.estimate_job_cost(36000, "A100", "pro")
-    print(f"[8] Estimate 10hr A100 PRO: ${est:.4f}")
-    print(f"\nTotal revenue: ${sum(r.cost for r in s.get_usage('org_acme')):.4f}")
-    print(f"Active subs: {sum(1 for x in s._subscriptions.values() if x.status==SubscriptionStatus.ACTIVE)}")
+    log.info(f"[8] Estimate 10hr A100 PRO: ${est:.4f}")
+    log.info(f"\nTotal revenue: ${sum(r.cost for r in s.get_usage('org_acme')):.4f}")
+    log.info(f"Active subs: {sum(1 for x in s._subscriptions.values() if x.status==SubscriptionStatus.ACTIVE)}")

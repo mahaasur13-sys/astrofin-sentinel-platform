@@ -6,13 +6,13 @@ Watches RomaTask CRDs and dispatches to Execution Bridge.
 Usage: python3 roma_controller.py --kubeconfig ~/.kube/config
 """
 
+import logging
 import os
+import signal
 import sys
 import time
-import signal
-import logging
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 # Kubernetes client (install via: pip install kubernetes)
 try:
@@ -21,7 +21,7 @@ try:
     HAS_K8S = True
 except ImportError:
     HAS_K8S = False
-    print("WARNING: kubernetes client not installed. Controller running in DRY_RUN mode.")
+    log.info("WARNING: kubernetes client not installed. Controller running in DRY_RUN mode.")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -76,7 +76,7 @@ def create_k8s_job_object(romatask: Dict[str, Any]) -> Dict[str, Any]:
                         "name": "roma-executor",
                         "image": image,
                         "command": ["python", "-c",
-                            f"print('ROMA Task: {task}')"],
+                            f"log.info('ROMA Task: {task}')"],
                         "resources": {
                             "limits": {"nvidia.com/gpu": "1"} if gpu_required else {},
                             "requests": {"nvidia.com/gpu": "1"} if gpu_required else {}

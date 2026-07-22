@@ -15,6 +15,10 @@ import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 BRIEF_DIR = Path(__file__).parent
 BRIEF_GLOB = "brief_????-??-??.md"
 DAYS_TO_KEEP = 30
@@ -32,13 +36,13 @@ def list_briefs():
     """List all stored briefs."""
     briefs = sorted(BRIEF_DIR.glob(BRIEF_GLOB), reverse=True)
     if not briefs:
-        print("No briefs stored.")
+        log.info("No briefs stored.")
         return []
-    print(f"\n=== Stored Briefs ({len(briefs)} found) ===")
+    log.info(f"\n=== Stored Briefs ({len(briefs)} found) ===")
     for b in briefs:
         stat = b.stat()
         dt = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
-        print(f"  {b.name}  (modified: {dt})")
+        log.info(f"  {b.name}  (modified: {dt})")
     return briefs
 
 
@@ -150,7 +154,7 @@ def ideas_to_tracker(ideas: list, source: str = "daily_brief"):
 
         return imported, skipped
     except ImportError as e:
-        print(f"Warning: idea_tracker not available: {e}")
+        log.info(f"Warning: idea_tracker not available: {e}")
         return 0, 0
 
 
@@ -159,24 +163,24 @@ def show_brief(path: Path):
     content = path.read_text()
     parsed = parse_brief_content(content)
 
-    print(f"\n{'=' * 60}")
-    print(f"  Brief: {path.name}")
-    print(f"{'=' * 60}\n")
+    log.info(f"\n{'=' * 60}")
+    log.info(f"  Brief: {path.name}")
+    log.info(f"{'=' * 60}\n")
 
     # Show items
     if parsed["items"]:
-        print("### Key Items\n")
+        log.info("### Key Items\n")
         for i, item in enumerate(parsed["items"], 1):
-            print(f"  {i}. {item[:100]}{'...' if len(item) > 100 else ''}")
-        print()
+            log.info(f"  {i}. {item[:100]}{'...' if len(item) > 100 else ''}")
+        log.info()
 
     # Show ideas
     ideas = generate_ideas(content)
     if ideas:
-        print("### Suggested ATOM Ideas\n")
+        log.info("### Suggested ATOM Ideas\n")
         for idea in ideas:
-            print(f"  [{idea['category']}]")
-            print(f"    → {idea['prompt']}\n")
+            log.info(f"  [{idea['category']}]")
+            log.info(f"    → {idea['prompt']}\n")
 
 
 def garbage_collect():
@@ -212,7 +216,7 @@ def main():
     # Garbage collect old briefs
     if args.gc:
         removed = garbage_collect()
-        print(f"Removed {removed} old briefs.")
+        log.info(f"Removed {removed} old briefs.")
         return
 
     if args.save:
@@ -227,7 +231,7 @@ def main():
             latest.unlink()
         latest.symlink_to(path.name)
 
-        print(f"Saved: {path}")
+        log.info(f"Saved: {path}")
         return
 
     if args.parse:
@@ -237,7 +241,7 @@ def main():
         if path.exists():
             show_brief(path)
         else:
-            print(f"File not found: {path}")
+            log.info(f"File not found: {path}")
         return
 
     if args.latest or args.ideas:
@@ -246,12 +250,12 @@ def main():
             show_brief(path)
             if args.ideas:
                 ideas = generate_ideas(path.read_text())
-                print("\n### ATOM Ideas for This Brief\n")
+                log.info("\n### ATOM Ideas for This Brief\n")
                 for idea in ideas:
-                    print(f"  [{idea['category']}]")
-                    print(f"    → {idea['prompt']}\n")
+                    log.info(f"  [{idea['category']}]")
+                    log.info(f"    → {idea['prompt']}\n")
         else:
-            print(
+            log.info(
                 "No briefs found. Run with --gc to clean up or wait for next daily email."
             )
         return
@@ -265,7 +269,7 @@ def main():
     if path:
         show_brief(path)
     else:
-        print("No briefs stored. Use --save to add one.")
+        log.info("No briefs stored. Use --save to add one.")
 
 
 if __name__ == "__main__":

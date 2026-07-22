@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """ROMA Raft Consensus Layer — True distributed consensus implementation."""
-import time
-import threading
 import random
+import threading
+import time
 from dataclasses import dataclass, field
-from typing import List, Optional, Set, Dict
+from typing import Dict, List, Optional, Set
+
 
 @dataclass
 class LogEntry:
@@ -234,15 +235,15 @@ if __name__ == "__main__":
     cluster = ROMARaftCluster(["node-0", "node-1", "node-2"])
 
     leader = cluster.elect_leader()
-    print(f"Leader elected: {leader}")
-    print(f"Status: {cluster.get_cluster_status()['leader']}")
+    log.info(f"Leader elected: {leader}")
+    log.info(f"Status: {cluster.get_cluster_status()['leader']}")
 
     if leader:
-        print(f"\nAppending entries via {leader}:")
+        log.info(f"\nAppending entries via {leader}:")
         for i in range(3):
             r = cluster.append({"type": f"task-{i}", "tick": i})
-            print(f"  Entry {i}: committed={r}")
+            log.info(f"  Entry {i}: committed={r}")
 
     status = cluster.get_cluster_status()
     for nid, s in status["nodes"].items():
-        print(f"  {nid}: role={s['role']}, term={s['term']}, commit_index={s['commit_index']}")
+        log.info(f"  {nid}: role={s['role']}, term={s['term']}, commit_index={s['commit_index']}")

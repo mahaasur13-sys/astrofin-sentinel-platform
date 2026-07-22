@@ -13,6 +13,10 @@ import faiss
 import numpy as np
 
 from tools.metrics_server import (
+
+import logging
+log = logging.getLogger(__name__)
+
     CACHE_HITS,
     CACHE_MISSES,
     OLLAMA_STATUS,
@@ -248,10 +252,10 @@ if __name__ == "__main__":
 
     if args.query:
         results = retriever.retrieve(args.query, domain=args.domain, top_k=args.top_k)
-        print(retrieve_knowledge(args.query, domain=args.domain, top_k=args.top_k))
+        log.info(retrieve_knowledge(args.query, domain=args.domain, top_k=args.top_k))
     else:
-        print("\n📊 Index stats:")
+        log.info("\n📊 Index stats:")
         for domain, stat in retriever.stats().items():
-            print(
+            log.info(
                 f"  {domain:12s}: {stat['indexed_chunks']:3d} chunks  files={stat['files']}"
             )

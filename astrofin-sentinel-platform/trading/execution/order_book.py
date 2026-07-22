@@ -5,6 +5,10 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class OrderBookLevel:
@@ -270,26 +274,26 @@ class MarketImpactModel:
 
 
 if __name__ == "__main__":
-    print("=== OrderBookSimulator ===")
+    log.info("=== OrderBookSimulator ===")
     sim = OrderBookSimulator(
         mid_price=50000, spread_bps=5, depth_per_level=500, adv=10000
     )
     book = sim.build_snapshot()
-    print(f"  Mid price: {book.mid_price}, Spread: {book.spread:.2f}")
-    print(f"  Top 3 bids: {[round(l.price, 2) for l in book.bids[:3]]}")
-    print(f"  Top 3 asks: {[round(l.price, 2) for l in book.asks[:3]]}")
+    log.info(f"  Mid price: {book.mid_price}, Spread: {book.spread:.2f}")
+    log.info(f"  Top 3 bids: {[round(l.price, 2) for l in book.bids[:3]]}")
+    log.info(f"  Top 3 asks: {[round(l.price, 2) for l in book.asks[:3]]}")
 
     impact = sim.estimate_market_impact("buy", qty=500, num_slices=5, base_price=50000)
-    print("\n  Market Impact (buy 500 BTC, 5 slices):")
-    print(f"    Slippage: {impact.slippage_bps:.2f} bps")
-    print(f"    Impact cost: ${impact.market_impact_cost:.2f}")
-    print(f"    Price after: ${impact.price_after_trade}")
+    log.info("\n  Market Impact (buy 500 BTC, 5 slices):")
+    log.info(f"    Slippage: {impact.slippage_bps:.2f} bps")
+    log.info(f"    Impact cost: ${impact.market_impact_cost:.2f}")
+    log.info(f"    Price after: ${impact.price_after_trade}")
 
-    print("\n=== MarketImpactModel ===")
+    log.info("\n=== MarketImpactModel ===")
     m = MarketImpactModel(volatility_bps=100, adv=50000)
     for side, qty in [("buy", 100), ("buy", 1000), ("sell", 500)]:
         r = m.estimate(side, qty, 50000)
-        print(
+        log.info(
             f"  {side.upper()} {qty} units: {r['slippage_bps']:.2f}bps, "
             f"${r['impact_cost']:.2f} cost, participation={r['participation_rate']:.1f}%"
         )

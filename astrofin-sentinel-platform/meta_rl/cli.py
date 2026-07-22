@@ -179,45 +179,45 @@ def run_evolution(args) -> int:
 
     # ── Report ────────────────────────────────────────────────────────────
     best = engine.get_best_strategy()
-    print()
-    print("=" * 60)
-    print("  FINAL RESULTS")
-    print("=" * 60)
+    log.info()
+    log.info("=" * 60)
+    log.info("  FINAL RESULTS")
+    log.info("=" * 60)
 
     if best:
         c = best.strategy.chromosome
-        print(f"  Best reward:    {best.reward:+.4f}")
-        print(f"  Sharpe:         {best.evaluation.sharpe:.3f}")
-        print(f"  PnL:            {best.evaluation.pnl:+.3f}")
-        print(f"  Max DD:         {best.evaluation.max_drawdown:.4f}")
-        print(f"  Trades:         {best.evaluation.trades}")
-        print()
-        print(
+        log.info(f"  Best reward:    {best.reward:+.4f}")
+        log.info(f"  Sharpe:         {best.evaluation.sharpe:.3f}")
+        log.info(f"  PnL:            {best.evaluation.pnl:+.3f}")
+        log.info(f"  Max DD:         {best.evaluation.max_drawdown:.4f}")
+        log.info(f"  Trades:         {best.evaluation.trades}")
+        log.info()
+        log.info(
             f"  conf={c['confidence_threshold']:.0f}  pos={c['position_size_pct']:.0f}%"
         )
-        print(f"  regime={c['regime_filter']}  atr={c['atr_multiplier']:.1f}")
-        print(
+        log.info(f"  regime={c['regime_filter']}  atr={c['atr_multiplier']:.1f}")
+        log.info(
             f"  mom={'Y' if c['use_momentum'] else 'N'}  rev={'Y' if c['use_mean_reversion'] else 'N'}"
         )
     else:
-        print("  No elite found")
+        log.info("  No elite found")
 
     # ── Persistence summary ───────────────────────────────────────────────
     try:
         persist = get_persistence()
         summary = persist.get_sessions_summary()
-        print()
-        print(
+        log.info()
+        log.info(
             f"  Persistence: {summary['total_sessions']} sessions, {summary['total_strategies']} strategies"
         )
-        print(f"  Max reward: {summary['max_reward']:+.4f}")
+        log.info(f"  Max reward: {summary['max_reward']:+.4f}")
         if args.visualize and not args.no_viz:
             from pathlib import Path
 
             out = Path(__file__).parent / "data" / "meta_rl"
             charts = list(Path(out).glob("*.png"))
             if charts:
-                print(f"  Charts saved: {len(charts)}")
+                log.info(f"  Charts saved: {len(charts)}")
     except Exception as e:
         logger.warning(f"Summary failed: {e}")
 
@@ -237,17 +237,17 @@ def main() -> int:
     if args.list_sessions:
         persist = get_persistence()
         sessions = persist.list_sessions()
-        print(f"\n  Sessions ({len(sessions)}):")
+        log.info(f"\n  Sessions ({len(sessions)}):")
         for s in sessions[:20]:
-            print(f"    {s}")
+            log.info(f"    {s}")
         return 0
 
     if args.summary:
         persist = get_persistence()
         summary = persist.get_sessions_summary()
-        print("\n  Sessions summary:")
+        log.info("\n  Sessions summary:")
         for k, v in summary.items():
-            print(f"    {k}: {v}")
+            log.info(f"    {k}: {v}")
         return 0
 
     return run_evolution(args)

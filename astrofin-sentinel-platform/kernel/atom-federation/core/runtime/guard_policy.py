@@ -365,7 +365,7 @@ class ExecutionGuardPolicy:
 
         # Also print to stderr for visibility
         import sys as _sys
-        print(
+        log.info(
             f'\n[ExecutionGuardPolicy] VIOLATION ({violation.severity.name}):\n'
             f'  {violation.message}\n'
             f'  File: {violation.caller_file}:{violation.caller_line}\n'

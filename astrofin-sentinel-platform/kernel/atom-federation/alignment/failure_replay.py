@@ -18,6 +18,10 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── Failure Scenario Contract ───────────────────────────────────────────────
 
 @dataclass(frozen=True)
@@ -522,7 +526,7 @@ class FailureReplayer:
             try:
                 results.append(self.replay_file(fname.name))
             except Exception as e:
-                print(f"  [ERROR] {fname.name}: {e}")
+                log.info(f"  [ERROR] {fname.name}: {e}")
         return results
 
 
@@ -650,7 +654,7 @@ def test_failure_params_from_violation():
     assert p.invariant_value == 3
     assert p.expected_bound == 2
 
-    print("  FailureParams.from_violation: OK")
+    log.info("  FailureParams.from_violation: OK")
 
 
 def test_failure_scenario_roundtrip():
@@ -685,7 +689,7 @@ def test_failure_scenario_roundtrip():
     assert restored.snapshot.global_regime == "DIVERGENT"
     assert restored.params.invariant_value == 0.3
 
-    print("  FailureScenario serialize/deserialize: OK")
+    log.info("  FailureScenario serialize/deserialize: OK")
 
 
 def test_recorder_records_violation():
@@ -717,7 +721,7 @@ def test_recorder_records_violation():
         path = recorder.save()
         assert path.endswith(".json")
 
-        print("  FailureRecorder.record_violation: OK")
+        log.info("  FailureRecorder.record_violation: OK")
     finally:
         shutil.rmtree(tmp)
 
@@ -757,7 +761,7 @@ def test_replayer_deterministic():
         assert outcome.divergence_score == 0.0
         assert outcome.replay_steps == 3
 
-        print("  FailureReplayer deterministic replay: OK")
+        log.info("  FailureReplayer deterministic replay: OK")
     finally:
         shutil.rmtree(tmp)
 
@@ -800,7 +804,7 @@ def test_replayer_detects_divergence():
         assert outcome.status == ReplayStatus.DIVERGED, f"got {outcome.status}"
         assert outcome.diverged_at_step is not None
 
-        print(f"  FailureReplayer detects divergence at step {outcome.diverged_at_step}: OK")
+        log.info(f"  FailureReplayer detects divergence at step {outcome.diverged_at_step}: OK")
     finally:
         shutil.rmtree(tmp)
 
@@ -838,7 +842,7 @@ def test_replayer_batch():
         assert len(results) == 3, f"got {len(results)}"
         assert all(r.status == ReplayStatus.REPLAYED for r in results)
 
-        print("  FailureReplayer.replay_all batch: OK")
+        log.info("  FailureReplayer.replay_all batch: OK")
     finally:
         shutil.rmtree(tmp)
 
@@ -873,7 +877,7 @@ def test_replay_scenario_success():
         assert outcome["action"] is not None
         assert outcome["final_violations"] == []
 
-        print("  FailureRecorder.replay_scenario success: OK")
+        log.info("  FailureRecorder.replay_scenario success: OK")
     finally:
         shutil.rmtree(tmp)
 
@@ -909,7 +913,7 @@ def test_replay_determinism():
         assert r1["final_violations"] == r2["final_violations"]
         assert r1["details"] == r2["details"]
 
-        print("  FailureRecorder.replay_scenario determinism: OK")
+        log.info("  FailureRecorder.replay_scenario determinism: OK")
     finally:
         shutil.rmtree(tmp)
 
@@ -948,7 +952,7 @@ def test_replay_isolation():
         # First recorder's in-memory state is unchanged
         assert scenario1.incident_id in rec1._scenarios
 
-        print("  FailureRecorder.replay_scenario isolation: OK")
+        log.info("  FailureRecorder.replay_scenario isolation: OK")
     finally:
         shutil.rmtree(tmp)
 
@@ -970,7 +974,7 @@ if __name__ == "__main__":
         try:
             fn()
         except Exception as e:
-            print(f"  FAIL {fn.__name__}: {e}")
+            log.info(f"  FAIL {fn.__name__}: {e}")
             sys.exit(1)
 
-    print("\n  ALL FailureReplay TESTS PASSED")
+    log.info("\n  ALL FailureReplay TESTS PASSED")

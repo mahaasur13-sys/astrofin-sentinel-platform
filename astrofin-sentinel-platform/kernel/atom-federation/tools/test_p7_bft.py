@@ -13,6 +13,10 @@ import pathlib
 import sys
 import time
 
+import logging
+log = logging.getLogger(__name__)
+
+
 _REPO = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO))
 
@@ -24,7 +28,7 @@ from core.federation.slashing import SlashingEngine
 
 def test_bft_thresholds():
     """✅ BFT threshold calculations."""
-    print("=== TEST 1: BFT Thresholds ===")
+    log.info("=== TEST 1: BFT Thresholds ===")
 
     # 4 nodes → f=1, quorum=3
     t = BFTThreshold.from_n(4)
@@ -40,14 +44,14 @@ def test_bft_thresholds():
     assert t.commit_threshold == 5
     assert t.honest_minimum == 3
 
-    print(f"  n=4: f={BFTThreshold.from_n(4).f}, quorum={BFTThreshold.from_n(4).prepare_threshold}")
-    print(f"  n=7: f={BFTThreshold.from_n(7).f}, quorum={BFTThreshold.from_n(7).prepare_threshold}")
-    print("  ✅ PASS")
+    log.info(f"  n=4: f={BFTThreshold.from_n(4).f}, quorum={BFTThreshold.from_n(4).prepare_threshold}")
+    log.info(f"  n=7: f={BFTThreshold.from_n(7).f}, quorum={BFTThreshold.from_n(7).prepare_threshold}")
+    log.info("  ✅ PASS")
 
 
 def test_double_sign_detection():
     """✅ Double-sign detection → node slashed."""
-    print("\n=== TEST 2: Double-Sign Detection ===")
+    log.info("\n=== TEST 2: Double-Sign Detection ===")
 
     slashing = SlashingEngine()
     bft = BFTConsensus(node_id='a', all_nodes=['a', 'b', 'c', 'd'], f=1)
@@ -61,7 +65,7 @@ def test_double_sign_detection():
     bft._double_sign_history[key] = {req_a, req_b}
 
     conflicts = bft.detect_double_sign('b', 5)
-    print(f"  Conflicts for node-b@seq=5: {conflicts}")
+    log.info(f"  Conflicts for node-b@seq=5: {conflicts}")
     assert len(conflicts) > 1, "Should detect conflict"
 
     # Slash the node
@@ -76,13 +80,13 @@ def test_double_sign_detection():
         detected_by='a',
     )
     assert slashing.is_slashed('b'), "Node should be slashed"
-    print(f"  Slashed node: {record.record_id}")
-    print("  ✅ PASS")
+    log.info(f"  Slashed node: {record.record_id}")
+    log.info("  ✅ PASS")
 
 
 def test_bftqc_valid():
     """✅ BFTQC valid when ≥ 2f+1 signatures."""
-    print("\n=== TEST 3: BFTQC Validation ===")
+    log.info("\n=== TEST 3: BFTQC Validation ===")
 
     # 4 nodes, f=1, threshold=3
     qc = BFTQC(
@@ -99,15 +103,15 @@ def test_bftqc_valid():
     )
 
     result = validate_bft_qc(qc, slashed=frozenset())
-    print(f"  QC valid={result.valid}, strength={result.quorum_strength:.2f}")
+    log.info(f"  QC valid={result.valid}, strength={result.quorum_strength:.2f}")
     assert result.valid
     assert result.quorum_strength >= 1.0
-    print("  ✅ PASS")
+    log.info("  ✅ PASS")
 
 
 def test_bftqc_insufficient():
     """❌ BFTQC rejected when < 2f+1 signatures."""
-    print("\n=== TEST 4: BFTQC Insufficient ===")
+    log.info("\n=== TEST 4: BFTQC Insufficient ===")
 
     qc = BFTQC(
         request_hash='req_abc',
@@ -123,15 +127,15 @@ def test_bftqc_insufficient():
     )
 
     result = validate_bft_qc(qc, slashed=frozenset())
-    print(f"  QC valid={result.valid}, reason={result.reason}")
+    log.info(f"  QC valid={result.valid}, reason={result.reason}")
     assert not result.valid
     assert "insufficient" in result.reason
-    print("  ✅ PASS")
+    log.info("  ✅ PASS")
 
 
 def test_bftqc_slashed_contributor():
     """❌ BFTQC invalid if slashed node contributed."""
-    print("\n=== TEST 5: BFTQC Slashed Contributor ===")
+    log.info("\n=== TEST 5: BFTQC Slashed Contributor ===")
 
     qc = BFTQC(
         request_hash='req_abc',
@@ -147,15 +151,15 @@ def test_bftqc_slashed_contributor():
     )
 
     result = validate_bft_qc(qc, slashed=frozenset({'b'}))
-    print(f"  QC valid={result.valid}, reason={result.reason}")
+    log.info(f"  QC valid={result.valid}, reason={result.reason}")
     assert not result.valid
     assert 'slashed' in result.reason
-    print("  ✅ PASS")
+    log.info("  ✅ PASS")
 
 
 def test_bft_consensus_phases():
     """✅ BFTConsensus three-phase progression."""
-    print("\n=== TEST 6: BFT Three-Phase Consensus ===")
+    log.info("\n=== TEST 6: BFT Three-Phase Consensus ===")
 
     bft = BFTConsensus(node_id='a', all_nodes=['a', 'b', 'c', 'd'], f=1)
     bft.init_view(view=1, primary='a')
@@ -165,7 +169,7 @@ def test_bft_consensus_phases():
     # Step 1: Primary receives request
     bft.receive_request(request_hash=request_hash, proof='valid', payload_hash='ph')
     status = bft.get_status(request_hash)
-    print(f"  After request: phase={status['phase']}")
+    log.info(f"  After request: phase={status['phase']}")
     assert status['phase'] == 'PRE_PREPARED'
 
     # Step 2: Receive PREPARE votes from enough nodes
@@ -183,12 +187,12 @@ def test_bft_consensus_phases():
         bft.receive_prepare(vote)
 
     status = bft.get_status(request_hash)
-    print(f"  After 3 PREPARE votes: phase={status['phase']}, votes={status['prepare_votes']}")
+    log.info(f"  After 3 PREPARE votes: phase={status['phase']}, votes={status['prepare_votes']}")
     assert status['prepare_votes'] >= 3
 
     # Step 3: Check PreparedCertificate
     pc = bft.check_prepared(request_hash)
-    print(f"  PreparedCertificate valid={pc.is_valid if pc else False}")
+    log.info(f"  PreparedCertificate valid={pc.is_valid if pc else False}")
     assert pc is not None and pc.is_valid
 
     # Step 4: Receive COMMIT votes
@@ -207,22 +211,22 @@ def test_bft_consensus_phases():
 
     # Step 5: Finalize
     can_commit = bft.check_committable(request_hash)
-    print(f"  Committable={can_commit}")
+    log.info(f"  Committable={can_commit}")
     assert can_commit
 
     cc = bft.finalize_commit(request_hash)
-    print(f"  CommitCertificate valid={cc.is_valid if cc else False}")
+    log.info(f"  CommitCertificate valid={cc.is_valid if cc else False}")
     assert cc is not None and cc.is_valid
 
     status = bft.get_status(request_hash)
-    print(f"  Final phase={status['phase']}")
+    log.info(f"  Final phase={status['phase']}")
     assert status['phase'] == 'DECIDED'
-    print("  ✅ PASS")
+    log.info("  ✅ PASS")
 
 
 def test_bft_byzantine_node_slashed():
     """✅ Byzantine node (double-sign) is slashed and excluded from quorums."""
-    print("\n=== TEST 7: Byzantine Node Excluded ===")
+    log.info("\n=== TEST 7: Byzantine Node Excluded ===")
 
     bft = BFTConsensus(node_id='a', all_nodes=['a', 'b', 'c', 'd'], f=1)
     slashing = SlashingEngine()
@@ -245,14 +249,14 @@ def test_bft_byzantine_node_slashed():
     assert slashing.is_slashed('c')
     assert bft._slashed == {'c'}
 
-    print(f"  Slashed nodes: {slashing.get_slashed_nodes()}")
-    print(f"  Slashed from BFT: {list(bft._slashed)}")
-    print("  ✅ PASS")
+    log.info(f"  Slashed nodes: {slashing.get_slashed_nodes()}")
+    log.info(f"  Slashed from BFT: {list(bft._slashed)}")
+    log.info("  ✅ PASS")
 
 
 def test_bftqc_builder_threshold():
     """✅ BFTQCBuilder builds QC only when threshold reached."""
-    print("\n=== TEST 8: BFTQC Builder Threshold ===")
+    log.info("\n=== TEST 8: BFTQC Builder Threshold ===")
 
     builder = BFTQCBuilder(
         request_hash='req_test', view=1, sequence=1,
@@ -274,13 +278,13 @@ def test_bftqc_builder_threshold():
     assert qc.request_hash == 'req_test'
     assert len(qc.signatures) == 3
 
-    print(f"  QC built: {qc.description}")
-    print("  ✅ PASS")
+    log.info(f"  QC built: {qc.description}")
+    log.info("  ✅ PASS")
 
 
 def test_federated_gateway_rejects_insufficient_quorum():
     """❌ FederatedExecutionGateway rejects when quorum not reached."""
-    print("\n=== TEST 9: Gateway Rejects Insufficient Quorum ===")
+    log.info("\n=== TEST 9: Gateway Rejects Insufficient Quorum ===")
 
     gateway = FederatedExecutionGateway(
         node_id='node-a',
@@ -296,18 +300,18 @@ def test_federated_gateway_rejects_insufficient_quorum():
         proof='',  # empty → invalid
     )
 
-    print(f"  committed={result['committed']}, reason={result['reason']}")
+    log.info(f"  committed={result['committed']}, reason={result['reason']}")
     assert not result['committed']
 
     # Verify stats
     stats = gateway.stats
-    print(f"  stats: {stats}")
-    print("  ✅ PASS")
+    log.info(f"  stats: {stats}")
+    log.info("  ✅ PASS")
 
 
 def test_slashing_engine_full():
     """✅ SlashingEngine records all misbehavior types."""
-    print("\n=== TEST 10: Slashing Engine Full Cycle ===")
+    log.info("\n=== TEST 10: Slashing Engine Full Cycle ===")
 
     engine = SlashingEngine()
 
@@ -335,7 +339,7 @@ def test_slashing_engine_full():
     assert engine.is_slashed('bad_actor')
 
     summary = engine.summary()
-    print(f"  Summary: {summary}")
+    log.info(f"  Summary: {summary}")
     assert summary['total_slashed'] == 3
     assert summary['total_records'] == 3
 
@@ -348,13 +352,13 @@ def test_slashing_engine_full():
     # upheld=False = keep penalty → node stays slashed
     assert engine.is_slashed('malicious')
 
-    print("  ✅ PASS")
+    log.info("  ✅ PASS")
 
 
 def main():
-    print("=" * 70)
-    print("ATOMFEDERATION-OS v9.0+P7 BYZANTINE-FAULT-TOLERANT TESTS")
-    print("=" * 70)
+    log.info("=" * 70)
+    log.info("ATOMFEDERATION-OS v9.0+P7 BYZANTINE-FAULT-TOLERANT TESTS")
+    log.info("=" * 70)
 
     tests = [
         test_bft_thresholds,
@@ -374,19 +378,19 @@ def main():
         try:
             test()
         except AssertionError as e:
-            print(f"  ❌ FAILED: {e}")
+            log.info(f"  ❌ FAILED: {e}")
             failed += 1
         except Exception as e:
-            print(f"  ❌ EXCEPTION: {e}")
+            log.info(f"  ❌ EXCEPTION: {e}")
             failed += 1
 
-    print()
-    print("=" * 70)
+    log.info()
+    log.info("=" * 70)
     if failed == 0:
-        print("✅ ALL P7 TESTS PASSED")
+        log.info("✅ ALL P7 TESTS PASSED")
     else:
-        print(f"❌ {failed} P7 TEST(S) FAILED")
-    print("=" * 70)
+        log.info(f"❌ {failed} P7 TEST(S) FAILED")
+    log.info("=" * 70)
 
     return 0 if failed == 0 else 1
 

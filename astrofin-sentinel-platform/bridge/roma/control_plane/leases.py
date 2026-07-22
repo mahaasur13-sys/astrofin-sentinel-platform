@@ -1,7 +1,8 @@
 """GPU Lease Manager — etcd-style distributed locking"""
-import threading
 import logging
+import threading
 from typing import Optional
+
 from .core_models import GPULease
 
 log = logging.getLogger("leases")

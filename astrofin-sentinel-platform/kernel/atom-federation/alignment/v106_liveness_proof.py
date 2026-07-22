@@ -7,6 +7,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ─── FORMAL SYSTEM MODEL ────────────────────────────────────────────────
 
 class OscillationStage(Enum):
@@ -174,15 +178,15 @@ def verify(traces: list[ADLRState]) -> bool:
 # ─── MAIN ─────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print("=== v10.6 LIVENESS PROOF FOR ADLR v10.5 ===\n")
-    print(LEMMAS.L1, "\n")
-    print(LEMMAS.L2, "\n")
-    print(LEMMAS.L3, "\n")
-    print(LEMMAS.L4, "\n")
-    print(COROLLARIES.C1, "\n")
-    print(COROLLARIES.C2, "\n")
-    print(THEOREM.PROOF, "\n")
+    log.info("=== v10.6 LIVENESS PROOF FOR ADLR v10.5 ===\n")
+    log.info(LEMMAS.L1, "\n")
+    log.info(LEMMAS.L2, "\n")
+    log.info(LEMMAS.L3, "\n")
+    log.info(LEMMAS.L4, "\n")
+    log.info(COROLLARIES.C1, "\n")
+    log.info(COROLLARIES.C2, "\n")
+    log.info(THEOREM.PROOF, "\n")
     traces = all_reachable_states(depth=15)
     result = verify(traces)
-    print(f"Exhaustive model checking: {'PASS ✓' if result else 'FAIL ✗'}")
-    print(f"States explored: {len(traces)}")
+    log.info(f"Exhaustive model checking: {'PASS ✓' if result else 'FAIL ✗'}")
+    log.info(f"States explored: {len(traces)}")

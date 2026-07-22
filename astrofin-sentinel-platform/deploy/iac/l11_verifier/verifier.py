@@ -12,6 +12,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 try:
     from dag_validator.validator import DAGValidator
     from dag_validator.validator import ViolationType as VT
@@ -197,5 +201,5 @@ if __name__ == "__main__":
     verifier = L11Verifier()
     dag = {"nodes": [{"id": "a"}, {"id": "b"}], "edges": [["a", "b"]]}
     pre = verifier.pre_execution(dag, {"seed": 42})
-    print(f"Pre: passed={pre.passed}, valid={pre.dag_result.valid}")
-    print(f"Invariants: {verifier.verify_invariants()}")
+    log.info(f"Pre: passed={pre.passed}, valid={pre.dag_result.valid}")
+    log.info(f"Invariants: {verifier.verify_invariants()}")

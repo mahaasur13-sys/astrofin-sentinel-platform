@@ -5,6 +5,10 @@ from __future__ import annotations
 import json as _json
 from pathlib import Path as _Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 def _data_dir():
     root = _Path(__file__).parent.parent
@@ -71,24 +75,24 @@ class VersionedEliteStorage:
             tag=str(tag), session_id=session_id, n=len(records)
         )
         _save_index(idx)
-        print(f"[META-RL-VERSION] Saved {tag}: {len(records)} elites")
+        log.info(f"[META-RL-VERSION] Saved {tag}: {len(records)} elites")
         return True
 
     def load_elite_version(self, tag):
         vpath = _vpath(str(tag))
         if not vpath.exists():
-            print(f"[META-RL-VERSION] Version not found: {tag}")
+            log.info(f"[META-RL-VERSION] Version not found: {tag}")
             return []
         try:
             return _json.loads(vpath.read_text()) or []
         except Exception as e:
-            print(f"[META-RL-VERSION] Load error {tag}: {e}")
+            log.info(f"[META-RL-VERSION] Load error {tag}: {e}")
             return []
 
     def list_versions(self):
         idx = _load_index()
         tags = idx.get("versions", [])
-        print(f"[META-RL-VERSION] Versions: {tags}")
+        log.info(f"[META-RL-VERSION] Versions: {tags}")
         return tags
 
     def compare_versions(self, tag_a, tag_b):

@@ -9,7 +9,12 @@ import time
 
 # ── Projection Engine import ──────────────────────────────────────
 import sys; sys.path.insert(0, '/home/workspace/roma-execution-bridge')
+import logging
+
 from dashboard.projection_engine import ProjectionEngine
+
+log = logging.getLogger(__name__)
+
 
 # ── Init ──────────────────────────────────────────────────────────
 app = Dash(__name__, external_stylesheets=[dbc.themes.DARK])
@@ -249,5 +254,5 @@ def simulate(task, gpu_sec, batch, tier):
     ], color="info")
 
 if __name__ == "__main__":
-    print("Starting ROMA Dashboard...")
+    log.info("Starting ROMA Dashboard...")
     app.run(host="0.0.0.0", port=8050, debug=False)

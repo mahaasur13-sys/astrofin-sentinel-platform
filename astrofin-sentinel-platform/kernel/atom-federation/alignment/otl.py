@@ -6,6 +6,10 @@ from enum import Enum, auto
 
 from core.deterministic import DeterministicClock
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class TrustLevel(Enum):
     FULL = auto()
@@ -152,14 +156,14 @@ class OTL:
         return not all(q == ObservationQuality.DISCARDED for q in recent)
 
 if __name__ == "__main__":
-    print("=== v11.0 OTL Tests ===")
+    log.info("=== v11.0 OTL Tests ===")
     # T1: honest sensors
     otl = OTL(n_sensors=3, f_byzantine=1)
     for i in range(3):
         otl.observe(f"s{i}", 0.8, i)
     rep = otl.fuse(actual=0.8)
     assert rep.trust_level == TrustLevel.FULL, f"T1 FAIL: {rep.trust_level}"
-    print("  T1 honest FULL")
+    log.info("  T1 honest FULL")
 
     # T2: adversarial filtered
     otl2 = OTL(n_sensors=3, f_byzantine=1)
@@ -167,7 +171,7 @@ if __name__ == "__main__":
         otl2.observe(f"s{i}", 9.0 if i == 1 else 0.8, i)
     rep2 = otl2.fuse(actual=0.8)
     assert rep2.trust_level in (TrustLevel.FULL, TrustLevel.PARTIAL), f"T2 FAIL: {rep2.trust_level}"
-    print("  T2 adversarial filtered")
+    log.info("  T2 adversarial filtered")
 
     # T3: lag
     otl3 = OTL(n_sensors=2, f_byzantine=0)
@@ -176,7 +180,7 @@ if __name__ == "__main__":
     otl3.observe("s1", 0.8, now_ns)
     rep3 = otl3.fuse()
     assert rep3.quality in (ObservationQuality.MEDIUM, ObservationQuality.HIGH), f"T3 FAIL: {rep3.quality}"
-    print("  T3 lag handled")
+    log.info("  T3 lag handled")
 
     # T4: noisy sensors
     otl4 = OTL(n_sensors=2, f_byzantine=0)
@@ -187,7 +191,7 @@ if __name__ == "__main__":
         otl4.fuse(actual=0.8)
     ts = otl4.trust_score()
     assert 0.3 <= ts <= 1.0, f"T4 FAIL: {ts}"
-    print(f"  T4 noisy score={ts:.3f}")
+    log.info(f"  T4 noisy score={ts:.3f}")
 
     # T5: stable under adversarial
     otl5 = OTL(n_sensors=3, f_byzantine=1)
@@ -197,7 +201,7 @@ if __name__ == "__main__":
         otl5.fuse(actual=0.8)
     stable = otl5.is_stable_under_adversarial()
     assert stable, "T5 FAIL"
-    print("  T5 stable under adversarial")
+    log.info("  T5 stable under adversarial")
 
     # T6: OTL feeds GSL
     from alignment.gsl import GSL, InternalState, ObservedState
@@ -210,6 +214,6 @@ if __name__ == "__main__":
     observed = ObservedState(sensor_view={}, lag_ms=10.0, branch_observations={}, is_stale=False)
     report = gsl.evaluate(intern, observed)
     assert report.region in ("SAFE", "DEGRADED"), f"T6 FAIL: {report.region}"
-    print(f"  T6 OTL->GSL region={report.region}")
+    log.info(f"  T6 OTL->GSL region={report.region}")
 
-    print("ALL PASSED")
+    log.info("ALL PASSED")

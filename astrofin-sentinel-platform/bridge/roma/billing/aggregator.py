@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """ROMA Usage Aggregator — GPU-second aggregation from billing events."""
-from billing.models.billing_events import BillingEvent, BillingEventStore, BillingEventType
+import logging
 import time
+
+from billing.models.billing_events import BillingEvent, BillingEventStore, BillingEventType
+
+log = logging.getLogger(__name__)
+
 
 class UsageAggregator:
     def __init__(self, event_store: BillingEventStore):
@@ -48,5 +53,5 @@ def simulate_usage(aggregator: UsageAggregator) -> None:
         ))
     total = aggregator.aggregate_gpu_seconds("tenant-abc", now - 10 * 3600, now)
     summary = aggregator.monthly_summary("tenant-abc", now)
-    print(f"Aggregated GPU-seconds (10h window): {total:.1f}s = {total/3600:.2f}h")
-    print(f"Monthly summary: {summary['gpu_seconds']:.1f}s = {summary['gpu_seconds']/3600:.2f}h")
+    log.info(f"Aggregated GPU-seconds (10h window): {total:.1f}s = {total/3600:.2f}h")
+    log.info(f"Monthly summary: {summary['gpu_seconds']:.1f}s = {summary['gpu_seconds']/3600:.2f}h")

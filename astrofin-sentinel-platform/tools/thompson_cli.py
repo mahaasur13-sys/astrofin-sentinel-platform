@@ -19,6 +19,10 @@ import argparse
 import sys
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.belief import get_belief_tracker
@@ -62,18 +66,18 @@ def cmd_scores(args):
     pool = POOL_MAP[args.pool]
     results = sampler.scores(pool)
 
-    print(f"\n=== Thompson Scores: {pool.name.upper()} ===")
-    print(
+    log.info(f"\n=== Thompson Scores: {pool.name.upper()} ===")
+    log.info(
         f"exploration_bonus={args.exploration_bonus}  k={pool.k or sampler.default_k}"
     )
-    print(
+    log.info(
         f"{'Agent':<22} {'Sample':>8}  {'Alpha':>6}  {'Beta':>6}  {'Mean':>7}  Sessions"
     )
-    print("-" * 65)
+    log.info("-" * 65)
 
     for name, score, belief in results:
         if belief:
-            print(
+            log.info(
                 f"  {name:<20} {score:>8.4f}  "
                 f"{belief.alpha:>6.2f}  {belief.beta:>6.2f}  "
                 f"{belief.mean:>7.4f}  {belief.total_sessions}"
@@ -82,7 +86,7 @@ def cmd_scores(args):
             bonus_note = (
                 f"+{args.exploration_bonus:.1f}" if args.exploration_bonus else ""
             )
-            print(f"  {name:<20} {score:>8.4f}  (unseen, Beta(1{bonus_note},1))")
+            log.info(f"  {name:<20} {score:>8.4f}  (unseen, Beta(1{bonus_note},1))")
 
 
 def cmd_select(args):
@@ -96,9 +100,9 @@ def cmd_select(args):
     )
     selected = sampler.select(pool, k=k)
 
-    print(f"\n=== Thompson Selected ({pool.name.upper()}, k={k}) ===")
+    log.info(f"\n=== Thompson Selected ({pool.name.upper()}, k={k}) ===")
     for rank, (name, score) in enumerate(selected, 1):
-        print(f"  {rank}. {name:<22} score={score:.4f}")
+        log.info(f"  {rank}. {name:<22} score={score:.4f}")
 
 
 def cmd_leaderboard(args):
@@ -106,18 +110,18 @@ def cmd_leaderboard(args):
     rows = tracker.leaderboard()
 
     if not rows:
-        print("\nNo belief data yet. Run some sessions first.\n")
+        log.info("\nNo belief data yet. Run some sessions first.\n")
         return
 
-    print(f"\n{'=== Belief Leaderboard (Beta Posterior) ===':^60}")
-    print(
+    log.info(f"\n{'=== Belief Leaderboard (Beta Posterior) ===':^60}")
+    log.info(
         f"{'Rank':<5} {'Agent':<22} {'Mean':>7}  {'CI 95%':>14}  {'Sessions':>9}  {'α':>5}  {'β':>5}"
     )
-    print("-" * 72)
+    log.info("-" * 72)
 
     for rank, row in enumerate(rows, 1):
         ci = row["ci_95"]
-        print(
+        log.info(
             f"  {rank:<3} {row['agent_name']:<22} {row['mean_accuracy']:>7.4f}  "
             f"[{ci[0]:.3f}, {ci[1]:.3f}]  {row['total_sessions']:>9}  "
             f"{row['alpha']:>5.1f}  {row['beta']:>5.1f}"
@@ -140,32 +144,32 @@ def cmd_simulate(args):
         for name, _ in selected:
             counts[name] += 1
 
-    print(
+    log.info(
         f"\n=== Simulation: {args.n} runs, k={k}, pool={pool.name}, exploration_bonus={args.exploration_bonus} ==="
     )
-    print(f"Random seed: {args.seed or 'random'}")
-    print(f"\n{'Agent':<22} {'Selected':>10}  {'Frequency':>10}")
-    print("-" * 45)
+    log.info(f"Random seed: {args.seed or 'random'}")
+    log.info(f"\n{'Agent':<22} {'Selected':>10}  {'Frequency':>10}")
+    log.info("-" * 45)
     sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)
     for name, count in sorted_counts:
         pct = count / args.n * 100
         bar = "█" * int(pct / 5) + "░" * (20 - int(pct / 5))
-        print(f"  {name:<20} {count:>10}  [{bar}] {pct:>5.1f}%")
+        log.info(f"  {name:<20} {count:>10}  [{bar}] {pct:>5.1f}%")
 
 
 def cmd_reset(args):
     tracker = get_belief_tracker()
     if args.agent:
         deleted = tracker.reset(args.agent)
-        print(f"Reset {deleted} record(s) for '{args.agent}'")
+        log.info(f"Reset {deleted} record(s) for '{args.agent}'")
     else:
         deleted = tracker.reset()
-        print(f"Reset all {deleted} belief record(s)")
+        log.info(f"Reset all {deleted} belief record(s)")
 
 
 def cmd_daily_brief(args):
     if not HAS_DAILY_BRIEF:
-        print("Daily brief module is not available.")
+        log.info("Daily brief module is not available.")
         return
 
     if args.list:
@@ -175,42 +179,42 @@ def cmd_daily_brief(args):
 
         briefs = sorted(Path(BRIEF_DIR).glob(BRIEF_GLOB), reverse=True)
         if not briefs:
-            print("No briefs found.")
+            log.info("No briefs found.")
             return
-        print(f"\n{'=== Daily Briefs ===':^60}")
-        print(f"{'File':<25} {'Modified'}")
-        print("-" * 50)
+        log.info(f"\n{'=== Daily Briefs ===':^60}")
+        log.info(f"{'File':<25} {'Modified'}")
+        log.info("-" * 50)
         from datetime import datetime
 
         for b in briefs:
             mtime = datetime.fromtimestamp(b.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
-            print(f"  {b.name:<25} {mtime}")
+            log.info(f"  {b.name:<25} {mtime}")
     elif args.ideas:
         from knowledge.daily_brief.daily_brief import generate_ideas, get_latest_brief
 
         path = get_latest_brief()
         if not path:
-            print("No brief found.")
+            log.info("No brief found.")
             return
         content = path.read_text()
         ideas = generate_ideas(content)
         if not ideas:
-            print("No ideas generated.")
+            log.info("No ideas generated.")
             return
-        print(f"\n{'=== ATOM Ideas from Latest Brief ===':^60}\n")
+        log.info(f"\n{'=== ATOM Ideas from Latest Brief ===':^60}\n")
         for idea in ideas:
-            print(f"  [{idea['category']}]")
-            print(f"    → {idea['prompt']}\n")
+            log.info(f"  [{idea['category']}]")
+            log.info(f"    → {idea['prompt']}\n")
     else:
         from knowledge.daily_brief.daily_brief import get_latest_brief
 
         path = get_latest_brief()
         if not path:
-            print("No brief found.")
+            log.info("No brief found.")
             return
-        print(f"\n{'=== Latest Daily Brief ===':^60}")
-        print(f"File: {path.name}\n")
-        print(
+        log.info(f"\n{'=== Latest Daily Brief ===':^60}")
+        log.info(f"File: {path.name}\n")
+        log.info(
             path.read_text()[:500] + "..."
             if len(path.read_text()) > 500
             else path.read_text()
@@ -219,30 +223,30 @@ def cmd_daily_brief(args):
 
 def cmd_idea_tracker(args):
     if not HAS_IDEA_TRACKER:
-        print("Idea tracker module is not available.")
+        log.info("Idea tracker module is not available.")
         return
 
     if args.kpi:
         from knowledge.daily_brief.idea_tracker import get_kpi
 
         kpi = get_kpi()
-        print(f"\n{'=== Idea Tracker KPI Dashboard ===':^60}")
-        print(f"{'Metric':<22} {'Value':>10}")
-        print("-" * 35)
+        log.info(f"\n{'=== Idea Tracker KPI Dashboard ===':^60}")
+        log.info(f"{'Metric':<22} {'Value':>10}")
+        log.info("-" * 35)
         for key, value in kpi.items():
-            print(f"  {key:<22} {value:>10}")
+            log.info(f"  {key:<22} {value:>10}")
     elif args.list:
         from knowledge.daily_brief.idea_tracker import load_ideas
 
         ideas = load_ideas()
         if not ideas:
-            print("No ideas found.")
+            log.info("No ideas found.")
             return
-        print(f"\n{'=== Idea Tracker: All Ideas ===':^60}")
-        print(f"{'ID':<16} {'Status':<12} {'Score':>6} {'Impact':>8} {'Category':<20}")
-        print("-" * 70)
+        log.info(f"\n{'=== Idea Tracker: All Ideas ===':^60}")
+        log.info(f"{'ID':<16} {'Status':<12} {'Score':>6} {'Impact':>8} {'Category':<20}")
+        log.info("-" * 70)
         for idea in ideas:
-            print(
+            log.info(
                 f"  {idea.id:<14} {idea.status:<12} {idea.score:>6.2f} {idea.impact_score:>8.4f} {idea.category:<20}"
             )
     elif args.pending:
@@ -250,13 +254,13 @@ def cmd_idea_tracker(args):
 
         ideas = get_ideas_by_status(IdeaStatus.SCORED.value)
         if not ideas:
-            print("No pending ideas.")
+            log.info("No pending ideas.")
             return
-        print(f"\n{'=== Idea Tracker: Pending Ideas ===':^60}")
-        print(f"{'ID':<16} {'Score':>6} {'Category':<20} {'Text':<30}")
-        print("-" * 75)
+        log.info(f"\n{'=== Idea Tracker: Pending Ideas ===':^60}")
+        log.info(f"{'ID':<16} {'Score':>6} {'Category':<20} {'Text':<30}")
+        log.info("-" * 75)
         for idea in ideas:
-            print(
+            log.info(
                 f"  {idea.id:<14} {idea.score:>6.2f} {idea.category:<20} {idea.text[:28]:<30}"
             )
     elif args.inject:
@@ -265,39 +269,39 @@ def cmd_idea_tracker(args):
         idea_id = args.inject
         result = inject_idea(idea_id)
         if result:
-            print(f"Injected idea {idea_id} into KARL buffer.")
+            log.info(f"Injected idea {idea_id} into KARL buffer.")
         else:
-            print(f"Failed to inject idea {idea_id}.")
+            log.info(f"Failed to inject idea {idea_id}.")
     elif args.eval:
         from knowledge.daily_brief.idea_tracker import evaluate_idea
 
         idea_id = args.eval
         reward = args.reward
         if reward is None:
-            print("Reward is required for evaluation.")
+            log.info("Reward is required for evaluation.")
             return
         result = evaluate_idea(idea_id, reward)
         if result:
-            print(f"Evaluated idea {idea_id} with reward {reward}.")
+            log.info(f"Evaluated idea {idea_id} with reward {reward}.")
         else:
-            print(f"Failed to evaluate idea {idea_id}.")
+            log.info(f"Failed to evaluate idea {idea_id}.")
     elif args.status:
         from knowledge.daily_brief.idea_tracker import get_ideas_by_status
 
         status = args.status
         ideas = get_ideas_by_status(status)
         if not ideas:
-            print(f"No ideas found with status '{status}'.")
+            log.info(f"No ideas found with status '{status}'.")
             return
-        print(f"\n{'=== Idea Tracker: Ideas by Status ===':^60}")
-        print(f"{'ID':<16} {'Status':<12} {'Score':>6} {'Impact':>8} {'Category':<20}")
-        print("-" * 75)
+        log.info(f"\n{'=== Idea Tracker: Ideas by Status ===':^60}")
+        log.info(f"{'ID':<16} {'Status':<12} {'Score':>6} {'Impact':>8} {'Category':<20}")
+        log.info("-" * 75)
         for idea in ideas:
-            print(
+            log.info(
                 f"  {idea.id:<14} {idea.status:<12} {idea.score:>6.2f} {idea.impact_score:>8.4f} {idea.category:<20}"
             )
     else:
-        print(
+        log.info(
             "No action specified for idea tracker. Use --kpi, --list, --pending, --inject, --eval, or --status."
         )
 

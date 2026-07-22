@@ -8,10 +8,14 @@ EXPECTED: policy_switch_rate rises, utility variance increases, no stabilization
 CRITICAL: policy_switch_rate > threshold OR utility_variance rising without stabilization
 """
 import json
+import logging
 import random
 import time
 from collections import deque
 from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -222,16 +226,16 @@ def run_all():
         retrain_interval=30,
     )
 
-    print("[POLICY OSCILLATION] Starting scenario...")
+    log.info("[POLICY OSCILLATION] Starting scenario...")
     results = scenario.simulate(duration_sec=120)
 
-    print("\n=== SCENARIO RESULT ===")
-    print(f"Failure detected: {results['failure_detected']}")
-    print(f"Metrics: {json.dumps(results['metrics'], indent=2)}")
+    log.info("\n=== SCENARIO RESULT ===")
+    log.info(f"Failure detected: {results['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(results['metrics'], indent=2)}")
 
     if results["correction_applied"]:
-        print(f"\nCorrection: {results['correction_applied']}")
-        print(f"Result after fix: {json.dumps(results['result_after_fix'], indent=2)}")
+        log.info(f"\nCorrection: {results['correction_applied']}")
+        log.info(f"Result after fix: {json.dumps(results['result_after_fix'], indent=2)}")
 
     return results
 

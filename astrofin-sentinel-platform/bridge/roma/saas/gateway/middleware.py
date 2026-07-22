@@ -1,10 +1,11 @@
 """Gateway middleware assembly."""
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-from saas.gateway.tenant_middleware import TenantMiddleware
+
 from saas.gateway.auth_middleware import AuthMiddleware
 from saas.gateway.branding_injector import BrandingInjectorMiddleware
 from saas.gateway.rate_limiter import check_rate_limit, rate_limit_dependency
+from saas.gateway.tenant_middleware import TenantMiddleware
 
 
 def setup_gateway_middleware(

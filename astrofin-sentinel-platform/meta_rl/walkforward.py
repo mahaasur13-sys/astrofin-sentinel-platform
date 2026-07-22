@@ -148,7 +148,7 @@ class WalkForwardValidator:
         )
         report = validator.validate(strategy, market_data)
         if report.overall_overfit_flag:
-            print("⚠️ Strategy may be overfitting!")
+            log.info("⚠️ Strategy may be overfitting!")
     """
 
     def __init__(

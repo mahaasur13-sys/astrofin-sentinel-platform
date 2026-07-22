@@ -8,6 +8,10 @@ from dataclasses import dataclass, field
 from .order_book import OrderBookSimulator
 from .slippage import AdaptiveSlippageModel
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class TWAPSlice:
@@ -201,18 +205,18 @@ class TWAPExecutor:
 
 
 if __name__ == "__main__":
-    print("=== TWAP Execution ===")
+    log.info("=== TWAP Execution ===")
     executor = TWAPExecutor()
     cfg = TWAPConfig(num_slices=5, slice_duration_seconds=10)
     report = executor.execute(
         "BTC/USDT", "buy", qty=1.0, current_price=50000, config=cfg
     )
-    print(f"  {report.summary()}")
+    log.info(f"  {report.summary()}")
     for s in report.slices:
         status = "FILLED" if s.filled else "ABORTED"
-        print(
+        log.info(
             f"    Slice {s.slice_num}: {status} @ ${s.exec_price:.2f}, slip={s.slippage_bps:.2f}bps, cost=${s.slippage_cost:.2f}"
         )
-    print(
+    log.info(
         f"  Total cost: ${report.total_cost:.2f} (commissions ${report.total_commission:.2f})"
     )

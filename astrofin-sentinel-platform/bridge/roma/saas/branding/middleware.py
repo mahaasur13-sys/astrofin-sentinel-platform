@@ -1,9 +1,10 @@
 """
 saas/branding/middleware.py
 """
-from fastapi import Request, HTTPException, status
-from .service import BrandingService
+from fastapi import HTTPException, Request, status
+
 from .models import TenantBranding
+from .service import BrandingService
 
 
 async def get_current_branding(request: Request) -> TenantBranding:

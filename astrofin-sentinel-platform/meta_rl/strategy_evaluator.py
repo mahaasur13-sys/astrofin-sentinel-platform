@@ -72,7 +72,7 @@ class StrategyEvaluator:
             if len(ohlcv) < 10:
                 logger.warning("[META-RL] Not enough market data")
                 return EvaluationResult.fail()
-            print(
+            log.info(
                 "DEBUG evaluator: calling backtest_adapter.run with",
                 len(ohlcv),
                 "bars and strategy",

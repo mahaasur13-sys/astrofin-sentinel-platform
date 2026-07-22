@@ -9,8 +9,12 @@ Supports SLSA v1 provenance + in-toto Link/Layout metadata.
 import datetime
 import hashlib
 import json
+import logging
 import os
 import sys
+
+log = logging.getLogger(__name__)
+
 
 HOME = os.environ.get('HOME', '/root')
 
@@ -153,7 +157,7 @@ if __name__ == '__main__':
     manifest = sys.argv[2] if len(sys.argv) > 2 else h('git-index-manifest')[:16]
     lccp = {'deterministic': True, 'replay_verified': True, 'total_events': 9, 'contract_properties_passed': 5}
     result = generate_supply_chain_attestation('mahaasur13-sys/AsurDev', commit, manifest, lccp)
-    print("=" * 70)
-    print("IN-TOTO LAYOUT + SLSA v1 PROVENANCE ATTESTATION")
-    print("=" * 70)
-    print(json.dumps(result, indent=2, default=str))
+    log.info("=" * 70)
+    log.info("IN-TOTO LAYOUT + SLSA v1 PROVENANCE ATTESTATION")
+    log.info("=" * 70)
+    log.info(json.dumps(result, indent=2, default=str))

@@ -10,14 +10,14 @@ Endpoints:
 """
 
 from datetime import datetime, timezone
-from fastapi.staticfiles import StaticFiles
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import Optional
 
-from core.base_agent import BaseAgent
 from core.auth import require_api_key
+from core.base_agent import BaseAgent
 
 app = FastAPI(title="AstroFin Sentinel API", version="0.4.0")
 
@@ -105,8 +105,8 @@ def health():
 @require_api_key
 def get_astro_aspects():
     """Current astrological aspects from Swiss Ephemeris — source of truth."""
-    from core.ephemeris import get_planetary_positions
     from core.aspects import AspectsEngine
+    from core.ephemeris import get_planetary_positions
 
     now = datetime.now(timezone.utc)
     positions = get_planetary_positions(now)
@@ -139,17 +139,17 @@ def get_dashboard():
 
 
     # Launch real Gann/Bradley/Elliot agents for dashboard
-    import random
-    import math
     import asyncio
     import importlib.util
+    import random
     agent_results = {}
     try:
         random.seed(42)
         real_price = 64290.0
         try:
-            import httpx
             import asyncio
+
+            import httpx
             async def _fetch_cg():
                 async with httpx.AsyncClient(timeout=10) as cg:
                     r = await cg.get("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart",
@@ -222,16 +222,15 @@ def get_dashboard():
 @require_api_key
 def run_agent(req: AgentRequest):
     """Return decisions from agents with real ephemeris, aspects, and honest ensemble."""
-    import time
     import importlib
-    import random
+    import time
     from datetime import datetime, timezone
     start = time.time()
 
     # ── 1. Real ephemeris & aspects ──
     try:
-        from core.ephemeris import get_planetary_positions
         from core.aspects import AspectsEngine
+        from core.ephemeris import get_planetary_positions
         dt = datetime.now(timezone.utc)
         positions = get_planetary_positions(dt)
         engine = AspectsEngine()
@@ -247,8 +246,8 @@ def run_agent(req: AgentRequest):
 
     # ── 2. CoinGecko real price ──
     try:
-        import urllib.request
         import json
+        import urllib.request
         url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
         req_url = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req_url, timeout=5) as resp:
@@ -355,8 +354,9 @@ def run_agent(req: AgentRequest):
 def get_interpretation():
     """Vedic + astro interpretation for traders: verdict, Muhurta, Choghadiya, Nakshatra."""
     from datetime import datetime, timezone
-    from core.ephemeris import get_planetary_positions
+
     from core.aspects import AspectsEngine
+    from core.ephemeris import get_planetary_positions
 
     try:
         dt = datetime.now(timezone.utc)
@@ -397,7 +397,7 @@ def get_interpretation():
 
     # Simple Muhurta from Nakshatra
     try:
-        from core.panchanga import calculate_panchanga, get_choghadiya, get_muhurta_score
+        from core.panchanga import calculate_panchanga, get_choghadiya
         panchanga = calculate_panchanga(dt)
         n = panchanga.get("nakshatra", {}) if isinstance(panchanga, dict) else {}
         n_name = n.get("name", "Uttara Phalguni") if isinstance(n, dict) else "Uttara Phalguni"
@@ -462,8 +462,8 @@ async def ws_agent(websocket: WebSocket, agent_id: str):
     except WebSocketDisconnect:
         pass
 
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from fastapi.responses import Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 
 @app.get("/metrics", include_in_schema=False)
@@ -474,6 +474,7 @@ async def metrics_endpoint():
 
 # ── Serve React production build (after all API routes) ──
 import os
+
 react_dist = os.path.join(os.path.dirname(__file__), "..", "web-react", "dist")
 if os.path.isdir(react_dist):
     app.mount("/", StaticFiles(directory=react_dist, html=True), name="react")

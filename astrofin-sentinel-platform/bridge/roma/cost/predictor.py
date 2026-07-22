@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """ROMA Cost Predictor — Pre-execution cost estimation engine."""
 import sys
+
 sys.path.insert(0, '/home/workspace/roma-execution-bridge')
 
 from billing.pricing_engine import PricingEngine, PricingTier
+
 
 class CostPredictor:
     """Predicts execution cost BEFORE running task."""

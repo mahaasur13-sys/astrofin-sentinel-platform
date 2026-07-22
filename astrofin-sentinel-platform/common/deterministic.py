@@ -4,14 +4,12 @@ Self-contained — no external package dependency.
 """
 from __future__ import annotations
 
-import uuid
-import time
 import random
-import threading
-from datetime import datetime, timezone
+import time
+import uuid
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-
+from datetime import datetime, timezone
 
 # --- ContextVar for per-thread determinism ---
 _current_context: ContextVar = ContextVar("_deterministic_ctx", default=None)

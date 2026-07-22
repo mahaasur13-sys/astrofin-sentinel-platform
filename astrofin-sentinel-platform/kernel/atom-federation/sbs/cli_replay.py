@@ -10,6 +10,10 @@ from rich.table import Table
 
 from alignment.adlr import FailureReplay
 
+import logging
+log = logging.getLogger(__name__)
+
+
 console = Console()
 
 
@@ -23,7 +27,7 @@ def run_replay(
 
     if json_output:
         result = _run_replay_json(fr, incident_id, batch)
-        console.print(json.dumps(result, indent=2))
+        console.log.info(json.dumps(result, indent=2))
         return
 
     if batch:
@@ -34,7 +38,7 @@ def run_replay(
         table.add_column("Summary", style="dim")
         for r in results:
             table.add_row(r.incident_id, r.status, r.summary())
-        console.print(table)
+        console.log.info(table)
         return
 
     if incident_id:
@@ -50,20 +54,20 @@ def run_replay(
             title="🔁 Replay Result",
             border_style="green" if result.is_match() else "red",
         )
-        console.print(panel)
+        console.log.info(panel)
         return
 
     # --list or no args — show all saved incidents
     ids = fr.list_saved()
     if not ids:
-        console.print("[yellow]No incidents to replay[/]")
+        console.log.info("[yellow]No incidents to replay[/]")
         return
     table = Table(title=f"Saved Incidents ({len(ids)})")
     table.add_column("ID", style="cyan")
     table.add_column("File", style="dim")
     for fid in ids:
         table.add_row(fid, f"{fr.storage_dir}/{fid}")
-    console.print(table)
+    console.log.info(table)
 
 
 def _run_replay_json(fr, incident_id, batch):

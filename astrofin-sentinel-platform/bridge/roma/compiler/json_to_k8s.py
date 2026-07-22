@@ -6,6 +6,7 @@ Supports: k8s_job (default) | ray_job fallback
 
 import copy
 
+
 class K8sCompiler:
     """Transforms ROMA DAG into K8s Job manifest."""
 

@@ -8,6 +8,10 @@ from dataclasses import dataclass, field
 from .order_book import OrderBookSimulator
 from .slippage import AdaptiveSlippageModel
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class VWAPSlice:
@@ -348,21 +352,21 @@ class VWAPExecutor:
 
 
 if __name__ == "__main__":
-    print("=== VWAP Execution ===")
+    log.info("=== VWAP Execution ===")
     executor = VWAPExecutor()
     cfg = VWAPConfig(num_slices=5, slice_duration_seconds=10)
     report = executor.execute(
         "BTC/USDT", "buy", qty=1.0, current_price=50000, config=cfg
     )
-    print(f"  {report.summary()}")
+    log.info(f"  {report.summary()}")
     for s in report.slices:
         status = "FILLED" if s.filled else "ABORTED"
-        print(
+        log.info(
             f"    Slice {s.slice_num}: {status} | "
             f"qty={s.actual_qty:.4f} | "
             f"@${s.exec_price:.2f} | "
             f"mkt_vol={s.market_volume:.2f} | "
             f"participation={s.participation_rate:.1f}%"
         )
-    print(f"  VWAP benchmark: ${report.vwap:.2f}")
-    print(f"  Participation violations: {report.participation_violations}")
+    log.info(f"  VWAP benchmark: ${report.vwap:.2f}")
+    log.info(f"  Participation violations: {report.participation_violations}")

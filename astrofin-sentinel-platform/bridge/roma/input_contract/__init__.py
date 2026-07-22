@@ -3,8 +3,8 @@ ROMA Input Contract Layer — Strict validation (NOT generative).
 Rejects empty/fallback tasks. Enforces deterministic input → output contract.
 """
 
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
 
 
 class ROMAValidationError(Exception):

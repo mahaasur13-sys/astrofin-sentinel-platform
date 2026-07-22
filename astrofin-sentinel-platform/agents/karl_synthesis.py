@@ -1,9 +1,11 @@
 from __future__ import annotations
-import logging
+
 import hashlib
+import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
+
 from agents._impl.amre import (
     SelfQuestioningEngine,
     # Audit
@@ -26,15 +28,15 @@ from agents._impl.amre import (
     should_trigger_self_questioning,
     validate_with_grounding,
 )
+from agents._impl.amre.lag_windowing import get_lag_window
 from agents._impl.amre.reward import (
     RewardState,
     update_reward_ema,
 )
-from agents._impl.synthesis_agent import SynthesisAgent
-from agents.base_agent import AgentResponse
-from agents._impl.amre.lag_windowing import get_lag_window
 from agents._impl.amre.risk_control import apply_position_lag_risk
 from agents._impl.amre.trajectory import MarketState, market_state_hash
+from agents._impl.synthesis_agent import SynthesisAgent
+from agents.base_agent import AgentResponse
 
 logger = logging.getLogger(__name__)
 """agents/karl_synthesis.py — KARL-013: SynthesisAgent + AMRE Integration
@@ -168,7 +170,7 @@ class KARLSynthesisAgent:
             )
             if need_sq:
                 # Логируем причину (можно заменить на logger.debug)
-                print(f"[SelfQ Trigger] {sq_reason} — running self-questioning")
+                log.info(f"[SelfQ Trigger] {sq_reason} — running self-questioning")
                 sq_result = self.self_questioner.ask(all_signals, state)
                 if sq_result.confidence_adjustment != 0:
                     confidence = max(
@@ -180,7 +182,7 @@ class KARLSynthesisAgent:
             else:
                 # Логируем пропуск не чаще чем раз в 5 вызовов
                 if self.decision_counter % 5 == 0:
-                    print(f"[SelfQ Skip] reason={sq_reason}")
+                    log.info(f"[SelfQ Skip] reason={sq_reason}")
 
         # ── Step 4: Uncertainty + Grounding ──────────────────────────────────
         uncertainty = estimate_uncertainty(all_signals)
@@ -197,7 +199,7 @@ class KARLSynthesisAgent:
             # Multiplicative soft degrade: max(30, round(confidence * factor))
             degraded = max(30, round(confidence * grounding_factor))
             confidence = degraded
-            print(
+            log.info(
                 f"[Grounding] factor={grounding_factor:.3f} → conf {confidence} (degraded)"
             )
 
@@ -217,7 +219,7 @@ class KARLSynthesisAgent:
             if new_pos != position_pct:
                 position_pct = new_pos
                 risk_adjusted = True
-                print(
+                log.info(
                     f"[RiskControl] position adjusted: lag={lag_meta.get('position_lag', 0.0):+.3f} → {position_pct:.4f}"
                 )
 
@@ -350,7 +352,7 @@ class KARLSynthesisAgent:
                             metadata=_sig_get(s, "metadata", {}),
                         )
             except Exception as e:
-                print(f"[KARL] PostgreSQL save failed: {e}")
+                log.info(f"[KARL] PostgreSQL save failed: {e}")
 
         # ── Step 8: Update OAP optimizer ─────────────────────────────────────────
         self.oap.sync_with_audit()
@@ -455,7 +457,7 @@ class KARLSynthesisAgent:
 
         # Log for observability
         if self.reward_state.count % 10 == 0:
-            print(
+            log.info(
                 f"[REWARD EMA] count={self.reward_state.count} market={market_reward:.3f} astro={astro_reward:.3f} raw={raw_reward:.3f} ema={smoothed:.3f}"
             )
 
@@ -466,7 +468,7 @@ class KARLSynthesisAgent:
     ) -> str:
         """Compute reproducible state hash."""
         data = f"{state.get('symbol', '')}:{state.get('current_price', 0)}:{state.get('timeframe_requested', 'SWING')}:{len(state.get('all_signals', []))}:{regime}:{signal}:{confidence}"
-        return hashlib.md5(data.encode()).hexdigest()[
+        return hashlib.sha256(data.encode()).hexdigest()[
             :12
         ]  # nosec B324 — content hash for synthesis key, not security
 
@@ -523,7 +525,7 @@ class KARLSynthesisAgent:
 
         # Log when lag adjustment is non-zero
         if metrics["lag_adj"] != 0:
-            print(
+            log.info(
                 f"[LagWindow] conf {confidence} → {adjusted_conf} (adj={metrics['lag_adj']:+.3f}, pos_lag={metrics['position_lag']:+.3f})"
             )
 

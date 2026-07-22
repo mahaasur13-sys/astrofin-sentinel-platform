@@ -11,7 +11,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from flask import request as flask_request
 
-from core.error_schema import Forbidden, Unauthorized, format_error
+from core.error_schema import format_error
 from core.settings import get_settings
 
 logger = logging.getLogger(__name__)

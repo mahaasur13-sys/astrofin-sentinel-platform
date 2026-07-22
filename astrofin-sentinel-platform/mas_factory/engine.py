@@ -61,7 +61,7 @@ class ProductionMASEngine:
         symbol = context.get("symbol", "BTCUSDT")
         timeframe = context.get("timeframe", "SWING")
         data = f"{intention}:{symbol}:{timeframe}"
-        return hashlib.md5(data.encode()).hexdigest()[:12]
+        return hashlib.sha256(data.encode()).hexdigest()[:12]
 
     @lru_cache(maxsize=32)
     def _build_cached(

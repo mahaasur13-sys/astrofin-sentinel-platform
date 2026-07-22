@@ -4,8 +4,12 @@ from __future__ import annotations
 # Phase 4 - BlackRock six required tests per agent.
 import argparse
 import ast
+import logging
 import sys
 from pathlib import Path
+
+log = logging.getLogger(__name__)
+
 
 REQUIRED = [
     "test_happy_path",
@@ -60,10 +64,10 @@ def main():
         if missing_fns:
             incomplete_files.append((test_file, missing_fns))
 
-    print("BlackRock six-test validator:")
-    print("  scanned:    " + str(len(all_agents)) + " agent files")
-    print("  missing:    " + str(len(missing_files)) + " test files")
-    print("  incomplete: " + str(len(incomplete_files)) + " test files (warn)")
+    log.info("BlackRock six-test validator:")
+    log.info("  scanned:    " + str(len(all_agents)) + " agent files")
+    log.info("  missing:    " + str(len(missing_files)) + " test files")
+    log.info("  incomplete: " + str(len(incomplete_files)) + " test files (warn)")
 
     return 0  # note: 4 reporting blocks were temporarily disabled; see git history
 

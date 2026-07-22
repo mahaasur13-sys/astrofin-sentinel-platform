@@ -1,7 +1,11 @@
 """ROMA API Key System — Scoped keys with rotation."""
+import logging
 import secrets
 import time
-from typing import Optional, List
+from typing import List, Optional
+
+log = logging.getLogger(__name__)
+
 
 PREFIX = "roma_sk-REDACTED-"
 
@@ -57,10 +61,10 @@ class APIKeyManager:
 if __name__ == "__main__":
     km = APIKeyManager()
     key = km.create_key("org_acme", "proj_ml", permissions=["job:execute", "job:read"], expires_in=86400)
-    print(f"Key: {key[:60]}...")
+    log.info(f"Key: {key[:60]}...")
     v = km.validate_key(key)
-    print(f"Valid: {v}")
+    log.info(f"Valid: {v}")
     km.revoke_key(key)
-    print(f"After revoke: {km.validate_key(key)}")
+    log.info(f"After revoke: {km.validate_key(key)}")
     new_key = km.rotate_key(key)
-    print(f"Rotation blocked (revoked): {new_key is None}")
+    log.info(f"Rotation blocked (revoked): {new_key is None}")

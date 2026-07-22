@@ -6,9 +6,13 @@ Replaces static threshold (GPU>85%) with P(overload in next M minutes).
 v4.1 → v5 bridge component.
 """
 
+import logging
 import math
 
 from state_store import StateStore
+
+log = logging.getLogger(__name__)
+
 
 
 # Rolling window estimator (online stats, no distribution assumption)
@@ -143,4 +147,4 @@ if __name__ == "__main__":
         controller.update("rtx-node", val)
 
     reject, p = controller.should_reject("rtx-node")
-    print(f"rtx-node: P(overload) = {p:.3f} → {'REJECT' if reject else 'ADMIT'}")
+    log.info(f"rtx-node: P(overload) = {p:.3f} → {'REJECT' if reject else 'ADMIT'}")

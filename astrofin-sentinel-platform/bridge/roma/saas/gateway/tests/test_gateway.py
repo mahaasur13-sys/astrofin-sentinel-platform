@@ -1,13 +1,17 @@
 """Integration tests for the full gateway stack."""
 import pytest
 from fastapi import FastAPI
-from saas.gateway.middleware import setup_gateway_middleware
-from saas.gateway.router import mount_gateway_routes
-from saas.gateway.models import (
-    GatewayConfig, TenantGatewayConfig,
-    RateLimitConfig, BrandingConfig, AuthConfig,
-)
 from starlette.testclient import TestClient
+
+from saas.gateway.middleware import setup_gateway_middleware
+from saas.gateway.models import (
+    AuthConfig,
+    BrandingConfig,
+    GatewayConfig,
+    RateLimitConfig,
+    TenantGatewayConfig,
+)
+from saas.gateway.router import mount_gateway_routes
 
 
 @pytest.fixture

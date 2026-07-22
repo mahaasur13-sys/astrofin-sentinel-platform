@@ -6,6 +6,7 @@ Production-Grade Integration: L0-L10 + EBL + ETE
 Decision Flow (HARD ENFORCED):
   ML proposes → Solver optimizes → Policy constrains → Governance finalizes → EBL enforces → Execute → ETE traces
 """
+import logging
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -26,6 +27,9 @@ from l9_ebl.policy_compiler.compiler import GuardRule, PolicyCompiler
 # L10 imports
 from l10_self_healing.orchestrator.failure_isolation import FailureIsolator
 from l10_self_healing.watchdog.watchdog import Watchdog
+
+log = logging.getLogger(__name__)
+
 
 # ============================================================
 # ARCHITECTURE SUMMARY
@@ -342,6 +346,6 @@ if __name__ == "__main__":
     gk = ACOSGovernanceKernel()
 
     result = gk.analyze(acos)
-    print(f"ACOS v3.0 — Confidence: {result['CONFidence']['final']} — Decision: {result['DECISION']['action']}")
-    print(f"Architecture: {len(result['LAYERS'])} layers")
-    print(f"Decision flow: {result['DECISION_FLOW']}")
+    log.info(f"ACOS v3.0 — Confidence: {result['CONFidence']['final']} — Decision: {result['DECISION']['action']}")
+    log.info(f"Architecture: {len(result['LAYERS'])} layers")
+    log.info(f"Decision flow: {result['DECISION_FLOW']}")

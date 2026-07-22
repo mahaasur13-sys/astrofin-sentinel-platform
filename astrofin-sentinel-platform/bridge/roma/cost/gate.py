@@ -11,17 +11,22 @@
 - Надёжная обработка ошибок
 """
 
+import logging
 import sys
 from pathlib import Path
-from typing import Dict, Any, List, TypedDict
+from typing import Any, Dict, List, TypedDict
+
+log = logging.getLogger(__name__)
+
 
 # ====================== BASE DIRECTORY ======================
 BASE_DIR = Path(__file__).resolve().parent.parent  # roma-execution-bridge/
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-from cost.predictor import CostPredictor
 from tenancy.manager import TenantManager
+
+from cost.predictor import CostPredictor
 
 
 class GateResponse(TypedDict, total=False):
@@ -143,7 +148,7 @@ class DecisionGate:
             return response
 
         except Exception as e:
-            print(f"[ERROR] DecisionGate: {type(e).__name__}: {e}", file=sys.stderr)
+            log.info(f"[ERROR] DecisionGate: {type(e).__name__}: {e}", file=sys.stderr)
             return self._create_error_response(task, tenant_id, e)
 
     def _create_error_response(self, task: str, tenant_id: str, exc: Exception) -> GateResponse:
@@ -203,8 +208,8 @@ if __name__ == "__main__":
         tenant_id="default-tenant"
     )
 
-    print("=== DecisionGate Test ===")
-    print(f"Decision : {result['decision']}")
-    print(f"Cost     : ${result['estimated_cost']:.4f}")
-    print(f"Message  : {result['gate_message']}")
-    print(f"Action   : {result['suggested_action']}")
+    log.info("=== DecisionGate Test ===")
+    log.info(f"Decision : {result['decision']}")
+    log.info(f"Cost     : ${result['estimated_cost']:.4f}")
+    log.info(f"Message  : {result['gate_message']}")
+    log.info(f"Action   : {result['suggested_action']}")

@@ -1,6 +1,7 @@
-from fastapi import FastAPI
 import time
+
 import psutil
+from fastapi import FastAPI
 
 app = FastAPI()
 app.state.start_time = time.time()

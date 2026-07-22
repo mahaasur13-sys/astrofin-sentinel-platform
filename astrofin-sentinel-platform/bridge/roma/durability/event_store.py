@@ -4,13 +4,13 @@ Every state change is captured as an immutable event.
 """
 
 import json
-import uuid
-from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any
-from enum import Enum
-from dataclasses import dataclass, field
-import threading
 import sqlite3
+import threading
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class EventType(str, Enum):

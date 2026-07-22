@@ -25,6 +25,10 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
@@ -94,7 +98,7 @@ class ChaosValidator:
             "system_response": "cluster_detects_and_recovers",
         },
     )
-    print(result)
+    log.info(result)
     """
 
     def __init__(self):

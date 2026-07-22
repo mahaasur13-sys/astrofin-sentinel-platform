@@ -1,11 +1,12 @@
 """Rate limiting — Token Bucket + SlowAPI + Redis backend."""
-import time
 import asyncio
+import os
+import time
 from typing import Optional
-from fastapi import Request, HTTPException
+
+from fastapi import HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-import os
 
 _redis_client = None
 

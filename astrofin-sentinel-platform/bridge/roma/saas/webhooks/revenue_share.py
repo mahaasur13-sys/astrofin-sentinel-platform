@@ -1,3 +1,8 @@
+
+import logging
+
+log = logging.getLogger(__name__)
+
 """Revenue Share Calculator — tiered, per partner, per month"""
 
 class RevenueShareCalculator:
@@ -50,4 +55,4 @@ if __name__ == "__main__":
     calc = RevenueShareCalculator()
     for amt in [999, 1000, 1001, 5000, 5001, 0.01]:
         r = calc.calculate(amt, 'test')
-        print(f"${amt}: ROMA {r['rate_used']*100:.0f}% = ${r['romas_share']:.2f}")
+        log.info(f"${amt}: ROMA {r['rate_used']*100:.0f}% = ${r['romas_share']:.2f}")

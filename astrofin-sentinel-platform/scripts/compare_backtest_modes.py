@@ -5,8 +5,12 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import logging
 import sys
 from pathlib import Path
+
+log = logging.getLogger(__name__)
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -93,15 +97,15 @@ def main():
     args = parser.parse_args()
 
     result = asyncio.run(compare(ci=args.ci))
-    print("Backtest Mode Comparison:")
+    log.info("Backtest Mode Comparison:")
     for k, v in result.items():
-        print(f"  {k}: {v}")
+        log.info(f"  {k}: {v}")
 
     if result.get("comparable", False):
-        print("✅ Modes are comparable (within tolerance).")
+        log.info("✅ Modes are comparable (within tolerance).")
         exit(0)
     else:
-        print("❌ Modes differ significantly.")
+        log.info("❌ Modes differ significantly.")
         exit(1)
 
 

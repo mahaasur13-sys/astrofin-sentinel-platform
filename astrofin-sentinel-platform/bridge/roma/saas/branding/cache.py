@@ -3,6 +3,7 @@ saas/branding/cache.py
 """
 from datetime import datetime, timedelta
 from typing import Optional
+
 from .models import TenantBranding
 
 

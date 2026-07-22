@@ -152,8 +152,8 @@ class EnsembleVotingEngine:
         self, votes: list[AgentVote], regime: str, nakshatra: str
     ) -> EnsembleResult:
         from trading.vedic.nakshatra_risk import (
-            get_nakshatra_multiplier,
             get_election_grade,
+            get_nakshatra_multiplier,
             is_dangerous_nakshatra,
         )
 

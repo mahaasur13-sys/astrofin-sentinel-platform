@@ -39,6 +39,10 @@ from enum import Enum, auto
 from federation.delta_gossip.dag_hash_modes import DAGHashMode
 from orchestration.consistency.invariant_contract.cross_mode_validator import SemanticNode, SemanticTree
 from orchestration.consistency.invariant_contract.cross_origin_proof import (
+
+import logging
+log = logging.getLogger(__name__)
+
     ProofOrigin,
     SemanticProof,
     SemanticProofEngine,
@@ -338,18 +342,18 @@ def _test_v9_3_phase1():
     decision = sync.evaluate_remote_theta(d, d, remote_origin=ProofOrigin.REMOTE, tick=1)
     assert decision.verdict == SyncVerdict.ACCEPT, f"Expected ACCEPT, got {decision.verdict}"
     assert decision.proof.is_valid()
-    print(f"✅ Case 1 (identical): {decision.verdict.name} — {decision.reason}")
+    log.info(f"✅ Case 1 (identical): {decision.verdict.name} — {decision.reason}")
 
     # Case 2: different digests → QUARANTINE
     decision2 = sync.evaluate_remote_theta(d, ["x1", "x2", "x3", "x4"], tick=2)
     assert decision2.verdict == SyncVerdict.QUARANTINE
     assert decision2.enforcement_action == EnforcementAction.QUARANTINE
-    print(f"✅ Case 2 (diverged): {decision2.verdict.name} — {decision2.reason}")
+    log.info(f"✅ Case 2 (diverged): {decision2.verdict.name} — {decision2.reason}")
 
     # Case 3: one side empty → PARTIAL
     decision3 = sync.evaluate_remote_theta([], d, tick=3)
     assert decision3.verdict == SyncVerdict.PARTIAL
-    print(f"✅ Case 3 (partial): {decision3.verdict.name} — {decision3.reason}")
+    log.info(f"✅ Case 3 (partial): {decision3.verdict.name} — {decision3.reason}")
 
     # Case 4: quarantine tracking
     assert "node_B" not in sync.quarantined_nodes()
@@ -361,9 +365,9 @@ def _test_v9_3_phase1():
     assert "node_B" in sync.quarantined_nodes()
     sync.lift_quarantine("node_B")
     assert "node_B" not in sync.quarantined_nodes()
-    print("✅ Case 4 (quarantine tracking + lift)")
+    log.info("✅ Case 4 (quarantine tracking + lift)")
 
-    print("\n✅ v9.3 Phase 1: ProofAwarePolicySync — all checks passed")
+    log.info("\n✅ v9.3 Phase 1: ProofAwarePolicySync — all checks passed")
 
 
 if __name__ == "__main__":

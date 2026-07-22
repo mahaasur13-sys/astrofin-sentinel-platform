@@ -11,6 +11,10 @@ import os
 from dataclasses import dataclass
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class Criticality(Enum):
     S1 = "S1"  # system down
@@ -311,19 +315,19 @@ class RCAEngine:
 
     def run_full_correction_cycle(self, scenario_name: str) -> RCAResult:
         """Run ACOS correction loop: scenario → RCA → fix → validate."""
-        print(f"[RCA] Running scenario: {scenario_name}")
+        log.info(f"[RCA] Running scenario: {scenario_name}")
         result = self.run_scenario(scenario_name)
 
         if result.get("error"):
-            print(f"[RCA] Error: {result['error']}")
+            log.info(f"[RCA] Error: {result['error']}")
             return None
 
         rca = self.analyze(scenario_name, result)
         self.history.append(rca)
 
-        print(f"[RCA] Root cause: {rca.root_cause}")
-        print(f"[RCA] Stability: {rca.stability}")
-        print(f"[RCA] Criticality: {rca.criticality.value}")
+        log.info(f"[RCA] Root cause: {rca.root_cause}")
+        log.info(f"[RCA] Stability: {rca.stability}")
+        log.info(f"[RCA] Criticality: {rca.criticality.value}")
 
         return rca
 
@@ -379,7 +383,7 @@ def main():
         engine.run_full_correction_cycle(scenario)
 
     report = engine.generate_report()
-    print(report)
+    log.info(report)
 
     os.makedirs(
         "/home/workspace/home-cluster-iac/acos_correction/history", exist_ok=True
@@ -387,7 +391,7 @@ def main():
     out_path = f"/home/workspace/home-cluster-iac/acos_correction/history/run_{len(engine.history)}.md"
     with open(out_path, "w") as f:
         f.write(report)
-    print(f"\nReport saved: {out_path}")
+    log.info(f"\nReport saved: {out_path}")
 
 
 if __name__ == "__main__":

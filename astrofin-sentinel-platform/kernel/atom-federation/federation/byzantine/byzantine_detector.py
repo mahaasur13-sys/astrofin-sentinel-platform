@@ -19,6 +19,10 @@ from enum import Enum, auto
 
 from federation.trust_weighted.consensus_resolver import ConsensusShiftType
 from federation.trust_weighted.trust_dynamics_stabilizer import (
+
+import logging
+log = logging.getLogger(__name__)
+
     DynamicsReport,
     EntropyStats,
     TrustDynamicsStabilizer,
@@ -218,7 +222,7 @@ def _test_byzantine_detector():
     indicator = detector.assess(report, entropy, [], dom_fraction=0.35)
     assert indicator.signal == ByzantineSignal.NONE, f"Expected NONE, got {indicator.signal}"
     assert detector.is_consensus_safe(indicator) is True
-    print(f"✅ Case 1: nominal → {indicator.signal.name} (suspicion={indicator.suspicion_score:.3f})")
+    log.info(f"✅ Case 1: nominal → {indicator.signal.name} (suspicion={indicator.suspicion_score:.3f})")
 
     # ── Case 2: phase locking + monopoly + collapse ──────────────────
     trust_scores_mono = {"node_A": 0.99, "node_B": 0.01, "node_C": 0.01}
@@ -252,8 +256,8 @@ def _test_byzantine_detector():
         f"Expected FAULT_TOLERABLE/DEGRADED/BYZANTINE, got {indicator2.signal}"
     assert detector2.should_request_view_change(indicator2) is True, \
         f"Expected view_change=True for {indicator2.signal}"
-    print(f"✅ Case 2: monopoly+phase_lock+collapse → {indicator2.signal.name} (suspicion={indicator2.suspicion_score:.3f})")
-    print(f"   evidence: {indicator2.evidence}")
+    log.info(f"✅ Case 2: monopoly+phase_lock+collapse → {indicator2.signal.name} (suspicion={indicator2.suspicion_score:.3f})")
+    log.info(f"   evidence: {indicator2.evidence}")
 
     # Case 3: single anomaly → SUSPICIOUS
     votes_mixed = {"node_A": 1.0, "node_B": -0.5, "node_C": 0.0}
@@ -264,7 +268,7 @@ def _test_byzantine_detector():
     detector3 = ByzantineDetector(n_nodes=3, suspicion_threshold=0.20)
     indicator3 = detector3.assess(report3, entropy3, [], dom_fraction=0.35)
     assert indicator3.signal in (ByzantineSignal.NONE, ByzantineSignal.SUSPICIOUS)
-    print(f"✅ Case 3: mixed votes → {indicator3.signal.name} (suspicion={indicator3.suspicion_score:.3f})")
+    log.info(f"✅ Case 3: mixed votes → {indicator3.signal.name} (suspicion={indicator3.suspicion_score:.3f})")
 
     # Case 4: view change warranted check
     degraded_indicator = ByzantineIndicator(
@@ -277,9 +281,9 @@ def _test_byzantine_detector():
     )
     assert detector.should_request_view_change(degraded_indicator) is True
     assert detector.is_consensus_safe(degraded_indicator) is False
-    print("✅ Case 4: DEGRADED → view_change warranted, consensus unsafe")
+    log.info("✅ Case 4: DEGRADED → view_change warranted, consensus unsafe")
 
-    print("\n✅ v9.8 ByzantineDetector — all checks passed")
+    log.info("\n✅ v9.8 ByzantineDetector — all checks passed")
 
 
 if __name__ == "__main__":

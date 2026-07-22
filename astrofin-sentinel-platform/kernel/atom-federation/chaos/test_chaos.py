@@ -12,6 +12,10 @@ import sys
 
 import pytest
 
+import logging
+log = logging.getLogger(__name__)
+
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
@@ -219,9 +223,9 @@ class TestChaosHarness:
             result = harness.run()
             results.append((name, result))
             assert result.phase == ExperimentPhase.COMPLETE, f"Scenario {name} did not complete: {result.error}"
-        print("\n=== Chaos Harness Summary ===")
+        log.info("\n=== Chaos Harness Summary ===")
         for name, result in results:
-            print(f"  {name}: {result.verdict.value} ({result.duration_s:.1f}s)")
+            log.info(f"  {name}: {result.verdict.value} ({result.duration_s:.1f}s)")
 
     def test_harness_collects_health_snapshots(self, mock_cluster_ctx):
         scenario = latency_spike()

@@ -7,8 +7,12 @@ Run: python backtest/db_analysis.py
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 from datetime import datetime
+
+log = logging.getLogger(__name__)
+
 
 DB_HISTORY = "core/history.db"
 DB_BELIEF = "core/belief.db"
@@ -41,9 +45,9 @@ def safe_json(val):
 
 def print_table(headers, rows, title=""):
     if title:
-        print(f"\n### {title}")
+        log.info(f"\n### {title}")
     if not rows:
-        print("  (no data)")
+        log.info("  (no data)")
         return
     col_widths = [
         max(len(str(h)), max(len(str(r[i])) for r in rows)) if i < len(headers) else 10
@@ -51,31 +55,31 @@ def print_table(headers, rows, title=""):
     ]
     sep = "  "
     header_line = sep.join(f"{h:<w}" for h, w in zip(headers, col_widths, strict=False))
-    print(f"  {header_line}")
-    print(f"  {'─' * len(header_line)}")
+    log.info(f"  {header_line}")
+    log.info(f"  {'─' * len(header_line)}")
     for row in rows:
-        print(f"  {sep.join(f'{str(row[i]):<w}' for i, w in enumerate(col_widths))}")
+        log.info(f"  {sep.join(f'{str(row[i]):<w}' for i, w in enumerate(col_widths))}")
 
 
 def main():
-    print("=" * 70)
-    print("  ASTROFIN SENTINEL V5 — DATABASE RESEARCH")
-    print("=" * 70)
-    print(f"\nGenerated: {datetime.now().isoformat()}")
+    log.info("=" * 70)
+    log.info("  ASTROFIN SENTINEL V5 — DATABASE RESEARCH")
+    log.info("=" * 70)
+    log.info(f"\nGenerated: {datetime.now().isoformat()}")
 
     # ── 1. Basic stats ──────────────────────────────────────────────────
-    print("\n## 1. BASIC STATS")
+    log.info("\n## 1. BASIC STATS")
 
     cols, rows = run_query(DB_HISTORY, "SELECT COUNT(*) FROM sessions")
     sessions_count = rows[0][0] if rows else 0
-    print(f"  Total sessions: {sessions_count}")
+    log.info(f"  Total sessions: {sessions_count}")
 
     cols, rows = run_query(DB_METRICS, "SELECT COUNT(*) FROM backtest_runs")
     backtest_count = rows[0][0] if rows else 0
-    print(f"  Total backtest runs: {backtest_count}")
+    log.info(f"  Total backtest runs: {backtest_count}")
 
     # ── 2. Signal distribution ───────────────────────────────────────────
-    print("\n## 2. SIGNAL DISTRIBUTION")
+    log.info("\n## 2. SIGNAL DISTRIBUTION")
     cols, rows = run_query(
         DB_HISTORY,
         """
@@ -89,7 +93,7 @@ def main():
     print_table(cols, rows, "Signal counts")
 
     # ── 3. Symbol / timeframe distribution ─────────────────────────────
-    print("\n## 3. SYMBOL / TIMEFRAME")
+    log.info("\n## 3. SYMBOL / TIMEFRAME")
     cols, rows = run_query(
         DB_HISTORY,
         """
@@ -101,7 +105,7 @@ def main():
     print_table(cols, rows)
 
     # ── 4. Thompson Beliefs ──────────────────────────────────────────────
-    print("\n## 4. THOMPSON BELIEFS (Beta distributions)")
+    log.info("\n## 4. THOMPSON BELIEFS (Beta distributions)")
     cols, rows = run_query(
         DB_BELIEF,
         """
@@ -114,7 +118,7 @@ def main():
     print_table(cols, rows)
 
     # ── 5. Agent belief history ─────────────────────────────────────────
-    print("\n## 5. BELIEF HISTORY")
+    log.info("\n## 5. BELIEF HISTORY")
     cols, rows = run_query(
         DB_BELIEF,
         """
@@ -125,7 +129,7 @@ def main():
     print_table(cols, rows)
 
     # ── 6. Thompson Selection Log ──────────────────────────────────────
-    print("\n## 6. THOMPSON SELECTION COVERAGE")
+    log.info("\n## 6. THOMPSON SELECTION COVERAGE")
     cols, rows = run_query(
         DB_BELIEF,
         """
@@ -139,10 +143,10 @@ def main():
     if rows:
         print_table(cols, rows)
     else:
-        print("  (no data in agent_selection_log)")
+        log.info("  (no data in agent_selection_log)")
 
     # ── 7. Backtest performance ─────────────────────────────────────────
-    print("\n## 7. BACKTEST PERFORMANCE")
+    log.info("\n## 7. BACKTEST PERFORMANCE")
     cols, rows = run_query(
         DB_METRICS,
         """
@@ -159,7 +163,7 @@ def main():
     print_table(cols, rows)
 
     # ── 8. Sessions over time ────────────────────────────────────────────
-    print("\n## 8. SESSIONS OVER TIME (last 10 days)")
+    log.info("\n## 8. SESSIONS OVER TIME (last 10 days)")
     cols, rows = run_query(
         DB_HISTORY,
         """
@@ -173,7 +177,7 @@ def main():
     print_table(cols, rows)
 
     # ── 9. JSON quality check ────────────────────────────────────────────
-    print("\n## 9. DATA QUALITY")
+    log.info("\n## 9. DATA QUALITY")
 
     # Check JSON fields
     cols, rows = run_query(
@@ -187,7 +191,7 @@ def main():
     """,
     )
     null_output = len(rows)
-    print(f"  Sessions with NULL/empty final_output: {null_output}")
+    log.info(f"  Sessions with NULL/empty final_output: {null_output}")
 
     cols, rows = run_query(
         DB_HISTORY,
@@ -196,10 +200,10 @@ def main():
     """,
     )
     bad_conf = rows[0][0] if rows else 0
-    print(f"  Sessions with invalid confidence (0 or >100): {bad_conf}")
+    log.info(f"  Sessions with invalid confidence (0 or >100): {bad_conf}")
 
     # ── 10. Deep analysis: extract signals from final_output ─────────────
-    print("\n## 10. AGENT SIGNALS IN FINAL_OUTPUT")
+    log.info("\n## 10. AGENT SIGNALS IN FINAL_OUTPUT")
 
     # Sample some sessions to see what agents actually return
     cols, rows = run_query(
@@ -213,9 +217,9 @@ def main():
     print_table(cols, rows, "Last 3 sessions (preview)")
 
     # ── Critical Findings ─────────────────────────────────────────────────
-    print("\n" + "=" * 70)
-    print("  🚨 CRITICAL FINDINGS")
-    print("=" * 70)
+    log.info("\n" + "=" * 70)
+    log.info("  🚨 CRITICAL FINDINGS")
+    log.info("=" * 70)
 
     # Check if all signals are NEUTRAL
     cols, rows = run_query(
@@ -231,29 +235,29 @@ def main():
             neutral_pct = row[1]
 
     if neutral_pct > 80:
-        print(f"\n  ⚠️  {neutral_pct:.0f}% of sessions = NEUTRAL (expected ~50% max)")
-        print("  → Root cause: Agents not giving directional signals")
-        print("  → Check: Are FundamentalAgent, QuantAgent, OptionsFlowAgent running?")
-        print("  → Check: Is MACRO_POOL included in run_sentinel_v5?")
+        log.info(f"\n  ⚠️  {neutral_pct:.0f}% of sessions = NEUTRAL (expected ~50% max)")
+        log.info("  → Root cause: Agents not giving directional signals")
+        log.info("  → Check: Are FundamentalAgent, QuantAgent, OptionsFlowAgent running?")
+        log.info("  → Check: Is MACRO_POOL included in run_sentinel_v5?")
 
     # Check belief tracking
     cols, rows = run_query(DB_BELIEF, "SELECT COUNT(*) FROM agent_beliefs")
     belief_count = rows[0][0] if rows else 0
     if belief_count < 5:
-        print(f"\n  ⚠️  Only {belief_count} agents tracked in belief.db")
-        print("  → Should be 8+ agents (all Thompson-sampled)")
+        log.info(f"\n  ⚠️  Only {belief_count} agents tracked in belief.db")
+        log.info("  → Should be 8+ agents (all Thompson-sampled)")
 
     # Check selection log
     cols, rows = run_query(DB_BELIEF, "SELECT COUNT(*) FROM agent_selection_log")
     sel_count = rows[0][0] if rows else 0
     if sel_count == 0:
-        print("\n  ⚠️  agent_selection_log is EMPTY (0 rows)")
-        print("  → Thompson sampling decisions not being logged")
-        print("  → Check: update_beliefs_from_session() called?")
+        log.info("\n  ⚠️  agent_selection_log is EMPTY (0 rows)")
+        log.info("  → Thompson sampling decisions not being logged")
+        log.info("  → Check: update_beliefs_from_session() called?")
 
-    print("\n" + "=" * 70)
-    print("  Analysis complete")
-    print("=" * 70)
+    log.info("\n" + "=" * 70)
+    log.info("  Analysis complete")
+    log.info("=" * 70)
 
 
 if __name__ == "__main__":

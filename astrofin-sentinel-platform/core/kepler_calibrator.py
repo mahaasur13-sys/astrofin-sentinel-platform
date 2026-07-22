@@ -15,12 +15,16 @@ Key concepts:
 from __future__ import annotations
 
 import json
+import logging
 import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
+
+log = logging.getLogger(__name__)
+
 
 # ── Dynamic import for CLI ──────────────────────────────────────────────────
 if __name__ == "__main__":
@@ -248,10 +252,10 @@ class KeplerCalibrator:
         converged = False
         n_episodes = 0
 
-        print(f"\n{'─' * 60}")
-        print(f"  Body: {body.upper()}")
-        print(f"  Initial MAE: {current_mae:.4f}°")
-        print(f"{'─' * 60}")
+        log.info(f"\n{'─' * 60}")
+        log.info(f"  Body: {body.upper()}")
+        log.info(f"  Initial MAE: {current_mae:.4f}°")
+        log.info(f"{'─' * 60}")
 
         for ep in range(1, self.max_episodes + 1):
             n_episodes = ep
@@ -278,20 +282,20 @@ class KeplerCalibrator:
 
             # ── Logging every 10 episodes ───────────────────────────────────
             if ep % 10 == 0 or ep == 1:
-                print(
+                log.info(
                     f"  Ep {ep:3d}: MAE={current_mae:8.4f}° (best={best_mae:.4f}°) reward={reward:+.6f}"
                 )
 
             # ── Convergence check ───────────────────────────────────────────
             if current_mae < self.convergence_threshold_deg and patience_counter >= 5:
                 converged = True
-                print(
+                log.info(
                     f"  ✅ Converged at episode {ep} (MAE < {self.convergence_threshold_deg}°)"
                 )
                 break
 
             if patience_counter >= self.patience:
-                print(
+                log.info(
                     f"  ⏹️  Early stop at episode {ep} (no improvement for {self.patience} steps)"
                 )
                 break
@@ -314,13 +318,13 @@ class KeplerCalibrator:
         self._results[body] = result
 
         # Print summary
-        print(f"\n  📊 CALIBRATION SUMMARY: {body.upper()}")
-        print(f"     Original MAE:   {original_mae:.4f}°")
-        print(f"     Calibrated MAE: {best_mae:.4f}°")
-        print(f"     Improvement:    {improvement_pct:+.2f}%")
-        print(f"     Episodes:       {n_episodes}")
-        print(f"     Time:           {result.calibration_time_sec:.2f}s")
-        print(f"     Converged:      {converged}")
+        log.info(f"\n  📊 CALIBRATION SUMMARY: {body.upper()}")
+        log.info(f"     Original MAE:   {original_mae:.4f}°")
+        log.info(f"     Calibrated MAE: {best_mae:.4f}°")
+        log.info(f"     Improvement:    {improvement_pct:+.2f}%")
+        log.info(f"     Episodes:       {n_episodes}")
+        log.info(f"     Time:           {result.calibration_time_sec:.2f}s")
+        log.info(f"     Converged:      {converged}")
 
         return result
 
@@ -355,22 +359,22 @@ class KeplerCalibrator:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w") as f:
             json.dump(data, f, indent=2)
-        print(f"\n  💾 Saved calibrated elements → {path}")
+        log.info(f"\n  💾 Saved calibrated elements → {path}")
 
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
 
 def main():
-    print("=" * 60)
-    print("ATOM-STEP-5: RL Calibration — Kepler Orbital Elements")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("ATOM-STEP-5: RL Calibration — Kepler Orbital Elements")
+    log.info("=" * 60)
 
     if not HAS_SWISS_EPHEMERIS:
-        print("⚠️  Swiss Ephemeris not available — using fallback positions")
-        print("   Install: pip install pyswisseph")
-        print("   For accurate calibration, Swiss Ephemeris is required.")
-        print()
+        log.info("⚠️  Swiss Ephemeris not available — using fallback positions")
+        log.info("   Install: pip install pyswisseph")
+        log.info("   For accurate calibration, Swiss Ephemeris is required.")
+        log.info()
 
     calibrator = KeplerCalibrator(
         max_episodes=100,
@@ -385,15 +389,15 @@ def main():
     save_path = Path(__file__).parent.parent / "models" / "calibrated_elements.json"
     calibrator.save(save_path)
 
-    print(f"\n{'=' * 60}")
-    print("✅ RL CALIBRATION COMPLETE")
-    print(f"{'=' * 60}")
+    log.info(f"\n{'=' * 60}")
+    log.info("✅ RL CALIBRATION COMPLETE")
+    log.info(f"{'=' * 60}")
     for body, result in results.items():
         status = "✅" if result.converged else "⚠️ "
-        print(
+        log.info(
             f"  {status} {body:<10} MAE: {result.original_mae_deg:7.4f}° → {result.final_mae_deg:7.4f}° ({result.improvement_pct:+.1f}%)"
         )
-    print(f"{'=' * 60}\n")
+    log.info(f"{'=' * 60}\n")
 
 
 if __name__ == "__main__":

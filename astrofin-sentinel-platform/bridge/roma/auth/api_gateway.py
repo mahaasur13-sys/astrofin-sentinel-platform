@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """ROMA API Gateway — Rate limiting, key validation middleware, quota headers."""
-from functools import wraps
-from typing import Dict, Callable, Optional, Tuple
+import logging
 import time
+from functools import wraps
+from typing import Callable, Dict, Optional, Tuple
+
+log = logging.getLogger(__name__)
+
 
 # ── In-Memory Rate Limiter (Token Bucket) ────────────────────────────────────
 class RateLimiter:
@@ -134,9 +138,10 @@ class APIGateway:
 
 
 if __name__ == "__main__":
+    from billing.metering import MeteringEngine
+
     from auth.engine import AuthEngine, KeyType
     from auth.quota_engine import QuotaEngine
-    from billing.metering import MeteringEngine
     auth = AuthEngine()
     auth.create_tenant("tenant-test", "Test Tenant", "PRO")
     kid, sec = auth.create_key("tenant-test", "p1", KeyType.SERVER, "test", scopes=["submit"])
@@ -149,14 +154,14 @@ if __name__ == "__main__":
     req = {"headers": {"authorization": f"Bearer {sec}", "x-tenant-id": "tenant-test"}}
     def handler(req): return {"data": "ok"}
     resp = gw.middleware(handler)(req)
-    print(f"Valid key → status={resp.get('status', 200)}, headers={list(resp.get('headers', {}).keys())}")
+    log.info(f"Valid key → status={resp.get('status', 200)}, headers={list(resp.get('headers', {}).keys())}")
 
     # Test: missing key
     req2 = {"headers": {}}
     resp2 = gw.middleware(handler)(req2)
-    print(f"Missing key → status={resp2.get('status')}")
+    log.info(f"Missing key → status={resp2.get('status')}")
 
     # Test: bad key
     req3 = {"headers": {"authorization": "Bearer sk_broken"}}
     resp3 = gw.middleware(handler)(req3)
-    print(f"Bad key → status={resp3.get('status')}")
+    log.info(f"Bad key → status={resp3.get('status')}")

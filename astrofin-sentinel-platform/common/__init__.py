@@ -11,7 +11,6 @@ from common.deterministic import (
     utc_now_deterministic,
     uuid4_deterministic,
 )
-
 from common.interfaces import (
     AgentResponseProtocol,
     BaseAgentProtocol,

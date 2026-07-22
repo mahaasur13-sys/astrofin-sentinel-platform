@@ -382,7 +382,7 @@ def fetch_ohlcv(
     except (
         Exception
     ) as yv8_err:  # noqa: BLE001 — provider chain tolerates third-party errors
-        print(f"[data_provider] Yahoo v8 failed for {symbol}: {yv8_err}")
+        log.info(f"[data_provider] Yahoo v8 failed for {symbol}: {yv8_err}")
 
     # 2. yfinance library fallback
     try:
@@ -390,7 +390,7 @@ def fetch_ohlcv(
     except (
         Exception
     ) as yf_err:  # noqa: BLE001 — provider chain tolerates third-party errors
-        print(f"[data_provider] yfinance lib failed for {symbol}: {yf_err}")
+        log.info(f"[data_provider] yfinance lib failed for {symbol}: {yf_err}")
 
     # 3. Twelve Data
     if TWELVE_DATA_KEY:
@@ -399,7 +399,7 @@ def fetch_ohlcv(
         except (
             Exception
         ) as td_err:  # noqa: BLE001 — provider chain tolerates third-party errors
-            print(f"[data_provider] Twelve Data failed for {symbol}: {td_err}")
+            log.info(f"[data_provider] Twelve Data failed for {symbol}: {td_err}")
 
     # 4. metals-api
     if METALS_API_KEY and symbol in METALS_API_SYMBOLS:
@@ -408,7 +408,7 @@ def fetch_ohlcv(
         except (
             Exception
         ) as ma_err:  # noqa: BLE001 — provider chain tolerates third-party errors
-            print(f"[data_provider] metals-api failed for {symbol}: {ma_err}")
+            log.info(f"[data_provider] metals-api failed for {symbol}: {ma_err}")
 
     raise ValueError(f"All providers failed for {symbol}")
 
@@ -463,6 +463,6 @@ def fetch_multi_ohlcv(
         except (
             Exception
         ) as e:  # noqa: BLE001 — provider chain tolerates third-party errors
-            print(f"[data_provider] Failed {sym}: {e}")
+            log.info(f"[data_provider] Failed {sym}: {e}")
             result[sym] = []
     return result

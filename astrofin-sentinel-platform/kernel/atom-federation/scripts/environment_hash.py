@@ -25,6 +25,10 @@ import platform
 import subprocess
 import sys
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── Constants ───────────────────────────────────────────────────────────────────
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent.resolve()
@@ -195,8 +199,8 @@ def main() -> int:
     if args.output == "save" or args.save:
         env_hash = save_env_hash()
         update_system_snapshot()
-        print(f"env_hash={env_hash}")
-        print(f"Saved to: {ENV_HASH_FILE}")
+        log.info(f"env_hash={env_hash}")
+        log.info(f"Saved to: {ENV_HASH_FILE}")
         return 0
 
     if args.output == "json":
@@ -209,11 +213,11 @@ def main() -> int:
             "valid": valid,
             "error": err if not valid else None,
         }
-        print(json.dumps(data, indent=2, sort_keys=True))
+        log.info(json.dumps(data, indent=2, sort_keys=True))
         return 0 if valid else 1
 
     # Default: just the hash
-    print(compute_env_hash())
+    log.info(compute_env_hash())
     return 0
 
 

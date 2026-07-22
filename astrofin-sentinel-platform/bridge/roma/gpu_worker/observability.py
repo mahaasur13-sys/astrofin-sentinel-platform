@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """ROMA GPU Observability Layer"""
-from dataclasses import dataclass, asdict
-from typing import Dict, List
-from datetime import datetime, timedelta
+import logging
 import threading
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Dict, List
+
+log = logging.getLogger(__name__)
+
 
 @dataclass
 class GPUMetric:
@@ -208,10 +212,10 @@ if __name__ == "__main__":
     # Get health scores
     h1 = obs.get_worker_health_score("gpu-node-1")
     h2 = obs.get_worker_health_score("gpu-node-2")
-    print(f"Worker health: {asdict(h1)}, {asdict(h2)}")
+    log.info(f"Worker health: {asdict(h1)}, {asdict(h2)}")
 
     # Summary
     summary = obs.get_observability_summary()
-    print(f"Observability summary: {summary}")
+    log.info(f"Observability summary: {summary}")
 
-    print("=== GPU Observability: PASS ===")
+    log.info("=== GPU Observability: PASS ===")

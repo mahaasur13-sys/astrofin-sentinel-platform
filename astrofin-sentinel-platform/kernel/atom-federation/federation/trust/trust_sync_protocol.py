@@ -41,6 +41,10 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from .trust_vector import TrustVector, TrustDelta
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ─────────────────────────────────────────────────────────────────
 # TrustSyncMessage
 # ─────────────────────────────────────────────────────────────────
@@ -395,7 +399,7 @@ def _test_trust_sync_protocol():
     msg = proto_a.prepare_outbound("node_B", current_tick=1, current_tv=tv_a, vector_clock={"node_A": 3})
     assert msg is not None
     assert msg.msg_type == TrustMessageType.TRUST_VECTOR
-    print("✅ prepare_outbound: initial full sync → TRUST_VECTOR")
+    log.info("✅ prepare_outbound: initial full sync → TRUST_VECTOR")
 
     # ── receive and merge ──────────────────────────────────────────
     tv_b = TrustVector()  # empty on node_B
@@ -403,7 +407,7 @@ def _test_trust_sync_protocol():
     assert "proof_1" in tv_b_new
     assert tv_b_new.get("proof_1").trust_score == 0.9
     assert had_conflict is True  # first sync always introduces new entries
-    print(f"✅ receive_and_merge: trust merged, had_conflict={had_conflict}")
+    log.info(f"✅ receive_and_merge: trust merged, had_conflict={had_conflict}")
 
     # ── delta sync ───────────────────────────────────────────────
     tv_a_v2 = tv_a.snapshot()
@@ -413,20 +417,20 @@ def _test_trust_sync_protocol():
     msg_delta = proto_a.prepare_outbound("node_B", current_tick=2, current_tv=tv_a_v2, vector_clock={"node_A": 4})
     assert msg_delta is not None
     assert msg_delta.msg_type == TrustMessageType.TRUST_DELTA
-    print("✅ prepare_outbound: delta sync → TRUST_DELTA")
+    log.info("✅ prepare_outbound: delta sync → TRUST_DELTA")
 
     # ── receive delta ─────────────────────────────────────────────
     tv_b_new2, had_conflict2 = proto_b.receive_and_merge(msg_delta, tv_b_new)
     assert tv_b_new2.get("proof_1").trust_score == 0.85
     assert tv_b_new2.get("proof_1").ledger_version == 4
     assert "proof_3" in tv_b_new2
-    print("✅ receive_and_merge delta: proof_1 updated to 0.85, proof_3 added")
+    log.info("✅ receive_and_merge delta: proof_1 updated to 0.85, proof_3 added")
 
     # ── peer management ───────────────────────────────────────────
     assert "node_B" in proto_a.peers
     proto_a.remove_peer("node_B")
     assert "node_B" not in proto_a.peers
-    print("✅ peer add/remove")
+    log.info("✅ peer add/remove")
 
     # ── on_tick ───────────────────────────────────────────────────
     proto_a.add_peer("node_B")
@@ -435,21 +439,21 @@ def _test_trust_sync_protocol():
     # tick=5, full_sync_interval=5 → 5%5==0 → full sync
     assert "node_B" in outbound
     assert outbound["node_B"].msg_type == TrustMessageType.TRUST_VECTOR
-    print("✅ on_tick: triggers full sync at tick=5 (full_sync_interval=5)")
+    log.info("✅ on_tick: triggers full sync at tick=5 (full_sync_interval=5)")
 
     # ── convergence test: same proof → same trust on both nodes ───
     # After enough syncs, both nodes should have identical TrustVectors
     # node_A and node_B have the same ledger state after delta merge
     assert tv_b_new2.get("proof_1").trust_score == tv_a_v3.get("proof_1").trust_score
     assert tv_b_new2.get("proof_1").ledger_version == tv_a_v3.get("proof_1").ledger_version
-    print("✅ convergence: both nodes have identical trust after sync")
+    log.info("✅ convergence: both nodes have identical trust after sync")
 
     # ── vector clock ──────────────────────────────────────────────
     clock = proto_a.get_vector_clock()
     assert isinstance(clock, dict)
-    print(f"✅ get_vector_clock: {clock}")
+    log.info(f"✅ get_vector_clock: {clock}")
 
-    print("\n✅ v9.5 TrustSyncProtocol — all checks passed")
+    log.info("\n✅ v9.5 TrustSyncProtocol — all checks passed")
 
 
 if __name__ == "__main__":

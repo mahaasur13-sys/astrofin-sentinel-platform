@@ -2,16 +2,17 @@
 """ROMA Scheduler — GPU-enabled task orchestration
 Routes jobs to GPU workers based on cost/performance policy."""
 
-import os
 import asyncio
 import logging
+import os
 from typing import Optional
 
-from scheduler.gpu_scheduler import GPUScheduler
-from gpu_worker.connector import get_gpu_connector
 from cost.gate import DecisionGate
 from cost.predictor import CostPredictor
+from gpu_worker.connector import get_gpu_connector
 from queue_manager.queue_manager import QueueManager
+
+from scheduler.gpu_scheduler import GPUScheduler
 
 logger = logging.getLogger("roma.scheduler")
 
@@ -147,8 +148,8 @@ def get_executor() -> ROMAJobExecutor:
 if __name__ == "__main__":
     async def demo():
         executor = get_executor()
-        print("=== ROMA GPU Scheduler ===")
-        print(f"Status: {executor.get_metrics()}")
+        log.info("=== ROMA GPU Scheduler ===")
+        log.info(f"Status: {executor.get_metrics()}")
 
         gpu_job = {
             "job_id": "demo-gpu-001",
@@ -160,12 +161,12 @@ if __name__ == "__main__":
             "tenant_tier": "PRO"
         }
 
-        print("\n--- Submit GPU job ---")
+        log.info("\n--- Submit GPU job ---")
         result = await executor.submit(gpu_job)
-        print(f"Status: {result.get('status')}")
-        print(f"Target: {result.get('execution_target', 'unknown')}")
-        print(f"Worker: {result.get('worker_id', 'none')}")
-        print(f"Output: {result.get('stdout', result.get('error', ''))[:200]}")
+        log.info(f"Status: {result.get('status')}")
+        log.info(f"Target: {result.get('execution_target', 'unknown')}")
+        log.info(f"Worker: {result.get('worker_id', 'none')}")
+        log.info(f"Output: {result.get('stdout', result.get('error', ''))[:200]}")
 
         local_job = {
             "job_id": "demo-local-001",
@@ -175,9 +176,9 @@ if __name__ == "__main__":
             "tenant_tier": "FREE"
         }
 
-        print("\n--- Submit local job ---")
+        log.info("\n--- Submit local job ---")
         result = await executor.submit(local_job)
-        print(f"Status: {result.get('status')}")
-        print(f"Target: {result.get('execution_target')}")
+        log.info(f"Status: {result.get('status')}")
+        log.info(f"Target: {result.get('execution_target')}")
 
     asyncio.run(demo())

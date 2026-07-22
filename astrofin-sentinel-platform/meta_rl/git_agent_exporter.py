@@ -144,7 +144,7 @@ def export_strategy(
                         deduplicated=True,
                     )
             except Exception:
-                pass  # fall through to re-export
+                log.warning("Git agent export failed, falling through", exc_info=True)
         pkg.mkdir(parents=True, exist_ok=True)
         _write_yaml(agent_yaml, pkg / "agent.yaml")
         soul = f"""# SOUL.md — {slug}

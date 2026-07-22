@@ -1,8 +1,9 @@
 """Tenant detection + routing middleware."""
-from typing import Optional, Callable
-from fastapi import Request, HTTPException
-from starlette.middleware.base import BaseHTTPMiddleware
 import re
+from typing import Callable, Optional
+
+from fastapi import HTTPException, Request
+from starlette.middleware.base import BaseHTTPMiddleware
 
 
 class TenantMiddleware(BaseHTTPMiddleware):

@@ -12,6 +12,10 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
+import logging
+log = logging.getLogger(__name__)
+
+
 REPO = pathlib.Path("/home/workspace/atom-federation-os")
 
 @dataclass
@@ -128,10 +132,10 @@ def main():
     checker = SymbolicExecutionChecker(REPO)
     trace, violations = checker.run()
     rc = 0 if trace.proof_valid else 1
-    print(f"{'✅' if trace.proof_valid else '❌'} Symbolic: {trace.message}")
-    print(f"   External paths: {trace.external_paths_found}")
+    log.info(f"{'✅' if trace.proof_valid else '❌'} Symbolic: {trace.message}")
+    log.info(f"   External paths: {trace.external_paths_found}")
     for v in violations:
-        print(f"   [{v.severity}] {v.file}:{v.line} {v.name}() — {v.fix}")
+        log.info(f"   [{v.severity}] {v.file}:{v.line} {v.name}() — {v.fix}")
     return rc
 
 if __name__ == "__main__":

@@ -33,6 +33,10 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── Types ────────────────────────────────────────────────────────────────────
 
 class DivergenceType(Enum):
@@ -385,7 +389,7 @@ class RealtimeDivergenceDetector:
                     self._tick()
                 except Exception as e:
                     import sys
-                    print(f"[RealtimeDivergenceDetector] tick error: {e}", file=sys.stderr)
+                    log.info(f"[RealtimeDivergenceDetector] tick error: {e}", file=sys.stderr)
                 time.sleep(interval_sec)
 
         self._thread = threading.Thread(target=loop, daemon=True)

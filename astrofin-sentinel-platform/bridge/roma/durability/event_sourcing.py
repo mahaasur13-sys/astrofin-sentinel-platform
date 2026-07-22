@@ -9,14 +9,13 @@
 from __future__ import annotations
 
 import json
-import uuid
-import time
 import sqlite3
 import threading
+import time
+import uuid
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any, Callable, Iterator
 from enum import Enum
-
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
 # ============================================================================
 # Event Types (typed, not string-based)
@@ -443,12 +442,12 @@ if __name__ == '__main__':
     agg.allocate_gpu('job-001', 'gpu-node-1', 4.0)
     agg.release_gpu('job-001', 'gpu-node-1')
 
-    print(f"Total events: {store.count_events()}")
-    print(f"Current tick: {store.get_current_tick()}")
+    log.info(f"Total events: {store.count_events()}")
+    log.info(f"Current tick: {store.get_current_tick()}")
 
     # Rebuild state from event log
     state = proj.build_state('job-001')
-    print(f"Job state: status={state.status}, gpu_node={state.gpu_node}, priority={state.priority}")
+    log.info(f"Job state: status={state.status}, gpu_node={state.gpu_node}, priority={state.priority}")
 
     # Deterministic replay test
     replay = DeterministicReplay(store)
@@ -458,7 +457,7 @@ if __name__ == '__main__':
         applied_states.append(event.event_type.value)
 
     result = replay.replay_and_verify(1, state_apply)
-    print(f"Replay result: {result}")
+    log.info(f"Replay result: {result}")
 
     store.close()
     os.remove(db_path)

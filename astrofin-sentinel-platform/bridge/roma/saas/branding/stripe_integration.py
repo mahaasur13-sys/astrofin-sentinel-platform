@@ -2,6 +2,7 @@
 saas/branding/stripe_integration.py — Stripe metadata + invoice branding
 """
 from typing import Optional
+
 from .models import TenantBranding
 
 

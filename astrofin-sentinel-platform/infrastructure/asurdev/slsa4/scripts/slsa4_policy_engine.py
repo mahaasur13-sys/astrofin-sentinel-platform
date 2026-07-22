@@ -8,8 +8,12 @@ Falls back to native Python validator if OPA unavailable.
 """
 import hashlib
 import json
+import logging
 import os
 import subprocess
+
+log = logging.getLogger(__name__)
+
 
 POLICY_DIR = os.path.dirname(os.path.abspath(__file__))
 OPA_BIN = os.path.join(POLICY_DIR, '../opa_linux_amd64')
@@ -117,21 +121,21 @@ class SLSA4PolicyEngine:
         return {}
 
     def evaluate_native(self, bundle: dict) -> dict:
-        print("[OPA-NATIVE] Evaluating SLSA-4 policy...")
+        log.info("[OPA-NATIVE] Evaluating SLSA-4 policy...")
         results = {}
         gate_names = list(NATIVE_POLICY.keys())
         for gate in sorted(gate_names):
             passed = NATIVE_POLICY[gate](bundle)
             results[f'G{gate[-1] if gate.startswith("g") else gate}'] = {'passed': passed}
             status = 'PASS' if passed else 'FAIL'
-            print(f"  [{status}] {gate.upper()}")
+            log.info(f"  [{status}] {gate.upper()}")
         return results
 
     def evaluate_opa(self, bundle: dict) -> dict:
         if not self.opa_available:
-            print("[OPA] Binary not found, using native validator")
+            log.info("[OPA] Binary not found, using native validator")
             return self.evaluate_native(bundle)
-        print("[OPA] Using OPA Rego engine...")
+        log.info("[OPA] Using OPA Rego engine...")
         rego_input = {'input': bundle}
         rego_file = os.path.join(POLICY_DIR, 'slsa4_policy.rego')
         with open(rego_file, 'w') as f:
@@ -142,7 +146,7 @@ class SLSA4PolicyEngine:
             capture_output=True
         )
         if result.returncode != 0:
-            print(f"[OPA] Error: {result.stderr.decode()}")
+            log.info(f"[OPA] Error: {result.stderr.decode()}")
             return self.evaluate_native(bundle)
         output = json.loads(result.stdout)
         allowed = output.get('result', [{}])[0].get('release_allowed', False)
@@ -150,26 +154,26 @@ class SLSA4PolicyEngine:
 
     def run(self, bundle_path=None):
         bundle = self.load_bundle() if not bundle_path else json.load(open(bundle_path)) if os.path.exists(bundle_path) else {}
-        print("=" * 70)
-        print("SLSA-4 POLICY ENGINE v5.0")
-        print("=" * 70)
-        print(f"OPA available: {self.opa_available}")
-        print(f"Bundle: {bundle_path or self.bundle_path}")
-        print()
+        log.info("=" * 70)
+        log.info("SLSA-4 POLICY ENGINE v5.0")
+        log.info("=" * 70)
+        log.info(f"OPA available: {self.opa_available}")
+        log.info(f"Bundle: {bundle_path or self.bundle_path}")
+        log.info()
         if self.opa_available:
             results = self.evaluate_opa(bundle)
         else:
             results = self.evaluate_native(bundle)
         release_allowed = all(r.get('passed', False) for r in results.values()) if all(isinstance(v, dict) for v in results.values()) else results.get('release_allowed', False)
-        print()
-        print("=" * 70)
-        print(f"SLSA-4 RELEASE ALLOWED: {release_allowed}")
+        log.info()
+        log.info("=" * 70)
+        log.info(f"SLSA-4 RELEASE ALLOWED: {release_allowed}")
         if not release_allowed:
-            print("DENY REASONS:")
+            log.info("DENY REASONS:")
             for gate, result in sorted(results.items()):
                 if isinstance(result, dict) and not result.get('passed'):
-                    print(f"  ✗ {gate}: {result.get('violation', 'policy violation')}")
-        print("=" * 70)
+                    log.info(f"  ✗ {gate}: {result.get('violation', 'policy violation')}")
+        log.info("=" * 70)
         return release_allowed
 
 if __name__ == '__main__':

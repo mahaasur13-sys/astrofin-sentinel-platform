@@ -1,8 +1,9 @@
-from fastapi import FastAPI
 import threading
 import time
-from pydantic import BaseModel
 from typing import Dict
+
+from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI()
 workers: Dict[str, dict] = {}

@@ -8,6 +8,10 @@ import ast
 import pathlib
 import sys
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class TransitionExtractor(ast.NodeVisitor):
     """Extract DFA transitions from ExecutionGateway source."""
@@ -101,6 +105,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         path = pathlib.Path(sys.argv[1])
         spec = extract_from_file(path)
-        print(json.dumps(spec, indent=2))
+        log.info(json.dumps(spec, indent=2))
     else:
-        print("Usage: python runtime_dfa_extractor.py <gateway.py>")
+        log.info("Usage: python runtime_dfa_extractor.py <gateway.py>")

@@ -11,9 +11,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
 
-from trading.backtester import BacktestTrade, BacktestResult, BacktestConfig
+from trading.backtester import BacktestTrade
 
 
 @dataclass
@@ -62,7 +61,7 @@ class NakshatraPerformance:
         if self.trade_count < 2:
             return 0.0
         import math
-        import numpy as np
+
         # Simplified — full Sharpe needs per-trade return series
         return self.avg_return / (abs(self.avg_return / math.sqrt(self.trade_count)) + 0.001)
 
@@ -139,8 +138,10 @@ def annotate_trade(trade: BacktestTrade, dt: datetime) -> VedicBacktestTrade:
     """Annotate a trade with Vedic metadata based on entry datetime."""
     from core.panchanga import calculate_panchanga
     from trading.vedic.nakshatra_risk import (
-        get_nakshatra_multiplier, get_election_grade,
-        is_favorable_nakshatra, is_dangerous_nakshatra,
+        get_election_grade,
+        get_nakshatra_multiplier,
+        is_dangerous_nakshatra,
+        is_favorable_nakshatra,
     )
 
     try:

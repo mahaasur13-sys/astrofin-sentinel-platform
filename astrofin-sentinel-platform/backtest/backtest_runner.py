@@ -11,7 +11,6 @@ import numpy as np
 from core.base_agent import AgentResponse, SignalDirection
 from orchestration.council_orchestrator import CouncilOrchestrator
 
-
 logger = logging.getLogger(__name__)
 
 

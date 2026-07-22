@@ -20,6 +20,10 @@ from __future__ import annotations
 from enum import Enum, auto
 from typing import Final
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class DFAState(Enum):
     INIT    = auto()  # S0
@@ -210,32 +214,32 @@ class DFAExecutionGuard:
 
 
 if __name__ == "__main__":
-    print("=" * 52)
-    print("  DFA Runtime Enforcement — Verification")
-    print("=" * 52)
+    log.info("=" * 52)
+    log.info("  DFA Runtime Enforcement — Verification")
+    log.info("=" * 52)
     dfa = DFAExecutionGuard()
     # Normal path
     seq = [DFAEvent.REQUEST_IN] + [DFAEvent.G_PASS] * 10 + [DFAEvent.ACT_PASS]
     dfa.run_sequence(seq)
     results = dfa.verify_all()
-    print(f"\n  [1] Normal: {dfa.state.name} accepting={dfa.accepting}")
+    log.info(f"\n  [1] Normal: {dfa.state.name} accepting={dfa.accepting}")
     for p, v in results.items():
-        print(f"      [{'PASS' if v else 'FAIL'}] {p}")
+        log.info(f"      [{'PASS' if v else 'FAIL'}] {p}")
     # Block at G3
     dfa.reset()
     dfa.apply(DFAEvent.REQUEST_IN)
     dfa.apply(DFAEvent.G_PASS)
     dfa.apply(DFAEvent.G_BLOCK)
-    print(f"\n  [2] Block: {dfa.state.name} rejecting={dfa.rejecting}")
+    log.info(f"\n  [2] Block: {dfa.state.name} rejecting={dfa.rejecting}")
     # Replay blocked
     dfa.reset()
     dfa.apply(DFAEvent.REQUEST_IN)
     dfa.apply(DFAEvent.G_BLOCK)
-    print(f"  [3] Replay: {dfa.state.name} rejecting={dfa.rejecting}")
+    log.info(f"  [3] Replay: {dfa.state.name} rejecting={dfa.rejecting}")
     # Dominator violation
     dfa.reset()
     try:
         dfa.apply(DFAEvent.G_PASS)
-        print("  [4] ❌ NOT CAUGHT")
+        log.info("  [4] ❌ NOT CAUGHT")
     except InvalidTransitionError as e:
-        print(f"  [4] ✅ CAUGHT: {e}")
+        log.info(f"  [4] ✅ CAUGHT: {e}")

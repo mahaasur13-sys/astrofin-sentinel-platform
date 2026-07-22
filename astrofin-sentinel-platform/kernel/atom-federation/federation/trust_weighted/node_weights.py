@@ -26,6 +26,10 @@ import time
 from dataclasses import dataclass
 from ..trust.trust_vector import TrustVector
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class NodeWeightEntry:
@@ -241,7 +245,7 @@ def _test_node_weights():
     assert set(registry.known_nodes()) == {"node_A", "node_B"}
     assert registry.proof_count_for_node("node_A") == 3
     assert registry.proof_count_for_node("node_B") == 3
-    print("✅ register_proofs_for_node + associate_proof_with_node")
+    log.info("✅ register_proofs_for_node + associate_proof_with_node")
 
     tv = TrustVector()
     tv.set_entry("h1", 0.9, 1000.0, ledger_version=1)
@@ -255,39 +259,39 @@ def _test_node_weights():
 
     assert abs(snap.node_weight("node_A") - 0.8) < 1e-6
     assert abs(snap.node_weight("node_B") - (2.0 / 3.0)) < 1e-4
-    print(f"✅ compute_weights: node_A={snap.node_weight('node_A'):.4f}, node_B={snap.node_weight('node_B'):.4f}")
+    log.info(f"✅ compute_weights: node_A={snap.node_weight('node_A'):.4f}, node_B={snap.node_weight('node_B'):.4f}")
 
     assert snap.node_weight("node_unknown") == 0.0
-    print("✅ unknown node → weight 0.0")
+    log.info("✅ unknown node → weight 0.0")
 
     ev_a = snap.effective_vote("node_A", 1.0)
     assert abs(ev_a - 0.8) < 1e-6
     ev_a_reject = snap.effective_vote("node_A", -1.0)
     assert abs(ev_a_reject + 0.8) < 1e-6
-    print(f"✅ effective_vote: accept={ev_a:.4f}, reject={ev_a_reject:.4f}")
+    log.info(f"✅ effective_vote: accept={ev_a:.4f}, reject={ev_a_reject:.4f}")
 
     votes = {"node_A": 1.0, "node_B": 1.0}
     total_vote = snap.total_effective_vote(votes)
     expected = 0.8 + (2.0 / 3.0)
     assert abs(total_vote - expected) < 1e-4
-    print(f"✅ total_effective_vote: {total_vote:.4f}")
+    log.info(f"✅ total_effective_vote: {total_vote:.4f}")
 
     assert snap.is_dominated(domination_threshold=0.6) is False
     assert snap.is_dominated(domination_threshold=0.5) is True
-    print(f"✅ is_dominated: dom_fraction={snap.dom_weight_fraction:.4f} (threshold=0.5 → dominated)")
+    log.info(f"✅ is_dominated: dom_fraction={snap.dom_weight_fraction:.4f} (threshold=0.5 → dominated)")
 
     registry2 = NodeWeightRegistry()
     registry2.register_proofs_for_node("node_X", ["h1", "h7"])
     snap2 = registry2.compute_weights(tv, ledger_version=5)
     assert abs(snap2.node_weight("node_X") - 0.45) < 1e-6
-    print("✅ unknown proofs → trust=0 in aggregation")
+    log.info("✅ unknown proofs → trust=0 in aggregation")
 
     snap3 = registry.compute_weights(tv, ledger_version=6, epoch=2)
     assert snap.ledger_version == 5
     assert snap3.ledger_version == 6
-    print("✅ snapshots are independent (immutable)")
+    log.info("✅ snapshots are independent (immutable)")
 
-    print("\n✅ v9.6 NodeWeightRegistry — all checks passed")
+    log.info("\n✅ v9.6 NodeWeightRegistry — all checks passed")
 
 
 if __name__ == "__main__":

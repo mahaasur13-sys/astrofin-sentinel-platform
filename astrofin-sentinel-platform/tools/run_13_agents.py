@@ -15,6 +15,10 @@ import sys
 from core.message_broker import InProcessBroker
 from core.ensemble_voting import EnsembleVotingEngine, ensemble_from_13_agents
 
+import logging
+log = logging.getLogger(__name__)
+
+
 AGENTS = {
     'fundamental':     ('agents._impl.fundamental_agent', 'run_fundamental_agent'),
     'macro':           ('agents._impl.macro_agent', 'run_macro_agent'),
@@ -48,7 +52,7 @@ async def main(symbol='BTCUSDT', price=105000.0, regime='NORMAL', nakshatra=''):
     header = f'{symbol} @ ${price:,.0f}'
     if nakshatra:
         header += f' | Nakshatra: {nakshatra}'
-    print(f'✅ Broker started — {header}\n')
+    log.info(f'✅ Broker started — {header}\n')
 
     tasks = []
     for name, (mod_path, fn_name) in AGENTS.items():
@@ -57,36 +61,36 @@ async def main(symbol='BTCUSDT', price=105000.0, regime='NORMAL', nakshatra=''):
             fn = getattr(mod, fn_name)
             tasks.append((name, asyncio.create_task(fn(state))))
         except Exception as e:
-            print(f'  ❌ {name:20s} — import error: {e}')
+            log.info(f'  ❌ {name:20s} — import error: {e}')
 
-    print(f'🔄 {len(tasks)} agents running concurrently...\n')
+    log.info(f'🔄 {len(tasks)} agents running concurrently...\n')
     results_list = await asyncio.gather(*[t for _, t in tasks], return_exceptions=True)
     await broker.close()
 
     LINE = '━' * 85
-    print(f'{LINE}\n  {"AGENT":22s} {"SIGNAL":>9s} {"CONF%":>6s}  REASONING\n{LINE}')
+    log.info(f'{LINE}\n  {"AGENT":22s} {"SIGNAL":>9s} {"CONF%":>6s}  REASONING\n{LINE}')
 
     agent_results: dict[str, dict] = {}
     for (name, _), r in zip(tasks, results_list):
         if isinstance(r, Exception):
-            print(f'  ❌ {name:20s} │ {type(r).__name__}: {str(r)[:70]}')
+            log.info(f'  ❌ {name:20s} │ {type(r).__name__}: {str(r)[:70]}')
             agent_results[name] = {}
         else:
             sig, conf, reason = extract_signal(r)
             agent_results[name] = r
-            print(f'  ✅ {name:20s} │ {sig:>8s} │ {conf:4.0f}% │ {reason}')
-    print(LINE)
+            log.info(f'  ✅ {name:20s} │ {sig:>8s} │ {conf:4.0f}% │ {reason}')
+    log.info(LINE)
 
     ok = sum(1 for r in results_list if not isinstance(r, Exception))
-    print(f'\n  {ok}/{len(results_list)} agents completed')
+    log.info(f'\n  {ok}/{len(results_list)} agents completed')
 
     # ── Ensemble Vote ──
-    print()
+    log.info()
     ens = ensemble_from_13_agents(agent_results, regime, nakshatra)
-    print(ens.summary())
+    log.info(ens.summary())
 
     if ok == len(results_list):
-        print('\n  🟢 All agents OK — Sprint 6 ensemble complete')
+        log.info('\n  🟢 All agents OK — Sprint 6 ensemble complete')
 
 
 if __name__ == '__main__':

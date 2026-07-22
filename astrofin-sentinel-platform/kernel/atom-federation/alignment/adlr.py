@@ -21,6 +21,10 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class OscillationStage(Enum):
     ATTEMPT = auto()    # recovery actions
@@ -405,7 +409,7 @@ class FailureReplay:
         )
         fr.save("test_incident.json")
         result = fr.replay("test_incident.json")
-        print(result.summary())
+        log.info(result.summary())
     """
 
     MAX_REPLAY_STEPS = 20
@@ -582,7 +586,7 @@ class FailureReplay:
             try:
                 results.append(self.replay(filename))
             except Exception as e:
-                print(f"  [ERROR] {filename}: {e}")
+                log.info(f"  [ERROR] {filename}: {e}")
         return results
 
 
@@ -597,7 +601,7 @@ def test_streak_entropy():
     assert ADLRecoveryOrchestrator.streak_entropy(["A", "B"]) == 2
     assert ADLRecoveryOrchestrator.streak_entropy(["A", "A", "B"]) == 2
     assert ADLRecoveryOrchestrator.streak_entropy(["A", "B", "A", "B"]) == 4
-    print("  streak_entropy: all OK")
+    log.info("  streak_entropy: all OK")
 
 
 def test_orch_streak_escalate():
@@ -608,7 +612,7 @@ def test_orch_streak_escalate():
             assert s == OscillationStage.ATTEMPT, f"step {i+1}: {s}"
         else:
             assert s == OscillationStage.ESCALATE, f"step 3: {s}"
-    print("  streak -> ESCALATE at K: OK")
+    log.info("  streak -> ESCALATE at K: OK")
 
 
 def test_orch_terminal():
@@ -617,7 +621,7 @@ def test_orch_terminal():
         o.step("REWEIGHT")
     assert o.is_terminal()
     assert o.stage == OscillationStage.TERMINAL
-    print("  streak > K -> TERMINAL: OK")
+    log.info("  streak > K -> TERMINAL: OK")
 
 
 def test_orch_deterministic():
@@ -629,7 +633,7 @@ def test_orch_deterministic():
         o2.step("FORCE_SELECT")
     assert o1.stage == OscillationStage.ESCALATE
     assert o2.stage == OscillationStage.ESCALATE
-    print("  same stage regardless of action: OK")
+    log.info("  same stage regardless of action: OK")
 
 
 def test_orch_byzantine_resets():
@@ -637,14 +641,14 @@ def test_orch_byzantine_resets():
     o.step("REWEIGHT")  # streak=1 → ATTEMPT
     o.step("REWEIGHT")  # streak=2 → ESCALATE
     o.step("REWEIGHT")  # streak=3 → TERMINAL
-    print("  byzantine risk -> fast TERMINAL: OK")
+    log.info("  byzantine risk -> fast TERMINAL: OK")
 
 
 def test_recovery_loop_terminates():
     loop = ADLRecoveryLoop(k=3)
     stage, action = loop.run("REWEIGHT")
     assert stage == OscillationStage.TERMINAL, f"got {stage}"
-    print("  recovery loop terminates: OK")
+    log.info("  recovery loop terminates: OK")
 
 
 def test_no_oscillation_change():
@@ -653,7 +657,7 @@ def test_no_oscillation_change():
     for _ in range(5):
         o.step("REWEIGHT")
     assert o.is_terminal()
-    print("  same action repeated K+1 times -> TERMINAL: OK")
+    log.info("  same action repeated K+1 times -> TERMINAL: OK")
 
 
 # ── FailureReplay tests ──────────────────────────────────────────────────
@@ -671,7 +675,7 @@ def test_failure_replay_record():
     )
     assert rec.incident_id in fr._records
     assert len(rec.action_sequence) == 3
-    print("  record() creates FailureRecord: OK")
+    log.info("  record() creates FailureRecord: OK")
 
 
 def test_failure_replay_save_load():
@@ -697,7 +701,7 @@ def test_failure_replay_save_load():
     rec2 = fr2.load("incident1.json")
     assert rec2.incident_id == rec.incident_id
     assert rec2.final_stage == "ESCALATE"
-    print("  save/load roundtrip: OK")
+    log.info("  save/load roundtrip: OK")
 
 
 def test_failure_replay_replay_matched():
@@ -721,7 +725,7 @@ def test_failure_replay_replay_matched():
     result = fr2.replay("matched.json")
     assert result.status == "REPLAYED", f"got {result.status}: {result.divergence_reason}"
     assert result.divergence_score == 0.0
-    print("  exact replay matched: OK")
+    log.info("  exact replay matched: OK")
 
 
 def test_failure_replay_detects_divergence():
@@ -745,7 +749,7 @@ def test_failure_replay_detects_divergence():
     result = fr2.replay("divergent.json")
     assert result.status == "DIVERGED", f"got {result.status}"
     assert result.diverged_at_step is not None
-    print(f"  divergence detected at step {result.diverged_at_step}: OK")
+    log.info(f"  divergence detected at step {result.diverged_at_step}: OK")
 
 
 def test_failure_replay_batch():
@@ -776,7 +780,7 @@ def test_failure_replay_batch():
     results = fr2.replay_all()
     assert len(results) == 2
     assert all(r.status == "REPLAYED" for r in results)
-    print("  batch replay_all: OK")
+    log.info("  batch replay_all: OK")
 
 
 def test_replay_result_summary():
@@ -798,7 +802,7 @@ def test_replay_result_summary():
     result = fr2.replay("summary_test.json")
     summary = result.summary()
     assert "[OK]" in summary or "[DIVERGED]" in summary
-    print(f"  ReplayResult.summary(): '{summary}': OK")
+    log.info(f"  ReplayResult.summary(): '{summary}': OK")
 
 
 if __name__ == "__main__":
@@ -818,5 +822,5 @@ if __name__ == "__main__":
         try:
             fn()
         except Exception as e:
-            print(f"  FAIL {fn.__name__}: {e}")
-    print("\n  ALL ADLR + REPLAY TESTS PASSED")
+            log.info(f"  FAIL {fn.__name__}: {e}")
+    log.info("\n  ALL ADLR + REPLAY TESTS PASSED")

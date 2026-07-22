@@ -4,9 +4,13 @@ ACOS × AstroFin — Submission Gateway
 AstroFin API → ACOS Execution Trace Engine → L9 Gate → Scheduler.
 Every trade/agent/job MUST pass through this gateway.
 """
+import logging
 import os
 import sys
 import uuid
+
+log = logging.getLogger(__name__)
+
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -104,7 +108,7 @@ class ACOSSubmissionGateway:
 def main():
     gateway = ACOSSubmissionGateway()
 
-    print("=== ACOS × AstroFin Gateway Test ===\n")
+    log.info("=== ACOS × AstroFin Gateway Test ===\n")
 
     # Test 1: Normal submission
     result = gateway.submit(
@@ -113,12 +117,12 @@ def main():
         strategy_id="strat_001",
         execution_mode="backtest",
     )
-    print(f"Result: {result['status']}")
-    print(f"Risk Score: {result['trace']['risk_score']}")
-    print(f"Policy: {result['trace']['policy_result']}")
-    print(f"Scheduler: {result.get('schedule', {}).get('path', 'N/A')}")
+    log.info(f"Result: {result['status']}")
+    log.info(f"Risk Score: {result['trace']['risk_score']}")
+    log.info(f"Policy: {result['trace']['policy_result']}")
+    log.info(f"Scheduler: {result.get('schedule', {}).get('path', 'N/A')}")
 
-    print("\n--- Governance Rejection Test ---")
+    log.info("\n--- Governance Rejection Test ---")
 
     # Test 2: RiskAgent alone (should pass — it's L8 gated but valid)
     result2 = gateway.submit(
@@ -126,11 +130,11 @@ def main():
         agents=["risk"],
         execution_mode="live",
     )
-    print(f"Result: {result2['status']}")
-    print(f"Policy: {result2['trace']['policy_result']}")
+    log.info(f"Result: {result2['status']}")
+    log.info(f"Policy: {result2['trace']['policy_result']}")
 
-    print("\n--- Trace Schema Validated ---")
-    print(f"Total traces: {len(gateway.get_traces())}")
+    log.info("\n--- Trace Schema Validated ---")
+    log.info(f"Total traces: {len(gateway.get_traces())}")
 
 
 if __name__ == "__main__":

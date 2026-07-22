@@ -35,6 +35,10 @@ from dataclasses import dataclass
 from enum import Enum
 
 from federation.byzantine.message_signatures import (
+
+import logging
+log = logging.getLogger(__name__)
+
     FederationMessageSigning,
     MessageSignatureError,
 )
@@ -220,12 +224,12 @@ def _test_signed_envelope():
     assert envelope.category == "trust"
     assert len(envelope.signature) == 64
     assert envelope.message_hash == hashlib.sha256(payload.encode()).hexdigest()
-    print(f"✅ wrap: envelope created, sig={envelope.signature[:16]}...")
+    log.info(f"✅ wrap: envelope created, sig={envelope.signature[:16]}...")
 
     # ── verify success ──────────────────────────────────────────────
     result = envelope.verify(signing)
     assert result is True
-    print("✅ verify: valid envelope passes")
+    log.info("✅ verify: valid envelope passes")
 
     # ── verify: tampered payload (hash mismatch) ──────────────────
     # Tamper with payload but keep the ORIGINAL message_hash → hash check fails first
@@ -243,7 +247,7 @@ def _test_signed_envelope():
         assert False, "should have raised"
     except EnvelopeError as e:
         assert "hash mismatch" in str(e)
-        print("✅ verify: tampered payload with wrong hash rejected")
+        log.info("✅ verify: tampered payload with wrong hash rejected")
 
     # ── verify: wrong secret ─────────────────────────────────────────
     bad_signer = FederationMessageSigning({"node_A": "wrong_secret"})
@@ -251,7 +255,7 @@ def _test_signed_envelope():
         envelope.verify(bad_signer)
         assert False, "should have raised"
     except EnvelopeError:
-        print("✅ verify: wrong secret rejected")
+        log.info("✅ verify: wrong secret rejected")
 
     # ── EnvelopeBuilder sequential seq ───────────────────────────────
     builder = EnvelopeBuilder(node_id="node_A", signer=signing)
@@ -259,7 +263,7 @@ def _test_signed_envelope():
     e2 = builder.wrap('{"b":2}', category=MessageCategory.GOSSIP)
     assert e2.seq == e1.seq + 1
     assert builder.current_seq == 2
-    print(f"✅ EnvelopeBuilder: sequential seq {e1.seq} → {e2.seq}")
+    log.info(f"✅ EnvelopeBuilder: sequential seq {e1.seq} → {e2.seq}")
 
     # ── serialization roundtrip ──────────────────────────────────────
     d = envelope.to_dict()
@@ -268,9 +272,9 @@ def _test_signed_envelope():
     assert restored.seq == envelope.seq
     assert restored.payload == envelope.payload
     assert restored.verify(signing) is True
-    print("✅ to_dict / from_dict roundtrip")
+    log.info("✅ to_dict / from_dict roundtrip")
 
-    print("\n✅ v9.9 SignedEnvelope — all checks passed")
+    log.info("\n✅ v9.9 SignedEnvelope — all checks passed")
 
 
 if __name__ == "__main__":

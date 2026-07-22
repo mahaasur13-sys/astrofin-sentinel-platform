@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Split-Brain Protection — majority quorum enforcement."""
+import logging
 import time
 from typing import Dict
+
+log = logging.getLogger(__name__)
+
 
 class SplitBrainProtection:
     def __init__(self, cluster_nodes: int = 3):
@@ -34,7 +38,7 @@ class SplitBrainProtection:
 
 if __name__ == "__main__":
     sbp = SplitBrainProtection(3)
-    print(sbp.get_status())
+    log.info(sbp.get_status())
     for i in range(3):
         sbp.register_heartbeat(f"node-{i}")
-    print(sbp.get_status())
+    log.info(sbp.get_status())

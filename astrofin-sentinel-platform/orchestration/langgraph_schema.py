@@ -20,6 +20,10 @@ from langgraph.graph import END, StateGraph
 
 from core.belief import get_belief_tracker
 from core.thompson import (
+
+import logging
+log = logging.getLogger(__name__)
+
     ASTRO_POOL,
     ELECTORAL_POOL,
     TECHNICAL_POOL,
@@ -136,7 +140,7 @@ def _pool_decide(pool: AgentPool, k_override: int = None) -> tuple[bool, list[st
     selected = [name for name, _ in eligible[:k]]
 
     if below:
-        print(
+        log.info(
             f"[BeliefGuard] '{pool.name}' — filtered (low utility): {below} | selected: {selected}"
         )
 
@@ -203,10 +207,10 @@ def technical_node(state: AgentState) -> AgentState:
     should_run, selected = _pool_decide(TECHNICAL_POOL)
 
     if not should_run:
-        print("[Graph] technical — SKIPPED (BeliefGuard)")
+        log.info("[Graph] technical — SKIPPED (BeliefGuard)")
         return {**state, "technical_result": None}
 
-    print(f"[Graph] technical — selected: {selected}")
+    log.info(f"[Graph] technical — selected: {selected}")
     selections = dict(state.get("thompson_selections", {}))
     selections["technical"] = selected
 
@@ -238,7 +242,7 @@ def astro_council_node(state: AgentState) -> AgentState:
     candidates = [a for a in ASTRO_POOL.agents if a not in excluded]
 
     if not candidates:
-        print("[Graph] astro_council — SKIPPED (no candidates after exclusion)")
+        log.info("[Graph] astro_council — SKIPPED (no candidates after exclusion)")
         return {**state, "astro_council_result": None}
 
     tmp_pool = AgentPool(
@@ -252,10 +256,10 @@ def astro_council_node(state: AgentState) -> AgentState:
     should_run, selected = _pool_decide(tmp_pool)
 
     if not should_run:
-        print("[Graph] astro_council — SKIPPED (BeliefGuard)")
+        log.info("[Graph] astro_council — SKIPPED (BeliefGuard)")
         return {**state, "astro_council_result": None}
 
-    print(f"[Graph] astro_council — selected: {selected}")
+    log.info(f"[Graph] astro_council — selected: {selected}")
     selections = dict(state.get("thompson_selections", {}))
     selections["astro"] = selected
 
@@ -286,10 +290,10 @@ def electoral_node(state: AgentState) -> AgentState:
     should_run, selected = _pool_decide(ELECTORAL_POOL)
 
     if not should_run:
-        print("[Graph] electoral — SKIPPED (BeliefGuard)")
+        log.info("[Graph] electoral — SKIPPED (BeliefGuard)")
         return {**state, "electoral_result": None}
 
-    print(f"[Graph] electoral — selected: {selected}")
+    log.info(f"[Graph] electoral — selected: {selected}")
     selections = dict(state.get("thompson_selections", {}))
     selections["electoral"] = selected
 

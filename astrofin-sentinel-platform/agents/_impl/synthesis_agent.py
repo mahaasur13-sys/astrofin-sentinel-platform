@@ -13,8 +13,7 @@ from pathlib import Path
 
 import yaml
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError
-from agents._impl.ephemeris_decorator import require_ephemeris
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
 from core.base_agent import (
     EPHEMERIS_UNAVAILABLE,

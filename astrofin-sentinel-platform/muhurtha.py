@@ -4,9 +4,13 @@ Based on B.V. Raman's "Muhurtha" principles.
 Implements Panchanga (Tithi, Nakshatra, Yoga) + Ascendant calculation.
 """
 
+import logging
 from datetime import datetime
 
 import swisseph as swe
+
+log = logging.getLogger(__name__)
+
 
 # ======================================================
 #  SETTINGS — customize before use
@@ -157,16 +161,16 @@ def print_muhurtha(dt_utc: datetime, lat: float = LAT, lon: float = LON):
     p = get_panchang(jd)
     h = get_houses(jd, lat, lon)
 
-    print(f"\n{'=' * 60}")
-    print(f"  МУХУРТА  —  {dt_utc.strftime('%Y-%m-%d %H:%M:%S')} UTC")
-    print(f"{'=' * 60}")
-    print(f"  Титхи     : {p['tithi_name']} ({p['tithi_num']}/15)")
-    print(f"  Накшатра  : {p['nakshatra']} ({p['nakshatra_num']}+1/27)")
-    print(f"  Йога       : {p['yoga']}")
-    print(f"  Асцендент : {h['asc']:.4f}°")
-    print(f"  Солнце    : {p['sun_lon']:.4f}°")
-    print(f"  Луна      : {p['moon_lon']:.4f}°")
-    print(f"{'=' * 60}")
+    log.info(f"\n{'=' * 60}")
+    log.info(f"  МУХУРТА  —  {dt_utc.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+    log.info(f"{'=' * 60}")
+    log.info(f"  Титхи     : {p['tithi_name']} ({p['tithi_num']}/15)")
+    log.info(f"  Накшатра  : {p['nakshatra']} ({p['nakshatra_num']}+1/27)")
+    log.info(f"  Йога       : {p['yoga']}")
+    log.info(f"  Асцендент : {h['asc']:.4f}°")
+    log.info(f"  Солнце    : {p['sun_lon']:.4f}°")
+    log.info(f"  Луна      : {p['moon_lon']:.4f}°")
+    log.info(f"{'=' * 60}")
     return {"panchang": p, "houses": h}
 
 

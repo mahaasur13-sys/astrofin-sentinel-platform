@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import random
 import sys
 from datetime import datetime, timedelta
+
+log = logging.getLogger(__name__)
+
 
 sys.path.insert(0, ".")
 from core.council.runner import run_council
@@ -59,22 +63,22 @@ def generate_signals(symbol, prices):
 
 
 def main():
-    print("=" * 60)
-    print("  ASTROFIN BACKTEST RUNNER — ATOM-STEP-8")
-    print("=" * 60)
-    print()
+    log.info("=" * 60)
+    log.info("  ASTROFIN BACKTEST RUNNER — ATOM-STEP-8")
+    log.info("=" * 60)
+    log.info()
     symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
     base_prices = [50000.0, 3000.0, 100.0]
     all_results = []
     for symbol, base in zip(symbols, base_prices, strict=False):
         prices = generate_synthetic_data(symbol, days=30, base_price=base)
         lo, hi = min(p for _, p in prices), max(p for _, p in prices)
-        print("[%s] %d bars, $%.2f-$%.2f" % (symbol, len(prices), lo, hi))
+        log.info("[%s] %d bars, $%.2f-$%.2f" % (symbol, len(prices), lo, hi))
         signals = generate_signals(symbol, prices)
         sc = {}
         for s in signals:
             sc[s["signal"]] = sc.get(s["signal"], 0) + 1
-        print("[%s] %d signals: %s" % (symbol, len(signals), sc))
+        log.info("[%s] %d signals: %s" % (symbol, len(signals), sc))
         prices_dict = {symbol: prices}
         config = BacktestConfig(
             initial_capital=10000.0,
@@ -86,21 +90,21 @@ def main():
         result = bt.run(signals, prices_dict)
         result.print_summary()
         if result.trades:
-            print(
+            log.info(
                 "  First trade:",
                 result.trades[0].symbol,
                 result.trades[0].side,
                 "pnl=%+.2f%%" % result.trades[0].pnl_pct,
             )
-        print()
+        log.info()
         all_results.append(result)
     total_return = sum(r.portfolio_summary["total_return_pct"] for r in all_results)
-    print("=" * 60)
-    print("  PORTFOLIO SUMMARY")
-    print("=" * 60)
-    print("  Symbols: %s" % ", ".join(symbols))
-    print("  Combined Return: %+.2f%%" % total_return)
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("  PORTFOLIO SUMMARY")
+    log.info("=" * 60)
+    log.info("  Symbols: %s" % ", ".join(symbols))
+    log.info("  Combined Return: %+.2f%%" % total_return)
+    log.info("=" * 60)
 
 
 if __name__ == "__main__":

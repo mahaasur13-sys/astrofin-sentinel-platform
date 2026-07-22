@@ -4,9 +4,13 @@ WireGuard Prometheus Exporter
 Exports: peer status, bytes transferred, latest handshake
 Endpoint: /metrics  (text format for Prometheus)
 """
+import logging
 import re
 import subprocess
 from http.server import BaseHTTPRequestHandler, HTTPServer
+
+log = logging.getLogger(__name__)
+
 
 WG_INTERFACE = "wg0"
 
@@ -101,5 +105,5 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", 9343), Handler)
-    print("WireGuard exporter listening on :9343/metrics")
+    log.info("WireGuard exporter listening on :9343/metrics")
     server.serve_forever()

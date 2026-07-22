@@ -12,7 +12,7 @@ Hard rules (fail the build if violated):
          explicitly marked public-by-design).
     R5.  Every agent module under agents/_impl/ must be registered in
          AGENT_AGENTS in agents/gitagent_registry.py.
-    R6.  No top-level `print(...)` in production code (use logger).
+    R6.  No top-level `log.info(...)` in production code (use logger).
     R7.  No f-string SQL; queries must be parameterized.
     R8.  No hard-coded API keys, tokens, or secrets (regex check).
     R9.  Every agent module must export a `run_<agent>(state) -> AgentResponse`
@@ -40,11 +40,15 @@ from __future__ import annotations
 
 import argparse
 import ast
+import logging
 import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
+
+log = logging.getLogger(__name__)
+
 
 # ─── ANSI colours (skip if no tty) ──────────────────────────────────────────
 
@@ -415,7 +419,7 @@ def check_registry_coverage(report: Report) -> None:
 
 
 def check_no_top_level_print(src: Path, source_text: str, report: Report) -> None:
-    """`print(...)` at module top level is a smell; we allow it in tests/ and scripts/."""
+    """`log.info(...)` at module top level is a smell; we allow it in tests/ and scripts/."""
     try:
         rel = _rel(src)
     except ValueError:
@@ -431,7 +435,7 @@ def check_no_top_level_print(src: Path, source_text: str, report: Report) -> Non
                     str(rel),
                     node.lineno,
                     "R6",
-                    "top-level print(); use logger.info(...) instead",
+                    "top-level log.info(); use logger.info(...) instead",
                 )
 
 
@@ -554,7 +558,7 @@ def check_karl_synthesis_gateway(src: Path, source_text: str, report: Report) ->
 
 def check_hard_secrets(src: Path, source_text: str, report: Report) -> None:
     """Aggressive hard-coded secret detection with bandit integration."""
-    from subprocess import run, DEVNULL, PIPE
+    from subprocess import run
     try:
         src_rel = str(_rel(src))
     except ValueError:
@@ -588,7 +592,7 @@ def check_hard_secrets(src: Path, source_text: str, report: Report) -> None:
 
 def check_no_submodules(report: Report) -> None:
     """Ensure no .gitmodules or mode-160000 references exist."""
-    from subprocess import run, PIPE
+    from subprocess import run
     root = Path(__file__).resolve().parent.parent
     gitmodules = root / '.gitmodules'
     if gitmodules.exists():
@@ -684,11 +688,11 @@ def lint_file(src: Path, report: Report) -> None:
 
 def render_report(report: Report) -> None:
     if not report.findings:
-        print(GREEN("✔ architecture linter: no findings."))
+        log.info(GREEN("✔ architecture linter: no findings."))
         return
     fails = [f for f in report.findings if f.severity == "FAIL"]
     warns = [f for f in report.findings if f.severity == "WARN"]
-    print(
+    log.info(
         BOLD(
             f"\nArchitecture linter — {len(fails)} FAIL, {len(warns)} WARN " f"(scanned {report.files_scanned} files)\n"
         )
@@ -696,13 +700,13 @@ def render_report(report: Report) -> None:
     for finding in report.findings:
         icon = RED("✖") if finding.severity == "FAIL" else YELLOW("⚠")
         loc = f"{finding.file}:{finding.line}"
-        print(f"  {icon}  {CYAN(finding.rule)}  {DIM(loc)}")
-        print(f"      {finding.message}")
-    print()
+        log.info(f"  {icon}  {CYAN(finding.rule)}  {DIM(loc)}")
+        log.info(f"      {finding.message}")
+    log.info()
     if fails:
-        print(RED(f"❌ {len(fails)} hard-rule violation(s). Build blocked."))
+        log.info(RED(f"❌ {len(fails)} hard-rule violation(s). Build blocked."))
     if warns and not fails:
-        print(YELLOW(f"⚠ {len(warns)} soft warning(s). Build allowed."))
+        log.info(YELLOW(f"⚠ {len(warns)} soft warning(s). Build allowed."))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -720,7 +724,7 @@ def main(argv: list[str] | None = None) -> int:
 
     for f in files:
         if not f.exists():
-            print(YELLOW(f"skip: {f} (does not exist)"))
+            log.info(YELLOW(f"skip: {f} (does not exist)"))
             continue
         lint_file(f, report)
 

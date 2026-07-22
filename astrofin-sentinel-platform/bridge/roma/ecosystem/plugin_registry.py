@@ -1,6 +1,10 @@
 """ROMA Plugin Registry — Discovery, versioning, dependency resolution."""
+import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Optional, Set
+
+log = logging.getLogger(__name__)
+
 
 @dataclass
 class PluginMetadata:
@@ -52,8 +56,8 @@ if __name__ == "__main__":
     reg = PluginRegistry()
     reg.register(PluginMetadata(name="ml_training", version="1.0.0", capabilities=["GPU_ENABLED","DISTRIBUTED"], resource_requirements={"gpu":True,"vram":"8GB"}, dependencies=[]))
     reg.register(PluginMetadata(name="inference", version="1.0.0", capabilities=["GPU_ENABLED"], resource_requirements={"gpu":True,"vram":"4GB"}, dependencies=["ml_training"]))
-    print("Registry size:", len(reg.plugins))
-    print("Latest versions:", {n: reg.get_latest_version(n) for n in reg.plugins})
-    print("Search ml:", reg.search("ml"))
-    print("GPU plugins:", list(reg.index.get("GPU_ENABLED", set())))
-    print("Dependencies inference:", reg.resolve_dependencies("inference"))
+    log.info("Registry size:", len(reg.plugins))
+    log.info("Latest versions:", {n: reg.get_latest_version(n) for n in reg.plugins})
+    log.info("Search ml:", reg.search("ml"))
+    log.info("GPU plugins:", list(reg.index.get("GPU_ENABLED", set())))
+    log.info("Dependencies inference:", reg.resolve_dependencies("inference"))

@@ -2,6 +2,7 @@
 from enum import Enum
 from typing import Optional
 
+
 class Role(Enum):
     OWNER = "owner"
     ADMIN = "admin"

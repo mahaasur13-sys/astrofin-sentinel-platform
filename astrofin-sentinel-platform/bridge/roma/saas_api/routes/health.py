@@ -1,5 +1,6 @@
 """ROMA SaaS API — Health route"""
 from fastapi import APIRouter
+
 router = APIRouter()
 
 @router.get("/health")

@@ -29,6 +29,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class IdeaStatus(Enum):
     PROPOSED = "proposed"
@@ -297,19 +301,19 @@ def list_ideas(status_filter: str = None, limit: int = 50):
     ideas = sorted(ideas, key=lambda x: x.created_at, reverse=True)[:limit]
 
     if not ideas:
-        print("No ideas found.")
+        log.info("No ideas found.")
         return
 
-    print(f"\n{'=== Idea Tracker ===':^60}")
-    print(f"{'ID':<16} {'Status':<10} {'Score':>6} {'Impact':>8} {'Category':<20}")
-    print("-" * 70)
+    log.info(f"\n{'=== Idea Tracker ===':^60}")
+    log.info(f"{'ID':<16} {'Status':<10} {'Score':>6} {'Impact':>8} {'Category':<20}")
+    log.info("-" * 70)
 
     for idea in ideas:
-        print(
+        log.info(
             f"  {idea.id:<14} {idea.status:<10} {idea.score:>6.2f} {idea.impact_score:>8.4f} {idea.category:<20}"
         )
 
-    print(f"\nTotal: {len(ideas)} ideas")
+    log.info(f"\nTotal: {len(ideas)} ideas")
 
 
 def show_idea(idea_id: str):
@@ -317,24 +321,24 @@ def show_idea(idea_id: str):
     ideas = load_ideas()
     for idea in ideas:
         if idea.id == idea_id:
-            print(f"\n{'=' * 60}")
-            print(f"  {idea.id} — {idea.category}")
-            print(f"{'=' * 60}")
-            print(f"\nStatus:    {idea.status}")
-            print(f"Score:     {idea.score:.2f}")
-            print(f"Impact:    {idea.impact_score:.4f}")
-            print(f"Source:    {idea.source}")
-            print(f"Created:   {idea.created_at}")
+            log.info(f"\n{'=' * 60}")
+            log.info(f"  {idea.id} — {idea.category}")
+            log.info(f"{'=' * 60}")
+            log.info(f"\nStatus:    {idea.status}")
+            log.info(f"Score:     {idea.score:.2f}")
+            log.info(f"Impact:    {idea.impact_score:.4f}")
+            log.info(f"Source:    {idea.source}")
+            log.info(f"Created:   {idea.created_at}")
             if idea.tested_at:
-                print(f"Tested:    {idea.tested_at}")
+                log.info(f"Tested:    {idea.tested_at}")
             if idea.evaluated_at:
-                print(f"Evaluated: {idea.evaluated_at}")
-            print(f"\nText:\n  {idea.text}")
+                log.info(f"Evaluated: {idea.evaluated_at}")
+            log.info(f"\nText:\n  {idea.text}")
             if idea.linked_trajectories:
-                print(f"\nTrajectories: {', '.join(idea.linked_trajectories)}")
+                log.info(f"\nTrajectories: {', '.join(idea.linked_trajectories)}")
             return
 
-    print(f"Idea {idea_id} not found.")
+    log.info(f"Idea {idea_id} not found.")
 
 
 def main():
@@ -364,14 +368,14 @@ def main():
         status_note = (
             "(scored)" if idea.status == IdeaStatus.SCORED.value else "(low score)"
         )
-        print(f"Created: {idea.id} {status_note}")
-        print(f"  Score: {idea.score:.2f} (threshold: {SCORE_THRESHOLD})")
+        log.info(f"Created: {idea.id} {status_note}")
+        log.info(f"  Score: {idea.score:.2f} (threshold: {SCORE_THRESHOLD})")
         return
 
     if args.import_json:
         path = Path(args.import_json)
         if not path.exists():
-            print(f"File not found: {path}")
+            log.info(f"File not found: {path}")
             return
 
         data = json.loads(path.read_text())
@@ -382,7 +386,7 @@ def main():
                 category = item.get("category", "IMPORTED")
                 idea = create_idea(text, source, category)
                 save_idea(idea)
-            print(f"Imported {len(data)} ideas.")
+            log.info(f"Imported {len(data)} ideas.")
         return
 
     if args.show:
@@ -392,36 +396,36 @@ def main():
     if args.inject:
         idea = inject_idea(args.inject)
         if idea:
-            print(f"Injected: {idea.id} → {idea.status}")
+            log.info(f"Injected: {idea.id} → {idea.status}")
         else:
-            print(f"Idea {args.inject} not found.")
+            log.info(f"Idea {args.inject} not found.")
         return
 
     if args.eval:
         if args.reward is None:
-            print("--reward required for evaluation")
+            log.info("--reward required for evaluation")
             return
         idea = evaluate_idea(args.eval, args.reward)
         if idea:
-            print(f"Evaluated: {idea.id}")
-            print(f"  Status: {idea.status}")
-            print(f"  Impact: {idea.impact_score:.4f}")
+            log.info(f"Evaluated: {idea.id}")
+            log.info(f"  Status: {idea.status}")
+            log.info(f"  Impact: {idea.impact_score:.4f}")
         else:
-            print(f"Idea {args.eval} not found.")
+            log.info(f"Idea {args.eval} not found.")
         return
 
     if args.kpi:
         kpi = get_kpi()
-        print(f"\n{'=== ATOM-R-041 KPI ===':^60}")
-        print(f"  Total ideas:      {kpi['ideas_total']}")
-        print(f"  Proposed:          {kpi['ideas_proposed']}")
-        print(f"  Scored (pass):     {kpi['ideas_scored']}")
-        print(f"  Injected:          {kpi['ideas_injected']}")
-        print(f"  Tested:            {kpi['ideas_tested']}")
-        print(f"  Accepted:          {kpi['ideas_accepted']}")
-        print(f"  Rejected:          {kpi['ideas_rejected']}")
-        print(f"  Impact mean:       {kpi['impact_mean']:.4f}")
-        print(f"  Acceptance rate:   {kpi['acceptance_rate']:.1%}")
+        log.info(f"\n{'=== ATOM-R-041 KPI ===':^60}")
+        log.info(f"  Total ideas:      {kpi['ideas_total']}")
+        log.info(f"  Proposed:          {kpi['ideas_proposed']}")
+        log.info(f"  Scored (pass):     {kpi['ideas_scored']}")
+        log.info(f"  Injected:          {kpi['ideas_injected']}")
+        log.info(f"  Tested:            {kpi['ideas_tested']}")
+        log.info(f"  Accepted:          {kpi['ideas_accepted']}")
+        log.info(f"  Rejected:          {kpi['ideas_rejected']}")
+        log.info(f"  Impact mean:       {kpi['impact_mean']:.4f}")
+        log.info(f"  Acceptance rate:   {kpi['acceptance_rate']:.1%}")
         return
 
     if args.pending:
@@ -429,18 +433,18 @@ def main():
         injected = get_ideas_by_status(IdeaStatus.INJECTED.value)
         tested = get_ideas_by_status(IdeaStatus.TESTED.value)
 
-        print(f"\n{'=== Pending Ideas ===':^60}")
-        print(f"\n  Ready to inject (scored):   {len(scored)}")
+        log.info(f"\n{'=== Pending Ideas ===':^60}")
+        log.info(f"\n  Ready to inject (scored):   {len(scored)}")
         for i in scored[:5]:
-            print(f"    {i.id}: {i.text[:60]}...")
+            log.info(f"    {i.id}: {i.text[:60]}...")
 
-        print(f"\n  Ready to test (injected):  {len(injected)}")
+        log.info(f"\n  Ready to test (injected):  {len(injected)}")
         for i in injected[:5]:
-            print(f"    {i.id}: {i.text[:60]}...")
+            log.info(f"    {i.id}: {i.text[:60]}...")
 
-        print(f"\n  Ready to evaluate (tested): {len(tested)}")
+        log.info(f"\n  Ready to evaluate (tested): {len(tested)}")
         for i in tested[:5]:
-            print(f"    {i.id}: impact={i.impact_score:.4f}")
+            log.info(f"    {i.id}: impact={i.impact_score:.4f}")
         return
 
     if args.list:
@@ -449,11 +453,11 @@ def main():
 
     # Default: show KPI
     kpi = get_kpi()
-    print(f"\n{'=== ATOM-R-041 ===':^60}")
-    print(
+    log.info(f"\n{'=== ATOM-R-041 ===':^60}")
+    log.info(
         f"  Total: {kpi['ideas_total']} | Accepted: {kpi['ideas_accepted']} | Impact: {kpi['impact_mean']:.4f}"
     )
-    print("\nUse --help for commands.")
+    log.info("\nUse --help for commands.")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """ROMA Runtime Estimator — Plugin-aware runtime estimation based on historical data."""
+import logging
 import sys
+
+log = logging.getLogger(__name__)
+
 sys.path.insert(0, '/home/workspace/roma-execution-bridge')
 
 class RuntimeEstimator:
@@ -98,6 +102,6 @@ class RuntimeEstimator:
 if __name__ == "__main__":
     est = RuntimeEstimator()
     r = est.estimate("ml_training", gpu_class="RTX3060", batch_size=4, model_size="large", data_scale_gb=50)
-    print(f"ML Training estimate: {r['estimated_seconds']}s ({r['estimated_hours']}h)")
-    print(f"  Confidence range: {r['confidence_range']['min_seconds']}s - {r['confidence_range']['max_seconds']}s")
-    print(f"  Factors: {r['factors']}")
+    log.info(f"ML Training estimate: {r['estimated_seconds']}s ({r['estimated_hours']}h)")
+    log.info(f"  Confidence range: {r['confidence_range']['min_seconds']}s - {r['confidence_range']['max_seconds']}s")
+    log.info(f"  Factors: {r['factors']}")

@@ -2,15 +2,20 @@
 """ROMA CI Test Suite — Corrected APIs (9/9 passing)"""
 import sys; sys.path.insert(0, '.')
 
+import logging
+
+log = logging.getLogger(__name__)
+
+
 passed = 0; failed = 0
 def test(name, fn):
     global passed, failed
     try:
         fn()
-        print(f"  PASS: {name}")
+        log.info(f"  PASS: {name}")
         passed += 1
     except Exception as e:
-        print(f"  FAIL: {name} → {e}")
+        log.info(f"  FAIL: {name} → {e}")
         failed += 1
 
 def t_auth_keys():
@@ -52,8 +57,9 @@ def t_ledger():
     assert bal >= 0, "ledger failed"
 
 def t_gpu_scheduler():
-    from scheduler.gpu_scheduler import GPUScheduler
     from queue.queue_manager import QueueManager
+
+    from scheduler.gpu_scheduler import GPUScheduler
     class MockRedis:
         def __init__(self): self.data = {}
         def get(self, k): return self.data.get(k)
@@ -77,7 +83,7 @@ def t_plugin():
     caps = [c.name for c in PluginCapability]
     assert any('ML' in c or 'GPU' in c for c in caps), f"plugin caps: {caps}"
 
-print("=== ROMA CI Tests ===")
+log.info("=== ROMA CI Tests ===")
 test("Auth (API Key Gen)", t_auth_keys)
 test("RBAC (Permissions)", t_rbac)
 test("Audit (Event Log)", t_audit)
@@ -88,6 +94,6 @@ test("GPU Scheduler", t_gpu_scheduler)
 test("Raft Consensus", t_raft)
 test("Plugin API", t_plugin)
 
-print()
-print(f"RESULTS: {passed} passed, {failed} failed")
+log.info()
+log.info(f"RESULTS: {passed} passed, {failed} failed")
 raise SystemExit("CI check failed")

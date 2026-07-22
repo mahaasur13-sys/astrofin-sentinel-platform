@@ -2,10 +2,10 @@
 """ROMA GPU Connector — Connects ROMA scheduler to GPU workers
 Handles worker discovery, job dispatch, result collection."""
 
-import os
-import uuid
 import asyncio
 import logging
+import os
+import uuid
 from typing import Optional
 
 import requests
@@ -208,10 +208,10 @@ if __name__ == "__main__":
         connector = get_gpu_connector()
         metrics = connector.get_metrics()
 
-        print("=== ROMA GPU Connector ===")
-        print(f"Available: {metrics['connector_available']}")
-        print(f"Workers: {metrics['worker_count']}")
-        print(f"URL: {ROMA_GPU_WORKER_URL}")
+        log.info("=== ROMA GPU Connector ===")
+        log.info(f"Available: {metrics['connector_available']}")
+        log.info(f"Workers: {metrics['worker_count']}")
+        log.info(f"URL: {ROMA_GPU_WORKER_URL}")
 
         # Test job
         test_job = {
@@ -221,10 +221,10 @@ if __name__ == "__main__":
             "timeout": 30
         }
 
-        print(f"\n--- Test job: {test_job['job_id']} ---")
+        log.info(f"\n--- Test job: {test_job['job_id']} ---")
         result = await connector.execute(test_job)
-        print(f"Status: {result.get('status')}")
-        print(f"Worker: {result.get('worker_id', 'none')}")
-        print(f"Output: {result.get('stdout', result.get('error', ''))[:200]}")
+        log.info(f"Status: {result.get('status')}")
+        log.info(f"Worker: {result.get('worker_id', 'none')}")
+        log.info(f"Output: {result.get('stdout', result.get('error', ''))[:200]}")
 
     asyncio.run(demo())

@@ -10,6 +10,10 @@ No external dependencies (stdlib only for core math).
 
 Usage:
     from core.kepler import KeplerOrbit, propagate_kepler, validate_vs_swiss_ephemeris
+
+import logging
+log = logging.getLogger(__name__)
+
     orbit = KeplerOrbit.earth()
     pos = orbit.at_jd(2460692.5)  # J2000.0
 """
@@ -359,35 +363,35 @@ if __name__ == "__main__":
         + (now - datetime.datetime(2000, 1, 1, 12, 0, 0)).total_seconds() / 86400.0
     )
 
-    print("=" * 60)
-    print("  Kepler Orbital Mechanics — ATOM-STEP-1")
-    print("=" * 60)
-    print(f"\n  Reference epoch: J2000.0 = JD {J2000}")
-    print(f"  Current UTC:   {now.isoformat()}")
-    print(f"  Current JD:    {now_jd:.4f}")
-    print()
+    log.info("=" * 60)
+    log.info("  Kepler Orbital Mechanics — ATOM-STEP-1")
+    log.info("=" * 60)
+    log.info(f"\n  Reference epoch: J2000.0 = JD {J2000}")
+    log.info(f"  Current UTC:   {now.isoformat()}")
+    log.info(f"  Current JD:    {now_jd:.4f}")
+    log.info()
 
     bodies = ["earth", "jupiter", "saturn"]
     for body in bodies:
         result = propagate_kepler(body, now_jd)
-        print(f"  ── {result.body} ──")
-        print(f"     Heliocentric longitude: {result.heliocentric_longitude:.4f}°")
-        print(f"     Radius:                   {result.radius_au:.6f} AU")
-        print(f"     Mean anomaly:             {result.mean_anomaly:.4f}°")
-        print(f"     True anomaly:             {result.true_anomaly:.4f}°")
-        print(f"     Orbital period:           {result.orbital_period:.2f} days")
-        print()
+        log.info(f"  ── {result.body} ──")
+        log.info(f"     Heliocentric longitude: {result.heliocentric_longitude:.4f}°")
+        log.info(f"     Radius:                   {result.radius_au:.6f} AU")
+        log.info(f"     Mean anomaly:             {result.mean_anomaly:.4f}°")
+        log.info(f"     True anomaly:             {result.true_anomaly:.4f}°")
+        log.info(f"     Orbital period:           {result.orbital_period:.2f} days")
+        log.info()
 
-    print("  ── Swiss Ephemeris Validation ──")
+    log.info("  ── Swiss Ephemeris Validation ──")
     for body in bodies:
         v = validate_vs_swiss_ephemeris(body, now_jd)
-        print(f"     {body}: {v['message']}")
+        log.info(f"     {body}: {v['message']}")
         if v.get("delta_lon") is not None:
-            print(
+            log.info(
                 f"            Kepler={v['kepler_lon']}°  Swiss={v['swiss_lon']}°  Δ={v['delta_lon']}°"
             )
-    print()
-    print("=" * 60)
+    log.info()
+    log.info("=" * 60)
 
 
 # ─── Convenience Database ─────────────────────────────────────────────────────

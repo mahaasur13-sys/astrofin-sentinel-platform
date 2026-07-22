@@ -6,6 +6,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class TradingMode(Enum):
     BACKTEST = "BACKTEST"
@@ -97,13 +101,13 @@ if __name__ == "__main__":
     enforcer = ModeEnforcer(TradingMode.BACKTEST)
     ok, _ = enforcer.check_order(1.0, True, True, True, True, 100_000)
     assert ok
-    print("  Test 1 (BACKTEST full): PASSED")
+    log.info("  Test 1 (BACKTEST full): PASSED")
     enforcer2 = ModeEnforcer(TradingMode.PAPER)
     ok, _ = enforcer2.check_order(0.30, True, True, False, True, 100_000)
     assert not ok
-    print("  Test 2 (PAPER restrictions): PASSED")
+    log.info("  Test 2 (PAPER restrictions): PASSED")
     enforcer3 = ModeEnforcer(TradingMode.LIVE_LIMITED)
     ok, _ = enforcer3.check_order(0.25, True, False, False, False, 100_000)
     assert not ok
-    print("  Test 3 (LIVE_LIMITED cap): PASSED")
-    print("ModeEnforcer: all tests passed")
+    log.info("  Test 3 (LIVE_LIMITED cap): PASSED")
+    log.info("ModeEnforcer: all tests passed")

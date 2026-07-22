@@ -4,6 +4,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 try:
     from .topology import Connection, NodeType, Role, SwitchAction, SwitchNode, Topology
 except ImportError:
@@ -236,9 +240,9 @@ def print_topology_viz(topology: Topology):
     """Print all visualizations to console"""
     viz = TopologyVisualizer(topology)
 
-    print(viz.to_ascii())
-    print()
-    print("=" * 60)
-    print("MERMAID DIAGRAM:")
-    print("=" * 60)
-    print(viz.to_mermaid())
+    log.info(viz.to_ascii())
+    log.info()
+    log.info("=" * 60)
+    log.info("MERMAID DIAGRAM:")
+    log.info("=" * 60)
+    log.info(viz.to_mermaid())

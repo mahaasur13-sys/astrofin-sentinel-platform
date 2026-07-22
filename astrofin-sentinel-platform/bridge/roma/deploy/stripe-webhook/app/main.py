@@ -1,16 +1,17 @@
 """Stripe Webhook Microservice — FastAPI app."""
-from fastapi import FastAPI, Request, HTTPException, Header
-from fastapi.middleware.cors import CORSMiddleware
-from prometheus_fastapi_instrumentator import Instrumentator
-from pydantic import BaseModel
-from typing import Optional
 import asyncio
-import hmac
 import hashlib
+import hmac
 import json
 import logging
 import os
+from typing import Optional
+
 import redis.asyncio as aioredis
+from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
+from pydantic import BaseModel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("stripe-webhook")

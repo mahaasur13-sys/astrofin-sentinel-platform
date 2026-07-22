@@ -27,11 +27,15 @@ Design:
 from __future__ import annotations
 
 import argparse
+import logging
 import re
 import sqlite3
 import sys
 from datetime import datetime
 from pathlib import Path
+
+log = logging.getLogger(__name__)
+
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 
@@ -118,7 +122,7 @@ def apply_migration(db_path: Path, migration: dict, simulate: bool = False) -> b
     )
 
     if simulate:
-        print(
+        log.info(
             f"  [SIMULATE] Would apply: v{migration['version']} — {migration['name']}"
         )
         return True
@@ -134,7 +138,7 @@ def apply_migration(db_path: Path, migration: dict, simulate: bool = False) -> b
                 (migration["version"], applied_at, migration["name"]),
             )
             conn.commit()
-            print(f"  ✅ v{migration['version']} — {migration['name']}")
+            log.info(f"  ✅ v{migration['version']} — {migration['name']}")
             return True
         except Exception:
             conn.rollback()
@@ -147,27 +151,27 @@ def apply_migration(db_path: Path, migration: dict, simulate: bool = False) -> b
 
 
 def cmd_status() -> None:
-    print(f"\n📋 Schema version status\n{'─' * 50}")
+    log.info(f"\n📋 Schema version status\n{'─' * 50}")
     for name, path in DBs.items():
         version = get_version(path)
         applied = get_all_versions(path)
         status_icon = "🟢" if version == _latest() else "🟡"
-        print(
+        log.info(
             f"  {status_icon} {name}: v{version} / {_latest()} applied={applied or '—'}"
         )
 
 
 def cmd_plan() -> None:
-    print(f"\n📋 Migration plan\n{'─' * 50}")
+    log.info(f"\n📋 Migration plan\n{'─' * 50}")
     for name, path in DBs.items():
         cur = get_version(path)
         pending = [m for m in discover_migrations() if m["version"] > cur]
-        print(f"\n  {name} ({path}):")
+        log.info(f"\n  {name} ({path}):")
         if not pending:
-            print(f"    ✅ Already up-to-date (v{cur:d})")
+            log.info(f"    ✅ Already up-to-date (v{cur:d})")
         else:
             for m in pending:
-                print(f"    → v{m['version']} — {m['name']}")
+                log.info(f"    → v{m['version']} — {m['name']}")
 
 
 def cmd_check() -> None:
@@ -177,57 +181,57 @@ def cmd_check() -> None:
         cur = get_version(path)
         if cur < _latest():
             all_ok = False
-            print(f"❌ {name} is v{cur}, expected v{_latest()}", file=sys.stderr)
+            log.info(f"❌ {name} is v{cur}, expected v{_latest()}", file=sys.stderr)
     sys.exit(0 if all_ok else 1)
 
 
 def cmd_migrate(simulate: bool = False) -> None:
-    print(f"\n🔄 Running migrations (simulate={simulate})\n{'─' * 50}")
+    log.info(f"\n🔄 Running migrations (simulate={simulate})\n{'─' * 50}")
     for name, path in DBs.items():
         cur = get_version(path)
         pending = [m for m in discover_migrations() if m["version"] > cur]
-        print(f"\n  DB: {name} ({path}):")
+        log.info(f"\n  DB: {name} ({path}):")
         if not path.exists():
-            print(f"    ⚠️  Database does not exist: {path}")
+            log.info(f"    ⚠️  Database does not exist: {path}")
             if not simulate:
                 path.parent.mkdir(parents=True, exist_ok=True)
-                print(f"    → Created directory: {path.parent}")
+                log.info(f"    → Created directory: {path.parent}")
         if not pending:
-            print(f"    ✅ Already up-to-date (v{cur})")
+            log.info(f"    ✅ Already up-to-date (v{cur})")
             continue
         for m in pending:
             ok = apply_migration(path, m, simulate=simulate)
             if not ok:
-                print(f"    ❌ Failed: v{m['version']}")
+                log.info(f"    ❌ Failed: v{m['version']}")
                 sys.exit(1)
-    print(f"\n{'─' * 50}")
-    print("✅ Migration complete.")
+    log.info(f"\n{'─' * 50}")
+    log.info("✅ Migration complete.")
 
 
 def cmd_init_single(db_key: str) -> None:
     """Bootstrap a fresh DB with all migrations."""
     if db_key not in DBs:
-        print(f"Unknown DB: {db_key}. Options: {list(DBs.keys())}", file=sys.stderr)
+        log.info(f"Unknown DB: {db_key}. Options: {list(DBs.keys())}", file=sys.stderr)
         sys.exit(1)
     path = DBs[db_key]
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"\n🆕 Initializing {db_key} at {path}\n{'─' * 50}")
+    log.info(f"\n🆕 Initializing {db_key} at {path}\n{'─' * 50}")
     cur = get_version(path)
     if cur > 0:
-        print(f"  ⚠️  DB already has schema v{cur}. Re-initialising from scratch.")
+        log.info(f"  ⚠️  DB already has schema v{cur}. Re-initialising from scratch.")
         backup = path.with_suffix(
             ".db.backup_{}".format(datetime.now().strftime("%Y%m%d%H%M%S"))
         )
         path.rename(backup)
-        print(f"  → Renamed old DB to {backup}")
+        log.info(f"  → Renamed old DB to {backup}")
 
     # Touch the file so sqlite3 connects
     path.touch()
     for m in discover_migrations():
         apply_migration(path, m)
-    print(f"\n{'─' * 50}")
-    print(f"✅ {db_key} initialised at v{_latest()}.")
+    log.info(f"\n{'─' * 50}")
+    log.info(f"✅ {db_key} initialised at v{_latest()}.")
 
 
 def cmd_rollback(version: int) -> None:
@@ -235,13 +239,13 @@ def cmd_rollback(version: int) -> None:
     Rollback: recreate DB from scratch at specified version.
     This is pragmatic for SQLite — no DROP COLUMN support.
     """
-    print(
+    log.info(
         f"\n⚠️  Rollback to v{version} for SQLite = re-bootstrap from v0 + apply through v{version}"
     )
     for name, path in DBs.items():
         cur = get_version(path)
         if cur <= version:
-            print(f"  {name}: already at v{cur} — nothing to do")
+            log.info(f"  {name}: already at v{cur} — nothing to do")
             continue
         # Backup
         backup = path.with_suffix(
@@ -249,12 +253,12 @@ def cmd_rollback(version: int) -> None:
         )
         if path.exists():
             path.rename(backup)
-            print(f"  → Backed up {name} to {backup}")
+            log.info(f"  → Backed up {name} to {backup}")
         path.touch()
         for m in discover_migrations():
             if m["version"] <= version:
                 apply_migration(path, m)
-    print(f"\n✅ Rollback complete to v{version}.")
+    log.info(f"\n✅ Rollback complete to v{version}.")
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
