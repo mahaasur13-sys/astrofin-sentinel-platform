@@ -57,7 +57,7 @@ def _safe_evaluate_topology(condition: str, ns: dict[str, Any]) -> bool:
     condition = condition.strip().lower().replace(" and ", " && ").replace(" or ", " || ")
     allowed_names = frozenset(ConditionEvaluator.SAFE_NAMES)
     for name in list(ns.keys()):
-        if name.strip("_") not in allowed_names and name not in ("true", "false"):
+        if name not in allowed_names and name not in ("true", "false"):
             return False
 
     tokens = condition.replace("(", " ( ").replace(")", " ) ").split()
@@ -73,6 +73,13 @@ def _safe_evaluate_topology(condition: str, ns: dict[str, Any]) -> bool:
             b = stack.pop()
             a = stack.pop()
             stack.append(_SAFE_OPS[op](a, b))
+
+    def _to_val(s: str, ns: dict[str, Any]) -> Any:
+        if s in ns:
+            return ns[s]
+        if s.replace(".", "").replace("-", "").isdigit():
+            return float(s) if "." in s else int(s)
+        return s
 
     i = 0
     while i < len(tokens):
@@ -90,7 +97,7 @@ def _safe_evaluate_topology(condition: str, ns: dict[str, Any]) -> bool:
                 _apply_op()
             op_stack.append(t)
         else:
-            val = ns.get(t)
+            val = _to_val(t, ns)
             if val is None and t not in ("true", "false"):
                 return False
             stack.append(val if t not in ("true", "false") else (t == "true"))
