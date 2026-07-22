@@ -13,6 +13,9 @@ from pathlib import Path
 
 from core.checkpoint import get_project_root
 
+import logging
+log = logging.getLogger(__name__)
+
 # ─── Database Path ─────────────────────────────────────────────────────────────
 
 

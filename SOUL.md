@@ -29,12 +29,14 @@
 | R-11 | Coverage нового агента = 100% unit + 1 integration |
 | R-12 | Subtree/submodule — запрещены; всё inlined в master |
 
-## Текущее состояние (2026-07-13)
+## Текущее состояние (2026-07-22 — GA ✅ v1.0.0-ga)
 
-- **Branch:** `master` @ `d45de6a` (PR #201 squash-merged)
-- **Phase B1 + 4.x:** завершены — 10 артефактов восстановлены, 0 hard linter violations
-- **Submodules:** 6 inlined, `.gitmodules.bak` оставлен как артефакт subtree-эксперимента
-- **Open:** Step 4.7 (auth на 5 web-роутах), R-3.5/R-7…R-12 линтер, RAG index, PostgreSQL migration
+- **Branch:** `main` @ `911b408` (Sprint 8.1 Paper Trading)
+- **P0:** 0 HIGH bandit — SQLi, eval, weak hashes устранены
+- **P1:** 97% print→structlog, 12 critical except:pass исправлены
+- **P2:** God-files (sentinel 550→401, karl 604→445), dead code (539 files), requirements (7→3)
+- **Sprint 8.1:** PaperBroker + factory + orchestrator wire-up
+- **Tests:** 664 passed | **Security:** 0 HIGH | **Architecture:** Clean + Hub-and-Spoke
 
 ## Правила для AI-агентов (обязательные)
 
