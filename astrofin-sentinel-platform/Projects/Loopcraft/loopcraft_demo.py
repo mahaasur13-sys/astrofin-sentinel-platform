@@ -32,6 +32,9 @@ loopcraft_demo.py
 
 from __future__ import annotations
 
+import logging
+log = logging.getLogger(__name__)
+
 import argparse
 import json
 import math

@@ -21,6 +21,9 @@ trading/safety_gate.py — ATOM-INTEGRATION-001: Safety Gate
   decision = gate.check(signal, state)
 """
 
+import logging
+log = logging.getLogger(__name__)
+
 import os
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone

@@ -5,6 +5,9 @@ Usage: acos monitor [status|switch|list|logs|alerts]
 """
 from __future__ import annotations
 
+import logging
+log = logging.getLogger(__name__)
+
 import json
 import os
 import socket
