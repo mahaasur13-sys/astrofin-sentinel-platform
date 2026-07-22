@@ -20,6 +20,9 @@ from core.auth import require_api_key
 from core.base_agent import BaseAgent
 
 app = FastAPI(title="AstroFin Sentinel API", version="0.4.0")
+from api.routes.sessions import router as sessions_router
+app.include_router(sessions_router, prefix="/api/v1")
+
 
 app.add_middleware(
     CORSMiddleware,
