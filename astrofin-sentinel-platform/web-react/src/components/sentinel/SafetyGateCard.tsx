@@ -136,3 +136,4 @@ function MetricBox({ label, value, color }: { label: string; value: string; colo
     </div>
   );
 }
+export { SafetyGateCard };

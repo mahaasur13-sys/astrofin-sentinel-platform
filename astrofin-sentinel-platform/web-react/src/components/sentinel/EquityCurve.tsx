@@ -137,3 +137,4 @@ export default function EquityCurve({ data, height = 260 }: EquityCurveProps) {
     </div>
   );
 }
+export { EquityCurve };

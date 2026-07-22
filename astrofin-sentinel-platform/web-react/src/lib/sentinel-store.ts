@@ -5,14 +5,18 @@
 'use client';
 
 import { create } from 'zustand';
-import {
+import type {
   AgentType,
   AgentResult,
   EnsembleResult,
   AnalysisSession,
   AGENT_TYPES,
 } from './agents';
-import { AgentStatus, AgentStatusUpdate } from './sentinel-socket';
+import type { AgentStatus, AgentStatusUpdate } from './sentinel-socket';
+
+// ---------------------------------------------------------------------------
+// Agent live status per session
+// ---------------------------------------------------------------------------
 
 export interface AgentLiveStatus {
   agentType: AgentType;
@@ -23,20 +27,31 @@ export interface AgentLiveStatus {
   startedAt?: number;
 }
 
+// ---------------------------------------------------------------------------
+// Store
+// ---------------------------------------------------------------------------
+
 interface SentinelState {
+  // Current analysis
   currentSessionId: string | null;
   currentTicker: string;
   currentTimeframe: string;
   isAnalyzing: boolean;
 
+  // Agent statuses for current session
   agentStatuses: Record<string, AgentLiveStatus>;
 
+  // Latest ensemble result
   ensembleResult: EnsembleResult | null;
 
+  // Session history
   sessions: AnalysisSession[];
+  sessionCount: number;
 
+  // RAG documents
   documentCount: number;
 
+  // Actions
   startAnalysis: (ticker: string, timeframe: string) => void;
   setSessionId: (id: string) => void;
   updateAgentStatus: (update: AgentStatusUpdate) => void;
@@ -55,6 +70,7 @@ export const useSentinelStore = create<SentinelState>((set) => ({
   agentStatuses: {},
   ensembleResult: null,
   sessions: [],
+  sessionCount: 0,
   documentCount: 0,
 
   startAnalysis: (ticker, timeframe) => {
@@ -102,6 +118,7 @@ export const useSentinelStore = create<SentinelState>((set) => ({
   addSession: (session) =>
     set((state) => ({
       sessions: [session, ...state.sessions].slice(0, 50),
+      sessionCount: state.sessionCount + 1,
     })),
 
   setDocumentCount: (count) => set({ documentCount: count }),

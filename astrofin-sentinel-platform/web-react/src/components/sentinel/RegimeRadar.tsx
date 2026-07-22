@@ -16,7 +16,7 @@ interface RegimeRadarProps {
   compact?: boolean;
 }
 
-const REGIME_META: Record<Regime, { label: string; color: string; description: string }> = {
+export const REGIME_META: Record<Regime, { label: string; color: string; description: string }> = {
   bull: { label: 'BULL', color: 'var(--bull)', description: 'Бычий тренд' },
   bear: { label: 'BEAR', color: 'var(--bear)', description: 'Медвежий тренд' },
   sideways: { label: 'SIDEWAYS', color: 'var(--sideways)', description: 'Флэт / Боковик' },
@@ -62,15 +62,17 @@ function DonutSegment({
   );
 }
 
-export default function RegimeRadar({ probabilities, currentRegime, compact = false }: RegimeRadarProps) {
+export default function RegimeRadar({ probabilities, currentRegime = "bull" as Regime, compact = false }: RegimeRadarProps) {
   const size = compact ? 180 : 280;
   const cx = size / 2;
   const cy = size / 2;
   const r = compact ? 70 : 110;
   const innerR = compact ? 40 : 65;
 
+  const probs = probabilities || { bull: 0.42, bear: 0.15, sideways: 0.28, highvol: 0.15 };
+
   const segments = useMemo(() => {
-    const entries = Object.entries(probabilities) as [Regime, number][];
+    const entries = Object.entries(probs) as [Regime, number][];
     const total = entries.reduce((sum, [, p]) => sum + p, 0) || 1;
     let currentAngle = -Math.PI / 2;
 
@@ -80,12 +82,12 @@ export default function RegimeRadar({ probabilities, currentRegime, compact = fa
       currentAngle += sweep;
       return { regime, startAngle, endAngle: currentAngle, prob, color: REGIME_META[regime].color };
     });
-  }, [probabilities]);
+  }, [probs]);
 
   const currentMeta = REGIME_META[currentRegime];
-  const currentProb = probabilities[currentRegime];
+  const currentProb = (probs as any)[currentRegime] ?? 0;
 
-  const bars = (Object.entries(probabilities) as [Regime, number][])
+  const bars = (Object.entries(probs) as [Regime, number][])
     .sort(([, a], [, b]) => b - a);
 
   if (compact) {
@@ -169,3 +171,4 @@ export default function RegimeRadar({ probabilities, currentRegime, compact = fa
     </div>
   );
 }
+export { RegimeRadar };
