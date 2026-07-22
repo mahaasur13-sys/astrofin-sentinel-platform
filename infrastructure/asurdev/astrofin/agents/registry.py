@@ -3,16 +3,17 @@
 ACOS × AstroFin — 14 Agent Registry
 Each agent = ACOS job type with constraint profile.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 
 @dataclass
 class AgentSpec:
     name: str
     acos_job_type: str
-    acos_layer: str  # L0-L10 layer that governs this agent
-    constraint_block: str  # from AstroFinConstraintCompiler
-    compute_profile: str  # cpu | gpu | edge
+    acos_layer: str          # L0-L10 layer that governs this agent
+    constraint_block: str    # from AstroFinConstraintCompiler
+    compute_profile: str      # cpu | gpu | edge
     timeout_sec: int = 300
     requires_governance: bool = True
     risk_weight: float = 1.0
@@ -31,6 +32,7 @@ AGENTS = {
         risk_weight=0.8,
         description="DCF, earnings, balance sheet scoring",
     ),
+
     # ── Quantitative ──
     "quant": AgentSpec(
         name="QuantAgent",
@@ -42,6 +44,7 @@ AGENTS = {
         risk_weight=1.0,
         description="Statistical arbitrage, factor models",
     ),
+
     # ── Macro ──
     "macro": AgentSpec(
         name="MacroAgent",
@@ -53,6 +56,7 @@ AGENTS = {
         risk_weight=0.7,
         description="Fed policy, CPI, GDP, geopolitical",
     ),
+
     # ── Options Flow ──
     "options_flow": AgentSpec(
         name="OptionsFlowAgent",
@@ -64,6 +68,7 @@ AGENTS = {
         risk_weight=1.2,
         description="Unusual options activity, dark pool flow",
     ),
+
     # ── Sentiment ──
     "sentiment": AgentSpec(
         name="SentimentAgent",
@@ -75,6 +80,7 @@ AGENTS = {
         risk_weight=0.6,
         description="News, social, analyst ratings",
     ),
+
     # ── Technical ──
     "technical": AgentSpec(
         name="TechnicalAgent",
@@ -86,6 +92,7 @@ AGENTS = {
         risk_weight=0.9,
         description="Patterns, indicators, volume analysis",
     ),
+
     # ── Bull / Bear Research ──
     "bull": AgentSpec(
         name="BullResearcher",
@@ -107,6 +114,7 @@ AGENTS = {
         risk_weight=0.5,
         description="Bear case scenario construction",
     ),
+
     # ── Cycle Analysis ──
     "cycle": AgentSpec(
         name="CycleAgent",
@@ -128,6 +136,7 @@ AGENTS = {
         risk_weight=1.1,
         description="Bradley Money Roshambo timing model",
     ),
+
     # ── Astrological ──
     "electoral": AgentSpec(
         name="ElectoralAgent",
@@ -149,6 +158,7 @@ AGENTS = {
         risk_weight=1.1,
         description="Gann angles, square of 9, time cycles",
     ),
+
     # ── Time Windows ──
     "timewindow": AgentSpec(
         name="TimeWindowAgent",
@@ -160,11 +170,12 @@ AGENTS = {
         risk_weight=0.4,
         description="Astro timing windows,Muhurta selection",
     ),
+
     # ── Risk (HARD GOVERNANCE GATED) ──
     "risk": AgentSpec(
         name="RiskAgent",
         acos_job_type="astrofin_risk",
-        acos_layer="L8",  # L8: HARD GOVERNANCE GATED
+        acos_layer="L8",           # L8: HARD GOVERNANCE GATED
         constraint_block="astrofin_risk_default",
         compute_profile="cpu",
         timeout_sec=120,
@@ -175,7 +186,7 @@ AGENTS = {
 }
 
 
-def get_agent(name: str) -> AgentSpec | None:
+def get_agent(name: str) -> Optional[AgentSpec]:
     return AGENTS.get(name)
 
 
@@ -194,3 +205,5 @@ def get_gpu_agents() -> list[str]:
 
 def get_cpu_agents() -> list[str]:
     return [a.name for a in AGENTS.values() if a.compute_profile == "cpu"]
+
+

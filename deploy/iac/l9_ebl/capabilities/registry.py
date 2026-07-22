@@ -38,7 +38,9 @@ class CapabilitySet:
 ROLE_CAPABILITIES: dict[str, CapabilitySet] = {}
 
 
-def register_role(name: str, caps: list[str], description: str = "", tags: list[str] = None) -> CapabilitySet:
+def register_role(
+    name: str, caps: list[str], description: str = "", tags: list[str] = None
+) -> CapabilitySet:
     cap_set = CapabilitySet(
         name=name,
         capabilities={Capability(c) for c in caps},
@@ -75,7 +77,9 @@ register_role(
     "Self-healing system — trigger only, no state mutation",
 )
 
-register_role("governance", [c.value for c in Capability], "Governance kernel — full authority")
+register_role(
+    "governance", [c.value for c in Capability], "Governance kernel — full authority"
+)
 
 register_role(
     "operator",
@@ -110,24 +114,32 @@ class ExecutionContext:
 
     def check(self, cap: Capability, reason: str = "") -> bool:
         if cap not in self.granted:
-            raise CapabilityDenied(capability=cap, role=self.role, trace_id=self.trace_id, reason=reason)
+            raise CapabilityDenied(
+                capability=cap, role=self.role, trace_id=self.trace_id, reason=reason
+            )
         return True
 
 
 class CapabilityDenied(Exception):
-    def __init__(self, capability: Capability, role: str, trace_id: str, reason: str = ""):
+    def __init__(
+        self, capability: Capability, role: str, trace_id: str, reason: str = ""
+    ):
         self.capability = capability
         self.role = role
         self.trace_id = trace_id
         self.reason = reason
-        super().__init__(f"CapabilityDenied: {capability.value} for role={role} trace={trace_id} reason={reason}")
+        super().__init__(
+            f"CapabilityDenied: {capability.value} for role={role} trace={trace_id} reason={reason}"
+        )
 
 
 def enforce(ctx: ExecutionContext, cap: Capability, reason: str = "") -> None:
     ctx.check(cap, reason)
 
 
-def enforce_any(ctx: ExecutionContext, caps: list[Capability], reason: str = "") -> None:
+def enforce_any(
+    ctx: ExecutionContext, caps: list[Capability], reason: str = ""
+) -> None:
     for cap in caps:
         try:
             ctx.check(cap, reason)
@@ -142,7 +154,9 @@ def enforce_any(ctx: ExecutionContext, caps: list[Capability], reason: str = "")
     )
 
 
-def enforce_all(ctx: ExecutionContext, caps: list[Capability], reason: str = "") -> None:
+def enforce_all(
+    ctx: ExecutionContext, caps: list[Capability], reason: str = ""
+) -> None:
     for cap in caps:
         ctx.check(cap, reason)
 

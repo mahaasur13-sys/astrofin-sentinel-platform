@@ -6,10 +6,9 @@ Pure data — no clock, no I/O, no random. Determinism moved to
 Backward compat: `from AsurDev.acos.storage.schema import TraceRecord`
 still works via `schema.py` re-export shim.
 """
-
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
@@ -43,7 +42,7 @@ class TraceRecord:
         return {
             "trace_id": self.trace_id,
             "metadata": self.metadata,
-            "created_at": (ca.isoformat() if isinstance(ca, datetime) else (str(ca) if ca else None)),
+            "created_at": ca.isoformat() if isinstance(ca, datetime) else (str(ca) if ca else None),
         }
 
     @classmethod

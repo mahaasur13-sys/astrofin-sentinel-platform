@@ -4,32 +4,29 @@ Evolution Engine — Long-horizon policy adaptation.
 Tracks correction loop decisions over time and evolves system parameters.
 """
 from __future__ import annotations
-
-from dataclasses import dataclass
-from datetime import datetime
-
-from ..correction_loop.loop import CorrectionAction, CorrectionCycleResult, FixType
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Optional
+from ..correction_loop.loop import CorrectionCycleResult, FixType, CorrectionAction
 
 
 @dataclass
 class EvolutionRecord:
     """Single evolution event."""
-
     timestamp: datetime
     generation: int
     fix_type: FixType
     action: CorrectionAction
     success: bool
     latency_before: float
-    latency_after: float | None
+    latency_after: Optional[float]
     p99_before: float
-    p99_after: float | None
+    p99_after: Optional[float]
 
 
 @dataclass
 class GenerationSummary:
     """Summary of one generation (correction cycle batch)."""
-
     generation: int
     started_at: datetime
     cycles_run: int
@@ -51,17 +48,12 @@ class EvolutionEngine:
         self._records: list[EvolutionRecord] = []
         self._generation = 0
         self._generation_cycles: list[CorrectionCycleResult] = []
-        self._generation_start: datetime | None = None
+        self._generation_start: Optional[datetime] = None
         self._convergence_threshold = 3  # generations with same fix type
-        self._last_fix_type: FixType | None = None
+        self._last_fix_type: Optional[FixType] = None
         self._stuck_counter = 0
 
-    def record(
-        self,
-        cycle_result: CorrectionCycleResult,
-        latency_before: float,
-        p99_before: float,
-    ) -> None:
+    def record(self, cycle_result: CorrectionCycleResult, latency_before: float, p99_before: float) -> None:
         """Record correction cycle result for evolution tracking."""
         if cycle_result.decision is None:
             return
@@ -83,22 +75,10 @@ class EvolutionEngine:
     def end_generation(self) -> GenerationSummary:
         """End current generation and compute summary."""
         if not self._generation_cycles:
-            return GenerationSummary(
-                generation=self._generation,
-                started_at=datetime.utcnow(),
-                cycles_run=0,
-                fixes_applied=0,
-                escalations=0,
-                avg_latency_ms=0,
-                p99_latency_ms=0,
-                success_rate=0,
-                converged=False,
-            )
+            return GenerationSummary(generation=self._generation, started_at=datetime.utcnow(), cycles_run=0, fixes_applied=0, escalations=0, avg_latency_ms=0, p99_latency_ms=0, success_rate=0, converged=False)
 
         cycles = self._generation_cycles
-        fixes = sum(
-            1 for c in cycles if c.decision and c.decision.primary_action != CorrectionAction.ADJUST_QUEUE_DEPTH
-        )
+        fixes = sum(1 for c in cycles if c.decision and c.decision.primary_action != CorrectionAction.ADJUST_QUEUE_DEPTH)
         escalations = sum(1 for c in cycles if c.escalation_required)
 
         # Check convergence

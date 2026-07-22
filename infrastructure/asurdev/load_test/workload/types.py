@@ -3,29 +3,29 @@
 Workload Types — parameterizable load profiles.
 """
 from __future__ import annotations
-
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Callable, Optional
+import random
 
 
 @dataclass
 class WorkloadProfile:
     """Single workload specification."""
-
     name: str
-    jobs_per_minute: float  # arrival rate lambda
-    avg_runtime_sec: float  # job duration
-    gpu_fraction: float  # 0..1 — fraction requiring GPU
-    burst_probability: float  # P(burst arrival)
-    burst_multiplier: float  # load multiplier during burst
-    adversarial_probability: float  # P(adversarial pattern)
-    failure_injection_rate: float  # P(job failure)
-    skew_factor: float  # 0=uniform, 1=hotspot
+    jobs_per_minute: float          # arrival rate lambda
+    avg_runtime_sec: float           # job duration
+    gpu_fraction: float             # 0..1 — fraction requiring GPU
+    burst_probability: float         # P(burst arrival)
+    burst_multiplier: float          # load multiplier during burst
+    adversarial_probability: float   # P(adversarial pattern)
+    failure_injection_rate: float    # P(job failure)
+    skew_factor: float               # 0=uniform, 1=hotspot
 
 
 @dataclass
 class StressScenario:
     """Named stress scenario = profile + duration + targets."""
-
     name: str
     profile: WorkloadProfile
     duration_sec: int
@@ -37,7 +37,6 @@ class StressScenario:
 # =============================================================================
 # Predefined Profiles
 # =============================================================================
-
 
 def burst_load() -> WorkloadProfile:
     """Sudden spike: 10x baseline, short duration."""

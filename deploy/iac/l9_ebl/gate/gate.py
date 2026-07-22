@@ -48,7 +48,9 @@ class ExecutionGate:
         self.deny_count: dict[str, int] = {}
         self.escalation_threshold = 3
 
-    def check(self, ctx: ExecutionContext, action: str, params: dict[str, Any]) -> GateDecision:
+    def check(
+        self, ctx: ExecutionContext, action: str, params: dict[str, Any]
+    ) -> GateDecision:
         trace_id = ctx.trace_id
         rule = self.cg.get_guard(action)
 
@@ -81,7 +83,9 @@ class ExecutionGate:
             self._log_decision(decision)
             return decision
 
-        decision = GateDecision(action=ActionResult.ALLOW, trace_id=trace_id, reason="All guards passed")
+        decision = GateDecision(
+            action=ActionResult.ALLOW, trace_id=trace_id, reason="All guards passed"
+        )
         self._log_decision(decision)
         return decision
 
@@ -95,5 +99,7 @@ class ExecutionGate:
         return {
             "total_checks": len(self.audit_log),
             "deny_count": self.deny_count,
-            "escalations": sum(1 for d in self.audit_log if d.action == ActionResult.ESCALATE),
+            "escalations": sum(
+                1 for d in self.audit_log if d.action == ActionResult.ESCALATE
+            ),
         }

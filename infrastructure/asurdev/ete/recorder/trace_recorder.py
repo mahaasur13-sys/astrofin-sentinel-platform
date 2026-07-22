@@ -10,9 +10,9 @@ Every execution produces a full trace stored in:
 Trace is append-only. No modifications allowed.
 """
 from __future__ import annotations
-
+import json
+import uuid
 from datetime import datetime
-
 
 class TraceRecorder:
     """
@@ -20,7 +20,7 @@ class TraceRecorder:
     Trace is immutable once written.
     """
 
-    def __init__(self, postgres_url: str = "", ceph_client=None, tsdb_client=None):
+    def __init__(self, postgres_url: str = "", ceph_client = None, tsdb_client = None):
         self.postgres_url = postgres_url
         self.ceph = ceph_client
         self.tsdb = tsdb_client
@@ -58,8 +58,7 @@ class TraceRecorder:
         if not t:
             return {}
         return {
-            "trace_id": t["trace_id"],
-            "dag_id": t["dag_id"],
+            "trace_id": t["trace_id"], "dag_id": t["dag_id"],
             "final_state": t["final_state"],
             "nodes_executed": len(t.get("node_execution_log", [])),
             "governance_decisions": len(t.get("governance_decisions", [])),

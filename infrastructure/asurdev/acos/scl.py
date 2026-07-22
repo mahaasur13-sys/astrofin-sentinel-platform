@@ -4,26 +4,22 @@ ACOS SCL v1 — Integration Test
 Validates all 5 system invariants.
 """
 from __future__ import annotations
-
 import time
-
-from acos.events.event_log import Event, EventLog, EventType
-from acos.eventsourced.engine import EventSourcedEngine
-from acos.projection.projection import EventProjection
+from acos.events.event_log import EventLog, EventType, Event
 from acos.state.reducer import StateReducer
-
+from acos.projection.projection import EventProjection
+from acos.eventsourced.engine import EventSourcedEngine
 
 def test_invariant_1():
     """INV1: Every action produces an event."""
     log = EventLog()
     engine = EventSourcedEngine(log, StateReducer(log))
     dag = {"nodes": [{"id": "n1"}, {"id": "n2"}], "edges": []}
-    engine.execute(dag, {}, "trace-1")
+    result = engine.execute(dag, {}, "trace-1")
     all_events = log.get_all()
     actions = len(all_events)
     print(f"  [{'OK' if actions >= 4 else 'FAIL'}] INV1 — Events emitted: {actions} (expected >= 4)")
     return actions >= 4
-
 
 def test_invariant_2():
     """INV2: No mutable truth — state is derived."""
@@ -33,11 +29,8 @@ def test_invariant_2():
     log.emit("t2", EventType.GOVERNANCE_APPROVED, {"reason": "ok"})
     state = reducer.rebuild("t2")
     ok = state["governance_decision"] == "APPROVED"
-    print(
-        f"  [{'OK' if ok else 'FAIL'}] INV2 — Governance decision derived from events: {state['governance_decision']}"
-    )
+    print(f"  [{'OK' if ok else 'FAIL'}] INV2 — Governance decision derived from events: {state['governance_decision']}")
     return ok
-
 
 def test_invariant_3():
     """INV3: Replay equivalence."""
@@ -55,7 +48,6 @@ def test_invariant_3():
     print(f"  [{'OK' if ok else 'FAIL'}] INV3 — Replay deterministic: {s1['status']} == {s2['status']}")
     return ok
 
-
 def test_invariant_4():
     """INV4: Hash chain integrity."""
     log = EventLog()
@@ -64,7 +56,6 @@ def test_invariant_4():
     ok = log.verify_chain("t4")
     print(f"  [{'OK' if ok else 'FAIL'}] INV4 — Hash chain intact: {ok}")
     return ok
-
 
 def test_invariant_5():
     """INV5: Trace determinism — same events → identical result."""
@@ -80,7 +71,6 @@ def test_invariant_5():
     print(f"  [{'OK' if ok else 'FAIL'}] INV5 — Trace deterministic: {r1['status']}")
     return ok
 
-
 def test_projection_layer():
     """TraceRecorder = projection over event stream."""
     log = EventLog()
@@ -91,7 +81,6 @@ def test_projection_layer():
     ok = trace is not None and trace["executed_count"] == 1
     print(f"  [{'OK' if ok else 'FAIL'}] PROJ — Projection derives trace from events: {trace['executed_count']} nodes")
     return ok
-
 
 def test_full_trace():
     """Full trace: DAG_CREATED → TRACE_RECORDED."""
@@ -106,12 +95,11 @@ def test_full_trace():
     log.emit(t, EventType.NODE_EXECUTED, {"node_id": "b"})
     log.emit(t, EventType.TRACE_RECORDED, {"final_state": {"status": "COMPLETED"}})
     state = StateReducer(log).rebuild(t)
-    ok = state["status"] == "COMPLETED" and state["scheduled_count"] == 2 and state["executed_count"] == 2
-    print(
-        f"  [{'OK' if ok else 'FAIL'}] FULL TRACE — {state['status']}, scheduled={state['scheduled_count']}, executed={state['executed_count']}"
-    )
+    ok = (state["status"] == "COMPLETED" and
+          state["scheduled_count"] == 2 and
+          state["executed_count"] == 2)
+    print(f"  [{'OK' if ok else 'FAIL'}] FULL TRACE — {state['status']}, scheduled={state['scheduled_count']}, executed={state['executed_count']}")
     return ok
-
 
 if __name__ == "__main__":
     print("=== ACOS SCL v1 — Event-Sourced Kernel ===")

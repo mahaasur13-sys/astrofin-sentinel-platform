@@ -1,0 +1,59 @@
+# slurm.conf.j2 — Slurm controller configuration with HA support
+
+ClusterName={{ cluster_name | default('home-gpu-cluster') }}
+
+# --- Control Machines (HA: primary + backup) ---
+# List all controllers; Slurm will fail over automatically
+{% set controller_hosts = groups['slurm_controller'] | sort %}
+{% set primary = controller_hosts[0] %}
+{% set backup = controller_hosts[1] | default(controller_hosts[0]) %}
+SlurmctldHost={{ primary }}{% if backup != primary %},{{ backup }}{% endif %}
+
+# --- Accounting ---
+AcctGatherPlugin=acct_gather/linux
+JobAcctGatherType=jobacct_gather/linux
+JobAcctGatherFrequency=30
+
+# --- GPU Configuration ---
+GresTypes=gpu
+
+# --- Partition Definitions ---
+# GPU partition (RTX 3060 node)
+PartitionName=gpu Nodes=gpu-node Default=YES MaxTime=INFINITE State=UP:
+    Nodes=gpu-node
+    Gres=gpu:1
+    MaxNodes=1
+    AllowGroups=ALL
+
+# Compute partition (ARM edge node)
+PartitionName=compute Nodes=edge-node MaxTime=INFINITE State=UP:
+    Nodes=edge-node
+    MaxNodes=1
+    AllowGroups=ALL
+
+# --- Networking ---
+SlurmctldPort=6817
+SlurmdPort=6818
+AuthType=auth/munge
+StateSaveLocation=/var/spool/slurm/ctld
+SlurmdSpoolDir=/var/spool/slurm/d
+SwitchType=switch/none
+MpiDefault=none
+SlurmConf=/etc/slurm/slurm.conf
+
+# --- Scheduling ---
+SchedulerType=sched/backfill
+SelectType=select/cons_tres
+SelectTypeParameters=CR_Core_Memory
+
+# --- Logging ---
+SlurmctldDebug=info
+SlurmctldLogFile=/var/log/slurm/slurmctld.log
+SlurmdDebug=info
+SlurmdLogFile=/var/log/slurm/slurmd.log
+
+# --- HA tuning ---
+CommunicationWidth=128
+TmpFS=/tmp
+Prolog=/etc/slurm/prolog.sh
+Epilog=/etc/slurm/epilog.sh

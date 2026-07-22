@@ -3,28 +3,27 @@
 Feature Definitions — complete set of ML-ready features per node.
 Each feature is a callable that returns a float from raw metrics.
 """
-from collections.abc import Callable
+from typing import Callable, Dict, List
 
-FeatureFunc = Callable[[dict], float]
+FeatureFunc = Callable[[Dict], float]
 
 
 class Feature:
     """Typed feature with name, description, unit."""
-
     def __init__(self, name: str, fn: FeatureFunc, unit: str = "", description: str = ""):
         self.name = name
         self.fn = fn
         self.unit = unit
         self.description = description
 
-    def __call__(self, ctx: dict) -> float:
+    def __call__(self, ctx: Dict) -> float:
         return self.fn(ctx)
 
 
 # =============================================================================
 # GPU FEATURES
 # =============================================================================
-GPU_FEATURES: list[Feature] = [
+GPU_FEATURES: List[Feature] = [
     Feature(
         name="gpu_mean_5m",
         fn=lambda c: c.get("gpu_util", {}).get("5m", {}).get("mean", 0.0),
@@ -60,7 +59,7 @@ GPU_FEATURES: list[Feature] = [
 # =============================================================================
 # CPU FEATURES
 # =============================================================================
-CPU_FEATURES: list[Feature] = [
+CPU_FEATURES: List[Feature] = [
     Feature(
         name="cpu_mean_5m",
         fn=lambda c: c.get("cpu_util", {}).get("5m", {}).get("mean", 0.0),
@@ -75,10 +74,8 @@ CPU_FEATURES: list[Feature] = [
     ),
     Feature(
         name="cpu_spike_1m",
-        fn=lambda c: max(
-            0.0,
-            c.get("cpu_util", {}).get("1m", {}).get("mean", 0.0) - c.get("cpu_util", {}).get("5m", {}).get("mean", 0.0),
-        ),
+        fn=lambda c: max(0.0, c.get("cpu_util", {}).get("1m", {}).get("mean", 0.0) -
+                          c.get("cpu_util", {}).get("5m", {}).get("mean", 0.0)),
         unit="percent",
         description="CPU sudden increase (1m vs 5m delta)",
     ),
@@ -87,7 +84,7 @@ CPU_FEATURES: list[Feature] = [
 # =============================================================================
 # MEMORY FEATURES
 # =============================================================================
-MEM_FEATURES: list[Feature] = [
+MEM_FEATURES: List[Feature] = [
     Feature(
         name="mem_mean_5m",
         fn=lambda c: c.get("mem_util", {}).get("5m", {}).get("mean", 0.0),
@@ -105,7 +102,7 @@ MEM_FEATURES: list[Feature] = [
 # =============================================================================
 # QUEUE FEATURES
 # =============================================================================
-QUEUE_FEATURES: list[Feature] = [
+QUEUE_FEATURES: List[Feature] = [
     Feature(
         name="queue_depth",
         fn=lambda c: c.get("queue_depth", 0),
@@ -129,7 +126,7 @@ QUEUE_FEATURES: list[Feature] = [
 # =============================================================================
 # STORAGE FEATURES
 # =============================================================================
-STORAGE_FEATURES: list[Feature] = [
+STORAGE_FEATURES: List[Feature] = [
     Feature(
         name="ceph_iops_mean_5m",
         fn=lambda c: c.get("ceph_iops", {}).get("5m", {}).get("mean", 0.0),
@@ -147,7 +144,7 @@ STORAGE_FEATURES: list[Feature] = [
 # =============================================================================
 # NETWORK FEATURES
 # =============================================================================
-NETWORK_FEATURES: list[Feature] = [
+NETWORK_FEATURES: List[Feature] = [
     Feature(
         name="wg_handshake_age",
         fn=lambda c: c.get("wg_handshake_age", 0),
@@ -165,7 +162,7 @@ NETWORK_FEATURES: list[Feature] = [
 # =============================================================================
 # FAILURE FEATURES
 # =============================================================================
-FAILURE_FEATURES: list[Feature] = [
+FAILURE_FEATURES: List[Feature] = [
     Feature(
         name="failure_count_1h",
         fn=lambda c: c.get("failure_count_1h", 0),
@@ -195,13 +192,13 @@ FAILURE_FEATURES: list[Feature] = [
 # =============================================================================
 # COMPOSITE FEATURES
 # =============================================================================
-COMPOSITE_FEATURES: list[Feature] = [
+COMPOSITE_FEATURES: List[Feature] = [
     Feature(
         name="overload_score",
         fn=lambda c: (
-            c.get("gpu_util", {}).get("5m", {}).get("mean", 0.0) * 0.5
-            + c.get("cpu_util", {}).get("5m", {}).get("mean", 0.0) * 0.3
-            + c.get("mem_util", {}).get("5m", {}).get("mean", 0.0) * 0.2
+            c.get("gpu_util", {}).get("5m", {}).get("mean", 0.0) * 0.5 +
+            c.get("cpu_util", {}).get("5m", {}).get("mean", 0.0) * 0.3 +
+            c.get("mem_util", {}).get("5m", {}).get("mean", 0.0) * 0.2
         ),
         unit="percent",
         description="Composite system overload indicator",
@@ -215,14 +212,9 @@ COMPOSITE_FEATURES: list[Feature] = [
 ]
 
 ALL_FEATURES = (
-    GPU_FEATURES
-    + CPU_FEATURES
-    + MEM_FEATURES
-    + QUEUE_FEATURES
-    + STORAGE_FEATURES
-    + NETWORK_FEATURES
-    + FAILURE_FEATURES
-    + COMPOSITE_FEATURES
+    GPU_FEATURES + CPU_FEATURES + MEM_FEATURES +
+    QUEUE_FEATURES + STORAGE_FEATURES + NETWORK_FEATURES +
+    FAILURE_FEATURES + COMPOSITE_FEATURES
 )
 
 FEATURE_NAMES = [f.name for f in ALL_FEATURES]

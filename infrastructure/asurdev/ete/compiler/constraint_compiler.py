@@ -8,9 +8,8 @@ Transforms human-readable constraints into executable DAG guards:
 Every constraint becomes: PRE → (constraint_check) → POST pipeline.
 """
 from __future__ import annotations
-
 import uuid
-
+from typing import Any
 
 class ConstraintType:
     MAX_RISK = "max_risk"
@@ -19,7 +18,6 @@ class ConstraintType:
     LATENCY_SLA = "latency_sla"
     REQUIRED_ASSET = "required_asset"
 
-
 class ConstraintCompiler:
     """
     Injects governance constraints into DAG as executable nodes.
@@ -27,12 +25,7 @@ class ConstraintCompiler:
     """
 
     def inject(self, dag: dict, constraints: dict) -> dict:
-        injected = {
-            "dag_id": dag["dag_id"],
-            "nodes": [],
-            "edges": [],
-            "metadata": dict(dag.get("metadata", {})),
-        }
+        injected = {"dag_id": dag["dag_id"], "nodes": [], "edges": [], "metadata": dict(dag.get("metadata", {}))}
         pre_guard = self._make_pre_guard(constraints)
         injected["nodes"].append(pre_guard)
         injected["edges.extend"]([{"from": pre_guard["node_id"], "to": n["node_id"]}] for n in dag["nodes"])
@@ -53,26 +46,18 @@ class ConstraintCompiler:
             checks.append(f'assert state.exposure <= {constraints["max_exposure"]}')
         if "forbidden_assets" in constraints:
             assets = constraints["forbidden_assets"]
-            checks.append(f"for a in {assets}: assert state.asset != a")
+            checks.append(f'for a in {assets}: assert state.asset != a')
         return {
-            "node_id": str(uuid.uuid4())[:8],
-            "name": "L9:pre_guard",
-            "type": "governance",
-            "layer": "L9",
-            "action": "validate",
-            "checks": checks,
-            "on_violation": "kill",
-            "timeout_seconds": 5,
+            "node_id": str(uuid.uuid4())[:8], "name": "L9:pre_guard",
+            "type": "governance", "layer": "L9",
+            "action": "validate", "checks": checks,
+            "on_violation": "kill", "timeout_seconds": 5,
         }
 
     def _make_post_guard(self, constraints: dict) -> dict:
         return {
-            "node_id": str(uuid.uuid4())[:8],
-            "name": "L9:post_guard",
-            "type": "governance",
-            "layer": "L9",
-            "action": "record",
-            "checks": [],
-            "on_violation": "rollback",
+            "node_id": str(uuid.uuid4())[:8], "name": "L9:post_guard",
+            "type": "governance", "layer": "L9",
+            "action": "record", "checks": [], "on_violation": "rollback",
             "timeout_seconds": 5,
         }

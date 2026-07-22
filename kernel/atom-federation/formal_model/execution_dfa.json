@@ -1,0 +1,52 @@
+{
+  "model": "ExecutionGateway DFA",
+  "version": "9.0+P6",
+  "M": {
+    "S": ["INIT","G1_ADV","G2_POL","G3_ALN","G4_GOV","G5_CB","G6_PRE","G7_ACT","G8_INV","G9_LED","G10_RB","ACCEPT","REJECT"],
+    "Sigma": ["REQUEST_IN","G_PASS","G_BLOCK","ACT_PASS"],
+    "delta": {
+      "INIT,REQUEST_IN": "G1_ADV",
+      "G1_ADV,G_PASS": "G2_POL",
+      "G2_POL,G_PASS": "G3_ALN",
+      "G3_ALN,G_PASS": "G4_GOV",
+      "G4_GOV,G_PASS": "G5_CB",
+      "G5_CB,G_PASS": "G6_PRE",
+      "G6_PRE,G_PASS": "G7_ACT",
+      "G7_ACT,G_PASS": "G8_INV",
+      "G8_INV,G_PASS": "G9_LED",
+      "G9_LED,G_PASS": "G10_RB",
+      "G10_RB,G_PASS": "ACCEPT",
+      "ACCEPT,ACT_PASS": "ACCEPT",
+      "G1_ADV,G_BLOCK": "REJECT",
+      "G2_POL,G_BLOCK": "REJECT",
+      "G3_ALN,G_BLOCK": "REJECT",
+      "G4_GOV,G_BLOCK": "REJECT",
+      "G5_CB,G_BLOCK": "REJECT",
+      "G6_PRE,G_BLOCK": "REJECT",
+      "G7_ACT,G_BLOCK": "REJECT",
+      "G8_INV,G_BLOCK": "REJECT",
+      "G9_LED,G_BLOCK": "REJECT",
+      "G10_RB,G_BLOCK": "REJECT",
+      "ACCEPT,G_BLOCK": "REJECT"
+    },
+    "s0": "INIT",
+    "F": ["ACCEPT"],
+    "deterministic": true,
+    "total": true,
+    "dominator": "G1_ADV dominates {G2_POL,G3_ALN,G4_GOV,G5_CB,G6_PRE,G7_ACT,G8_INV,G9_LED,G10_RB,ACCEPT}"
+  },
+  "ltl_properties": {
+    "G(Exec -> NonceLocked U Act)": {
+      "holds": true,
+      "proof": "S1 (G1_ADV) locked before any S2+ state entry; nonce never unlocked"
+    },
+    "not EF(Replay and Exec)": {
+      "holds": true,
+      "proof": "G_BLOCK at G1 blocks replay before S2 entry; nonce uniqueness in ProofVerifier"
+    },
+    "AG(Exec -> AF(Act))": {
+      "holds": true,
+      "proof": "Only terminal states: ACCEPT or REJECT; no loops or dead-ends"
+    }
+  }
+}

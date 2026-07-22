@@ -4,25 +4,25 @@ Scheduler v3 — Stateful Scoring Engine
 Reads job + node state from DB. Considers history + failure counts.
 NOT stateless — every decision is logged to scheduler_scores table.
 """
-import logging
 import os
-from typing import Any
+import logging
+from typing import Optional, List, Tuple, Dict, Any
 
 log = logging.getLogger("scheduler_v3.scorer")
 
 # Weights (can be overridden via config.yaml)
 WEIGHTS = {
-    "gpu": float(os.environ.get("W_GPU", "0.50")),
-    "cpu": float(os.environ.get("W_CPU", "0.20")),
-    "mem": float(os.environ.get("W_MEM", "0.15")),
-    "latency": float(os.environ.get("W_LAT", "0.10")),
+    "gpu":      float(os.environ.get("W_GPU",   "0.50")),
+    "cpu":      float(os.environ.get("W_CPU",   "0.20")),
+    "mem":      float(os.environ.get("W_MEM",   "0.15")),
+    "latency":  float(os.environ.get("W_LAT",   "0.10")),
     "locality": float(os.environ.get("W_LOCAL", "0.05")),
 }
 
 FAILURE_PENALTY = 20.0  # subtract from score per recent failure
 
 
-def score_and_select(job, state_store) -> tuple[Any | None, list[dict]]:
+def score_and_select(job, state_store) -> Tuple[Optional[Any], List[Dict]]:
     """
     Stateful node selection:
       1. Load nodes from DB (not Prometheus directly)
@@ -35,8 +35,8 @@ def score_and_select(job, state_store) -> tuple[Any | None, list[dict]]:
         log.warning("No healthy nodes available")
         return None, []
 
-    job_type = job.job_type if hasattr(job, "job_type") else job.get("job_type", "gpu")
-    memory_gb = job.memory_gb if hasattr(job, "memory_gb") else job.get("memory_gb", 8)
+    job_type   = job.job_type if hasattr(job, "job_type") else job.get("job_type", "gpu")
+    memory_gb  = job.memory_gb if hasattr(job, "memory_gb") else job.get("memory_gb", 8)
 
     # Filter eligible nodes by job type
     eligible = _filter_eligible(nodes, job_type, memory_gb)
@@ -66,17 +66,10 @@ def score_and_select(job, state_store) -> tuple[Any | None, list[dict]]:
     scored.sort(key=lambda x: x["total_score"], reverse=True)
     best = scored[0]
 
-    log.info(
-        "Selected node=%s score=%.2f (GPU=%.1f CPU=%.1f mem=%.1f lat=%.1f loc=%.1f fail=%d)",
-        best["hostname"],
-        best["total_score"],
-        best["gpu"],
-        best["cpu"],
-        best["mem"],
-        best["latency"],
-        best["locality"],
-        best["failure_count"],
-    )
+    log.info("Selected node=%s score=%.2f (GPU=%.1f CPU=%.1f mem=%.1f lat=%.1f loc=%.1f fail=%d)",
+             best["hostname"], best["total_score"],
+             best["gpu"], best["cpu"], best["mem"],
+             best["latency"], best["locality"], best["failure_count"])
 
     # Return best node object + all scores
     best_node = next(n for n in eligible if n.hostname == best["hostname"])
@@ -101,18 +94,14 @@ def _filter_eligible(nodes, job_type: str, memory_gb: int):
     return eligible
 
 
-def _compute_score(node, job_type: str, weights: dict[str, float]) -> dict[str, float]:
+def _compute_score(node, job_type: str, weights: Dict[str, float]) -> Dict[str, float]:
     """
     Compute per-component score breakdown.
     Higher available resources → higher score contribution.
     """
     gpu_avail = 100.0 - float(node.gpu_load_pct) if node.gpu_count > 0 else 100.0
     cpu_avail = 100.0 - float(node.cpu_load_pct)
-    mem_avail = (
-        (float(node.memory_gb) - float(node.memory_used_gb)) / float(node.memory_gb) * 100.0
-        if node.memory_gb > 0
-        else 100.0
-    )
+    mem_avail = (float(node.memory_gb) - float(node.memory_used_gb)) / float(node.memory_gb) * 100.0 if node.memory_gb > 0 else 100.0
 
     gpu_contrib = gpu_avail * weights["gpu"] if node.gpu_count > 0 else 0.0
     cpu_contrib = cpu_avail * weights["cpu"]
@@ -128,11 +117,11 @@ def _compute_score(node, job_type: str, weights: dict[str, float]) -> dict[str, 
     base_score = gpu_contrib + cpu_contrib + mem_contrib + latency_contrib + locality_contrib
 
     return {
-        "hostname": node.hostname,
+        "hostname":   node.hostname,
         "base_score": round(base_score, 4),
-        "gpu": round(gpu_contrib, 4),
-        "cpu": round(cpu_contrib, 4),
-        "mem": round(mem_contrib, 4),
-        "latency": round(latency_contrib, 4),
-        "locality": round(locality_contrib, 4),
+        "gpu":        round(gpu_contrib, 4),
+        "cpu":        round(cpu_contrib, 4),
+        "mem":        round(mem_contrib, 4),
+        "latency":    round(latency_contrib, 4),
+        "locality":   round(locality_contrib, 4),
     }

@@ -11,7 +11,6 @@ Startup:
     Loads model + feature list once (on startup, not per-request).
     Validates that all expected features are present before accepting traffic.
 """
-
 from __future__ import annotations
 
 import logging
@@ -20,11 +19,12 @@ import time
 import uuid
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
+from fastapi.responses import JSONResponse
 
 from ml_engine.inference.schemas import (
     ExplainResponse,
@@ -169,57 +169,39 @@ def _validate_features() -> None:
         from ml_engine.training.feature_builder import build_advanced_features
 
         # Synthetic row with all raw fields
-        raw = pd.DataFrame(
-            [
-                {
-                    "cpu_load_1": 0.3,
-                    "cpu_load_5": 0.3,
-                    "mem_used_pct": 50.0,
-                    "gpu_util": 50.0,
-                    "gpu_mem_used_pct": 50.0,
-                    "gpu_temp": 60.0,
-                    "gpu_power_draw": 150.0,
-                    "disk_read_bytes_sec": 1_000_000.0,
-                    "disk_write_bytes_sec": 500_000.0,
-                    "disk_usage_pct": 40.0,
-                    "net_recv_bytes_sec": 1_000_000.0,
-                    "net_send_bytes_sec": 500_000.0,
-                    "slurm_queue_depth": 5,
-                    "slurm_running_jobs": 2,
-                    "num_processes": 200,
-                    "open_files": 1000,
-                    "swap_used_pct": 0.0,
-                    "node_id": "validation_node",
-                    "timestamp": 0.0,
-                }
-            ]
-        )
+        raw = pd.DataFrame([{
+            "cpu_load_1": 0.3,
+            "cpu_load_5": 0.3,
+            "mem_used_pct": 50.0,
+            "gpu_util": 50.0,
+            "gpu_mem_used_pct": 50.0,
+            "gpu_temp": 60.0,
+            "gpu_power_draw": 150.0,
+            "disk_read_bytes_sec": 1_000_000.0,
+            "disk_write_bytes_sec": 500_000.0,
+            "disk_usage_pct": 40.0,
+            "net_recv_bytes_sec": 1_000_000.0,
+            "net_send_bytes_sec": 500_000.0,
+            "slurm_queue_depth": 5,
+            "slurm_running_jobs": 2,
+            "num_processes": 200,
+            "open_files": 1000,
+            "swap_used_pct": 0.0,
+            "node_id": "validation_node",
+            "timestamp": 0.0,
+        }])
 
         df = build_advanced_features(raw, horizon_minutes=30)
-        raw_feature_cols = {
-            c
-            for c in df.columns
-            if c
-            not in {
-                "time",
-                "node_id",
-                "time_bucket",
-                "label_bucket",
-                "label_failure",
-                "label_queue_depth",
-                "label_gpu_util",
-                "timestamp",
-            }
-        }
+        raw_feature_cols = {c for c in df.columns if c not in {
+            "time", "node_id", "time_bucket", "label_bucket",
+            "label_failure", "label_queue_depth", "label_gpu_util", "timestamp"
+        }}
 
         missing = _feature_cols_set - raw_feature_cols
         extra = raw_feature_cols - _feature_cols_set
 
         if missing:
-            logger.error(
-                "Model expects features NOT produced by build_advanced_features: %s",
-                missing,
-            )
+            logger.error("Model expects features NOT produced by build_advanced_features: %s", missing)
         if extra:
             logger.warning("build_advanced_features produces features NOT in model: %s", extra)
 
@@ -242,7 +224,6 @@ app = FastAPI(
     version="1.0.0",
     lifespan=None,  # manual startup below
 )
-
 
 # Register startup hook manually (works with uvicorn --reload too)
 @app.on_event("startup")
@@ -282,14 +263,12 @@ def _get_cache_ttl() -> int:
 
 def _input_hash(data: dict) -> str:
     """Deterministic hash of the input metrics dict."""
-    import hashlib
-    import json
-
+    import hashlib, json
     safe = {k: v for k, v in data.items() if k not in ("node_id",)}
     return hashlib.sha256(json.dumps(safe, sort_keys=True).encode()).hexdigest()[:16]
 
 
-def _cache_get(data: dict) -> float | None:
+def _cache_get(data: dict) -> Optional[float]:
     h = _input_hash(data)
     if h in _cache_store:
         score, ts = _cache_store[h]
@@ -421,6 +400,7 @@ def explain_prediction(prediction_id: str) -> ExplainResponse:
     risk_score = entry["risk_score"]
 
     try:
+        import shap
 
         shap_values = _shap_explainer(df_feat)
         # shap_values.values shape: (1, n_features)
@@ -429,11 +409,7 @@ def explain_prediction(prediction_id: str) -> ExplainResponse:
 
         sv_dict = {n: float(sv[i]) for i, n in enumerate(names)}
         abs_sv = {n: abs(v) for n, v in sv_dict.items()}
-        top_pos = sorted(
-            [n for n, v in sv_dict.items() if v > 0],
-            key=lambda n: sv_dict[n],
-            reverse=True,
-        )[:5]
+        top_pos = sorted([n for n, v in sv_dict.items() if v > 0], key=lambda n: sv_dict[n], reverse=True)[:5]
         top_neg = sorted([n for n, v in sv_dict.items() if v < 0], key=lambda n: sv_dict[n])[:5]
 
         return ExplainResponse(

@@ -4,9 +4,13 @@ Predictor — online inference wrapper for all ML models.
 Handles feature construction, model loading, and risk computation.
 <10ms latency target.
 """
+import os
 import logging
 import pickle
 from pathlib import Path
+from typing import Dict, List, Optional, Any
+
+import numpy as np
 
 from feature_pipeline import FeatureBuilder
 
@@ -16,10 +20,10 @@ logger = logging.getLogger(__name__)
 class Predictor:
     def __init__(
         self,
-        failure_model_path: Path | None = None,
-        load_model_path: Path | None = None,
+        failure_model_path: Optional[Path] = None,
+        load_model_path: Optional[Path] = None,
         failure_threshold: float = 0.5,
-        risk_coefficients: dict[str, float] | None = None,
+        risk_coefficients: Optional[Dict[str, float]] = None,
     ):
         self.failure_threshold = failure_threshold
         self.risk_coefficients = risk_coefficients or {
@@ -43,8 +47,8 @@ class Predictor:
     def predict(
         self,
         node_id: str,
-        features: dict[str, float] | None = None,
-    ) -> dict[str, float]:
+        features: Optional[Dict[str, float]] = None,
+    ) -> Dict[str, float]:
         """
         Online inference for a single node.
 
@@ -69,7 +73,6 @@ class Predictor:
             return self._default_prediction(node_id)
 
         import pandas as pd
-
         X = pd.DataFrame([features])
 
         failure_prob = 0.0
@@ -100,11 +103,11 @@ class Predictor:
             "model_version": "v1",
         }
 
-    def predict_batch(self, node_ids: list[str]) -> dict[str, dict[str, float]]:
+    def predict_batch(self, node_ids: List[str]) -> Dict[str, Dict[str, float]]:
         """Batch inference for multiple nodes."""
         return {node_id: self.predict(node_id) for node_id in node_ids}
 
-    def _fetch_features(self, node_id: str) -> dict[str, float]:
+    def _fetch_features(self, node_id: str) -> Dict[str, float]:
         """Fetch latest features for node from TimescaleDB."""
         try:
             vectors = self._feature_builder.build_batch(
@@ -114,25 +117,23 @@ class Predictor:
             if vectors.empty:
                 return {}
             row = vectors.sort_values("time", ascending=False).iloc[0]
-            return {
-                c: float(row[c]) for c in row.index if c not in ("time", "node_id") and isinstance(row[c], (int, float))
-            }
+            return {c: float(row[c]) for c in row.index if c not in ("time", "node_id") and isinstance(row[c], (int, float))}
         except Exception as e:
             logger.warning(f"Feature fetch failed for {node_id}: {e}")
             return {}
 
-    def _compute_risk(self, failure_prob: float, load_forecast: dict[str, float]) -> float:
+    def _compute_risk(self, failure_prob: float, load_forecast: Dict[str, float]) -> float:
         """Compute composite risk score from predictions."""
         w = self.risk_coefficients
         load_penalty = min(1.0, (load_forecast["gpu"] + load_forecast["queue"] / 10.0) / 2.0)
         risk = (
-            w["failure_weight"] * failure_prob
-            + w["load_weight"] * load_penalty
-            + w["queue_weight"] * min(1.0, load_forecast["queue"] / 10.0)
+            w["failure_weight"] * failure_prob +
+            w["load_weight"] * load_penalty +
+            w["queue_weight"] * min(1.0, load_forecast["queue"] / 10.0)
         )
         return min(1.0, max(0.0, risk))
 
-    def _recommend(self, risk_score: float, load_forecast: dict[str, float]) -> str:
+    def _recommend(self, risk_score: float, load_forecast: Dict[str, float]) -> str:
         """Decision recommendation based on risk."""
         if risk_score < 0.3:
             return "schedule"
@@ -140,7 +141,7 @@ class Predictor:
             return "defer"
         return "reject"
 
-    def _default_prediction(self, node_id: str) -> dict[str, float]:
+    def _default_prediction(self, node_id: str) -> Dict[str, float]:
         return {
             "failure_probability": 0.0,
             "load_forecast_queue": 0.0,

@@ -6,26 +6,28 @@ Layer 2: Hard Constraint Pruning
 Layer 3: ILP (exact solve on small subset)
 Layer 4: Policy Selector (epsilon-greedy / best-utility)
 """
-import random
 from dataclasses import dataclass, field
+from typing import Optional
+import random
+import math
 
+from v6.objective.utility import UtilityFunction, ClusterSnapshot, ScheduleAction
 from v6.constraint_graph.graph import ConstraintGraph
-from v6.objective.utility import ScheduleAction, UtilityFunction
 
 
 @dataclass
 class SolverConfig:
-    k_candidates: int = 5  # Top-k candidates per job
-    epsilon: float = 0.1  # Exploration rate (epsilon-greedy)
-    ilp_timeout_ms: int = 100  # ILP solver timeout
-    enable_ilp: bool = True  # Enable exact ILP layer
+    k_candidates: int = 5          # Top-k candidates per job
+    epsilon: float = 0.1          # Exploration rate (epsilon-greedy)
+    ilp_timeout_ms: int = 100      # ILP solver timeout
+    enable_ilp: bool = True       # Enable exact ILP layer
 
 
 @dataclass
 class SolverResult:
     action: ScheduleAction
     expected_utility: float
-    solver_layer: str  # "ilp" | "heuristic" | "exploration"
+    solver_layer: str             # "ilp" | "heuristic" | "exploration"
     metadata: dict = field(default_factory=dict)
 
 
@@ -38,13 +40,8 @@ class CandidateGenerator:
     def __init__(self, k: int = 5):
         self.k = k
 
-    def generate(
-        self,
-        job_id: str,
-        nodes: list[str],
-        risk_scores: dict[str, float],
-        node_loads: dict[str, dict],
-    ) -> list[tuple[str, float]]:
+    def generate(self, job_id: str, nodes: list[str], risk_scores: dict[str, float],
+                 node_loads: dict[str, dict]) -> list[tuple[str, float]]:
         """
         Returns list of (node_id, score) for top-k candidates.
         Score = base_score - risk_penalty (from v5).
@@ -64,7 +61,7 @@ class CandidateGenerator:
 
         # Sort by score descending, take top-k
         candidates.sort(key=lambda x: x[1], reverse=True)
-        return candidates[: self.k]
+        return candidates[:self.k]
 
 
 class HardConstraintPruner:
@@ -91,7 +88,7 @@ class ILPOptimizer:
     """
     Layer 3: Exact ILP solver on pruned candidate subset.
     Maximizes U(S) for the local scheduling window.
-
+    
     Formulation:
       maximize sum(x[job,node] * utility[job,node])
       subject to:
@@ -103,19 +100,14 @@ class ILPOptimizer:
     def __init__(self, timeout_ms: int = 100):
         self.timeout_ms = timeout_ms
 
-    def solve(
-        self,
-        job_ids: list[str],
-        candidates: dict[str, list[str]],
-        utilities: dict[tuple[str, str], float],
-    ) -> dict[str, str]:
+    def solve(self, job_ids: list[str], candidates: dict[str, list[str]],
+              utilities: dict[tuple[str, str], float]) -> dict[str, str]:
         """
         Returns {job_id: node_id} assignment.
         Falls back to greedy if ILP unavailable or timeout.
         """
         try:
             import pulp
-
             prob = pulp.LpProblem("cluster_scheduling", pulp.LpMaximize)
             x = {}
             for job in job_ids:
@@ -174,7 +166,7 @@ class PolicySelector:
     def __init__(self, epsilon: float = 0.1):
         self.epsilon = epsilon
 
-    def select(self, candidates: list[tuple[str, float]]) -> str | None:
+    def select(self, candidates: list[tuple[str, float]]) -> Optional[str]:
         """
         Epsilon-greedy: with prob epsilon explore randomly,
         otherwise take best-utility candidate.
@@ -195,12 +187,9 @@ class HybridSolver:
       4. PolicySelector      — epsilon-greedy
     """
 
-    def __init__(
-        self,
-        config: SolverConfig | None = None,
-        graph: ConstraintGraph | None = None,
-        utility_fn: UtilityFunction | None = None,
-    ):
+    def __init__(self, config: Optional[SolverConfig] = None,
+                 graph: Optional[ConstraintGraph] = None,
+                 utility_fn: Optional[UtilityFunction] = None):
         self.config = config or SolverConfig()
         self.graph = graph or ConstraintGraph()
         self.U = utility_fn or UtilityFunction()
@@ -209,14 +198,10 @@ class HybridSolver:
         self.ilp = ILPOptimizer(timeout_ms=self.config.ilp_timeout_ms)
         self.selector = PolicySelector(epsilon=self.config.epsilon)
 
-    def solve(
-        self,
-        job_id: str,
-        nodes: list[str],
-        risk_scores: dict[str, float],
-        node_loads: dict[str, dict],
-        utilities: dict[tuple[str, str], float],
-    ) -> SolverResult:
+    def solve(self, job_id: str, nodes: list[str],
+              risk_scores: dict[str, float],
+              node_loads: dict[str, dict],
+              utilities: dict[tuple[str, str], float]) -> SolverResult:
         """End-to-end solve for one job."""
 
         # Layer 1: candidates
@@ -228,11 +213,11 @@ class HybridSolver:
                     action_type="defer",
                     job_id=job_id,
                     node_id=None,
-                    expected_utility_delta=0.0,
+                    expected_utility_delta=0.0
                 ),
                 expected_utility=0.0,
                 solver_layer="none",
-                metadata={"reason": "no_candidates"},
+                metadata={"reason": "no_candidates"}
             )
 
         # Layer 2: prune
@@ -244,14 +229,11 @@ class HybridSolver:
                     action_type="defer",
                     job_id=job_id,
                     node_id=None,
-                    expected_utility_delta=0.0,
+                    expected_utility_delta=0.0
                 ),
                 expected_utility=0.0,
                 solver_layer="pruned",
-                metadata={
-                    "reason": "all_constraints_violated",
-                    "candidates": candidates,
-                },
+                metadata={"reason": "all_constraints_violated", "candidates": candidates}
             )
 
         # Layer 3: ILP (if enabled and small enough)
@@ -266,11 +248,11 @@ class HybridSolver:
                         action_type="place",
                         job_id=job_id,
                         node_id=chosen_node,
-                        expected_utility_delta=chosen_score,
+                        expected_utility_delta=chosen_score
                     ),
                     expected_utility=chosen_score,
                     solver_layer="ilp",
-                    metadata={"method": "exact"},
+                    metadata={"method": "exact"}
                 )
 
         # Layer 4: policy selector
@@ -282,11 +264,11 @@ class HybridSolver:
                     action_type="defer",
                     job_id=job_id,
                     node_id=None,
-                    expected_utility_delta=0.0,
+                    expected_utility_delta=0.0
                 ),
                 expected_utility=0.0,
                 solver_layer="none",
-                metadata={"reason": "selector_returned_none"},
+                metadata={"reason": "selector_returned_none"}
             )
 
         chosen_score = next((s for n, s in valid if n == chosen_node), 0.0)
@@ -296,9 +278,9 @@ class HybridSolver:
                 action_type="place",
                 job_id=job_id,
                 node_id=chosen_node,
-                expected_utility_delta=chosen_score,
+                expected_utility_delta=chosen_score
             ),
             expected_utility=chosen_score,
             solver_layer="heuristic",
-            metadata={"method": "epsilon_greedy"},
+            metadata={"method": "epsilon_greedy"}
         )

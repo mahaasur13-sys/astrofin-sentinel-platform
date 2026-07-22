@@ -1,7 +1,5 @@
 """Smoke tests for observability/metrics.py."""
 
-from __future__ import annotations
-
 import asyncio
 import time
 import pytest

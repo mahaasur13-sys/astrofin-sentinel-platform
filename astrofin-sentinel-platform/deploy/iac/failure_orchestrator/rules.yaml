@@ -1,0 +1,59 @@
+# Failure Orchestrator — Rules Configuration
+rules:
+  slurm_controller:
+    recovery: restart_slurm_controller
+    escalate: true
+    max_retries: 3
+    severity: critical
+
+  slurm_worker_rk3576:
+    recovery: restart_slurm_worker
+    escalate: false
+    max_retries: 3
+    severity: critical
+
+  ceph_health:
+    recovery: restart_ceph
+    escalate: true
+    max_retries: 3
+    severity: critical
+
+  ceph_osd_down:
+    recovery: restart_ceph_osd
+    escalate: true
+    max_retries: 3
+    severity: warning
+
+  ray_head:
+    recovery: restart_ray_head
+    escalate: true
+    max_retries: 3
+    severity: critical
+
+  ray_worker_rk3576:
+    recovery: restart_ray_worker
+    escalate: false
+    max_retries: 3
+    severity: warning
+
+  wireguard_wg0:
+    recovery: restart_wireguard
+    escalate: false
+    max_retries: 3
+    severity: warning
+
+  gpu:
+    recovery: restart_nvidia_driver
+    escalate: true
+    max_retries: 2
+    severity: critical
+
+# Escalation settings
+escalation:
+  telegram:
+    enabled: true
+    cooldown_seconds: 3600
+
+  slack:
+    enabled: true
+    cooldown_seconds: 3600

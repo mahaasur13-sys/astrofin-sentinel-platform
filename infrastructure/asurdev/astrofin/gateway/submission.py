@@ -4,15 +4,17 @@ ACOS × AstroFin — Submission Gateway
 AstroFin API → ACOS Execution Trace Engine → L9 Gate → Scheduler.
 Every trade/agent/job MUST pass through this gateway.
 """
-import os
-import sys
+from typing import Optional
 import uuid
+import json
+import sys
+import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from astrofin.trace_schema.trace import AstroFinTrace, build_trace, trace_to_dict
 from astrofin.agents.registry import AGENTS, get_agent
 from astrofin.constraint_compiler import build_astrofin_policy
-from astrofin.trace_schema.trace import build_trace, trace_to_dict
 
 
 class ACOSSubmissionGateway:
@@ -29,7 +31,7 @@ class ACOSSubmissionGateway:
         self,
         job_type: str,
         agents: list[str],
-        strategy_id: str | None = None,
+        strategy_id: Optional[str] = None,
         execution_mode: str = "live",
         ml_models: list[str] = None,
     ) -> dict:
@@ -135,3 +137,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

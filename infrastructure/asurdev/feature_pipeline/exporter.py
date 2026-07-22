@@ -5,41 +5,40 @@ Features(t) → Label(t + horizon_minutes).
 Time-based split (80/10/10) — no future leakage.
 """
 import json
-from datetime import datetime
+import csv
 from pathlib import Path
-
+from typing import Dict, List, Optional, Tuple
+from datetime import datetime
+from dataclasses import asdict
+from .schemas import LabeledExample, MLBatch, LabelType
 from .builder import FeatureBuilder
-from .schemas import LabeledExample, LabelType, MLBatch
 from .window_engine import WindowEngine
 
 # =============================================================================
 # LABELS
 # =============================================================================
 
-
 def _label_from_outcome(outcome: str) -> int:
     """Map job/outcome string to label integer."""
     mapping = {
-        "success": LabelType.HEALTHY.value,
-        "healthy": LabelType.HEALTHY.value,
-        "completed": LabelType.HEALTHY.value,
-        "running": LabelType.HEALTHY.value,
-        "degraded": LabelType.DEGRADED.value,
-        "slow": LabelType.DEGRADED.value,
-        "retried": LabelType.DEGRADED.value,
-        "failed": LabelType.FAILED.value,
-        "error": LabelType.FAILED.value,
-        "crashed": LabelType.FAILED.value,
-        "timeout": LabelType.FAILED.value,
-        "oom": LabelType.FAILED.value,
+        "success":    LabelType.HEALTHY.value,
+        "healthy":    LabelType.HEALTHY.value,
+        "completed":  LabelType.HEALTHY.value,
+        "running":    LabelType.HEALTHY.value,
+        "degraded":   LabelType.DEGRADED.value,
+        "slow":       LabelType.DEGRADED.value,
+        "retried":    LabelType.DEGRADED.value,
+        "failed":     LabelType.FAILED.value,
+        "error":      LabelType.FAILED.value,
+        "crashed":    LabelType.FAILED.value,
+        "timeout":    LabelType.FAILED.value,
+        "oom":        LabelType.FAILED.value,
     }
     return mapping.get(outcome.lower(), LabelType.HEALTHY.value)
-
 
 # =============================================================================
 # DATASET EXPORTER
 # =============================================================================
-
 
 class DatasetExporter:
     """
@@ -55,8 +54,8 @@ class DatasetExporter:
 
     def __init__(
         self,
-        state_store=None,  # optional: StateStore instance
-        window_engine: WindowEngine | None = None,
+        state_store=None,        # optional: StateStore instance
+        window_engine: Optional[WindowEngine] = None,
         horizon_minutes: int = 30,
     ):
         self.state_store = state_store
@@ -64,38 +63,38 @@ class DatasetExporter:
         self.horizon_minutes = horizon_minutes
         self.feature_builder = FeatureBuilder(self.window_engine)
 
-    def _load_events(self) -> list[dict]:
+    def _load_events(self) -> List[Dict]:
         """Load job events from state_store. Falls back to synthetic data."""
         if self.state_store is not None:
             return self.state_store.get_all_events()
         # Synthetic fallback: generate demo events for testing
         return self._generate_synthetic_events()
 
-    def _generate_synthetic_events(self) -> list[dict]:
+    def _generate_synthetic_events(self) -> List[Dict]:
         """Generate synthetic job events for testing/demos."""
         import random
         from datetime import timedelta
-
         now = datetime.now()
         events = []
         for i in range(200):
             t = now - timedelta(minutes=200 - i)
             node = "rtx-node" if i % 3 != 0 else "rk3576-node"
-            outcome = random.choices(["success", "failed", "degraded"], weights=[0.7, 0.15, 0.15])[0]
-            events.append(
-                {
-                    "job_id": f"job_{i:04d}",
-                    "node_id": node,
-                    "timestamp": t.isoformat(),
-                    "state": outcome,
-                    "gpu_util_avg": random.uniform(10, 95),
-                    "cpu_util_avg": random.uniform(5, 80),
-                    "mem_util_avg": random.uniform(20, 70),
-                }
-            )
+            outcome = random.choices(
+                ["success", "failed", "degraded"],
+                weights=[0.7, 0.15, 0.15]
+            )[0]
+            events.append({
+                "job_id": f"job_{i:04d}",
+                "node_id": node,
+                "timestamp": t.isoformat(),
+                "state": outcome,
+                "gpu_util_avg": random.uniform(10, 95),
+                "cpu_util_avg": random.uniform(5, 80),
+                "mem_util_avg": random.uniform(20, 70),
+            })
         return events
 
-    def _get_label(self, node_id: str, current_time: datetime, future_events: list[dict]) -> int:
+    def _get_label(self, node_id: str, current_time: datetime, future_events: List[Dict]) -> int:
         """Determine label: did node fail within horizon_minutes?"""
         horizon = timedelta(minutes=self.horizon_minutes)
         cutoff = current_time + horizon
@@ -129,19 +128,15 @@ class DatasetExporter:
         events = sorted(events, key=lambda e: e.get("timestamp", ""))
         n = len(events)
         train_end = int(n * 0.8)
-        val_end = int(n * 0.9)
+        val_end   = int(n * 0.9)
 
         splits = {
             "train": events[:train_end],
-            "val": events[train_end:val_end],
-            "test": events[val_end:],
+            "val":   events[train_end:val_end],
+            "test":  events[val_end:],
         }
 
-        batch_data: dict[str, list[LabeledExample]] = {
-            "train": [],
-            "val": [],
-            "test": [],
-        }
+        batch_data: Dict[str, List[LabeledExample]] = {"train": [], "val": [], "test": []}
 
         for split_name, split_events in splits.items():
             future_events = events  # full list for label look-ahead
@@ -153,7 +148,7 @@ class DatasetExporter:
                     ts = ts_str
 
                 node_id = evt.get("node_id", "unknown")
-                job_id = evt.get("job_id")
+                job_id  = evt.get("job_id")
 
                 # Build features at time T
                 for metric, key in [
@@ -204,11 +199,11 @@ class DatasetExporter:
         data = {
             "metadata": batch.metadata,
             "train_size": batch.train_size,
-            "val_size": batch.val_size,
-            "test_size": batch.test_size,
+            "val_size":   batch.val_size,
+            "test_size":  batch.test_size,
             "train": [ex.to_ml_dict() for ex in batch.train],
-            "val": [ex.to_ml_dict() for ex in batch.val],
-            "test": [ex.to_ml_dict() for ex in batch.test],
+            "val":   [ex.to_ml_dict() for ex in batch.val],
+            "test":  [ex.to_ml_dict() for ex in batch.test],
         }
         with open(path, "w") as f:
             json.dump(data, f, indent=2, default=str)

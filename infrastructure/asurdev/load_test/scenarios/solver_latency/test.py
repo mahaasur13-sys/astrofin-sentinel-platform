@@ -6,11 +6,12 @@ Solver Latency Tail (P99) — ILP + Twin + Beam causes latency spikes
 HYPOTHESIS: ILP + Twin + Beam → P99 latency spikes under 100-1000 concurrent jobs
 EXPECTED: P99 > SLA (500ms) OR fallback_rate > 30%
 """
-import json
 import random
-import statistics
 import time
+import json
+import statistics
 from dataclasses import dataclass
+from typing import List
 
 
 @dataclass
@@ -41,7 +42,7 @@ class SolverLatencyScenario:
         self.twin_timeout_ms = twin_timeout_ms
         self.total_budget_ms = total_budget_ms
         self.concurrent_jobs = concurrent_jobs
-        self.results: list[JobResult] = []
+        self.results: List[JobResult] = []
 
     def simulate(self, duration_sec: int = 60) -> dict:
         start = time.time()
@@ -88,7 +89,7 @@ class SolverLatencyScenario:
             "p50_ms": round(p50, 2),
             "p95_ms": round(p95, 2),
             "p99_ms": round(p99, 2),
-            "fallback_rate": (round(fallbacks / len(self.results), 4) if self.results else 0),
+            "fallback_rate": round(fallbacks / len(self.results), 4) if self.results else 0,
             "rejected_count": rejected,
             "total_jobs": len(self.results),
         }
@@ -143,6 +144,7 @@ class SolverLatencyScenario:
         )
 
     def _simulate_after_fix(self) -> dict:
+        old_bw = self.beam_width
         self.beam_width = max(5, self.beam_width // 2)
         # Quick re-measure
         sample = [self._simulate_job(i).latency_ms for i in range(50)]
@@ -165,7 +167,7 @@ def run_all():
     )
     results = scenario.simulate(duration_sec=60)
 
-    print("\n=== SCENARIO RESULT ===")
+    print(f"\n=== SCENARIO RESULT ===")
     print(f"Failure detected: {results['failure_detected']}")
     print(f"Metrics: {json.dumps(results['metrics'], indent=2)}")
     if results["correction_applied"]:

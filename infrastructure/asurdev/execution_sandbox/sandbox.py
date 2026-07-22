@@ -4,13 +4,10 @@ ExecutionSandbox — Node-level isolation
 Block: fs writes outside scope, network calls, env mutation, memory overflow
 """
 from __future__ import annotations
-
-import os
-import resource
+import hashlib, json, os, resource, sys, tempfile
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any
-
+from enum import Enum
 
 class ViolationType(Enum):
     FS_WRITE = "FS_WRITE"
@@ -19,13 +16,11 @@ class ViolationType(Enum):
     MEMORY_EXCEED = "MEMORY_EXCEED"
     EXTERNAL_API = "EXTERNAL_API"
 
-
 @dataclass
 class SandboxViolation:
     type: ViolationType
     node_id: str
     details: str
-
 
 @dataclass
 class SandboxResult:
@@ -35,12 +30,11 @@ class SandboxResult:
     violations: list[SandboxViolation] = field(default_factory=list)
     memory_bytes: int = 0
 
-
 class ExecutionSandbox:
     def __init__(
         self,
         allowed_dirs: list[str] | None = None,
-        max_memory_bytes: int = 8 * 1024**3,
+        max_memory_bytes: int = 8 * 1024 ** 3,
         allow_network: bool = False,
         allow_env_write: bool = False,
     ):
@@ -60,49 +54,30 @@ class ExecutionSandbox:
         # Check memory limit
         mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
         if mem > self.max_memory:
-            return SandboxResult(
-                False,
-                node_id,
-                violations=[
-                    SandboxViolation(
-                        ViolationType.MEMORY_EXCEED,
-                        node_id,
-                        f"Memory {mem} > {self.max_memory}",
-                    )
-                ],
-            )
+            return SandboxResult(False, node_id, violations=[
+                SandboxViolation(ViolationType.MEMORY_EXCEED, node_id,
+                                f"Memory {mem} > {self.max_memory}")
+            ])
         # Check fs write scope
         if "write_path" in node and not self.validate_fs_write(node["write_path"]):
-            return SandboxResult(
-                False,
-                node_id,
-                violations=[
-                    SandboxViolation(
-                        ViolationType.FS_WRITE,
-                        node_id,
-                        f"Write to '{node['write_path']}' outside allowed scope",
-                    )
-                ],
-            )
+            return SandboxResult(False, node_id, violations=[
+                SandboxViolation(ViolationType.FS_WRITE, node_id,
+                                f"Write to '{node['write_path']}' outside allowed scope")
+            ])
         # Check network
         if node.get("network_required") and not self.allow_network:
-            return SandboxResult(
-                False,
-                node_id,
-                violations=[SandboxViolation(ViolationType.NETWORK_CALL, node_id, "Network call blocked")],
-            )
+            return SandboxResult(False, node_id, violations=[
+                SandboxViolation(ViolationType.NETWORK_CALL, node_id, "Network call blocked")
+            ])
         # Check env mutation
         if node.get("env_mutate") and not self.allow_env_write:
-            return SandboxResult(
-                False,
-                node_id,
-                violations=[SandboxViolation(ViolationType.ENV_MUTATE, node_id, "Env mutation blocked")],
-            )
+            return SandboxResult(False, node_id, violations=[
+                SandboxViolation(ViolationType.ENV_MUTATE, node_id, "Env mutation blocked")
+            ])
         return SandboxResult(True, node_id, output=node.get("output"))
 
     def execute_batch(self, nodes: list[dict[str, Any]]) -> list[SandboxResult]:
         return [self.execute(n) for n in nodes]
-
 
 if __name__ == "__main__":
     sandbox = ExecutionSandbox(allowed_dirs=["/tmp/scope"], max_memory_bytes=1_000_000_000)

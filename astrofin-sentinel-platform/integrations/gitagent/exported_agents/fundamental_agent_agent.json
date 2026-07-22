@@ -1,0 +1,11 @@
+{
+  "name": "FundamentalAgent",
+  "module": "agents._impl.fundamental_agent",
+  "class": "FundamentalAgent",
+  "description": "FundamentalAgent — анализ фундаментальных показателей компании/актива.\n\n    Responsibilities:\n    1. P/E, EPS, Revenue growth analysis\n    2. DCF valuation estimates\n    3. Sector comparison\n    4. Earnings quality assessment\n\n    Weight: 12% (part of 20% Fundamental+Macro block)",
+  "domain": "fundamental",
+  "weight": 0.12,
+  "tools": [],
+  "instructions": "",
+  "source": "agents/_impl"
+}

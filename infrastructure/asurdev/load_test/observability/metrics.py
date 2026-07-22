@@ -4,17 +4,17 @@ Observability Layer — collects metrics from all system components.
 Builds the observation vector used by the correction loop.
 """
 from __future__ import annotations
-
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-
+from typing import Optional
+import asyncio
 import httpx
+import time
 
 
 @dataclass
 class SystemMetrics:
     """Full system observation snapshot."""
-
     # Timing
     p50_latency_ms: float = 0.0
     p95_latency_ms: float = 0.0
@@ -44,7 +44,6 @@ class SystemMetrics:
 @dataclass
 class MetricThresholds:
     """Thresholds for SLO breach detection."""
-
     p99_latency_ms: float = 500.0
     failure_rate: float = 0.05
     rollback_success_rate: float = 0.95
@@ -109,34 +108,27 @@ class MetricsCollector:
 
         with httpx.Client(timeout=5.0) as client:
             # Latency quantiles
-            r = client.get(
-                f"{self.prometheus_url}/api/v1/query",
-                params={
-                    "query": "histogram_quantile(0.50, sum(rate(acos_scheduler_latency_seconds_bucket[5m])) by (le))"
-                },
-            )
+            r = client.get(f"{self.prometheus_url}/api/v1/query", params={
+                "query": "histogram_quantile(0.50, sum(rate(acos_scheduler_latency_seconds_bucket[5m])) by (le))"
+            })
             if r.status_code == 200:
                 result = r.json().get("data", {}).get("result", [])
                 if result:
                     metrics.p50_latency_ms = float(result[0]["value"][1]) * 1000
 
             # P99
-            r = client.get(
-                f"{self.prometheus_url}/api/v1/query",
-                params={
-                    "query": "histogram_quantile(0.99, sum(rate(acos_scheduler_latency_seconds_bucket[5m])) by (le))"
-                },
-            )
+            r = client.get(f"{self.prometheus_url}/api/v1/query", params={
+                "query": "histogram_quantile(0.99, sum(rate(acos_scheduler_latency_seconds_bucket[5m])) by (le))"
+            })
             if r.status_code == 200:
                 result = r.json().get("data", {}).get("result", [])
                 if result:
                     metrics.p99_latency_ms = float(result[0]["value"][1]) * 1000
 
             # Failure rate
-            r = client.get(
-                f"{self.prometheus_url}/api/v1/query",
-                params={"query": "sum(rate(acos_job_failures_total[5m])) / sum(rate(acos_jobs_total[5m]))"},
-            )
+            r = client.get(f"{self.prometheus_url}/api/v1/query", params={
+                "query": "sum(rate(acos_job_failures_total[5m])) / sum(rate(acos_jobs_total[5m]))"
+            })
             if r.status_code == 200:
                 result = r.json().get("data", {}).get("result", [])
                 if result:
@@ -167,7 +159,6 @@ class MetricsCollector:
     def _synthetic_baseline(self) -> SystemMetrics:
         """Generate realistic synthetic baseline when no real data."""
         import random
-
         r = random.Random()
         return SystemMetrics(
             p50_latency_ms=r.uniform(20, 60),
@@ -201,9 +192,7 @@ class MetricsCollector:
         if metrics.failure_rate > self._thresholds.failure_rate:
             breaches.append(f"failure_rate={metrics.failure_rate:.3f} > {self._thresholds.failure_rate}")
         if metrics.rollback_success_rate < self._thresholds.rollback_success_rate:
-            breaches.append(
-                f"rollback_success={metrics.rollback_success_rate:.3f} < {self._thresholds.rollback_success_rate}"
-            )
+            breaches.append(f"rollback_success={metrics.rollback_success_rate:.3f} < {self._thresholds.rollback_success_rate}")
         if metrics.drift_alignment_error > self._thresholds.drift_error:
             breaches.append(f"drift_error={metrics.drift_alignment_error:.3f} > {self._thresholds.drift_error}")
         if metrics.admission_reject_rate > self._thresholds.reject_rate:

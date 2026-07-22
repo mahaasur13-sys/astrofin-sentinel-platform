@@ -5,25 +5,27 @@ U = alpha * throughput + beta * reliability + gamma * migration_cost
     + delta * SLA_violation + epsilon * load_variance
 """
 from dataclasses import dataclass, field
+from typing import Optional
+import math
 
 
 @dataclass
 class UtilityWeights:
-    alpha_throughput: float = 1.0  # Jobs completed per time window
-    beta_reliability: float = 2.0  # Failure penalty weight
-    gamma_migration: float = 0.3  # Migration cost weight
-    delta_sla: float = 5.0  # SLA violation penalty
-    epsilon_variance: float = 0.5  # Load variance (stability)
+    alpha_throughput: float = 1.0     # Jobs completed per time window
+    beta_reliability: float = 2.0     # Failure penalty weight
+    gamma_migration: float = 0.3      # Migration cost weight
+    delta_sla: float = 5.0           # SLA violation penalty
+    epsilon_variance: float = 0.5     # Load variance (stability)
     epsilon_exploration: float = 0.1  # Exploration bonus
 
 
 @dataclass
 class ClusterSnapshot:
-    node_states: dict  # node_id -> {cpu, gpu, memory, jobs}
-    job_queue: list  # pending jobs
-    active_jobs: dict  # job_id -> {node, start_time, cost}
+    node_states: dict          # node_id -> {cpu, gpu, memory, jobs}
+    job_queue: list            # pending jobs
+    active_jobs: dict          # job_id -> {node, start_time, cost}
     completed_window: int = 0  # jobs completed in window
-    failed_window: int = 0  # failures in window
+    failed_window: int = 0     # failures in window
     sla_violations: int = 0
     migrations: int = 0
 
@@ -37,9 +39,9 @@ class ClusterSnapshot:
 @dataclass
 class ScheduleAction:
     action_id: str
-    action_type: str  # "place", "migrate", "evict", "defer"
-    job_id: str | None
-    node_id: str | None
+    action_type: str           # "place", "migrate", "evict", "defer"
+    job_id: Optional[str]
+    node_id: Optional[str]
     expected_utility_delta: float
 
 
@@ -55,7 +57,7 @@ class UtilityFunction:
         + exploration_bonus
     """
 
-    def __init__(self, weights: UtilityWeights | None = None):
+    def __init__(self, weights: Optional[UtilityWeights] = None):
         self.w = weights or UtilityWeights()
 
     def throughput_component(self, snapshot: ClusterSnapshot) -> float:
@@ -97,7 +99,11 @@ class UtilityFunction:
         Load variance = Var(cpu_usage) + Var(gpu_usage) + Var(memory_usage).
         Lower variance = more stable = higher utility.
         """
-        return snapshot.cpu_variance + snapshot.gpu_variance + snapshot.memory_variance
+        return (
+            snapshot.cpu_variance
+            + snapshot.gpu_variance
+            + snapshot.memory_variance
+        )
 
     def exploration_bonus(self, snapshot: ClusterSnapshot) -> float:
         """Epsilon-greedy exploration bonus for trying new configurations."""

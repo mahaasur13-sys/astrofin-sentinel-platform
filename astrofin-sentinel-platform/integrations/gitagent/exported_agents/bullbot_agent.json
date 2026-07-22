@@ -1,0 +1,11 @@
+{
+  "name": "BullBot",
+  "module": "agents._impl.bull_researcher",
+  "class": "BullResearcherAgent",
+  "description": "BullResearcher — ищет бычий кейс для актива.\n\n    Responsibilities:\n    1. Scan for bullish chart patterns\n    2. Analyze positive fundamental/news catalysts\n    3. Identify support zones and accumulation\n    4. Cross-reference with astro indicators (Jupiter, Moon phases)\n\n    Weight: 15%",
+  "domain": "trading",
+  "weight": 0.15,
+  "tools": [],
+  "instructions": "",
+  "source": "agents/_impl"
+}

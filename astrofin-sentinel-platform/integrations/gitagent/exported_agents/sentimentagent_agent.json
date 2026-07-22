@@ -1,0 +1,11 @@
+{
+  "name": "SentimentAgent",
+  "module": "agents._impl.sentiment_agent",
+  "class": "SentimentAgent",
+  "description": "SentimentAgent — анализ настроений рынка.",
+  "domain": "trading",
+  "weight": 0.02,
+  "tools": [],
+  "instructions": "",
+  "source": "agents/_impl"
+}

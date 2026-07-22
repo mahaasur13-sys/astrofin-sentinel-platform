@@ -4,13 +4,12 @@ ML Inference Client — thin wrapper around the /predict API.
 Used by any component that needs a risk_score without importing the full API app.
 Includes circuit-breaker behaviour: on API error → falls back to 0.0.
 """
-
 from __future__ import annotations
 
 import logging
 import os
 import time
-from typing import Any
+from typing import Optional, Any
 
 import requests
 
@@ -45,7 +44,7 @@ def _is_circuit_open() -> bool:
     return True
 
 
-def get_risk_score(metrics: dict[str, Any], timeout: float | None = None) -> float:
+def get_risk_score(metrics: dict[str, Any], timeout: Optional[float] = None) -> float:
     """
     Call POST /predict on the ML Inference API and return risk_score.
 

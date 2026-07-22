@@ -33,3 +33,4 @@ pytest-asyncio
 prometheus-client
 aiohttp
 openai>=1.0.0
+hmmlearn>=0.3.0

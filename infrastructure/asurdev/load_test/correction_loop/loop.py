@@ -5,39 +5,36 @@ Every cycle: observes state, detects deviation, classifies fix, applies correcti
 No direct production changes — everything goes through governance pipeline.
 """
 from __future__ import annotations
-
-import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional, Literal
 from enum import Enum
+import logging
 
 
 class FixType(Enum):
     """Classification of fix required."""
-
-    LOCAL = "local"  # Queue/tuning — no structural change
-    POLICY = "policy"  # Policy parameter update
-    STRUCTURAL = "structural"  # Constraint graph / architecture change
-    ESCALATE = "escalate"  # Human review required
+    LOCAL        = "local"       # Queue/tuning — no structural change
+    POLICY       = "policy"      # Policy parameter update
+    STRUCTURAL   = "structural"  # Constraint graph / architecture change
+    ESCALATE     = "escalate"    # Human review required
 
 
 class CorrectionAction(Enum):
     """Concrete actions available to the correction loop."""
-
-    ADJUST_QUEUE_DEPTH = "adjust_queue_depth"
-    TUNE_BEAM_WIDTH = "tune_beam_width"
+    ADJUST_QUEUE_DEPTH     = "adjust_queue_depth"
+    TUNE_BEAM_WIDTH        = "tune_beam_width"
     UPDATE_PRIORITY_WEIGHTS = "update_priority_weights"
-    RELAX_CONSTRAINT = "relax_constraint"
-    TRIGGER_ROLLBACK = "trigger_rollback"
-    SCALE_UP_RESOURCES = "scale_up_resources"
-    RETRAIN_MODEL = "retrain_model"
-    ESCALATE_HUMAN = "escalate_human"
+    RELAX_CONSTRAINT       = "relax_constraint"
+    TRIGGER_ROLLBACK       = "trigger_rollback"
+    SCALE_UP_RESOURCES     = "scale_up_resources"
+    RETRAIN_MODEL          = "retrain_model"
+    ESCALATE_HUMAN         = "escalate_human"
 
 
 @dataclass
 class CorrectionSignal:
     """Observed deviation from target state."""
-
     metric_name: str
     observed: float
     expected: float
@@ -49,7 +46,6 @@ class CorrectionSignal:
 @dataclass
 class CorrectionDecision:
     """Decision made by the correction loop."""
-
     fix_type: FixType
     primary_action: CorrectionAction
     secondary_actions: list[CorrectionAction]
@@ -63,11 +59,10 @@ class CorrectionDecision:
 @dataclass
 class CorrectionCycleResult:
     """Result of one full correction cycle."""
-
     cycle_id: int
     timestamp: datetime
     signals: list[CorrectionSignal]
-    decision: CorrectionDecision | None
+    decision: Optional[CorrectionDecision]
     execution_ms: float
     next_cycle_recommended: bool
     escalation_required: bool = False
@@ -92,9 +87,9 @@ class CorrectionLoop:
         self.state = state_store
         self._cycle_counter = 0
         self._history: list[CorrectionCycleResult] = []
-        self._pending_fix: CorrectionDecision | None = None
+        self._pending_fix: Optional[CorrectionDecision] = None
         self._fix_cooldown_sec = 30
-        self._last_fix_time: datetime | None = None
+        self._last_fix_time: Optional[datetime] = None
         self._correction_log = logging.getLogger("acos.correction_loop")
         self._suppression_count = 0
 
@@ -109,7 +104,6 @@ class CorrectionLoop:
         Returns CorrectionCycleResult with decision and actions.
         """
         import time
-
         start = time.monotonic()
         self._cycle_counter += 1
         cycle_id = self._cycle_counter
@@ -121,9 +115,7 @@ class CorrectionLoop:
             elapsed = (datetime.utcnow() - self._last_fix_time).total_seconds()
             if elapsed < self._fix_cooldown_sec:
                 self._suppression_count += 1
-                self._correction_log.info(
-                    f"[Cycle {cycle_id}] Suppressed (cooldown {elapsed:.0f}s < {self._fix_cooldown_sec}s)"
-                )
+                self._correction_log.info(f"[Cycle {cycle_id}] Suppressed (cooldown {elapsed:.0f}s < {self._fix_cooldown_sec}s)")
                 return CorrectionCycleResult(
                     cycle_id=cycle_id,
                     timestamp=datetime.utcnow(),
@@ -175,69 +167,59 @@ class CorrectionLoop:
         now = datetime.utcnow()
 
         # P99 latency
-        if hasattr(metrics, "p99_latency_ms") and metrics.p99_latency_ms > 500:
-            signals.append(
-                CorrectionSignal(
-                    metric_name="p99_latency_ms",
-                    observed=metrics.p99_latency_ms,
-                    expected=200.0,
-                    deviation_pct=(metrics.p99_latency_ms - 200) / 200 * 100,
-                    severity=min(1.0, (metrics.p99_latency_ms - 500) / 500),
-                    timestamp=now,
-                )
-            )
+        if hasattr(metrics, 'p99_latency_ms') and metrics.p99_latency_ms > 500:
+            signals.append(CorrectionSignal(
+                metric_name="p99_latency_ms",
+                observed=metrics.p99_latency_ms,
+                expected=200.0,
+                deviation_pct=(metrics.p99_latency_ms - 200) / 200 * 100,
+                severity=min(1.0, (metrics.p99_latency_ms - 500) / 500),
+                timestamp=now,
+            ))
 
         # Failure rate
-        if hasattr(metrics, "failure_rate") and metrics.failure_rate > 0.05:
-            signals.append(
-                CorrectionSignal(
-                    metric_name="failure_rate",
-                    observed=metrics.failure_rate,
-                    expected=0.01,
-                    deviation_pct=(metrics.failure_rate - 0.01) / 0.01 * 100,
-                    severity=min(1.0, (metrics.failure_rate - 0.05) / 0.10),
-                    timestamp=now,
-                )
-            )
+        if hasattr(metrics, 'failure_rate') and metrics.failure_rate > 0.05:
+            signals.append(CorrectionSignal(
+                metric_name="failure_rate",
+                observed=metrics.failure_rate,
+                expected=0.01,
+                deviation_pct=(metrics.failure_rate - 0.01) / 0.01 * 100,
+                severity=min(1.0, (metrics.failure_rate - 0.05) / 0.10),
+                timestamp=now,
+            ))
 
         # Queue depth
-        if hasattr(metrics, "queue_depth") and metrics.queue_depth > 50:
-            signals.append(
-                CorrectionSignal(
-                    metric_name="queue_depth",
-                    observed=float(metrics.queue_depth),
-                    expected=10.0,
-                    deviation_pct=(metrics.queue_depth - 10) / 10 * 100,
-                    severity=min(1.0, (metrics.queue_depth - 50) / 100),
-                    timestamp=now,
-                )
-            )
+        if hasattr(metrics, 'queue_depth') and metrics.queue_depth > 50:
+            signals.append(CorrectionSignal(
+                metric_name="queue_depth",
+                observed=float(metrics.queue_depth),
+                expected=10.0,
+                deviation_pct=(metrics.queue_depth - 10) / 10 * 100,
+                severity=min(1.0, (metrics.queue_depth - 50) / 100),
+                timestamp=now,
+            ))
 
         # Drift alignment
-        if hasattr(metrics, "drift_alignment_error") and metrics.drift_alignment_error > 0.15:
-            signals.append(
-                CorrectionSignal(
-                    metric_name="drift_alignment_error",
-                    observed=metrics.drift_alignment_error,
-                    expected=0.05,
-                    deviation_pct=(metrics.drift_alignment_error - 0.05) / 0.05 * 100,
-                    severity=min(1.0, (metrics.drift_alignment_error - 0.15) / 0.20),
-                    timestamp=now,
-                )
-            )
+        if hasattr(metrics, 'drift_alignment_error') and metrics.drift_alignment_error > 0.15:
+            signals.append(CorrectionSignal(
+                metric_name="drift_alignment_error",
+                observed=metrics.drift_alignment_error,
+                expected=0.05,
+                deviation_pct=(metrics.drift_alignment_error - 0.05) / 0.05 * 100,
+                severity=min(1.0, (metrics.drift_alignment_error - 0.15) / 0.20),
+                timestamp=now,
+            ))
 
         # Degraded mode
-        if hasattr(metrics, "degraded_mode") and metrics.degraded_mode:
-            signals.append(
-                CorrectionSignal(
-                    metric_name="degraded_mode",
-                    observed=1.0,
-                    expected=0.0,
-                    deviation_pct=100.0,
-                    severity=1.0,
-                    timestamp=now,
-                )
-            )
+        if hasattr(metrics, 'degraded_mode') and metrics.degraded_mode:
+            signals.append(CorrectionSignal(
+                metric_name="degraded_mode",
+                observed=1.0,
+                expected=0.0,
+                deviation_pct=100.0,
+                severity=1.0,
+                timestamp=now,
+            ))
 
         return signals
 
@@ -318,7 +300,7 @@ class CorrectionLoop:
             # Call v8 safety kernel
             request = {
                 "action": decision.primary_action.value,
-                "severity": max(s.severity for s in getattr(decision, "signals", [object()])),
+                "severity": max(s.severity for s in getattr(decision, 'signals', [object()])),
                 "metrics": {
                     "p99_latency_ms": metrics.p99_latency_ms,
                     "failure_rate": metrics.failure_rate,
@@ -358,9 +340,7 @@ class CorrectionLoop:
         if total == 0:
             return {"cycles": 0}
 
-        fixes = [
-            r for r in self._history if r.decision and r.decision.primary_action != CorrectionAction.ADJUST_QUEUE_DEPTH
-        ]
+        fixes = [r for r in self._history if r.decision and r.decision.primary_action != CorrectionAction.ADJUST_QUEUE_DEPTH]
         escalations = sum(1 for r in self._history if r.escalation_required)
         return {
             "total_cycles": total,

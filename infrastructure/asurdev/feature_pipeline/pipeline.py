@@ -11,16 +11,18 @@ Usage:
 """
 import argparse
 import logging
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import List, Optional
 
-from .builder import FeatureBuilder
-from .embedding import NodeEmbeddingBuilder
-from .exporter import DatasetExporter
-from .feature_registry import get_feature_names, validate_registry
-from .schemas import NodeProfile, NodeRole
 from .window_engine import WindowEngine
+from .feature_registry import FEATURE_REGISTRY, get_feature_names, validate_registry
+from .builder import FeatureBuilder
+from .exporter import DatasetExporter
+from .embedding import NodeEmbeddingBuilder
+from .schemas import NodeProfile, NodeRole
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,34 +35,26 @@ log = logging.getLogger("pipeline")
 # ARGUMENT PARSER
 # =============================================================================
 
-
 def parse_args():
     p = argparse.ArgumentParser(description="Home Cluster Feature Pipeline CLI")
     p.add_argument("--validate-registry", action="store_true", help="Validate feature registry")
     p.add_argument("--continuous", action="store_true", help="Run continuous pipeline")
     p.add_argument("--interval", type=int, default=60, help="Sampling interval in seconds")
-    p.add_argument(
-        "--nodes",
-        type=str,
-        default="rtx-node,rk3576-node",
-        help="Comma-separated node IDs",
-    )
+    p.add_argument("--nodes", type=str, default="rtx-node,rk3576-node", help="Comma-separated node IDs")
     p.add_argument("--export-csv", action="store_true", help="Export CSV dataset")
     p.add_argument("--export-json", action="store_true", help="Export JSON dataset")
     p.add_argument("--export-parquet", action="store_true", help="Export Parquet dataset")
     p.add_argument("--output", type=str, default="/tmp/ml_dataset", help="Output directory")
     p.add_argument("--horizon", type=int, default=30, help="Prediction horizon in minutes")
     p.add_argument("--embedding", action="store_true", help="Compute and show node embeddings")
-    p.add_argument("--log-level", type=str, default="INFO", choices=["DEBUG", "INFO", "WARNING"])
+    p.add_argument("--log-level", type=str, default="INFO", choices=["DEBUG","INFO","WARNING"])
     return p.parse_args()
-
 
 # =============================================================================
 # CONTINUOUS PIPELINE
 # =============================================================================
 
-
-def run_continuous(nodes: list[str], interval: int):
+def run_continuous(nodes: List[str], interval: int):
     """Continuously push metrics and build feature vectors."""
     log.info("Starting continuous pipeline — interval=%ds, nodes=%s", interval, nodes)
     engine = WindowEngine()
@@ -68,7 +62,6 @@ def run_continuous(nodes: list[str], interval: int):
 
     # Simulated metric streams per node (replace with real Prometheus queries)
     import random
-
     metrics = ["gpu_util", "cpu_util", "mem_util", "queue_size"]
 
     while True:
@@ -89,19 +82,12 @@ def run_continuous(nodes: list[str], interval: int):
             )
         time.sleep(interval)
 
-
 # =============================================================================
 # DATASET EXPORT
 # =============================================================================
 
-
-def run_export(
-    output_dir: str,
-    export_csv: bool,
-    export_json: bool,
-    export_parquet: bool,
-    horizon: int,
-):
+def run_export(output_dir: str, export_csv: bool, export_json: bool,
+               export_parquet: bool, horizon: int):
     """Export ML dataset."""
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     exporter = DatasetExporter(horizon_minutes=horizon)
@@ -122,39 +108,27 @@ def run_export(
         except ImportError as e:
             log.warning("Skipping Parquet: %s", e)
 
-
 # =============================================================================
 # EMBEDDING
 # =============================================================================
 
-
-def run_embedding(nodes: list[str]):
+def run_embedding(nodes: List[str]):
     """Compute and display node embeddings."""
     emb_builder = NodeEmbeddingBuilder()
 
     profiles = {
         "rtx-node": NodeProfile(
-            node_id="rtx-node",
-            role=NodeRole.GPU,
-            gpu_capacity=10.0,
-            cpu_cores=12,
-            memory_gb=64,
-            storage_gb=2000,
-            network_mbps=1000,
-            historical_failure_rate=0.5,
-            avg_latency_ms=2.0,
+            node_id="rtx-node", role=NodeRole.GPU,
+            gpu_capacity=10.0, cpu_cores=12, memory_gb=64,
+            storage_gb=2000, network_mbps=1000,
+            historical_failure_rate=0.5, avg_latency_ms=2.0,
             queue_volatility=3.5,
         ),
         "rk3576-node": NodeProfile(
-            node_id="rk3576-node",
-            role=NodeRole.CPU,
-            gpu_capacity=0.5,
-            cpu_cores=8,
-            memory_gb=16,
-            storage_gb=256,
-            network_mbps=1000,
-            historical_failure_rate=0.2,
-            avg_latency_ms=5.0,
+            node_id="rk3576-node", role=NodeRole.CPU,
+            gpu_capacity=0.5, cpu_cores=8, memory_gb=16,
+            storage_gb=256, network_mbps=1000,
+            historical_failure_rate=0.2, avg_latency_ms=5.0,
             queue_volatility=1.2,
         ),
     }
@@ -173,11 +147,9 @@ def run_embedding(nodes: list[str]):
         similar = emb_builder.find_similar_nodes(embeddings[node], embeddings, top_k=3)
         log.info("Similar to %s: %s", node, similar)
 
-
 # =============================================================================
 # MAIN
 # =============================================================================
-
 
 def main():
     args = parse_args()
@@ -197,13 +169,8 @@ def main():
 
     do_export = args.export_csv or args.export_json or args.export_parquet
     if do_export:
-        run_export(
-            args.output,
-            args.export_csv,
-            args.export_json,
-            args.export_parquet,
-            args.horizon,
-        )
+        run_export(args.output, args.export_csv, args.export_json,
+                   args.export_parquet, args.horizon)
         return
 
     if args.embedding:
@@ -216,7 +183,6 @@ def main():
     builder = FeatureBuilder(engine)
 
     import random
-
     ts = datetime.now()
     for node in nodes:
         for metric in ["gpu_util", "cpu_util", "mem_util", "queue_size"]:
@@ -226,7 +192,6 @@ def main():
     for node in nodes:
         fv = builder.build(node, ts)
         log.info("Feature vector for %s: %d features", node, len(fv.features))
-
 
 if __name__ == "__main__":
     main()

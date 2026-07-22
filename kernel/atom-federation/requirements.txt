@@ -1,0 +1,4 @@
+# requirements.txt — atom-federation-os v9.0+P0.3
+# Core dependencies only. All dependencies are stdlib or already available.
+# This file is intentionally minimal — no external packages required.
+# Lock with: pip freeze > requirements.lock

@@ -1,0 +1,224 @@
+# execution_graph.lattice — atom-federation-os v9.0+P3
+# Formal Execution Graph Model: nodes = gate states, edges = verified transitions
+
+# ============================================================
+# GRAPH DEFINITION
+# ============================================================
+# Formal graph: G = (V, E, Entry)
+#   V = execution states {S0, G1, G2, ..., G10, ACT, SHALT}
+#   E ⊆ V × V = verified transition relation
+#   Entry = {S0} = single entry constraint
+
+[V]
+S0        # Entry state: no gates evaluated yet
+G1        # AdversarialDetector evaluated
+G2        # PolicyKernelV4 evaluated
+G3        # Alignment (GSCT/GCST/GAST/UST) evaluated
+G4        # StabilityGovernor evaluated
+G5        # CircuitBreaker evaluated
+G6        # PreValidation evaluated
+G7        # ActuationGate evaluated
+G8        # InvariantChecker (post) evaluated
+G9        # MutationLedger recorded
+G10       # RollbackEngine checkpoint recorded
+ACT       # System mutation applied
+SHALT_B   # Halted at BLOCK state (terminal)
+SHALT_E   # Halted at ERROR state (terminal)
+
+[ENTRY]
+S0        # Only S0 is entry-eligible
+
+[TERMINAL]
+SHALT_B   # Block terminal
+SHALT_E   # Error terminal
+
+# ============================================================
+# TRANSITION RELATION E
+# ============================================================
+# Format: from -> to [label]
+# label = transition_name | guard_condition | BLOCK_PATH
+
+[S0]
+S0    -> G1   [eval]
+S0    -> G1   [bypass_guard_check]   # ONLY valid path from S0
+
+[G1]
+G1    -> G2   [PASS]
+G1    -> SHALT_B   [BLOCK: adversarial_input]  # BLOCK_PATH
+
+[G2]
+G2    -> G3   [PASS]
+G2    -> SHALT_B   [BLOCK: policy_veto]        # BLOCK_PATH
+
+[G3]
+G3    -> G4   [PASS]
+G3    -> SHALT_B   [BLOCK: alignment_failure] # BLOCK_PATH
+
+[G4]
+G4    -> G5   [PASS]
+G4    -> SHALT_B   [BLOCK: stability_threshold]  # BLOCK_PATH
+
+[G5]
+G5    -> G6   [PASS: circuit_closed]
+G5    -> G6   [DEFER: circuit_half]             # HALF state — continue but defer mutations
+G5    -> SHALT_B   [BLOCK: circuit_open]        # BLOCK_PATH
+
+[G6]
+G6    -> G7   [PASS]
+G6    -> SHALT_B   [BLOCK: prevalidation_fail]  # BLOCK_PATH
+
+[G7]
+G7    -> G8   [PASS: gateway_only]
+G7    -> SHALT_B   [BLOCK: actuation_gate_reject]  # BLOCK_PATH
+# NOTE: actuation boundary is PRIVATE — no external path can reach G8 directly
+
+[G8]
+G8    -> G9   [PASS: invariants_hold]
+G8    -> SHALT_B   [BLOCK: invariant_violation] # BLOCK_PATH (rollback triggered)
+
+[G9]
+G9    -> G10  [PASS: ledger_append_success]
+G9    -> SHALT_E   [ERROR: ledger_append_fail]  # ERROR_PATH
+
+[G10]
+G10   -> ACT  [PASS: checkpoint_recorded]
+G10   -> SHALT_E   [ERROR: checkpoint_record_fail]  # ERROR_PATH
+
+[ACT]
+ACT   -> ACT   [noop]  # ACT is terminal by definition (no outgoing edges)
+# ACT is a FIXED POINT: applying mutation to already-mutated state
+
+# ============================================================
+# CONSTRAINT: SINGLE ENTRY
+# ============================================================
+# Theorem: |{v ∈ V : indegree(v) = 0}| = 1
+# Proof:   Only S0 has indegree=0 (entry state)
+# Corollary: ExecutionGateway.execute() is the unique root
+
+[ENTRY_CONSTRAINT]
+forall v in V \ {S0}: indegree(v) >= 1
+forall v in V: indegree(v) = 0 iff v = S0
+
+# ============================================================
+# CONSTRAINT: STRICT ORDERING (total order on non-terminal nodes)
+# ============================================================
+# Theorem: path S0 ->* ACT is a strictly ordered chain
+# Partial order: S0 < G1 < G2 < G3 < G4 < G5 < G6 < G7 < G8 < G9 < G10 < ACT
+# No edges skip nodes (every edge increment = +1 in the chain)
+
+[STRICT_ORDER]
+forall (u -> v) in E:
+  index(u) < index(v)
+  where index: S0=0, G1=1, G2=2, G3=3, G4=4, G5=5, G6=6, G7=7, G8=8, G9=9, G10=10, ACT=11
+
+# ============================================================
+# CONSTRAINT: DOMINATOR (Gateway dominates all paths to ACT)
+# ============================================================
+# Definition: node d dominates node n if every path from Entry to n passes through d
+# Theorem: ExecutionGateway (S0 -> GATEWAY_WRAP) dominates ACT
+# Formal: forall path P from S0 to ACT: S0 in P and GATEWAY internal nodes in P
+
+# Immediate dominators:
+#   idom(S0) = none (root)
+#   idom(G1) = S0
+#   idom(G2) = G1
+#   ...
+#   idom(ACT) = GATEWAY_WRAP (the gateway execute() function itself)
+#   idom(SHALT_B) = first gate that blocks
+
+[DOMINATOR_TREE]
+S0     [idom=none, depth=0]
+G1     [idom=S0,    depth=1]
+G2     [idom=G1,    depth=2]
+G3     [idom=G2,    depth=3]
+G4     [idom=G3,    depth=4]
+G5     [idom=G4,    depth=5]
+G6     [idom=G5,    depth=6]
+G7     [idom=G6,    depth=7]
+G8     [idom=G7,    depth=8]
+G9     [idom=G8,    depth=9]
+G10    [idom=G9,    depth=10]
+ACT    [idom=G10,   depth=11]  # Gateway dominates ACT
+SHALT_B [idom=Gk, depth=k]   # k = blocking gate index
+
+# ============================================================
+# CONSTRAINT: NO BYPASS (safety algebra is a closed chain)
+# ============================================================
+# Theorem: no path from S0 to ACT skips any Gi
+# Proof by contradiction: assume path S0 -> Gi -> ACT with j > i+1
+#   But Gi -> Gj is not in E (strict ordering enforced above)
+#   Therefore contradiction
+
+[NO_BYPASS]
+forall path P in paths(S0, ACT):
+  length(P) = 12  # S0, G1, G2, G3, G4, G5, G6, G7, G8, G9, G10, ACT
+  nodes(P) = [S0, G1, G2, G3, G4, G5, G6, G7, G8, G9, G10, ACT]
+
+# ============================================================
+# CONSTRAINT: ACTUATION BOUNDARY (G7 = hard privacy boundary)
+# ============================================================
+# Theorem: actuator cannot be reached from any node outside the gateway path
+# Proof: G7 -> G8 is the ONLY edge into G8
+#   Any path reaching G8 must pass through G7
+#   G7 is the actuation gate: it is INSIDE ExecutionGateway
+#   External callers can only call Gateway.execute()
+#   Therefore: actuator_access ⊆ Gateway.execute()
+
+[ACTUATION_BOUNDARY]
+forall node v in V \ {G7, G8}:
+  there is NO path from v to G8 that does not pass through G7
+
+# ============================================================
+# LATTICE STRUCTURE: execution states form a complete lattice
+# ============================================================
+# Lattice L = (Pow(Path), ⊆)
+#   Bottom: ∅ (no path executed)
+#   Top: All valid execution paths
+#   Join: path union
+#   Meet: path intersection
+#
+# Gate lattice (safety levels):
+#   Level 0: S0 (entry — no safety applied)
+#   Level 1: G1 (adversarial detection)
+#   Level 2: G2 (policy enforcement)
+#   Level 3: G3 (alignment verification)
+#   Level 4: G4 (stability governance)
+#   Level 5: G5 (circuit breaking)
+#   Level 6: G6 (pre-validation)
+#   Level 7: G7 (actuation gate)  ← PRIVACY BOUNDARY
+#   Level 8: G8 (post invariants)
+#   Level 9: G9 (ledger commit)
+#   Level 10: G10 (rollback checkpoint)
+#   Level 11: ACT (mutation applied)
+#
+# Monotonicity: each gate level can ONLY increase (no decreasing allowed)
+# Safety gain: going through Gi → Gi+1 always increases safety guarantee
+
+[LATTICE_LEVELS]
+level(0)  = S0
+level(1)  = G1
+level(2)  = G2
+level(3)  = G3
+level(4)  = G4
+level(5)  = G5
+level(6)  = G6
+level(7)  = G7   # actuation gate
+level(8)  = G8
+level(9)  = G9
+level(10) = G10
+level(11) = ACT
+level(12) = SHALT_B  # terminal blocked
+level(13) = SHALT_E  # terminal error
+
+# ============================================================
+# VERIFICATION CHECKLIST
+# ============================================================
+# To verify the lattice holds:
+#
+# [ ] 1. Entry constraint: only S0 has indegree 0
+# [ ] 2. Strict ordering: every edge increments level by exactly 1
+# [ ] 3. No bypass: every S0->ACT path has exactly 12 nodes
+# [ ] 4. Dominator: Gateway (via S0->G1 chain) dominates ACT
+# [ ] 5. Actuation boundary: G7 is hard privacy — no external access
+# [ ] 6. Terminal: ACT has no outgoing edges
+# [ ] 7. Block paths: SHALT_B reachable only via BLOCK edges

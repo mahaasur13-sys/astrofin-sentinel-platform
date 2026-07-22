@@ -34,18 +34,24 @@ class TraceRecord:
         if self.created_at is None:
             self.created_at = utc_now_deterministic()
         elif isinstance(self.created_at, str):
-            self.created_at = datetime.fromisoformat(self.created_at.replace("Z", "+00:00"))
+            self.created_at = datetime.fromisoformat(
+                self.created_at.replace("Z", "+00:00")
+            )
 
     def to_dict(self) -> dict[str, Any]:
         ca = self.created_at
         return {
             "trace_id": self.trace_id,
             "metadata": self.metadata,
-            "created_at": (ca.isoformat() if isinstance(ca, datetime) else (str(ca) if ca else None)),
+            "created_at": (
+                ca.isoformat()
+                if isinstance(ca, datetime)
+                else (str(ca) if ca else None)
+            ),
         }
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> TraceRecord:
+    def from_dict(cls, d: dict[str, Any]) -> "TraceRecord":
         ca_raw = d.get("created_at")
         ca: datetime | None = None
         if isinstance(ca_raw, str):

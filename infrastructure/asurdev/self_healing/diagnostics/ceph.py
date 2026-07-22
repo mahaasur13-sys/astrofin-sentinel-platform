@@ -14,13 +14,16 @@ Fixed issues:
   3.3 ML integration placeholder
 """
 
-import json
 import subprocess
-from dataclasses import dataclass
+import json
+import re
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import Optional
+
 
 TOTAL_TIMEOUT = 5  # seconds total budget (EBC)
-PER_CALL = 1  # seconds per SSH call
+PER_CALL = 1       # seconds per SSH call
 
 
 class CephHealth(Enum):
@@ -33,8 +36,8 @@ class CephHealth(Enum):
 @dataclass
 class CephStatus:
     health: CephHealth
-    mon_total: int  # total MONs in cluster (NOT quorum count)
-    quorum_names: list  # MONs currently in quorum
+    mon_total: int            # total MONs in cluster (NOT quorum count)
+    quorum_names: list       # MONs currently in quorum
     mon_map_epoch: int
     osd_tree: dict
     pg_status: dict
@@ -46,13 +49,13 @@ class CephStatus:
     pgs_stale: list
     pgs_inconsistent: list
     recovery_rate: float
-    usage_ratio: float  # used_bytes / total_bytes (0.0-1.0)
-    nearfull_ratio: float  # nearfull threshold (0.0-1.0)
-    heartbeat_issues: list  # explicit heartbeat problems from health detail
-    quorum_lost: list  # MONs not in quorum
+    usage_ratio: float        # used_bytes / total_bytes (0.0-1.0)
+    nearfull_ratio: float     # nearfull threshold (0.0-1.0)
+    heartbeat_issues: list    # explicit heartbeat problems from health detail
+    quorum_lost: list        # MONs not in quorum
 
 
-def ceph_exec(host: str | None, args: list, timeout: int = PER_CALL) -> tuple[str, int]:
+def ceph_exec(host: Optional[str], args: list, timeout: int = PER_CALL) -> tuple[str, int]:
     """
     Run ceph command via SSH. Reuses connection via explicit host param.
     EBC: strict 1s timeout per call.
@@ -73,7 +76,7 @@ def ceph_exec(host: str | None, args: list, timeout: int = PER_CALL) -> tuple[st
 class CephExecutor:
     """Abstraction: reuse SSH host. EBC-compliant."""
 
-    def __init__(self, host: str | None = None):
+    def __init__(self, host: Optional[str] = None):
         self.host = host
         self._budget_ms = TOTAL_TIMEOUT * 1000
 
@@ -87,7 +90,7 @@ class CephExecutor:
         return out, rc
 
 
-def get_ceph_status_detail(host: str | None = None) -> CephStatus:
+def get_ceph_status_detail(host: Optional[str] = None) -> CephStatus:
     exec = CephExecutor(host)
 
     # 1. Basic health
@@ -265,9 +268,7 @@ def detect_split_brain(status: CephStatus) -> tuple[bool, str]:
 
     # 5. OSDs down while PGs still active (partition symptom)
     if status.osds_down and (status.pgs_activating or status.pgs_deep):
-        reasons.append(
-            f"OSDs {status.osds_down} are DOWN while {len(status.pgs_activating) + len(status.pgs_deep)} PGs still active/being recovered"
-        )
+        reasons.append(f"OSDs {status.osds_down} are DOWN while {len(status.pgs_activating) + len(status.pgs_deep)} PGs still active/being recovered")
 
     if reasons:
         return True, "; ".join(reasons)
@@ -283,76 +284,64 @@ def get_recovery_priority(status: CephStatus) -> list[dict]:
 
     if status.quorum_lost and len(status.quorum_names) >= 2:
         for mon in status.quorum_lost:
-            actions.append(
-                {
-                    "action": "restart_mon",
-                    "target": mon,
-                    "priority": 1,
-                    "reason": f"MON {mon} lost from quorum (cluster requires majority)",
-                    "auto": True,
-                }
-            )
+            actions.append({
+                "action": "restart_mon",
+                "target": mon,
+                "priority": 1,
+                "reason": f"MON {mon} lost from quorum (cluster requires majority)",
+                "auto": True,
+            })
 
     if status.osds_down:
         for osd_id in status.osds_down:
-            actions.append(
-                {
-                    "action": "restart_osd",
-                    "target": f"osd.{osd_id}",
-                    "priority": 2,
-                    "reason": "OSD is down",
-                    "auto": True,
-                }
-            )
+            actions.append({
+                "action": "restart_osd",
+                "target": f"osd.{osd_id}",
+                "priority": 2,
+                "reason": "OSD is down",
+                "auto": True,
+            })
 
     if status.pgs_stale:
-        actions.append(
-            {
-                "action": "pg_scrub",
-                "target": ",".join(status.pgs_stale[:5]),
-                "priority": 3,
-                "reason": f"{len(status.pgs_stale)} stale PGs (split-brain symptom)",
-                "auto": False,  # manual scrub confirmation
-            }
-        )
+        actions.append({
+            "action": "pg_scrub",
+            "target": ",".join(status.pgs_stale[:5]),
+            "priority": 3,
+            "reason": f"{len(status.pgs_stale)} stale PGs (split-brain symptom)",
+            "auto": False,  # manual scrub confirmation
+        })
 
     if len(status.pgs_deep) > 20:
-        actions.append(
-            {
-                "action": "throttle_recovery",
-                "target": "reduce_rate",
-                "priority": 4,
-                "reason": f"{len(status.pgs_deep)} PGs deep-scrubbing (recovery overload)",
-                "auto": True,
-            }
-        )
+        actions.append({
+            "action": "throttle_recovery",
+            "target": "reduce_rate",
+            "priority": 4,
+            "reason": f"{len(status.pgs_deep)} PGs deep-scrubbing (recovery overload)",
+            "auto": True,
+        })
 
     if status.usage_ratio > 0.85:
-        actions.append(
-            {
-                "action": "alert_nearfull",
-                "target": "osd",
-                "priority": 5,
-                "reason": f"Storage {int(status.usage_ratio*100)}% used (nearfull threshold)",
-                "auto": False,
-            }
-        )
+        actions.append({
+            "action": "alert_nearfull",
+            "target": "osd",
+            "priority": 5,
+            "reason": f"Storage {int(status.usage_ratio*100)}% used (nearfull threshold)",
+            "auto": False,
+        })
 
     if status.pgs_inconsistent:
-        actions.append(
-            {
-                "action": "deep_scrub_inconsistent",
-                "target": ",".join(status.pgs_inconsistent[:3]),
-                "priority": 1,
-                "reason": "INCONSISTENT PGs = data divergence (CRITICAL)",
-                "auto": False,
-            }
-        )
+        actions.append({
+            "action": "deep_scrub_inconsistent",
+            "target": ",".join(status.pgs_inconsistent[:3]),
+            "priority": 1,
+            "reason": "INCONSISTENT PGs = data divergence (CRITICAL)",
+            "auto": False,
+        })
 
     return sorted(actions, key=lambda x: x["priority"])
 
 
-def diagnose_ceph(host: str | None = None, ml_preds: dict | None = None) -> dict:
+def diagnose_ceph(host: Optional[str] = None, ml_preds: Optional[dict] = None) -> dict:
     """
     Main entry point for Ceph diagnostics.
     FIX 3.3: ML integration.
@@ -395,7 +384,6 @@ def diagnose_ceph(host: str | None = None, ml_preds: dict | None = None) -> dict
 
 if __name__ == "__main__":
     import sys
-
     host = sys.argv[1] if len(sys.argv) > 1 else None
     ml_path = sys.argv[2] if len(sys.argv) > 2 else None
 

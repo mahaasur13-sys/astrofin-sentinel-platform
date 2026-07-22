@@ -3,8 +3,11 @@
 Retrainer — scheduled + drift-triggered model retraining.
 Triggers: every N jobs completed, or when drift detected.
 """
+import os
 import logging
+from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +27,7 @@ class Retrainer:
         self._jobs_since_retrain = 0
         self._last_metrics = {}
 
-    def should_retrain(self, current_metrics: dict | None = None) -> bool:
+    def should_retrain(self, current_metrics: Optional[dict] = None) -> bool:
         """Check if retraining conditions are met."""
         if self._jobs_since_retrain >= self.job_count_threshold:
             return True
@@ -33,14 +36,12 @@ class Retrainer:
             for key in ["test_auc", "test_f1"]:
                 if key in current_metrics and key in self._last_metrics:
                     if abs(current_metrics[key] - self._last_metrics[key]) > self.drift_threshold:
-                        logger.info(
-                            f"Drift detected on {key}: {self._last_metrics[key]:.4f} → {current_metrics[key]:.4f}"
-                        )
+                        logger.info(f"Drift detected on {key}: {self._last_metrics[key]:.4f} → {current_metrics[key]:.4f}")
                         return True
 
         return False
 
-    def retrain(self, output_dir: Path | None = None) -> dict:
+    def retrain(self, output_dir: Optional[Path] = None) -> dict:
         """Execute retraining and update last metrics."""
         logger.info("Retraining triggered...")
         self._jobs_since_retrain = 0

@@ -1,0 +1,57 @@
+{
+  "result": "PASS",
+  "spec_transitions": 25,
+  "runtime_transitions": 25,
+  "delta": {
+    "spec_count": 25,
+    "runtime_count": 25,
+    "missing_count": 0,
+    "missing_transitions": [],
+    "extra_count": 0,
+    "extra_transitions": [],
+    "invalid_states": []
+  },
+  "hidden_entry_points": {
+    "total": 4,
+    "high_severity": 0,
+    "items": [
+      {
+        "file": "core/federation/federated_gateway.py",
+        "method": "execute",
+        "line": 123,
+        "in_gateway": false,
+        "severity": "PERMITTED",
+        "reason": "P6-federated variant (own DFA, delegates to ExecutionGateway)"
+      },
+      {
+        "file": "orchestration/ExecutionGateway/execution_gateway.py",
+        "method": "execute",
+        "line": 194,
+        "in_gateway": true,
+        "severity": "PERMITTED",
+        "reason": "canonical DFA entry point (MUST pass through DFA layer)"
+      },
+      {
+        "file": "orchestration/v8_2b_controlled_autocorrection/mutation_executor.py",
+        "method": "apply_mutation",
+        "line": 113,
+        "in_gateway": false,
+        "severity": "PERMITTED",
+        "reason": "P2-internal gateway wrapper (verifier: must assert delegation)"
+      },
+      {
+        "file": "resilience/healer.py",
+        "method": "_execute",
+        "line": 144,
+        "in_gateway": false,
+        "severity": "PERMITTED",
+        "reason": "resilience-internal (no system mutation)"
+      }
+    ]
+  },
+  "ltl_check": {
+    "G(Exec\u2192NonceLocked U Act)": true,
+    "\u00acEF(Replay \u2227 Exec)": true,
+    "AG(Exec\u2192AF(Act))": true
+  }
+}

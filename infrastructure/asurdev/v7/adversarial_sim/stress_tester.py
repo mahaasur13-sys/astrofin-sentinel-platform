@@ -4,10 +4,9 @@ Adversarial Load Simulator — stress tests policy stability under worst-case co
 S_adversarial = S + burst_load + node_failure_chain + queue_spike
 """
 from __future__ import annotations
-
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 import random
-from dataclasses import dataclass
-from datetime import datetime
 
 
 @dataclass
@@ -27,44 +26,17 @@ class AdversarialSimulator:
 
     # Predefined scenario templates
     SCENARIOS = [
-        {
-            "name": "burst_load",
-            "burst_jobs": 20,
-            "failures": [],
-            "spike": 3.0,
-            "severity": 0.4,
-        },
-        {
-            "name": "node_failure_cascade",
-            "burst_jobs": 5,
-            "failures": ["rtx-node", "rk3576-worker"],
-            "spike": 1.5,
-            "severity": 0.7,
-        },
-        {
-            "name": "queue_spike",
-            "burst_jobs": 10,
-            "failures": [],
-            "spike": 10.0,
-            "severity": 0.5,
-        },
-        {
-            "name": "critical_jam",
-            "burst_jobs": 30,
-            "failures": ["rtx-node"],
-            "spike": 5.0,
-            "severity": 0.9,
-        },
+        {"name": "burst_load", "burst_jobs": 20, "failures": [], "spike": 3.0, "severity": 0.4},
+        {"name": "node_failure_cascade", "burst_jobs": 5, "failures": ["rtx-node", "rk3576-worker"], "spike": 1.5, "severity": 0.7},
+        {"name": "queue_spike", "burst_jobs": 10, "failures": [], "spike": 10.0, "severity": 0.5},
+        {"name": "critical_jam", "burst_jobs": 30, "failures": ["rtx-node"], "spike": 5.0, "severity": 0.9},
     ]
 
     def generate_scenario(self, scenario_name: str = "random") -> AdversarialScenario:
         if scenario_name == "random":
             template = random.choice(self.SCENARIOS)
         else:
-            template = next(
-                (s for s in self.SCENARIOS if s["name"] == scenario_name),
-                self.SCENARIOS[0],
-            )
+            template = next((s for s in self.SCENARIOS if s["name"] == scenario_name), self.SCENARIOS[0])
 
         return AdversarialScenario(
             scenario_id=f"adv_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{random.randint(1000,9999)}",
@@ -95,24 +67,20 @@ class AdversarialSimulator:
             perturbed = self.apply_to_state(initial_state, scenario)
             try:
                 outcome = optimizer_fn(perturbed)
-                results.append(
-                    {
-                        "scenario": scenario.scenario_id,
-                        "severity": scenario.severity,
-                        "success": True,
-                        "latency_ms": outcome.get("latency_ms", 0),
-                        "utility": outcome.get("utility", 0),
-                    }
-                )
+                results.append({
+                    "scenario": scenario.scenario_id,
+                    "severity": scenario.severity,
+                    "success": True,
+                    "latency_ms": outcome.get("latency_ms", 0),
+                    "utility": outcome.get("utility", 0),
+                })
             except Exception as e:
-                results.append(
-                    {
-                        "scenario": scenario.scenario_id,
-                        "severity": scenario.severity,
-                        "success": False,
-                        "error": str(e),
-                    }
-                )
+                results.append({
+                    "scenario": scenario.scenario_id,
+                    "severity": scenario.severity,
+                    "success": False,
+                    "error": str(e),
+                })
 
         success_rate = sum(1 for r in results if r["success"]) / max(len(results), 1)
         avg_latency = sum(r["latency_ms"] for r in results if "latency_ms" in r) / max(len(results), 1)

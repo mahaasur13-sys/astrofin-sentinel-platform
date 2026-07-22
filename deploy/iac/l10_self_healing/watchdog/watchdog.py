@@ -20,7 +20,9 @@ class HealthMetric:
     name: str
     value: float
     unit: str
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     source_layer: str = ""
 
 
@@ -46,7 +48,9 @@ class Watchdog:
     def register_trigger(self, trigger: FailureTrigger) -> None:
         self.watchdog_triggers[trigger.metric] = trigger
 
-    def register_monitor(self, metric_name: str, monitor_fn: Callable[[], float]) -> None:
+    def register_monitor(
+        self, metric_name: str, monitor_fn: Callable[[], float]
+    ) -> None:
         self._monitors[metric_name] = monitor_fn
 
     def check(self) -> WatchdogResult:
@@ -77,7 +81,9 @@ class Watchdog:
                     )
                     triggered.append(incident.incident_id)
                     for rb_action in incident.rollback_actions:
-                        actions.append(f"{rb_action.action} on {rb_action.target_id} (layer={rb_action.target_layer})")
+                        actions.append(
+                            f"{rb_action.action} on {rb_action.target_id} (layer={rb_action.target_layer})"
+                        )
                 else:
                     healthy += 1
             else:

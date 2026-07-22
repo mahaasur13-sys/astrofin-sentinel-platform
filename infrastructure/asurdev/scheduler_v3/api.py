@@ -7,18 +7,20 @@ GET  /jobs/:id     — job state
 GET  /state        — cluster state snapshot from DB
 GET  /metrics      — Prometheus metrics
 """
-import logging
 import os
+import logging
 import time
+from typing import Optional
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from prometheus_client import Counter, Gauge, Histogram, generate_latest
 from pydantic import BaseModel
+from prometheus_client import Counter, Histogram, Gauge, generate_latest
 
+from state_store import StateStore, JobStatus
 from admission_controller import AdmissionController
 from job_engine import JobEngine
 from scheduler_v3.scorer import score_and_select
-from state_store import StateStore
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 log = logging.getLogger("scheduler_v3")
@@ -26,16 +28,16 @@ log = logging.getLogger("scheduler_v3")
 app = FastAPI(title="Home Cluster Scheduler v3", version="3.0.0")
 
 # Config
-PG_HOST = os.environ.get("PG_HOST", "localhost")
-PG_PORT = int(os.environ.get("PG_PORT", "5432"))
-PG_DB = os.environ.get("PG_DB", "clusterdb")
-PG_USER = os.environ.get("PG_USER", "clusteruser")
-PG_PASS = os.environ.get("PGPASS", "clusterpass")
+PG_HOST   = os.environ.get("PG_HOST",   "localhost")
+PG_PORT   = int(os.environ.get("PG_PORT", "5432"))
+PG_DB     = os.environ.get("PG_DB",     "clusterdb")
+PG_USER   = os.environ.get("PG_USER",   "clusteruser")
+PG_PASS   = os.environ.get("PGPASS",   "clusterpass")
 
 # Globals (lazy init)
-_state_store: StateStore | None = None
-_admission: AdmissionController | None = None
-_job_engine: JobEngine | None = None
+_state_store: Optional[StateStore] = None
+_admission:   Optional[AdmissionController] = None
+_job_engine:  Optional[JobEngine] = None
 
 
 def get_store() -> StateStore:
@@ -60,31 +62,33 @@ def get_engine() -> JobEngine:
 
 
 # Prometheus metrics
-SCHEDULER_REQUESTS = Counter("scheduler_requests_total", "Total schedule requests", ["job_type", "decision"])
-SCHEDULER_LATENCY = Histogram("scheduler_latency_seconds", "Schedule latency")
-SCHEDULER_SCORE = Gauge("scheduler_node_score", "Node score", ["hostname", "job_type"])
+SCHEDULER_REQUESTS = Counter(
+    "scheduler_requests_total", "Total schedule requests",
+    ["job_type", "decision"])
+SCHEDULER_LATENCY  = Histogram("scheduler_latency_seconds", "Schedule latency")
+SCHEDULER_SCORE    = Gauge("scheduler_node_score", "Node score",
+                            ["hostname", "job_type"])
 
 
 class ScheduleRequest(BaseModel):
-    name: str
-    job_type: str = "gpu"  # gpu | cpu | arm | vps
-    memory_gb: int = 8
-    priority: int = 5
-    script: str | None = None
+    name:       str
+    job_type:   str   = "gpu"   # gpu | cpu | arm | vps
+    memory_gb:  int   = 8
+    priority:   int   = 5
+    script:     Optional[str] = None
 
 
 class ScheduleResponse(BaseModel):
     submitted: bool
-    job_id: str
-    reason: str
-    node: str | None = None
-    wait_time: int | None = None
+    job_id:    str
+    reason:    str
+    node:      Optional[str] = None
+    wait_time: Optional[int] = None
 
 
 # ---------------------------------------------------------------------------
 # API endpoints
 # ---------------------------------------------------------------------------
-
 
 @app.post("/schedule", response_model=ScheduleResponse)
 def schedule(req: ScheduleRequest):
@@ -102,7 +106,7 @@ def schedule(req: ScheduleRequest):
             job_type=req.job_type,
             memory_gb=req.memory_gb,
             priority=req.priority,
-            script_path=req.script,
+            script_path=req.script
         )
 
         if not submitted:
@@ -115,10 +119,15 @@ def schedule(req: ScheduleRequest):
 
         if not best_node:
             SCHEDULER_REQUESTS.labels(job_type=req.job_type, decision="no_node").inc()
-            return ScheduleResponse(submitted=False, job_id=job_id, reason="no healthy node available")
+            return ScheduleResponse(submitted=False, job_id=job_id,
+                                    reason="no healthy node available")
 
         # Step 3: Record scores for determinism testing
-        get_store().write_scheduler_decision(job_id, round_num=1, scores=all_scores, selected_node=best_node.hostname)
+        get_store().write_scheduler_decision(
+            job_id, round_num=1,
+            scores=all_scores,
+            selected_node=best_node.hostname
+        )
 
         # Step 4: Advance job to SCHEDULED (Slurm submit)
         ok, msg = engine.schedule_job(job_id, best_node.hostname)
@@ -129,7 +138,7 @@ def schedule(req: ScheduleRequest):
             submitted=ok,
             job_id=job_id,
             reason=msg,
-            node=best_node.hostname if ok else None,
+            node=best_node.hostname if ok else None
         )
 
     finally:
@@ -142,25 +151,21 @@ def get_scores(job_type: str = "gpu"):
     nodes = get_store().get_healthy_nodes()
     result = []
     for node in nodes:
-        from scheduler_v3.scorer import _compute_score
-
+        from scheduler_v3.scorer import _compute_score, _filter_eligible
         if job_type == "gpu" and node.gpu_count == 0:
             continue
-        score = _compute_score(
-            node,
-            job_type,
-            {"gpu": 0.5, "cpu": 0.2, "mem": 0.15, "latency": 0.10, "locality": 0.05},
-        )
-        result.append(
-            {
-                "hostname": node.hostname,
-                "score": round(score["base_score"], 2),
-                "gpu_load": node.gpu_load_pct,
-                "cpu_load": node.cpu_load_pct,
-                "memory_free_gb": round(node.memory_gb - node.memory_used_gb, 1),
-                "status": node.status.value,
-            }
-        )
+        score = _compute_score(node, job_type, {
+            "gpu": 0.5, "cpu": 0.2, "mem": 0.15,
+            "latency": 0.10, "locality": 0.05
+        })
+        result.append({
+            "hostname":  node.hostname,
+            "score":     round(score["base_score"], 2),
+            "gpu_load":  node.gpu_load_pct,
+            "cpu_load":  node.cpu_load_pct,
+            "memory_free_gb": round(node.memory_gb - node.memory_used_gb, 1),
+            "status":    node.status.value,
+        })
     return sorted(result, key=lambda x: x["score"], reverse=True)
 
 
@@ -180,14 +185,10 @@ def get_state():
     """Cluster state snapshot from DB."""
     store = get_store()
     nodes = store.get_cluster_state()
-    util = store.get_total_utilization()
+    util  = store.get_total_utilization()
     pending = len(store.get_pending_jobs(limit=1000))
-    return {
-        "nodes": nodes["nodes"],
-        "utilization": util,
-        "pending_jobs": pending,
-        "ts": nodes["ts"],
-    }
+    return {"nodes": nodes["nodes"], "utilization": util,
+            "pending_jobs": pending, "ts": nodes["ts"]}
 
 
 @app.get("/metrics")
@@ -204,5 +205,4 @@ def health():
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=8080, log_level="info")

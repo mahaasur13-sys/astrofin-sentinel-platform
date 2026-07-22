@@ -5,18 +5,18 @@ Policy space: (priority_weights, risk_threshold, admission_policy)
 Regret = E[U_best] - E[U_selected]
 Trails historical policies, computes empirical regret, selects best.
 """
-from dataclasses import dataclass
+from typing import Optional, Callable
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-
 import numpy as np
 
 
 @dataclass
 class Policy:
     policy_id: str
-    alpha: float = 0.4  # throughput weight in utility
-    beta: float = 0.4  # reliability weight
-    gamma: float = 0.2  # migration cost weight
+    alpha: float = 0.4    # throughput weight in utility
+    beta: float = 0.4     # reliability weight
+    gamma: float = 0.2    # migration cost weight
     risk_threshold: float = 0.7  # reject if P(failure) > threshold
     admission_policy: str = "aggressive"  # "conservative" | "aggressive" | "ml_aware"
     max_queue_depth: int = 50
@@ -26,7 +26,7 @@ class Policy:
 class PolicyTrial:
     policy_id: str
     start_time: datetime
-    end_time: datetime | None
+    end_time: Optional[datetime]
     total_jobs: int
     accepted_jobs: int
     rejected_jobs: int
@@ -46,11 +46,11 @@ class PolicyEvaluator:
     Selects policy with lowest cumulative regret.
     """
 
-    def __init__(self, config: dict | None = None):
+    def __init__(self, config: Optional[dict] = None):
         self.config = config or {}
         self.policies: dict[str, Policy] = {}
         self.trials: dict[str, list[PolicyTrial]] = {}
-        self._best_policy: str | None = None
+        self._best_policy: Optional[str] = None
         self._regret_window_hours = self.config.get("regret_window_hours", 24)
 
     def register_policy(self, policy: Policy) -> None:
@@ -68,11 +68,8 @@ class PolicyEvaluator:
         if policy_id not in self.trials or not self.trials[policy_id]:
             return {"status": "no_data"}
         trials = self.trials[policy_id]
-        recent = [
-            t
-            for t in trials
-            if t.end_time and (datetime.now() - t.end_time) < timedelta(hours=self._regret_window_hours)
-        ]
+        recent = [t for t in trials if t.end_time and
+                  (datetime.now() - t.end_time) < timedelta(hours=self._regret_window_hours)]
         if not recent:
             recent = trials[-10:]
         return {
@@ -85,7 +82,7 @@ class PolicyEvaluator:
             "cumulative_regret": sum(t.regret for t in recent),
         }
 
-    def get_best_policy(self) -> Policy | None:
+    def get_best_policy(self) -> Optional[Policy]:
         if not self._best_policy:
             self._update_best()
         return self.policies.get(self._best_policy) if self._best_policy else None

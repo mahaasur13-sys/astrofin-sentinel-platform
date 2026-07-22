@@ -8,16 +8,13 @@ Mid-execution: kill switch (interrupt on threshold breach)
 Post-execution: audit trail generation
 """
 from __future__ import annotations
-
 import uuid
 from enum import Enum
-
 
 class Decision(Enum):
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
     ESCALATED = "ESCALATED"
-
 
 class GovernanceGate:
     """
@@ -41,12 +38,7 @@ class GovernanceGate:
         else:
             decision = Decision.APPROVED
             reason = "all constraints satisfied"
-        entry = {
-            "dag_id": dag_id,
-            "decision": decision.value,
-            "reason": reason,
-            "ts": str(uuid.uuid4()),
-        }
+        entry = {"dag_id": dag_id, "decision": decision.value, "reason": reason, "ts": str(uuid.uuid4())}
         self._decision_log.append(entry)
         return decision, reason
 
@@ -58,17 +50,12 @@ class GovernanceGate:
 
     def post_check(self, dag_id: str, outcome: dict) -> dict:
         return {
-            "dag_id": dag_id,
-            "outcome": outcome.get("status", "unknown"),
+            "dag_id": dag_id, "outcome": outcome.get("status", "unknown"),
             "nodes_executed": outcome.get("nodes_executed", 0),
             "audit_id": str(uuid.uuid4())[:12],
         }
 
-
 if __name__ == "__main__":
     gate = GovernanceGate()
-    d, r = gate.pre_check(
-        {"dag_id": "test", "metadata": {"constraints": {"max_risk": 0.25}}},
-        {"risk_score": 0.1},
-    )
+    d, r = gate.pre_check({"dag_id": "test", "metadata": {"constraints": {"max_risk": 0.25}}}, {"risk_score": 0.1})
     print(f"Decision: {d.value}, Reason: {r}")

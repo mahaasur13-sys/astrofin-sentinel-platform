@@ -4,12 +4,12 @@ WireGuard Prometheus Exporter
 Exports: peer status, bytes transferred, latest handshake
 Endpoint: /metrics  (text format for Prometheus)
 """
-import re
 import subprocess
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import re
+import time
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 WG_INTERFACE = "wg0"
-
 
 def parse_wg_show() -> dict:
     """Parse `wg show wg0` output."""
@@ -52,7 +52,6 @@ def parse_wg_show() -> dict:
 
     return {"peers": peers}
 
-
 def build_metrics() -> str:
     wg = parse_wg_show()
     lines = [
@@ -69,25 +68,24 @@ def build_metrics() -> str:
         handshake = peer.get("handshake", "0 seconds ago")
         age_seconds = 0
         if "second" in handshake:
-            m = re.search(r"(\d+)\s*second", handshake)
+            m = re.search(r'(\d+)\s*second', handshake)
             age_seconds = int(m.group(1)) if m else 0
         elif "minute" in handshake:
-            m = re.search(r"(\d+)\s*minute", handshake)
+            m = re.search(r'(\d+)\s*minute', handshake)
             age_seconds = int(m.group(1)) * 60 if m else 0
         elif "hour" in handshake:
-            m = re.search(r"(\d+)\s*hour", handshake)
+            m = re.search(r'(\d+)\s*hour', handshake)
             age_seconds = int(m.group(1)) * 3600 if m else 0
 
         rx_bytes = peer.get("rx_KiB", 0)
         tx_bytes = peer.get("tx_KiB", 0)
 
         labels = f'peer="{allowed}"'
-        lines.append(f"wg_peer_handshake_seconds{{{labels}}} {age_seconds}")
-        lines.append(f"wg_peer_rx_bytes{{{labels}}} {rx_bytes}")
-        lines.append(f"wg_peer_tx_bytes{{{labels}}} {tx_bytes}")
+        lines.append(f'wg_peer_handshake_seconds{{{labels}}} {age_seconds}')
+        lines.append(f'wg_peer_rx_bytes{{{labels}}} {rx_bytes}')
+        lines.append(f'wg_peer_tx_bytes{{{labels}}} {tx_bytes}')
 
     return "\n".join(lines) + "\n"
-
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -99,10 +97,8 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self.send_response(404)
         return
-
     def log_message(self, format, *args):
         pass
-
 
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", 9343), Handler)

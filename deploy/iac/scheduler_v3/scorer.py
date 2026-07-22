@@ -110,7 +110,9 @@ def _compute_score(node, job_type: str, weights: dict[str, float]) -> dict[str, 
     gpu_avail = 100.0 - float(node.gpu_load_pct) if node.gpu_count > 0 else 100.0
     cpu_avail = 100.0 - float(node.cpu_load_pct)
     mem_avail = (
-        (float(node.memory_gb) - float(node.memory_used_gb)) / float(node.memory_gb) * 100.0
+        (float(node.memory_gb) - float(node.memory_used_gb))
+        / float(node.memory_gb)
+        * 100.0
         if node.memory_gb > 0
         else 100.0
     )
@@ -126,7 +128,9 @@ def _compute_score(node, job_type: str, weights: dict[str, float]) -> dict[str, 
     # Data locality: assume Ceph mount is local
     locality_contrib = 5.0 * weights["locality"]
 
-    base_score = gpu_contrib + cpu_contrib + mem_contrib + latency_contrib + locality_contrib
+    base_score = (
+        gpu_contrib + cpu_contrib + mem_contrib + latency_contrib + locality_contrib
+    )
 
     return {
         "hostname": node.hostname,

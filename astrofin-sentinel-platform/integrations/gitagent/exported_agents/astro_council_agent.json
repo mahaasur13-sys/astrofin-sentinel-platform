@@ -1,0 +1,11 @@
+{
+  "name": "AstroCouncil",
+  "module": "agents._impl.astro_council.agent",
+  "class": "AstroCouncilAgent",
+  "description": "Совет астро-агентов с взвешенным голосованием.",
+  "domain": "astro",
+  "weight": 0.1,
+  "tools": [],
+  "instructions": "",
+  "source": "agents/_impl"
+}

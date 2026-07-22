@@ -1,19 +1,12 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-
-import time
-import uuid
 from enum import Enum
-
+import uuid
+import time
 
 class ExecutionState(Enum):
-    PENDING = "PENDING"
-    RUNNING = "RUNNING"
-    SUCCESS = "SUCCESS"
-    FAILED = "FAILED"
-    KILLED = "KILLED"
-    ROLLED_BACK = "ROLLED_BACK"
-
+    PENDING = "PENDING"; RUNNING = "RUNNING"; SUCCESS = "SUCCESS"
+    FAILED = "FAILED"; KILLED = "KILLED"; ROLLED_BACK = "ROLLED_BACK"
 
 class ExecutionEngine:
     """
@@ -66,7 +59,7 @@ class ExecutionEngine:
                 pass
 
         nodes_map = {n.get("node_id") or n.get("id"): n for n in dag.get("nodes", [])}
-        in_degree = dict.fromkeys(nodes_map, 0)
+        in_degree = {nid: 0 for nid in nodes_map}
         for e in dag.get("edges", []):
             in_degree[e.get("to")] = in_degree.get(e.get("to"), 0) + 1
         ready = [n for n, d in in_degree.items() if d == 0]
@@ -83,14 +76,10 @@ class ExecutionEngine:
                 ok, err = self._execute_node(node, trace, context)
                 latency = time.time() - t0
                 trace["latency_profile"][node_id] = round(latency, 4)
-                trace["node_execution_log"].append(
-                    {
-                        "node_id": node_id,
-                        "status": "SUCCESS" if ok else "FAILED",
-                        "error": err,
-                        "latency": latency,
-                    }
-                )
+                trace["node_execution_log"].append({
+                    "node_id": node_id, "status": "SUCCESS" if ok else "FAILED",
+                    "error": err, "latency": latency,
+                })
                 if not ok:
                     trace["final_state"] = ExecutionState.FAILED.value
                     self._state["status"] = "idle"

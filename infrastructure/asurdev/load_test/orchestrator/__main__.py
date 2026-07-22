@@ -3,9 +3,7 @@
 #ACOS #LOAD_TEST
 Load Test Orchestrator — runs all scenarios, collects results, closes feedback loop
 """
-import json
-import sys
-import time
+import sys, os, json, time, hashlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -32,18 +30,9 @@ def run_scenario(name: str) -> dict:
             result = fn()
             result["status"] = "completed"
             return result
-        return {
-            "scenario": name,
-            "status": "no_run_function",
-            "failure_detected": False,
-        }
+        return {"scenario": name, "status": "no_run_function", "failure_detected": False}
     except Exception as e:
-        return {
-            "scenario": name,
-            "status": "error",
-            "error": str(e),
-            "failure_detected": False,
-        }
+        return {"scenario": name, "status": "error", "error": str(e), "failure_detected": False}
 
 
 def compute_tag_stats(results: list) -> dict:
@@ -75,23 +64,21 @@ def main():
         results.append(r)
         if r.get("failure_detected"):
             total_failures += 1
-            print("    FAILURE DETECTED")
+            print(f"    FAILURE DETECTED")
             if r.get("correction_applied"):
-                corrections.append(
-                    {
-                        "scenario": name,
-                        "correction": r["correction_applied"],
-                        "timestamp": time.time(),
-                    }
-                )
+                corrections.append({
+                    "scenario": name,
+                    "correction": r["correction_applied"],
+                    "timestamp": time.time(),
+                })
         print(f"    status={r.get('status')}")
     print()
 
     # Phase 2: Apply corrections and re-run
     print("[PHASE 2] Correction loop...")
     print("-" * 40)
-    CorrectionLoop()
-    SystemEvolver()
+    loop = CorrectionLoop()
+    evolver = SystemEvolver()
     post_fix_results = []
 
     for correction in corrections:
@@ -117,11 +104,14 @@ def main():
     print(f"Corrections applied: {len(corrections)}")
 
     failures = [r for r in results if r.get("failure_detected")]
-    print("\nFailure Summary:")
+    print(f"\nFailure Summary:")
     for f in failures:
         print(f"  - {f['scenario']}: metrics={json.dumps(f.get('metrics', {}))}")
 
-    improvements = sum(1 for old, new in zip(failures, post_fix_results) if not new.get("failure_detected"))
+    improvements = sum(
+        1 for old, new in zip(failures, post_fix_results)
+        if not new.get("failure_detected")
+    )
     print(f"\nCorrections that improved: {improvements}/{len(post_fix_results)}")
 
     # Output structured results

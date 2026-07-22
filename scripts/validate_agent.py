@@ -127,10 +127,10 @@ def parse_registry() -> dict[str, dict]:
         if assign_value is None:
             continue
         if isinstance(assign_value, ast.Dict):
-            for k, v in zip(assign_value.keys, assign_value.values, strict=False):
+            for k, v in zip(assign_value.keys, assign_value.values):
                 if isinstance(k, ast.Constant) and isinstance(v, ast.Dict):
                     entry: dict = {}
-                    for kk, vv in zip(v.keys, v.values, strict=False):
+                    for kk, vv in zip(v.keys, v.values):
                         if isinstance(kk, ast.Constant):
                             try:
                                 entry[kk.value] = ast.literal_eval(vv)
@@ -150,9 +150,7 @@ def find_agent_class(tree: ast.AST) -> ast.ClassDef | None:
     return None
 
 
-def find_run_method(
-    klass: ast.ClassDef,
-) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+def find_run_method(klass: ast.ClassDef) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
     for node in klass.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == "run":
             return node
@@ -186,12 +184,7 @@ def has_decorator(node: ast.FunctionDef | ast.AsyncFunctionDef, name: str) -> bo
 def check_A1_has_agent_class(tree: ast.AST, src: Path) -> Check:
     klass = find_agent_class(tree)
     if klass is None:
-        return Check(
-            "A1",
-            "inherits BaseAgent[AgentResponse]",
-            False,
-            f"no class in {src.name} inherits BaseAgent",
-        )
+        return Check("A1", "inherits BaseAgent[AgentResponse]", False, f"no class in {src.name} inherits BaseAgent")
     return Check("A1", "inherits BaseAgent[AgentResponse]", True, f"class {klass.name}")
 
 
@@ -202,12 +195,7 @@ def check_A2_super_init(klass: ast.ClassDef) -> Check:
                 if isinstance(sub, ast.Call) and isinstance(sub.func, ast.Attribute):
                     if sub.func.attr == "__init__":
                         return Check("A2", "calls super().__init__", True)
-            return Check(
-                "A2",
-                "calls super().__init__",
-                False,
-                "__init__ exists but does not call super().__init__",
-            )
+            return Check("A2", "calls super().__init__", False, "__init__ exists but does not call super().__init__")
     return Check("A2", "calls super().__init__", False, "no __init__ defined")
 
 
@@ -216,12 +204,7 @@ def check_A3_run_method(klass: ast.ClassDef) -> Check:
     if run is None:
         return Check("A3", "defines async run(self, state)", False, "no `run` method")
     if not isinstance(run, ast.AsyncFunctionDef):
-        return Check(
-            "A3",
-            "defines async run(self, state)",
-            False,
-            "`run` is sync; should be async",
-        )
+        return Check("A3", "defines async run(self, state)", False, "`run` is sync; should be async")
     return Check("A3", "defines async run(self, state)", True)
 
 
@@ -235,12 +218,7 @@ def check_A4_ephemeris_decorator(
     lowered = source_text.lower()
     needs_ephemeris = any(kw in lowered for kw in EPHEMERIS_KEYWORDS)
     if not needs_ephemeris:
-        return Check(
-            "A4",
-            "@require_ephemeris decorator",
-            True,
-            "not required for this agent (no ephemeris symbols)",
-        )
+        return Check("A4", "@require_ephemeris decorator", True, "not required for this agent (no ephemeris symbols)")
 
     # Find any decorator named require_ephemeris anywhere in the class body.
     has_dec = False
@@ -252,10 +230,7 @@ def check_A4_ephemeris_decorator(
     if has_dec:
         return Check("A4", "@require_ephemeris decorator", True, "present on a method")
     return Check(
-        "A4",
-        "@require_ephemeris decorator",
-        False,
-        "agent uses ephemeris symbols but no method has @require_ephemeris",
+        "A4", "@require_ephemeris decorator", False, "agent uses ephemeris symbols but no method has @require_ephemeris"
     )
 
 
@@ -264,24 +239,11 @@ def check_A5_runner_function(tree: ast.AST, agent_name: str) -> Check:
     if fn is None:
         expected = f"run_{_camel_to_snake(agent_name)}"
         return Check(
-            "A5",
-            f"exports run_<{agent_name}>(state)",
-            False,
-            f"expected a top-level `{expected}` async function",
+            "A5", f"exports run_<{agent_name}>(state)", False, f"expected a top-level `{expected}` async function"
         )
     if not isinstance(fn, ast.AsyncFunctionDef):
-        return Check(
-            "A5",
-            f"exports run_<{agent_name}>(state)",
-            False,
-            f"function `{fn.name}` should be async",
-        )
-    return Check(
-        "A5",
-        f"exports run_<{agent_name}>(state)",
-        True,
-        f"function `{fn.name}` is async",
-    )
+        return Check("A5", f"exports run_<{agent_name}>(state)", False, f"function `{fn.name}` should be async")
+    return Check("A5", f"exports run_<{agent_name}>(state)", True, f"function `{fn.name}` is async")
 
 
 def check_A6_registry_entry(
@@ -307,12 +269,7 @@ def check_A6_registry_entry(
         return Check("A6", "AGENT_AGENTS entry", False, f"weight={weight} not in [0, 1]")
     domain = entry.get("domain", "")
     if domain not in ALLOWED_DOMAINS:
-        return Check(
-            "A6",
-            "AGENT_AGENTS entry",
-            False,
-            f"domain '{domain}' not in {sorted(ALLOWED_DOMAINS)}",
-        )
+        return Check("A6", "AGENT_AGENTS entry", False, f"domain '{domain}' not in {sorted(ALLOWED_DOMAINS)}")
     return Check("A6", "AGENT_AGENTS entry", True, f"weight={weight}, domain={domain}")
 
 
@@ -332,12 +289,7 @@ def check_A8_return_type(run: ast.FunctionDef | ast.AsyncFunctionDef | None) -> 
         return Check("A8", "run() return annotation", False, "run() lacks return type hint")
     hint = ast.unparse(ret)
     if "AgentResponse" not in hint:
-        return Check(
-            "A8",
-            "run() return annotation",
-            False,
-            f"run() returns {hint!r}, expected AgentResponse",
-        )
+        return Check("A8", "run() return annotation", False, f"run() returns {hint!r}, expected AgentResponse")
     return Check("A8", "run() return annotation", True, f"-> {hint}")
 
 
@@ -349,12 +301,7 @@ def check_A9_graceful(run: ast.FunctionDef | ast.AsyncFunctionDef | None, src_te
     for sub in ast.walk(run):
         if isinstance(sub, ast.Try):
             return Check("A9", "graceful degradation", True, "run() has try/except block")
-    return Check(
-        "A9",
-        "graceful degradation",
-        False,
-        "run() has no try/except; consider wrapping external calls",
-    )
+    return Check("A9", "graceful degradation", False, "run() has no try/except; consider wrapping external calls")
 
 
 # ─── Driver ────────────────────────────────────────────────────────────────
@@ -453,9 +400,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("target", nargs="?", default="agents/_impl", help="agent file or directory")
     parser.add_argument("--with-tests", action="store_true", help="also run the corresponding test file")
     parser.add_argument(
-        "--list-recommended-fixes",
-        action="store_true",
-        help="only print recommended fixes for failed checks",
+        "--list-recommended-fixes", action="store_true", help="only print recommended fixes for failed checks"
     )
     args = parser.parse_args(argv)
 

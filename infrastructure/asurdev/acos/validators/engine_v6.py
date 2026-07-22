@@ -5,9 +5,7 @@ If trace already exists, returns cached result WITHOUT re-execution.
 After execution, records trace to recorder for idempotency.
 """
 from __future__ import annotations
-
 import time
-
 from acos.recorder.recorder import DeterministicTraceRecorder
 from acos.validator.contract_validator import DAGValidator
 
@@ -15,7 +13,7 @@ from acos.validator.contract_validator import DAGValidator
 class EventSourcedEngine:
     """
     Idempotent write-side execution engine.
-
+    
     PATCH 2 fixes:
     - execute() checks has_trace() BEFORE execution
     - After execution, records trace to recorder for idempotency
@@ -29,7 +27,7 @@ class EventSourcedEngine:
     def execute(self, dag: dict, context: dict, trace_id: str) -> str:
         """
         Idempotent execution.
-
+        
         PATCH 2: Check has_trace() BEFORE executing.
         If trace exists → return cached trace_id (no re-execution).
         After execution → record to recorder for future idempotency.
@@ -50,21 +48,13 @@ class EventSourcedEngine:
         self._log.emit(trace_id, "DAG_CREATED", {"dag": dag, "context": context, "started_at": t0})
 
         # Phase 2: Validation
-        self._log.emit(
-            trace_id,
-            "DAG_VALIDATED",
-            {
-                "node_count": len(dag.get("nodes", [])),
-                "edge_count": len(dag.get("edges", [])),
-            },
-        )
+        self._log.emit(trace_id, "DAG_VALIDATED", {
+            "node_count": len(dag.get("nodes", [])),
+            "edge_count": len(dag.get("edges", []))
+        })
 
         # Phase 3: Governance
-        self._log.emit(
-            trace_id,
-            "GOVERNANCE_APPROVED",
-            {"reason": "passed", "decided_at": time.time()},
-        )
+        self._log.emit(trace_id, "GOVERNANCE_APPROVED", {"reason": "passed", "decided_at": time.time()})
 
         # Phase 4: Node execution
         for node in dag.get("nodes", []):
@@ -77,14 +67,12 @@ class EventSourcedEngine:
 
         # PATCH 2 FIX: Record trace to recorder AFTER successful execution
         if self._recorder:
-            self._recorder.record_trace(
-                {
-                    "trace_id": trace_id,
-                    "decision": "APPROVED",
-                    "dag": dag,
-                    "created_at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(t0)),
-                }
-            )
+            self._recorder.record_trace({
+                "trace_id": trace_id,
+                "decision": "APPROVED",
+                "dag": dag,
+                "created_at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(t0)),
+            })
 
         return trace_id
 

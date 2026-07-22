@@ -3,21 +3,21 @@
 Execution Budget Controller (EBC) — prevents P99 latency tail risk.
 """
 from __future__ import annotations
-
-import asyncio
-import time
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional
+import time
+import asyncio
 
 
 @dataclass
 class ExecutionBudget:
     total_ms: float = 1000.0
-    beam_search_ms: float = 200.0  # 20%
+    beam_search_ms: float = 200.0    # 20%
     constraint_filter_ms: float = 100.0  # 10%
-    ilp_solver_ms: float = 400.0  # 40%
-    digital_twin_ms: float = 200.0  # 20%
-    policy_eval_ms: float = 100.0  # 10%
+    ilp_solver_ms: float = 400.0     # 40%
+    digital_twin_ms: float = 200.0   # 20%
+    policy_eval_ms: float = 100.0    # 10%
 
 
 @dataclass
@@ -26,7 +26,7 @@ class StageResult:
     elapsed_ms: float
     budget_ms: float
     timed_out: bool = False
-    output: object | None = None
+    output: Optional[object] = None
 
 
 @dataclass
@@ -34,10 +34,10 @@ class BudgetCycle:
     cycle_id: str
     started_at: datetime
     stages: list[StageResult] = field(default_factory=list)
-    completed_at: datetime | None = None
+    completed_at: Optional[datetime] = None
     total_elapsed_ms: float = 0.0
     fallback_triggered: bool = False
-    fallback_at_stage: str | None = None
+    fallback_at_stage: Optional[str] = None
 
 
 class ExecutionBudgetController:
@@ -59,7 +59,7 @@ class ExecutionBudgetController:
             policy_eval_ms=policy_eval_timeout_ms,
         )
         self._cycles: list[BudgetCycle] = []
-        self._current_cycle: BudgetCycle | None = None
+        self._current_cycle: Optional[BudgetCycle] = None
         self._mode: str = "normal"
         self._degradation_count: int = 0
 
@@ -75,7 +75,7 @@ class ExecutionBudgetController:
         timed_out = False
         output = None
         try:
-            budget_ms / 1000.0
+            remaining = budget_ms / 1000.0
             output = func(*args, **kwargs)
         except TimeoutError:
             timed_out = True
@@ -83,13 +83,7 @@ class ExecutionBudgetController:
             timed_out = True
             output = e
         elapsed_ms = (time.monotonic() - start) * 1000.0
-        result = StageResult(
-            stage=stage_name,
-            elapsed_ms=elapsed_ms,
-            budget_ms=budget_ms,
-            timed_out=timed_out,
-            output=output,
-        )
+        result = StageResult(stage=stage_name, elapsed_ms=elapsed_ms, budget_ms=budget_ms, timed_out=timed_out, output=output)
         self._current_cycle.stages.append(result)
         if timed_out:
             self._trigger_fallback(stage_name)
@@ -110,13 +104,7 @@ class ExecutionBudgetController:
             timed_out = True
             output = e
         elapsed_ms = (time.monotonic() - start) * 1000.0
-        result = StageResult(
-            stage=stage_name,
-            elapsed_ms=elapsed_ms,
-            budget_ms=budget_ms,
-            timed_out=timed_out,
-            output=output,
-        )
+        result = StageResult(stage=stage_name, elapsed_ms=elapsed_ms, budget_ms=budget_ms, timed_out=timed_out, output=output)
         self._current_cycle.stages.append(result)
         if timed_out:
             self._trigger_fallback(stage_name)

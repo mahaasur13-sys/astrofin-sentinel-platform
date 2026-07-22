@@ -6,9 +6,9 @@ Step 2: Simulation sandbox (digital twin)
 Step 3: Regret bound check
 """
 from __future__ import annotations
-
-import hashlib
 from dataclasses import dataclass
+from typing import Optional
+import hashlib
 
 
 @dataclass
@@ -16,7 +16,7 @@ class VerificationResult:
     approved: bool
     risk_score: float
     regret_bound: float
-    reason: str | None = None
+    reason: Optional[str] = None
 
 
 class PolicyVerifier:
@@ -29,7 +29,7 @@ class PolicyVerifier:
         self.digital_twin = digital_twin
         self.max_allowed_regret = max_allowed_regret
 
-    def verify(self, decision: dict) -> tuple[bool, str | None]:
+    def verify(self, decision: dict) -> tuple[bool, Optional[str]]:
         """
         Full verification pipeline.
         Returns (approved, reason).
@@ -46,14 +46,11 @@ class PolicyVerifier:
 
         # STEP 3: regret bound check
         if sim_result.get("regret", 0) > self.max_allowed_regret:
-            return (
-                False,
-                f"regret_bound_exceeded ({sim_result['regret']:.3f} > {self.max_allowed_regret})",
-            )
+            return False, f"regret_bound_exceeded ({sim_result['regret']:.3f} > {self.max_allowed_regret})"
 
         return True, None
 
-    def _static_check(self, policy: dict) -> tuple[bool, str | None]:
+    def _static_check(self, policy: dict) -> tuple[bool, Optional[str]]:
         """Step 1 — static validation."""
         # Check: no cycles
         if self._has_cycles(policy):
@@ -88,16 +85,12 @@ class PolicyVerifier:
 
     def _known_constraints(self) -> set:
         return {
-            "latency_guard",
-            "cpu_guard",
-            "memory_guard",
-            "failure_rate_guard",
-            "queue_depth_guard",
-            "replication_guard",
-            "deadlock_guard",
+            "latency_guard", "cpu_guard", "memory_guard",
+            "failure_rate_guard", "queue_depth_guard",
+            "replication_guard", "deadlock_guard",
         }
 
-    def _simulate(self, decision: dict) -> dict | None:
+    def _simulate(self, decision: dict) -> Optional[dict]:
         """Step 2 — run in digital twin sandbox."""
         try:
             return self.digital_twin.simulate(
@@ -114,6 +107,5 @@ class PolicyVerifier:
     def get_policy_hash(self, policy: dict) -> str:
         """Stable hash for policy versioning."""
         import json
-
         policy_str = json.dumps(policy, sort_keys=True)
         return hashlib.sha256(policy_str.encode()).hexdigest()[:12]

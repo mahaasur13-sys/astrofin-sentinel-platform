@@ -3,8 +3,9 @@
 AI Scheduler v2 — Scoring Engine
 Computes weighted scores for node selection based on live metrics.
 """
-
+from typing import Dict
 from .metrics import get_node_metrics
+
 
 WEIGHTS = {
     "gpu": 0.50,
@@ -15,7 +16,7 @@ WEIGHTS = {
 }
 
 
-def score_node(node: str, job_type: str = "gpu", extra_weights: dict = None) -> float:
+def score_node(node: str, job_type: str = "gpu", extra_weights: Dict = None) -> float:
     """
     Compute suitability score for a node.
     Higher = better. Range approximately 0-100.
@@ -31,12 +32,21 @@ def score_node(node: str, job_type: str = "gpu", extra_weights: dict = None) -> 
 
     latency_penalty = m["network_latency"] * w["latency"] if m["network_latency"] else 0.0
 
-    base_score = gpu_free * w["gpu"] + cpu_free * w["cpu"] + mem_free * w["mem"] - latency_penalty
+    base_score = (
+        gpu_free * w["gpu"]
+        + cpu_free * w["cpu"]
+        + mem_free * w["mem"]
+        - latency_penalty
+    )
 
     if job_type == "gpu":
         base_score *= 1.5
     elif job_type == "cpu" or job_type == "arm":
-        base_score = cpu_free * 0.7 + mem_free * 0.3 - latency_penalty
+        base_score = (
+            cpu_free * 0.7
+            + mem_free * 0.3
+            - latency_penalty
+        )
 
     if m["gpu_util"] > 95:
         base_score = 0
@@ -47,7 +57,7 @@ def score_node(node: str, job_type: str = "gpu", extra_weights: dict = None) -> 
     return round(base_score, 2)
 
 
-def rank_nodes(nodes: list, job_type: str = "gpu") -> dict[str, float]:
+def rank_nodes(nodes: list, job_type: str = "gpu") -> Dict[str, float]:
     """Return dict of node -> score, sorted descending."""
     results = {}
     for n in nodes:

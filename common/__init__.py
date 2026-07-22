@@ -14,9 +14,9 @@ pulled from any layer without creating cycles.
 from __future__ import annotations
 
 from acos_contracts import (
+    interfaces,
     contracts,
     deterministic,
-    interfaces,
 )
 
 __all__ = [

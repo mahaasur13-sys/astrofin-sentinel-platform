@@ -3,19 +3,16 @@
 ACOS CLI — Execution Trace Engine v1.
 Contract-compliant: all components validated at startup.
 """
-import argparse
-import json
-import os
-import sys
+import sys, os, json, argparse
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(__file__))
 
 # === CONTRACT + RECORDING LAYER ===
 from acos.contracts import (
-    validate_engine_contract,
-    validate_scheduler_contract,
     validate_trace_recorder_contract,
+    validate_scheduler_contract,
+    validate_engine_contract,
 )
 from acos.recorder.recorder import DeterministicTraceRecorder
 from acos.storage import MemoryTraceStorage
@@ -23,23 +20,20 @@ from acos.storage import MemoryTraceStorage
 # === ETE MODULES ===
 try:
     from ete.compiler.dag import DAGCompiler
-    from ete.engine.execution_engine import ExecutionEngine as EE
     from ete.gate.governance_gate import GovernanceGate
-    from ete.replay.replayer import DeterministicReplayer as ReplayEngine
     from ete.scheduler.adapter import SchedulerAdapter
-
+    from ete.engine.execution_engine import ExecutionEngine as EE
+    from ete.replay.replayer import DeterministicReplayer as ReplayEngine
     HAS_ETE = True
-except ImportError:
+except ImportError as e:
     HAS_ETE = False
 
 # === UPPER LAYERS ===
 try:
     from v8.safety_kernel.engine import SafetyKernel
-
     HAS_SAFETY = True
 except Exception:
     HAS_SAFETY = False
-
 
 # === CONTRACT VALIDATION ===
 def validate_all_contracts():
@@ -74,7 +68,6 @@ def validate_all_contracts():
         sys.exit(1)
     print("[OK] All contracts validated. System ready.")
 
-
 class ACOSCLI:
     def __init__(self):
         self.recorder = DeterministicTraceRecorder(storage=MemoryTraceStorage())
@@ -99,12 +92,8 @@ class ACOSCLI:
             if self.governance_gate:
                 decision, reason = self.governance_gate.pre_check(dag, {})
                 if "REJECT" in str(decision).upper():
-                    result = {
-                        "status": "REJECTED",
-                        "trace_id": trace_id,
-                        "decision": str(decision),
-                        "reason": reason,
-                    }
+                    result = {"status": "REJECTED", "trace_id": trace_id,
+                              "decision": str(decision), "reason": reason}
                     self._record(result, dag)
                     return result
 
@@ -113,12 +102,9 @@ class ACOSCLI:
                 try:
                     sk_result = self.safety_kernel.enforce(job)
                     if not sk_result.get("allowed", True):
-                        result = {
-                            "status": "REJECTED",
-                            "trace_id": trace_id,
-                            "decision": "REJECTED_SAFETY",
-                            "reason": sk_result.get("reason", "Safety violation"),
-                        }
+                        result = {"status": "REJECTED", "trace_id": trace_id,
+                                  "decision": "REJECTED_SAFETY",
+                                  "reason": sk_result.get("reason", "Safety violation")}
                         self._record(result, dag)
                         return result
                 except Exception:
@@ -167,10 +153,8 @@ class ACOSCLI:
         self.recorder.record_trace(trace)
 
     def get_trace(self, trace_id: str) -> dict:
-        return self.recorder.get_trace(trace_id) or {
-            "error": f"Trace {trace_id} not found",
-            "trace_id": trace_id,
-        }
+        return self.recorder.get_trace(trace_id) or \
+               {"error": f"Trace {trace_id} not found", "trace_id": trace_id}
 
     def list_traces(self, filters=None) -> list:
         return self.recorder.list_traces(filters)
@@ -186,7 +170,6 @@ class ACOSCLI:
             s2 = self.scheduler.schedule(dag, {})
             checks["scheduler_idempotent"] = s1.get("schedule_id") == s2.get("schedule_id")
         return checks
-
 
 def main():
     parser = argparse.ArgumentParser(description="ACOS CLI — Execution Trace Engine")
@@ -204,8 +187,7 @@ def main():
     args = parser.parse_args()
 
     if not args.cmd:
-        parser.print_help()
-        return
+        parser.print_help(); return
 
     validate_all_contracts()
     cli = ACOSCLI()
@@ -223,15 +205,8 @@ def main():
         sys.exit(0 if ok == len(results) else 1)
 
     elif args.cmd == "submit":
-        job = (
-            json.loads(args.job_json)
-            if args.job_json
-            else {
-                "type": args.job_type,
-                "agent_type": args.agent_type,
-                "priority": args.priority,
-            }
-        )
+        job = json.loads(args.job_json) if args.job_json else \
+              {"type": args.job_type, "agent_type": args.agent_type, "priority": args.priority}
         result = cli.submit(job)
         print(json.dumps(result, indent=2, default=str))
 
@@ -241,7 +216,6 @@ def main():
     elif args.cmd == "traces":
         for t in cli.list_traces():
             print(f"  [{t['trace_id']}] {t['decision']} at {t['created_at']}")
-
 
 if __name__ == "__main__":
     main()

@@ -101,7 +101,9 @@ def detect_dynamic(src):
     findings = []
     for line in src.split("\n"):
         line = line.strip()
-        if any(kw in line for kw in ["importlib", "__import__", "exec(", "eval("]) and not line.startswith("#"):
+        if any(
+            kw in line for kw in ["importlib", "__import__", "exec(", "eval("]
+        ) and not line.startswith("#"):
             findings.append(line[:80])
     return findings
 
@@ -134,7 +136,9 @@ def compute_violations(layer_edges):
                     }
                 )
             elif (src, tgt) in FORBIDDEN:
-                violations.append({"from": src, "to": tgt, "type": "FORBIDDEN", "severity": "high"})
+                violations.append(
+                    {"from": src, "to": tgt, "type": "FORBIDDEN", "severity": "high"}
+                )
             elif sn > tn:
                 violations.append(
                     {
@@ -147,7 +151,9 @@ def compute_violations(layer_edges):
     return violations, reachability
 
 
-def adversarial_analysis(violations, reachability, layer_edges, dynamic_findings, lt_se, fp_im):
+def adversarial_analysis(
+    violations, reachability, layer_edges, dynamic_findings, lt_se, fp_im
+):
     score = 1.0
     findings = []
     critical = sum(1 for v in violations if v["severity"] == "critical")
@@ -199,7 +205,11 @@ def run():
                     if kw in src:
                         lt_side_effects.append(f.replace(str(BASE) + "/", ""))
             if src_layer == "fp":
-                impure = [kw for kw in ["score", "predict", "model", "learn"] if kw in src.lower()]
+                impure = [
+                    kw
+                    for kw in ["score", "predict", "model", "learn"]
+                    if kw in src.lower()
+                ]
                 if len(impure) >= 3:
                     fp_impure.append(f.replace(str(BASE) + "/", ""))
             dyn = detect_dynamic(src)
@@ -250,16 +260,26 @@ def run():
         "PRIMARY_CAUSE": {
             "layer": primary["from"] if primary else "none",
             "description": (
-                f"{primary['type']} {primary['from']}→{primary['to']}" if primary else "No violations detected"
+                f"{primary['type']} {primary['from']}→{primary['to']}"
+                if primary
+                else "No violations detected"
             ),
         },
         "SECONDARY_CAUSE": {
             "layer": secondary["from"] if secondary else None,
-            "description": (f"{secondary['type']} {secondary['from']}→{secondary['to']}" if secondary else None),
+            "description": (
+                f"{secondary['type']} {secondary['from']}→{secondary['to']}"
+                if secondary
+                else None
+            ),
         },
         "FAILURE_MODE": {
             "type": primary["type"] if primary else "none",
-            "description": ("Architecture isolation breach" if violations else "Clean dependency graph"),
+            "description": (
+                "Architecture isolation breach"
+                if violations
+                else "Clean dependency graph"
+            ),
         },
         "VIOLATIONS": violations,
         "FIX_APPLIED": None,
@@ -272,7 +292,9 @@ def run():
         "RISK_SCORE": {"level": risk, "explanation": dict(sev) if sev else "clean"},
         "LAYER_GRAPH": {L: sorted(layer_edges.get(L, [])) for L in LAYER_ORDER},
         "MODULE_COUNT": dict(module_count),
-        "TRANSITIVE_REACHABILITY": {L: sorted(reachability.get(L, [])) for L in LAYER_ORDER},
+        "TRANSITIVE_REACHABILITY": {
+            L: sorted(reachability.get(L, [])) for L in LAYER_ORDER
+        },
         "RUNTIME_ANALYSIS": {
             "dynamic_imports": dynamic_findings,
             "lt_side_effects": lt_side_effects,
@@ -283,7 +305,11 @@ def run():
             "action": (
                 "block"
                 if status == "BLOCK"
-                else ("allow" if status == "PASS" else "warn" if status == "WARN" else "escalate")
+                else (
+                    "allow"
+                    if status == "PASS"
+                    else "warn" if status == "WARN" else "escalate"
+                )
             )
         },
         "ESCALATION_MODE": overall < 0.65,

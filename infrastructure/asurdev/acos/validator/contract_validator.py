@@ -4,11 +4,10 @@ ACOS Contract Validator — DAG + Event + Trace validation.
 Patch 1: DAGValidator with full schema validation.
 """
 from __future__ import annotations
-
+from typing import Any, Dict, List
+from uuid import UUID
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
-from uuid import UUID
 
 
 class EventType(str, Enum):
@@ -36,7 +35,7 @@ class ContractViolation:
 class DAGValidator:
     """
     Validates DAG, Event, and Trace contracts.
-
+    
     Guarantees:
     - validate_dag() checks graph structure before execution
     - validate_event() checks event schema
@@ -44,7 +43,7 @@ class DAGValidator:
     """
 
     @staticmethod
-    def validate_dag(dag: dict[str, Any]) -> list[ContractViolation]:
+    def validate_dag(dag: Dict[str, Any]) -> List[ContractViolation]:
         violations = []
 
         # 1. Presence of nodes
@@ -90,34 +89,21 @@ class DAGValidator:
                 try:
                     EventType(event_type)
                 except ValueError:
-                    violations.append(
-                        ContractViolation(
-                            f"Invalid EventType: {event_type}",
-                            f"/nodes/{node.get('id')}/event_type",
-                            "error",
-                        )
-                    )
+                    violations.append(ContractViolation(f"Invalid EventType: {event_type}", f"/nodes/{node.get('id')}/event_type", "error"))
 
         return violations
 
     @staticmethod
-    def validate_event(event: dict[str, Any]) -> list[ContractViolation]:
+    def validate_event(event: Dict[str, Any]) -> List[ContractViolation]:
         violations = []
-        required_fields = [
-            "event_id",
-            "trace_id",
-            "node_id",
-            "event_type",
-            "payload",
-            "created_at",
-        ]
+        required_fields = ["event_id", "trace_id", "node_id", "event_type", "payload", "created_at"]
         for field in required_fields:
             if field not in event:
                 violations.append(ContractViolation(f"Missing field '{field}' in event", "/event", "error"))
         return violations
 
     @staticmethod
-    def validate_trace(trace_data: dict[str, Any]) -> list[ContractViolation]:
+    def validate_trace(trace_data: Dict[str, Any]) -> List[ContractViolation]:
         violations = []
         if "trace_id" not in trace_data:
             violations.append(ContractViolation("Missing trace_id in trace", "/trace", "error"))

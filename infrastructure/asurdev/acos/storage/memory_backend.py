@@ -3,8 +3,10 @@
 ACOS Memory Storage Backend — with has_trace() for idempotency.
 Patch 2: Added has_trace() method.
 """
+import json
 import threading
 from datetime import datetime
+from typing import Any
 
 
 class MemoryTraceStorage:
@@ -17,11 +19,7 @@ class MemoryTraceStorage:
     def write(self, trace: dict) -> str:
         with self._lock:
             trace_id = trace.get("trace_id") or f"mem-{len(self._traces)}"
-            stored = {
-                **trace,
-                "trace_id": trace_id,
-                "stored_at": datetime.utcnow().isoformat(),
-            }
+            stored = {**trace, "trace_id": trace_id, "stored_at": datetime.utcnow().isoformat()}
             self._traces[trace_id] = stored
             return trace_id
 

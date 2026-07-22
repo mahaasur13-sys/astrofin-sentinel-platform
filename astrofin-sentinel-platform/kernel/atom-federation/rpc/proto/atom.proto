@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package atom;
+
+// Minimal node-to-node message contract
+service AtomNode {
+    // Unary send — fire-and-wait ack
+    rpc SendMessage (AtomMessage) returns (Ack);
+
+    // Streaming — for high-throughput feeds
+    rpc StreamMessages (stream AtomMessage) returns (stream AtomAck);
+}
+
+message AtomMessage {
+    string msg_id     = 1;   // deterministic UUID v4 from DRL layer
+    string source     = 2;   // origin node identity
+    string target     = 3;   // destination (empty = broadcast)
+    string payload    = 4;   // opaque payload from CCL
+    int64  timestamp  = 5;   // unix ns — DRL/clock layer timestamp
+    int32  ttl        = 6;   // hop limit (default 64)
+    map<string, string> meta = 7; // routing hints, trace_id, etc.
+}
+
+message Ack {
+    bool   ok       = 1;
+    string msg_id  = 2;    // echoed for correlation
+    string error   = 3;    // human-readable on !ok
+    int64  seq     = 4;    // server-side monotonic seq on this connection
+}
+
+message AtomAck {
+    string msg_id  = 1;
+    bool   ok      = 2;
+    string error   = 3;
+    int64  server_ts = 4;  // server receive timestamp (unix ns)
+}

@@ -15,42 +15,24 @@ Modules:
     embedding         — node embedding vectors
     pipeline         — CLI entrypoint
 """
-
-from .builder import FeatureBuilder, build_features
-from .exporter import DatasetExporter
+from .window_engine import WindowEngine, SlidingWindow, DEFAULT_WINDOWS
 from .feature_registry import FEATURE_REGISTRY, get_feature_names, validate_registry
 from .schemas import (
-    FeatureSpec,
-    FeatureVector,
-    JobType,
-    LabeledExample,
-    LabelType,
-    MLBatch,
-    NodeProfile,
-    NodeRole,
+    FeatureVector, LabeledExample, FeatureSpec,
+    NodeProfile, MLBatch, NodeRole, JobType, LabelType,
     validate_feature_vector,
 )
-from .window_engine import DEFAULT_WINDOWS, SlidingWindow, WindowEngine
+from .builder import FeatureBuilder, build_features
+from .exporter import DatasetExporter
 
 __all__ = [
     # Core
-    "WindowEngine",
-    "SlidingWindow",
-    "DEFAULT_WINDOWS",
-    "FEATURE_REGISTRY",
-    "get_feature_names",
-    "validate_registry",
-    "FeatureBuilder",
-    "build_features",
+    "WindowEngine", "SlidingWindow", "DEFAULT_WINDOWS",
+    "FEATURE_REGISTRY", "get_feature_names", "validate_registry",
+    "FeatureBuilder", "build_features",
     # Schemas
-    "FeatureVector",
-    "LabeledExample",
-    "FeatureSpec",
-    "NodeProfile",
-    "MLBatch",
-    "NodeRole",
-    "JobType",
-    "LabelType",
+    "FeatureVector", "LabeledExample", "FeatureSpec",
+    "NodeProfile", "MLBatch", "NodeRole", "JobType", "LabelType",
     "validate_feature_vector",
     # Export
     "DatasetExporter",

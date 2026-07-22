@@ -6,13 +6,10 @@ CVG + LCCP Supply Chain Security
 Uses OPA (Open Policy Agent) for Rego-based policy enforcement.
 Falls back to native Python validator if OPA unavailable.
 """
-import hashlib
-import json
-import os
-import subprocess
+import json, os, hashlib, subprocess, datetime
 
 POLICY_DIR = os.path.dirname(os.path.abspath(__file__))
-OPA_BIN = os.path.join(POLICY_DIR, "../opa_linux_amd64")
+OPA_BIN = os.path.join(POLICY_DIR, '../opa_linux_amd64')
 
 SLSA4_POLICY = """package slsa4.release
 
@@ -90,26 +87,22 @@ deny_reason = reason {
 """
 
 NATIVE_POLICY = {
-    "g0": lambda d: bool(d.get("commit")) and bool(d.get("manifest_hash")),
-    "g1": lambda d: not d.get("build", {}).get("had_network", False),
-    "g2": lambda d: d.get("manifest", {}).get("source") == "git-index" and d.get("manifest", {}).get("count", 0) > 0,
-    "g3": lambda d: d.get("provenance", {}).get("verified")
-    and d.get("provenance", {}).get("standard") == "slsa/in-toto",
-    "g4": lambda d: d.get("lccp", {}).get("deterministic") and d.get("lccp", {}).get("replay_verified"),
-    "g5": lambda d: d.get("cvg", {}).get("policy_valid") and d.get("cvg", {}).get("cross_repo_consistent"),
-    "g6": lambda d: d.get("external", {}).get("verified") and d.get("external", {}).get("method") != "none",
+    'g0': lambda d: bool(d.get('commit')) and bool(d.get('manifest_hash')),
+    'g1': lambda d: not d.get('build', {}).get('had_network', False),
+    'g2': lambda d: d.get('manifest', {}).get('source') == 'git-index' and d.get('manifest', {}).get('count', 0) > 0,
+    'g3': lambda d: d.get('provenance', {}).get('verified') and d.get('provenance', {}).get('standard') == 'slsa/in-toto',
+    'g4': lambda d: d.get('lccp', {}).get('deterministic') and d.get('lccp', {}).get('replay_verified'),
+    'g5': lambda d: d.get('cvg', {}).get('policy_valid') and d.get('cvg', {}).get('cross_repo_consistent'),
+    'g6': lambda d: d.get('external', {}).get('verified') and d.get('external', {}).get('method') != 'none',
 }
 
-
 def h(data):
-    if isinstance(data, str):
-        data = data.encode()
+    if isinstance(data, str): data = data.encode()
     return hashlib.sha256(data).hexdigest()
-
 
 class SLSA4PolicyEngine:
     def __init__(self, bundle_path=None):
-        self.bundle_path = bundle_path or os.environ.get("SLSA4_BUNDLE", "/tmp/attestation_bundle.json")
+        self.bundle_path = bundle_path or os.environ.get('SLSA4_BUNDLE', '/tmp/attestation_bundle.json')
         self.policy = SLSA4_POLICY
         self.opa_available = os.path.exists(OPA_BIN)
 
@@ -125,8 +118,8 @@ class SLSA4PolicyEngine:
         gate_names = list(NATIVE_POLICY.keys())
         for gate in sorted(gate_names):
             passed = NATIVE_POLICY[gate](bundle)
-            results[f'G{gate[-1] if gate.startswith("g") else gate}'] = {"passed": passed}
-            status = "PASS" if passed else "FAIL"
+            results[f'G{gate[-1] if gate.startswith("g") else gate}'] = {'passed': passed}
+            status = 'PASS' if passed else 'FAIL'
             print(f"  [{status}] {gate.upper()}")
         return results
 
@@ -135,36 +128,24 @@ class SLSA4PolicyEngine:
             print("[OPA] Binary not found, using native validator")
             return self.evaluate_native(bundle)
         print("[OPA] Using OPA Rego engine...")
-        rego_input = {"input": bundle}
-        rego_file = os.path.join(POLICY_DIR, "slsa4_policy.rego")
-        with open(rego_file, "w") as f:
+        rego_input = {'input': bundle}
+        rego_file = os.path.join(POLICY_DIR, 'slsa4_policy.rego')
+        with open(rego_file, 'w') as f:
             f.write(self.policy)
         result = subprocess.run(
-            [
-                OPA_BIN,
-                "eval",
-                "--format",
-                "json",
-                "--data",
-                rego_file,
-                "data.slsa4.release",
-            ],
+            [OPA_BIN, 'eval', '--format', 'json', '--data', rego_file, 'data.slsa4.release'],
             input=json.dumps(rego_input).encode(),
-            capture_output=True,
+            capture_output=True
         )
         if result.returncode != 0:
             print(f"[OPA] Error: {result.stderr.decode()}")
             return self.evaluate_native(bundle)
         output = json.loads(result.stdout)
-        allowed = output.get("result", [{}])[0].get("release_allowed", False)
-        return {"release_allowed": allowed, "engine": "OPA Rego v0.69+"}
+        allowed = output.get('result', [{}])[0].get('release_allowed', False)
+        return {'release_allowed': allowed, 'engine': 'OPA Rego v0.69+'}
 
     def run(self, bundle_path=None):
-        bundle = (
-            self.load_bundle()
-            if not bundle_path
-            else json.load(open(bundle_path)) if os.path.exists(bundle_path) else {}
-        )
+        bundle = self.load_bundle() if not bundle_path else json.load(open(bundle_path)) if os.path.exists(bundle_path) else {}
         print("=" * 70)
         print("SLSA-4 POLICY ENGINE v5.0")
         print("=" * 70)
@@ -175,26 +156,20 @@ class SLSA4PolicyEngine:
             results = self.evaluate_opa(bundle)
         else:
             results = self.evaluate_native(bundle)
-        release_allowed = (
-            all(r.get("passed", False) for r in results.values())
-            if all(isinstance(v, dict) for v in results.values())
-            else results.get("release_allowed", False)
-        )
+        release_allowed = all(r.get('passed', False) for r in results.values()) if all(isinstance(v, dict) for v in results.values()) else results.get('release_allowed', False)
         print()
         print("=" * 70)
         print(f"SLSA-4 RELEASE ALLOWED: {release_allowed}")
         if not release_allowed:
             print("DENY REASONS:")
             for gate, result in sorted(results.items()):
-                if isinstance(result, dict) and not result.get("passed"):
+                if isinstance(result, dict) and not result.get('passed'):
                     print(f"  ✗ {gate}: {result.get('violation', 'policy violation')}")
         print("=" * 70)
         return release_allowed
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     import sys
-
     bundle_arg = sys.argv[1] if len(sys.argv) > 1 else None
     engine = SLSA4PolicyEngine(bundle_arg)
     allowed = engine.run()

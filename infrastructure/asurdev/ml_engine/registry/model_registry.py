@@ -3,27 +3,22 @@
 Model Registry — versioned model storage + lineage tracking.
 Each trained model is versioned, logged, and hash-identified.
 """
-import hashlib
-import json
-import logging
 import os
+import json
+import hashlib
 import shutil
+import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
-REGISTRY_PATH = Path(
-    os.environ.get(
-        "MODEL_REGISTRY_PATH",
-        "/home/workspace/home-cluster-iac/ml_engine/registry/models",
-    )
-)
+REGISTRY_PATH = Path(os.environ.get("MODEL_REGISTRY_PATH", "/home/workspace/home-cluster-iac/ml_engine/registry/models"))
 
 
 class ModelRegistry:
-    def __init__(self, registry_path: Path | None = None):
+    def __init__(self, registry_path: Optional[Path] = None):
         self.registry_path = registry_path or REGISTRY_PATH
         self.registry_path.mkdir(parents=True, exist_ok=True)
         self._index_path = self.registry_path / "index.json"
@@ -32,7 +27,7 @@ class ModelRegistry:
     def _load_index(self) -> None:
         if self._index_path.exists():
             with open(self._index_path) as f:
-                self._index: dict[str, Any] = json.load(f)
+                self._index: Dict[str, Any] = json.load(f)
         else:
             self._index = {}
 
@@ -40,7 +35,7 @@ class ModelRegistry:
         with open(self._index_path, "w") as f:
             json.dump(self._index, f, indent=2, default=str)
 
-    def _compute_hash(self, params: dict, metrics: dict) -> str:
+    def _compute_hash(self, params: Dict, metrics: Dict) -> str:
         """Stable hash of model config + metrics for identity."""
         h = hashlib.sha256()
         h.update(json.dumps(params, sort_keys=True).encode())
@@ -51,12 +46,12 @@ class ModelRegistry:
         self,
         model_name: str,
         model_file: Path,
-        params: dict[str, Any],
-        metrics: dict[str, float],
-        feature_names: list[str],
+        params: Dict[str, Any],
+        metrics: Dict[str, float],
+        feature_names: List[str],
         train_rows: int,
         dataset_version: str,
-        metadata: dict[str, Any] | None = None,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Register a trained model version.
@@ -92,10 +87,10 @@ class ModelRegistry:
         logger.info(f"Registered {version_id} — AUC={metrics.get('test_auc', '?')}")
         return version_id
 
-    def get(self, version_id: str) -> dict[str, Any] | None:
+    def get(self, version_id: str) -> Optional[Dict[str, Any]]:
         return self._index.get(version_id)
 
-    def get_latest(self, model_name: str) -> dict[str, Any] | None:
+    def get_latest(self, model_name: str) -> Optional[Dict[str, Any]]:
         versions = sorted(
             [v for v in self._index.values() if v["model_name"] == model_name],
             key=lambda v: v["registered_at"],
@@ -103,7 +98,7 @@ class ModelRegistry:
         )
         return versions[0] if versions else None
 
-    def list_versions(self, model_name: str | None = None) -> list[dict[str, Any]]:
+    def list_versions(self, model_name: Optional[str] = None) -> List[Dict[str, Any]]:
         if model_name:
             return sorted(
                 [v for v in self._index.values() if v["model_name"] == model_name],
@@ -119,6 +114,5 @@ class ModelRegistry:
             raise ValueError(f"Model {version_id} not found in registry")
 
         import pickle
-
         with open(entry["model_file"], "rb") as f:
             return pickle.load(f)

@@ -4,13 +4,13 @@ Ceph Prometheus Exporter
 Exports: OSD up/down, PG states, storage utilization, MON quorum
 Endpoint: /metrics  (text format for Prometheus)
 """
-import json
 import subprocess
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
+import re
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 CEPH_CMD = ["ceph", "-f", "json"]
 METRICS = {}
-
 
 def get_ceph_status() -> dict:
     """ceph status --format json"""
@@ -19,7 +19,6 @@ def get_ceph_status() -> dict:
         return json.loads(out)
     except Exception:
         return {}
-
 
 def get_ceph_osd_dump() -> list:
     """ceph osd dump --format json"""
@@ -30,7 +29,6 @@ def get_ceph_osd_dump() -> list:
     except Exception:
         return []
 
-
 def get_ceph_pg_dump() -> dict:
     """ceph pg dump --format json"""
     try:
@@ -39,7 +37,6 @@ def get_ceph_pg_dump() -> dict:
     except Exception:
         return {}
 
-
 def get_ceph_df() -> dict:
     """ceph df --format json"""
     try:
@@ -47,7 +44,6 @@ def get_ceph_df() -> dict:
         return json.loads(out)
     except Exception:
         return {}
-
 
 def build_metrics() -> str:
     status = get_ceph_status()
@@ -62,7 +58,7 @@ def build_metrics() -> str:
         "# HELP ceph_cluster_health Cluster health status",
         "# TYPE ceph_cluster_health gauge",
         f'ceph_cluster_health{{status="{health.get("status","UNKNOWN")}"}} 1',
-        "# HELP ceph_mon_quorum_size MON quorum count",
+        f"# HELP ceph_mon_quorum_size MON quorum count",
         "# TYPE ceph_mon_quorum_size gauge",
         f"ceph_mon_quorum_size {len(mon_quorum)}",
         "# HELP ceph_osd_up OSD up status",
@@ -81,8 +77,8 @@ def build_metrics() -> str:
         osd_id = osd.get("osd", "unknown")
         lines.append(f'ceph_osd_up{{osd="{osd_id}"}} {up}')
 
-    lines.append("# HELP ceph_osd_summary OSD summary")
-    lines.append("# TYPE ceph_osd_summary gauge")
+    lines.append(f"# HELP ceph_osd_summary OSD summary")
+    lines.append(f"# TYPE ceph_osd_summary gauge")
     lines.append(f"ceph_osd_up_total {osd_up}")
     lines.append(f"ceph_osd_down_total {osd_down}")
 
@@ -92,8 +88,8 @@ def build_metrics() -> str:
         state = pg.get("state", "unknown")
         pg_states[state] = pg_states.get(state, 0) + 1
 
-    lines.append("# HELP ceph_pg_count PG count by state")
-    lines.append("# TYPE ceph_pg_count gauge")
+    lines.append(f"# HELP ceph_pg_count PG count by state")
+    lines.append(f"# TYPE ceph_pg_count gauge")
     for state, count in pg_states.items():
         lines.append(f'ceph_pg_count{{state="{state}"}} {count}')
 
@@ -102,13 +98,12 @@ def build_metrics() -> str:
     total_bytes = sum(p.get("stats", {}).get("stored", 0) for p in pool_stats)
     total_bytes_avail = sum(p.get("stats", {}).get("max_avail", 0) for p in pool_stats)
 
-    lines.append("# HELP ceph_storage Storage bytes")
-    lines.append("# TYPE ceph_storage gauge")
+    lines.append(f"# HELP ceph_storage Storage bytes")
+    lines.append(f"# TYPE ceph_storage gauge")
     lines.append(f"ceph_storage_used_bytes {total_bytes}")
     lines.append(f"ceph_storage_available_bytes {total_bytes_avail}")
 
     return "\n".join(lines) + "\n"
-
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -120,10 +115,8 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self.send_response(404)
         return
-
     def log_message(self, format, *args):
         pass
-
 
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", 9342), Handler)

@@ -3,12 +3,13 @@
 Failure Orchestrator — Main Loop
 Runs detectors, applies recovery based on rules, logs + escalates.
 """
-import json
-import logging
 import os
 import sys
 import time
+import logging
+import json
 from pathlib import Path
+from typing import Optional
 
 logging.basicConfig(
     level=logging.INFO,
@@ -100,13 +101,9 @@ def escalate(message: str, severity: str):
     if telegram_bot_token and telegram_chat_id:
         try:
             import requests
-
             requests.post(
                 f"https://api.telegram.org/{telegram_bot_token}/sendMessage",
-                json={
-                    "chat_id": telegram_chat_id,
-                    "text": f"[{severity.upper()}] {message}",
-                },
+                json={"chat_id": telegram_chat_id, "text": f"[{severity.upper()}] {message}"},
                 timeout=10,
             )
         except Exception as e:
@@ -116,19 +113,14 @@ def escalate(message: str, severity: str):
     if slack_webhook:
         try:
             import requests
-
-            requests.post(
-                slack_webhook,
-                json={"text": f"[{severity.upper()}] {message}"},
-                timeout=10,
-            )
+            requests.post(slack_webhook, json={"text": f"[{severity.upper()}] {message}"}, timeout=10)
         except Exception as e:
             log.error(f"Slack escalation failed: {e}")
 
 
 def run_cycle():
-    from . import recovery as rec_module
     from .detectors import all_detectors
+    from . import recovery as rec_module
 
     state = load_state()
     results = all_detectors()
@@ -148,11 +140,9 @@ def run_cycle():
             if engine.should_retry(name):
                 engine.record_attempt(name)
                 attempt = engine.attempt_counts[name]
-                backoff = engine.BACKOFF_BASE**attempt
+                backoff = engine.BACKOFF_BASE ** attempt
 
-                log.warning(
-                    f"Failure detected [{name}]: {reason} → attempt {attempt}/{engine.MAX_RETRIES} (backoff={backoff}s)"
-                )
+                log.warning(f"Failure detected [{name}]: {reason} → attempt {attempt}/{engine.MAX_RETRIES} (backoff={backoff}s)")
 
                 time.sleep(backoff)
                 ok, msg = recovery_fn()
@@ -165,10 +155,7 @@ def run_cycle():
                     log.error(f"Recovery FAILED [{name}]: {msg}")
                     state[f"{name}_status"] = "failed"
                     if engine.attempt_counts[name] >= engine.MAX_RETRIES:
-                        escalate(
-                            f"{name} failed after {engine.MAX_RETRIES} attempts: {msg}",
-                            severity,
-                        )
+                        escalate(f"{name} failed after {engine.MAX_RETRIES} attempts: {msg}", severity)
                         engine.reset(name)
             else:
                 engine.reset(name)

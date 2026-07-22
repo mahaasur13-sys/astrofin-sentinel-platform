@@ -4,24 +4,23 @@ Synthetic Scheduler — injects jobs into simulated cluster state.
 Used when real Slurm/System76 is not available.
 """
 from __future__ import annotations
-
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Optional
 import random
-from dataclasses import dataclass
-from datetime import datetime
-
-from ..workload.generator import Job
+from ..workload.types import WorkloadProfile
+from ..workload.generator import WorkloadGenerator, Job
 
 
 @dataclass
 class NodeState:
     """Simulated compute node."""
-
     node_id: str
     cpu_cores: int
     gpu_count: int
     memory_gb: int
-    load: float = 0.0  # 0..1
-    gpu_load: float = 0.0  # 0..1
+    load: float = 0.0          # 0..1
+    gpu_load: float = 0.0      # 0..1
     active_jobs: int = 0
     failed_jobs: int = 0
 
@@ -29,12 +28,11 @@ class NodeState:
 @dataclass
 class JobResult:
     """Result of job execution in simulator."""
-
     job_id: str
     started_at: datetime
-    completed_at: datetime | None
+    completed_at: Optional[datetime]
     exit_code: int
-    node: str | None
+    node: Optional[str]
     wait_time_sec: float
     runtime_sec: float
     scheduled: bool = False
@@ -43,7 +41,6 @@ class JobResult:
 @dataclass
 class InjectionResult:
     """Full injection cycle result."""
-
     scenario: str
     submitted: int
     scheduled: int
@@ -125,12 +122,12 @@ class SyntheticScheduler:
             scheduled=sum(1 for r in completed if r.scheduled),
             completed=sum(1 for r in completed if r.exit_code == 0),
             failed=sum(1 for r in completed if r.exit_code != 0),
-            p50_wait_sec=(float(sorted(wait_times)[len(wait_times) // 2]) if wait_times else 0),
-            p99_wait_sec=(float(sorted(wait_times)[int(len(wait_times) * 0.99)]) if len(wait_times) > 10 else 0),
-            p50_runtime_sec=(float(sorted(runtimes)[len(runtimes) // 2]) if runtimes else 0),
-            p99_runtime_sec=(float(sorted(runtimes)[int(len(runtimes) * 0.99)]) if len(runtimes) > 10 else 0),
+            p50_wait_sec=float(sorted(wait_times)[len(wait_times)//2]) if wait_times else 0,
+            p99_wait_sec=float(sorted(wait_times)[int(len(wait_times)*0.99)]) if len(wait_times) > 10 else 0,
+            p50_runtime_sec=float(sorted(runtimes)[len(runtimes)//2]) if runtimes else 0,
+            p99_runtime_sec=float(sorted(runtimes)[int(len(runtimes)*0.99)]) if len(runtimes) > 10 else 0,
             queue_depth_peak=max_queue,
-            node_states=dict(self.nodes.items()),
+            node_states={k: v for k, v in self.nodes.items()},
         )
 
     def _try_schedule(self, job: Job) -> bool:

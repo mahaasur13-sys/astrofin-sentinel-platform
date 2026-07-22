@@ -5,8 +5,10 @@ Assembles features + labels, handles node filtering, version tracking.
 """
 import logging
 from datetime import datetime, timedelta
+from typing import Optional, List, Dict, Any
 
 import pandas as pd
+import numpy as np
 
 from feature_pipeline import FeatureBuilder
 
@@ -32,9 +34,9 @@ class DatasetBuilder:
 
     def build(
         self,
-        node_ids: list[str] | None = None,
-        start_time: datetime | None = None,
-        end_time: datetime | None = None,
+        node_ids: Optional[List[str]] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
         horizon_minutes: int = 30,
         window_type: str = "5m",
         min_samples: int = 100,
@@ -57,7 +59,8 @@ class DatasetBuilder:
         start_time = start_time or (end_time - timedelta(days=7))
 
         logger.info(
-            f"Building dataset: start={start_time}, end={end_time}, " f"horizon={horizon_minutes}m, nodes={node_ids}"
+            f"Building dataset: start={start_time}, end={end_time}, "
+            f"horizon={horizon_minutes}m, nodes={node_ids}"
         )
 
         # Pull raw feature vectors from TimescaleDB
@@ -95,15 +98,7 @@ class DatasetBuilder:
         labels_df["label_bucket"] = labels_df["failure_time"].dt.floor(f"{window_type.replace('m', 'min')}")
 
         df = features_df.merge(
-            labels_df[
-                [
-                    "node_id",
-                    "label_bucket",
-                    "label_failure",
-                    "label_queue_depth",
-                    "label_gpu_util",
-                ]
-            ],
+            labels_df[["node_id", "label_bucket", "label_failure", "label_queue_depth", "label_gpu_util"]],
             left_on=["node_id", "time_bucket"],
             right_on=["node_id", "label_bucket"],
             how="left",
@@ -119,7 +114,8 @@ class DatasetBuilder:
         df = df[df["node_id"].isin(valid_nodes)]
 
         logger.info(
-            f"Dataset built: {len(df)} rows, {df['label_failure'].sum()} failures, " f"{len(valid_nodes)} nodes"
+            f"Dataset built: {len(df)} rows, {df['label_failure'].sum()} failures, "
+            f"{len(valid_nodes)} nodes"
         )
         return df
 
@@ -128,7 +124,7 @@ class DatasetBuilder:
         start_time: datetime,
         end_time: datetime,
         horizon_minutes: int,
-        node_ids: list[str] | None = None,
+        node_ids: Optional[List[str]] = None,
     ) -> pd.DataFrame:
         """Query TimescaleDB for failure/load labels within horizon window."""
         try:

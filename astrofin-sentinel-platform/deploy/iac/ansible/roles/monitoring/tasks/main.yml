@@ -1,0 +1,68 @@
+# ============================================================
+# Role: monitoring — Prometheus + Loki + Grafana stack
+# ============================================================
+
+- name: Create monitoring directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /opt/monitoring/prometheus
+    - /opt/monitoring/loki
+    - /opt/monitoring/grafana
+    - /opt/monitoring/config
+
+- name: Create Prometheus config
+  ansible.builtin.template:
+    dest: /opt/monitoring/config/prometheus.yml
+    mode: "0644"
+    src: prometheus.yml.j2
+
+- name: Create Loki config
+  ansible.builtin.template:
+    dest: /opt/monitoring/config/loki.yml
+    mode: "0644"
+    src: loki.yml.j2
+
+- name: Ensure Docker is installed
+  ansible.builtin.include_role:
+    name: common
+    tasks_from: docker
+  when: ansible_os_family == "Debian"
+
+- name: Deploy monitoring stack (Docker Compose)
+  ansible.builtin.template:
+    dest: /opt/monitoring/docker-compose.monitoring.yml
+    mode: "0644"
+    src: docker-compose.monitoring.yml.j2
+
+- name: Start monitoring stack
+  community.docker.docker_compose_v2:
+    project_src: /opt/monitoring
+    files:
+      - docker-compose.monitoring.yml
+    state: present
+  register: monitoring_stack
+
+- name: Wait for Prometheus to be ready
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host }}"
+    port: 9090
+    delay: 5
+    timeout: 60
+  when: monitoring_stack is succeeded
+
+- name: Create Prometheus datasource in Grafana
+  ansible.builtin.uri:
+    url: "http://{{ ansible_host }}:3000/api/datasources"
+    method: POST
+    body_format: json
+    body:
+      name: Prometheus
+      type: prometheus
+      url: "http://{{ ansible_host }}:9090"
+      access: proxy
+      isDefault: true
+    status_code: [200, 201, 400]
+  when: "'grafana' in group_names"

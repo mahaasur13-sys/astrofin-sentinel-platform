@@ -3,33 +3,30 @@
 Workload Generator — generates job streams from profiles.
 """
 from __future__ import annotations
-
-import math
-import random
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-
-from .types import WorkloadProfile
+from typing import Optional
+import random
+import math
+from .types import WorkloadProfile, WorkloadProfile as WProfile
 
 
 @dataclass
 class Job:
     """Single synthetic job."""
-
     job_id: str
     submitted_at: datetime
     runtime_sec: float
     gpu_required: bool
     priority: int
     adversarial: bool
-    target_node: str | None = None
+    target_node: Optional[str] = None
     failure_injected: bool = False
 
 
 @dataclass
 class WorkloadStream:
     """Generated job stream for one injection cycle."""
-
     scenario_name: str
     jobs: list[Job] = field(default_factory=list)
     generated_at: datetime = field(default_factory=datetime.utcnow)
@@ -53,7 +50,7 @@ class WorkloadGenerator:
         duration_sec: int,
         target_nodes: list[str],
         scenario_name: str = "unnamed",
-        start_time: datetime | None = None,
+        start_time: Optional[datetime] = None,
     ) -> WorkloadStream:
         """Generate full job stream for given profile and duration."""
         rng = self._rng
@@ -126,10 +123,10 @@ class WorkloadGenerator:
 
         return stream
 
-    def generate_scenario(self, scenario_name: str, duration_sec: int, target_nodes: list[str]) -> WorkloadStream:
+    def generate_scenario(self, scenario_name: str, duration_sec: int,
+                          target_nodes: list[str]) -> WorkloadStream:
         """Convenience: generate from predefined SCENARIOS."""
         from .types import SCENARIOS
-
         if scenario_name not in SCENARIOS:
             raise ValueError(f"Unknown scenario: {scenario_name}")
         scenario = SCENARIOS[scenario_name]

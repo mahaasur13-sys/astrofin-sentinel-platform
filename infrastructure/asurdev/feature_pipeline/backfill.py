@@ -13,26 +13,27 @@ Usage:
     # Backfill + export immediately
     python backfill.py --days 7 --export-csv --output /data/ml
 """
-import argparse
 import os
 import sys
-from datetime import datetime, timedelta, timezone
-
+import argparse
 import structlog
+from datetime import datetime, timezone, timedelta
+from typing import Optional, List
 
 logger = structlog.get_logger()
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from feature_pipeline import FeatureBuilder, FeatureExporter, build_features
 
-DSN = os.environ.get("CLUSTER_DSN", "postgresql://cluster:password@localhost:5432/cluster_metrics")
+
+DSN = os.environ.get('CLUSTER_DSN', 'postgresql://cluster:password@localhost:5432/cluster_metrics')
 
 
 def backfill_range(
     start: datetime,
     end: datetime,
-    export_dir: str | None = None,
-    nodes: list[str] | None = None,
+    export_dir: Optional[str] = None,
+    nodes: Optional[List[str]] = None
 ):
     """
     Reconstruct features from TimescaleDB continuous aggregates.
@@ -68,21 +69,15 @@ def backfill_range(
     logger.info("retrieved_rows", count=len(rows), start=start.isoformat(), end=end.isoformat())
 
     from collections import defaultdict
-
     buckets: dict = defaultdict(lambda: defaultdict(dict))
     for row in rows:
         bucket, node_id, metric, avg, min_v, max_v, stddev, p50, p95, p99 = row
         buckets[bucket][node_id][metric] = {
-            "avg": avg,
-            "min": min_v,
-            "max": max_v,
-            "stddev": stddev,
-            "p50": p50,
-            "p95": p95,
-            "p99": p99,
+            'avg': avg, 'min': min_v, 'max': max_v,
+            'stddev': stddev, 'p50': p50, 'p95': p95, 'p99': p99
         }
 
-    FeatureBuilder()
+    builder = FeatureBuilder()
     all_vectors = []
 
     for bucket, nodes_data in sorted(buckets.items()):
@@ -103,13 +98,13 @@ def backfill_range(
     return all_vectors
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--days", type=int, default=7)
-    parser.add_argument("--start", type=str)
-    parser.add_argument("--end", type=str)
-    parser.add_argument("--export-csv", action="store_true")
-    parser.add_argument("--output", default="/tmp/ml_dataset")
+    parser.add_argument('--days', type=int, default=7)
+    parser.add_argument('--start', type=str)
+    parser.add_argument('--end', type=str)
+    parser.add_argument('--export-csv', action='store_true')
+    parser.add_argument('--output', default='/tmp/ml_dataset')
     args = parser.parse_args()
 
     if args.start and args.end:

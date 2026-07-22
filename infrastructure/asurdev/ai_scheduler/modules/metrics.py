@@ -4,8 +4,8 @@ AI Scheduler v2 — Metrics Layer
 Prometheus integration: query live node metrics for scheduling decisions.
 """
 import os
-
 import requests
+from typing import Optional
 
 PROM = os.environ.get("PROMETHEUS_URL", "http://localhost:9090")
 TIMEOUT = 5

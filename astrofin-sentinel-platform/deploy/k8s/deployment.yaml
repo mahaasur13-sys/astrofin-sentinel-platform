@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: astrofin-sentinel-web
+  namespace: astrofin-sentinel
+  labels:
+    app.kubernetes.io/name: astrofin-sentinel-web
+    app.kubernetes.io/part-of: astrofin-sentinel-platform
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: astrofin-sentinel-web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: astrofin-sentinel-web
+        app.kubernetes.io/part-of: astrofin-sentinel-platform
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8050"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: astrofin-sentinel
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          image: ghcr.io/mahaasur13-sys/astrofin-sentinel-web:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8050
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8050"
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: astrofin-sentinel-config
+                  key: allowed-origins
+                  optional: true
+          envFrom:
+            - secretRef:
+                name: astrofin-sentinel-secrets
+                optional: true
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          startupProbe:
+            httpGet:
+              path: /livez
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: astrofin-sentinel-web

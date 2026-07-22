@@ -3,10 +3,11 @@
 ILP Solver — exact optimization via scipy minimize + branch-and-bound.
 Falls back to heuristic when ILP is infeasible or timeout.
 """
+from typing import Optional
 from dataclasses import dataclass
-
 import numpy as np
 from scipy.optimize import minimize
+from scipy.sparse import csr_matrix
 
 
 @dataclass
@@ -26,7 +27,7 @@ class ILPSolver:
     Uses scipy minimize with penalty method for constraint handling.
     """
 
-    def __init__(self, config: dict | None = None):
+    def __init__(self, config: Optional[dict] = None):
         self.config = config or {}
         self.timeout_s = self.config.get("timeout_s", 5.0)
         self.max_vars = self.config.get("max_vars", 500)
@@ -38,11 +39,10 @@ class ILPSolver:
         ml_predictions: dict,
     ) -> ILPResult:
         import time
-
         t0 = time.time()
 
-        jobs = list({c.job_id for c in candidates})
-        nodes = list({c.node_id for c in candidates if c.node_id != "REJECT"})
+        jobs = list(set(c.job_id for c in candidates))
+        nodes = list(set(c.node_id for c in candidates if c.node_id != "REJECT"))
         n_jobs, n_nodes = len(jobs), len(nodes)
 
         if n_jobs * n_nodes > self.max_vars:
@@ -67,7 +67,8 @@ class ILPSolver:
         constraints = []
         # Each job assigned to at most 1 node
         for i in range(n_jobs):
-            idx = [(i, node_idx[c.node_id]) for c in candidates if c.job_id == jobs[i] and c.node_id in node_idx]
+            idx = [(i, node_idx[c.node_id]) for c in candidates
+                   if c.job_id == jobs[i] and c.node_id in node_idx]
             if idx:
                 A = np.zeros((n_jobs, n_nodes))
                 for _, ni in idx:
@@ -79,12 +80,9 @@ class ILPSolver:
 
         x0 = np.random.random(n_jobs * n_nodes) * 0.1
         result = minimize(
-            objective,
-            x0,
-            method="SLSQP",
-            bounds=bounds,
-            constraints=constraints,
-            options={"maxiter": 100, "ftol": 1e-6},
+            objective, x0, method="SLSQP",
+            bounds=bounds, constraints=constraints,
+            options={"maxiter": 100, "ftol": 1e-6}
         )
         elapsed_ms = (time.time() - t0) * 1000
 
@@ -100,11 +98,8 @@ class ILPSolver:
 
         total_u = -result.fun
         return ILPResult(
-            placements=placements,
-            migrations=[],
-            rejections=rejections,
-            total_utility=total_u,
-            solver_ms=elapsed_ms,
+            placements=placements, migrations=[], rejections=rejections,
+            total_utility=total_u, solver_ms=elapsed_ms,
             status="optimal" if result.success else "suboptimal",
             candidates_evaluated=len(candidates),
         )
@@ -122,13 +117,9 @@ class ILPSolver:
             if j not in taken:
                 rejected.append({"job_id": j, "reason": "heuristic_skip"})
         import time
-
         return ILPResult(
-            placements=placements,
-            migrations=[],
-            rejections=rejected,
-            total_utility=sum(c.score for c in candidates[: len(placements)]),
-            solver_ms=(time.time() - t0) * 1000,
-            status="heuristic_fallback",
+            placements=placements, migrations=[], rejections=rejected,
+            total_utility=sum(c.score for c in candidates[:len(placements)]),
+            solver_ms=(time.time() - t0) * 1000, status="heuristic_fallback",
             candidates_evaluated=len(candidates),
         )

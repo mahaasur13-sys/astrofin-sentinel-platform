@@ -1,0 +1,50 @@
+{
+  "dashboard": {
+    "title": "AstroFin Sentinel V5 – Agent Performance",
+    "panels": [
+      {
+        "title": "Agent Selection Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astrofin_agent_selection_total[5m])",
+            "legendFormat": "{{agent_name}} ({{pool}})"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "title": "Signal Distribution (LONG/SHORT/NEUTRAL)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astrofin_agent_signal_total[5m])",
+            "legendFormat": "{{agent_name}} - {{signal}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "title": "Thompson Alpha / Beta / Mean",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "astrofin_thompson_params{param=\"alpha\"}",
+            "legendFormat": "{{agent_name}} alpha"
+          },
+          {
+            "expr": "astrofin_thompson_params{param=\"beta\"}",
+            "legendFormat": "{{agent_name}} beta"
+          },
+          {
+            "expr": "astrofin_thompson_params{param=\"mean\"}",
+            "legendFormat": "{{agent_name}} mean"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      }
+    ],
+    "refresh": "30s",
+    "schemaVersion": 16
+  }
+}

@@ -5,20 +5,12 @@ State Drift Coupling — feature drift != model drift != system drift
 HYPOTHESIS: three drifts decouple → scheduling misbehavior
 EXPECTED: corr(feature,model) < 0.5 OR model acc drops with stable features
 """
-import json
-import random
-import statistics
-import time
+import random, time, json, statistics
 from dataclasses import dataclass
-
 
 @dataclass
 class DriftSample:
-    ts: float
-    feature_value: float
-    model_output: float
-    system_metric: float
-
+    ts: float; feature_value: float; model_output: float; system_metric: float
 
 class StateDriftScenario:
     def __init__(self, duration_sec=120):
@@ -56,8 +48,8 @@ class StateDriftScenario:
 
     def _pearson(self, x, y):
         n = len(x)
-        mx, my = sum(x) / n, sum(y) / n
-        cov = sum((xi - mx) * (yi - my) for xi, yi in zip(x, y)) / n
+        mx, my = sum(x)/n, sum(y)/n
+        cov = sum((xi-mx)*(yi-my) for xi,yi in zip(x,y))/n
         sx = statistics.stdev(x) + 1e-9
         sy = statistics.stdev(y) + 1e-9
         return cov / (sx * sy)
@@ -71,31 +63,18 @@ class StateDriftScenario:
         failure = abs(fm_corr) < 0.5
         result = {
             "scenario": "state_drift_coupling",
-            "tags": ["#ACOS", "#LOAD_TEST", "#FAILURE_MODE", "#ML_DRIFT"],
-            "input": {
-                "feature_drift": self.feature_drift_point,
-                "model_drift": self.model_drift_point,
-            },
-            "observed_behavior": {
-                "corr_feature_model": round(fm_corr, 3),
-                "corr_model_system": round(ms_corr, 3),
-            },
+            "tags": ["#ACOS","#LOAD_TEST","#FAILURE_MODE","#ML_DRIFT"],
+            "input": {"feature_drift": self.feature_drift_point, "model_drift": self.model_drift_point},
+            "observed_behavior": {"corr_feature_model": round(fm_corr,3), "corr_model_system": round(ms_corr,3)},
             "failure_detected": failure,
-            "metrics": {
-                "corr_feature_model": round(fm_corr, 3),
-                "corr_model_system": round(ms_corr, 3),
-            },
+            "metrics": {"corr_feature_model": round(fm_corr,3), "corr_model_system": round(ms_corr,3)},
             "correction_applied": None,
             "result_after_fix": None,
         }
         if failure:
             result["correction_applied"] = "correction_applied: retraining triggered, feature pipeline rebuilt"
-            result["result_after_fix"] = {
-                "status": "retraining initiated",
-                "corr_expected": ">0.7",
-            }
+            result["result_after_fix"] = {"status": "retraining initiated", "corr_expected": ">0.7"}
         return result
-
 
 def run():
     print("[STATE DRIFT] Starting scenario...")
@@ -104,7 +83,4 @@ def run():
     print(f"Failure detected: {r['failure_detected']}")
     print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
-
-
-if __name__ == "__main__":
-    run()
+if __name__ == "__main__": run()

@@ -4,16 +4,13 @@ ACOS SCL v5 — Integration Test (Pure Event-Sourcing Kernel)
 Validates STRICT write/read separation and all 5+1 event-sourcing invariants.
 """
 from __future__ import annotations
-
-import inspect
-
-from acos.events.event_log import Event, EventLog, EventType
+import time, inspect, sys
+from acos.events.event_log import EventLog, EventType, Event
+from acos.state.reducer import StateReducer
 from acos.eventsourced.engine import EventSourcedEngineV5
 from acos.projection.raw_projection import RawEventProjection
 from acos.projection.state_projection import StateProjection
-from acos.state.reducer import StateReducer
 from acos.storage.schema import TraceRecord
-
 
 def test_invariant_1():
     """INV1: Every action produces an event."""
@@ -28,7 +25,6 @@ def test_invariant_1():
     print(f"       Engine returns trace_id ONLY: {returned}")
     return ok
 
-
 def test_invariant_2():
     """INV2: Engine NEVER calls reducer (graph integrity)."""
     src = inspect.getsource(EventSourcedEngineV5)
@@ -41,7 +37,6 @@ def test_invariant_2():
     print(f"       rebuild() call: {not no_rebuild}")
     return ok
 
-
 def test_invariant_3():
     """INV3: StateReducer NEVER emits events (pure read-side)."""
     src = inspect.getsource(StateReducer)
@@ -51,7 +46,6 @@ def test_invariant_3():
     print(f"  [{'OK' if ok else 'FAIL'}] INV3 — Reducer is pure: no emit/append")
     return ok
 
-
 def test_invariant_4():
     """INV4: Hash chain integrity."""
     log = EventLog()
@@ -60,7 +54,6 @@ def test_invariant_4():
     ok = log.verify_chain("t4")
     print(f"  [{'OK' if ok else 'FAIL'}] INV4 — Hash chain intact: {ok}")
     return ok
-
 
 def test_invariant_5():
     """INV5: Trace determinism — same events → identical state."""
@@ -74,7 +67,6 @@ def test_invariant_5():
     ok = r1["status"] == r2["status"] == "COMPLETED"
     print(f"  [{'OK' if ok else 'FAIL'}] INV5 — Deterministic replay: {r1['status']}")
     return ok
-
 
 def test_invariant_6():
     """INV6: Replay equivalence — cross-Reducer determinism."""
@@ -91,68 +83,59 @@ def test_invariant_6():
     print(f"  [{'OK' if ok else 'FAIL'}] INV6 — Cross-log replay: {r1['status']} == {r2['status']}")
     return ok
 
-
 def test_projection_split():
     """INV7: Projection split — RawEventProjection vs StateProjection."""
     log = EventLog()
     log.emit("ps", EventType.DAG_CREATED, {"dag": {}})
     log.emit("ps", EventType.NODE_SCHEDULED, {"node_id": "a"})
-
+    
     raw = RawEventProjection(log)
     state = StateProjection(log)
-
+    
     raw_events = raw.get_trace_events("ps")
     state_dict = state.get_trace("ps")
-
-    ok = (
-        len(raw_events) == 2
-        and state_dict["status"] == "CREATED"
-        and "dag" not in raw_events[0]
-        or raw_events[0].get("dag") == {}
-    )
-    print(
-        f"  [{'OK' if ok else 'FAIL'}] INV7 — Projection split: raw={len(raw_events)} events, state={state_dict['status']}"
-    )
+    
+    ok = (len(raw_events) == 2 and 
+          state_dict["status"] == "CREATED" and
+          "dag" not in raw_events[0] or raw_events[0].get("dag") == {})
+    print(f"  [{'OK' if ok else 'FAIL'}] INV7 — Projection split: raw={len(raw_events)} events, state={state_dict['status']}")
     return ok
-
 
 def test_full_flow():
     """INV8: Complete write → read separation flow."""
     log = EventLog()
     engine = EventSourcedEngineV5(log)
     dag = {"nodes": [{"id": "a"}, {"id": "b"}], "edges": []}
-
+    
     # WRITE: engine returns trace_id ONLY
     returned = engine.execute(dag, {}, "full-flow")
-
+    
     # READ: StateProjection rebuilds state (engine NOT involved)
     state_proj = StateProjection(log)
     state = state_proj.get_trace("full-flow")
-
+    
     # VERIFY: engine returned string, state derived from events
-    ok = (
-        returned == "full-flow"
-        and state["status"] == "COMPLETED"
-        and state["scheduled_count"] == 2
-        and state["executed_count"] == 2
-    )
+    ok = (returned == "full-flow" and
+          state["status"] == "COMPLETED" and
+          state["scheduled_count"] == 2 and
+          state["executed_count"] == 2)
     print(f"  [{'OK' if ok else 'FAIL'}] INV8 — Full separation: returned={returned}, state={state['status']}")
     print(f"       Engine type returned: {type(returned).__name__} (must be str)")
-    print("       State source: derived via StateProjection (NOT engine)")
+    print(f"       State source: derived via StateProjection (NOT engine)")
     return ok
-
 
 def test_trace_record():
     """INV9: TraceRecord normalization."""
     tr = TraceRecord(
         trace_id="test-123",
         metadata={"decision": "APPROVED", "dag": {"nodes": 1}},
-        created_at=None,
+        created_at=None
     )
-    ok = tr.trace_id == "test-123" and tr.metadata["decision"] == "APPROVED" and tr.created_at is not None
+    ok = (tr.trace_id == "test-123" and
+          tr.metadata["decision"] == "APPROVED" and
+          tr.created_at is not None)
     print(f"  [{'OK' if ok else 'FAIL'}] INV9 — TraceRecord normalized: {tr.trace_id}")
     return ok
-
 
 if __name__ == "__main__":
     print("=== ACOS SCL v5 — Pure Event-Sourcing Kernel ===")

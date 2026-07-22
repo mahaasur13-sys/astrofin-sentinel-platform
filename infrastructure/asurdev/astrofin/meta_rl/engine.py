@@ -4,18 +4,18 @@ ACOS × AstroFin — Meta-RL Engine
 Distributed genetic algorithm + RL feedback loop for strategy evolution.
 Population: ACOS jobs → evaluated on cluster → fitness aggregated in TSDB.
 """
+from dataclasses import dataclass, field
+from typing import Callable
+from datetime import datetime
+import random
 import hashlib
 import json
-import random
-from collections.abc import Callable
-from dataclasses import dataclass, field
-from datetime import datetime
 
 
 @dataclass
 class Strategy:
     strategy_id: str
-    genes: dict  # agent weights, thresholds, parameters
+    genes: dict                   # agent weights, thresholds, parameters
     fitness: float = 0.0
     generation: int = 0
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
@@ -126,7 +126,7 @@ class MetaRLEngine:
 
     def reproduce(self, selected: list["Strategy"]) -> list["Strategy"]:
         """Crossover + mutation → next generation."""
-        next_gen = list(selected[:2])  # keep top 2 as-is
+        next_gen = list(selected[:2])   # keep top 2 as-is
         while len(next_gen) < self.population_size:
             p1, p2 = random.sample(selected, 2)
             child = p1.crossover(p2).mutate(rate=0.1)
@@ -165,3 +165,5 @@ def submit_acos_job(strategy: Strategy) -> dict:
         "max_drawdown": random.uniform(0.05, 0.25),
         "win_rate": random.uniform(0.45, 0.70),
     }
+
+

@@ -53,7 +53,9 @@ class Incident:
     affected_layers: list[str]
     trigger_metrics: dict[str, float] = field(default_factory=dict)
     root_cause: str | None = None
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     resolved_at: str | None = None
     rollback_actions: list[RollbackAction] = field(default_factory=list)
 
@@ -61,7 +63,10 @@ class Incident:
         return self.severity.value <= IncidentSeverity.MODERATE.value
 
     def requires_hard_fail(self) -> bool:
-        return self.fail_mode == FailMode.HARD or self.severity.value >= IncidentSeverity.SEVERE.value
+        return (
+            self.fail_mode == FailMode.HARD
+            or self.severity.value >= IncidentSeverity.SEVERE.value
+        )
 
     def containment_boundary(self) -> str:
         if self.severity.value >= IncidentSeverity.SEVERE.value:
@@ -124,9 +129,15 @@ class FailureIsolator:
         self.rollback_queue: list[RollbackAction] = []
         self.cascade_prevention: bool = True
 
-    def classify_incident(self, trigger: FailureTrigger, metrics: dict[str, float], run_id: str, desc: str) -> Incident:
-        resp = SEVERITY_RESPONSE.get(trigger.severity, SEVERITY_RESPONSE[IncidentSeverity.WARNING])
-        fail_mode = FailMode.HARD if resp["fail_mode"] == FailMode.HARD else FailMode.SOFT
+    def classify_incident(
+        self, trigger: FailureTrigger, metrics: dict[str, float], run_id: str, desc: str
+    ) -> Incident:
+        resp = SEVERITY_RESPONSE.get(
+            trigger.severity, SEVERITY_RESPONSE[IncidentSeverity.WARNING]
+        )
+        fail_mode = (
+            FailMode.HARD if resp["fail_mode"] == FailMode.HARD else FailMode.SOFT
+        )
 
         incident = Incident(
             incident_id=f"inc_{len(self.active_incidents):04d}",
@@ -199,14 +210,18 @@ class FailureIsolator:
             self.active_incidents.pop(incident_id)
             self.incident_history.append(incident)
 
-    def cascade_check(self, incident: Incident, all_incidents: list[Incident]) -> list[str]:
+    def cascade_check(
+        self, incident: Incident, all_incidents: list[Incident]
+    ) -> list[str]:
         """Prevent cascade failures by checking if new incident could trigger others."""
         warnings = []
         recent = [i for i in all_incidents if i.incident_id != incident.incident_id]
 
         for existing in recent:
             if existing.severity.value >= IncidentSeverity.SEVERE.value:
-                shared_layers = set(existing.affected_layers) & set(incident.affected_layers)
+                shared_layers = set(existing.affected_layers) & set(
+                    incident.affected_layers
+                )
                 if shared_layers:
                     warnings.append(
                         f"CASCADE_RISK: incident={incident.incident_id} shares layers {shared_layers} "
@@ -219,7 +234,9 @@ class FailureIsolator:
             "active": len(self.active_incidents),
             "history": len(self.incident_history),
             "by_severity": {
-                s.name: sum(1 for i in self.active_incidents.values() if i.severity == s)
+                s.name: sum(
+                    1 for i in self.active_incidents.values() if i.severity == s
+                )
                 for s in IncidentSeverity
                 if s != IncidentSeverity.NONE
             },

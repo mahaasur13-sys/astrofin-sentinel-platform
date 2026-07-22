@@ -3,16 +3,13 @@
 L10 Self-Healing — Watchdog
 Monitors health across all layers, triggers isolation on failure.
 """
-from collections.abc import Callable
+import time
+from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any
-
 from l10_self_healing.orchestrator.failure_isolation import (
-    FailureIsolator,
-    FailureTrigger,
+    FailureIsolator, Incident, IncidentSeverity, FailureTrigger, FailMode
 )
-
 
 @dataclass
 class HealthMetric:
@@ -22,7 +19,6 @@ class HealthMetric:
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     source_layer: str = ""
 
-
 @dataclass
 class WatchdogResult:
     checked_at: str
@@ -30,17 +26,16 @@ class WatchdogResult:
     healthy: int
     degraded: int
     failed: int
-    triggered_incidents: list[str]
-    actions_taken: list[str]
-
+    triggered_incidents: List[str]
+    actions_taken: List[str]
 
 class Watchdog:
     def __init__(self, failure_isolator: FailureIsolator):
         self.failure_isolator = failure_isolator
-        self.health_checks: list[HealthMetric] = []
-        self.watchdog_triggers: dict[str, FailureTrigger] = {}
-        self.last_check: str | None = None
-        self._monitors: dict[str, Callable] = {}
+        self.health_checks: List[HealthMetric] = []
+        self.watchdog_triggers: Dict[str, FailureTrigger] = {}
+        self.last_check: Optional[str] = None
+        self._monitors: Dict[str, Callable] = {}
 
     def register_trigger(self, trigger: FailureTrigger) -> None:
         self.watchdog_triggers[trigger.metric] = trigger
@@ -55,12 +50,7 @@ class Watchdog:
 
         for metric_name, monitor_fn in self._monitors.items():
             value = monitor_fn()
-            hm = HealthMetric(
-                name=metric_name,
-                value=value,
-                unit="",
-                source_layer=metric_name.split(".")[0],
-            )
+            hm = HealthMetric(name=metric_name, value=value, unit="", source_layer=metric_name.split(".")[0])
             self.health_checks.append(hm)
 
             trigger = self.watchdog_triggers.get(metric_name)
@@ -72,7 +62,7 @@ class Watchdog:
                         trigger=trigger,
                         metrics={metric_name: value},
                         run_id="wd_run",
-                        desc=f"Watchdog trigger: {metric_name}={value} {trigger.comparison} {trigger.threshold}",
+                        desc=f"Watchdog trigger: {metric_name}={value} {trigger.comparison} {trigger.threshold}"
                     )
                     triggered.append(incident.incident_id)
                     for rb_action in incident.rollback_actions:
@@ -91,7 +81,7 @@ class Watchdog:
             degraded=degraded,
             failed=failed,
             triggered_incidents=triggered,
-            actions_taken=actions,
+            actions_taken=actions
         )
 
     def _evaluate_trigger(self, value: float, trigger: FailureTrigger) -> bool:
@@ -109,11 +99,11 @@ class Watchdog:
             return value == thr
         return False
 
-    def status_summary(self) -> dict[str, Any]:
+    def status_summary(self) -> Dict[str, Any]:
         return {
             "registered_triggers": len(self.watchdog_triggers),
             "registered_monitors": len(self._monitors),
             "last_check": self.last_check,
             "active_incidents": len(self.failure_isolator.active_incidents),
-            "incident_summary": self.failure_isolator.incident_summary(),
+            "incident_summary": self.failure_isolator.incident_summary()
         }

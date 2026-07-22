@@ -6,9 +6,9 @@ Input: regret history, workload type, cluster state class.
 Output: best policy distribution π(P).
 """
 from __future__ import annotations
-
-from dataclasses import dataclass
-
+from dataclasses import dataclass, field
+from typing import Optional
+from datetime import datetime
 import numpy as np
 
 
@@ -16,7 +16,7 @@ import numpy as np
 class PolicyTrial:
     policy_id: str
     regret_history: list[float]
-    workload_type: str  # "gpu_batch" | "cpu_batch" | "mixed" | "idle"
+    workload_type: str   # "gpu_batch" | "cpu_batch" | "mixed" | "idle"
     cluster_state_class: str  # "healthy" | "degraded" | "critical"
     avg_regret: float
     win_rate: float
@@ -25,7 +25,7 @@ class PolicyTrial:
 @dataclass
 class PolicyRecommendation:
     policy_id: str
-    weight: float  # probability of being best
+    weight: float   # probability of being best
     confidence: float
     reason: str
 
@@ -56,7 +56,9 @@ class MetaLearner:
         Return ranked policy recommendations given current context.
         """
         relevant = [
-            t for t in self._trials if t.workload_type == workload_type and t.cluster_state_class == cluster_state_class
+            t for t in self._trials
+            if t.workload_type == workload_type
+            and t.cluster_state_class == cluster_state_class
         ]
 
         if len(relevant) < self.min_trials:
@@ -69,10 +71,7 @@ class MetaLearner:
             if t.policy_id not in policy_wins:
                 policy_wins[t.policy_id] = (0, 0)
             wins, total = policy_wins[t.policy_id]
-            policy_wins[t.policy_id] = (
-                wins + (1 if t.avg_regret < 0.3 else 0),
-                total + 1,
-            )
+            policy_wins[t.policy_id] = (wins + (1 if t.avg_regret < 0.3 else 0), total + 1)
 
         ranked = sorted(
             policy_wins.items(),
@@ -84,14 +83,12 @@ class MetaLearner:
         recommendations = []
         for policy_id, (wins, total) in ranked:
             win_rate = wins / max(total, 1)
-            recommendations.append(
-                PolicyRecommendation(
-                    policy_id=policy_id,
-                    weight=win_rate / max(total_weight, 1e-9),
-                    confidence=min(total / self.min_trials, 1.0),
-                    reason=f"win_rate={win_rate:.2f} over {total} trials",
-                )
-            )
+            recommendations.append(PolicyRecommendation(
+                policy_id=policy_id,
+                weight=win_rate / max(total_weight, 1e-9),
+                confidence=min(total / self.min_trials, 1.0),
+                reason=f"win_rate={win_rate:.2f} over {total} trials",
+            ))
 
         return recommendations
 
@@ -103,15 +100,8 @@ class MetaLearner:
         avg_regrets = {pid: np.mean(scores) for pid, scores in self._policy_scores.items()}
         ranked = sorted(avg_regrets.items(), key=lambda x: x[1])
         best_pid = ranked[0][0]
-        return [
-            PolicyRecommendation(
-                policy_id=best_pid,
-                weight=1.0,
-                confidence=0.1,
-                reason="lowest avg regret",
-            )
-        ]
+        return [PolicyRecommendation(policy_id=best_pid, weight=1.0, confidence=0.1, reason="lowest avg regret")]
 
-    def get_best_policy(self, workload_type: str, cluster_state_class: str) -> str | None:
+    def get_best_policy(self, workload_type: str, cluster_state_class: str) -> Optional[str]:
         recs = self.recommend(workload_type, cluster_state_class)
         return recs[0].policy_id if recs else None

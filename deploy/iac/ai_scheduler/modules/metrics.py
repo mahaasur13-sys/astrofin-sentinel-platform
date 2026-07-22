@@ -42,7 +42,9 @@ def gpu_temp(instance: str) -> float:
 
 def cpu_util(instance: str) -> float:
     """CPU utilization %"""
-    idle = query(f'avg by(instance)(rate(node_cpu_seconds_total{{mode="idle",instance="{instance}:9100"}}[1m])) * 100')
+    idle = query(
+        f'avg by(instance)(rate(node_cpu_seconds_total{{mode="idle",instance="{instance}:9100"}}[1m])) * 100'
+    )
     return max(0.0, 100.0 - idle)
 
 
@@ -62,7 +64,9 @@ def disk_io_time(instance: str) -> float:
 
 def network_latency(from_node: str, to_node: str) -> float:
     """Network latency estimate via prometheus blackbox or node_network_*"""
-    tx_queue = query(f'node_network_transmit_queue_length{{instance="{from_node}:9100"}}')
+    tx_queue = query(
+        f'node_network_transmit_queue_length{{instance="{from_node}:9100"}}'
+    )
     return tx_queue
 
 

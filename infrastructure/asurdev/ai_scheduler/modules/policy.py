@@ -4,9 +4,13 @@ AI Scheduler v2 — Policy Engine
 Top-level decision logic: routes jobs to best node based on scores + rules.
 """
 import os
+from typing import Optional
+from .scoring import rank_nodes, score_node
+from .metrics import (
+    slurm_queue_depth, ceph_osd_latency, slurm_node_state,
+    disk_io_time, gpu_temp
+)
 
-from .metrics import ceph_osd_latency, disk_io_time, gpu_temp, slurm_queue_depth
-from .scoring import rank_nodes
 
 GPU_NODES = os.environ.get("GPU_NODES", "rtx-node").split(",")
 CPU_NODES = os.environ.get("CPU_NODES", "rk3576").split(",")
@@ -16,12 +20,8 @@ VPS_NODES = os.environ.get("VPS_NODES", "").split(",") if os.environ.get("VPS_NO
 ALL_NODES = GPU_NODES + CPU_NODES + ARM_NODES + VPS_NODES
 
 
-def select_node(
-    job_type: str = "gpu",
-    memory_gb: int = 0,
-    priority: int = 5,
-    dataset_ceph: bool = False,
-) -> dict:
+def select_node(job_type: str = "gpu", memory_gb: int = 0, priority: int = 5,
+                dataset_ceph: bool = False) -> dict:
     """
     Select optimal node for a job.
     Returns: {node, score, reason, partition}
@@ -35,12 +35,7 @@ def select_node(
     best_score = scores[best_node]
 
     if best_score <= 0:
-        return {
-            "node": "queue",
-            "score": 0,
-            "reason": "all_nodes_full",
-            "partition": "gpu",
-        }
+        return {"node": "queue", "score": 0, "reason": "all_nodes_full", "partition": "gpu"}
 
     partition = _node_to_partition(best_node)
     reason = _build_reason(best_node, job_type, best_score)

@@ -6,6 +6,9 @@ Replaces static threshold (GPU>85%) with P(overload in next M minutes).
 v4.1 → v5 bridge component.
 """
 import math
+import sys
+from typing import Dict, Optional
+from dataclasses import dataclass
 
 from state_store import StateStore
 
@@ -13,7 +16,6 @@ from state_store import StateStore
 # Rolling window estimator (online stats, no distribution assumption)
 class RollingWindow:
     """Online rolling mean + variance (Welford's algorithm)."""
-
     def __init__(self, window_size: int = 60):
         self.n = 0
         self.mean = 0.0
@@ -47,20 +49,20 @@ class RollingWindow:
 class ProbabilisticAdmissionController:
     """
     Computes P(overload | next M minutes) using online statistics.
-
+    
     Overload is defined as: gpu_util > OVERLOAD_THRESHOLD (e.g., 85%)
-
+    
     Strategy:
       - Fit a Gaussian on recent GPU utilization
       - Estimate P(GPU > threshold) via CDF
       - Reject if P > reject_threshold (e.g., 0.30)
     """
+    
+    OVERLOAD_THRESHOLD = 85.0   # GPU % threshold
+    REJECT_THRESHOLD  = 0.30   # P(overload) rejection cutoff
+    CONFIDENCE_ALPHA  = 0.05   # minimum data confidence (at least N samples)
 
-    OVERLOAD_THRESHOLD = 85.0  # GPU % threshold
-    REJECT_THRESHOLD = 0.30  # P(overload) rejection cutoff
-    CONFIDENCE_ALPHA = 0.05  # minimum data confidence (at least N samples)
-
-    def __init__(self, windows: dict[str, RollingWindow]):
+    def __init__(self, windows: Dict[str, RollingWindow]):
         # windows["rtx-node"]: RollingWindow for GPU util
         # windows["rk3576"]: RollingWindow for CPU util
         self.windows = windows
@@ -123,17 +125,16 @@ def create_from_state_store(db: StateStore) -> ProbabilisticAdmissionController:
 if __name__ == "__main__":
     # Demo: simulate rolling GPU util readings
     import random
-
     windows = {}
     controller = ProbabilisticAdmissionController(windows)
-
+    
     # Simulate 100 readings (mix of normal and spike periods)
     for i in range(60):
         if 20 <= i < 30:
-            val = random.gauss(88, 5)  # spike period
+            val = random.gauss(88, 5)   # spike period
         else:
             val = random.gauss(55, 10)  # normal period
         controller.update("rtx-node", val)
-
+    
     reject, p = controller.should_reject("rtx-node")
     print(f"rtx-node: P(overload) = {p:.3f} → {'REJECT' if reject else 'ADMIT'}")

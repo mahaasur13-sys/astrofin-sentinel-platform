@@ -3,10 +3,10 @@
 ACOS × AstroFin — Constraint Compiler
 Transforms AstroFin trading constraints → executable DAG → L9 enforcement hooks.
 """
-import hashlib
 from dataclasses import dataclass, field
+from typing import Any, Optional
 from enum import Enum
-from typing import Any
+import hashlib
 
 
 class ConstraintOp(Enum):
@@ -34,7 +34,7 @@ class Constraint:
     op: ConstraintOp
     threshold: Any
     description: str
-    severity: str = "high"  # critical | high | medium | low
+    severity: str = "high"   # critical | high | medium | low
     enabled: bool = True
 
     @staticmethod
@@ -75,7 +75,7 @@ class PolicyBlock:
     block_id: str
     name: str
     constraints: list[Constraint] = field(default_factory=list)
-    parent: str | None = None  # block_id of parent
+    parent: Optional[str] = None   # block_id of parent
     children: list[str] = field(default_factory=list)
 
     def all_constraints(self) -> list[Constraint]:
@@ -109,12 +109,8 @@ class AstroFinConstraintCompiler:
     def add_block(self, block: PolicyBlock) -> None:
         self.blocks[block.block_id] = block
 
-    def build_risk_profile(
-        self,
-        risk_limit: float = 0.3,
-        max_exposure: float = 0.10,
-        forbidden: list = None,
-    ) -> str:
+    def build_risk_profile(self, risk_limit: float = 0.3, max_exposure: float = 0.10,
+                           forbidden: list = None) -> str:
         """Build standard AstroFin risk profile. Returns block_id."""
         block_id = "astrofin_risk_default"
         forbidden = forbidden or [
@@ -228,7 +224,8 @@ class AstroFinConstraintCompiler:
 
             if not c.evaluate(val):
                 failures.append(
-                    f"CONSTRAINT_FAIL [{c.severity}] {c.ctype.value} " f"{c.op.name} {c.threshold}: got={val}"
+                    f"CONSTRAINT_FAIL [{c.severity}] {c.ctype.value} "
+                    f"{c.op.name} {c.threshold}: got={val}"
                 )
 
         return len(failures) == 0, failures
@@ -244,3 +241,5 @@ def build_astrofin_policy(
     compiler.build_risk_profile(risk_limit, max_exposure, forbidden_assets)
     compiler.build_latency_sla(max_latency_ms=5000)
     return compiler
+
+

@@ -21,17 +21,20 @@ import argparse
 import json
 import os
 import sys
-import urllib.error
-import urllib.request
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
+
+import urllib.request
+import urllib.error
 
 REPO = "mahaasur13-sys/astrofin-sentinel-platform"
 API = "https://api.github.com"
 
 
-def gh_get(path: str, token: str) -> tuple[int, Any]:
+def gh_get(path: str, token: str) -> Tuple[int, Any]:
     url = f"{API}{path}"
     req = urllib.request.Request(
         url,
@@ -53,7 +56,7 @@ def gh_get(path: str, token: str) -> tuple[int, Any]:
             return e.code, {"raw": body}
 
 
-def collect(runs: list[dict], days: int) -> dict[str, Any]:
+def collect(runs: List[dict], days: int) -> Dict[str, Any]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     successful, failed = [], []
     for r in runs:
@@ -81,10 +84,7 @@ def collect(runs: list[dict], days: int) -> dict[str, Any]:
             continue
         try:
             when = datetime.fromisoformat((ts or "").replace("Z", "+00:00"))
-            commit_resp = gh_get(
-                f"/repos/{REPO}/commits/{head_sha}",
-                token=os.environ.get("GITHUB_TOKEN") or os.environ.get("AFS4", ""),
-            )
+            commit_resp = gh_get(f"/repos/{REPO}/commits/{head_sha}", token=os.environ.get("GITHUB_TOKEN") or os.environ.get("AFS4", ""))
             if commit_resp[0] == 200:
                 committed = commit_resp[1]["commit"]["author"]["date"]
                 committed_dt = datetime.fromisoformat(committed.replace("Z", "+00:00"))
@@ -98,8 +98,8 @@ def collect(runs: list[dict], days: int) -> dict[str, Any]:
     return {
         "window_days": days,
         "deployment_frequency_per_week": round(deploy_freq, 3),
-        "lead_time_hours_avg": (round(sum(lead_times) / len(lead_times), 2) if lead_times else None),
-        "lead_time_hours_median": (round(sorted(lead_times)[len(lead_times) // 2], 2) if lead_times else None),
+        "lead_time_hours_avg": round(sum(lead_times) / len(lead_times), 2) if lead_times else None,
+        "lead_time_hours_median": round(sorted(lead_times)[len(lead_times) // 2], 2) if lead_times else None,
         "lead_time_samples": len(lead_times),
         "change_failure_rate": round(cfr, 3),
         "deployments": deployments,
@@ -108,12 +108,8 @@ def collect(runs: list[dict], days: int) -> dict[str, Any]:
     }
 
 
-def render_table(m: dict[str, Any]) -> str:
-    rf = (
-        "High"
-        if m["deployment_frequency_per_week"] >= 7
-        else ("Medium" if m["deployment_frequency_per_week"] >= 1 else "Low")
-    )
+def render_table(m: Dict[str, Any]) -> str:
+    rf = "High" if m["deployment_frequency_per_week"] >= 7 else ("Medium" if m["deployment_frequency_per_week"] >= 1 else "Low")
     lt = m["lead_time_hours_avg"]
     if lt is None:
         lt_str = "n/a"
@@ -136,7 +132,7 @@ def render_table(m: dict[str, Any]) -> str:
     )
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     p = argparse.ArgumentParser(description="Collect DORA metrics from GitHub Actions")
     p.add_argument("--days", type=int, default=30, help="window in days (default: 30)")
     p.add_argument("--per-page", type=int, default=100, help="workflow runs per page")
@@ -148,7 +144,9 @@ def main(argv: list[str] | None = None) -> int:
         print("ERROR: set GITHUB_TOKEN (or AFS4) environment variable", file=sys.stderr)
         return 2
 
-    status, runs = gh_get(f"/repos/{REPO}/actions/runs?per_page={args.per_page}", token)
+    status, runs = gh_get(
+        f"/repos/{REPO}/actions/runs?per_page={args.per_page}", token
+    )
     if status != 200:
         print(f"ERROR: GitHub API returned HTTP {status}", file=sys.stderr)
         if isinstance(runs, dict):

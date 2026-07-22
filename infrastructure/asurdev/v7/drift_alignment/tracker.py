@@ -10,10 +10,9 @@ Reaction:
   high → stable mode
 """
 from __future__ import annotations
-
+from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-
 import numpy as np
 from scipy.stats import pearsonr
 
@@ -21,19 +20,18 @@ from scipy.stats import pearsonr
 @dataclass
 class DriftSignals:
     """Three orthogonal drift signals."""
-
-    feature_drift_score: float  # 0-1, Kolmogorov-Smirnov on features
-    model_error_rate: float  # 0-1, prediction error vs actual
-    system_drift_score: float  # 0-1, simulated vs actual divergence
+    feature_drift_score: float   # 0-1, Kolmogorov-Smirnov on features
+    model_error_rate: float      # 0-1, prediction error vs actual
+    system_drift_score: float    # 0-1, simulated vs actual divergence
     measured_at: datetime
 
 
 @dataclass
 class AlignmentResult:
-    alignment_score: float  # 0-1, correlation across 3 signals
-    regime: str  # "stable" | "adjust_weights" | "retrain" | "critical"
+    alignment_score: float        # 0-1, correlation across 3 signals
+    regime: str                   # "stable" | "adjust_weights" | "retrain" | "critical"
     recommendation: str
-    severity: float  # 0-1
+    severity: float              # 0-1
     signals: DriftSignals
 
 
@@ -158,11 +156,7 @@ class DriftAlignment:
         Compute correlation across three drift signals.
         Drift_Alignment = mean(corr(f1,f2), corr(f2,f3), corr(f1,f3))
         """
-        n = min(
-            len(self._feature_history),
-            len(self._model_error_history),
-            len(self._system_drift_history),
-        )
+        n = min(len(self._feature_history), len(self._model_error_history), len(self._system_drift_history))
         if n < 10:
             return AlignmentResult(
                 alignment_score=1.0,

@@ -1,0 +1,32 @@
+[
+  {
+    "path_id": "3b9d0e1f682a98c2",
+    "violation_type": "EXTERNAL_EXECUTION_PATH",
+    "description": "Execution entry point bypasses gateway: engine.py:execute@83",
+    "file": "engine.py",
+    "line": 83,
+    "bypassed_gates": [
+      "ACT"
+    ]
+  },
+  {
+    "path_id": "3b9d0e1f682a98c2",
+    "violation_type": "EXTERNAL_EXECUTION_PATH",
+    "description": "Execution entry point bypasses gateway: engine.py:execute@83",
+    "file": "engine.py",
+    "line": 83,
+    "bypassed_gates": [
+      "ACT"
+    ]
+  },
+  {
+    "path_id": "3b9d0e1f682a98c2",
+    "violation_type": "EXTERNAL_EXECUTION_PATH",
+    "description": "Execution entry point bypasses gateway: engine.py:execute@83",
+    "file": "engine.py",
+    "line": 83,
+    "bypassed_gates": [
+      "ACT"
+    ]
+  }
+]

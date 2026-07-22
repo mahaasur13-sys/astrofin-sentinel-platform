@@ -1,0 +1,26 @@
+name: graphify healthcheck
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'graphify-out/**'
+      - 'config/memory_overrides.json'
+      - '.github/workflows/graphify-healthcheck.yml'
+  workflow_dispatch:
+
+jobs:
+  graphify-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Run healthcheck
+        run: |
+          python3 graphify-out/healthcheck.py

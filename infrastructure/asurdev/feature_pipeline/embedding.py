@@ -3,15 +3,14 @@
 Node Embedding Layer — vector representations of nodes.
 Used for: similarity clustering, anomaly detection, affinity-based scheduling.
 """
-
 import numpy as np
-
+from typing import Dict, List, Optional
+from dataclasses import dataclass
 from .schemas import NodeProfile, NodeRole
 
 # =============================================================================
 # EMBEDDING BUILDER
 # =============================================================================
-
 
 class NodeEmbeddingBuilder:
     """
@@ -35,13 +34,7 @@ class NodeEmbeddingBuilder:
         volatility_score = min(profile.queue_volatility / 10.0, 1.0)
 
         # Role encoding (one-hot, 5 dims)
-        role_map = {
-            NodeRole.GPU: 0,
-            NodeRole.CPU: 1,
-            NodeRole.ARM: 2,
-            NodeRole.VPS: 3,
-            NodeRole.UNKNOWN: 4,
-        }
+        role_map = {NodeRole.GPU: 0, NodeRole.CPU: 1, NodeRole.ARM: 2, NodeRole.VPS: 3, NodeRole.UNKNOWN: 4}
         role_onehot = [0.0] * 5
         role_idx = role_map.get(profile.role, 4)
         role_onehot[role_idx] = 1.0
@@ -55,13 +48,13 @@ class NodeEmbeddingBuilder:
 
         # Pad to embedding_dim
         full_vec = hw_vec + role_onehot + composite
-        full_vec = full_vec[: self.embedding_dim]  # truncate if needed
+        full_vec = full_vec[:self.embedding_dim]  # truncate if needed
         while len(full_vec) < self.embedding_dim:
             full_vec.append(0.0)
 
         return np.array(full_vec, dtype=np.float32)
 
-    def build_from_features(self, features: dict[str, float]) -> np.ndarray:
+    def build_from_features(self, features: Dict[str, float]) -> np.ndarray:
         """
         Build embedding from a feature vector (24h aggregates).
         Maps raw features → condensed 16-dim representation.
@@ -70,21 +63,14 @@ class NodeEmbeddingBuilder:
 
         # Key features mapping (order matters)
         key_features = [
-            "gpu_mean_5m",
-            "gpu_std_5m",
-            "gpu_slope_15m",
-            "cpu_mean_5m",
-            "mem_mean_5m",
-            "queue_mean_5m",
-            "queue_derivative_5m",
-            "failure_count_1h",
-            "failure_count_24h",
+            "gpu_mean_5m", "gpu_std_5m", "gpu_slope_15m",
+            "cpu_mean_5m", "mem_mean_5m",
+            "queue_mean_5m", "queue_derivative_5m",
+            "failure_count_1h", "failure_count_24h",
             "consecutive_failures",
-            "overload_score",
-            "health_score",
+            "overload_score", "health_score",
             "queue_volatility_5m",
-            "ceph_util_mean_5m",
-            "wg_latency_mean_1m",
+            "ceph_util_mean_5m", "wg_latency_mean_1m",
         ]
 
         for i, feat_name in enumerate(key_features):
@@ -105,9 +91,9 @@ class NodeEmbeddingBuilder:
     def find_similar_nodes(
         self,
         target_embedding: np.ndarray,
-        all_embeddings: dict[str, np.ndarray],
-        top_k: int = 3,
-    ) -> list[tuple]:
+        all_embeddings: Dict[str, np.ndarray],
+        top_k: int = 3
+    ) -> List[tuple]:
         """
         Find top-k most similar nodes to target_embedding.
         Returns list of (node_id, similarity_score).
@@ -119,7 +105,11 @@ class NodeEmbeddingBuilder:
         similarities.sort(key=lambda x: x[1], reverse=True)
         return similarities[:top_k]
 
-    def cluster_nodes(self, embeddings: dict[str, np.ndarray], n_clusters: int = 3) -> dict[int, list[str]]:
+    def cluster_nodes(
+        self,
+        embeddings: Dict[str, np.ndarray],
+        n_clusters: int = 3
+    ) -> Dict[int, List[str]]:
         """
         Simple K-means clustering of nodes by embedding similarity.
         Returns {cluster_id: [node_ids]}.
@@ -133,7 +123,7 @@ class NodeEmbeddingBuilder:
         X = np.array([embeddings[nid] for nid in node_ids])
         kmeans = KMeans(n_clusters=min(n_clusters, len(node_ids)), random_state=42, n_init=10)
         labels = kmeans.fit_predict(X)
-        result: dict[int, list[str]] = {}
+        result: Dict[int, List[str]] = {}
         for node_id, label in zip(node_ids, labels):
             result.setdefault(int(label), []).append(node_id)
         return result

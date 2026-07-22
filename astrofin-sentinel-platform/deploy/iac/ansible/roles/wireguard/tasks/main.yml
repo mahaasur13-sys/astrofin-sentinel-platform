@@ -1,0 +1,49 @@
+# ============================================================
+# Role: wireguard — AmneziaWG / WireGuard mesh VPN
+# ============================================================
+
+- name: Install WireGuard
+  ansible.builtin.apt:
+    name: wireguard, wireguard-tools, qrencode
+    state: present
+    update_cache: true
+
+- name: Generate WireGuard keypair (if missing)
+  community.crypto.openssh_keypair:
+    path: "/etc/wireguard/wg.key"
+    comment: "{{ inventory_hostname }}"
+    register: wg_keypair
+
+- name: Read existing public key
+  ansible.builtin.slurp:
+    src: /etc/wireguard/wg.key.pub
+  register: wg_pubkey_raw
+  failed_when: false
+
+- name: Set public key fact
+  ansible.builtin.set_fact:
+    wg_public_key: "{{ wg_pubkey_raw.content | b64decode | trim }}"
+    wg_private_key: "{{ wg_keypair.private_key }}"
+  when: wg_keypair.changed or wg_pubkey_raw.content is defined
+
+# ── WireGuard interface config ──────────────────────────────
+- name: WireGuard interface config
+  ansible.builtin.template:
+    src: wg.conf.j2
+    dest: /etc/wireguard/wg0.conf
+    mode: '0600'
+    owner: root
+    group: root
+  notify: Restart WireGuard
+
+- name: Enable WireGuard on boot
+  community.general.systemd_service:
+    name: wg-quick@wg0
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Ensure WireGuard kernel module is loaded
+  community.general.modprobe:
+    name: wireguard
+    state: present

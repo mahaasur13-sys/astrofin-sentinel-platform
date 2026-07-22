@@ -4,14 +4,9 @@ DeterminismController — R1-R4 Strong Guarantees
 R1: Bitwise deterministic replay, R2: Scheduler fidelity, R3: ML version locking, R4: External isolation
 """
 from __future__ import annotations
-
-import hashlib
-import json
-import os
-import random
+import hashlib, json, os, random
 from dataclasses import dataclass, field
 from typing import Any
-
 
 @dataclass
 class ExecutionContext:
@@ -30,7 +25,6 @@ class ExecutionContext:
 
     def get_seed(self) -> int:
         return self.seed
-
 
 class DeterminismController:
     def __init__(self, ctx: ExecutionContext):
@@ -72,7 +66,6 @@ class DeterminismController:
         if key not in self._snapshots:
             return False
         return self._snapshots[key] == self.compute_state_hash(state)
-
 
 if __name__ == "__main__":
     ctx = ExecutionContext(seed=42, allowed_network=False)

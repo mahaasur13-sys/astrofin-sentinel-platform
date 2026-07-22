@@ -1,0 +1,11 @@
+{
+  "name": "MacroAgent",
+  "module": "agents._impl.macro_agent",
+  "class": "MacroAgent",
+  "description": "MacroAgent — фундаментальный макроэкономический анализ.\n\n    Responsibilities:\n    1. VIX analysis (fear index)\n    2. DXY (dollar index) directional signal\n    3. Geopolitical risk scoring via RAG\n    4. Weighted macro signal aggregation\n\n    Weight: 15% (part of 20% Fundamental+Macro block)",
+  "domain": "macro",
+  "weight": 0.15,
+  "tools": [],
+  "instructions": "",
+  "source": "agents/_impl"
+}

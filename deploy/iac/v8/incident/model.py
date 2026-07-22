@@ -65,7 +65,9 @@ class IncidentManager:
         policy_hash: str | None = None,
     ) -> Incident:
         """Factory: create + classify + route incident."""
-        incident_id = hashlib.sha256(f"{trigger_type}{datetime.utcnow().isoformat()}".encode()).hexdigest()[:12]
+        incident_id = hashlib.sha256(
+            f"{trigger_type}{datetime.utcnow().isoformat()}".encode()
+        ).hexdigest()[:12]
 
         # Auto-classify severity
         severity_enum = self._classify(severity)
@@ -118,7 +120,9 @@ class IncidentManager:
         if self.alerting_callback:
             self.alerting_callback(message)
         # Also log to incident channel
-        print(f"[INCIDENT] {message} | {incident.trigger_type} | nodes={incident.affected_nodes}")
+        print(
+            f"[INCIDENT] {message} | {incident.trigger_type} | nodes={incident.affected_nodes}"
+        )
 
     def get_active(self) -> list[Incident]:
         return [i for i in self._incidents if not i.resolved]
@@ -127,7 +131,9 @@ class IncidentManager:
         for inc in self._incidents:
             if inc.incident_id == incident_id:
                 inc.resolved = True
-                inc.resolution_time_ms = (datetime.utcnow() - inc.timestamp).total_seconds() * 1000
+                inc.resolution_time_ms = (
+                    datetime.utcnow() - inc.timestamp
+                ).total_seconds() * 1000
                 break
 
     def get_incident_rate(self, window_minutes: int = 60) -> float:

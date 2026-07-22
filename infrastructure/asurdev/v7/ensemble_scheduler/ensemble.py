@@ -5,9 +5,9 @@ final_action = argmax E[U(Pi)]
 Reduces oscillation, stabilizes regret noise, enables exploration/exploitation.
 """
 from __future__ import annotations
-
-from dataclasses import dataclass
-
+from dataclasses import dataclass, field
+from typing import Optional
+from datetime import datetime
 import numpy as np
 
 
@@ -36,35 +36,11 @@ class EnsembleScheduler:
     Runs multiple policies simultaneously, selects best expected utility.
     """
 
-    def __init__(self, policies: list[Policy] | None = None):
+    def __init__(self, policies: Optional[list[Policy]] = None):
         self.policies: list[Policy] = policies or [
-            Policy(
-                policy_id="P1_throughput",
-                alpha=0.6,
-                beta=0.2,
-                gamma=0.1,
-                delta=0.1,
-                risk_threshold=0.2,
-                admission_policy="aggressive",
-            ),
-            Policy(
-                policy_id="P2_balanced",
-                alpha=0.4,
-                beta=0.3,
-                gamma=0.15,
-                delta=0.15,
-                risk_threshold=0.3,
-                admission_policy="probabilistic",
-            ),
-            Policy(
-                policy_id="P3_reliable",
-                alpha=0.2,
-                beta=0.5,
-                gamma=0.15,
-                delta=0.15,
-                risk_threshold=0.5,
-                admission_policy="conservative",
-            ),
+            Policy(policy_id="P1_throughput", alpha=0.6, beta=0.2, gamma=0.1, delta=0.1, risk_threshold=0.2, admission_policy="aggressive"),
+            Policy(policy_id="P2_balanced", alpha=0.4, beta=0.3, gamma=0.15, delta=0.15, risk_threshold=0.3, admission_policy="probabilistic"),
+            Policy(policy_id="P3_reliable", alpha=0.2, beta=0.5, gamma=0.15, delta=0.15, risk_threshold=0.5, admission_policy="conservative"),
         ]
         self._performance_history: dict[str, list[float]] = {p.policy_id: [] for p in self.policies}
 
@@ -112,7 +88,7 @@ class EnsembleScheduler:
             vote_distribution=vote_dist,
         )
 
-    def get_policy(self, policy_id: str) -> Policy | None:
+    def get_policy(self, policy_id: str) -> Optional[Policy]:
         return next((p for p in self.policies if p.policy_id == policy_id), None)
 
     def update_weights(self, policy_id: str, new_weight: float) -> None:

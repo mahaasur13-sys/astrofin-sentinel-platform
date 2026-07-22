@@ -1,0 +1,150 @@
+---
+# ==============================================================================
+# ACOS — Cluster Configuration Template
+# ==============================================================================
+# COPY THIS FILE TO: ansible/group_vars/all.yml
+# THEN fill in ALL values marked with REQUIRED
+# ==============================================================================
+
+# ==============================================================================
+# NETWORK — MikroTik Router
+# ==============================================================================
+# REQUIRED: Set your router actual IP, username, password
+mikrotik_host: "10.10.10.1"
+mikrotik_user: "admin"
+# REQUIRED: Set this! Use env var MIKROTIK_PASS or edit here
+mikrotik_pass: "YOUR_MIKROTIK_PASSWORD"
+
+# VLAN IDs
+vlan_mgmt_id: 10
+vlan_compute_id: 20
+vlan_storage_id: 30
+vlan_vpn_id: 40
+
+# Subnets
+net_mgmt:    "10.10.10.0/24"
+net_compute: "10.20.20.0/24"
+net_storage: "10.30.30.0/24"
+net_vpn:     "10.40.40.0/24"
+
+# ==============================================================================
+# WIREGUARD MESH VPN
+# ==============================================================================
+wireguard_port: 51820
+mesh_interface: wg0
+mesh_subnet: "10.66.0.0/16"
+
+# REQUIRED: Generate keys with: wg genkey | tee privatekey | wg pubkey > publickey
+wireguard_private_key: "REPLACE_WITH_WG_PRIVATE_KEY"
+wireguard_public_key:  "REPLACE_WITH_WG_PUBLIC_KEY"
+
+wireguard_nodes:
+  - name: rtx_node
+    ip:      "10.66.0.10"
+    port:    51820
+    pubkey:  "REPLACE_WITH_RTX_WG_PUBKEY"
+    allowed: "10.66.0.0/24,10.20.20.0/24"
+  - name: rk3576_node
+    ip:      "10.66.0.20"
+    port:    51820
+    pubkey:  "REPLACE_WITH_RK3576_WG_PUBKEY"
+    allowed: "10.66.0.0/24,10.20.20.0/24"
+  - name: vps_node
+    ip:      "10.66.0.30"
+    port:    51821
+    pubkey:  "REPLACE_WITH_VPS_WG_PUBKEY"
+    allowed: "10.66.0.0/24,10.20.20.0/24"
+
+# ==============================================================================
+# SLURM CLUSTER
+# ==============================================================================
+slurm_version: "23.02"
+slurm_user: "slurm"
+slurm_uid: 1001
+slurmctld_port: 6817
+slurmd_port: 6818
+
+slurm_cluster_name: "home-gpu-cluster"
+slurm_controller: "10.20.20.10"
+slurm_controller_name: "rtx-node"
+
+slurm_partitions:
+  - name: gpu
+    nodes: "gpu-node"
+    gres: "gpu:1"
+    max_time: "INFINITE"
+    default: true
+  - name: compute
+    nodes: "edge-node"
+    gres: ""
+    max_time: "INFINITE"
+
+# ==============================================================================
+# RAY CLUSTER
+# ==============================================================================
+ray_version: "2.9.0"
+ray_head_ip:  "10.20.20.10"
+ray_head_port: 6379
+ray_dashboard_port: 8265
+ray_worker_ips:
+  - "10.20.20.20"
+
+# ==============================================================================
+# CEPH STORAGE
+# ==============================================================================
+ceph_version: "reef"
+ceph_cluster_network: "10.30.30.0/24"
+ceph_public_network:  "10.20.20.0/24"
+ceph_osd_pool_size: 2
+cephfs_name: "cephfs"
+ceph_mount_point: "/mnt/ceph-storage"
+
+# REQUIRED: Generate with: ceph-volume keyring generate --fsid UUID --keyring PATH
+ceph_admin_keyring: |
+  [client.admin]
+    key = REPLACE_WITH_CEPH_ADMIN_KEY
+
+# ==============================================================================
+# COMPUTE NODES
+# ==============================================================================
+all_nodes:
+  - name: rtx_node
+    ip: "10.20.20.10"
+    role: "gpu_controller"
+    ansible_user: "root"
+    gpu: "nvidia"
+    gpu_model: "RTX 3060"
+    cuda_version: "12.2"
+    os: "ubuntu_22.04"
+
+  - name: rk3576_node
+    ip: "10.20.20.20"
+    role: "edge_worker"
+    ansible_user: "root"
+    gpu: "none"
+    cpu: "ARM Cortex-A76+A55"
+    os: "ubuntu_22.04"
+
+# ==============================================================================
+# MONITORING
+# ==============================================================================
+prometheus_port: 9090
+grafana_port: 3000
+grafana_admin_user: "admin"
+# REQUIRED: Change after first login
+grafana_admin_password: "CHANGE_ME_AFTER_FIRST_LOGIN"
+
+# ==============================================================================
+# ML INFERENCE API
+# ==============================================================================
+ml_api_host: "0.0.0.0"
+ml_api_port: 8081
+ml_model_path: "ml_engine/models/failure_xgb_v2.pkl"
+ml_api_workers: 4
+
+# ==============================================================================
+# CLUSTER IDENTITY
+# ==============================================================================
+cluster_name: "home-gpu-cluster"
+cluster_owner: "asurdev"
+cluster_timezone: "Asia/Dubai"

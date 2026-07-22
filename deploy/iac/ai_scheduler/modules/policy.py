@@ -11,8 +11,12 @@ from .scoring import rank_nodes
 
 GPU_NODES = os.environ.get("GPU_NODES", "rtx-node").split(",")
 CPU_NODES = os.environ.get("CPU_NODES", "rk3576").split(",")
-ARM_NODES = os.environ.get("ARM_NODES", "").split(",") if os.environ.get("ARM_NODES") else []
-VPS_NODES = os.environ.get("VPS_NODES", "").split(",") if os.environ.get("VPS_NODES") else []
+ARM_NODES = (
+    os.environ.get("ARM_NODES", "").split(",") if os.environ.get("ARM_NODES") else []
+)
+VPS_NODES = (
+    os.environ.get("VPS_NODES", "").split(",") if os.environ.get("VPS_NODES") else []
+)
 
 ALL_NODES = GPU_NODES + CPU_NODES + ARM_NODES + VPS_NODES
 

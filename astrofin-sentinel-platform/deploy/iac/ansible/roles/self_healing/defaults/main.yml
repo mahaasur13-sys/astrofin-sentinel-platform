@@ -1,0 +1,10 @@
+---
+cluster_root: /opt/cluster
+watch_services:
+  - slurmctld
+  - slurmd
+  - ray-head
+  - ceph-mgr
+  - ceph-mon
+  - prometheus
+  - grafana-server

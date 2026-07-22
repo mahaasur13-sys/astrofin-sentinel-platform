@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """ACOS Event — immutable record written to EventLog."""
 from __future__ import annotations
-
 import hashlib
 import json
 import time
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field, asdict
 from typing import Any
 
 from acos.events.types import EventType
@@ -25,7 +24,6 @@ class Event:
     - deterministic ordering (sorted keys)
     - immutability (tuple is immutable)
     """
-
     event_id: str = field(default_factory=lambda: uuid.uuid4().hex)
     trace_id: str = ""
     event_type: EventType = None
@@ -37,14 +35,14 @@ class Event:
 
     def __post_init__(self):
         if isinstance(self.payload, dict):
-            object.__setattr__(self, "payload", tuple(sorted(self.payload.items())))
+            object.__setattr__(self, 'payload', tuple(sorted(self.payload.items())))
         if self.event_type is None:
-            object.__setattr__(self, "event_type", EventType.DAG_CREATED)
+            object.__setattr__(self, 'event_type', EventType.DAG_CREATED)
         if not self.event_hash:
-            object.__setattr__(self, "event_hash", self._compute_hash())
+            object.__setattr__(self, 'event_hash', self._compute_hash())
 
     def _compute_hash(self) -> str:
-        et_val = self.event_type.value if hasattr(self.event_type, "value") else str(self.event_type)
+        et_val = self.event_type.value if hasattr(self.event_type, 'value') else str(self.event_type)
         data = (
             f"{self.event_id}"
             f"{self.trace_id}"

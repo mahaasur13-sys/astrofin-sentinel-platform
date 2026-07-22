@@ -4,8 +4,10 @@ Constraint Engine — validates feasibility before optimization.
 Hard constraints: MUST be satisfied.
 Soft constraints: penalty in objective.
 """
-from dataclasses import dataclass
+from typing import Optional
+from dataclasses import dataclass, field
 from enum import Enum, auto
+import numpy as np
 
 
 class ViolationType(Enum):
@@ -36,11 +38,11 @@ class PlacementContext:
     requested_cpu_mem_gb: float
     partition: str
     required_nodes: tuple[str, ...]  # anti-affinity group
-    reservation_id: str | None = None
+    reservation_id: Optional[str] = None
 
 
 class ConstraintEngine:
-    def __init__(self, config: dict | None = None):
+    def __init__(self, config: Optional[dict] = None):
         self.config = config or {}
         # Node capacities (from cluster state)
         self._node_gpu_mem: dict[str, float] = {}
@@ -69,13 +71,13 @@ class ConstraintEngine:
         for part in state.get("partitions", {}).values():
             self._partition_nodes[part["name"]] = part.get("nodes", [])
         # Reset allocations
-        self._allocated_gpu_mem = dict.fromkeys(nodes, 0.0)
-        self._allocated_cpu_mem = dict.fromkeys(nodes, 0.0)
+        self._allocated_gpu_mem = {n: 0.0 for n in nodes}
+        self._allocated_cpu_mem = {n: 0.0 for n in nodes}
 
     def set_allocations(self, allocations: list[dict]) -> None:
         """Set current allocations from job list. Call before validate()."""
-        self._allocated_gpu_mem = dict.fromkeys(self._node_gpu_mem, 0.0)
-        self._allocated_cpu_mem = dict.fromkeys(self._node_cpu_mem, 0.0)
+        self._allocated_gpu_mem = {n: 0.0 for n in self._node_gpu_mem}
+        self._allocated_cpu_mem = {n: 0.0 for n in self._node_cpu_mem}
         for job in allocations:
             nid = job["node_id"]
             self._allocated_gpu_mem[nid] = self._allocated_gpu_mem.get(nid, 0) + job.get("gpu_mem_gb", 0)
@@ -91,56 +93,36 @@ class ConstraintEngine:
         # --- HARD CONSTRAINTS ---
         # 1. Node state
         if self._node_state.get(nid, "up") != "up":
-            violations.append(
-                ConstraintViolation(
-                    ViolationType.NODE_DRAINED,
-                    nid,
-                    placement.job_id,
-                    f"Node {nid} is {self._node_state[nid]}, not up",
-                )
-            )
+            violations.append(ConstraintViolation(
+                ViolationType.NODE_DRAINED, nid, placement.job_id,
+                f"Node {nid} is {self._node_state[nid]}, not up"
+            ))
         # 2. Partition match
         if placement.partition not in self._node_partitions.get(nid, []):
-            violations.append(
-                ConstraintViolation(
-                    ViolationType.PARTITION_OFFLINE,
-                    nid,
-                    placement.job_id,
-                    f"Node {nid} not in partition {placement.partition}",
-                )
-            )
+            violations.append(ConstraintViolation(
+                ViolationType.PARTITION_OFFLINE, nid, placement.job_id,
+                f"Node {nid} not in partition {placement.partition}"
+            ))
         # 3. GPU memory capacity
         avail_gpu = self._node_gpu_mem.get(nid, 0) - self._allocated_gpu_mem.get(nid, 0)
         if placement.requested_gpu_mem_gb > avail_gpu - 0.001:
-            violations.append(
-                ConstraintViolation(
-                    ViolationType.GPU_MEM_EXCEEDED,
-                    nid,
-                    placement.job_id,
-                    f"GPU mem {placement.requested_gpu_mem_gb}GB > available {avail_gpu:.1f}GB",
-                )
-            )
+            violations.append(ConstraintViolation(
+                ViolationType.GPU_MEM_EXCEEDED, nid, placement.job_id,
+                f"GPU mem {placement.requested_gpu_mem_gb}GB > available {avail_gpu:.1f}GB"
+            ))
         # 4. CPU memory capacity
         avail_cpu = self._node_cpu_mem.get(nid, 0) - self._allocated_cpu_mem.get(nid, 0)
         if placement.requested_cpu_mem_gb > avail_cpu - 0.001:
-            violations.append(
-                ConstraintViolation(
-                    ViolationType.CPU_MEM_EXCEEDED,
-                    nid,
-                    placement.job_id,
-                    f"CPU mem {placement.requested_cpu_mem_gb}GB > available {avail_cpu:.1f}GB",
-                )
-            )
+            violations.append(ConstraintViolation(
+                ViolationType.CPU_MEM_EXCEEDED, nid, placement.job_id,
+                f"CPU mem {placement.requested_cpu_mem_gb}GB > available {avail_cpu:.1f}GB"
+            ))
         # 5. Network partition (check if node isolated)
         if self._is_node_partitioned(nid):
-            violations.append(
-                ConstraintViolation(
-                    ViolationType.NETWORK_PARTITION,
-                    nid,
-                    placement.job_id,
-                    f"Node {nid} is network-partitioned",
-                )
-            )
+            violations.append(ConstraintViolation(
+                ViolationType.NETWORK_PARTITION, nid, placement.job_id,
+                f"Node {nid} is network-partitioned"
+            ))
         return violations
 
     def validate_batch(self, placements: list[PlacementContext]) -> dict[str, list[ConstraintViolation]]:
@@ -152,7 +134,7 @@ class ConstraintEngine:
                 results[p.job_id] = v
         return results
 
-    def get_feasible_nodes(self, job: dict, forbidden_nodes: set[str] | None = None) -> list[str]:
+    def get_feasible_nodes(self, job: dict, forbidden_nodes: Optional[set[str]] = None) -> list[str]:
         """Return list of nodes that can satisfy this job (hard constraints only)."""
         forbidden = forbidden_nodes or set()
         feasible = []

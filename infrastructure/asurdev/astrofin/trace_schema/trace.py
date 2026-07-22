@@ -4,6 +4,7 @@ ACOS × AstroFin — Unified Execution Trace Schema
 Every AstroFin action generates a trace.
 """
 from dataclasses import dataclass, field
+from typing import Optional
 from datetime import datetime
 
 
@@ -11,18 +12,18 @@ from datetime import datetime
 class ExecutionNode:
     node_id: str
     agent: str
-    layer: str  # ACOS layer that produced this node
+    layer: str           # ACOS layer that produced this node
     input_features: dict = field(default_factory=dict)
     output: dict = field(default_factory=dict)
     latency_ms: float = 0.0
     compute_node: str = "unset"
-    ml_model: str | None = None
+    ml_model: Optional[str] = None
 
 
 @dataclass
 class ConstraintProfile:
     risk_limit: float = 0.3
-    max_exposure: float = 0.10  # 10%
+    max_exposure: float = 0.10      # 10%
     forbidden_assets: list = field(default_factory=list)
     allowed_agents: list = field(default_factory=list)
     governance_flags: list = field(default_factory=list)
@@ -34,10 +35,10 @@ class AstroFinTrace:
     app: str = "astrofin"
     job_type: str = "strategy_execution"
     agents: list = field(default_factory=list)
-    execution_graph: dict = field(default_factory=dict)  # {node_id: ExecutionNode}
+    execution_graph: dict = field(default_factory=dict)   # {node_id: ExecutionNode}
     ml_models_used: list = field(default_factory=list)
     constraint_profile: ConstraintProfile = field(default_factory=ConstraintProfile)
-    scheduler_path: str = "slurm"  # slurm | ray | mixed
+    scheduler_path: str = "slurm"   # slurm | ray | mixed
     node_allocation: list = field(default_factory=list)
     risk_score: float = 0.0
     latency_ms: float = 0.0
@@ -46,8 +47,8 @@ class AstroFinTrace:
     rollback_status: bool = False
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     meta_rl_generation: int = 0
-    strategy_id: str | None = None
-    execution_mode: str = "live"  # live | backtest | paper
+    strategy_id: Optional[str] = None
+    execution_mode: str = "live"    # live | backtest | paper
 
 
 def build_trace(
@@ -108,3 +109,5 @@ def trace_to_dict(t: AstroFinTrace) -> dict:
         "strategy_id": t.strategy_id,
         "execution_mode": t.execution_mode,
     }
+
+

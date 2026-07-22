@@ -6,12 +6,10 @@ Translates all incoming jobs into deterministic DAGs.
 Every execution unit becomes a node with explicit dependencies.
 """
 from __future__ import annotations
-
 import uuid
+from typing import Any
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
-
 
 class NodeType(Enum):
     AGENT = "agent"
@@ -19,20 +17,13 @@ class NodeType(Enum):
     RISK = "risk"
     GOVERNANCE = "governance"
 
-
 class ExecutionBackend(Enum):
     CPU = "cpu"
     GPU = "gpu"
     EDGE = "edge"
 
-
 class Layer(Enum):
-    L4 = "L4"
-    L5 = "L5"
-    L6 = "L6"
-    L8 = "L8"
-    L9 = "L9"
-
+    L4 = "L4"; L5 = "L5"; L6 = "L6"; L8 = "L8"; L9 = "L9"
 
 @dataclass
 class DAGNode:
@@ -50,19 +41,13 @@ class DAGNode:
 
     def to_dict(self) -> dict:
         return {
-            "node_id": self.node_id,
-            "name": self.name,
-            "type": self.node_type.value,
-            "inputs": self.inputs,
-            "outputs": self.outputs,
-            "layer": self.layer.value,
-            "constraints": self.constraints,
-            "priority": self.priority,
+            "node_id": self.node_id, "name": self.name,
+            "type": self.node_type.value, "inputs": self.inputs,
+            "outputs": self.outputs, "layer": self.layer.value,
+            "constraints": self.constraints, "priority": self.priority,
             "execution_backend": self.execution_backend.value,
-            "retry_policy": self.retry_policy,
-            "timeout_seconds": self.timeout_seconds,
+            "retry_policy": self.retry_policy, "timeout_seconds": self.timeout_seconds,
         }
-
 
 class DAGCompiler:
     """
@@ -75,12 +60,7 @@ class DAGCompiler:
 
     def compile(self, job: dict) -> dict:
         job_type = job.get("type", "compute")
-        dag = {
-            "dag_id": str(uuid.uuid4())[:12],
-            "nodes": [],
-            "edges": [],
-            "metadata": {},
-        }
+        dag = {"dag_id": str(uuid.uuid4())[:12], "nodes": [], "edges": [], "metadata": {}}
         if job_type == "agent":
             dag = self._compile_agent_job(job)
         elif job_type == "batch":
@@ -98,19 +78,12 @@ class DAGCompiler:
         gpu_agents = {"quant", "technical", "options_flow", "cycle", "bradley", "gann"}
         backend = ExecutionBackend.GPU if agent_type in gpu_agents else ExecutionBackend.CPU
         node = DAGNode(
-            name=f"agent:{agent_type}",
-            node_type=NodeType.AGENT,
-            layer=Layer.L6,
-            execution_backend=backend,
+            name=f"agent:{agent_type}", node_type=NodeType.AGENT,
+            layer=Layer.L6, execution_backend=backend,
             priority=job.get("priority", 50),
             timeout_seconds=job.get("timeout", 300),
         )
-        return {
-            "dag_id": dag_id,
-            "nodes": [node.to_dict()],
-            "edges": [],
-            "metadata": {},
-        }
+        return {"dag_id": dag_id, "nodes": [node.to_dict()], "edges": [], "metadata": {}}
 
     def _compile_batch_job(self, job: dict) -> dict:
         dag_id = str(uuid.uuid4())[:12]
@@ -118,10 +91,7 @@ class DAGCompiler:
         nodes, edges = [], []
         prev_id = None
         for i, task in enumerate(tasks):
-            node = DAGNode(
-                name=f"task:{i}:{task.get('name','unnamed')}",
-                node_type=NodeType.COMPUTE,
-            )
+            node = DAGNode(name=f"task:{i}:{task.get('name','unnamed')}", node_type=NodeType.COMPUTE)
             nodes.append(node.to_dict())
             if prev_id:
                 edges.append({"from": prev_id, "to": node.node_id})
@@ -131,27 +101,12 @@ class DAGCompiler:
     def _compile_risk_job(self, job: dict) -> dict:
         dag_id = str(uuid.uuid4())[:12]
         node = DAGNode(name="risk:analysis", node_type=NodeType.RISK, layer=Layer.L8, priority=100)
-        return {
-            "dag_id": dag_id,
-            "nodes": [node.to_dict()],
-            "edges": [],
-            "metadata": {},
-        }
+        return {"dag_id": dag_id, "nodes": [node.to_dict()], "edges": [], "metadata": {}}
 
     def _compile_governance_job(self, job: dict) -> dict:
         dag_id = str(uuid.uuid4())[:12]
-        node = DAGNode(
-            name="governance:validate",
-            node_type=NodeType.GOVERNANCE,
-            layer=Layer.L9,
-            priority=100,
-        )
-        return {
-            "dag_id": dag_id,
-            "nodes": [node.to_dict()],
-            "edges": [],
-            "metadata": {},
-        }
+        node = DAGNode(name="governance:validate", node_type=NodeType.GOVERNANCE, layer=Layer.L9, priority=100)
+        return {"dag_id": dag_id, "nodes": [node.to_dict()], "edges": [], "metadata": {}}
 
     def validate_dag(self, dag: dict) -> tuple[bool, list[str]]:
         errors = []
@@ -166,7 +121,6 @@ class DAGCompiler:
                 if inp not in node_ids and inp not in dag.get("external_inputs", []):
                     errors.append(f"Node {node['node_id']} references unknown input: {inp}")
         return len(errors) == 0, errors
-
 
 if __name__ == "__main__":
     compiler = DAGCompiler()

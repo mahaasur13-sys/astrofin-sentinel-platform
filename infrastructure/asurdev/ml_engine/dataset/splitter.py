@@ -3,8 +3,8 @@
 Time-Aware Train/Val/Test Splitter.
 CRITICAL: No future-leaking — strict temporal ordering preserved.
 """
-
 import pandas as pd
+from typing import Tuple
 
 
 def time_aware_split(
@@ -14,12 +14,13 @@ def time_aware_split(
     test_ratio: float = 0.15,
     time_col: str = "time",
     group_col: str = "node_id",
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Split dataset respecting temporal order (no future-leaking).
     Each node's timeline is split proportionally.
     """
-    assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-6, "Ratios must sum to 1.0"
+    assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-6, \
+        "Ratios must sum to 1.0"
 
     df = df.sort_values(time_col)
 
@@ -31,8 +32,8 @@ def time_aware_split(
         v = int(n * val_ratio)
 
         train_dfs.append(grp.iloc[:t])
-        val_dfs.append(grp.iloc[t : t + v])
-        test_dfs.append(grp.iloc[t + v :])
+        val_dfs.append(grp.iloc[t:t + v])
+        test_dfs.append(grp.iloc[t + v:])
 
     train = pd.concat(train_dfs).sort_values(time_col)
     val = pd.concat(val_dfs).sort_values(time_col)

@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 from enum import Enum
-
 """
 Incident Model — auto-classification + severity scoring.
 Severity = f(p99_delta, error_rate, alignment_drop).
 Auto-classification: S1 → L3 rollback / S2 → L2 / S3 → alert only.
 """
 from __future__ import annotations
-
-import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional
+import hashlib
 
 
 class Severity(Enum):
@@ -29,9 +28,9 @@ class Incident:
     post_state: dict
     policy_hash: str
     severity: Severity
-    root_cause: str | None = None
+    root_cause: Optional[str] = None
     resolved: bool = False
-    resolution_time_ms: float | None = None
+    resolution_time_ms: Optional[float] = None
     actions_taken: list[str] = field(default_factory=list)
 
 
@@ -39,7 +38,7 @@ class IncidentManager:
     """
     Auto-classifies incidents by severity.
     Routes to appropriate response (rollback level or alert).
-
+    
     Severity scoring:
         severity = w_latency * p99_delta + w_failure * error_rate + w_drift * alignment_drop
     """
@@ -60,12 +59,14 @@ class IncidentManager:
         trigger_type: str,
         severity: float,
         details: dict,
-        pre_state: dict | None = None,
-        post_state: dict | None = None,
-        policy_hash: str | None = None,
+        pre_state: Optional[dict] = None,
+        post_state: Optional[dict] = None,
+        policy_hash: Optional[str] = None,
     ) -> Incident:
         """Factory: create + classify + route incident."""
-        incident_id = hashlib.sha256(f"{trigger_type}{datetime.utcnow().isoformat()}".encode()).hexdigest()[:12]
+        incident_id = hashlib.sha256(
+            f"{trigger_type}{datetime.utcnow().isoformat()}".encode()
+        ).hexdigest()[:12]
 
         # Auto-classify severity
         severity_enum = self._classify(severity)
@@ -127,7 +128,9 @@ class IncidentManager:
         for inc in self._incidents:
             if inc.incident_id == incident_id:
                 inc.resolved = True
-                inc.resolution_time_ms = (datetime.utcnow() - inc.timestamp).total_seconds() * 1000
+                inc.resolution_time_ms = (
+                    datetime.utcnow() - inc.timestamp
+                ).total_seconds() * 1000
                 break
 
     def get_incident_rate(self, window_minutes: int = 60) -> float:

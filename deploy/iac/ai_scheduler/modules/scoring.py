@@ -29,9 +29,16 @@ def score_node(node: str, job_type: str = "gpu", extra_weights: dict = None) -> 
     cpu_free = max(0.0, 100.0 - m["cpu_util"])
     mem_free = max(0.0, 100.0 - m["mem_util"])
 
-    latency_penalty = m["network_latency"] * w["latency"] if m["network_latency"] else 0.0
+    latency_penalty = (
+        m["network_latency"] * w["latency"] if m["network_latency"] else 0.0
+    )
 
-    base_score = gpu_free * w["gpu"] + cpu_free * w["cpu"] + mem_free * w["mem"] - latency_penalty
+    base_score = (
+        gpu_free * w["gpu"]
+        + cpu_free * w["cpu"]
+        + mem_free * w["mem"]
+        - latency_penalty
+    )
 
     if job_type == "gpu":
         base_score *= 1.5

@@ -1,0 +1,162 @@
+"""test_gsct.py — v11.4 GSCT tests (7/7)."""
+
+import sys
+sys.path.insert(0, "/home/workspace/atom-federation-os")
+from alignment.gsct import GSCT, Regime
+
+
+def test_closed_stable():
+    """T1: Fully stable system → CLOSED = TRUE."""
+    gsct = GSCT()
+    proof = gsct.evaluate(
+        rcf_history=[{"t": i, "drift_score": 0.05, "convergence_score": 0.9} for i in range(5)],
+        gcst_history=[{"t": i, "stability_score": 0.85, "coherent": True} for i in range(5)],
+        gast_report={"regime": "CONVERGENT", "attractor_exists": True, "attractor_count": 1},
+        branch_graph={"b1": {"entropy": 0.5}, "b2": {"entropy": 0.6}},
+        system_invariants={"GCST_coherence": True, "RCF_bounded": True, "GAST_attractor": True},
+    )
+    assert proof.is_closed_system, f"T1 FAIL: {proof.failure_modes}"
+    assert proof.global_convergence, f"T1 FAIL: no convergence"
+    print("  T1 closed_stable: ✅")
+    return True
+
+
+def test_oscillatory_partitioned():
+    """T2: Oscillatory system → CLOSED but partitioned."""
+    gsct = GSCT()
+    proof = gsct.evaluate(
+        rcf_history=[{"t": i, "drift_score": 0.2, "convergence_score": 0.5} for i in range(5)],
+        gcst_history=[{"t": i, "stability_score": 0.6, "coherent": True} for i in range(5)],
+        gast_report={"regime": "OSCILLATORY", "attractor_exists": True, "attractor_count": 1},
+        branch_graph={"b1": {"entropy": 1.0}},
+        system_invariants={"GCST_coherence": True, "RCF_bounded": True},
+    )
+    assert proof.is_closed_system, f"T2 FAIL: {proof.failure_modes}"
+    assert proof.global_convergence, f"T2 FAIL: convergence"
+    assert len(proof.attractor_partition) >= 1
+    print("  T2 oscillatory_partitioned: ✅")
+    return True
+
+
+def test_divergent_not_closed():
+    """T3: Divergent branch explosion → CLOSED = FALSE."""
+    gsct = GSCT()
+    proof = gsct.evaluate(
+        rcf_history=[{"t": i, "drift_score": 0.1, "convergence_score": 0.9} for i in range(5)],
+        gcst_history=[{"t": i, "stability_score": 0.85, "coherent": True} for i in range(5)],
+        gast_report={"regime": "DIVERGENT", "attractor_exists": False, "attractor_count": 0},
+        branch_graph={f"b{i}": {"entropy": 4.0} for i in range(150)},  # explodes
+        system_invariants={"GCST_coherence": True, "RCF_bounded": True},
+    )
+    assert not proof.is_closed_system, "T3 FAIL: should not be closed"
+    assert any("entropy" in f.lower() for f in proof.failure_modes), f"T3 FAIL: {proof.failure_modes}"
+    print("  T3 divergent_not_closed: ✅")
+    return True
+
+
+def test_undefined_fails():
+    """T4: GCST stable but GAST undefined → F4 detected."""
+    gsct = GSCT()
+    proof = gsct.evaluate(
+        rcf_history=[{"t": i, "drift_score": 0.05, "convergence_score": 0.9} for i in range(5)],
+        gcst_history=[{"t": i, "stability_score": 0.85, "coherent": True} for i in range(5)],
+        gast_report={"regime": "UNDEFINED", "attractor_exists": False},
+        branch_graph={"b1": {"entropy": 0.5}},
+        system_invariants={"GCST_coherence": True, "RCF_bounded": True},
+    )
+    assert not proof.is_closed_system, "T4 FAIL: undefined should not be closed"
+    assert any("UNDEFINED" in f for f in proof.failure_modes), f"T4 FAIL: {proof.failure_modes}"
+    print("  T4 undefined_fails: ✅")
+    return True
+
+
+def test_byzantine_bounded_rejection():
+    """T5: Byzantine injection → bounded rejection proven."""
+    gsct = GSCT()
+    # Byzantine: GAST still convergent, GCST still stable, but RCF drift spikes
+    proof = gsct.evaluate(
+        rcf_history=[{"t": i, "drift_score": 0.3, "convergence_score": 0.7} for i in range(3)]
+               + [{"t": 3, "drift_score": 0.95, "convergence_score": 0.4}]  # spike
+               + [{"t": 4, "drift_score": 0.3, "convergence_score": 0.7}],  # recovers
+        gcst_history=[{"t": i, "stability_score": 0.85, "coherent": True} for i in range(5)],
+        gast_report={"regime": "CONVERGENT", "attractor_exists": True},
+        branch_graph={"b1": {"entropy": 0.5}},
+        system_invariants={"GCST_coherence": True, "RCF_bounded": False},  # RCF violated
+    )
+    # System not closed because RCF unbounded at spike
+    assert not proof.is_closed_system, "T5 FAIL: Byzantine should break closure"
+    assert any("RCF" in f or "envelope" in f for f in proof.failure_modes), f"T5 FAIL: {proof.failure_modes}"
+    print("  T5 byzantine_bounded_rejection: ✅")
+    return True
+
+
+def test_multi_attractor_partition():
+    """T6: Multi-attractor system → partition correctness verified."""
+    gsct = GSCT()
+    proof = gsct.evaluate(
+        rcf_history=[{"t": i, "drift_score": 0.1, "convergence_score": 0.8} for i in range(5)],
+        gcst_history=[{"t": i, "stability_score": 0.75, "coherent": True} for i in range(5)],
+        gast_report={"regime": "CONVERGENT", "attractor_exists": True, "attractor_count": 3},
+        branch_graph={"b1": {"entropy": 0.5}, "b2": {"entropy": 0.4}},
+        system_invariants={"GCST_coherence": True, "RCF_bounded": True},
+    )
+    assert proof.is_closed_system, f"T6 FAIL: {proof.failure_modes}"
+    assert len(proof.attractor_partition) >= 1
+    print("  T6 multi_attractor_partition: ✅")
+    return True
+
+
+def test_perfect_convergence():
+    """T7: Perfect convergence → single attractor class."""
+    gsct = GSCT()
+    proof = gsct.evaluate(
+        rcf_history=[{"t": i, "drift_score": 0.01, "convergence_score": 0.99} for i in range(5)],
+        gcst_history=[{"t": i, "stability_score": 0.98, "coherent": True} for i in range(5)],
+        gast_report={"regime": "CONVERGENT", "attractor_exists": True, "attractor_count": 1},
+        branch_graph={"b1": {"entropy": 0.1}},
+        system_invariants={"GCST_coherence": True, "RCF_bounded": True, "GAST_attractor": True},
+    )
+    assert proof.is_closed_system, f"T7 FAIL: {proof.failure_modes}"
+    assert proof.global_convergence, "T7 FAIL: no convergence"
+    assert proof.termination_guarantee, "T7 FAIL: no termination guarantee"
+    assert len(proof.attractor_partition) == 1, f"T7 FAIL: {len(proof.attractor_partition)} attractors"
+    print("  T7 perfect_convergence: ✅")
+    return True
+
+
+def run_tests():
+    print("=== v11.4 GSCT Tests ===")
+    results = []
+    for name, fn in [
+        ("T1 stable → closed", test_closed_stable),
+        ("T2 oscillatory → partitioned", test_oscillatory_partitioned),
+        ("T3 divergent → NOT closed", test_divergent_not_closed),
+        ("T4 undefined → F4", test_undefined_fails),
+        ("T5 byzantine → bounded rejection", test_byzantine_bounded_rejection),
+        ("T6 multi-attractor → partition", test_multi_attractor_partition),
+        ("T7 perfect → single attractor", test_perfect_convergence),
+    ]:
+        try:
+            fn()
+            results.append((name, True, ""))
+        except AssertionError as e:
+            results.append((name, False, str(e)))
+        except Exception as e:
+            results.append((name, False, f"ERROR: {e}"))
+
+    passed = sum(1 for _, ok, _ in results if ok)
+    total = len(results)
+    print(f"\n{'='*50}")
+    for name, ok, err in results:
+        mark = "✅" if ok else "❌"
+        print(f"  {mark} {name}: {'PASS' if ok else 'FAIL'}")
+        if err:
+            print(f"      {err}")
+    print(f"{'='*50}")
+    print(f"RESULT: {passed}/{total} passed")
+    return passed == total
+
+
+if __name__ == "__main__":
+    ok = run_tests()
+    sys.exit(0 if ok else 1)

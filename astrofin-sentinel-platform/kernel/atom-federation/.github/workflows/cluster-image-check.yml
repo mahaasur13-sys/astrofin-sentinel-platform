@@ -1,0 +1,129 @@
+# =============================================================================
+# cluster-image-check.yml — static validation of the cluster/node container
+#
+# Mirrors AsurDev/acos's compose-check.yml (static-only, no Docker daemon
+# required) but extends it for the cluster-node container:
+#
+#   1. Compose schema + path resolution:
+#        docker compose -f docker-compose.yml config --quiet
+#        + asserts every `dockerfile:` path actually exists on disk.
+#
+#   2. hadolint static lint on cluster/node/Dockerfile (DL3xxx rules).
+#      Fails CI on ERRORs, surfaces WARNINGs in the run log.
+#
+#   3. requirements.txt sanity: parses the file, requires pinned
+#      `==` for every line, and that at least one package is listed.
+#
+#   4. healthcheck smoke: runs `python -m cluster.node.healthcheck`
+#      locally on Python 3.12 — proves the probe module imports, returns
+#      the expected exit code 0 in a fresh venv. This is what catches
+#      "import works in my dev venv, breaks in CI" drift.
+#
+# No docker daemon is invoked at any point. The workflow runs on
+# ubuntu-latest with buildx only.
+# =============================================================================
+
+name: cluster-image-check
+
+on:
+  push:
+    branches: [master, main, develop]
+    paths:
+      - 'cluster/**'
+      - 'proto/**'
+      - 'sbs/**'
+      - 'docker-compose.yml'
+      - 'cluster/node/requirements.txt'
+      - '.github/workflows/cluster-image-check.yml'
+      - '.dockerignore'
+  pull_request:
+    branches: [master, main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-cluster-image:
+    name: validate cluster/node image + compose
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx (compose v2 plugin)
+        uses: docker/setup-buildx-action@v3
+
+      # ── 1. compose schema ───────────────────────────────────────────────
+      - name: Validate docker-compose.yml
+        run: |
+          set -euo pipefail
+          echo "── Validating: docker-compose.yml ──"
+          docker compose -f docker-compose.yml config --quiet
+          echo "   ✓ docker-compose.yml parses cleanly"
+
+      - name: Verify all referenced Dockerfile paths exist
+        run: |
+          set -euo pipefail
+          dir=$(dirname docker-compose.yml)
+          missing=0
+          while IFS= read -r rel; do
+            if [ -n "$rel" ]; then
+              target="$dir/$rel"
+              if [ ! -f "$target" ]; then
+                echo "✗ docker-compose.yml references missing Dockerfile: $rel  (looked at $target)"
+                missing=$((missing + 1))
+              else
+                echo "✓ docker-compose.yml → $rel"
+              fi
+            fi
+          done < <(awk '/^[ ]*dockerfile:[ ]*/{ sub(/^[ ]*dockerfile:[ ]*/,""); print }' docker-compose.yml)
+          if [ "$missing" -gt 0 ]; then
+            echo "✗ $missing Dockerfile path(s) missing"
+            exit 1
+          fi
+
+      # ── 2. hadolint on cluster/node/Dockerfile ───────────────────────────
+      - name: Set up hadolint
+        id: hadolint
+        uses: hadolint/hadolint-action@v1.6.0
+        with:
+          dockerfile: cluster/node/Dockerfile
+          failure-threshold: error   # warnings surface in log, don't fail
+          format: tty
+
+      # ── 3. requirements.txt sanity ──────────────────────────────────────
+      - name: Verify cluster/node/requirements.txt is pinned
+        run: |
+          set -euo pipefail
+          f=cluster/node/requirements.txt
+          if [ ! -f "$f" ]; then
+            echo "✗ $f missing"
+            exit 1
+          fi
+          # Strip blank lines and comments
+          pkgs=$(grep -vE '^\s*(#|$)' "$f" | tr -d ' ')
+          count=$(printf '%s\n' "$pkgs" | grep -cE '^[A-Za-z0-9_.+-]+==' || true)
+          total=$(printf '%s\n' "$pkgs" | grep -cE '^[A-Za-z0-9_.+-]+' || true)
+          echo "  requirements.txt: $count pinned of $total non-comment lines"
+          if [ "$total" -eq 0 ]; then
+            echo "✗ $f has no packages"
+            exit 1
+          fi
+          if [ "$count" -ne "$total" ]; then
+            echo "✗ $f contains unpinned packages:"
+            printf '%s\n' "$pkgs" | grep -vE '^[A-Za-z0-9_.+-]+==' || true
+            exit 1
+          fi
+          echo "✓ All packages in $f are pinned"
+
+      # ── 4. healthcheck smoke ────────────────────────────────────────────
+      - name: Healthcheck smoke (Python 3.12)
+        run: |
+          set -euo pipefail
+          python3.12 -m py_compile cluster/node/healthcheck.py
+          # No NODE_PORT → any LISTEN passes; we just need the probe
+          # to import cleanly and return 0 in a clean venv.
+          python3.12 -m cluster.node.healthcheck
+          echo "✓ cluster.node.healthcheck returned 0"

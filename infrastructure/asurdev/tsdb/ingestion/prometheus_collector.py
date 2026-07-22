@@ -7,23 +7,23 @@ Supports: slurm_exporter, ceph_exporter, wg_exporter, dcgm_exporter, node_export
 Usage:
     python prometheus_collector.py --config config.yaml
 """
+import os
 import re
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from threading import Event, Thread
-from urllib.error import URLError
-from urllib.request import urlopen
-
-import psycopg2
 import structlog
+import psycopg2
 import yaml
+from datetime import datetime, timezone
+from typing import Dict, List, Optional
+from dataclasses import dataclass, field
+from threading import Thread, Event
+from urllib.request import urlopen, Request
+from urllib.error import URLError
 
 logger = structlog.get_logger()
 
-METRIC_RE = re.compile(r"^([a-zA-Z_:][a-zA-Z0-9_:]*){([^}]*)} (.+)$")
-SIMPLE_RE = re.compile(r"^([a-zA-Z_:][a-zA-Z0-9_:]*) (.+)$")
-
+METRIC_RE = re.compile(r'^([a-zA-Z_:][a-zA-Z0-9_:]*){([^}]*)} (.+)$')
+SIMPLE_RE = re.compile(r'^([a-zA-Z_:][a-zA-Z0-9_:]*) (.+)$')
 
 @dataclass
 class MetricPoint:
@@ -31,16 +31,15 @@ class MetricPoint:
     metric: str
     node_id: str
     value: float
-    labels: dict[str, str] = field(default_factory=dict)
-
+    labels: Dict[str, str] = field(default_factory=dict)
 
 class TimescaleWriter:
     def __init__(self, dsn: str, batch_size: int = 500, flush_interval: float = 5.0):
         self.dsn = dsn
         self.batch_size = batch_size
         self.flush_interval = flush_interval
-        self.buffer: list[MetricPoint] = []
-        self.conn: psycopg2.extensions.connection | None = None
+        self.buffer: List[MetricPoint] = []
+        self.conn: Optional[psycopg2.extensions.connection] = None
         self._connect()
         self._last_flush = time.monotonic()
 
@@ -63,7 +62,7 @@ class TimescaleWriter:
         cur = self.conn.cursor()
         cur.executemany(
             "INSERT INTO metrics (time, node_id, metric, value, labels) VALUES (%s, %s, %s, %s, %s)",
-            [(p.timestamp, p.node_id, p.metric, p.value, p.labels) for p in self.buffer],
+            [(p.timestamp, p.node_id, p.metric, p.value, p.labels) for p in self.buffer]
         )
         self.conn.commit()
         logger.debug("flushed", count=len(self.buffer))
@@ -85,19 +84,19 @@ class PrometheusCollector:
         self.writer = writer
         self.scrape_interval = scrape_interval
         self._stop = Event()
-        self._threads: list[Thread] = []
+        self._threads: List[Thread] = []
 
-    def parse_metrics(self, text: str, source_node: str) -> list[MetricPoint]:
+    def parse_metrics(self, text: str, source_node: str) -> List[MetricPoint]:
         points = []
         for line in text.splitlines():
             line = line.strip()
-            if not line or line.startswith("#"):
+            if not line or line.startswith('#'):
                 continue
             m = METRIC_RE.match(line)
             if m:
                 metric, labels_str, value = m.groups()
-                labels = dict(kv.split("=") for kv in labels_str.split(",") if "=" in kv)
-                node_id = labels.pop("node", source_node)
+                labels = dict(kv.split('=') for kv in labels_str.split(',') if '=' in kv)
+                node_id = labels.pop('node', source_node)
             else:
                 m = SIMPLE_RE.match(line)
                 if not m:
@@ -109,21 +108,19 @@ class PrometheusCollector:
                 value = float(value)
             except ValueError:
                 continue
-            points.append(
-                MetricPoint(
-                    timestamp=datetime.now(timezone.utc),
-                    metric=metric,
-                    node_id=node_id,
-                    value=value,
-                    labels=labels,
-                )
-            )
+            points.append(MetricPoint(
+                timestamp=datetime.now(timezone.utc),
+                metric=metric,
+                node_id=node_id,
+                value=value,
+                labels=labels
+            ))
         return points
 
     def scrape_exporter(self, url: str, node_id: str):
         try:
             with urlopen(url, timeout=10) as resp:
-                text = resp.read().decode("utf-8")
+                text = resp.read().decode('utf-8')
             points = self.parse_metrics(text, node_id)
             for p in points:
                 self.writer.write(p)
@@ -158,11 +155,10 @@ def load_config(path: str) -> dict:
         return yaml.safe_load(f)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import argparse
-
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default="config.yaml")
+    parser.add_argument('--config', default='config.yaml')
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -170,8 +166,8 @@ if __name__ == "__main__":
     writer = TimescaleWriter(db_dsn)
     collector = PrometheusCollector(writer)
 
-    for target in config["targets"]:
-        collector.add_exporter(target["url"], target["node_id"])
+    for target in config['targets']:
+        collector.add_exporter(target['url'], target['node_id'])
 
     collector.start()
     try:

@@ -1,0 +1,58 @@
+# ==============================================================================
+# ACOS — Ansible Inventory
+# ==============================================================================
+# COPY TO: ansible/inventory.ini
+# ==============================================================================
+
+[all:vars]
+ansible_connection=local
+ansible_python_interpreter=/usr/bin/python3
+
+[mikrotik]
+# MikroTik router — managed via API, not SSH
+10.10.10.1 ansible_connection=local
+
+[rtx_node]
+# GPU node — primary compute + Slurm controller + Ray head
+10.20.20.10 ansible_user=root ansible_host=10.20.20.10
+
+[rk3576_node]
+# ARM edge node — lightweight compute + Ray worker
+10.20.20.20 ansible_user=root ansible_host=10.20.20.20
+
+[gpu_nodes]
+# Nodes with NVIDIA GPU
+10.20.20.10
+
+[storage_nodes]
+# Nodes running Ceph OSD
+10.30.30.10
+10.30.30.20
+
+[slurm_controller]
+# Slurm head node
+10.20.20.10
+
+[slurm_workers]
+# Slurm compute nodes
+10.20.20.10
+10.20.20.20
+
+[ray_head]
+# Ray head node
+10.20.20.10
+
+[ray_workers]
+# Ray worker nodes
+10.20.20.20
+
+[all:children]
+mikrotik
+rtx_node
+rk3576_node
+gpu_nodes
+storage_nodes
+slurm_controller
+slurm_workers
+ray_head
+ray_workers

@@ -6,26 +6,29 @@ Production-Grade Integration: L0-L10 + EBL + ETE
 Decision Flow (HARD ENFORCED):
   ML proposes → Solver optimizes → Policy constrains → Governance finalizes → EBL enforces → Execute → ETE traces
 """
+import time
 import uuid
+from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any
-
-# Constraint Compiler imports
-from constraint_compiler.parser.parser import PolicyBlock, PolicyParser
-from ete.replay.replayer import CorrelationEngine, DeterministicReplayer
-
-# ETE imports
-from ete.store.trace_store import TraceNode, TraceStore, TraceType
 
 # L9 EBL imports
-from l9_ebl.capabilities.registry import ExecutionContext
-from l9_ebl.gate.gate import ActionResult, ExecutionGate
-from l9_ebl.policy_compiler.compiler import GuardRule, PolicyCompiler
+from l9_ebl.capabilities.registry import ExecutionContext, Capability, CapabilityDenied, enforce
+from l9_ebl.gate.gate import ExecutionGate, ActionResult, GateDecision
+from l9_ebl.policy_compiler.compiler import PolicyCompiler, GuardRule
+
+# ETE imports
+from ete.store.trace_store import TraceStore, TraceNode, TraceType, ExecutionTrace
+from ete.replay.replayer import DeterministicReplayer, CorrelationEngine
+
+# Constraint Compiler imports
+from constraint_compiler.parser.parser import PolicyParser, PolicyBlock
 
 # L10 imports
-from l10_self_healing.orchestrator.failure_isolation import FailureIsolator
-from l10_self_healing.watchdog.watchdog import Watchdog
+from l10_self_healing.orchestrator.failure_isolation import (
+    FailureIsolator, Incident, IncidentSeverity, FailMode, SEVERITY_RESPONSE
+)
+from l10_self_healing.watchdog.watchdog import Watchdog, HealthMetric
 
 # ============================================================
 # ARCHITECTURE SUMMARY
@@ -91,7 +94,6 @@ CONSTRAINT COMPILER ← NEW
   └── Runtime enforcer
 """
 
-
 # ============================================================
 # CORE DECISION ORCHESTRATOR
 # ============================================================
@@ -101,25 +103,22 @@ class ACOSDecisionResult(Enum):
     ROLLBACK = auto()
     ESCALATE = auto()
 
-
 @dataclass
 class ACOSContext:
     run_id: str
     trace_id: str
     session_id: str
     role: str = "optimizer"
-    metadata: dict[str, Any] = field(default_factory=dict)
-
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class ACOSDecisionRequest:
     action: str
-    params: dict[str, Any]
-    ml_signals: dict[str, Any] = field(default_factory=dict)
+    params: Dict[str, Any]
+    ml_signals: Dict[str, Any] = field(default_factory=dict)
     solver_score: float = 0.0
     policy_score: float = 0.0
-    context: ACOSContext | None = None
-
+    context: Optional[ACOSContext] = None
 
 @dataclass
 class ACOSDecisionResponse:
@@ -128,9 +127,8 @@ class ACOSDecisionResponse:
     reason: str
     trace_id: str
     risk_score: float
-    enforced_layers: list[str]
+    enforced_layers: List[str]
     rollback_triggered: bool = False
-
 
 class ACOSOrchestrator:
     """
@@ -147,8 +145,8 @@ class ACOSOrchestrator:
         # EBL components
         self.capability_registry = None  # imported module
         self.policy_compiler = PolicyCompiler()
-        self.constraint_graph: dict[str, GuardRule] = {}
-        self.execution_gate: ExecutionGate | None = None
+        self.constraint_graph: Dict[str, GuardRule] = {}
+        self.execution_gate: Optional[ExecutionGate] = None
 
         # ETE components
         self.trace_store = TraceStore()
@@ -163,7 +161,7 @@ class ACOSOrchestrator:
         self.policy_parser = PolicyParser()
 
         # Policy blocks
-        self.policy_blocks: dict[str, PolicyBlock] = {}
+        self.policy_blocks: Dict[str, PolicyBlock] = {}
 
         self.decision_count = 0
 
@@ -182,7 +180,7 @@ class ACOSOrchestrator:
             node_type=TraceType.ML_SIGNAL,
             layer="L5",
             parent_ids=[],
-            data=request.ml_signals,
+            data=request.ml_signals
         )
         self.trace_store.add_node(trace_id, ml_node)
 
@@ -192,7 +190,7 @@ class ACOSOrchestrator:
             node_type=TraceType.SOLVER_PATH,
             layer="L6",
             parent_ids=[ml_node.node_id],
-            data={"solver_score": request.solver_score},
+            data={"solver_score": request.solver_score}
         )
         self.trace_store.add_node(trace_id, solver_node)
 
@@ -206,10 +204,7 @@ class ACOSOrchestrator:
             node_type=TraceType.POLICY_CONSTRAINT,
             layer="L7",
             parent_ids=[solver_node.node_id],
-            data={
-                "violations": policy_violations,
-                "policy_score": request.policy_score,
-            },
+            data={"violations": policy_violations, "policy_score": request.policy_score}
         )
         self.trace_store.add_node(trace_id, policy_node)
 
@@ -220,7 +215,7 @@ class ACOSOrchestrator:
             node_type=TraceType.GOVERNANCE,
             layer="L8",
             parent_ids=[policy_node.node_id],
-            data={"passed": governance_passed, "violations": policy_violations},
+            data={"passed": governance_passed, "violations": policy_violations}
         )
         self.trace_store.add_node(trace_id, gov_node)
 
@@ -232,7 +227,7 @@ class ACOSOrchestrator:
                 reason=f"Governance blocked: {policy_violations[0]}",
                 trace_id=trace_id,
                 risk_score=1.0,
-                enforced_layers=["L8"],
+                enforced_layers=["L8"]
             )
 
         # LAYER 5: EBL enforces (capability check)
@@ -250,7 +245,7 @@ class ACOSOrchestrator:
             node_type=TraceType.EBL_CHECK,
             layer="L9",
             parent_ids=[gov_node.node_id],
-            data={"passed": ebl_passed, "reason": ebl_reason},
+            data={"passed": ebl_passed, "reason": ebl_reason}
         )
         self.trace_store.add_node(trace_id, ebl_node)
 
@@ -262,7 +257,7 @@ class ACOSOrchestrator:
                 reason=f"EBL blocked: {ebl_reason}",
                 trace_id=trace_id,
                 risk_score=1.0,
-                enforced_layers=["L8", "L9"],
+                enforced_layers=["L8", "L9"]
             )
 
         # LAYER 6: Execute
@@ -271,11 +266,7 @@ class ACOSOrchestrator:
             node_type=TraceType.EXECUTION,
             layer="L0",
             parent_ids=[ebl_node.node_id],
-            data={
-                "action": request.action,
-                "params": request.params,
-                "status": "executed",
-            },
+            data={"action": request.action, "params": request.params, "status": "executed"}
         )
         self.trace_store.add_node(trace_id, exec_node)
 
@@ -288,30 +279,20 @@ class ACOSOrchestrator:
             reason="All layers passed",
             trace_id=trace_id,
             risk_score=max(0.0, 1.0 - request.solver_score - request.policy_score),
-            enforced_layers=["L5", "L6", "L7", "L8", "L9", "L0"],
+            enforced_layers=["L5", "L6", "L7", "L8", "L9", "L0"]
         )
 
-    def architecture_summary(self) -> dict[str, Any]:
+    def architecture_summary(self) -> Dict[str, Any]:
         return {
-            "layers": [
-                "L0-L3_infra",
-                "L4_control_plane",
-                "L5_ml",
-                "L6_optimizer",
-                "L7_policy",
-                "L8_governance",
-                "L9_ebl",
-                "L10_self_healing",
-                "ETE_trace_engine",
-                "CONSTRAINT_COMPILER",
-            ],
+            "layers": ["L0-L3_infra", "L4_control_plane", "L5_ml", "L6_optimizer",
+                       "L7_policy", "L8_governance", "L9_ebl", "L10_self_healing",
+                       "ETE_trace_engine", "CONSTRAINT_COMPILER"],
             "decision_flow": "ML → Solver → Policy → Governance → EBL → ETE",
             "decisions_processed": self.decision_count,
             "policy_blocks": len(self.policy_blocks),
             "active_incidents": len(self.failure_isolator.active_incidents),
             "traces_stored": len(self.trace_store._traces),
         }
-
 
 # ============================================================
 # GOVERNANCE KERNEL v3.0
@@ -321,11 +302,10 @@ class ACOSGovernanceKernel:
     v3.0: Static + Runtime + Semantic + Adversarial
     Non-linear confidence aggregation (min, not product)
     """
-
     def __init__(self):
-        self.violations: list[dict[str, Any]] = []
+        self.violations: List[Dict[str, Any]] = []
 
-    def analyze(self, acos: ACOSOrchestrator) -> dict[str, Any]:
+    def analyze(self, acos: ACOSOrchestrator) -> Dict[str, Any]:
         static_conf = 0.95
         runtime_conf = 0.40
         semantic_conf = 0.80
@@ -340,18 +320,7 @@ class ACOSGovernanceKernel:
         return {
             "RUN_ID": str(uuid.uuid4())[:8],
             "TIMESTAMP": datetime.now(timezone.utc).isoformat(),
-            "LAYERS": [
-                "L0-L3",
-                "L4",
-                "L5",
-                "L6",
-                "L7",
-                "L8",
-                "L9",
-                "L10",
-                "ETE",
-                "CONSTRAINT_COMPILER",
-            ],
+            "LAYERS": ["L0-L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", "ETE", "CONSTRAINT_COMPILER"],
             "DECISION_FLOW": "ML → Solver → Policy → Governance → EBL → ETE",
             "VIOLATIONS": self.violations,
             "CONFidence": {
@@ -359,13 +328,15 @@ class ACOSGovernanceKernel:
                 "runtime": runtime_conf,
                 "semantic": semantic_conf,
                 "adversarial": adversarial_conf,
-                "final": final_conf,
+                "final": final_conf
             },
-            "DECISION": {"action": decision, "confidence": final_conf},
+            "DECISION": {"action": decision, "confidence": final_conf}
         }
 
-
-ACOSGovernanceKernel.__init__ = lambda self: (setattr(self, "violations", []) or None)
+ACOSGovernanceKernel.__init__ = lambda self: (
+    setattr(self, 'violations', []) or
+    None
+)
 
 from datetime import datetime, timezone
 

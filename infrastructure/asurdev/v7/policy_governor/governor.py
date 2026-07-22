@@ -7,25 +7,23 @@ P_t = (1 - α) * P_{t-1} + α * P_new
 Confidence-weighted updates + rate-limiting.
 """
 from __future__ import annotations
-
-from dataclasses import dataclass
+from typing import Optional
+from dataclasses import dataclass, field
 from datetime import datetime
-
 import numpy as np
 
 
 @dataclass
 class PolicySnapshot:
     """Immutable policy state at a point in time."""
-
     timestamp: datetime
-    alpha: float  # throughput weight
-    beta: float  # reliability weight
-    gamma: float  # latency weight
-    delta: float  # energy weight
+    alpha: float      # throughput weight
+    beta: float       # reliability weight
+    gamma: float      # latency weight
+    delta: float      # energy weight
     risk_threshold: float
     admission_policy: str
-    confidence: float = 1.0  # how certain about this policy
+    confidence: float = 1.0   # how certain about this policy
     regret_smoothed: float = 0.0
     update_source: str = "init"
 
@@ -33,7 +31,6 @@ class PolicySnapshot:
 @dataclass
 class PolicyUpdate:
     """Raw policy update from optimizer or meta-learner."""
-
     alpha: float
     beta: float
     gamma: float
@@ -41,8 +38,8 @@ class PolicyUpdate:
     risk_threshold: float
     admission_policy: str
     confidence: float
-    delta_regret: float  # change in regret that triggered this update
-    source: str  # "optimizer" | "meta_learner" | "manual"
+    delta_regret: float    # change in regret that triggered this update
+    source: str            # "optimizer" | "meta_learner" | "manual"
 
 
 class PolicyGovernor:
@@ -73,9 +70,9 @@ class PolicyGovernor:
         self.max_update_rate = max_update_rate
         self.smoothing_factor = smoothing_factor
 
-        self._current: PolicySnapshot | None = None
+        self._current: Optional[PolicySnapshot] = None
         self._history: list[PolicySnapshot] = []
-        self._pending_update: PolicyUpdate | None = None
+        self._pending_update: Optional[PolicyUpdate] = None
 
     def initialize(
         self,
@@ -89,10 +86,7 @@ class PolicyGovernor:
         """Bootstrap initial policy."""
         self._current = PolicySnapshot(
             timestamp=datetime.utcnow(),
-            alpha=alpha,
-            beta=beta,
-            gamma=gamma,
-            delta=delta,
+            alpha=alpha, beta=beta, gamma=gamma, delta=delta,
             risk_threshold=risk_threshold,
             admission_policy=admission_policy,
             confidence=1.0,
@@ -150,7 +144,7 @@ class PolicyGovernor:
             gamma=self._ema(self._current.gamma, u.gamma),
             delta=self._ema(self._current.delta, u.delta),
             risk_threshold=self._ema(self._current.risk_threshold, u.risk_threshold),
-            admission_policy=(u.admission_policy if u.confidence > 0.8 else self._current.admission_policy),
+            admission_policy=u.admission_policy if u.confidence > 0.8 else self._current.admission_policy,
             confidence=u.confidence,
             regret_smoothed=new_regret,
             update_source=u.source,
@@ -165,10 +159,10 @@ class PolicyGovernor:
         """Exponential moving average."""
         return (1 - self.alpha) * current + self.alpha * new
 
-    def get_current(self) -> PolicySnapshot | None:
+    def get_current(self) -> Optional[PolicySnapshot]:
         return self._current
 
-    def get_history(self, last_n: int | None = None) -> list[PolicySnapshot]:
+    def get_history(self, last_n: Optional[int] = None) -> list[PolicySnapshot]:
         """Return policy history, most recent first."""
         history = sorted(self._history, key=lambda p: p.timestamp, reverse=True)
         return history[:last_n] if last_n else history
@@ -187,19 +181,15 @@ class PolicyGovernor:
         """Force update bypassing stability checks (for critical retraining)."""
         if not self._current:
             return self.initialize(
-                alpha=new_policy.alpha,
-                beta=new_policy.beta,
-                gamma=new_policy.gamma,
-                delta=new_policy.delta,
+                alpha=new_policy.alpha, beta=new_policy.beta,
+                gamma=new_policy.gamma, delta=new_policy.delta,
                 risk_threshold=new_policy.risk_threshold,
                 admission_policy=new_policy.admission_policy,
             )
         self._current = PolicySnapshot(
             timestamp=datetime.utcnow(),
-            alpha=new_policy.alpha,
-            beta=new_policy.beta,
-            gamma=new_policy.gamma,
-            delta=new_policy.delta,
+            alpha=new_policy.alpha, beta=new_policy.beta,
+            gamma=new_policy.gamma, delta=new_policy.delta,
             risk_threshold=new_policy.risk_threshold,
             admission_policy=new_policy.admission_policy,
             confidence=new_policy.confidence,

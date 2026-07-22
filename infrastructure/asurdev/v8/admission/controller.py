@@ -5,7 +5,8 @@ All decisions from v6+v7 MUST pass through here.
 POST /admit → SafetyKernel → admit / reject / degrade.
 """
 from __future__ import annotations
-
+from dataclasses import dataclass
+from typing import Optional
 import hashlib
 
 
@@ -17,9 +18,9 @@ class AdmissionController:
 
     def __init__(
         self,
-        safety_kernel,  # SafetyKernel instance
-        constraint_compiler,  # ConstraintCompiler instance
-        policy_verifier,  # PolicyVerifier instance
+        safety_kernel,        # SafetyKernel instance
+        constraint_compiler,   # ConstraintCompiler instance
+        policy_verifier,       # PolicyVerifier instance
     ):
         self.safety_kernel = safety_kernel
         self.constraint_compiler = constraint_compiler
@@ -73,10 +74,9 @@ class AdmissionController:
             "approved_by": result.approved_by,
         }
 
-    def _build_context(self, raw_context: dict) -> DecisionContext:
+    def _build_context(self, raw_context: dict) -> "DecisionContext":
         """Build DecisionContext from raw request."""
         from v8.safety_kernel.engine import DecisionContext
-
         return DecisionContext(
             cluster_state=raw_context.get("cluster_state", {}),
             ml_predictions=raw_context.get("ml_predictions", {}),
@@ -97,13 +97,11 @@ class AdmissionController:
         }
 
     def _log_request(self, request: dict, result) -> None:
-        self._request_log.append(
-            {
-                "decision": request.get("decision", {}).get("id", "unknown"),
-                "status": result.status.value,
-                "risk_score": result.risk_score,
-            }
-        )
+        self._request_log.append({
+            "decision": request.get("decision", {}).get("id", "unknown"),
+            "status": result.status.value,
+            "risk_score": result.risk_score,
+        })
 
     def get_rejection_rate(self) -> float:
         if not self._request_log:

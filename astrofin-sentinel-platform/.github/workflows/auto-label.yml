@@ -1,0 +1,46 @@
+name: PR Auto-Label
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    name: Auto-label by paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/labeler@v5
+        with:
+          configuration-path: .github/labeler.yml
+        continue-on-error: true
+
+  size:
+    name: Auto-size label
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) return;
+            const labels = ['size:XS', 'size:S', 'size:M', 'size:L', 'size:XL'];
+            await github.rest.issues.removeAllLabels({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number });
+            const addons = (pr.additions || 0);
+            const dels = (pr.deletions || 0);
+            const files = (pr.changed_files || 0);
+            const total = addons + dels;
+            let size = 'size:XS';
+            if (files > 50 || total > 3000) size = 'size:XL';
+            else if (files > 20 || total > 1000) size = 'size:L';
+            else if (files > 8 || total > 300) size = 'size:M';
+            else if (files > 2 || total > 50) size = 'size:S';
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: pr.number, labels: [size],
+            });
