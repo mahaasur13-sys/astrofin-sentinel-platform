@@ -16,6 +16,11 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+import os
+from trading.mode import TradingMode
+from trading.factory import get_broker
+from trading.broker.base import OrderSide, OrderType
+
 class CouncilOrchestrator:
     """Замыкает контур: сбор сигналов → KARL-арбитраж → RiskEngine → исполнение.
 
@@ -109,17 +114,32 @@ class CouncilOrchestrator:
                 "signal": final_signal.signal.name,
             }
 
-        # 5. Execution artifact (broker call site)
-        logger.info(
-            "✅ [EXECUTE] signal=%s size=%s risk=%s",
-            final_signal.signal.name,
-            adjusted_size,
-            risk_reason,
+        # 5. Execution — broker dispatch (Sprint 8.1 Paper Trading)
+        broker = get_broker()
+        symbol = cfg.get("symbol", "BTCUSDT")
+        side = (
+            OrderSide.BUY
+            if final_signal.signal.name in ("LONG", "STRONG_BUY")
+            else OrderSide.SELL
         )
+        qty = round(adjusted_size, 6)
+        order = broker.place_order(symbol, side, OrderType.MARKET, qty)
+
+        logger.info(
+            "✅ [EXECUTE] signal=%s size=%s risk=%s broker=%s status=%s",
+            final_signal.signal.name, adjusted_size, risk_reason,
+            broker.name, order.status.name,
+        )
+
         return {
             "action": "EXECUTED",
             "size": adjusted_size,
             "signal": final_signal.signal.name,
             "risk_reason": risk_reason,
             "blocked": False,
+            "order_id": order.order_id,
+            "order_status": order.status.name,
+            "executed_price": order.avg_fill_price,
+            "commission": order.commission,
+            "broker": broker.name,
         }
