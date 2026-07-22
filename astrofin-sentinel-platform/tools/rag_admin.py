@@ -218,7 +218,14 @@ async def cmd_stats(args: argparse.Namespace) -> int:
         if client._pg_pool is not None:
             try:
                 async with client._pg_pool.acquire() as conn:
-                    pg_total = await conn.fetchval(f"SELECT COUNT(*) FROM {pg_table}")
+                    conn_pg = conn  # type: ignore[assignment]
+                    pg_total = (
+                        await conn_pg.fetchval(
+                            "SELECT COUNT(*) FROM " + conn_pg.quote_ident(pg_table)  # nosec B608 — quote_ident sanitises input
+                        )
+                        if _VALID_TABLE_RE.match(pg_table)
+                        else None
+                    )
             except Exception as e:
                 _warn(f"pgvector count failed: {e}")
 

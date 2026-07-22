@@ -35,6 +35,69 @@ class SwitchAction(Enum):
     REORDER_ROLES = "reorder_roles"
 
 
+_SAFE_OPS: dict[str, Any] = {
+    "and": lambda a, b: a and b,
+    "or": lambda a, b: a or b,
+    "not": lambda a: not a,
+    ">": lambda a, b: a > b,
+    "<": lambda a, b: a < b,
+    ">=": lambda a, b: a >= b,
+    "<=": lambda a, b: a <= b,
+    "==": lambda a, b: a == b,
+    "!=": lambda a, b: a != b,
+}
+
+
+def _safe_evaluate_topology(condition: str, ns: dict[str, Any]) -> bool:
+    """Safe condition evaluator — no eval(), only known operators on known names."""
+    condition = condition.strip().lower().replace(" and ", " && ").replace(" or ", " || ")
+    allowed_names = frozenset(ConditionEvaluator.SAFE_NAMES)
+    for name in list(ns.keys()):
+        if name.strip("_") not in allowed_names and name not in ("true", "false"):
+            return False
+
+    tokens = condition.replace("(", " ( ").replace(")", " ) ").split()
+    stack: list[Any] = []
+    op_stack: list[str] = []
+    precedence = {"not": 4, "&&": 3, "||": 2, ">": 1, "<": 1, ">=": 1, "<=": 1, "==": 1, "!=": 1}
+
+    def _apply_op() -> None:
+        op = op_stack.pop()
+        if op == "not":
+            stack.append(not stack.pop())
+        else:
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(_SAFE_OPS[op](a, b))
+
+    i = 0
+    while i < len(tokens):
+        t = tokens[i]
+        if t in ("(", ")"):
+            if t == "(":
+                op_stack.append(t)
+            else:
+                while op_stack and op_stack[-1] != "(":
+                    _apply_op()
+                op_stack.pop()
+        elif t in precedence:
+            while (op_stack and op_stack[-1] != "("
+                   and precedence.get(op_stack[-1], 0) >= precedence[t]):
+                _apply_op()
+            op_stack.append(t)
+        else:
+            val = ns.get(t)
+            if val is None and t not in ("true", "false"):
+                return False
+            stack.append(val if t not in ("true", "false") else (t == "true"))
+        i += 1
+
+    while op_stack:
+        _apply_op()
+
+    return bool(stack[-1]) if stack else False
+
+
 class ConditionEvaluator:
     SAFE_NAMES = {
         "uncertainty_total",
@@ -58,7 +121,7 @@ class ConditionEvaluator:
             }
             ns["true"] = True
             ns["false"] = False
-            return bool(eval(condition, {"__builtins__": {}}, ns))
+            return _safe_evaluate_topology(condition, ns)
         except Exception:
             return False
 

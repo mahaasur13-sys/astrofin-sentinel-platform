@@ -466,7 +466,7 @@ class KARLSynthesisAgent:
     ) -> str:
         """Compute reproducible state hash."""
         data = f"{state.get('symbol', '')}:{state.get('current_price', 0)}:{state.get('timeframe_requested', 'SWING')}:{len(state.get('all_signals', []))}:{regime}:{signal}:{confidence}"
-        return hashlib.md5(data.encode()).hexdigest()[
+        return hashlib.sha256(data.encode()).hexdigest()[
             :12
         ]  # nosec B324 — content hash for synthesis key, not security
 

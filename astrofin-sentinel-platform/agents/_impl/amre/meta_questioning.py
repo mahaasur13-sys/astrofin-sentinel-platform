@@ -8,6 +8,27 @@ from dataclasses import dataclass
 from typing import Any
 
 
+_SAFE_OPS: dict[str, Any] = {
+    ">": lambda a, b: a > b,
+    "<": lambda a, b: a < b,
+    ">=": lambda a, b: a >= b,
+    "<=": lambda a, b: a <= b,
+    "==": lambda a, b: a == b,
+    "!=": lambda a, b: a != b,
+    "in": lambda a, b: a in b,
+}
+
+
+def _safe_compare(ctx_val: Any, op: str, val: Any) -> bool:
+    """Safe comparison without eval(). Supports > < >= <= == != in."""
+    try:
+        if op in _SAFE_OPS:
+            return bool(_SAFE_OPS[op](ctx_val, val))
+        return False
+    except Exception:
+        return False
+
+
 @dataclass
 class MetaQuestion:
     id: str
@@ -109,9 +130,7 @@ class MetaQuestionBank:
                             return False
                         if isinstance(ctx_val, str):
                             ctx_val = ctx_val.strip()
-                        return eval(
-                            f"{ctx_val} {op} {val}", {"__builtins__": {}}, {}
-                        )  # nosec B307 — sandboxed DSL eval with empty builtins
+                        return _safe_compare(ctx_val, op, val)
         except Exception:
             pass
         return False
