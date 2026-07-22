@@ -212,7 +212,7 @@ report = engine.compute(positions)
 | CoinGecko | Crypto metadata, prices | Free |
 | Binance | OHLCV data | Free |
 | Swiss Ephemeris | Planetary positions | License (sweph) |
-| SEC EDGAR | 13F filings | Free |
+| SEC EDGAR | 13F filings, 10-K, 10-Q | Free (production HTTP client ✅) |
 | Fear & Greed Index | Sentiment | Free |
 | Yahoo Finance | VIX, DXY, Gold | Free |
 | Polygon.io | Options flow (future) | Paid |
@@ -401,10 +401,10 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 - [x] **Step 4.5: AMRE pre-commit hook installed**
 - [x] **Step 4.7:** `@require_auth` on 4 production API routes ✅ (P0/SEC-01)
 - [x] **Step 4.8a:** R3.5, R7, R10, R12 — 4 новых правила ✅ (PR #246)
-- [ ] Connect real data APIs (Polygon, Unusual Whales, SEC EDGAR via data_room resolvers)
-- [ ] Add Telegram bot for alerts
+- [x] Connect real data APIs: SEC EDGAR via data_room resolver ✅ (Polygon, Unusual Whales — paid, pending)
+- [x] Add Telegram bot for alerts ✅
 - [x] **Step 4.8b:** Production RAG index — 102 docs → 1981 чанков, FAISS+BM25+RRF ✅
-- [ ] Add visualizations
+- [x] Add visualizations — Dash/Plotly 8-panel dashboard (ensemble weights, signal/confidence scatter, regime timeline, heatmap, KPI gauge, P&L equity curve)
 - [x] **ATOM-017: Full agent pools (MACRO + ASTRO + TECHNICAL)** — 8 agents running
 - [x] **Step 4.8c:** PostgreSQL + TimescaleDB + pgvector — DatabaseManager, Dual-Write ✅
 
@@ -468,6 +468,15 @@ uvicorn api.main:app --port 8000
 cd web-react && npm run dev
 ```
 
+### Telegram Bot (2026-07-21)
+
+**Модуль:** `telegram_bot/`
+
+- `bot.py` — `AstroFinBot` с командами `/start`, `/status`, `/analyze <symbol>`
+- `alerts.py` — `AlertDispatcher` для рассылки торговых сигналов
+- Запуск: `python -m telegram_bot.bot` (требуется `TELEGRAM_BOT_TOKEN` в `.env`)
+- Библиотека: `python-telegram-bot[job-queue]`
+
 ### SEC EDGAR
 
-**Resolver:** `data_room/resolvers/sec_edgar.py` — заглушка с `fetch_10k(ticker)`. Возвращает кэшированный текст или placeholder для CI.
+**Resolver:** `data_room/resolvers/sec_edgar.py` — production-grade HTTP-клиент к SEC EDGAR API.

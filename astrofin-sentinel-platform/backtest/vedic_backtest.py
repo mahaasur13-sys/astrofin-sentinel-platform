@@ -144,10 +144,17 @@ def annotate_trade(trade: BacktestTrade, dt: datetime) -> VedicBacktestTrade:
     )
 
     try:
-        panch = calculate_panchanga(dt)
+        from core.ephemeris import get_planetary_positions
+        positions = get_planetary_positions(dt)
+        moon = positions.get("Moon", positions.get("moon"))
+        sun = positions.get("Sun", positions.get("sun"))
+        moon_lon = moon.longitude if moon else 0.0
+        sun_lon = sun.longitude if sun else 0.0
+        panch = calculate_panchanga(dt, moon_lon, sun_lon)
         nak = panch["nakshatra"]
-        ms = panch["muhurta_score"]
-        chog = panch["choghadiya"][0]["name"] if panch["choghadiya"] else ""
+        ms = panch.get("muhurta_score", {"score": 50})
+        chog_slots = panch.get("choghadiya_slots", panch.get("choghadiya", []))
+        chog = chog_slots[0]["name"] if chog_slots else ""
     except Exception:
         nak = {"name": "", "number": 0}
         ms = {"score": 50}

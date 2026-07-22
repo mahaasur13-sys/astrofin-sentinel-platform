@@ -45,6 +45,7 @@ def register_callbacks(app, get_engine_ref):
         from web.components.live import live_tab
         from web.components.sessions import sessions_tab
         from web.components.strategy_explorer import explorer_tab
+        from web.components.visualizations import visualizations_tab
 
         tab_map = {
             "tab-dashboard": dashboard_tab(),
@@ -52,6 +53,7 @@ def register_callbacks(app, get_engine_ref):
             "tab-sessions": sessions_tab(),
             "tab-explorer": explorer_tab(),
             "tab-live": live_tab(),
+            "tab-visualizations": visualizations_tab(),
         }
         return tab_map.get(tab, html.Div("Unknown tab"))
 

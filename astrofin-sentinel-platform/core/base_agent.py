@@ -370,6 +370,6 @@ def get_rag() -> "RAGIndex | None":
         _rag_instance = RAGIndex()
         logger.info("RAGIndex singleton initialized", chunks=len(_rag_instance.chunks))
     except Exception as exc:
-        logger.warning("Failed to initialize RAGIndex", error=str(exc))
+        logger.warning("Failed to initialize RAGIndex: %s", exc)
         _rag_instance = None
     return _rag_instance

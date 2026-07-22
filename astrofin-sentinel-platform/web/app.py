@@ -183,6 +183,10 @@ app.layout = dbc.Container(
                     label="🤖 13 Agents Live",
                     value="tab-agents-live",
                 ),
+                dcc.Tab(
+                    label="📊 Visualizations",
+                    value="tab-visualizations",
+                ),
             ],
         ),
         html.Div(

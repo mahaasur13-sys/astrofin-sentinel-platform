@@ -8,6 +8,7 @@ import secrets
 from functools import wraps
 
 from fastapi import Request
+from fastapi.responses import JSONResponse
 from flask import request as flask_request
 
 from core.error_schema import Forbidden, Unauthorized, format_error
@@ -15,16 +16,20 @@ from core.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
-# Backwards-compatible module-level constants. The single source of truth
-# is :func:`core.settings.get_settings`; these bindings are refreshed at
-# startup and on every call to :func:`reload_auth_state` so tests that
-# mutate env vars pick up the new values without process restart.
-REQUIRE_AUTH: bool = True
+REQUIRE_AUTH: bool = False
 API_KEY: str = ""
 
 
+
+def _ensure_key_configured() -> None:
+    if REQUIRE_AUTH and (not API_KEY or API_KEY.strip() == ''):
+        raise RuntimeError('REQUIRE_AUTH is true but API_KEY is empty or unset')
+
+
+def validate_startup() -> None:
+    _ensure_key_configured()
+
 def _refresh_auth_state() -> tuple[bool, str]:
-    """(Re)read auth-related settings from the central config."""
     s = get_settings()
     key = s.api_key
     if hasattr(key, "get_secret_value"):
@@ -36,29 +41,15 @@ REQUIRE_AUTH, API_KEY = _refresh_auth_state()
 
 
 def reload_auth_state() -> None:
-    """Public hook for tests / startup that re-reads settings.
-
-    Sets the module-level ``REQUIRE_AUTH`` and ``API_KEY`` globals from the
-    central :class:`core.settings.Settings` instance. Use this in fixtures
-    after monkey-patching env vars instead of importing new values.
-    """
     global REQUIRE_AUTH, API_KEY
     REQUIRE_AUTH, API_KEY = _refresh_auth_state()
 
 
-def validate_startup() -> None:
-    """Validate auth config at process start.
-
-    Kept as a stable public symbol for ``web.app``/``web.wsgi`` startup hooks
-    and existing tests; delegates to :func:`_ensure_key_configured`.
-    """
-    _ensure_key_configured()
-
-
-def _ensure_key_configured() -> None:
-    """Raise RuntimeError if auth is required but API_KEY is missing."""
-    if REQUIRE_AUTH and (not API_KEY or API_KEY.strip() == ""):
-        raise RuntimeError("REQUIRE_AUTH is true but API_KEY is empty or unset")
+def _error_response(status_code: int, code: str, message: str) -> JSONResponse:
+    return JSONResponse(
+        content=format_error({"code": code, "message": message}),
+        status_code=status_code,
+    )
 
 
 def _resolve_request(args, kwargs):
@@ -69,30 +60,43 @@ def _resolve_request(args, kwargs):
     for a in args:
         if isinstance(a, Request):
             return a, a.url.path
-    # Flask path: flask.request is a thread-local proxy.
+    # FastAPI contextvar fallback (for endpoints without explicit `request: Request`)
+    try:
+        from starlette.requests import request as _sr
+    except ImportError:
+        _sr = None
+    if _sr:
+        try:
+            r = _sr.get()
+            if r is not None:
+                return r, r.url.path
+        except (LookupError, RuntimeError):
+            pass
     if flask_request:
         return flask_request, flask_request.path
     return None, None
 
 
-def _check_key(request, path):
-    """Return None if authorized, or a (body, status) tuple error response."""
+def _check_key(request, path) -> JSONResponse | None:
+    """Return an error JSONResponse if unauthorized, or None if authorized."""
     if not API_KEY or API_KEY.strip() == "":
         logger.critical("Server misconfiguration: API key required but not set")
-        return (
-            format_error(
-                {"code": "ServerMisconfiguration", "message": "API key not configured"}
-            ),
-            500,
-        )
+        return _error_response(500, "ServerMisconfiguration", "API key not configured")
 
-    key = request.headers.get("X-API-Key") if hasattr(request, "headers") else None
+    key = None
+    if hasattr(request, "headers"):
+        key = request.headers.get("X-API-Key")
+        if not key:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                key = auth_header[7:]
+
     if not key:
         logger.warning("auth.failed endpoint=%s missing key", path)
-        return format_error(Unauthorized("Missing API key")), 401
+        return _error_response(401, "Unauthorized", "Missing API key")
     if not secrets.compare_digest(key, API_KEY):
         logger.warning("auth.failed endpoint=%s wrong key", path)
-        return format_error(Forbidden("Invalid API key")), 403
+        return _error_response(403, "Forbidden", "Invalid API key")
     logger.debug("auth.success endpoint=%s", path)
     return None
 
@@ -100,8 +104,9 @@ def _check_key(request, path):
 def require_api_key(func):
     """Decorator that works on both FastAPI (async) and Flask (sync) routes.
 
-    On a 401/403 it returns a ``(body, status)`` tuple, which both FastAPI and
-    Flask interpret as ``(response_body, status_code)``.
+    Returns a JSONResponse for 401/403 auth failures, and delegates to the
+    wrapped endpoint on success. Uses starlette contextvar for FastAPI endpoints
+    that don't have an explicit ``request: Request`` parameter.
     """
     is_coro = inspect.iscoroutinefunction(func)
 
@@ -111,10 +116,7 @@ def require_api_key(func):
             return await func(*args, **kwargs)
         request, path = _resolve_request(args, kwargs)
         if request is None:
-            return (
-                format_error({"code": "Unauthorized", "message": "Missing request"}),
-                401,
-            )
+            return _error_response(401, "Unauthorized", "Missing request")
         err = _check_key(request, path)
         if err is not None:
             return err
@@ -126,10 +128,7 @@ def require_api_key(func):
             return func(*args, **kwargs)
         request, path = _resolve_request(args, kwargs)
         if request is None:
-            return (
-                format_error({"code": "Unauthorized", "message": "Missing request"}),
-                401,
-            )
+            return _error_response(401, "Unauthorized", "Missing request")
         err = _check_key(request, path)
         if err is not None:
             return err
@@ -140,7 +139,8 @@ def require_api_key(func):
 
 def verify_api_key(key: str) -> bool:
     """Standalone verification helper."""
-    _ensure_key_configured()
     if not key:
         return False
+    if REQUIRE_AUTH and (not API_KEY or API_KEY.strip() == ""):
+        raise RuntimeError("REQUIRE_AUTH is true but API_KEY is empty or unset")
     return secrets.compare_digest(key, API_KEY)

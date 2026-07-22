@@ -10,6 +10,8 @@ from fastapi.testclient import TestClient
 os.environ["API_KEY"] = "test-api-secret-key-123"
 os.environ["REQUIRE_AUTH"] = "true"
 
+from core.auth import reload_auth_state
+reload_auth_state()
 from api.main import app
 
 client = TestClient(app, raise_server_exceptions=False)
