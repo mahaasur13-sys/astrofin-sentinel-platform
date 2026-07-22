@@ -241,7 +241,7 @@ def print_topology_viz(topology: Topology):
     viz = TopologyVisualizer(topology)
 
     log.info(viz.to_ascii())
-    log.info()
+    log.info("")
     log.info("=" * 60)
     log.info("MERMAID DIAGRAM:")
     log.info("=" * 60)

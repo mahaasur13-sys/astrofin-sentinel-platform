@@ -84,7 +84,7 @@ def cmd_status() -> int:
         f"  {'✅' if vm_up else '❌'} VictoriaMetrics: {victoria_url} [{'up' if vm_up else 'DOWN'}]"
     )
     # Backends
-    log.info()
+    log.info("")
     log.info("  Monitoring Backends:")
     for name, info in BACKENDS.items():
         marker = "◀ ACTIVE" if name == active else "  "
@@ -95,7 +95,7 @@ def cmd_status() -> int:
             icon = "✅" if up else "❌"
             status = "up" if up else "DOWN"
         log.info(f"    {marker} {icon} {name:12} {info['label']:20} [{status}]")
-    log.info()
+    log.info("")
     return 0
 
 

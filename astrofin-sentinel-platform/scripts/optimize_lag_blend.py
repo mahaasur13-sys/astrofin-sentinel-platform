@@ -331,7 +331,7 @@ def print_table(results: list[BlendResult], best: BlendResult, metric: str):
         best_row += f"  {best.sharpe:>10.4f}"
     best_row += f"  {best.mae:>8.4f}"
     log.info(f"{marker} Optimal: {best_row}")
-    log.info()
+    log.info("")
 
 
 def save_json(

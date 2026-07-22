@@ -166,7 +166,7 @@ async def _migrate_domain(
             f"\r  [{domain}] {i + len(batch)}/{len(chunks)} chunks processed ({inserted} inserted)"
         )
         sys.stdout.flush()
-    log.info()
+    log.info("")
     return inserted
 
 

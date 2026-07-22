@@ -60,11 +60,11 @@ def cosign_keyless_sign_attestation(
     log.info(f"Subject: {subject_ref}")
     log.info(f"Commit: {commit_hash}")
     log.info(f"Manifest: {manifest_hash}")
-    log.info()
+    log.info("")
     log.info("OIDC Providers supported:")
     for p in SUPPORTED_OIDC_PROVIDERS:
         log.info(f"  ✓ {p}")
-    log.info()
+    log.info("")
 
     attestation_type = "https://slsa.dev/provenance/v1"
     predicate = {
@@ -88,19 +88,19 @@ def cosign_keyless_sign_attestation(
     }
     attestation_hash = h(json.dumps(attestation, sort_keys=True, default=str))
     log.info(f"Attestation hash: {attestation_hash[:16]}...")
-    log.info()
+    log.info("")
     log.info("[KEYLESS] OIDC Flow:")
     log.info("  1. cosign opens browser for OAuth2/OIDC authentication")
     log.info("  2. Fulcio issues short-lived certificate bound to email/identity")
     log.info("  3. Certificate signed by Google/Cyan ephemeral CA")
     log.info("  4. Attestation signature recorded to Rekor transparency log")
     log.info("  5. Rekor log provides publicly verifiable audit trail")
-    log.info()
+    log.info("")
     log.info("Trusted Root Verification:")
     log.info("  ✓ Fulcio CT log pre certs from 'Sigstore PKI'")
     log.info("  ✓ Rekor public key embedded in cosign binary")
     log.info("  ✓ Transparency log (Rekor) provides non-repudiation")
-    log.info()
+    log.info("")
     return {
         "verified": True,
         "method": "Sigstore_Fulcio_OIDC",
@@ -115,7 +115,7 @@ def cosign_keyless_sign_attestation(
 
 
 def verify_from_rekor(signature: str, artifact_ref: str) -> dict:
-    log.info()
+    log.info("")
     log.info("[REKOR] Verifying transparency log entry...")
     log.info(f"  Signature: {signature}")
     log.info(f"  Artifact: {artifact_ref}")
@@ -182,7 +182,7 @@ if __name__ == "__main__":
     )
     manifest = sys.argv[2] if len(sys.argv) > 2 else h("manifest")[:16]
     bundle = generate_attestation_bundle(commit, manifest)
-    log.info()
+    log.info("")
     log.info("=" * 70)
     log.info("ATTESTATION BUNDLE (SLSA-4)")
     log.info("=" * 70)

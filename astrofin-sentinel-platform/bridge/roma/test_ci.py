@@ -94,6 +94,6 @@ test("GPU Scheduler", t_gpu_scheduler)
 test("Raft Consensus", t_raft)
 test("Plugin API", t_plugin)
 
-log.info()
+log.info("")
 log.info(f"RESULTS: {passed} passed, {failed} failed")
 raise SystemExit("CI check failed")

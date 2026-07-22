@@ -368,7 +368,7 @@ def _run_tests():
     ok &= check("T6 refresh_observation action", "refresh_observation" in r6.actions)
     ok &= check("T6 not FAILURE region", r6.region != "FAILURE")
 
-    log.info()
+    log.info("")
     log.info(f"{'='*50}")
     log.info(f"RESULT: {'ALL PASSED ✅' if ok else 'SOME TESTS FAILED ❌'}")
     return ok

@@ -241,7 +241,7 @@ def generate_report(delta: dict, hidden: list, ltl: dict) -> dict:
     log.info(f"  Hidden entry points:  {len(hidden)} (HIGH: {sum(1 for h in hidden if h['severity']=='HIGH')})")
     ltl_fails = [k for k, v in ltl.items() if v is False]
     log.info(f"  LTL violations:       {len(ltl_fails)}: {ltl_fails}")
-    log.info()
+    log.info("")
     if result == "PASS":
         log.info("  RESULT: PASS ✅")
     else:

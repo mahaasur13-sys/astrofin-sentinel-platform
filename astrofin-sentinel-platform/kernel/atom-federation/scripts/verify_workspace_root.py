@@ -33,16 +33,16 @@ def diagnose():
     log.info(f"  canonical root: {CANONICAL}")
     log.info(f"  cwd:           {pathlib.Path.cwd()}")
     log.info(f"  canonical exists: {CANONICAL.exists()}")
-    log.info()
+    log.info("")
     log.info("  sys.path (first 8 entries):")
     for i, p in enumerate(sys.path[:8]):
         log.info(f"    [{i}] {p}")
-    log.info()
+    log.info("")
     log.info("  canonical children:")
     for d in sorted(CANONICAL.iterdir()):
         if d.name not in ("__pycache__", ".git", "node_modules"):
             log.info(f"    {d.name}/")
-    log.info()
+    log.info("")
 
 
 def _import_with_path(name: str, *extra_paths: str) -> tuple | None:
@@ -192,16 +192,16 @@ def main() -> int:
     log.info("╔══════════════════════════════════════════════════════╗")
     log.info("║  atom-federation-os v9.0 — WORKSPACE CONSISTENCY  ║")
     log.info("╚══════════════════════════════════════════════════════╝")
-    log.info()
+    log.info("")
     diagnose()
     check_sys_path_order()
-    log.info()
+    log.info("")
     check_shadowing()
-    log.info()
+    log.info("")
     assert_single_root()
-    log.info()
+    log.info("")
     check_ci_environment()
-    log.info()
+    log.info("")
     log.info("═══════════════════════════════════════")
     if errors:
         log.info(f"❌ FAIL — {len(errors)} error(s):")

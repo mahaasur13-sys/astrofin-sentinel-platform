@@ -142,7 +142,7 @@ else:
     log.info("  SYSTEM NOT READY:")
     for b in blockers:
         log.info(f"    - {b}")
-    log.info()
+    log.info("")
     log.info("NEXT ACTIONS:")
     log.info("  1. Connect Zo apps: Settings > Integrations")
     log.info("  2. Add API keys: Settings > Advanced")

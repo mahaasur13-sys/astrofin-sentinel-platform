@@ -88,13 +88,13 @@ if __name__ == "__main__":
     log.info(
         f"  Прочитано из: {BOLD}{'файла: ' + dpkg_path if dpkg_path else 'dpkg -l (live)'}{RESET}"
     )
-    log.info()
+    log.info("")
     log.info(f"{BOLD}{'═'*60}{RESET}")
     log.info(
         f"  {CYAN}ПОКРЫТИЕ:{RESET}  {GREEN}{len(matched)}{RESET} установлено  ·  {RED}{len(missing)}{RESET} отсутствует"
     )
     log.info(f"{BOLD}{'═'*60}{RESET}")
-    log.info()
+    log.info("")
 
     if missing:
         log.info(f"{YELLOW}{BOLD}⚠ отсутствуют ({len(missing)}):{RESET}")
@@ -113,14 +113,14 @@ if __name__ == "__main__":
             log.info(f"  {CYAN}{sname}{RESET}:")
             for p in pkgs:
                 log.info(f"    - {p}")
-        log.info()
+        log.info("")
         install_cmd = "sudo apt install -y " + " ".join(missing)
         log.info(f"  {CYAN}→ Установить все:{RESET}")
         log.info(f"     {install_cmd}")
     else:
         log.info(f"{GREEN}✓ Все пакеты из stages уже установлены{RESET}")
 
-    log.info()
+    log.info("")
     log.info(f"{BOLD}─── Покрытие по stages ───{RESET}")
     for stage in sorted(STAGES_DIR.glob("stage*.sh")):
         sname = stage.stem

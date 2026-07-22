@@ -66,7 +66,7 @@ def main():
     log.info("=" * 60)
     log.info("  ASTROFIN BACKTEST RUNNER — ATOM-STEP-8")
     log.info("=" * 60)
-    log.info()
+    log.info("")
     symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT"]
     base_prices = [50000.0, 3000.0, 100.0]
     all_results = []
@@ -96,7 +96,7 @@ def main():
                 result.trades[0].side,
                 "pnl=%+.2f%%" % result.trades[0].pnl_pct,
             )
-        log.info()
+        log.info("")
         all_results.append(result)
     total_return = sum(r.portfolio_summary["total_return_pct"] for r in all_results)
     log.info("=" * 60)

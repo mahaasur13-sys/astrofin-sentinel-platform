@@ -344,7 +344,7 @@ def _run_tests():
         gcpl_C=1.0, branch_count=20, gcpl_max_branches=3,
         adlr_total=5, oscillation_free=True), False)
 
-    log.info()
+    log.info("")
     if all_ok:
         log.info("  ALL CROSS-LAYER THEOREMS PROVED ✅")
         return True

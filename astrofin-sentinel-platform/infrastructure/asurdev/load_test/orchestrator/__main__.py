@@ -54,7 +54,7 @@ def main():
     log.info("=" * 60)
     log.info("ACOS LOAD TEST ORCHESTRATOR")
     log.info("=" * 60)
-    log.info()
+    log.info("")
 
     results = []
     corrections = []
@@ -78,7 +78,7 @@ def main():
                     "timestamp": time.time(),
                 })
         log.info(f"    status={r.get('status')}")
-    log.info()
+    log.info("")
 
     # Phase 2: Apply corrections and re-run
     log.info("[PHASE 2] Correction loop...")
@@ -94,7 +94,7 @@ def main():
         r["run_order"] = len(post_fix_results) + 1
         r["correction_source"] = correction["scenario"]
         post_fix_results.append(r)
-    log.info()
+    log.info("")
 
     # Phase 3: Final report
     log.info("[PHASE 3] Final Report")
@@ -139,7 +139,7 @@ def main():
     with open(out_path, "w") as f:
         json.dump(output, f, indent=2, default=str)
     log.info(f"\nResults saved to: {out_path}")
-    log.info()
+    log.info("")
     log.info("=" * 60)
     log.info("GOAL: reactive → preventive")
     log.info("=" * 60)

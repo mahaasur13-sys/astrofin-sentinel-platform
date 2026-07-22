@@ -351,10 +351,10 @@ if __name__ == "__main__":
     test_payload_validation()
     test_concurrent_emission()
 
-    log.info()
+    log.info("")
     log.info("🎉 ALL TESTS PASSED — Step 2.5 complete")
-    log.info()
+    log.info("")
     log.info("Coverage matrix: COHERENCE ✔ SBS ✔ HEALER ✔")
     log.info("                   LATTICE ✔  RPC   ✔ QUORUM ✔")
-    log.info()
+    log.info("")
     log.info("Next: STEP 3 — Prometheus scrape + OTEL export + Loki")

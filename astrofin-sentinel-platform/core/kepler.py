@@ -369,7 +369,7 @@ if __name__ == "__main__":
     log.info(f"\n  Reference epoch: J2000.0 = JD {J2000}")
     log.info(f"  Current UTC:   {now.isoformat()}")
     log.info(f"  Current JD:    {now_jd:.4f}")
-    log.info()
+    log.info("")
 
     bodies = ["earth", "jupiter", "saturn"]
     for body in bodies:
@@ -380,7 +380,7 @@ if __name__ == "__main__":
         log.info(f"     Mean anomaly:             {result.mean_anomaly:.4f}°")
         log.info(f"     True anomaly:             {result.true_anomaly:.4f}°")
         log.info(f"     Orbital period:           {result.orbital_period:.2f} days")
-        log.info()
+        log.info("")
 
     log.info("  ── Swiss Ephemeris Validation ──")
     for body in bodies:
@@ -390,7 +390,7 @@ if __name__ == "__main__":
             log.info(
                 f"            Kepler={v['kepler_lon']}°  Swiss={v['swiss_lon']}°  Δ={v['delta_lon']}°"
             )
-    log.info()
+    log.info("")
     log.info("=" * 60)
 
 

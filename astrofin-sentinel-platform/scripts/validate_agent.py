@@ -437,9 +437,9 @@ def render(checks: list[Check], src: Path, fail_on: str = "warning") -> int:
         label = str(src.relative_to(REPO_ROOT))
     except ValueError:
         label = str(src)
-    log.info(BOLD(f"\n─── validate_agent.py — {label} ───"))
+    print(BOLD(f"\n─── validate_agent.py — {label} ───"))
     if not checks:
-        log.info(YELLOW("no checks run"))
+        print(YELLOW("no checks run"))
         return 0
     passed = sum(1 for c in checks if c.passed)
     failed = [c for c in checks if not c.passed]
@@ -459,25 +459,25 @@ def render(checks: list[Check], src: Path, fail_on: str = "warning") -> int:
         line = f"  {icon}  {CYAN(c.code)}  {c.label.ljust(max_label)}"
         if c.detail:
             line += f"  {DIM(c.detail)}"
-        log.info(line)
-    log.info()
-    log.info(f"  {BOLD(str(passed))} / {len(checks)} checks passed.", end="")
+        print(line)
+    print("")
+    print(f"  {BOLD(str(passed))} / {len(checks)} checks passed.", end="")
     if failed:
-        log.info(RED(f"  {len(failed)} failed."))
+        print(RED(f"  {len(failed)} failed."))
     else:
-        log.info(GREEN("  Ready to ship."))
+        print(GREEN("  Ready to ship."))
     return 0 if not blocking else 1
 
 
 def recommend_fixes(checks: list[Check]) -> None:
     failed = [c for c in checks if not c.passed]
     if not failed:
-        log.info(GREEN("No fixes recommended."))
+        print(GREEN("No fixes recommended."))
         return
-    log.info(BOLD("\nRecommended fixes:"))
+    print(BOLD("\nRecommended fixes:"))
     for c in failed:
-        log.info(f"  • [{c.code}] {c.label}")
-        log.info(f"      {DIM(c.detail)}")
+        print(f"  • [{c.code}] {c.label}")
+        print(f"      {DIM(c.detail)}")
 
 
 def find_test_file(src: Path) -> Path | None:
@@ -488,7 +488,7 @@ def find_test_file(src: Path) -> Path | None:
 
 
 def run_pytest(test_path: Path) -> int:
-    log.info(BOLD(f"\nrunning pytest on {test_path.relative_to(REPO_ROOT)} …\n"))
+    print(BOLD(f"\nrunning pytest on {test_path.relative_to(REPO_ROOT)} …\n"))
     return subprocess.call(
         [sys.executable, "-m", "pytest", "-q", "--tb=short", str(test_path)]
     )
@@ -536,12 +536,12 @@ def main(argv: list[str] | None = None) -> int:
     if not target.is_absolute():
         target = (REPO_ROOT / target).resolve()
     if not target.exists():
-        log.info(RED(f"target not found: {target}"))
+        print(RED(f"target not found: {target}"))
         return 1
 
     files = iter_agent_files(target)
     if not files:
-        log.info(YELLOW(f"no agent files found in {target}"))
+        print(YELLOW(f"no agent files found in {target}"))
         return 0
 
     overall = 0
@@ -556,7 +556,7 @@ def main(argv: list[str] | None = None) -> int:
             if test:
                 overall |= run_pytest(test)
             else:
-                log.info(YELLOW(f"  no test file for {src.name} (skipping --with-tests)"))
+                print(YELLOW(f"  no test file for {src.name} (skipping --with-tests)"))
     return overall
 
 

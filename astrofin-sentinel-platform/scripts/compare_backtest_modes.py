@@ -97,15 +97,15 @@ def main():
     args = parser.parse_args()
 
     result = asyncio.run(compare(ci=args.ci))
-    log.info("Backtest Mode Comparison:")
+    print("Backtest Mode Comparison:")
     for k, v in result.items():
-        log.info(f"  {k}: {v}")
+        print(f"  {k}: {v}")
 
     if result.get("comparable", False):
-        log.info("✅ Modes are comparable (within tolerance).")
+        print("✅ Modes are comparable (within tolerance).")
         exit(0)
     else:
-        log.info("❌ Modes differ significantly.")
+        print("❌ Modes differ significantly.")
         exit(1)
 
 

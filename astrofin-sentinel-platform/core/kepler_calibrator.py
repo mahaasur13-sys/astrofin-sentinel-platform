@@ -374,7 +374,7 @@ def main():
         log.info("⚠️  Swiss Ephemeris not available — using fallback positions")
         log.info("   Install: pip install pyswisseph")
         log.info("   For accurate calibration, Swiss Ephemeris is required.")
-        log.info()
+        log.info("")
 
     calibrator = KeplerCalibrator(
         max_episodes=100,

@@ -253,7 +253,7 @@ def main():
     log.info("╔══════════════════════════════════════════════╗")
     log.info("║  ATOMFEDERATION-OS COMPREHENSIVE AUDIT v9.0+P6 ║")
     log.info("╚══════════════════════════════════════════════╝")
-    log.info()
+    log.info("")
     results = {}
     results["L0-Workspace"]   = audit_L0_workspace()
     results["L1-Algebra"]     = audit_L1_algebra()
@@ -264,7 +264,7 @@ def main():
     results["L6-Snapshots"]   = audit_L6_snapshots()
     results["L7-Actuator"]   = audit_L7_actuator()
     results["L8-EntrySurface"]= audit_L8_entry_surface()
-    log.info()
+    log.info("")
     log.info("═" * 52)
     passed = sum(1 for v in results.values() if v)
     total = len(results)

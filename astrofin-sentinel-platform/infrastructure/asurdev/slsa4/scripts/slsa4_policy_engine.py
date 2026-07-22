@@ -159,13 +159,13 @@ class SLSA4PolicyEngine:
         log.info("=" * 70)
         log.info(f"OPA available: {self.opa_available}")
         log.info(f"Bundle: {bundle_path or self.bundle_path}")
-        log.info()
+        log.info("")
         if self.opa_available:
             results = self.evaluate_opa(bundle)
         else:
             results = self.evaluate_native(bundle)
         release_allowed = all(r.get('passed', False) for r in results.values()) if all(isinstance(v, dict) for v in results.values()) else results.get('release_allowed', False)
-        log.info()
+        log.info("")
         log.info("=" * 70)
         log.info(f"SLSA-4 RELEASE ALLOWED: {release_allowed}")
         if not release_allowed:

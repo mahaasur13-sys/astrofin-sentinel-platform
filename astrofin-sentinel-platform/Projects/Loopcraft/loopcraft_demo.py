@@ -357,7 +357,7 @@ def print_report(state: CycleState) -> dict[str, Any]:
     first_loss = state.attempts[0]["loss"] if state.attempts else float("inf")
     improvement = (first_loss - state.best_loss) if first_loss != float("inf") else 0.0
 
-    log.info()
+    log.info("")
     log.info("=" * 70)
     log.info("LOOPCRAFT CYCLE REPORT")
     log.info("=" * 70)
@@ -376,14 +376,14 @@ def print_report(state: CycleState) -> dict[str, Any]:
     )
     log.info(f"Target loss:          {TARGET_LOSS}")
     log.info(f"Converged:            {'YES' if state.best_loss <= TARGET_LOSS else 'NO'}")
-    log.info()
+    log.info("")
     log.info(f"Cost per accepted change (CPA):  {cpa:.2f} attempts per accepted")
     log.info(f"  (interpretation: каждая принятая правка стоила {cpa:.1f} попыток,")
     log.info(f"   из них {cpa - 1:.1f} были отклонены шлюзом как не-улучшения)")
     log.info("=" * 70)
 
     if accepted_attempts:
-        log.info()
+        log.info("")
         log.info("Accepted improvements (history of convergence):")
         for a in accepted_attempts:
             log.info(

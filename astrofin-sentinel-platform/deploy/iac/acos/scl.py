@@ -134,7 +134,7 @@ if __name__ == "__main__":
     results.append(("INV5: Trace determinism", test_invariant_5()))
     results.append(("PROJ: Projection layer", test_projection_layer()))
     results.append(("FULL: Complete trace flow", test_full_trace()))
-    log.info()
+    log.info("")
     passed = sum(1 for _, r in results if r)
     log.info(f"Result: {passed}/{len(results)} passed")
     if passed == len(results):

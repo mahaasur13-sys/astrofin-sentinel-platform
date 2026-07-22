@@ -384,7 +384,7 @@ def main():
             log.info(f"  ❌ EXCEPTION: {e}")
             failed += 1
 
-    log.info()
+    log.info("")
     log.info("=" * 70)
     if failed == 0:
         log.info("✅ ALL P7 TESTS PASSED")

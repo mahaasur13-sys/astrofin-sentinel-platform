@@ -54,7 +54,7 @@ def run_election(date_str: str | None = None):
     log.info(f"  Karana:     {kar['name']}")
     log.info(f"  Moon Rashi: {p['moon_rashi']}")
     log.info(f"  Muhurta:    {ms['score']}/100 — {ms['verdict']}")
-    log.info()
+    log.info("")
     log.info(f"  Risk mult:  ×{mult:.2f}  |  Grade: {grade.value}")
     log.info(f"  Danger:     {'⚠️  YES' if is_dangerous_nakshatra(N) else '✅ No'}")
     log.info(f"  Favorable:  {'✅ YES' if is_favorable_nakshatra(N) else '—'}")

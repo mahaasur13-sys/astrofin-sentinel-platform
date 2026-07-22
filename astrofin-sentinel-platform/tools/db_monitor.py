@@ -122,7 +122,7 @@ def main():
         except Exception as e:
             log.info(f"  [monitor] trend query failed: {e}")
 
-    log.info()
+    log.info("")
     return 0 if all(isinstance(c, int) for _, c, _ in rows) else 1
 
 

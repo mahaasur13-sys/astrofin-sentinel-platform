@@ -172,7 +172,7 @@ def show_brief(path: Path):
         log.info("### Key Items\n")
         for i, item in enumerate(parsed["items"], 1):
             log.info(f"  {i}. {item[:100]}{'...' if len(item) > 100 else ''}")
-        log.info()
+        log.info("")
 
     # Show ideas
     ideas = generate_ideas(content)
