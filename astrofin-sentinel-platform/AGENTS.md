@@ -1,6 +1,6 @@
 # AstroFin Sentinel V5 — Project Memory
 
-**Status:** ✅ Production-Beta — Phase B1 / 4.x consolidated (2026-07-13)
+**Status:** ✅ General Availability (GA) — v1.0.0-ga, P0/P1/P2 consolidated (2026-07-22)
 **Architecture:** RAG-First + LangGraph + Multi-Agent + Hybrid Signal
 **Pattern:** Internal Board of Directors (Совет Директоров)
 **Working dir:** `~/Projects/astrofin-sentinel-platform` (Felix) / `/home/workspace/Projects/astrofin-sentinel-platform` (Zo)
