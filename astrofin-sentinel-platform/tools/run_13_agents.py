@@ -85,7 +85,7 @@ async def main(symbol='BTCUSDT', price=105000.0, regime='NORMAL', nakshatra=''):
     log.info(f'\n  {ok}/{len(results_list)} agents completed')
 
     # ── Ensemble Vote ──
-    log.info()
+    log.info("")
     ens = ensemble_from_13_agents(agent_results, regime, nakshatra)
     log.info(ens.summary())
 

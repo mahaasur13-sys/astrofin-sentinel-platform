@@ -45,7 +45,7 @@ class BacktestResult:
     def print_summary(self):
         s = self.portfolio_summary
         trades = self.trades
-        log.info()
+        log.info("")
         log.info("=" * 60)
         log.info("  BACKTEST RESULTS")
         log.info("=" * 60)

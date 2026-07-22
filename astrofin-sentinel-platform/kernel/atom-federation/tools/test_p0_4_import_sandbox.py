@@ -245,7 +245,7 @@ def main():
         if not results[-1]:
             log.info("  ^^^ FIRST FAILURE ^^^")
 
-    log.info()
+    log.info("")
     passed = sum(results)
     total = len(results)
     log.info(f"RESULTS: {passed}/{total} passed")

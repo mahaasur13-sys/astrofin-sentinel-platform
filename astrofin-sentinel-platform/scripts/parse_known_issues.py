@@ -109,7 +109,7 @@ def main() -> int:
         return 0
 
     json.dump(entries, sys.stdout, indent=2, ensure_ascii=False)
-    log.info()
+    log.info("")
     return 0
 
 

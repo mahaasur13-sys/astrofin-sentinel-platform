@@ -435,7 +435,7 @@ def check_no_top_level_print(src: Path, source_text: str, report: Report) -> Non
                     str(rel),
                     node.lineno,
                     "R6",
-                    "top-level log.info(); use logger.info(...) instead",
+                    "top-level log.info(""); use logger.info(...) instead",
                 )
 
 
@@ -702,7 +702,7 @@ def render_report(report: Report) -> None:
         loc = f"{finding.file}:{finding.line}"
         log.info(f"  {icon}  {CYAN(finding.rule)}  {DIM(loc)}")
         log.info(f"      {finding.message}")
-    log.info()
+    log.info("")
     if fails:
         log.info(RED(f"❌ {len(fails)} hard-rule violation(s). Build blocked."))
     if warns and not fails:

@@ -169,5 +169,5 @@ if __name__ == "__main__":
     test_metrics_disabled()
     test_prometheus_render()
 
-    log.info()
+    log.info("")
     log.info("🎉 ALL TESTS PASSED")

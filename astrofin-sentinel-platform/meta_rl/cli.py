@@ -179,7 +179,7 @@ def run_evolution(args) -> int:
 
     # ── Report ────────────────────────────────────────────────────────────
     best = engine.get_best_strategy()
-    log.info()
+    log.info("")
     log.info("=" * 60)
     log.info("  FINAL RESULTS")
     log.info("=" * 60)
@@ -191,7 +191,7 @@ def run_evolution(args) -> int:
         log.info(f"  PnL:            {best.evaluation.pnl:+.3f}")
         log.info(f"  Max DD:         {best.evaluation.max_drawdown:.4f}")
         log.info(f"  Trades:         {best.evaluation.trades}")
-        log.info()
+        log.info("")
         log.info(
             f"  conf={c['confidence_threshold']:.0f}  pos={c['position_size_pct']:.0f}%"
         )
@@ -206,7 +206,7 @@ def run_evolution(args) -> int:
     try:
         persist = get_persistence()
         summary = persist.get_sessions_summary()
-        log.info()
+        log.info("")
         log.info(
             f"  Persistence: {summary['total_sessions']} sessions, {summary['total_strategies']} strategies"
         )

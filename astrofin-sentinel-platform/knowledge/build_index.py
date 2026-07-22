@@ -212,7 +212,7 @@ def cmd_search(args):
         c = chunks[idx]
         log.info(f"  [{score:.3f}] {c['source']} → {c['title']}")
         log.info(f"         {c['content'][:150]}…")
-        log.info()
+        log.info("")
 
 
 if __name__ == "__main__":

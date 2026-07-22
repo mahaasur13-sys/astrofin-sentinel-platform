@@ -1849,3 +1849,77 @@ Logseq/
   - PostgreSQL skipif marks for sandbox failures
   - Paper Trading go-live (TRADING_MODE=PAPER)
   - Meta-RL daily calibration pipeline
+
+## 2026-07-22 — GA Release (v1.0.0-ga) 🚀
+
+### Audit & Consolidation (3-Step Deep Audit)
+- **Step 1:** Инвентаризация — монорепо astrofin-sentinel-platform, 13 agents, Clean Architecture
+- **Step 2:** Глубокий аудит — 661-line AUDIT_REPORT.md, оценка 4.0/5
+- **Step 3:** Консолидация — P0/P1/P2 fixes + god-files refactoring + dead code removal
+
+### Completed
+- **P0 Security:** SQLi (rag_admin.py), RCE eval (topology.py, meta_questioning.py), weak hashes (md5→sha256 in 4 files) — bandit 0 HIGH
+- **P1 Code Quality:** 97% print→structlog (2,990 calls in 275 files), 12 critical except:pass→log.warning
+- **P2 Consolidation:** 
+  - God-files: sentinel_v5.py 550→401, karl_synthesis.py 604→445 via context_manager, result_aggregator, conflict_resolver, weights_calibrator
+  - Dead code: 539 files removed (audit_repo/, v6/, v7/, v8/, Projects/)
+  - Stale branches: 8 deleted
+  - Requirements: 7→3 files (runtime/dev/test)
+  - Duplicate repos: AstroFinSentinelV5, astrofin-sentinel-v5, ATOMFederationOS archived
+- **P3 Docs:** SOUL.md, AGENTS.md, CONSOLIDATION_PLAN.md updated
+- **Sprint 8.1:** Paper Trading — PaperBroker + BaseBroker + factory + orchestrator wire-up
+- **Post-GA:** CI skip for PostgreSQL tests, daily Meta-RL calibration pipeline (tools/run_daily_calibration.py)
+
+### Metrics
+- **Tests:** 644 passed, 17 skipped (PostgreSQL sandbox), 15 deselected
+- **Security:** 0 HIGH bandit, 0 gitleaks secrets (57 pre-existing false-positives tracked)
+- **Architecture:** Clean + Hub-and-Spoke + Transactional Outbox
+- **Observability:** Jaeger tracing, Prometheus metrics, structlog structured logging
+- **ML Pipeline:** KARL synthesis, AMRE reward calibration, Bayesian weight updates
+- **Trading:** PaperBroker (virtual PnL), ModeEnforcer (PAPER/LIVE), BinanceBroker (ready)
+
+### Launch Commands
+```bash
+# .env
+TRADING_MODE=PAPER
+BINANCE_API_KEY=your_key
+BINANCE_API_SECRET=your_secret
+DATABASE_URL=postgresql+psycopg://astrofin:astrofin_secret@localhost:5432/astrofin_db
+
+# Start
+python -m orchestration.sentinel_v5 "Analyze BTC" BTCUSDT SWING
+
+# Monitor
+curl http://localhost:16686  # Jaeger
+curl http://localhost:3000   # Grafana
+curl http://localhost:8000/metrics  # Prometheus
+
+# Daily calibration (cron)
+python -m tools.run_daily_calibration --lookback-days 7
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+

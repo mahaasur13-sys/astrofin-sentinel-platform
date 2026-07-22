@@ -235,7 +235,7 @@ def main():
         except Exception as ex:
             log.info(f"  [ERROR] {name}: {ex}")
             results.append((name, False))
-    log.info()
+    log.info("")
     passed = sum(1 for _, r in results if r)
     log.info(f"Result: {passed}/{len(results)} passed")
     if passed == len(results):

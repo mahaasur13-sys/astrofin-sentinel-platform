@@ -394,7 +394,7 @@ class AtomProposer:
             log.info(f"  {p.atom_id} [{p.priority}] {p.title}")
             log.info(f"       Complexity: {p.complexity}")
             log.info(f"       Summary: {p.summary[:100]}...")
-            log.info()
+            log.info("")
 
 
 def main():

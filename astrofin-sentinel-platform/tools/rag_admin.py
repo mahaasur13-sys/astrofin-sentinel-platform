@@ -114,7 +114,7 @@ def _err(msg: str) -> None:
 
 
 def _header(title: str) -> None:
-    log.info()
+    log.info("")
     log.info(C.bold(C.blue(title)))
     log.info(C.dim("  " + "─" * (len(title) + 2)))
 
@@ -375,7 +375,7 @@ async def cmd_list_domains(args: argparse.Namespace) -> int:
 
         for d in sorted(domains):
             log.info(f"  • {C.bold(d)}")
-        log.info()
+        log.info("")
         log.info(C.dim(f"  {len(domains)} domain(s)"))
     finally:
         await client.aclose()

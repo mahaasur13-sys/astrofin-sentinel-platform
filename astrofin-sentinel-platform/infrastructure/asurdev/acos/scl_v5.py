@@ -152,7 +152,7 @@ if __name__ == "__main__":
     results.append(("INV7: Projection split", test_projection_split()))
     results.append(("INV8: Full write/read separation", test_full_flow()))
     results.append(("INV9: TraceRecord normalized", test_trace_record()))
-    log.info()
+    log.info("")
     passed = sum(1 for _, r in results if r)
     log.info(f"Result: {passed}/{len(results)} passed")
     if passed == len(results):

@@ -318,7 +318,7 @@ def verify(name: str, trans_fn, expect_vulnerable: bool) -> None:
     # AG(Exec → NonceLocked)
     props["AG(Exec → NonceLocked)"] = mc.AG(lambda s: not AP_exec_and_not_nl(s))
 
-    log.info()
+    log.info("")
     for prop, result in props.items():
         ok = "✅" if result == (not expect_vulnerable) else "❌"
         expected = "⊢ TRUE" if not expect_vulnerable else "⊢ FALSE"
@@ -327,7 +327,7 @@ def verify(name: str, trans_fn, expect_vulnerable: bool) -> None:
     vulnerable = mc.F(AP_exec_and_not_nl)
     fixed = not vulnerable
 
-    log.info()
+    log.info("")
     log.info(f"  TOCTOU state reachable: {vulnerable}")
     log.info(f"  System: {'❌ VULNERABLE' if vulnerable else '✅ SECURE'}")
 

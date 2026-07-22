@@ -127,7 +127,7 @@ def main():
     log.info("="*64)
     for k,v in SOVEREIGNTY.items():
         log.info("  " + k + ": " + str(v))
-    log.info()
+    log.info("")
     es = EventStore()
     nodes = [
         Node("rtx-node",0.85,0.75,0.60,["slurm","ceph"]),
@@ -140,16 +140,16 @@ def main():
     log.info("  Events: " + str(len(es._events)) + ", Status: " + report["status"])
     for r in report['results']:
         log.info("  " + r["node"] + ": " + r["issue"] + " -> " + r["action"] + " [" + r["status"] + "]")
-    log.info()
+    log.info("")
     log.info("[STATE RECONSTRUCTION -- from events ONLY]")
     state = StateRebuilder.rebuild(es.all())
     log.info("  Nodes: " + str(len(state["nodes"])))
     log.info("  Actions: " + str(len(state["action_log"])))
     log.info("  Quarantined: " + str(list(state["quarantined"])))
-    log.info()
+    log.info("")
     log.info("[REPLAY DETERMINISM]")
     log.info('  ' + StateRebuilder.verify(es.all()))
-    log.info()
+    log.info("")
     log.info("[VERIFICATION]")
     evs = es.all()
     log.info("  all_sovereign: " + str(all(e.sovereign for e in evs)))

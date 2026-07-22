@@ -76,7 +76,7 @@ def main():
         except Exception:
             log.warning("Vedic backtest failed", exc_info=True)
 
-    log.info()
+    log.info("")
     log.info(matrix.summary())
 
     # Comparison
@@ -99,7 +99,7 @@ def main():
         log.info(f"\n  🏆 Best Nakshatra:  {matrix.best_nakshatra()}")
     if matrix.worst_nakshatra():
         log.info(f"  📉 Worst Nakshatra: {matrix.worst_nakshatra()}")
-    log.info()
+    log.info("")
 
 if __name__ == "__main__":
     main()

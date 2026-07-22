@@ -246,17 +246,17 @@ def main():
     repo_root = script_dir.parent
 
     log.info(f'Scanning {repo_root} for mutation violations...')
-    log.info()
+    log.info("")
 
     violations = scan_directory(repo_root)
 
     if violations:
         log.info(f'Found {len(violations)} violation(s):')
-        log.info()
+        log.info("")
 
         for v in violations:
             log.info(f'  {v}')
-        log.info()
+        log.info("")
         log.info('STATIC ANALYSIS FAILED')
         log.info('All mutations must flow through ExecutionGateway.execute().')
         log.info('Fix violations before committing.')

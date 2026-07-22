@@ -212,7 +212,7 @@ def cmd_run(args):
     log.info(f"   Findings: {analysis.total_findings}")
     log.info(f"   High relevance: {len(analysis.high_relevance_findings)}")
     log.info(f"   Proposals: {len(proposals)}")
-    log.info()
+    log.info("")
 
     return 0
 

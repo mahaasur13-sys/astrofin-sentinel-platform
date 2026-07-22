@@ -298,21 +298,21 @@ async def main():
     log.info("=" * 70)
     log.info("ATOM-014 STRESS TEST — March 2026 BTCUSD")
     log.info("=" * 70)
-    log.info()
+    log.info("")
     log.info("[1/4] Fetching March 2026 BTC data...")
     bars = get_march_2026_bars()
     log.info(f"      Got {len(bars)} hourly bars")
     log.info(
         f"      Price range: {min(b['close'] for b in bars):,.0f} — {max(b['close'] for b in bars):,.0f}"
     )
-    log.info()
+    log.info("")
     log.info("[2/4] Running BASE mode (SynthesisAgent only)...")
     base_results = await run_base_mode(bars)
     base_metrics = compute_metrics(base_results["decisions"])
     log.info(
         f"      {base_metrics['total_decisions']} decisions | Win Rate: {base_metrics['win_rate']:.2%} | Sharpe: {base_metrics['sharpe_ratio']:.4f}"
     )
-    log.info()
+    log.info("")
     log.info("[3/4] Running KARL mode (SynthesisAgent + AMRE)...")
     karl_results = await run_karl_mode(bars)
     karl_metrics = compute_metrics(karl_results["decisions"])
@@ -322,7 +322,7 @@ async def main():
     log.info(
         f"      Audit: {karl_results['audit_total']} | Cal: {karl_results['calibration_n']} | DD: {karl_results['dd_trades']}"
     )
-    log.info()
+    log.info("")
     log.info("[4/4] Analyzing audit drift...")
     from agents._impl.amre import get_audit_log
 
@@ -359,11 +359,11 @@ async def main():
     log.info(
         f"      Status: {audit_drift.get('status')} | Conf drift: {audit_drift.get('confidence_drift', 0):+.2f}"
     )
-    log.info()
+    log.info("")
     log.info("=" * 70)
     log.info("ATOM-014 RESULTS SUMMARY")
     log.info("=" * 70)
-    log.info()
+    log.info("")
     log.info(f"{'Metric':<30} {'BASE':>12} {'KARL':>12} {'Diff':>10}")
     log.info("-" * 66)
     for key in [
@@ -382,21 +382,21 @@ async def main():
         log.info(
             f"{key.replace('_', ' ').title():<30} {b:>12.4f} {k:>12.4f} {sign}{abs(diff):>9.4f}"
         )
-    log.info()
+    log.info("")
     log.info("KARL-Specific:")
     log.info(f"  Audit Records:      {karl_results['audit_total']}")
     log.info(f"  Calibration Steps:  {karl_results['calibration_n']}")
     log.info(f"  DD Tracker Trades:  {karl_results['dd_trades']}")
     log.info(f"  Calibration Error:  {karl_metrics.get('calibration_error', 0):.4f}")
     log.info(f"  False Corr Rate:    {karl_metrics.get('false_correlation_rate', 0):.4f}")
-    log.info()
+    log.info("")
     log.info("Audit Drift:")
     log.info(f"  Status:             {audit_drift.get('status')}")
     log.info(f"  Confidence Drift:   {audit_drift.get('confidence_drift', 0):+.2f}")
     log.info(f"  Q* Drift:           {audit_drift.get('q_star_drift', 0):+.4f}")
     log.info(f"  Uncertainty Drift:  {audit_drift.get('uncertainty_drift', 0):+.4f}")
     log.info(f"  High-Conf Late %:   {audit_drift.get('high_conf_pct_late', 0):.1%}")
-    log.info()
+    log.info("")
     improvements, regressions = [], []
     if karl_metrics.get("win_rate", 0) > base_metrics.get("win_rate", 0):
         improvements.append(
@@ -425,7 +425,7 @@ async def main():
         log.info("  ⚠️  REGRESSIONS:", "; ".join(regressions))
     if not improvements and not regressions:
         log.info("  ⚡ NEUTRAL — KARL provides measurability without regression")
-    log.info()
+    log.info("")
     log.info(f"Run date: {datetime.now().isoformat()}")
 
 
