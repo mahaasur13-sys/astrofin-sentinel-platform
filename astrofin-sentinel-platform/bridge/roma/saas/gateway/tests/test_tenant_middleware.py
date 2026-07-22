@@ -1,9 +1,10 @@
 """Tests for tenant_middleware.py."""
 import pytest
-from saas.gateway.tenant_middleware import TenantMiddleware
-from saas.gateway.models import TenantGatewayConfig, BrandingConfig
 from fastapi import FastAPI, Request
 from starlette.testclient import TestClient
+
+from saas.gateway.models import BrandingConfig, TenantGatewayConfig
+from saas.gateway.tenant_middleware import TenantMiddleware
 
 
 @pytest.fixture

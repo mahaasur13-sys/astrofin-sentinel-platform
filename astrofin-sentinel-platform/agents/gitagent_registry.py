@@ -514,11 +514,11 @@ def main():
             ttc_only=args.ttc_only,
         )
         fmt = "{:<25} {:<12} {:>6} {:>6} {:>6} {:>6}"
-        print(fmt.format("Name", "Domain", "Wt%", "KARL", "TTC", "SelfQ"))
-        print("-" * 65)
+        log.info(fmt.format("Name", "Domain", "Wt%", "KARL", "TTC", "SelfQ"))
+        log.info("-" * 65)
         for name in agents:
             info = get_agent_info(name)
-            print(
+            log.info(
                 fmt.format(
                     name,
                     info["domain"],
@@ -528,11 +528,11 @@ def main():
                     "✅" if info.get("selfq") else "❌",
                 )
             )
-        print(f"\nTotal: {len(agents)} agents")
+        log.info(f"\nTotal: {len(agents)} agents")
 
     elif args.cmd == "validate":
         ok, msg = validate_agent(args.name)
-        print(f"{'✅' if ok else '❌'} {args.name}: {msg}")
+        log.info(f"{'✅' if ok else '❌'} {args.name}: {msg}")
 
     elif args.cmd == "run":
         import asyncio
@@ -546,10 +546,10 @@ def main():
                 "regime": "NORMAL",
             }
             out = await reg.run(args.name, state, use_ttc=args.ttc)
-            print(f"Signal:    {out.signal}")
-            print(f"Confidence: {out.confidence}")
-            print(f"Reasoning: {out.reasoning[:200]}")
-            print(f"Metadata:  {out.metadata}")
+            log.info(f"Signal:    {out.signal}")
+            log.info(f"Confidence: {out.confidence}")
+            log.info(f"Reasoning: {out.reasoning[:200]}")
+            log.info(f"Metadata:  {out.metadata}")
 
         asyncio.run(do_run())
 

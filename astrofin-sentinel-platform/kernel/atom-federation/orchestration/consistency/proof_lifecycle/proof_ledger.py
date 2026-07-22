@@ -31,6 +31,10 @@ import time
 from dataclasses import dataclass
 from enum import Enum, auto
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ─────────────────────────────────────────────────────────────────
 # ProofOrigin (re-exported for convenience)
 # ─────────────────────────────────────────────────────────────────
@@ -293,7 +297,7 @@ def _test_v9_4_proof_ledger():
     ledger.register("hash_A", ProofOrigin.REMOTE, now)  # duplicate — no-op
     assert "hash_A" in ledger._records
     assert len([r for r in ledger._records.values() if r.proof_hash == "hash_A"]) == 1
-    print("✅ test_register_idempotent")
+    log.info("✅ test_register_idempotent")
 
     # test_record_validation_counts
     ledger.record_validation("hash_A", success=True, timestamp=now + 10)
@@ -302,7 +306,7 @@ def _test_v9_4_proof_ledger():
     rec = ledger.get("hash_A")
     assert rec.validation_count == 3
     assert rec.success_count == 2
-    print("✅ test_record_validation_counts")
+    log.info("✅ test_record_validation_counts")
 
     # test_trust_score_fresh_high
     # Fresh proof (age=0), 100% success rate → trust ≈ 1.0
@@ -310,7 +314,7 @@ def _test_v9_4_proof_ledger():
     ledger.record_validation("hash_fresh", success=True, timestamp=now + 1)
     score = ledger.trust_score("hash_fresh", now + 1)
     assert 0.9 <= score <= 1.0, f"Expected ~1.0, got {score}"
-    print(f"✅ test_trust_score_fresh_high (score={score:.4f})")
+    log.info(f"✅ test_trust_score_fresh_high (score={score:.4f})")
 
     # test_trust_score_decay
     # Check decay at age = ttl (one e-fold). Use last_validated_at so proof
@@ -321,14 +325,14 @@ def _test_v9_4_proof_ledger():
     # At age=300s (from registration, but validated more recently),
     # decay = exp(-300/300) = exp(-1) ≈ 0.368, success_rate = 1.0
     assert 0.2 <= score_old <= 0.5, f"Expected ~0.3, got {score_old}"
-    print(f"✅ test_trust_score_decay (age=300s, score={score_old:.4f})")
+    log.info(f"✅ test_trust_score_decay (age=300s, score={score_old:.4f})")
 
     # test_is_stale
     ledger.register("hash_stale", ProofOrigin.REPLAY, now)
     assert not ledger.is_stale("hash_stale", now + 100)
     assert ledger.is_stale("hash_stale", now + 301)
     assert ledger.is_stale("unknown_hash", now + 1)  # unknown → stale
-    print("✅ test_is_stale")
+    log.info("✅ test_is_stale")
 
     # test_prune_removes_old
     ledger.register("hash_prune1", ProofOrigin.SNAPSHOT, now)
@@ -340,18 +344,18 @@ def _test_v9_4_proof_ledger():
     assert "hash_prune1" not in ledger._records
     assert "hash_prune2" not in ledger._records
     assert "hash_prune3" not in ledger._records
-    print(f"✅ test_prune_removes_old (removed={removed})")
+    log.info(f"✅ test_prune_removes_old (removed={removed})")
 
     # Unknown proof → trust_score = 0
     assert ledger.trust_score("unknown_hash", now) == 0.0
-    print("✅ trust_score for unknown proof = 0.0")
+    log.info("✅ trust_score for unknown proof = 0.0")
 
     # Stale proof → trust_score = 0
     ledger.register("hash_stale_test", ProofOrigin.REMOTE, now)
     assert ledger.trust_score("hash_stale_test", now + 400) == 0.0
-    print("✅ trust_score for stale proof = 0.0")
+    log.info("✅ trust_score for stale proof = 0.0")
 
-    print("\n✅ v9.4 ProofLedger — all checks passed")
+    log.info("\n✅ v9.4 ProofLedger — all checks passed")
 
 
 if __name__ == "__main__":

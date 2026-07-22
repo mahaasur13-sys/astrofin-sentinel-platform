@@ -6,6 +6,10 @@ Scraped by Prometheus on :9464/metrics.
 
 Usage:
     from observability.server.metrics_server import start_metrics_server
+
+import logging
+log = logging.getLogger(__name__)
+
     start_metrics_server(host="0.0.0.0", port=9464)
 """
 
@@ -79,5 +83,5 @@ def start_metrics_server(
 
     server = HTTPServer((host, port), MetricsHandler)
     server.allow_reuse_address = True
-    print(f"[metrics] listening on {host}:{port}/metrics")
+    log.info(f"[metrics] listening on {host}:{port}/metrics")
     return server

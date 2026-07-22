@@ -50,7 +50,7 @@ def test_subscriber_increments_counter():
     sub(ev, lag_ms=0.0, speed=1.0)
     assert prom_metrics.get_counter("atom_replay_events_applied_total", {"replayed_event_type": "sbs.violation"}) == 2.0
 
-    print("✅ test_subscriber_increments_counter PASSED")
+    log.info("✅ test_subscriber_increments_counter PASSED")
 
 
 def test_subscriber_records_lag_histogram():
@@ -67,7 +67,7 @@ def test_subscriber_records_lag_histogram():
     assert 5.0 in samples
     assert 15.5 in samples
 
-    print("✅ test_subscriber_records_lag_histogram PASSED")
+    log.info("✅ test_subscriber_records_lag_histogram PASSED")
 
 
 def test_backward_compatible_signature():
@@ -90,7 +90,7 @@ def test_backward_compatible_signature():
     samples = prom_metrics.get_histogram_samples("atom_replay_lag_ms", {"replayed_event_type": "sbs.violation"})
     assert 42.0 in samples
 
-    print("✅ test_backward_compatible_signature PASSED")
+    log.info("✅ test_backward_compatible_signature PASSED")
 
 
 def test_correlation_and_causation_ids():
@@ -106,7 +106,7 @@ def test_correlation_and_causation_ids():
     assert ev.correlation_id == "corr-abc123"
     assert ev.causation_id == "caus-xyz789"
 
-    print("✅ test_correlation_and_causation_ids PASSED")
+    log.info("✅ test_correlation_and_causation_ids PASSED")
 
 
 def test_tracing_disabled():
@@ -117,7 +117,7 @@ def test_tracing_disabled():
     # Should not raise even without OTEL setup
     sub(ev, lag_ms=1.0, speed=1.0)
 
-    print("✅ test_tracing_disabled PASSED")
+    log.info("✅ test_tracing_disabled PASSED")
 
 
 def test_metrics_disabled():
@@ -133,7 +133,7 @@ def test_metrics_disabled():
     counter = prom_metrics.get_counter("atom_replay_events_applied_total", {"replayed_event_type": "sbs.violation"})
     assert counter == 0.0, f"Expected 0 when metrics disabled, got {counter}"
 
-    print("✅ test_metrics_disabled PASSED")
+    log.info("✅ test_metrics_disabled PASSED")
 
 
 def test_prometheus_render():
@@ -152,14 +152,14 @@ def test_prometheus_render():
     assert "replayed_event_type=\"sbs.violation\"" in text
     assert "atom_replay_lag_ms" in text
 
-    print("✅ test_prometheus_render PASSED")
-    print(f"   Rendered metrics:\n{text[:300]}")
+    log.info("✅ test_prometheus_render PASSED")
+    log.info(f"   Rendered metrics:\n{text[:300]}")
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("ReplayObservabilitySubscriber Tests v7.0")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("ReplayObservabilitySubscriber Tests v7.0")
+    log.info("=" * 60)
 
     test_subscriber_increments_counter()
     test_subscriber_records_lag_histogram()
@@ -169,5 +169,5 @@ if __name__ == "__main__":
     test_metrics_disabled()
     test_prometheus_render()
 
-    print()
-    print("🎉 ALL TESTS PASSED")
+    log.info()
+    log.info("🎉 ALL TESTS PASSED")

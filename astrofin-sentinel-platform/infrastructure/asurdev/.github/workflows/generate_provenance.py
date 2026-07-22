@@ -28,4 +28,4 @@ prov = {
 }
 os.makedirs('provenance', exist_ok=True)
 open('provenance/provenance.json', 'w').write(json.dumps(prov, indent=2))
-print("Provenance generated OK")
+log.info("Provenance generated OK")

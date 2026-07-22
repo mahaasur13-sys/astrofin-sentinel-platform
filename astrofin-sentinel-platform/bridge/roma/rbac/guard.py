@@ -1,6 +1,7 @@
 """ROMA RBAC Guard — Pre-execution permission enforcement."""
 from typing import Optional
 
+
 class RBACGuard:
     def __init__(self, rbac_engine):
         self.rbac = rbac_engine

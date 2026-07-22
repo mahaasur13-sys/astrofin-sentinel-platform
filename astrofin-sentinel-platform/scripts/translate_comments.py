@@ -8,10 +8,14 @@ scripts/translate_comments.py
 
 from __future__ import annotations
 
+import logging
 import re
 import sys
 from pathlib import Path
 from typing import Tuple
+
+log = logging.getLogger(__name__)
+
 
 try:
     from deep_translator import GoogleTranslator
@@ -44,7 +48,7 @@ def translate_comment_text(text: str) -> str:
         translated = GoogleTranslator(source="auto", target="en").translate(text)
         return translated
     except Exception as e:
-        print(f"  ⚠ Ошибка перевода: {e}, оставляем оригинал")
+        log.info(f"  ⚠ Ошибка перевода: {e}, оставляем оригинал")
         return text
 
 
@@ -55,7 +59,7 @@ def process_file(filepath: Path) -> bool:
         with open(filepath, "r", encoding="utf-8") as f:
             lines = f.readlines()
     except Exception as e:
-        print(f"  ❌ Ошибка чтения {filepath}: {e}")
+        log.info(f"  ❌ Ошибка чтения {filepath}: {e}")
         return False
 
     changed = False
@@ -68,7 +72,7 @@ def process_file(filepath: Path) -> bool:
                 new_line = f"{indent}{hash_space}{translated}\n"
                 new_lines.append(new_line)
                 changed = True
-                print(
+                log.info(
                     f"  ✏ {filepath.name}: {orig_text.strip()[:60]}... → {translated.strip()[:60]}..."
                 )
                 continue
@@ -87,12 +91,12 @@ def main():
         for p in PROJECT_ROOT.rglob("*.py")
         if not any(part in EXCLUDE_DIRS for part in p.parts)
     ]
-    print(f"Найдено {len(py_files)} .py файлов")
+    log.info(f"Найдено {len(py_files)} .py файлов")
     translated_files = 0
     for fp in sorted(py_files):
         if process_file(fp):
             translated_files += 1
-    print(f"✅ Переведено файлов: {translated_files}")
+    log.info(f"✅ Переведено файлов: {translated_files}")
 
 
 if __name__ == "__main__":

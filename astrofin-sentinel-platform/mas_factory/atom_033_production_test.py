@@ -6,6 +6,10 @@ from __future__ import annotations
 import sys
 import time
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, "/home/workspace/AstroFinSentinelV5")
 
 from mas_factory import MASFactoryConfig, ProductionMASEngine
@@ -13,7 +17,7 @@ from mas_factory.architect import MASFactoryArchitect
 
 
 def cprint(msg, color="92"):
-    print(f"\033[{color}m{msg}\033[0m")
+    log.info(f"\033[{color}m{msg}\033[0m")
 
 
 def test_caching():

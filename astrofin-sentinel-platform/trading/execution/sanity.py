@@ -7,6 +7,10 @@ import math
 from dataclasses import dataclass
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class ValidationStatus(Enum):
     APPROVED = "APPROVED"
@@ -115,14 +119,14 @@ if __name__ == "__main__":
     o = OrderRequest("BTC", "BUY", 0.5, 50000, "MARKET", 5.0)
     r = checker.validate(o, m)
     assert r.status == ValidationStatus.APPROVED
-    print("  Test 1: APPROVED")
+    log.info("  Test 1: APPROVED")
     o2 = OrderRequest("BTC", "BUY", 0.5, 50000, "MARKET", 75.0)
     r2 = checker.validate(o2, m)
     assert r2.status == ValidationStatus.REJECTED and "SLIPPAGE" in r2.reason
-    print("  Test 2: REJECTED (slippage)")
+    log.info("  Test 2: REJECTED (slippage)")
     m3 = MarketState("XXX", 1000, 999, 1001, 20, 100_000, 0.05, "NORMAL")
     o3 = OrderRequest("XXX", "BUY", 10.0, 1000, "MARKET", 3.0)
     r3 = checker.validate(o3, m3)
     assert r3.status == ValidationStatus.SCALED and r3.adjusted_qty < 10.0
-    print("  Test 3: SCALED (liquidity)")
-    print("SanityChecker: all tests passed")
+    log.info("  Test 3: SCALED (liquidity)")
+    log.info("SanityChecker: all tests passed")

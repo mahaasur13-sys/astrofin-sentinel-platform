@@ -42,22 +42,22 @@ class BacktestResult:
     def print_summary(self):
         s = self.portfolio_summary
         trades = self.trades
-        print()
-        print("=" * 60)
-        print("  BACKTEST RESULTS")
-        print("=" * 60)
-        print(f"  Initial Capital:  ${s['initial_capital']:,.2f}")
-        print(f"  Final Equity:    ${s['final_equity']:,.2f}")
-        print(f"  Total Return:    {s['total_return_pct']:+.2f}%")
-        print(f"  Max Drawdown:    {s['max_drawdown_pct']:.2f}%")
-        print(f"  Sharpe Ratio:    {s['sharpe_ratio']:.2f}")
-        print(
+        log.info()
+        log.info("=" * 60)
+        log.info("  BACKTEST RESULTS")
+        log.info("=" * 60)
+        log.info(f"  Initial Capital:  ${s['initial_capital']:,.2f}")
+        log.info(f"  Final Equity:    ${s['final_equity']:,.2f}")
+        log.info(f"  Total Return:    {s['total_return_pct']:+.2f}%")
+        log.info(f"  Max Drawdown:    {s['max_drawdown_pct']:.2f}%")
+        log.info(f"  Sharpe Ratio:    {s['sharpe_ratio']:.2f}")
+        log.info(
             f"  Win Rate:        {s['win_rate_pct']:.1f}% ({s['win_count']}/{s['total_trades']})"
         )
-        print(f"  Total Trades:    {s['total_trades']}")
+        log.info(f"  Total Trades:    {s['total_trades']}")
         total_comm = sum(t.commission for t in trades)
-        print(f"  Commission Paid: ${total_comm:.2f}")
-        print("=" * 60)
+        log.info(f"  Commission Paid: ${total_comm:.2f}")
+        log.info("=" * 60)
 
 
 class Backtester:

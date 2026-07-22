@@ -2,6 +2,10 @@
 """ATOM-R-030: MAS Factory Full Stress Test
 from __future__ import annotations
 
+import logging
+log = logging.getLogger(__name__)
+
+
 Tests: SwitchNodes, Meta-Questioning, Visualizer on real data.
 """
 
@@ -25,42 +29,42 @@ from mas_factory.topology import (
 )
 from mas_factory.visualizer import TopologyVisualizer
 
-print("=" * 70)
-print("ATOM-R-030: MAS Factory Full Stress Test")
-print("=" * 70)
+log.info("=" * 70)
+log.info("ATOM-R-030: MAS Factory Full Stress Test")
+log.info("=" * 70)
 
 
 def test_switch_nodes():
     """Test 1: All Switch Node types"""
-    print("\n[TEST 1] Switch Node Types...")
+    log.info("\n[TEST 1] Switch Node Types...")
 
     # UncertaintySwitch
     UncertaintySwitch(id="unc1")
-    print("  ✅ UncertaintySwitch created")
+    log.info("  ✅ UncertaintySwitch created")
 
     # BiasSwitch
     BiasSwitch(id="bias1")
-    print("  ✅ BiasSwitch created")
+    log.info("  ✅ BiasSwitch created")
 
     # RegimeSwitch
     RegimeSwitch(id="reg1")
-    print("  ✅ RegimeSwitch created")
+    log.info("  ✅ RegimeSwitch created")
 
     # OOSFailSwitch
     OOSFailSwitch(id="oos1")
-    print("  ✅ OOSFailSwitch created")
+    log.info("  ✅ OOSFailSwitch created")
 
     # LowConfidenceSwitch
     LowConfidenceSwitch(id="conf1")
-    print("  ✅ LowConfidenceSwitch created")
+    log.info("  ✅ LowConfidenceSwitch created")
 
-    print("  ✅ ALL Switch Node Types OK")
+    log.info("  ✅ ALL Switch Node Types OK")
     return True
 
 
 def test_switch_routing():
     """Test 2: Switch routing logic"""
-    print("\n[TEST 2] Switch Routing Logic...")
+    log.info("\n[TEST 2] Switch Routing Logic...")
 
     # Test UncertaintySwitch - uses GREEDY strategy with condition
     unc = UncertaintySwitch(id="unc1")
@@ -70,7 +74,7 @@ def test_switch_routing():
     # evaluate_condition returns bool
     result_high = unc.evaluate_condition(ctx_high)
     result_low = unc.evaluate_condition(ctx_low)
-    print(f"  ✅ UncertaintySwitch: 0.7->{result_high}, 0.3->{result_low}")
+    log.info(f"  ✅ UncertaintySwitch: 0.7->{result_high}, 0.3->{result_low}")
 
     # Test BiasSwitch
     bias = BiasSwitch(id="bias1")
@@ -79,20 +83,20 @@ def test_switch_routing():
 
     result_biased = bias.evaluate_condition(ctx_biased)
     result_normal = bias.evaluate_condition(ctx_normal)
-    print(f"  ✅ BiasSwitch: True->{result_biased}, False->{result_normal}")
+    log.info(f"  ✅ BiasSwitch: True->{result_biased}, False->{result_normal}")
 
     # Test decide() - returns selected candidates
     candidates = unc.decide(ctx_high)
     assert len(candidates) > 0
-    print(f"  ✅ decide() returned: {candidates}")
+    log.info(f"  ✅ decide() returned: {candidates}")
 
-    print("  ✅ ALL Switch Routing OK")
+    log.info("  ✅ ALL Switch Routing OK")
     return True
 
 
 def test_topology_construction():
     """Test 3: Topology building with actual API"""
-    print("\n[TEST 3] Topology Construction...")
+    log.info("\n[TEST 3] Topology Construction...")
 
     # Create roles
     fund_role = Role(name="fundamental", agent_type="fundamental", weight=0.25)
@@ -129,17 +133,17 @@ def test_topology_construction():
     assert len(topo.connections) == 5
 
     errors = topo.validate()
-    print(
+    log.info(
         f"  ✅ Topology: {len(topo.roles)} roles, {len(topo.switch_nodes)} switches, {len(topo.connections)} conns"
     )
-    print(f"  ✅ Validation errors: {len(errors)}")
+    log.info(f"  ✅ Validation errors: {len(errors)}")
 
     return topo
 
 
 def test_visualizer():
     """Test 4: Topology Visualizer"""
-    print("\n[TEST 4] Topology Visualizer...")
+    log.info("\n[TEST 4] Topology Visualizer...")
 
     topo = test_topology_construction()
     viz = TopologyVisualizer(topo)
@@ -147,24 +151,24 @@ def test_visualizer():
     # Test that visualizer can generate outputs
     ascii_out = viz.to_ascii()
     assert len(ascii_out) > 50
-    print(f"  ✅ ASCII: {len(ascii_out)} chars")
+    log.info(f"  ✅ ASCII: {len(ascii_out)} chars")
 
     mermaid = viz.to_mermaid()
     assert "flowchart" in mermaid
-    print(f"  ✅ Mermaid: {len(mermaid)} chars")
+    log.info(f"  ✅ Mermaid: {len(mermaid)} chars")
 
-    print("  ✅ Visualizer OK")
+    log.info("  ✅ Visualizer OK")
     return True
 
 
 def test_meta_questioning():
     """Test 5: Meta-Questioning Engine"""
-    print("\n[TEST 5] Meta-Questioning Engine...")
+    log.info("\n[TEST 5] Meta-Questioning Engine...")
 
     from agents._impl.amre.meta_questioning import MetaQuestioningEngine
 
     if not MetaQuestioningEngine:
-        print("  ⚠️  MetaQuestioningEngine not found, skipping")
+        log.info("  ⚠️  MetaQuestioningEngine not found, skipping")
         return True
 
     engine = MetaQuestioningEngine()
@@ -172,20 +176,20 @@ def test_meta_questioning():
     # Generate questions
     ctx = {"timeframe": "SWING", "symbol": "BTCUSDT", "confidence": 72}
     questions = engine.generate_questions(ctx)
-    print(f"  ✅ Generated {len(questions)} questions")
+    log.info(f"  ✅ Generated {len(questions)} questions")
 
     # Test evaluate method
     answers = engine.ask(questions, {"confidence": 72})
     result = engine.evaluate(answers)
-    print(f"  ✅ Evaluate result: {result}")
+    log.info(f"  ✅ Evaluate result: {result}")
 
-    print("  ✅ Meta-Questioning OK")
+    log.info("  ✅ Meta-Questioning OK")
     return True
 
 
 async def test_executor():
     """Test 6: TopologyExecutor"""
-    print("\n[TEST 6] TopologyExecutor...")
+    log.info("\n[TEST 6] TopologyExecutor...")
 
     topo = test_topology_construction()
     executor = TopologyExecutor(topology=topo)
@@ -203,15 +207,15 @@ async def test_executor():
     # Execute
     result = await executor.run(state)
 
-    print(f"  ✅ Execution: {result.get('status', 'unknown')}")
-    print(f"  ✅ Nodes visited: {len(result.get('visited_nodes', []))}")
+    log.info(f"  ✅ Execution: {result.get('status', 'unknown')}")
+    log.info(f"  ✅ Nodes visited: {len(result.get('visited_nodes', []))}")
 
     return True
 
 
 async def test_parallel():
     """Test 7: Parallel execution"""
-    print("\n[TEST 7] Parallel Execution...")
+    log.info("\n[TEST 7] Parallel Execution...")
 
     topo = test_topology_construction()
 
@@ -231,7 +235,7 @@ async def test_parallel():
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     success = sum(1 for r in results if isinstance(r, dict))
-    print(f"  ✅ Parallel: {success}/{len(results)} succeeded")
+    log.info(f"  ✅ Parallel: {success}/{len(results)} succeeded")
 
     return success == len(results)
 
@@ -247,19 +251,19 @@ async def main():
     results.append(("Executor", await test_executor()))
     results.append(("Parallel Execution", await test_parallel()))
 
-    print("\n" + "=" * 70)
-    print("ATOM-R-030 RESULTS")
-    print("=" * 70)
+    log.info("\n" + "=" * 70)
+    log.info("ATOM-R-030 RESULTS")
+    log.info("=" * 70)
 
     passed = sum(1 for _, r in results if r)
     total = len(results)
 
     for name, result in results:
-        print(f"  {'✅ PASS' if result else '❌ FAIL'}: {name}")
+        log.info(f"  {'✅ PASS' if result else '❌ FAIL'}: {name}")
 
-    print(f"\n{'=' * 70}")
-    print(f"FINAL: {passed}/{total} tests passed")
-    print(f"{'=' * 70}")
+    log.info(f"\n{'=' * 70}")
+    log.info(f"FINAL: {passed}/{total} tests passed")
+    log.info(f"{'=' * 70}")
 
     return passed == total
 

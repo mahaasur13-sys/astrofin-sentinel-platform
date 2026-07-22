@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """ROMA Auth Engine — API Keys, HMAC signing, tenant identity."""
-import hmac
 import hashlib
+import hmac
+import logging
 import secrets
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, Optional, List
 from enum import Enum
+from typing import Dict, List, Optional
+
+log = logging.getLogger(__name__)
+
 
 class KeyType(Enum):
     SERVER = "server"       # server-to-server
@@ -175,17 +179,17 @@ if __name__ == "__main__":
     key_id, secret = auth.create_key("tenant-acme", "proj-1", KeyType.SERVER,
                                     "Production key", scopes=["submit","status","cancel","metering"])
     auth.attach_key_to_tenant("tenant-acme", key_id)
-    print(f"Tenant: {t.tenant_id} ({t.plan})")
-    print(f"Key: {key_id} | Secret: {secret[:20]}...")
+    log.info(f"Tenant: {t.tenant_id} ({t.plan})")
+    log.info(f"Key: {key_id} | Secret: {secret[:20]}...")
     validated = auth.validate_key(secret)
-    print(f"Validated: {validated.key_id if validated else 'FAIL'}")
-    print(f"Scopes: {validated.scopes if validated else 'N/A'}")
+    log.info(f"Validated: {validated.key_id if validated else 'FAIL'}")
+    log.info(f"Scopes: {validated.scopes if validated else 'N/A'}")
 
     # HMAC
     hmac_secret = auth.create_hmac_secret("tenant-acme")
     ts = time.time()
     sig = auth.sign_request("tenant-acme", "POST", "/api/v1/submit", '{"task":"test"}', ts)
     verify = auth.verify_signature("tenant-acme", "POST", "/api/v1/submit", '{"task":"test"}', ts, sig)
-    print(f"HMAC verify: {verify}")
+    log.info(f"HMAC verify: {verify}")
     payload = '{"task":"test"}'
-    print(f"Timestamp drift (+10min): {auth.verify_signature('tenant-acme', 'POST', '/api/v1/submit', payload, ts - 600, sig)}")
+    log.info(f"Timestamp drift (+10min): {auth.verify_signature('tenant-acme', 'POST', '/api/v1/submit', payload, ts - 600, sig)}")

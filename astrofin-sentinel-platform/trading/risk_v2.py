@@ -16,6 +16,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class RiskConfigV2:
@@ -326,37 +330,37 @@ class RiskEngineV2:
 
 
 if __name__ == "__main__":
-    print("RiskEngineV2 self-test...")
+    log.info("RiskEngineV2 self-test...")
     engine = RiskEngineV2(RiskConfigV2(max_drawdown=0.10, kill_switch_enabled=True))
     engine.update_equity(100_000)
     engine.update_equity(88_000)
     ok, dd, msg = engine.check_kill_switch()
     assert not ok
-    print(f"  Test 1 (Kill Switch): TRIGGERED at {dd:.2%}")
+    log.info(f"  Test 1 (Kill Switch): TRIGGERED at {dd:.2%}")
     engine2 = RiskEngineV2(RiskConfigV2(max_exposure_per_asset=0.30))
     engine2.update_equity(100_000)
     engine2.update_position(AssetPosition("BTC", 35_000, 50_000, 48_000))
     ok, size, msg = engine2.check_exposure("ETH", 20_000)
     assert not ok
-    print("  Test 2 (Exposure Cap): REJECTED")
+    log.info("  Test 2 (Exposure Cap): REJECTED")
     engine3 = RiskEngineV2(RiskConfigV2(target_volatility=0.15))
     size = engine3.compute_vol_adjusted_size(10_000, 0.30, "HIGH")
     expected = 10_000 * (0.15 / 0.30) * 0.50
     assert abs(size - expected) < 1
-    print(f"  Test 3 (Vol Targeting): size={size:.0f}")
+    log.info(f"  Test 3 (Vol Targeting): size={size:.0f}")
     engine4 = RiskEngineV2(RiskConfigV2())
     engine4.update_equity(float("nan"))
     state = engine4.get_state()
     assert not math.isnan(state.total_equity)
-    print(f"  Test 4 (NaN Safety): equity={state.total_equity:.2f}")
+    log.info(f"  Test 4 (NaN Safety): equity={state.total_equity:.2f}")
     engine5 = RiskEngineV2(RiskConfigV2(max_drawdown=0.05))
     engine5.update_equity(100_000)
     engine5.update_equity(92_000)
     status, size, msg = engine5.pre_trade_check("BTC", 10_000, 0.15, "NORMAL")
     assert status == "APPROVED"
-    print(f"  Test 5 (Pre-Trade APPROVED): {status}")
+    log.info(f"  Test 5 (Pre-Trade APPROVED): {status}")
     engine5.update_equity(88_000)
     status2, _, _ = engine5.pre_trade_check("BTC", 10_000, 0.15, "NORMAL")
     assert status2 == "REJECTED"
-    print(f"  Test 6 (Pre-Trade Kill): {status2}")
-    print("\nRiskEngineV2: all tests passed")
+    log.info(f"  Test 6 (Pre-Trade Kill): {status2}")
+    log.info("\nRiskEngineV2: all tests passed")

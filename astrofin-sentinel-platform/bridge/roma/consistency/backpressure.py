@@ -3,10 +3,10 @@ Backpressure System — GPU saturation control + queue throttling.
 Implements: load shedding, admission control, saturation monitoring.
 """
 
-from typing import Optional
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import threading
+from typing import Optional
 
 
 @dataclass

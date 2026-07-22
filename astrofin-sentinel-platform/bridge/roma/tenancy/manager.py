@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """ROMA Multi-Tenant Manager — Per-tenant isolation, quotas, RBAC."""
+import logging
 import sys
+
+log = logging.getLogger(__name__)
+
 sys.path.insert(0, '/home/workspace/roma-execution-bridge')
 
 class TenantManager:
@@ -56,6 +60,6 @@ class TenantManager:
 if __name__ == "__main__":
     tm = TenantManager()
     info = tm.get_tenant_info("tenant-pro")
-    print(f"PRO tenant quota: {info['quota_gpu_seconds']} GPU-seconds/month")
+    log.info(f"PRO tenant quota: {info['quota_gpu_seconds']} GPU-seconds/month")
     r = tm.enforce_quota("tenant-free", 7200)
-    print(f"FREE tier 7200s request: allowed={r['allowed']}")
+    log.info(f"FREE tier 7200s request: allowed={r['allowed']}")

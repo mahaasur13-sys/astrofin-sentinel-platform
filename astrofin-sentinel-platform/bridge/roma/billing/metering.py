@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """ROMA Billing — Metering Engine, Usage Tracking, Cost Attribution."""
+import logging
 import time
 from dataclasses import dataclass, field
 from typing import Dict, List
+
+log = logging.getLogger(__name__)
+
 
 # ── Unit Rates (USD per second) ────────────────────────────────────────────
 GPU_RATE = 0.00001    # $0.00001 per GPU-second
@@ -62,6 +66,6 @@ if __name__ == "__main__":
     m.record("job_completed", tenant="tenant-xyz", job_id="roma-job-2")
     m.record("plugin_exec", tenant="tenant-abc", plugin_count=5, job_id="roma-job-1")
     s = m.snapshot()
-    print(f"Total cost: ${s['total_cost']:.4f} across {s['total_events']} events")
-    print(f"Tenant abc: ${s['tenants']['tenant-abc']['cost']:.4f}")
-    print(f"Tenant xyz: ${s['tenants']['tenant-xyz']['cost']:.4f}")
+    log.info(f"Total cost: ${s['total_cost']:.4f} across {s['total_events']} events")
+    log.info(f"Tenant abc: ${s['tenants']['tenant-abc']['cost']:.4f}")
+    log.info(f"Tenant xyz: ${s['tenants']['tenant-xyz']['cost']:.4f}")

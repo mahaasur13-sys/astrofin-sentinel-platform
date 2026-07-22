@@ -311,27 +311,27 @@ def print_table(results: list[BlendResult], best: BlendResult, metric: str):
     header += f"  {'MAE':>8}"
     separator = "-" * len(header)
 
-    print(f"\n{'=' * 60}")
-    print(f"Metric optimized: {metric.upper()}")
-    print(f"{'=' * 60}")
-    print(header)
-    print(separator)
+    log.info(f"\n{'=' * 60}")
+    log.info(f"Metric optimized: {metric.upper()}")
+    log.info(f"{'=' * 60}")
+    log.info(header)
+    log.info(separator)
 
     for r in results:
         row = f"{r.blend:>6.2f}  {r.reversals:>10}  {r.stability:>10.4f}"
         if has_sharpe:
             row += f"  {str(r.sharpe) if r.sharpe is not None else 'N/A':>10}"
         row += f"  {r.mae:>8.4f}"
-        print(row)
+        log.info(row)
 
-    print(separator)
+    log.info(separator)
     marker = ">>>" if metric != "stability" else "<<<"
     best_row = f"{best.blend:>6.2f}  {best.reversals:>10}  {best.stability:>10.4f}"
     if best.sharpe is not None:
         best_row += f"  {best.sharpe:>10.4f}"
     best_row += f"  {best.mae:>8.4f}"
-    print(f"{marker} Optimal: {best_row}")
-    print()
+    log.info(f"{marker} Optimal: {best_row}")
+    log.info()
 
 
 def save_json(
@@ -489,8 +489,8 @@ def main():
         df = load_data(args.data)
         data_label = args.data
     else:
-        print("Error: specify --data <path.csv> or --demo")
-        print(__doc__)
+        log.info("Error: specify --data <path.csv> or --demo")
+        log.info(__doc__)
         sys.exit(1)
 
     logger.info(
@@ -515,8 +515,8 @@ def main():
         plot_results(results, best, args.metric, plot_path)
 
     if args.update_env:
-        print("\n# Add to .env:")
-        print(f"LAG_BLEND_MATURE={best.blend}")
+        log.info("\n# Add to .env:")
+        log.info(f"LAG_BLEND_MATURE={best.blend}")
 
     # Summary
     metric_key = args.metric
@@ -525,7 +525,7 @@ def main():
         if args.metric == "reversals"
         else best.stability if args.metric == "stability" else best.sharpe
     )
-    print(
+    log.info(
         f"Optimal blend for metric '{args.metric}': {best.blend} ({metric_key}={best_val})"
     )
 

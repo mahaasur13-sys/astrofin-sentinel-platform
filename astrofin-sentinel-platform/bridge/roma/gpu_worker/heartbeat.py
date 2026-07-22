@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """GPU Worker Heartbeat Client — runs on each GPU node"""
-import time
+import logging
 import socket
-import requests
 import threading
+import time
 from typing import Optional
+
+import requests
+
+log = logging.getLogger(__name__)
+
 
 class HeartbeatClient:
     def __init__(self, worker_id: str, roma_control_plane: str,
@@ -55,22 +60,22 @@ class HeartbeatClient:
                     timeout=3
                 )
                 if resp.status_code != 200:
-                    print(f"[{self.worker_id}] heartbeat rejected: {resp.status_code}")
+                    log.info(f"[{self.worker_id}] heartbeat rejected: {resp.status_code}")
             except requests.RequestException as e:
-                print(f"[{self.worker_id}] heartbeat failed: {e}")
+                log.info(f"[{self.worker_id}] heartbeat failed: {e}")
             time.sleep(self.interval)
 
     def start(self):
         self._running = True
         self._thread = threading.Thread(target=self._heartbeat_loop, daemon=True)
         self._thread.start()
-        print(f"[{self.worker_id}] Heartbeat client started → {self.roma_url}")
+        log.info(f"[{self.worker_id}] Heartbeat client started → {self.roma_url}")
 
     def stop(self):
         self._running = False
         if self._thread:
             self._thread.join(timeout=2)
-        print(f"[{self.worker_id}] Heartbeat client stopped")
+        log.info(f"[{self.worker_id}] Heartbeat client stopped")
 
     def report_job_start(self, job_id: str):
         """Call after acquiring GPU lock"""
@@ -102,5 +107,5 @@ if __name__ == "__main__":
         roma_control_plane="http://localhost:8080",
         interval=3
     )
-    print(f"GPU info: {client.gpu_info}")
-    print("Heartbeat client module: OK")
+    log.info(f"GPU info: {client.gpu_info}")
+    log.info("Heartbeat client module: OK")

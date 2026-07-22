@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """ROMA Plugin Runtime Loader — Isolation, versioning, lifecycle management."""
+import logging
 import time
-from pathlib import Path
-from typing import Dict, List, Any, Type
-from enum import Enum
 from dataclasses import dataclass, field
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Type
+
+log = logging.getLogger(__name__)
+
 
 class IsolationLevel(Enum):
     PROCESS = "process"
@@ -66,7 +70,7 @@ class PluginRuntime:
         plugin_inst = PluginInstance(spec=spec, plugin_class=plugin_class, instance=instance_obj)
         self._loaded[plugin_name] = plugin_inst
         for cb in self._hooks["on_load"]: cb(plugin_inst)
-        print(f"  Loaded plugin: {plugin_name} v{version}")
+        log.info(f"  Loaded plugin: {plugin_name} v{version}")
         return plugin_inst
 
     def execute_plugin_sync(self, plugin_name: str, task: Any, context: Any) -> Dict:
@@ -98,9 +102,9 @@ def main():
     for name, cls in PLUGIN_REGISTRY.items():
         runtime.load_from_class(cls, name, "1.0.0")
 
-    print("\nLoaded plugins:")
+    log.info("\nLoaded plugins:")
     for p in runtime.list_loaded():
-        print(f"  {p['name']} v{p['version']} | phase={p['phase']} | executions={p['executions']}")
+        log.info(f"  {p['name']} v{p['version']} | phase={p['phase']} | executions={p['executions']}")
 
     class DemoTask:
         task_id = "task-001"; plugin_name = "ml_training"
@@ -110,16 +114,16 @@ def main():
         gpu_available = True; vram_gb = 10.5; cpu_cores = 8; ram_gb = 32
         node_name = "gpu-node-1"; tick = 1
 
-    print("\nExecuting ml_training plugin:")
+    log.info("\nExecuting ml_training plugin:")
     result = runtime.execute_plugin_sync("ml_training", DemoTask(), DemoContext())
-    print(f"  Result: {result}")
+    log.info(f"  Result: {result}")
 
-    print("\nExecuting inference plugin:")
+    log.info("\nExecuting inference plugin:")
     task2 = type('Task', (), {'task_id': 'task-002', 'plugin_name': 'inference',
                                'payload': {'model': 'llama3-8b'}, 'metadata': {}, 'fingerprint': 'x'})()
     result2 = runtime.execute_plugin_sync("inference", task2, DemoContext())
-    print(f"  Result: {result2}")
+    log.info(f"  Result: {result2}")
 
-    print("\nPlugin execution complete.")
+    log.info("\nPlugin execution complete.")
 
 if __name__ == "__main__": main()

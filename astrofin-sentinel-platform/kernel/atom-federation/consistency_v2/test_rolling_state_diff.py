@@ -5,6 +5,10 @@ Tests for RollingStateDiffer — O(1) incremental rolling diffs.
 """
 from consistency_v2.rolling_state_diff import RollingStateDiffer
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 def test_rolling_state_diff_added_nodes():
     """Detects newly added nodes."""
@@ -74,4 +78,4 @@ if __name__ == "__main__":
     test_rolling_state_diff_noop()
     test_rolling_state_diff_incremental_exec()
     test_rolling_state_diff_to_dict()
-    print("All RollingStateDiffer tests passed.")
+    log.info("All RollingStateDiffer tests passed.")

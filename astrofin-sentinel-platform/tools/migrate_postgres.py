@@ -95,14 +95,14 @@ async def run(args: argparse.Namespace) -> int:
         pending = [(v, p) for v, p in migrations if v not in applied]
 
         if args.status:
-            print(f"Applied ({len(applied)}): {sorted(applied)}")
-            print(f"Pending ({len(pending)}): {[v for v, _ in pending]}")
+            log.info(f"Applied ({len(applied)}): {sorted(applied)}")
+            log.info(f"Pending ({len(pending)}): {[v for v, _ in pending]}")
             return 0
 
         if args.dry_run:
             for v, p in pending:
                 if args.version is None or v <= args.version:
-                    print(f"  would apply {p.name}")
+                    log.info(f"  would apply {p.name}")
             return 0
 
         n_applied = 0

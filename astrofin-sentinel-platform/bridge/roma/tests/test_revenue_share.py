@@ -20,7 +20,7 @@ def test_tiered_rates():
         assert r["rate_used"] == exp_rate, f"{partner_id}: got {r['rate_used']}, want {exp_rate}"
         assert r["romas_share"] == round(gross * exp_rate, 6)
         assert r["partner_payout"] == gross - r["romas_share"]
-    print("PASS: tiered_rates")
+    log.info("PASS: tiered_rates")
 
 def test_idempotency():
     processed = set()
@@ -29,19 +29,19 @@ def test_idempotency():
     assert not dup("e1")
     mark("e1")
     assert dup("e1")
-    print("PASS: idempotency")
+    log.info("PASS: idempotency")
 
 def test_response_model():
     from saas.webhooks.stripe_webhook import Response
     r = Response(received=True, event_id="evt_1", processed=True)
     assert r.received and r.processed and r.error is None
-    print("PASS: response_model")
+    log.info("PASS: response_model")
 
 def test_signature_skip_on_empty():
     from saas.webhooks.stripe_webhook import _verify
     assert _verify(b"payload", "sig", "")
     assert _verify(b"payload", "", "secret")
-    print("PASS: signature_skip_on_empty")
+    log.info("PASS: signature_skip_on_empty")
 
 def test_ledger_revenue_share_ext():
     from billing.ledger import BillingLedger
@@ -49,7 +49,7 @@ def test_ledger_revenue_share_ext():
     assert hasattr(ledger, "record_revenue_share")
     assert hasattr(ledger, "get_monthly_revenue")
     assert hasattr(ledger, "get_pending_revenue_share")
-    print("PASS: ledger_revenue_share_ext")
+    log.info("PASS: ledger_revenue_share_ext")
 
 if __name__ == "__main__":
     test_tiered_rates()
@@ -57,4 +57,4 @@ if __name__ == "__main__":
     test_response_model()
     test_signature_skip_on_empty()
     test_ledger_revenue_share_ext()
-    print("\n✅ All revenue-share tests passed")
+    log.info("\n✅ All revenue-share tests passed")

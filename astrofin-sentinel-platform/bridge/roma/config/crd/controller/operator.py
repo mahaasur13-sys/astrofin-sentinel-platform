@@ -4,8 +4,8 @@
 # Reconciles: Namespace + Secrets + Ingress + Certificate + KongPlugin + ConfigMap
 # =============================================================================
 
-import os
 import logging
+import os
 
 import kopf
 import kubernetes

@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass(frozen=True)
 class SystemState:
@@ -81,38 +85,38 @@ class UST:
         return ok, chr(10).join(parts)
 
 def test():
-    print("=== v10.8 UST ===")
+    log.info("=== v10.8 UST ===")
     # Healthy
     h = SystemState(n=4, f=1, gcpl_healthy=True, gcpl_S=0.85, gcpl_Q=0.80, gcpl_R=1,
                   bcil_healthy=True, bcil_C=0.05, bcil_B=0.10, bcil_D=0.08,
                   adlr_healthy=True, adlr_T=1, adlr_L=2, adlr_C=4, adlr_H=0.0, adlr_O=0)
     u = UST(state=h)
     ok1, detail1 = u.verify()
-    print(detail1)
-    print("  Healthy state:", "OK" if ok1 else "FAIL")
+    log.info(detail1)
+    log.info("  Healthy state:", "OK" if ok1 else "FAIL")
     # ADLR broken
     h2 = SystemState(n=4, f=1, gcpl_healthy=True, gcpl_S=0.85, gcpl_Q=0.80, gcpl_R=1,
                     bcil_healthy=True, bcil_C=0.05, bcil_B=0.10, bcil_D=0.08,
                     adlr_healthy=False, adlr_T=8, adlr_L=15, adlr_C=4, adlr_H=0.5, adlr_O=7)
     u2 = UST(state=h2)
     ok2, _ = u2.verify()
-    print("  ADLR broken:", "OK" if not ok2 else "FAIL")
+    log.info("  ADLR broken:", "OK" if not ok2 else "FAIL")
     # BCIL broken
     h3 = SystemState(n=4, f=1, gcpl_healthy=True, gcpl_S=0.85, gcpl_Q=0.80, gcpl_R=1,
                     bcil_healthy=False, bcil_C=0.40, bcil_B=0.50, bcil_D=0.60,
                     adlr_healthy=True, adlr_T=1, adlr_L=2, adlr_C=4, adlr_H=0.0, adlr_O=0)
     u3 = UST(state=h3)
     ok3, _ = u3.verify()
-    print("  BCIL broken:", "OK" if not ok3 else "FAIL")
+    log.info("  BCIL broken:", "OK" if not ok3 else "FAIL")
     # Byzantine
     h4 = SystemState(n=4, f=2, gcpl_healthy=True, gcpl_S=0.72, gcpl_Q=0.45, gcpl_R=1,
                    bcil_healthy=False, bcil_C=0.60, bcil_B=0.67, bcil_D=0.55,
                    adlr_healthy=True, adlr_T=1, adlr_L=2, adlr_C=4, adlr_H=0.0, adlr_O=0)
     u4 = UST(state=h4)
     ok4, _ = u4.verify()
-    print("  Byzantine majority:", "OK" if not ok4 else "FAIL")
+    log.info("  Byzantine majority:", "OK" if not ok4 else "FAIL")
     all_ok = ok1 and not ok2 and not ok3 and not ok4
-    print("RESULT:", "ALL PASSED" if all_ok else "FAILED")
+    log.info("RESULT:", "ALL PASSED" if all_ok else "FAILED")
     return all_ok
 
 if __name__ == "__main__":
@@ -275,7 +279,7 @@ class ThresholdEvolver:
 
 
 def test_evolution():
-    print("\n=== Phase 4: Invariant Evolution ===")
+    log.info("\n=== Phase 4: Invariant Evolution ===")
     h = SystemState(n=4, f=1, gcpl_healthy=True, gcpl_S=0.85, gcpl_Q=0.80, gcpl_R=1,
                     bcil_healthy=True, bcil_C=0.05, bcil_B=0.10, bcil_D=0.08,
                     adlr_healthy=True, adlr_T=1, adlr_L=2, adlr_C=4, adlr_H=0.0, adlr_O=0)
@@ -283,38 +287,38 @@ def test_evolution():
     ev = ThresholdEvolver()
 
     ok0, _ = ev.check_invariant(ust)
-    print(f"  [1] default invariant: {'PASS' if ok0 else 'FAIL'}")
+    log.info(f"  [1] default invariant: {'PASS' if ok0 else 'FAIL'}")
 
     cfg1 = ev.evolve(ust, drift_score=0.40)
-    print(f"  [2] drift->tighten: S={cfg1.gcpl_S_min:.3f}, Q={cfg1.gcpl_Q_min:.3f}")
+    log.info(f"  [2] drift->tighten: S={cfg1.gcpl_S_min:.3f}, Q={cfg1.gcpl_Q_min:.3f}")
 
     ok3, _ = ev.check_invariant(ust)
-    print(f"  [3] after tighten, healthy still OK: {'PASS' if ok3 else 'FAIL'}")
+    log.info(f"  [3] after tighten, healthy still OK: {'PASS' if ok3 else 'FAIL'}")
 
     cfg2 = ev.evolve(ust, oscillation_ticks=5)
-    print(f"  [4] oscillation->relax: T={cfg2.adlr_T_max}, H={cfg2.adlr_H_max:.3f}")
+    log.info(f"  [4] oscillation->relax: T={cfg2.adlr_T_max}, H={cfg2.adlr_H_max:.3f}")
 
     cfg3 = ev.evolve(ust, failure_record={"severity": "HIGH", "failure_type": "BYZANTINE_QUORUM"})
-    print(f"  [5] failure->tighten: C={cfg3.bcil_C_max:.3f}")
+    log.info(f"  [5] failure->tighten: C={cfg3.bcil_C_max:.3f}")
 
     cfg4 = ev.evolve(ust, convergence_score=0.97)
-    print(f"  [6] convergence->relax: L={cfg4.adlr_L_max}")
+    log.info(f"  [6] convergence->relax: L={cfg4.adlr_L_max}")
 
-    print(f"  [7] evolution log: {len(ev.evolution_log)} records (expected 4)")
+    log.info(f"  [7] evolution log: {len(ev.evolution_log)} records (expected 4)")
 
     h_bad = SystemState(n=4, f=1, gcpl_healthy=True, gcpl_S=0.55, gcpl_Q=0.40, gcpl_R=5,
                         bcil_healthy=True, bcil_C=0.05, bcil_B=0.10, bcil_D=0.08,
                         adlr_healthy=True, adlr_T=1, adlr_L=2, adlr_C=4, adlr_H=0.0, adlr_O=0)
     ust_bad = UST(state=h_bad)
     ok8, detail8 = ev.check_invariant(ust_bad)
-    print(f"  [8] violation detected: {'PASS' if not ok8 else 'FAIL'} - {detail8}")
+    log.info(f"  [8] violation detected: {'PASS' if not ok8 else 'FAIL'} - {detail8}")
 
     ev2 = ThresholdEvolver(ThresholdConfig(gcpl_S_min=0.60, gcpl_Q_min=0.45))
     ok9, _ = ev2.check_invariant(ust_bad)
-    print(f"  [9] stricter threshold catches it: {'PASS' if not ok9 else 'FAIL'}")
+    log.info(f"  [9] stricter threshold catches it: {'PASS' if not ok9 else 'FAIL'}")
 
     all_ok = ok0 and ok3 and not ok8 and not ok9 and len(ev.evolution_log) == 4
-    print(f"\nPhase 4: {'ALL PASSED' if all_ok else 'FAILED'}")
+    log.info(f"\nPhase 4: {'ALL PASSED' if all_ok else 'FAILED'}")
     return all_ok
 
 

@@ -60,4 +60,4 @@ class GovernanceGate:
 if __name__ == "__main__":
     gate = GovernanceGate()
     d, r = gate.pre_check({"dag_id": "test", "metadata": {"constraints": {"max_risk": 0.25}}}, {"risk_score": 0.1})
-    print(f"Decision: {d.value}, Reason: {r}")
+    log.info(f"Decision: {d.value}, Reason: {r}")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+
 import pytest
 
 # --- KI-125a: 42 pre-existing test failures (tracked in issue #149) ---

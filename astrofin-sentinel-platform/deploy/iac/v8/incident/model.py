@@ -2,6 +2,10 @@
 from __future__ import annotations
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
+
 """
 Incident Model — auto-classification + severity scoring.
 Severity = f(p99_delta, error_rate, alignment_drop).
@@ -120,7 +124,7 @@ class IncidentManager:
         if self.alerting_callback:
             self.alerting_callback(message)
         # Also log to incident channel
-        print(
+        log.info(
             f"[INCIDENT] {message} | {incident.trigger_type} | nodes={incident.affected_nodes}"
         )
 

@@ -1,8 +1,12 @@
 """ROMA Plugin Marketplace — Publishing, signing, lifecycle governance."""
 import hashlib
+import logging
 import time
 from dataclasses import dataclass
 from typing import Dict
+
+log = logging.getLogger(__name__)
+
 
 @dataclass
 class MarketplaceListing:
@@ -38,6 +42,6 @@ class PluginMarketplace:
 if __name__ == "__main__":
     m = PluginMarketplace()
     listing = m.publish("ml_training", "1.0.0", "asurdev")
-    print(f"Published: {listing.plugin_name} v{listing.version}")
-    print(f"Signature: {listing.signature}")
-    print(f"Verified: {m.verify_signature(listing)}")
+    log.info(f"Published: {listing.plugin_name} v{listing.version}")
+    log.info(f"Signature: {listing.signature}")
+    log.info(f"Verified: {m.verify_signature(listing)}")

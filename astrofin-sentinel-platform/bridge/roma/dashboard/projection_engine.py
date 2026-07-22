@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """ROMA Projection Engine — Read Model for UI."""
-from dataclasses import dataclass, asdict
-from typing import Dict, List, Optional, Any
+import logging
+from dataclasses import asdict, dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+log = logging.getLogger(__name__)
+
 
 class EventType(str, Enum):
     JOB_SUBMITTED = "JOB_SUBMITTED"
@@ -148,24 +152,24 @@ if __name__ == "__main__":
         "nodes": {"node-0": "leader", "node-1": "follower", "node-2": "follower"}
     }})
 
-    print("=== Job Timeline ===")
+    log.info("=== Job Timeline ===")
     for j in pe.project_execution_timeline():
-        print(f"  {j['job_id']} | {j['status']:10} | gpu={j['gpu']} | cost=${j['cost']}")
+        log.info(f"  {j['job_id']} | {j['status']:10} | gpu={j['gpu']} | cost=${j['cost']}")
 
-    print("\n=== GPU Heatmap ===")
+    log.info("\n=== GPU Heatmap ===")
     for node, s in pe.project_gpu_heatmap().items():
         bar = "█" * int(s["utilization_pct"] / 10) + "░" * (10 - int(s["utilization_pct"] / 10))
-        print(f"  {node}: [{bar}] {s['utilization_pct']}% VRAM {s['vram_used_gb']}/{s['vram_total_gb']}GB")
+        log.info(f"  {node}: [{bar}] {s['utilization_pct']}% VRAM {s['vram_used_gb']}/{s['vram_total_gb']}GB")
 
-    print("\n=== Raft Cluster ===")
+    log.info("\n=== Raft Cluster ===")
     rs = pe.project_raft_cluster()
-    print(f"  Leader: {rs.get('leader')} | Term: {rs.get('term')} | CommitIndex: {rs.get('commit_index')}")
+    log.info(f"  Leader: {rs.get('leader')} | Term: {rs.get('term')} | CommitIndex: {rs.get('commit_index')}")
 
-    print("\n=== Job Forensic (job-001) ===")
+    log.info("\n=== Job Forensic (job-001) ===")
     jp = pe.project_job("job-001")
     if jp:
-        print(f"  Status: {jp['status']}")
-        print(f"  Duration: {jp['duration_ms']}ms")
-        print(f"  Cost: ${jp['cost_final']}")
-        print(f"  Events: {len(jp['events'])}")
-        print(f"  Replay possible: {jp['status'] in ('COMPLETED', 'FAILED')}")
+        log.info(f"  Status: {jp['status']}")
+        log.info(f"  Duration: {jp['duration_ms']}ms")
+        log.info(f"  Cost: ${jp['cost_final']}")
+        log.info(f"  Events: {len(jp['events'])}")
+        log.info(f"  Replay possible: {jp['status'] in ('COMPLETED', 'FAILED')}")

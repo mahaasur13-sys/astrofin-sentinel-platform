@@ -338,7 +338,7 @@ def get_db() -> HistoryDB:
             _db = PostgresHistoryDB(dsn)
             return _db
         except Exception:
-            pass
+            log.warning("History DB operation failed", exc_info=True)
     _db = HistoryDB()
     return _db
 

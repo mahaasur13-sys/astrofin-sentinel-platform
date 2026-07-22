@@ -2,9 +2,13 @@
 """LCCP v1.2 - Event-Sourced Sovereign Control Plane"""
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from typing import Literal
+
+log = logging.getLogger(__name__)
+
 
 SOVEREIGNTY = {
     "source_of_truth": "EVENT_STORE_ONLY",
@@ -118,12 +122,12 @@ def orch(nodes, store):
     return {"status":"ORCHESTRATION_COMPLETE","results":results}
 
 def main():
-    print("="*64)
-    print("LCCP v1.2 - Event-Sourced Sovereign Control Plane")
-    print("="*64)
+    log.info("="*64)
+    log.info("LCCP v1.2 - Event-Sourced Sovereign Control Plane")
+    log.info("="*64)
     for k,v in SOVEREIGNTY.items():
-        print("  " + k + ": " + str(v))
-    print()
+        log.info("  " + k + ": " + str(v))
+    log.info()
     es = EventStore()
     nodes = [
         Node("rtx-node",0.85,0.75,0.60,["slurm","ceph"]),
@@ -131,29 +135,29 @@ def main():
         Node("failing-node",0.99,0.99,0.80,[],"FAILED",True),
         Node("rogue",0.50,0.50,0.50,[],False,"HEALTHY"),
     ]
-    print("[ORCHESTRATION]")
+    log.info("[ORCHESTRATION]")
     report = orch(nodes, es)
-    print("  Events: " + str(len(es._events)) + ", Status: " + report["status"])
+    log.info("  Events: " + str(len(es._events)) + ", Status: " + report["status"])
     for r in report['results']:
-        print("  " + r["node"] + ": " + r["issue"] + " -> " + r["action"] + " [" + r["status"] + "]")
-    print()
-    print("[STATE RECONSTRUCTION -- from events ONLY]")
+        log.info("  " + r["node"] + ": " + r["issue"] + " -> " + r["action"] + " [" + r["status"] + "]")
+    log.info()
+    log.info("[STATE RECONSTRUCTION -- from events ONLY]")
     state = StateRebuilder.rebuild(es.all())
-    print("  Nodes: " + str(len(state["nodes"])))
-    print("  Actions: " + str(len(state["action_log"])))
-    print("  Quarantined: " + str(list(state["quarantined"])))
-    print()
-    print("[REPLAY DETERMINISM]")
-    print('  ' + StateRebuilder.verify(es.all()))
-    print()
-    print("[VERIFICATION]")
+    log.info("  Nodes: " + str(len(state["nodes"])))
+    log.info("  Actions: " + str(len(state["action_log"])))
+    log.info("  Quarantined: " + str(list(state["quarantined"])))
+    log.info()
+    log.info("[REPLAY DETERMINISM]")
+    log.info('  ' + StateRebuilder.verify(es.all()))
+    log.info()
+    log.info("[VERIFICATION]")
     evs = es.all()
-    print("  all_sovereign: " + str(all(e.sovereign for e in evs)))
-    print("  total_events: " + str(len(evs)))
-    print("  nodes_rebuilt: " + str(len(state["nodes"])))
-    print("="*64)
-    print("LCCP v1.2 -- EVENT-SOURCED SOVEREIGNTY ACTIVE")
-    print("="*64)
+    log.info("  all_sovereign: " + str(all(e.sovereign for e in evs)))
+    log.info("  total_events: " + str(len(evs)))
+    log.info("  nodes_rebuilt: " + str(len(state["nodes"])))
+    log.info("="*64)
+    log.info("LCCP v1.2 -- EVENT-SOURCED SOVEREIGNTY ACTIVE")
+    log.info("="*64)
 
 if __name__ == '__main__':
     main()

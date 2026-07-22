@@ -1,6 +1,7 @@
 """ROMA Cost Explainability Engine — Why this costs what it costs."""
-from cost.predictor import CostPredictor
 from plugins.plugin_api import PluginCapability
+
+from cost.predictor import CostPredictor
 
 GPU_RATE = 0.000086  # $ per GPU-second (PRO tier)
 

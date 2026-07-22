@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import math
 import random
 import sqlite3
@@ -23,6 +24,9 @@ from agents._impl.synthesis_agent import SynthesisAgent
 from agents._impl.technical_agent import TechnicalAgent
 from core.thompson import ASTRO_POOL, MACRO_POOL, TECHNICAL_POOL, get_thompson_sampler
 from tools.metrics_server import BACKTEST_REAL_RUNS, BACKTEST_SYNTHETIC_RUNS
+
+log = logging.getLogger(__name__)
+
 
 BINANCE_BASE = "https://api.binance.com/api/v3"
 DEFAULT_SYMBOL = "BTCUSDT"
@@ -281,9 +285,9 @@ class BacktestEngine:
             datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc),
         )
         if len(candles) < 10:
-            print(f"[Backtest] Not enough data: {len(candles)}")
+            log.info(f"[Backtest] Not enough data: {len(candles)}")
             return None
-        print(f"[Backtest] Got {len(candles)} candles. Generating signals...")
+        log.info(f"[Backtest] Got {len(candles)} candles. Generating signals...")
         signals = []
 
         if use_real_agents:
@@ -604,4 +608,4 @@ if __name__ == "__main__":
     ed = sys.argv[3] if len(sys.argv) > 3 else "2025-03-25"
     result = asyncio.run(run_backtest(sym, sd, ed))
     if result:
-        print(result.summary())
+        log.info(result.summary())

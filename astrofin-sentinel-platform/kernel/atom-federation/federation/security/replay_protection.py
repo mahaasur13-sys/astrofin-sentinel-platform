@@ -24,6 +24,10 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class ReplayProtectionError(Exception):
     """Raised when replay protection check fails."""
@@ -219,42 +223,42 @@ def _test_nonce_sequence_validator():
     v = NonceSequenceValidator(window_size=5, max_age_ns=60_000_000_000)
     r = v.check_and_record("node_A", seq=1, ts_ns=now)
     assert r.status == NonceStatus.ACCEPTED, f"Expected ACCEPTED, got {r.status}"
-    print(f"✅ seq=1 ACCEPTED (gap={r.gap}, age={r.age_ns}ns)")
+    log.info(f"✅ seq=1 ACCEPTED (gap={r.gap}, age={r.age_ns}ns)")
 
     r2 = v.check_and_record("node_A", seq=2, ts_ns=now)
     assert r2.status == NonceStatus.ACCEPTED
-    print(f"✅ seq=2 ACCEPTED (gap={r2.gap})")
+    log.info(f"✅ seq=2 ACCEPTED (gap={r2.gap})")
 
     # ── exact duplicate → REPLAYED ────────────────────────────────────
     r3 = v.check_and_record("node_A", seq=2, ts_ns=now)
     assert r3.status == NonceStatus.REPLAYED
-    print("✅ seq=2 REPLAYED (same message duplicate)")
+    log.info("✅ seq=2 REPLAYED (same message duplicate)")
 
     # ── old seq ──────────────────────────────────────────────────────
     r4 = v.check_and_record("node_A", seq=1, ts_ns=now)
     assert r4.status == NonceStatus.REPLAYED
-    print("✅ seq=1 REPLAYED (seq ≤ highest_seq)")
+    log.info("✅ seq=1 REPLAYED (seq ≤ highest_seq)")
 
     # ── future seq (large gap) ──────────────────────────────────────
     r5 = v.check_and_record("node_A", seq=99, ts_ns=now)
     assert r5.status == NonceStatus.FUTURE
-    print(f"✅ seq=99 FUTURE (gap={r5.gap} > max_seq_gap=50)")
+    log.info(f"✅ seq=99 FUTURE (gap={r5.gap} > max_seq_gap=50)")
 
     # ── accept FUTURE after intermediate seqs ─────────────────────────
     r6 = v.check_and_record("node_A", seq=50, ts_ns=now)
     assert r6.status == NonceStatus.ACCEPTED
-    print("✅ seq=50 ACCEPTED (fills gap, now highest=50)")
+    log.info("✅ seq=50 ACCEPTED (fills gap, now highest=50)")
 
     r7 = v.check_and_record("node_A", seq=99, ts_ns=now)
     assert r7.status == NonceStatus.ACCEPTED, f"Expected ACCEPTED, got {r7.status}"
-    print("✅ seq=99 ACCEPTED after intermediate gap was filled")
+    log.info("✅ seq=99 ACCEPTED after intermediate gap was filled")
 
     # ── TOO_OLD (timestamp expired) ─────────────────────────────────
     v2 = NonceSequenceValidator(window_size=5, max_age_ns=1_000_000_000)  # 1 second
     old_ts = time.time_ns() - 2_000_000_000  # 2 seconds ago
     r8 = v2.check_and_record("node_B", seq=1, ts_ns=old_ts)
     assert r8.status == NonceStatus.TOO_OLD
-    print(f"✅ seq=1 TOO_OLD (age={r8.age_ns}ns > max_age_ns=1s)")
+    log.info(f"✅ seq=1 TOO_OLD (age={r8.age_ns}ns > max_age_ns=1s)")
 
     # ── per-sender isolation ─────────────────────────────────────────
     v3 = NonceSequenceValidator(window_size=5)
@@ -264,7 +268,7 @@ def _test_nonce_sequence_validator():
     assert v3.get_highest_seq("node_B") == 1
     v3.check_and_record("node_C", seq=1, ts_ns=now)
     assert v3.get_highest_seq("node_C") == 1
-    print("✅ per-sender isolation (A=1, B=1, C=1)")
+    log.info("✅ per-sender isolation (A=1, B=1, C=1)")
 
     # ── window trim ──────────────────────────────────────────────────
     v4 = NonceSequenceValidator(window_size=3)
@@ -273,16 +277,16 @@ def _test_nonce_sequence_validator():
     summary = v4.window_summary()["node_X"]
     assert summary["window_size"] == 3
     assert summary["highest_seq"] == 5
-    print(f"✅ window trim: size={summary['window_size']}, highest={summary['highest_seq']}")
+    log.info(f"✅ window trim: size={summary['window_size']}, highest={summary['highest_seq']}")
 
     # ── reset_sender ─────────────────────────────────────────────────
     v5 = NonceSequenceValidator(window_size=3)
     v5.check_and_record("node_A", seq=5, ts_ns=now)
     v5.reset_sender("node_A")
     assert v5.get_highest_seq("node_A") == -1
-    print("✅ reset_sender clears state")
+    log.info("✅ reset_sender clears state")
 
-    print("\n✅ v9.9 NonceSequenceValidator — all checks passed")
+    log.info("\n✅ v9.9 NonceSequenceValidator — all checks passed")
 
 
 if __name__ == "__main__":

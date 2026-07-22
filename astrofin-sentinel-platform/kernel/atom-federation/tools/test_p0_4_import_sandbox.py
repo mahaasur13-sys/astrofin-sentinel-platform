@@ -7,6 +7,10 @@ Tests that protected modules are blocked outside ExecutionGateway context.
 import subprocess
 import sys
 
+import logging
+log = logging.getLogger(__name__)
+
+
 REPO = "/home/workspace/atom-federation-os"
 
 def run_test(description: str, code: str, expect_pass: bool) -> bool:
@@ -18,12 +22,12 @@ def run_test(description: str, code: str, expect_pass: bool) -> bool:
     )
     passed = (result.returncode == 0) == expect_pass
     status = "PASS" if passed else "FAIL"
-    print(f"  [{status}] {description}")
+    log.info(f"  [{status}] {description}")
     if not passed:
-        print(f"    Expected: {'pass' if expect_pass else 'fail'}")
-        print(f"    Got returncode={result.returncode}")
+        log.info(f"    Expected: {'pass' if expect_pass else 'fail'}")
+        log.info(f"    Got returncode={result.returncode}")
         if result.stderr:
-            print(f"    stderr: {result.stderr[:200]}")
+            log.info(f"    stderr: {result.stderr[:200]}")
     return passed
 
 
@@ -40,12 +44,12 @@ assert not GatewayContext.is_active(), "context should be inactive"
 # Try to import actuator — should be blocked
 try:
     import actuator
-    print("FAIL: actuator should be blocked")
+    log.info("FAIL: actuator should be blocked")
 except ImportError as e:
     if "BLOCKED" in str(e) or "protected" in str(e).lower():
-        print("PASS")
+        log.info("PASS")
     else:
-        print(f"FAIL: wrong error: {{e}}")
+        log.info(f"FAIL: wrong error: {{e}}")
 """
     return run_test("Direct import of actuator outside gateway → BLOCKED", code, True)
 
@@ -59,9 +63,9 @@ from core.runtime.import_guard import install_firewall
 install_firewall()
 try:
     import mutation_executor
-    print("FAIL")
+    log.info("FAIL")
 except ImportError:
-    print("PASS")
+    log.info("PASS")
 """
     return run_test("MutationExecutor import outside gateway → BLOCKED", code, True)
 
@@ -76,7 +80,7 @@ install_firewall()
 # Activate gateway context (simulates being inside ExecutionGateway.execute)
 with GatewayContextGuard("test"):
     import actuator  # Should succeed
-    print("PASS")
+    log.info("PASS")
 """
     return run_test("Protected import INSIDE gateway context → ALLOWED", code, True)
 
@@ -93,9 +97,9 @@ try:
     import importlib
     # Try importing consensus module
     importlib.import_module("consensus")
-    print("FAIL")
+    log.info("FAIL")
 except ImportError:
-    print("PASS")
+    log.info("PASS")
 """
     return run_test("Nested import of consensus outside gateway → BLOCKED", code, True)
 
@@ -110,9 +114,9 @@ install_firewall()
 try:
     import importlib
     importlib.import_module("actuator")
-    print("FAIL")
+    log.info("FAIL")
 except ImportError:
-    print("PASS")
+    log.info("PASS")
 """
     return run_test("importlib actuator outside gateway → BLOCKED", code, True)
 
@@ -128,7 +132,7 @@ install_firewall()  # should not duplicate
 install_firewall()
 # Check it's in meta_path
 found = any(hasattr(m, '_is_protected') for m in sys.meta_path)
-print("PASS" if found else "FAIL")
+log.info("PASS" if found else "FAIL")
 """
     return run_test("Firewall install is idempotent", code, True)
 
@@ -143,7 +147,7 @@ install_firewall()
 uninstall_firewall()
 # Should not block now
 in_meta = _guard in sys.meta_path
-print("PASS" if not in_meta else "FAIL")
+log.info("PASS" if not in_meta else "FAIL")
 """
     return run_test("Firewall uninstall removes from meta_path", code, True)
 
@@ -157,9 +161,9 @@ from core.runtime.import_guard import install_firewall
 install_firewall()
 try:
     import consensus
-    print("FAIL")
+    log.info("FAIL")
 except ImportError:
-    print("PASS")
+    log.info("PASS")
 """
     return run_test("consensus import outside gateway → BLOCKED", code, True)
 
@@ -173,9 +177,9 @@ from core.runtime.import_guard import install_firewall
 install_firewall()
 try:
     import alignment
-    print("FAIL")
+    log.info("FAIL")
 except ImportError:
-    print("PASS")
+    log.info("PASS")
 """
     return run_test("alignment import outside gateway → BLOCKED", code, True)
 
@@ -189,9 +193,9 @@ from core.runtime.import_guard import install_firewall
 install_firewall()
 try:
     import cluster.node.node
-    print("FAIL")
+    log.info("FAIL")
 except ImportError:
-    print("PASS")
+    log.info("PASS")
 """
     return run_test("cluster.node.node import outside gateway → BLOCKED", code, True)
 
@@ -211,15 +215,15 @@ GatewayContext.deactivate()
 assert GatewayContext.is_active()  # still active (depth=1)
 GatewayContext.deactivate()
 assert not GatewayContext.is_active()
-print("PASS")
+log.info("PASS")
 """
     return run_test("Nested activate/deactivate tracked by depth", code, True)
 
 
 def main():
-    print("═"*60)
-    print("P0.4 IMPORT SANDBOX TESTS")
-    print("═"*60)
+    log.info("═"*60)
+    log.info("P0.4 IMPORT SANDBOX TESTS")
+    log.info("═"*60)
 
     tests = [
         test_direct_import_blocked,
@@ -239,13 +243,13 @@ def main():
     for t in tests:
         results.append(t())
         if not results[-1]:
-            print("  ^^^ FIRST FAILURE ^^^")
+            log.info("  ^^^ FIRST FAILURE ^^^")
 
-    print()
+    log.info()
     passed = sum(results)
     total = len(results)
-    print(f"RESULTS: {passed}/{total} passed")
-    print("═"*60)
+    log.info(f"RESULTS: {passed}/{total} passed")
+    log.info("═"*60)
     return 0 if all(results) else 1
 
 

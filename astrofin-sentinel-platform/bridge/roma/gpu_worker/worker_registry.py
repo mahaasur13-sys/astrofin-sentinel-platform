@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """ROMA Worker Registry + Heartbeat System"""
+import logging
 import threading
-from dataclasses import dataclass, asdict
-from typing import Dict, Optional, List
+from dataclasses import asdict, dataclass
 from datetime import datetime
+from typing import Dict, List, Optional
+
+log = logging.getLogger(__name__)
+
 
 @dataclass
 class WorkerStatus:
@@ -167,10 +171,10 @@ if __name__ == "__main__":
 
     # Get available workers (need 4GB free)
     available = reg.get_available_workers(min_vram_gb=4.0)
-    print(f"Available workers (need 4GB free): {[w.worker_id for w in available]}")
+    log.info(f"Available workers (need 4GB free): {[w.worker_id for w in available]}")
 
     # Get aggregate stats
     stats = reg.aggregate_gpu_usage()
-    print(f"GPU usage: {stats}")
+    log.info(f"GPU usage: {stats}")
 
-    print("=== Worker Registry: PASS ===")
+    log.info("=== Worker Registry: PASS ===")

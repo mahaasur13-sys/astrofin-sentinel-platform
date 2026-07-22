@@ -2,6 +2,7 @@
 """ROMA Pricing Engine — Dynamic pricing, tier management, cost models."""
 from enum import Enum
 
+
 class PricingTier(Enum):
     FREE = "free"
     PRO = "pro"

@@ -24,17 +24,16 @@
 #
 # =============================================================================
 
-from consistency.global_state_model import (
-    GlobalStateModel,
-    TruthSource,
-    ConflictResolution,
-    GlobalStateRecord,
-)
-
 from consistency.backpressure import (
-    BackpressureSystem,
     BackpressureConfig,
     BackpressureStatus,
+    BackpressureSystem,
+)
+from consistency.global_state_model import (
+    ConflictResolution,
+    GlobalStateModel,
+    GlobalStateRecord,
+    TruthSource,
 )
 
 __all__ = [

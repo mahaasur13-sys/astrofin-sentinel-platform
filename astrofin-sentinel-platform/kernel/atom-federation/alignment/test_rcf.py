@@ -1,6 +1,10 @@
 """Test suite for RCF — Reality Consensus Fusion layer v11.1."""
 from alignment.rcf import RCF, StabilityLevel
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 def test_rcf_stable_system():
     """All layers healthy → RCF → STABLE."""
@@ -15,7 +19,7 @@ def test_rcf_stable_system():
     assert report.stability == StabilityLevel.STABLE, f"Expected STABLE, got {report.stability}"
     assert report.consensus_score >= 0.70
     assert any(a.name == "ALLOW_GCPL_MERGE" for a in report.actions)
-    print("  T1 stable ✅")
+    log.info("  T1 stable ✅")
 
 
 def test_rcf_byzantine_critical():
@@ -30,7 +34,7 @@ def test_rcf_byzantine_critical():
     assert report.stability == StabilityLevel.CRITICAL, f"Expected CRITICAL, got {report.stability}"
     assert any(a.name == "ROLLBACK_SHADOW" for a in report.actions)
     assert any(a.name == "ISOLATE_BRANCH" for a in report.actions)
-    print("  T2 byzantine critical ✅")
+    log.info("  T2 byzantine critical ✅")
 
 
 def test_rcf_gcpl_stable_otl_unstable():
@@ -44,7 +48,7 @@ def test_rcf_gcpl_stable_otl_unstable():
     report = rcf.evaluate(model, observed, sensors, branches)
     assert report.stability == StabilityLevel.UNSTABLE, f"Expected UNSTABLE, got {report.stability}"
     assert any(a.name == "REWEIGHT_SENSORS" for a in report.actions)
-    print("  T3 gcpl stable/otl unstable ✅")
+    log.info("  T3 gcpl stable/otl unstable ✅")
 
 
 def test_rcf_gsl_safe_sensor_drift():
@@ -58,7 +62,7 @@ def test_rcf_gsl_safe_sensor_drift():
     report = rcf.evaluate(model, observed, sensors, branches)
     assert report.stability == StabilityLevel.UNSTABLE, f"Expected UNSTABLE, got {report.stability}"
     assert report.metrics["cross_layer_divergence"] > 0.1
-    print("  T4 gsl safe / sensor drift ✅")
+    log.info("  T4 gsl safe / sensor drift ✅")
 
 
 def test_rcf_high_branch_entropy_critical():
@@ -75,7 +79,7 @@ def test_rcf_high_branch_entropy_critical():
     assert report.stability == StabilityLevel.CRITICAL, f"Expected CRITICAL, got {report.stability}"
     assert any(a.name == "ISOLATE_BRANCH" for a in report.actions)
     assert report.metrics["branch_entropy"] > 0.5
-    print("  T5 high branch entropy ✅")
+    log.info("  T5 high branch entropy ✅")
 
 
 def test_rcf_all_consistent_stable_merge_allowed():
@@ -90,7 +94,7 @@ def test_rcf_all_consistent_stable_merge_allowed():
     assert report.stability == StabilityLevel.STABLE
     assert any(a.name == "ALLOW_GCPL_MERGE" for a in report.actions)
     assert any(a.name == "ALLOW_BRANCH_CONVERGENCE" for a in report.actions)
-    print("  T6 all consistent stable ✅")
+    log.info("  T6 all consistent stable ✅")
 
 
 def test_rcf_weights_sum_to_one():
@@ -100,7 +104,7 @@ def test_rcf_weights_sum_to_one():
         assert False, "Should have raised ValueError"
     except ValueError as e:
         assert "sum to 1" in str(e)
-        print("  T7 weight validation ✅")
+        log.info("  T7 weight validation ✅")
 
 
 def test_rcf_drift_vector_explainable():
@@ -116,7 +120,7 @@ def test_rcf_drift_vector_explainable():
     assert "model_vs_observed" in report.drift_vector
     assert "soundness_gap" in report.drift_vector
     assert "branch_entropy" in report.drift_vector
-    print("  T8 drift vector explainable ✅")
+    log.info("  T8 drift vector explainable ✅")
 
 
 def test_rcf_trust_variance_tracked():
@@ -130,7 +134,7 @@ def test_rcf_trust_variance_tracked():
     report = rcf.evaluate(model, observed, sensors, branches)
     assert "trust_weight_variance" in report.metrics
     assert report.metrics["trust_weight_variance"] > 0
-    print("  T9 trust variance tracked ✅")
+    log.info("  T9 trust variance tracked ✅")
 
 
 def test_rcf_boundary_45_stable():
@@ -144,7 +148,7 @@ def test_rcf_boundary_45_stable():
 
     report = rcf.evaluate(model, observed, sensors, branches)
     assert report.stability == StabilityLevel.STABLE, f"Expected STABLE, got {report.stability}"
-    print("  T10 boundary STABLE ✅")
+    log.info("  T10 boundary STABLE ✅")
 
 
 def test_rcf_boundary_44_unstable():
@@ -158,7 +162,7 @@ def test_rcf_boundary_44_unstable():
 
     report = rcf.evaluate(model, observed, sensors, branches)
     assert report.stability == StabilityLevel.UNSTABLE, f"Expected UNSTABLE, got {report.stability}"
-    print("  T11 boundary UNSTABLE ✅")
+    log.info("  T11 boundary UNSTABLE ✅")
 
 
 def test_rcf_consensus_score_clamped():
@@ -172,7 +176,7 @@ def test_rcf_consensus_score_clamped():
     report = rcf.evaluate(model, observed, sensors, branches)
     assert report.consensus_score == 0.0, "Negative inputs should clamp to 0"
     assert report.stability == StabilityLevel.CRITICAL
-    print("  T12 consensus clamped ✅")
+    log.info("  T12 consensus clamped ✅")
 
 
 if __name__ == "__main__":
@@ -193,5 +197,5 @@ if __name__ == "__main__":
         try:
             fn()
         except Exception as exc:
-            print(f"  ❌ {fn.__name__}: {exc}")
-    print("\n=== RCF v11.1: 12 tests ===")
+            log.info(f"  ❌ {fn.__name__}: {exc}")
+    log.info("\n=== RCF v11.1: 12 tests ===")

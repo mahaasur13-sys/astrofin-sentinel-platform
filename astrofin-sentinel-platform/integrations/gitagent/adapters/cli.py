@@ -12,6 +12,10 @@ from typing import Any
 
 from .mcp_adapter import MCPAdapter
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # =============================================================================
 # Agent Export/Import Functions
 # =============================================================================
@@ -210,19 +214,19 @@ def main():
 
     if args.command == "export-agent":
         result = export_agent(args.agent_name, args.output)
-        print(json.dumps(result, indent=2))
+        log.info(json.dumps(result, indent=2))
 
     elif args.command == "import-agent":
         result = import_agent(args.agent_file)
-        print(json.dumps(result, indent=2))
+        log.info(json.dumps(result, indent=2))
 
     elif args.command == "list-agents":
         agents = list_agents()
-        print(json.dumps(agents, indent=2))
+        log.info(json.dumps(agents, indent=2))
 
     elif args.command == "mcp-search":
         result = mcp_search_cli(args.query, args.category)
-        print(json.dumps(result, indent=2))
+        log.info(json.dumps(result, indent=2))
 
     elif args.command == "mcp-install":
         config = None
@@ -230,21 +234,21 @@ def main():
             with open(args.config) as f:
                 config = json.load(f)
         result = mcp_install_cli(args.server_name, config=config)
-        print(json.dumps(result, indent=2))
+        log.info(json.dumps(result, indent=2))
 
     elif args.command == "mcp-list":
-        print(json.dumps(mcp_list_cli(), indent=2))
+        log.info(json.dumps(mcp_list_cli(), indent=2))
 
     elif args.command == "mcp-list-tools":
-        print(json.dumps(mcp_tools_cli(), indent=2))
+        log.info(json.dumps(mcp_tools_cli(), indent=2))
 
     elif args.command == "mcp-call":
         arguments = json.loads(args.arguments)
         result = MCPAdapter().call_tool(args.connection_id, args.tool_name, arguments)
-        print(json.dumps(result, indent=2, ensure_ascii=False))
+        log.info(json.dumps(result, indent=2, ensure_ascii=False))
 
     elif args.command == "mcp-recommended":
-        print(json.dumps(MCPAdapter().get_recommended_servers(), indent=2))
+        log.info(json.dumps(MCPAdapter().get_recommended_servers(), indent=2))
 
 
 if __name__ == "__main__":

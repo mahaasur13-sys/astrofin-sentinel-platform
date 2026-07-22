@@ -8,6 +8,10 @@ import time
 
 import grpc
 
+import logging
+log = logging.getLogger(__name__)
+
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, REPO_ROOT)
 
@@ -75,7 +79,7 @@ class ClusterNode:
     def start(self):
         """Start all layers and background threads."""
         self.logger.info("node_start", peers=self.peers)
-        print(f"[NODE] {self.node_id} starting...")
+        log.info(f"[NODE] {self.node_id} starting...")
 
         # Boot layers
         self._init_layers()
@@ -96,7 +100,7 @@ class ClusterNode:
         self._sbs_thread.start()
 
         self.logger.info("node_ready")
-        print(f"[NODE] {self.node_id} READY — peers={self.peers}")
+        log.info(f"[NODE] {self.node_id} READY — peers={self.peers}")
 
     def _init_layers(self):
         self.logger.debug("init_layers")
@@ -126,7 +130,7 @@ class ClusterNode:
             if self.health.get(p) and self.health.get(p).state == NodeState.REACHABLE
         )
         self.logger.info("handshake_done", reachable_peers=reachable)
-        print(f"[NODE] {self.node_id} handshake: {reachable}/{len(self.peers)} reachable")
+        log.info(f"[NODE] {self.node_id} handshake: {reachable}/{len(self.peers)} reachable")
 
     def stop(self):
         self.logger.info("node_stop")
@@ -136,7 +140,7 @@ class ClusterNode:
         if self._sbs_thread:
             self._sbs_thread.join(timeout=2)
         self.rpc.stop()
-        print(f"[NODE] {self.node_id} stopped")
+        log.info(f"[NODE] {self.node_id} stopped")
 
     # ── Health ─────────────────────────────────────────────────────────────
 

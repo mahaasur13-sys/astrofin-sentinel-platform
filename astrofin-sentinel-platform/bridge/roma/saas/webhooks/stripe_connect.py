@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 """Stripe Connect integration — white-label revenue-share"""
-import time
 import json
+import logging
+import time
+
+log = logging.getLogger(__name__)
+
 
 CONFIG = {
     "mode": "stripe_connect_standard",
@@ -64,5 +68,5 @@ class AsyncWebhookQueue:
         return processed
 
 if __name__ == "__main__":
-    print("Stripe Connect: Ready for Standard/Custom accounts")
-    print(f"Config: {CONFIG}")
+    log.info("Stripe Connect: Ready for Standard/Custom accounts")
+    log.info(f"Config: {CONFIG}")

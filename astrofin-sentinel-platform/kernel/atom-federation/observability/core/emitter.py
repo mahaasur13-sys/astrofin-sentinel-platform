@@ -13,6 +13,10 @@ Wiring principle (Step 2.5):
 Usage:
   from observability.core import ObservabilityEmitter
 
+import logging
+log = logging.getLogger(__name__)
+
+
   emitter = ObservabilityEmitter(node_id="node-a", event_store_path="/tmp/events.db")
   emitter.emit(
       event_type="coherence.drift.detected",
@@ -20,7 +24,7 @@ Usage:
   )
 
   # Prometheus /metrics endpoint:
-  print(emitter.metrics.render_prometheus())
+  log.info(emitter.metrics.render_prometheus())
 
   # Replay:
   for event in emitter.replay_engine.replay():

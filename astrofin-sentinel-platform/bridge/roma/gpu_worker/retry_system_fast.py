@@ -1,8 +1,9 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
 import threading
 import time
 from collections import deque
+
+from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI()
 failed_queue = {}

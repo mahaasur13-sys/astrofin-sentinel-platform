@@ -15,6 +15,10 @@ from __future__ import annotations
 
 from enum import Enum, auto
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class GatewayState(Enum):
     S0  = auto()
@@ -142,9 +146,9 @@ LTL_DFA_MAP = {
 
 if __name__ == "__main__":
     dfa = GatewayDFA()
-    print("=" * 52)
-    print("  ExecutionGateway — DFA Verification")
-    print("=" * 52)
+    log.info("=" * 52)
+    log.info("  ExecutionGateway — DFA Verification")
+    log.info("=" * 52)
 
     # Normal path
     dfa.run([Event.REQUEST_IN,
@@ -152,26 +156,26 @@ if __name__ == "__main__":
               Event.G_PASS, Event.G_PASS, Event.G_PASS,
               Event.G_PASS, Event.G_PASS, Event.G_PASS,
               Event.G_PASS, Event.ACT_PASS])
-    print(f"  Normal: {dfa.current.name} accepting={dfa.accepting}")
-    print(f"  G(Exec->NonceLocked): {dfa.check_G_exec_nonce_locked()}")
-    print(f"  not EF(Replay&Exec): {dfa.check_no_replay_to_exec()}")
+    log.info(f"  Normal: {dfa.current.name} accepting={dfa.accepting}")
+    log.info(f"  G(Exec->NonceLocked): {dfa.check_G_exec_nonce_locked()}")
+    log.info(f"  not EF(Replay&Exec): {dfa.check_no_replay_to_exec()}")
 
     # Block at G3
     dfa.reset()
     dfa.step(Event.REQUEST_IN)
     dfa.step(Event.G_PASS)
     dfa.step(Event.G_BLOCK)
-    print(f"\n  Block: {dfa.current.name} rejecting={dfa.rejecting}")
+    log.info(f"\n  Block: {dfa.current.name} rejecting={dfa.rejecting}")
 
     # Replay blocked
     dfa.reset()
     dfa.step(Event.REQUEST_IN)
     dfa.step(Event.G_BLOCK)
-    print(f"  Replay: {dfa.current.name} rejecting={dfa.rejecting}")
+    log.info(f"  Replay: {dfa.current.name} rejecting={dfa.rejecting}")
 
-    print(f"\n{'=' * 52}")
-    print("  LTL -> DFA Properties")
-    print("=" * 52)
+    log.info(f"\n{'=' * 52}")
+    log.info("  LTL -> DFA Properties")
+    log.info("=" * 52)
     for prop, info in LTL_DFA_MAP.items():
-        print(f"  [{'PASS' if info['holds'] else 'FAIL'}] {prop}")
-        print(f"         DFA: {info['dfa']}")
+        log.info(f"  [{'PASS' if info['holds'] else 'FAIL'}] {prop}")
+        log.info(f"         DFA: {info['dfa']}")

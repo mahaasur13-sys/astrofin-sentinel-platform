@@ -1,7 +1,11 @@
 """ROMA SaaS Pricing Engine — Dynamic GPU compute pricing."""
+import logging
 from dataclasses import dataclass
-from typing import Dict, Any
 from enum import Enum
+from typing import Any, Dict
+
+log = logging.getLogger(__name__)
+
 
 class PricingTier(str, Enum):
     FREE = "free"; PRO = "pro"; ENTERPRISE = "enterprise"
@@ -95,27 +99,27 @@ class ProfitCalculator:
 if __name__ == "__main__":
     pe = PricingEngine()
     pc = ProfitCalculator()
-    print("=== ROMA GPU Pricing ===\n")
-    print("-- GPU Sell Rates --")
+    log.info("=== ROMA GPU Pricing ===\n")
+    log.info("-- GPU Sell Rates --")
     for g, rate in GPU_RATES.items():
         cost = GPU_COST[g]
         m = (rate-cost)/rate*100
-        print(f"  {g:8s}: sell=${rate*3600:.2f}/hr | cost=${cost*3600:.2f}/hr | GPM={m:.0f}%")
-    print("\n-- Tier Impact (RTX4090, 1hr) --")
+        log.info(f"  {g:8s}: sell=${rate*3600:.2f}/hr | cost=${cost*3600:.2f}/hr | GPM={m:.0f}%")
+    log.info("\n-- Tier Impact (RTX4090, 1hr) --")
     for t in ["free","pro","enterprise"]:
         q = pe.quote(3600, "RTX4090", t)
-        print(f"  {t:12s}: {q.estimated_hours:.1f}hr = ${q.total_cost:.4f} | quota={q.breakdown['monthly_quota_hrs']}hr")
-    print("\n-- Load Impact (RTX4090, 1hr) --")
+        log.info(f"  {t:12s}: {q.estimated_hours:.1f}hr = ${q.total_cost:.4f} | quota={q.breakdown['monthly_quota_hrs']}hr")
+    log.info("\n-- Load Impact (RTX4090, 1hr) --")
     for lbl, lv in [("idle",0.1),("normal",0.5),("peak",0.85),("saturated",0.97)]:
         q = pe.quote(3600, "RTX4090", cluster_load=lv)
-        print(f"  {lbl:12s}: ${q.total_cost:.4f} (×{q.load_mult})")
-    print("\n-- Profitability (RTX4090, 10hr = 36000s) --")
+        log.info(f"  {lbl:12s}: ${q.total_cost:.4f} (×{q.load_mult})")
+    log.info("\n-- Profitability (RTX4090, 10hr = 36000s) --")
     for g in ["RTX3060","RTX4090","A100","H100"]:
         q = pe.quote(36000, g)
         m = pc.margin(q)
-        print(f"  {g:8s}: rev=${m['revenue']:.4f} | cost=${m['cost']:.4f} | profit=${m['profit']:.4f} | GPM={m['GPM']:.1f}% | markup={m['markup']}×")
-    print("\n-- Full Quote Example (A100 PRO, 2hr, peak load) --")
+        log.info(f"  {g:8s}: rev=${m['revenue']:.4f} | cost=${m['cost']:.4f} | profit=${m['profit']:.4f} | GPM={m['GPM']:.1f}% | markup={m['markup']}×")
+    log.info("\n-- Full Quote Example (A100 PRO, 2hr, peak load) --")
     q = pe.quote(7200, "A100", "pro", cluster_load=0.85)
     m = pc.margin(q)
-    print(f"  Cost: ${q.total_cost:.4f} | Profit: ${m['profit']:.4f} | GPM={m['GPM']:.1f}%")
-    print(f"  Breakdown: ${q.breakdown['gpu_rate']}/s × {q.breakdown['tier_mult']} × {q.breakdown['load_mult']} = ${q.breakdown['gpu_per_hour']:.4f}/hr")
+    log.info(f"  Cost: ${q.total_cost:.4f} | Profit: ${m['profit']:.4f} | GPM={m['GPM']:.1f}%")
+    log.info(f"  Breakdown: ${q.breakdown['gpu_rate']}/s × {q.breakdown['tier_mult']} × {q.breakdown['load_mult']} = ${q.breakdown['gpu_per_hour']:.4f}/hr")

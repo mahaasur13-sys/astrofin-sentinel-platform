@@ -1,12 +1,16 @@
 """saas.email.service — EmailService with template rendering + real sending."""
 from __future__ import annotations
 
+import logging
 import smtplib
 import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum
 from typing import Any
+
+log = logging.getLogger(__name__)
+
 
 try:
     import jinja2
@@ -150,7 +154,7 @@ class EmailService:
                 server.sendmail(self.cfg.from_email, [to_email], msg.as_string())
             return True
         except Exception as e:
-            print(f"[EmailService] SMTP error: {e}", file=sys.stderr)
+            log.info(f"[EmailService] SMTP error: {e}", file=sys.stderr)
             return False
 
     def _send_sendgrid(self, to_email: str, subject: str, html_body: str) -> bool:
@@ -164,7 +168,7 @@ class EmailService:
             )
             return resp.status_code in (200, 202)
         except Exception as e:
-            print(f"[EmailService] SendGrid error: {e}", file=sys.stderr)
+            log.info(f"[EmailService] SendGrid error: {e}", file=sys.stderr)
             return False
 
     def _send_resend(self, to_email: str, subject: str, html_body: str) -> bool:
@@ -178,12 +182,12 @@ class EmailService:
             )
             return resp.status_code in (200, 201)
         except Exception as e:
-            print(f"[EmailService] Resend error: {e}", file=sys.stderr)
+            log.info(f"[EmailService] Resend error: {e}", file=sys.stderr)
             return False
 
     def send(self, to_email: str, subject: str, html_body: str) -> bool:
         if self.cfg.provider == EmailProvider.CONSOLE:
-            print(f"\n{'='*60}\n[EmailService] CONSOLE — would send:\n  To: {to_email}\n  Subject: {subject}\n  Body: {html_body[:200]}...\n{'='*60}\n")
+            log.info(f"\n{'='*60}\n[EmailService] CONSOLE — would send:\n  To: {to_email}\n  Subject: {subject}\n  Body: {html_body[:200]}...\n{'='*60}\n")
             return True
         if self.cfg.provider == EmailProvider.SMTP:
             return self._send_smtp(to_email, self._build_smtp_message(to_email, subject, html_body))
@@ -214,4 +218,4 @@ if __name__ == "__main__":
     svc = EmailService()
     brand = {"app_name": "VEGA Cloud", "primary_color": "#E53935"}
     r = svc.send_welcome("ops@vega.kz", "VEGA Cloud", "vk_live_abc123xyz", brand)
-    print(f"Welcome email: {'OK' if r else 'FAILED'}")
+    log.info(f"Welcome email: {'OK' if r else 'FAILED'}")

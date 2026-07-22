@@ -18,9 +18,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import re
 import sys
 from pathlib import Path
+
+log = logging.getLogger(__name__)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_KNOWN_ISSUES = REPO_ROOT / "docs" / "KNOWN_ISSUES.md"
@@ -92,7 +96,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if not args.path.exists():
-        print(f"ERROR: {args.path} not found", file=sys.stderr)
+        log.info(f"ERROR: {args.path} not found", file=sys.stderr)
         return 1
 
     text = args.path.read_text(encoding="utf-8")
@@ -101,11 +105,11 @@ def main() -> int:
     if args.summary:
         total = len(entries)
         with_paths = sum(1 for e in entries if e["paths"])
-        print(f"KNOWN_ISSUES: {total} entries ({with_paths} with affected paths)")
+        log.info(f"KNOWN_ISSUES: {total} entries ({with_paths} with affected paths)")
         return 0
 
     json.dump(entries, sys.stdout, indent=2, ensure_ascii=False)
-    print()
+    log.info()
     return 0
 
 

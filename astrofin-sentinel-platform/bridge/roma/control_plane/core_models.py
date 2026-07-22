@@ -1,8 +1,9 @@
 """ROMA Control Plane — Core Models"""
 import time
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
 from enum import Enum
+from typing import Any, Dict, Optional
+
 
 class WorkerStatus(str, Enum):
     HEALTHY = "HEALTHY"; DEGRADED = "DEGRADED"; DEAD = "DEAD"; UNKNOWN = "UNKNOWN"

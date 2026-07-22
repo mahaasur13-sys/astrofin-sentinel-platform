@@ -7,6 +7,10 @@ from typing import Any
 
 import yaml
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class Severity(Enum):
     ERROR = "ERROR"
@@ -163,9 +167,9 @@ class AgentYamlValidator:
         return report
 
     def print_report(self, report: ValidationReport) -> None:
-        print(
+        log.info(
             f"Total: {report.total}, Passed: {report.passed}, Failed: {report.failed}, Warnings: {report.warning_count}"
         )
         for result in report.results:
             status = "PASS" if result.valid else "FAIL"
-            print(f"{status}: {result.file_path}")
+            log.info(f"{status}: {result.file_path}")

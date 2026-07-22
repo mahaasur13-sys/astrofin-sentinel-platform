@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """ROMA Billing Ledger — append-only ledger of all billing state changes."""
-from typing import Optional
-import time
 import json
+import logging
+import time
+from typing import Optional
+
+log = logging.getLogger(__name__)
+
 
 class BillingLedger:
     """Append-only ledger — every billing event is recorded, never mutated."""
@@ -91,10 +95,10 @@ def simulate_ledger() -> None:
     ledger.debit("tenant-abc", 3.20, metadata={"description": "GPU usage 2h @ $0.0016/sec"})
     ledger.debit("tenant-abc", 0.60, metadata={"description": "plugin execution 1 unit"})
     ledger.debit("tenant-xyz", 1.00, metadata={"description": "FREE tier GPU usage"})
-    print("Tenant ABC balance:", f"${ledger.get_tenant_balance('tenant-abc'):.2f}")
-    print("Tenant XYZ balance:", f"${ledger.get_tenant_balance('tenant-xyz'):.2f}")
+    log.info("Tenant ABC balance:", f"${ledger.get_tenant_balance('tenant-abc'):.2f}")
+    log.info("Tenant XYZ balance:", f"${ledger.get_tenant_balance('tenant-xyz'):.2f}")
     summary = ledger.ledger_summary()
-    print("Summary:", json.dumps(summary, indent=2))
+    log.info("Summary:", json.dumps(summary, indent=2))
 
 if __name__ == "__main__":
     simulate_ledger()

@@ -12,6 +12,10 @@ import statistics
 import time
 from dataclasses import dataclass
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class DriftSample:
@@ -105,11 +109,11 @@ class StateDriftScenario:
 
 
 def run():
-    print("[STATE DRIFT] Starting scenario...")
+    log.info("[STATE DRIFT] Starting scenario...")
     s = StateDriftScenario()
     r = s.simulate()
-    print(f"Failure detected: {r['failure_detected']}")
-    print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
+    log.info(f"Failure detected: {r['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
 
 

@@ -46,7 +46,7 @@ def welch_t_test(a, b):
         df = num / max(df_a + df_b, 1e-12)
         p_value = 2.0 * (1.0 - t_dist.cdf(abs(t_stat), df))
     except Exception:
-        pass
+        log.warning("A/B testing setup failed", exc_info=True)
     return float(t_stat), float(p_value)
 
 

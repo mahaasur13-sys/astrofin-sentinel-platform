@@ -326,12 +326,12 @@ def evolve(
         history.append(best_ever[1])
 
         if gen % 5 == 0 or gen == n_generations or pop.avg_fitness == pop.best[1]:
-            print(
+            log.info(
                 f"  Gen {gen:3d}: avg={pop.avg_fitness:8.2f}  best={pop.best[1]:8.2f}  "
                 f"spread={max(pop.fitnesses) - min(pop.fitnesses):8.2f}"
             )
 
-    print(f"\n  Best strategy fitness: {best_ever[1]:.2f}")
+    log.info(f"\n  Best strategy fitness: {best_ever[1]:.2f}")
     return [
         s
         for s, f in sorted(
@@ -466,10 +466,10 @@ def run_meta_rl(
     n_generations: int = 25, population_size: int = 20
 ) -> list[GeneratedStrategy]:
     """Run the full Meta-RL pipeline."""
-    print("=" * 60)
-    print("ATOM-STEP-11: META-RL AUTO-STRATEGY")
-    print("=" * 60)
-    print(f"  Population: {population_size}  Generations: {n_generations}")
+    log.info("=" * 60)
+    log.info("ATOM-STEP-11: META-RL AUTO-STRATEGY")
+    log.info("=" * 60)
+    log.info(f"  Population: {population_size}  Generations: {n_generations}")
 
     population = [
         GeneratedStrategy(random_chromosome()) for _ in range(population_size)
@@ -479,13 +479,13 @@ def run_meta_rl(
     def fitness_fn(s):
         return fitness_from_backtest(s, history)
 
-    print("\n  Evolving strategies...\n")
+    log.info("\n  Evolving strategies...\n")
     best_strategies = evolve(population, fitness_fn, n_generations, population_size)
 
-    print("\n  Top 3 strategies:")
+    log.info("\n  Top 3 strategies:")
     for i, s in enumerate(best_strategies[:3], 1):
         c = s.chromosome
-        print(
+        log.info(
             f"    {i}. Fitness={s.fitness:.2f} | "
             f"conf={c['confidence_threshold']:.0f} pos={c['position_size_pct']:.0f}% "
             f"regime={c['regime_filter']} atr={c['atr_multiplier']:.1f} "
@@ -497,4 +497,4 @@ def run_meta_rl(
 
 if __name__ == "__main__":
     top = run_meta_rl(n_generations=25, population_size=20)
-    print(f"\n  Saved {len(top)} strategies to strategies/")
+    log.info(f"\n  Saved {len(top)} strategies to strategies/")

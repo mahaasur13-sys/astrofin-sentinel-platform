@@ -3,10 +3,14 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Union
 
 import yaml
+
+log = logging.getLogger(__name__)
+
 
 AGENTS = {
     "bull_researcher": {
@@ -564,7 +568,7 @@ def generate_tools_py(agent: dict) -> str:
 
 def export_agent(agent_key: str, output_dir: Union[str, Path]) -> bool:
     if agent_key not in AGENTS:
-        print(f" ❌ Unknown agent: {agent_key}")
+        log.info(f" ❌ Unknown agent: {agent_key}")
         return False
     out_path = Path(output_dir)
     agent = AGENTS[agent_key]
@@ -579,7 +583,7 @@ def export_agent(agent_key: str, output_dir: Union[str, Path]) -> bool:
     }
     for filename, content in files.items():
         (pkg_dir / filename).write_text(content)
-    print(
+    log.info(
         f" ✅ {agent['name']}: agent.yaml, prompt.md, schema.py, tests.yaml, tools.py"
     )
     return True
@@ -611,13 +615,13 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     if args.all:
-        print("📦 Exporting all agents...")
+        log.info("📦 Exporting all agents...")
         results = export_all(args.output)
-        print(f"\n✅ Exported: {len(results['success'])}/{len(AGENTS)}")
+        log.info(f"\n✅ Exported: {len(results['success'])}/{len(AGENTS)}")
     elif args.agent:
         export_agent(args.agent, args.output)
     else:
         parser.print_help()
-        print(f"\nAvailable agents ({len(AGENTS)}):")
+        log.info(f"\nAvailable agents ({len(AGENTS)}):")
         for key in sorted(AGENTS):
-            print(f" - {key} ({AGENTS[key]['name']})")
+            log.info(f" - {key} ({AGENTS[key]['name']})")

@@ -31,6 +31,10 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class FeedbackRegime(Enum):
     """Operating regime of the trust-feedback loop."""
@@ -263,36 +267,36 @@ def _test_trust_feedback_dampener():
     r1 = dampener.update_trust("node_A", 0.85, outcome_signal=1.0)
     assert 0.85 < r1.new_trust <= 0.95, f"Expected slight increase, got {r1.new_trust}"
     assert r1.regime in (FeedbackRegime.STABLE, FeedbackRegime.DAMPED)
-    print(f"✅ Case 1: trust 0.85 → {r1.new_trust:.4f}, delta={r1.delta:+.4f}, regime={r1.regime.name}")
+    log.info(f"✅ Case 1: trust 0.85 → {r1.new_trust:.4f}, delta={r1.delta:+.4f}, regime={r1.regime.name}")
 
     # Case 2: low-trust node on rejected consensus → trust drops
     r2 = dampener.update_trust("node_B", 0.40, outcome_signal=-1.0)
     assert r2.new_trust < 0.40, f"Expected drop, got {r2.new_trust}"
-    print(f"✅ Case 2: trust 0.40 → {r2.new_trust:.4f}, delta={r2.delta:+.4f}")
+    log.info(f"✅ Case 2: trust 0.40 → {r2.new_trust:.4f}, delta={r2.delta:+.4f}")
 
     # Case 3: anti-monopoly delta cap
     dampener3 = TrustFeedbackDampener(DampenerConfig(max_trust_delta=0.05))
     r3 = dampener3.update_trust("node_C", 0.50, outcome_signal=1.0)
     assert abs(r3.delta) <= 0.05 + 1e-9, f"Delta {r3.delta} exceeds cap 0.05"
     assert r3.clamped is True
-    print(f"✅ Case 3: delta cap active, clamped={r3.clamped}, delta={r3.delta:+.4f}")
+    log.info(f"✅ Case 3: delta cap active, clamped={r3.clamped}, delta={r3.delta:+.4f}")
 
     # Case 4: trust ceiling enforced
     dampener4 = TrustFeedbackDampener(DampenerConfig(trust_ceiling=0.90))
     r4 = dampener4.update_trust("node_D", 0.88, outcome_signal=1.0)
     assert r4.new_trust <= 0.90, f"Capped at ceiling, got {r4.new_trust}"
-    print(f"✅ Case 4: ceiling enforced: {r4.new_trust:.4f} ≤ 0.90")
+    log.info(f"✅ Case 4: ceiling enforced: {r4.new_trust:.4f} ≤ 0.90")
 
     # Case 5: trust floor enforced
     r5 = dampener4.update_trust("node_E", 0.08, outcome_signal=-1.0)
     assert r5.new_trust >= 0.05, f"Floor broken, got {r5.new_trust}"
-    print(f"✅ Case 5: floor enforced: {r5.new_trust:.4f} ≥ 0.05")
+    log.info(f"✅ Case 5: floor enforced: {r5.new_trust:.4f} ≥ 0.05")
 
     # Case 6: decay pulls inactive node toward base_trust
     dampener6 = TrustFeedbackDampener(DampenerConfig(alpha=0.95, decay_rate=0.10, base_trust=0.30))
     r6 = dampener6.update_trust("node_F", 0.70, outcome_signal=0.0)  # no consensus signal
     assert r6.new_trust < 0.70, f"Decay should reduce high trust, got {r6.new_trust}"
-    print(f"✅ Case 6: decay pulls 0.70 → {r6.new_trust:.4f} toward base 0.30")
+    log.info(f"✅ Case 6: decay pulls 0.70 → {r6.new_trust:.4f} toward base 0.30")
 
     # Case 7: outcome_signal → normalized signal
     signal_high = dampener.compute_outcome_signal(consensus_accepted=True, confidence=1.0)
@@ -301,7 +305,7 @@ def _test_trust_feedback_dampener():
     assert abs(signal_low - 0.0) < 1e-6
     signal_reject = dampener.compute_outcome_signal(consensus_accepted=False, confidence=1.0)
     assert abs(signal_reject - (-1.0)) < 1e-6
-    print(f"✅ Case 7: signal mapping — high_accept={signal_high:.1f}, low={signal_low:.1f}, reject={signal_reject:.1f}")
+    log.info(f"✅ Case 7: signal mapping — high_accept={signal_high:.1f}, low={signal_low:.1f}, reject={signal_reject:.1f}")
 
     # Case 8: batch update
     results = dampener.batch_update(
@@ -312,9 +316,9 @@ def _test_trust_feedback_dampener():
     assert len(results) == 3
     for r in results:
         assert 0.0 < r.new_trust < 1.0
-    print("✅ Case 8: batch_update 3 nodes, all updated")
+    log.info("✅ Case 8: batch_update 3 nodes, all updated")
 
-    print("\n✅ v9.7 TrustFeedbackDampener — all checks passed")
+    log.info("\n✅ v9.7 TrustFeedbackDampener — all checks passed")
 
 
 if __name__ == "__main__":

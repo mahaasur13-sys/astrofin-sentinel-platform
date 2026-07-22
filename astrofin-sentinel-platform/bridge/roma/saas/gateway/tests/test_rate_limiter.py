@@ -1,6 +1,8 @@
 """Tests for rate_limiter.py."""
-import pytest
 import asyncio
+
+import pytest
+
 from saas.gateway.rate_limiter import TokenBucket
 
 
@@ -49,6 +51,7 @@ class TestRateLimitWithMockedRequest:
         _buckets.clear()
 
         from unittest.mock import MagicMock
+
         from fastapi import Request
 
         mock_request = MagicMock(spec=Request)
@@ -65,9 +68,11 @@ class TestRateLimitWithMockedRequest:
 
     @pytest.mark.asyncio
     async def test_rejects_over_burst(self):
-        from saas.gateway.rate_limiter import _buckets
         from unittest.mock import MagicMock
+
         from fastapi import Request
+
+        from saas.gateway.rate_limiter import _buckets
 
         _buckets.clear()
 

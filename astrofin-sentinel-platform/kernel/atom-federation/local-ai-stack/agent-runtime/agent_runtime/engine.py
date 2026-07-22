@@ -22,6 +22,10 @@ from .dag_recorder import DAGRecorder, StepStatus
 from .event_sourcing import EventType, TaskEvent
 from .event_store import EventStore
 from .resilience import (
+
+import logging
+log = logging.getLogger(__name__)
+
     CircuitBreakerRegistry,
     CircuitOpenError,
     FailureKind,
@@ -428,5 +432,5 @@ async def worker_loop():
             await asyncio.sleep(0.1)
 
         except Exception as e:
-            print(f"worker error: {e}")
+            log.info(f"worker error: {e}")
             await asyncio.sleep(5)

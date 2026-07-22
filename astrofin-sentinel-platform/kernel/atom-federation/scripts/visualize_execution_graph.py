@@ -17,6 +17,10 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── Data Structures ───────────────────────────────────────────────────────────
 
 @dataclass
@@ -308,9 +312,9 @@ def main():
     # Write
     if args.output:
         Path(args.output).write_text(output)
-        print(f'Written to {args.output}')
+        log.info(f'Written to {args.output}')
     else:
-        print(output)
+        log.info(output)
 
 
 if __name__ == '__main__':

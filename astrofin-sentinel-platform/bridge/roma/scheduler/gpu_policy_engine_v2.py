@@ -14,10 +14,14 @@
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass
-from typing import Optional, Dict, List
 from enum import Enum
+from typing import Dict, List, Optional
+
+log = logging.getLogger(__name__)
+
 
 
 # ============================================================================
@@ -312,18 +316,18 @@ if __name__ == '__main__':
 
     # Test scheduling
     result = engine.schedule('job-001', priority=5, vram_requested_gb=4.0)
-    print(f'Job 001: {result.decision.value} → node={result.assigned_node}, batch={result.auto_batch_size}')
+    log.info(f'Job 001: {result.decision.value} → node={result.assigned_node}, batch={result.auto_batch_size}')
 
     result = engine.schedule('job-002', priority=8, vram_requested_gb=6.0)
-    print(f'Job 002: {result.decision.value} → node={result.assigned_node}')
+    log.info(f'Job 002: {result.decision.value} → node={result.assigned_node}')
 
     result = engine.schedule('job-003', priority=3, vram_requested_gb=4.0)
-    print(f'Job 003: {result.decision.value} → queue_pos={result.queue_position}, wait={result.wait_estimate_seconds}s')
+    log.info(f'Job 003: {result.decision.value} → queue_pos={result.queue_position}, wait={result.wait_estimate_seconds}s')
 
     import json
-    print(json.dumps(engine.get_status(), indent=2))
+    log.info(json.dumps(engine.get_status(), indent=2))
 
     # Release
     engine.release_job('job-001', 'gpu-node-1')
-    print('Released job-001')
-    print(json.dumps(engine.get_status(), indent=2))
+    log.info('Released job-001')
+    log.info(json.dumps(engine.get_status(), indent=2))

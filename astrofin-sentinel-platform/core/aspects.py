@@ -11,10 +11,14 @@ AspectReport objects.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
 
 from core.ephemeris import PlanetPosition
+
+log = logging.getLogger(__name__)
+
 
 # ── Aspect types ──────────────────────────────────────────────────────────────
 
@@ -366,7 +370,7 @@ def calculate_aspects(
     >>> pos = get_planetary_positions(datetime(2026, 3, 26))
     >>> report = calculate_aspects(pos)
     >>> for a in report.aspects:
-    ...     print(a.signature, a.orb, "°")
+    ...     log.info(a.signature, a.orb, "°")
     """
     engine = AspectsEngine(include_minor=include_minor)
     return engine.compute(positions, planets)

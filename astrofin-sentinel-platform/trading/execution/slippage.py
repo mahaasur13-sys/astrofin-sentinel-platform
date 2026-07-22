@@ -5,6 +5,10 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class SlippageResult:
@@ -176,16 +180,16 @@ class AdaptiveSlippageModel:
 
 
 if __name__ == "__main__":
-    print("=== SlippageModel (fixed) ===")
+    log.info("=== SlippageModel (fixed) ===")
     m = SlippageModel(slippage_bps=5, spread_bps=2.5)
     for side, qty in [("buy", 100), ("sell", 100)]:
         r = m.calculate(side, qty, 50000)
-        print(
+        log.info(
             f"  {side.upper()} {qty} units: {r.slippage_bps:.2f}bps, "
             f"cost=${r.slippage_cost:.2f}, exec=${r.exec_price:.2f}"
         )
 
-    print("\n=== AdaptiveSlippageModel ===")
+    log.info("\n=== AdaptiveSlippageModel ===")
     a = AdaptiveSlippageModel()
     for regime, vol, qty in [
         ("low", 30, 500),
@@ -194,7 +198,7 @@ if __name__ == "__main__":
         ("extreme", 500, 500),
     ]:
         r = a.calculate("buy", qty, 50000, volatility_bps=vol, market_regime=regime)
-        print(
+        log.info(
             f"  [{regime.upper():8s}] vol={vol:4d}bps, qty={qty}: "
             f"{r.slippage_bps:.2f}bps, cost=${r.slippage_cost:.2f}, "
             f"exec=${r.exec_price:.2f}"

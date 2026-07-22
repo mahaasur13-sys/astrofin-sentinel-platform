@@ -38,6 +38,10 @@ from dataclasses import dataclass
 
 from federation.trust.trust_vector import TrustDelta, TrustEntry, TrustVector
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class MergeDecision:
@@ -294,7 +298,7 @@ def _test_ledger_reconciliation():
     assert set(merged.keys()) == {"h1", "h2"}
     assert merged.get("h1").trust_score == 0.9
     assert merged.get("h2").ledger_version == 3
-    print("✅ merge: identical vectors → identical output (deterministic)")
+    log.info("✅ merge: identical vectors → identical output (deterministic)")
 
     # ── conflict: remote newer (higher ledger_version) ───────────────
     local = TrustVector()
@@ -307,7 +311,7 @@ def _test_ledger_reconciliation():
     # remote should win (ledger_version 5 > 3)
     assert merged.get("h_conflict").ledger_version == 5
     assert merged.get("h_conflict").trust_score == 0.85
-    print("✅ merge: higher ledger_version wins → remote")
+    log.info("✅ merge: higher ledger_version wins → remote")
 
     # ── conflict: equal version, higher trust_score wins ───────────
     local = TrustVector()
@@ -318,7 +322,7 @@ def _test_ledger_reconciliation():
 
     merged = reconciler.merge(local, remote)
     assert merged.get("h_score").trust_score == 0.9
-    print("✅ merge: equal version, higher trust_score wins → remote")
+    log.info("✅ merge: equal version, higher trust_score wins → remote")
 
     # ── conflict: equal version + equal score, later timestamp ──────
     local = TrustVector()
@@ -329,7 +333,7 @@ def _test_ledger_reconciliation():
 
     merged = reconciler.merge(local, remote)
     assert merged.get("h_time").timestamp == 1002.0
-    print("✅ merge: equal version + score, later timestamp wins → remote")
+    log.info("✅ merge: equal version + score, later timestamp wins → remote")
 
     # ── asymmetric keys: only in one side ───────────────────────────
     local = TrustVector()
@@ -344,20 +348,20 @@ def _test_ledger_reconciliation():
     assert "local_only" in merged
     assert "remote_only" in merged
     assert "shared" in merged
-    print("✅ merge: asymmetric keys preserved from both sides")
+    log.info("✅ merge: asymmetric keys preserved from both sides")
 
     # ── conflict_report ─────────────────────────────────────────────
     cr = reconciler.conflict_report(local, remote)
     assert not cr.has_conflicts(), "identical shared → no conflict"
     assert set(cr.local_only) == {"local_only"}
     assert set(cr.remote_only) == {"remote_only"}
-    print("✅ conflict_report: asymmetric keys detected")
+    log.info("✅ conflict_report: asymmetric keys detected")
 
     # ── deterministic: same inputs → same output ─────────────────────
     for _ in range(3):
         merged_again = reconciler.merge(local, remote)
         assert merged.get("shared").ledger_version == merged_again.get("shared").ledger_version
-    print("✅ merge: deterministic (3 consecutive runs, same result)")
+    log.info("✅ merge: deterministic (3 consecutive runs, same result)")
 
     # ── apply_delta ─────────────────────────────────────────────────
     base = TrustVector()
@@ -373,9 +377,9 @@ def _test_ledger_reconciliation():
     actual_delta = base.delta(v1)
     applied = reconciler.apply_delta(v1, actual_delta)
     assert applied.get("base_h").trust_score == 0.9
-    print("✅ apply_delta: updates trust correctly")
+    log.info("✅ apply_delta: updates trust correctly")
 
-    print("\n✅ v9.5 LedgerReconciliation — all checks passed")
+    log.info("\n✅ v9.5 LedgerReconciliation — all checks passed")
 
 
 if __name__ == "__main__":

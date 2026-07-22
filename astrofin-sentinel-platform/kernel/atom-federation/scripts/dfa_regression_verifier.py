@@ -20,6 +20,10 @@ import json
 import pathlib
 import sys
 
+import logging
+log = logging.getLogger(__name__)
+
+
 REPO = pathlib.Path(__file__).parent.parent
 SPEC_CSV = REPO / "formal_model" / "transition_table.csv"
 GW_PATH = REPO / "orchestration" / "ExecutionGateway" / "execution_gateway.py"
@@ -227,32 +231,32 @@ def generate_report(delta: dict, hidden: list, ltl: dict) -> dict:
         "ltl_check": ltl,
     }
 
-    print("DFA REGRESSION REPORT")
-    print("-" * 52)
-    print(f"  SPEC transitions:    {delta['spec_count']}")
-    print(f"  RUNTIME transitions:  {delta['runtime_count']}")
-    print(f"  Missing:              {delta['missing_count']}")
-    print(f"  Extra:                {delta['extra_count']}")
-    print(f"  Invalid states:       {len(delta['invalid_states'])}")
-    print(f"  Hidden entry points:  {len(hidden)} (HIGH: {sum(1 for h in hidden if h['severity']=='HIGH')})")
+    log.info("DFA REGRESSION REPORT")
+    log.info("-" * 52)
+    log.info(f"  SPEC transitions:    {delta['spec_count']}")
+    log.info(f"  RUNTIME transitions:  {delta['runtime_count']}")
+    log.info(f"  Missing:              {delta['missing_count']}")
+    log.info(f"  Extra:                {delta['extra_count']}")
+    log.info(f"  Invalid states:       {len(delta['invalid_states'])}")
+    log.info(f"  Hidden entry points:  {len(hidden)} (HIGH: {sum(1 for h in hidden if h['severity']=='HIGH')})")
     ltl_fails = [k for k, v in ltl.items() if v is False]
-    print(f"  LTL violations:       {len(ltl_fails)}: {ltl_fails}")
-    print()
+    log.info(f"  LTL violations:       {len(ltl_fails)}: {ltl_fails}")
+    log.info()
     if result == "PASS":
-        print("  RESULT: PASS ✅")
+        log.info("  RESULT: PASS ✅")
     else:
-        print("  RESULT: FAIL ❌")
+        log.info("  RESULT: FAIL ❌")
         if delta["missing_count"] > 0:
-            print(f"    Missing: {[t['key'] for t in delta['missing_transitions'][:3]]}")
+            log.info(f"    Missing: {[t['key'] for t in delta['missing_transitions'][:3]]}")
         if delta["extra_count"] > 0:
-            print(f"    Extra: {[t['key'] for t in delta['extra_transitions'][:3]]}")
+            log.info(f"    Extra: {[t['key'] for t in delta['extra_transitions'][:3]]}")
         if delta["invalid_states"]:
-            print(f"    Invalid states: {delta['invalid_states']}")
+            log.info(f"    Invalid states: {delta['invalid_states']}")
         hp = [h for h in hidden if h["severity"] == "HIGH"]
         if hp:
-            print(f"    Hidden entry points: {hp}")
+            log.info(f"    Hidden entry points: {hp}")
         if ltl_fails:
-            print(f"    LTL violations: {ltl_fails}")
+            log.info(f"    LTL violations: {ltl_fails}")
 
     return report
 
@@ -276,7 +280,7 @@ def main() -> int:
 
     with open(args.output, "w") as f:
         json.dump(report, f, indent=2, default=str)
-    print(f"\n  Report: {args.output}")
+    log.info(f"\n  Report: {args.output}")
     return 0 if report["result"] == "PASS" else 1
 
 if __name__ == "__main__":

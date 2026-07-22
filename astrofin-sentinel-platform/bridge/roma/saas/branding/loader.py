@@ -3,8 +3,9 @@ saas/branding/loader.py
 """
 import json
 from pathlib import Path
-from .models import TenantBranding
+
 from .cache import branding_cache
+from .models import TenantBranding
 
 BRANDING_DIR = Path(__file__).parent
 

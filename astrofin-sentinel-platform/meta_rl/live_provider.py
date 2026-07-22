@@ -215,7 +215,7 @@ class CCXTLiveProvider:
                 elif abs(change_pct) > 3.0:
                     return "VOLATILE"
         except Exception:
-            pass
+            log.warning("Live provider data fetch failed", exc_info=True)
         return "NEUTRAL"
 
     def _sandbox_snapshot(

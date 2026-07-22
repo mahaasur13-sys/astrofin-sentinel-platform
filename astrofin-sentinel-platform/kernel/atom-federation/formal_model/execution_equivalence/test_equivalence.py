@@ -3,6 +3,10 @@
 import sys
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, str(Path(__file__).parent))
 from trace_normalizer import (
     compare_execution_traces,
@@ -100,24 +104,24 @@ def test_complex_federation_trace():
     assert result.equivalent
 
 def main() -> int:
-    print("══════════════════════════════════════════════")
-    print("  P7.1 — EG = FEG Execution Equivalence")
-    print("══════════════════════════════════════════════")
+    log.info("══════════════════════════════════════════════")
+    log.info("  P7.1 — EG = FEG Execution Equivalence")
+    log.info("══════════════════════════════════════════════")
     passed = 0
     for t in TESTS:
         try:
             t()
             name = t.__name__.replace("test_", "")
-            print(f"  [{len(TESTS)}] {name:<30} PASS")
+            log.info(f"  [{len(TESTS)}] {name:<30} PASS")
             passed += 1
         except AssertionError as e:
-            print(f"  [{len(TESTS)}] {t.__name__:<30} FAIL: {e}")
+            log.info(f"  [{len(TESTS)}] {t.__name__:<30} FAIL: {e}")
         except Exception as e:
-            print(f"  [{len(TESTS)}] {t.__name__:<30} ERROR: {e}")
-    print("══════════════════════════════════════════════")
-    print(f"  Result: {passed}/{len(TESTS)} passed")
+            log.info(f"  [{len(TESTS)}] {t.__name__:<30} ERROR: {e}")
+    log.info("══════════════════════════════════════════════")
+    log.info(f"  Result: {passed}/{len(TESTS)} passed")
     if passed == len(TESTS):
-        print("  ✅ EG = FEG equivalence PROVEN")
+        log.info("  ✅ EG = FEG equivalence PROVEN")
     return 0 if passed == len(TESTS) else 1
 
 if __name__ == "__main__":

@@ -416,7 +416,7 @@ class SafetyGate:
             icon = {"APPROVED": "✅", "REDUCED": "⚠️", "REJECTED": "🚫"}.get(
                 status, "?"
             )
-            print(f"[SAFETY-STACK] {ts} {stage:8s} {icon} {status:8s} — {reason}")
+            log.info(f"[SAFETY-STACK] {ts} {stage:8s} {icon} {status:8s} — {reason}")
 
     def get_stats(self) -> dict:
         return {

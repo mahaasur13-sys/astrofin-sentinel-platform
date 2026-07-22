@@ -1,8 +1,9 @@
 """Unified auth middleware — API Key + optional JWT."""
-import jwt
 import os
 from typing import Optional
-from fastapi import Request, HTTPException
+
+import jwt
+from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 ALGORITHM = "HS256"

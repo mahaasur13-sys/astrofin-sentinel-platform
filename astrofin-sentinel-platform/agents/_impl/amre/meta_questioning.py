@@ -7,7 +7,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-
 _SAFE_OPS: dict[str, Any] = {
     ">": lambda a, b: a > b,
     "<": lambda a, b: a < b,

@@ -3,16 +3,20 @@
 
 from __future__ import annotations
 
+import logging
 import sys
 from pathlib import Path
 
 import yaml
 
+log = logging.getLogger(__name__)
+
+
 
 def main():
     compose_path = Path(__file__).parent.parent / "docker-compose.yml"
     if not compose_path.exists():
-        print(f"ERROR: {compose_path} not found")
+        log.info(f"ERROR: {compose_path} not found")
         sys.exit(1)
 
     with open(compose_path) as f:
@@ -75,12 +79,12 @@ def main():
             errors.append(f"{svc_name}: missing cap_drop: ALL")
 
     if errors:
-        print("ERROR: Docker security issues found:")
+        log.info("ERROR: Docker security issues found:")
         for e in errors:
-            print(f"  - {e}")
+            log.info(f"  - {e}")
         sys.exit(1)
     else:
-        print("OK: All Docker security checks passed.")
+        log.info("OK: All Docker security checks passed.")
         sys.exit(0)
 
 

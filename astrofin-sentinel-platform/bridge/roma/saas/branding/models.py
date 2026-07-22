@@ -1,9 +1,10 @@
 """
 saas/branding/models.py
 """
-from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Dict, Optional
+
+from pydantic import BaseModel, Field
 
 
 class TenantBranding(BaseModel):

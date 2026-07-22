@@ -3,6 +3,10 @@
 from __future__ import annotations
 import sys, time
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, "/home/workspace")
 
 from strategies.generator import GeneratedStrategy, random_chromosome
@@ -44,7 +48,7 @@ class ScoredStrategy_shim:
 
 
 N = 1000
-print(f"Building {N} pool + {N} candidates...")
+log.info(f"Building {N} pool + {N} candidates...")
 pool = build(N)
 candidates = []
 for _ in range(N):
@@ -56,6 +60,6 @@ for _ in range(N):
 t0 = time.perf_counter()
 out = pool.diversity_filter(candidates)
 t1 = time.perf_counter()
-print(
+log.info(
     f"Baseline diversity_filter (O(n^2)): {(t1-t0)*1000:.1f} ms, kept {len(out)}/{len(candidates)}"
 )

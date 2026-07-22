@@ -2,13 +2,16 @@
 """saas.tenants.cli — Tenant management CLI."""
 import argparse
 import json
+import logging
 import sys
 from pathlib import Path
+
+log = logging.getLogger(__name__)
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from saas.tenants.onboarding import OnboardingSession
-
 
 _TENANTS_FILE = Path(__file__).parent.parent / "tenants.json"
 
@@ -37,69 +40,69 @@ def cmd_create(args: argparse.Namespace) -> None:
     s, tenant = s.create_tenant()
     if s.errors:
         for err in s.errors:
-            print(f"ERROR: {err}")
+            log.info(f"ERROR: {err}")
         sys.exit(1)
     data = _load_tenants()
     data[tenant["id"]] = tenant
     _save_tenants(data)
-    print(f"✅ Tenant created: {tenant['id']}")
-    print(f"   Slug: {tenant['slug']}")
-    print(f"   Revenue share: {tenant['revenue_share']}%")
-    print(f"   Tier: {tenant['tier']}")
+    log.info(f"✅ Tenant created: {tenant['id']}")
+    log.info(f"   Slug: {tenant['slug']}")
+    log.info(f"   Revenue share: {tenant['revenue_share']}%")
+    log.info(f"   Tier: {tenant['tier']}")
 
 
 def cmd_list(args: argparse.Namespace) -> None:
     data = _load_tenants()
     if not data:
-        print("No tenants found.")
+        log.info("No tenants found.")
         return
     for t in data.values():
         status = t.get("status", "unknown")
-        print(f"[{status}] {t['id']} — {t['display_name']} ({t['email']})")
+        log.info(f"[{status}] {t['id']} — {t['display_name']} ({t['email']})")
 
 
 def cmd_get(args: argparse.Namespace) -> None:
     data = _load_tenants()
     t = data.get(args.tenant_id)
     if not t:
-        print(f"Tenant not found: {args.tenant_id}")
+        log.info(f"Tenant not found: {args.tenant_id}")
         sys.exit(1)
-    print(json.dumps(t, indent=2))
+    log.info(json.dumps(t, indent=2))
 
 
 def cmd_suspend(args: argparse.Namespace) -> None:
     data = _load_tenants()
     t = data.get(args.tenant_id)
     if not t:
-        print(f"Tenant not found: {args.tenant_id}")
+        log.info(f"Tenant not found: {args.tenant_id}")
         sys.exit(1)
     t["status"] = "suspended"
     _save_tenants(data)
-    print(f"✅ Suspended: {args.tenant_id}")
+    log.info(f"✅ Suspended: {args.tenant_id}")
 
 
 def cmd_activate(args: argparse.Namespace) -> None:
     data = _load_tenants()
     t = data.get(args.tenant_id)
     if not t:
-        print(f"Tenant not found: {args.tenant_id}")
+        log.info(f"Tenant not found: {args.tenant_id}")
         sys.exit(1)
     t["status"] = "active"
     _save_tenants(data)
-    print(f"✅ Activated: {args.tenant_id}")
+    log.info(f"✅ Activated: {args.tenant_id}")
 
 
 def cmd_stripe_onboard(args: argparse.Namespace) -> None:
     data = _load_tenants()
     t = data.get(args.tenant_id)
     if not t:
-        print(f"Tenant not found: {args.tenant_id}")
+        log.info(f"Tenant not found: {args.tenant_id}")
         sys.exit(1)
     s = OnboardingSession(display_name=t["display_name"], slug=t["slug"], email=t["email"], revenue_share=t["revenue_share"])
     s.tenant_id = t["id"]
     s.start_stripe_onboarding()
-    print(f"Stripe onboarding URL:\n{s.stripe_onboarding_url}")
-    print("\nShare this URL with the tenant to complete Stripe Connect setup.")
+    log.info(f"Stripe onboarding URL:\n{s.stripe_onboarding_url}")
+    log.info("\nShare this URL with the tenant to complete Stripe Connect setup.")
 
 
 def main() -> None:

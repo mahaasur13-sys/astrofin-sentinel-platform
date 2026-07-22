@@ -6,10 +6,14 @@ HYPOTHESIS: three drifts decouple → scheduling misbehavior
 EXPECTED: corr(feature,model) < 0.5 OR model acc drops with stable features
 """
 import json
+import logging
 import random
 import statistics
 import time
 from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -84,11 +88,11 @@ class StateDriftScenario:
         return result
 
 def run():
-    print("[STATE DRIFT] Starting scenario...")
+    log.info("[STATE DRIFT] Starting scenario...")
     s = StateDriftScenario()
     r = s.simulate()
-    print(f"Failure detected: {r['failure_detected']}")
-    print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
+    log.info(f"Failure detected: {r['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
 if __name__ == "__main__":
     run()

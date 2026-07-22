@@ -30,6 +30,10 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class ASTStats:
@@ -194,7 +198,7 @@ def save_snapshot(repo_path: pathlib.Path, output_path: pathlib.Path) -> None:
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(snapshot, indent=2, sort_keys=True))
-    print(f"Saved: {output_path}  hash={composite_hash}")
+    log.info(f"Saved: {output_path}  hash={composite_hash}")
 
 
 def main() -> int:
@@ -211,7 +215,7 @@ def main() -> int:
 
     repo = args.repo.resolve()
     if not repo.exists():
-        print(f"ERROR: repo not found: {repo}", file=sys.stderr)
+        log.info(f"ERROR: repo not found: {repo}", file=sys.stderr)
         return 1
 
     composite_hash, stats = generate_ast_hash(repo)
@@ -221,7 +225,7 @@ def main() -> int:
         return 0
 
     if args.output == "hash":
-        print(composite_hash)
+        log.info(composite_hash)
 
     if args.output == "json":
         result = {
@@ -230,15 +234,15 @@ def main() -> int:
             "skipped": stats.skipped_files,
             "errors": stats.errors,
         }
-        print(json.dumps(result, indent=2))
+        log.info(json.dumps(result, indent=2))
 
     if args.expected_hash and composite_hash != args.expected_hash:
-        print(f"MISMATCH: computed={composite_hash}  expected={args.expected_hash}",
+        log.info(f"MISMATCH: computed={composite_hash}  expected={args.expected_hash}",
               file=sys.stderr)
         return 1
 
     if stats.errors:
-        print(f"WARNING: {len(stats.errors)} parse errors (see above)",
+        log.info(f"WARNING: {len(stats.errors)} parse errors (see above)",
               file=sys.stderr)
 
     return 0

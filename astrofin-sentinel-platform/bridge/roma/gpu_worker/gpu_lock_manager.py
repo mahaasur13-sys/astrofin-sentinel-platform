@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """GPU Lock Manager — prevents double execution on same GPU"""
+import logging
 import threading
-from typing import Optional, Dict, List
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Dict, List, Optional
+
+log = logging.getLogger(__name__)
+
 
 @dataclass
 class GPULock:
@@ -133,13 +137,13 @@ if __name__ == "__main__":
 
     # Stats
     stats = lock_mgr.stats()
-    print(f"Lock stats: {stats}")
+    log.info(f"Lock stats: {stats}")
 
     # Cleanup
     lock_mgr.release("gpu-0")
     lock_mgr.release("gpu-1")
     lock_mgr.release("gpu-2")
     expired = lock_mgr.cleanup_expired()
-    print(f"Cleanup: {expired} expired locks")
+    log.info(f"Cleanup: {expired} expired locks")
 
-    print("=== GPU Lock Manager: PASS ===")
+    log.info("=== GPU Lock Manager: PASS ===")

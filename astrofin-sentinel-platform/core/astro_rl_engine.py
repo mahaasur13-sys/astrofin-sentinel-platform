@@ -178,8 +178,8 @@ if __name__ == "__main__":
     re = RewardEngine(astro_weight=0.15)
     tr = OnlineTrainer(PolicyParams(), learning_rate=0.01)
     rl = AstroRLLoop(AstroRLConfig(), re, tr)
-    print("ATOM-STEP-6: Astro RL Engine")
-    print("=" * 60)
+    log.info("ATOM-STEP-6: Astro RL Engine")
+    log.info("=" * 60)
     now = datetime.utcnow()
     for day in range(7):
         ts = now - timedelta(days=6 - day)
@@ -205,12 +205,12 @@ if __name__ == "__main__":
             ][day % 8],
         )
         obs = rl.observe(state)
-        print(
+        log.info(
             f"  Day {day + 1}: moon={obs['moon_longitude']:.1f}  nak={obs['nakshatra']}  choghadiya={obs['choghadiya']}"
         )
         if day % 2 == 0:
             d = rl.decide(signal_strength=65.0, uncertainty=0.3, regime="NORMAL")
-            print(
+            log.info(
                 f"    Decision: pos={d['position_pct']:.4f}  astro={d['astro_alignment']:+.3f}"
             )
             rl.record_and_update(
@@ -220,6 +220,6 @@ if __name__ == "__main__":
                 position_pct=d["position_pct"],
                 hold_hours=24.0,
             )
-    print(f"  Status: {rl.status()}")
+    log.info(f"  Status: {rl.status()}")
     rl.save_log()
-    print("  Saved: models/astro_rl_log.json")
+    log.info("  Saved: models/astro_rl_log.json")

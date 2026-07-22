@@ -21,6 +21,10 @@ from typing import Any
 
 from sbs.boundary_spec import SystemBoundarySpec
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class LayerState:
@@ -71,7 +75,7 @@ class GlobalInvariantEngine:
     >>> spec = SystemBoundarySpec()
     >>> engine = GlobalInvariantEngine(spec)
     >>> ok = engine.evaluate(drl_state, ccl_state, f2_state, desc_state)
-    >>> print(engine.last_result)
+    >>> log.info(engine.last_result)
     """
 
     def __init__(self, boundary_spec: SystemBoundarySpec) -> None:

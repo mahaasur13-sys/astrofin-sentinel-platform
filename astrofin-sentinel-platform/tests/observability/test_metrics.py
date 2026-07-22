@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import time
+
 import pytest
+
 from observability.metrics import (
     record_agent_run,
     record_data_room_resolve,

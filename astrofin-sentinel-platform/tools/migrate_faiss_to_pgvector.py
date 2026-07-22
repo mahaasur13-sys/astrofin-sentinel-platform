@@ -35,6 +35,10 @@ from pathlib import Path
 import asyncpg
 import faiss
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # Lazy import of EmbeddingClient — keep it after Path is available
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
@@ -162,7 +166,7 @@ async def _migrate_domain(
             f"\r  [{domain}] {i + len(batch)}/{len(chunks)} chunks processed ({inserted} inserted)"
         )
         sys.stdout.flush()
-    print()
+    log.info()
     return inserted
 
 
@@ -172,14 +176,14 @@ async def _migrate_domain(
 async def main(args: argparse.Namespace) -> int:
     dsn = os.environ.get(PG_DSN_ENV)
     if not dsn and not args.dry_run:
-        print(
+        log.info(
             f"❌ {PG_DSN_ENV} env var is required (or use --dry-run)", file=sys.stderr
         )
         return 2
 
     api_key = os.environ.get(OPENAI_KEY_ENV)
     if not api_key and not args.dry_run and not args.use_stub_embeddings:
-        print(
+        log.info(
             f"❌ {OPENAI_KEY_ENV} env var is required "
             "(or use --dry-run / --use-stub-embeddings)",
             file=sys.stderr,
@@ -188,7 +192,7 @@ async def main(args: argparse.Namespace) -> int:
 
     kb_dir = _REPO_ROOT / "knowledge"
     if not kb_dir.exists():
-        print(f"❌ knowledge/ dir not found at {kb_dir}", file=sys.stderr)
+        log.info(f"❌ knowledge/ dir not found at {kb_dir}", file=sys.stderr)
         return 1
 
     domains = (
@@ -197,7 +201,7 @@ async def main(args: argparse.Namespace) -> int:
     total_inserted = 0
 
     if args.dry_run:
-        print("🟡 DRY-RUN: skipping Postgres writes and embedder calls\n")
+        log.info("🟡 DRY-RUN: skipping Postgres writes and embedder calls\n")
 
     embedder: EmbeddingClient | None = None
     if args.use_stub_embeddings and not args.dry_run:
@@ -208,13 +212,13 @@ async def main(args: argparse.Namespace) -> int:
         for domain in domains:
             index, chunks = load_faiss_index(domain, kb_dir)
             if index is None:
-                print(f"  ⚠  {domain}: no FAISS index, skipping")
+                log.info(f"  ⚠  {domain}: no FAISS index, skipping")
                 continue
             assert index.ntotal == len(chunks), (
                 f"FAISS/JSON mismatch in {domain}: "
                 f"index.ntotal={index.ntotal} vs {len(chunks)} chunks"
             )
-            print(f"  → {domain}: {len(chunks)} chunks (FAISS dim={index.d})")
+            log.info(f"  → {domain}: {len(chunks)} chunks (FAISS dim={index.d})")
             inserted = await _migrate_domain(
                 conn,
                 domain,
@@ -225,13 +229,13 @@ async def main(args: argparse.Namespace) -> int:
                 embedder=embedder,
             )
             total_inserted += inserted
-            print(f"  ✅ {domain}: {inserted} new rows in pgvector")
+            log.info(f"  ✅ {domain}: {inserted} new rows in pgvector")
     finally:
         if conn is not None:
             await conn.close()
 
     suffix = "(dry-run)" if args.dry_run else "inserted"
-    print(f"\n🏁 Total: {total_inserted} chunks {suffix}")
+    log.info(f"\n🏁 Total: {total_inserted} chunks {suffix}")
     return 0
 
 

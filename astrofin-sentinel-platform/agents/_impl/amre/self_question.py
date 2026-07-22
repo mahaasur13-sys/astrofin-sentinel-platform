@@ -1,8 +1,9 @@
 from __future__ import annotations
+
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
-import os
 
 """amre/self_question.py — Self-Questioning Engine + Meta-Questioning (ATOM-016)
 Self-questioning: agent asks itself hard questions before committing to a decision.

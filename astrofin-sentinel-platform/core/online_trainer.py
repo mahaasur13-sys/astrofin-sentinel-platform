@@ -7,9 +7,13 @@ Trains Kepler + market models online using REINFORCE-style policy gradient.
 from __future__ import annotations
 
 import json
+import logging
 import random
 from dataclasses import dataclass, field
 from datetime import datetime
+
+log = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -356,20 +360,20 @@ if __name__ == "__main__":
 
     trainer = OnlineTrainer(learning_rate=0.005)
 
-    print("=" * 60)
-    print("ATOM-STEP-6: Online RL Trainer — Simulation")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("ATOM-STEP-6: Online RL Trainer — Simulation")
+    log.info("=" * 60)
 
     for ep in range(1, 21):
         result = trainer.run_episode(n_trades=20)
         update = result["update"]
         if update["updated"]:
-            print(
+            log.info(
                 f"  Ep {ep:2d}: reward={result['mean_reward']:+.4f}  base={trainer.params.base_position_pct:.4f}  best={trainer.state.best_reward:.4f}"
             )
 
-    print(f"\n  Best reward: {trainer.state.best_reward:.4f}")
-    print(f"  Final params: {trainer._snapshot()}")
-    print(f"  Experiences: {trainer.state.total_experiences}")
-    print("  Saved → models/online_policy.json")
+    log.info(f"\n  Best reward: {trainer.state.best_reward:.4f}")
+    log.info(f"  Final params: {trainer._snapshot()}")
+    log.info(f"  Experiences: {trainer.state.total_experiences}")
+    log.info("  Saved → models/online_policy.json")
     trainer.save("models/online_policy.json")

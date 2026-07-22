@@ -1,9 +1,14 @@
 """ROMA SaaS Bootstrap — Self-service onboarding."""
 import sys; sys.path.insert(0, '/home/workspace/roma-execution-bridge')
 
-from org.organization import Organization
+import logging
+
 from auth.api_keys import APIKeyManager
+from org.organization import Organization
 from rbac.engine import RBACEngine
+
+log = logging.getLogger(__name__)
+
 
 class ROMASaaS:
     def __init__(self):
@@ -27,10 +32,10 @@ class ROMASaaS:
         return {"org": org.get_info(), "api_key": key, "dashboard": f"https://app.roma.sh/org/{org_name}"}
 
 if __name__ == "__main__":
-    print("=== ROMA SaaS Bootstrap ===")
+    log.info("=== ROMA SaaS Bootstrap ===")
     saas = ROMASaaS()
     result = saas.signup("acme", "PRO")
-    print(f"Org: {result['org']['org_id']}")
-    print(f"Plan: {result['org']['plan']}")
-    print(f"API Key: {result['api_key'][:40]}...")
-    print(f"Dashboard: {result['dashboard']}")
+    log.info(f"Org: {result['org']['org_id']}")
+    log.info(f"Plan: {result['org']['plan']}")
+    log.info(f"API Key: {result['api_key'][:40]}...")
+    log.info(f"Dashboard: {result['dashboard']}")

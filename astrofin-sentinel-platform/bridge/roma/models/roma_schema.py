@@ -1,6 +1,7 @@
 """ROMA JSON Schema — input model validation."""
 
 from typing import Literal, Optional
+
 from pydantic import BaseModel, Field
 
 

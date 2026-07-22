@@ -10,6 +10,10 @@ import os
 import sys
 from datetime import datetime, timezone
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 # === CONTRACT + RECORDING LAYER ===
@@ -50,7 +54,7 @@ def validate_all_contracts():
         validate_trace_recorder_contract(r)
         assert hasattr(r, "get_trace") and callable(r.get_trace)
         assert r.get_trace("nonexistent") is None
-        print("[OK] TraceRecorder contract: PASS")
+        log.info("[OK] TraceRecorder contract: PASS")
     except Exception as e:
         errors.append(f"TraceRecorder: {e}")
 
@@ -58,22 +62,22 @@ def validate_all_contracts():
         try:
             s = SchedulerAdapter()
             validate_scheduler_contract(s)
-            print("[OK] Scheduler contract: PASS")
+            log.info("[OK] Scheduler contract: PASS")
         except Exception as e:
             errors.append(f"Scheduler: {e}")
         try:
             e2 = EE()
             validate_engine_contract(e2)
-            print("[OK] ExecutionEngine contract: PASS")
+            log.info("[OK] ExecutionEngine contract: PASS")
         except Exception as e:
             errors.append(f"ExecutionEngine: {e}")
 
     if errors:
-        print("[FATAL] Contract validation failed:", file=sys.stderr)
+        log.info("[FATAL] Contract validation failed:", file=sys.stderr)
         for err in errors:
-            print(f"  - {err}", file=sys.stderr)
+            log.info(f"  - {err}", file=sys.stderr)
         sys.exit(1)
-    print("[OK] All contracts validated. System ready.")
+    log.info("[OK] All contracts validated. System ready.")
 
 
 class ACOSCLI:
@@ -214,15 +218,15 @@ def main():
     cli = ACOSCLI()
 
     if args.cmd == "validate":
-        print("All contracts validated.")
+        log.info("All contracts validated.")
 
     elif args.cmd == "invariants":
         results = cli.invariants()
-        print("=== L11 SYSTEM INVARIANTS ===")
+        log.info("=== L11 SYSTEM INVARIANTS ===")
         ok = sum(1 for v in results.values() if v)
         for k, v in results.items():
-            print(f"  {'PASS' if v else 'FAIL'}  {k}")
-        print(f"\nTotal: {ok}/{len(results)} passed")
+            log.info(f"  {'PASS' if v else 'FAIL'}  {k}")
+        log.info(f"\nTotal: {ok}/{len(results)} passed")
         sys.exit(0 if ok == len(results) else 1)
 
     elif args.cmd == "submit":
@@ -236,14 +240,14 @@ def main():
             }
         )
         result = cli.submit(job)
-        print(json.dumps(result, indent=2, default=str))
+        log.info(json.dumps(result, indent=2, default=str))
 
     elif args.cmd == "trace":
-        print(json.dumps(cli.get_trace(args.trace_id), indent=2, default=str))
+        log.info(json.dumps(cli.get_trace(args.trace_id), indent=2, default=str))
 
     elif args.cmd == "traces":
         for t in cli.list_traces():
-            print(f"  [{t['trace_id']}] {t['decision']} at {t['created_at']}")
+            log.info(f"  [{t['trace_id']}] {t['decision']} at {t['created_at']}")
 
 
 if __name__ == "__main__":

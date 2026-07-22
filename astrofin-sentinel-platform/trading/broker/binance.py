@@ -6,6 +6,10 @@ import time
 
 import yaml
 
+import logging
+log = logging.getLogger(__name__)
+
+
 try:
     import ccxt
 
@@ -52,7 +56,7 @@ class BinanceBroker(BaseBroker):
 
     def connect(self) -> bool:
         if not HAS_CCXT:
-            print("Warning: ccxt not installed. Running in simulation mode.")
+            log.info("Warning: ccxt not installed. Running in simulation mode.")
             self.connected = True
             return True
         try:
@@ -65,18 +69,18 @@ class BinanceBroker(BaseBroker):
             self.exchange = ccxt.binance(config)
             self.exchange.fetch_balance()
             self.connected = True
-            print(f"BinanceBroker connected (paper={self.paper})")
+            log.info(f"BinanceBroker connected (paper={self.paper})")
             return True
         except Exception as e:
             BROKER_ERRORS.inc()
-            print(f"Binance connection failed: {e}")
+            log.info(f"Binance connection failed: {e}")
             self.connected = False
             return False
 
     def disconnect(self):
         self.exchange = None
         self.connected = False
-        print("BinanceBroker disconnected")
+        log.info("BinanceBroker disconnected")
 
     def get_account_balance(self) -> AccountBalance:
         if not self.connected:

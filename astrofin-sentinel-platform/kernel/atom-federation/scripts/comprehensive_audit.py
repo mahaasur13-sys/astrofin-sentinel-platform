@@ -17,13 +17,17 @@ import json
 import pathlib
 import sys
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 AUDIT_LOG = []
 
 def log(level, component, message):
     symbol = {"PASS": "✅", "FAIL": "❌", "WARN": "⚠️", "INFO": "ℹ️"}.get(level, "  ")
-    print(f"  {symbol} [{component}] {message}")
+    log.info(f"  {symbol} [{component}] {message}")
     AUDIT_LOG.append({"level": level, "component": component, "message": message})
 
 # ═══════════════════════════════════════════════════════════════
@@ -246,10 +250,10 @@ def audit_L8_entry_surface():
 # MAIN
 # ═══════════════════════════════════════════════════════════════
 def main():
-    print("╔══════════════════════════════════════════════╗")
-    print("║  ATOMFEDERATION-OS COMPREHENSIVE AUDIT v9.0+P6 ║")
-    print("╚══════════════════════════════════════════════╝")
-    print()
+    log.info("╔══════════════════════════════════════════════╗")
+    log.info("║  ATOMFEDERATION-OS COMPREHENSIVE AUDIT v9.0+P6 ║")
+    log.info("╚══════════════════════════════════════════════╝")
+    log.info()
     results = {}
     results["L0-Workspace"]   = audit_L0_workspace()
     results["L1-Algebra"]     = audit_L1_algebra()
@@ -260,20 +264,20 @@ def main():
     results["L6-Snapshots"]   = audit_L6_snapshots()
     results["L7-Actuator"]   = audit_L7_actuator()
     results["L8-EntrySurface"]= audit_L8_entry_surface()
-    print()
-    print("═" * 52)
+    log.info()
+    log.info("═" * 52)
     passed = sum(1 for v in results.values() if v)
     total = len(results)
-    print(f"  AUDIT RESULT: {passed}/{total} layers PASS")
-    print("═" * 52)
+    log.info(f"  AUDIT RESULT: {passed}/{total} layers PASS")
+    log.info("═" * 52)
     violations = [k for k, v in results.items() if not v]
     if violations:
-        print(f"  ❌ FAILED layers: {violations}")
+        log.info(f"  ❌ FAILED layers: {violations}")
         for v in violations:
             log("FAIL", "AUDIT", f"VIOLATION: {v}")
         return 1
     else:
-        print("  ✅ ALL LAYERS VERIFIED — SYSTEM SAFE")
+        log.info("  ✅ ALL LAYERS VERIFIED — SYSTEM SAFE")
         return 0
 
 if __name__ == "__main__":

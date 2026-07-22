@@ -11,12 +11,16 @@ import subprocess
 import sys
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 REPO = Path(__file__).parent.parent
 sys.path.insert(0, str(REPO))
 
-print("=" * 60)
-print("LAYER 1 — ZO COMPUTER NATIVE TOOLS")
-print("=" * 60)
+log.info("=" * 60)
+log.info("LAYER 1 — ZO COMPUTER NATIVE TOOLS")
+log.info("=" * 60)
 
 ZO_NATIVE = [
     ("google_drive", "Google Drive"),
@@ -44,15 +48,15 @@ for slug, name in ZO_NATIVE:
     except Exception:
         ready = False
     status = "CONNECTED" if ready else "NOT CONNECTED"
-    print(f"  {name:<22} {'OK' if ready else 'MISSING'}")
+    log.info(f"  {name:<22} {'OK' if ready else 'MISSING'}")
     if ready:
         zo_ok += 1
 
-print(f"\nZo Native: {zo_ok}/{len(ZO_NATIVE)} ready")
+log.info(f"\nZo Native: {zo_ok}/{len(ZO_NATIVE)} ready")
 
-print("\n" + "=" * 60)
-print("LAYER 2 — AABS GATEWAY (EXTERNAL APIs)")
-print("=" * 60)
+log.info("\n" + "=" * 60)
+log.info("LAYER 2 — AABS GATEWAY (EXTERNAL APIs)")
+log.info("=" * 60)
 
 AABS_KEYS = {
     "FIRECRAWL_API_KEY": "Firecrawl",
@@ -64,15 +68,15 @@ AABS_KEYS = {
 aabs_ok = 0
 for env_var, name in AABS_KEYS.items():
     present = bool(os.environ.get(env_var))
-    print(f"  {name:<22} {'READY' if present else 'MISSING'}")
+    log.info(f"  {name:<22} {'READY' if present else 'MISSING'}")
     if present:
         aabs_ok += 1
 
-print(f"\nAABS Keys: {aabs_ok}/{len(AABS_KEYS)} ready")
+log.info(f"\nAABS Keys: {aabs_ok}/{len(AABS_KEYS)} ready")
 
-print("\n" + "=" * 60)
-print("LAYER 3 — AGENT BROWSER")
-print("=" * 60)
+log.info("\n" + "=" * 60)
+log.info("LAYER 3 — AGENT BROWSER")
+log.info("=" * 60)
 
 try:
     r = subprocess.run(
@@ -80,15 +84,15 @@ try:
         capture_output=True, timeout=5
     )
     version = r.stdout.strip() or "installed"
-    print(f"  agent-browser  OK ({version})")
+    log.info(f"  agent-browser  OK ({version})")
     agent_browser_ok = True
 except Exception:
-    print("  agent-browser  MISSING")
+    log.info("  agent-browser  MISSING")
     agent_browser_ok = False
 
-print("\n" + "=" * 60)
-print("LAYER 4 — ATOMFEDERATION-OS INTEGRATED TOOLS")
-print("=" * 60)
+log.info("\n" + "=" * 60)
+log.info("LAYER 4 — ATOMFEDERATION-OS INTEGRATED TOOLS")
+log.info("=" * 60)
 
 IN_REPO = [
     ("orchestration.ExecutionGateway.execution_gateway", "ExecutionGateway"),
@@ -110,16 +114,16 @@ for module_path, name in IN_REPO:
             mod = importlib.import_module(f"{parts[0]}.{parts[1]}")
         else:
             mod = importlib.import_module(parts[0])
-        print(f"  {name:<22} OK")
+        log.info(f"  {name:<22} OK")
         in_repo_ok += 1
     except Exception:
-        print(f"  {name:<22} MISSING")
+        log.info(f"  {name:<22} MISSING")
 
-print(f"\nIn-repo: {in_repo_ok}/{len(IN_REPO)} ready")
+log.info(f"\nIn-repo: {in_repo_ok}/{len(IN_REPO)} ready")
 
-print("\n" + "=" * 60)
-print("AUDIT SUMMARY")
-print("=" * 60)
+log.info("\n" + "=" * 60)
+log.info("AUDIT SUMMARY")
+log.info("=" * 60)
 
 blockers = []
 if zo_ok < len(ZO_NATIVE):
@@ -132,18 +136,18 @@ if in_repo_ok < len(IN_REPO):
     blockers.append(f"In-repo: {len(IN_REPO) - in_repo_ok} missing")
 
 if not blockers:
-    print("  SYSTEM READY — ZERO BLOCKERS")
+    log.info("  SYSTEM READY — ZERO BLOCKERS")
     sys.exit(0)
 else:
-    print("  SYSTEM NOT READY:")
+    log.info("  SYSTEM NOT READY:")
     for b in blockers:
-        print(f"    - {b}")
-    print()
-    print("NEXT ACTIONS:")
-    print("  1. Connect Zo apps: Settings > Integrations")
-    print("  2. Add API keys: Settings > Advanced")
+        log.info(f"    - {b}")
+    log.info()
+    log.info("NEXT ACTIONS:")
+    log.info("  1. Connect Zo apps: Settings > Integrations")
+    log.info("  2. Add API keys: Settings > Advanced")
     for env_var, name in AABS_KEYS.items():
         if not os.environ.get(env_var):
-            print(f"     - {name}: set {env_var}")
-    print("  3. Re-run: python3 tools/tooling_audit.py")
+            log.info(f"     - {name}: set {env_var}")
+    log.info("  3. Re-run: python3 tools/tooling_audit.py")
     sys.exit(1)

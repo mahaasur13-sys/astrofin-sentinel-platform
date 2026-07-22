@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 # ============================================
 # МОДЕЛИ

@@ -9,6 +9,10 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class NodeType(Enum):
     AGENT = "agent"
@@ -339,7 +343,7 @@ class TopologyUpdater:
     def apply_change(self, change: TopologyChange) -> Topology:
         try:
             new_topo = self._apply_change_internal(change)
-            print(
+            log.info(
                 f"    [DEBUG] new_topo id={id(new_topo)}, roles={[r.name for r in new_topo.roles]}"
             )
             self.versions.append(
@@ -352,7 +356,7 @@ class TopologyUpdater:
                 )
             )
             self.change_history.append(change)
-            print(
+            log.info(
                 f"    [DEBUG] current_topology id={id(self.current_topology)}, roles={[r.name for r in self.current_topology.roles]}"
             )
             self.current_topology = new_topo

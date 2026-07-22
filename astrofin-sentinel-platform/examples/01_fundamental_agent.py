@@ -15,9 +15,13 @@ Expected output:
     reasoning="..."
 """
 import asyncio
+import logging
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock
+
+log = logging.getLogger(__name__)
+
 
 # Allow running this script from anywhere
 ROOT = Path(__file__).resolve().parent.parent
@@ -54,12 +58,12 @@ async def main() -> int:
 
     # AgentResponse fields: agent_name, signal, confidence, reasoning,
     # sources, metadata, timestamp, session_id
-    print("agent_name =", response.agent_name)
-    print("signal     =", response.signal)
-    print("confidence =", response.confidence)
-    print("reasoning  =", response.reasoning[:120])
-    print("sources    =", response.sources)
-    print("timestamp  =", response.timestamp)
+    log.info("agent_name =", response.agent_name)
+    log.info("signal     =", response.signal)
+    log.info("confidence =", response.confidence)
+    log.info("reasoning  =", response.reasoning[:120])
+    log.info("sources    =", response.sources)
+    log.info("timestamp  =", response.timestamp)
 
     return 0
 

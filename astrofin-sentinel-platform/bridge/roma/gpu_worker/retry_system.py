@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """ROMA Job Retry System with Persistent Execution Guarantee"""
+import logging
 import threading
 import uuid
-from enum import Enum
 from dataclasses import dataclass
-from typing import Optional, Dict, List, Callable
 from datetime import datetime
+from enum import Enum
+from typing import Callable, Dict, List, Optional
+
+log = logging.getLogger(__name__)
+
 
 class JobState(Enum):
     QUEUED = "queued"
@@ -218,7 +222,7 @@ if __name__ == "__main__":
     # Enqueue jobs
     job1 = retry_mgr.enqueue("ml_training", {"model": "yolov8", "epochs": 100})
     job2 = retry_mgr.enqueue("inference", {"model": "yolov8", "input": "img.jpg"})
-    print(f"Enqueued: {job1.job_id}, {job2.job_id}")
+    log.info(f"Enqueued: {job1.job_id}, {job2.job_id}")
 
     # Mark job1 running then completed
     assert retry_mgr.mark_running(job1.job_id)
@@ -241,7 +245,7 @@ if __name__ == "__main__":
 
     # Stats
     stats = retry_mgr.get_stats()
-    print(f"Retry stats: {stats}")
+    log.info(f"Retry stats: {stats}")
 
     # Persistent execution guarantee
     peg = PersistentExecutionGuarantee(retry_mgr)
@@ -250,7 +254,7 @@ if __name__ == "__main__":
     peg.complete_execution(test_job_id, {"result": "ok"})
     peg.commit_execution(test_job_id)
     trace = peg.get_execution_trace(test_job_id)
-    print(f"Execution trace: {trace}")
+    log.info(f"Execution trace: {trace}")
     assert peg.verify_committed(test_job_id)
 
-    print("=== Retry System + Persistent Guarantee: PASS ===")
+    log.info("=== Retry System + Persistent Guarantee: PASS ===")

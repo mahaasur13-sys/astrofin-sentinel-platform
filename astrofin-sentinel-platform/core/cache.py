@@ -27,7 +27,7 @@ class RedisCache:
                     CACHE_MISSES.inc()
                     return None
             except Exception:
-                pass  # fallback
+                log.warning("Cache fallback — operation failed", exc_info=True)
         # In‑memory fallback
         if key in self.fallback:
             if self._fallback_ttl.get(key, 0) > time.time():
@@ -45,7 +45,7 @@ class RedisCache:
                 await self.redis.setex(key, ttl, str(value))
                 return
             except Exception:
-                pass
+                log.warning("Cache access failed", exc_info=True)
         # fallback
         self.fallback[key] = value
         self._fallback_ttl[key] = time.time() + ttl
@@ -56,7 +56,7 @@ class RedisCache:
             try:
                 await self.redis.delete(key)
             except Exception:
-                pass
+                log.warning("Cache access failed", exc_info=True)
         self.fallback.pop(key, None)
         self._fallback_ttl.pop(key, None)
 
@@ -66,6 +66,6 @@ class RedisCache:
             try:
                 await self.redis.flushdb()
             except Exception:
-                pass
+                log.warning("Cache access failed", exc_info=True)
         self.fallback.clear()
         self._fallback_ttl.clear()

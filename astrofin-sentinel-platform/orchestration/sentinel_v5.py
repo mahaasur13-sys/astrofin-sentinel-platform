@@ -543,7 +543,7 @@ def main():
             )
         )
 
-    print("\nFinal recommendation:", result.get("final_recommendation"))
+    log.info("\nFinal recommendation:", result.get("final_recommendation"))
 
 
 if __name__ == "__main__":

@@ -1,5 +1,9 @@
 import os
 
+import logging
+log = logging.getLogger(__name__)
+
+
 #!/usr/bin/env python3
 """
 Slurm Prometheus Exporter
@@ -128,5 +132,5 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     server = HTTPServer((os.environ.get("BIND_HOST", "127.0.0.1"), 9341), Handler)
-    print("Slurm exporter listening on :9341/metrics")
+    log.info("Slurm exporter listening on :9341/metrics")
     server.serve_forever()

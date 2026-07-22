@@ -17,6 +17,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class AtomProposal:
@@ -376,21 +380,21 @@ class AtomProposer:
     def print_proposals(self):
         """Print proposals to console."""
         if not self.proposals:
-            print("No proposals generated. Run propose_from_analysis() first.")
+            log.info("No proposals generated. Run propose_from_analysis() first.")
             return
 
-        print(f"\n{'=' * 70}")
-        print(f"  📋 ATOM PROPOSALS — {len(self.proposals)} Generated")
-        print(f"{'=' * 70}\n")
+        log.info(f"\n{'=' * 70}")
+        log.info(f"  📋 ATOM PROPOSALS — {len(self.proposals)} Generated")
+        log.info(f"{'=' * 70}\n")
 
         for p in sorted(
             self.proposals,
             key=lambda x: (["P0", "P1", "P2"].index(x.priority), x.atom_id),
         ):
-            print(f"  {p.atom_id} [{p.priority}] {p.title}")
-            print(f"       Complexity: {p.complexity}")
-            print(f"       Summary: {p.summary[:100]}...")
-            print()
+            log.info(f"  {p.atom_id} [{p.priority}] {p.title}")
+            log.info(f"       Complexity: {p.complexity}")
+            log.info(f"       Summary: {p.summary[:100]}...")
+            log.info()
 
 
 def main():
@@ -420,7 +424,7 @@ def main():
             brief_dir = Path(__file__).parent.parent / "daily_brief"
             path = brief_dir / "brief_latest.md"
             if not path.exists():
-                print("No digest found. Run analytics first.")
+                log.info("No digest found. Run analytics first.")
                 return
             analyzer = DigestAnalyzer(str(path))
             analysis = analyzer.analyze()
@@ -431,7 +435,7 @@ def main():
         proposer = AtomProposer()
         proposer.propose_from_analysis(analysis_data)
     else:
-        print("Use --latest or --analysis to provide data.")
+        log.info("Use --latest or --analysis to provide data.")
         return
 
     if args.print or not args.save:
@@ -439,7 +443,7 @@ def main():
 
     if args.save:
         path = proposer.save_proposals(args.save)
-        print(f"\nSaved to: {path}")
+        log.info(f"\nSaved to: {path}")
 
 
 if __name__ == "__main__":

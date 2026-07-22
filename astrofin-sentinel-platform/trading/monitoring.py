@@ -9,6 +9,10 @@ from collections import deque
 from dataclasses import dataclass
 from datetime import datetime
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class TradeRecord:
@@ -152,10 +156,10 @@ class Monitoring:
 
     def print_metrics(self, regime="NORMAL", mode="BACKTEST"):
         m = self.get_metrics_dict(regime, mode)
-        print("\n=== MONITORING SNAPSHOT ===")
+        log.info("\n=== MONITORING SNAPSHOT ===")
         for k, v in m.items():
-            print(f"  {k}: {v}")
-        print("=" * 30 + "\n")
+            log.info(f"  {k}: {v}")
+        log.info("=" * 30 + "\n")
 
     def _compute_drawdown(self, equity):
         if self._peak_equity <= 0:
@@ -215,7 +219,7 @@ class Monitoring:
 
 
 if __name__ == "__main__":
-    print("Monitoring self-test...")
+    log.info("Monitoring self-test...")
     mon = Monitoring()
     equity = 100_000.0
     for i in range(50):
@@ -238,4 +242,4 @@ if __name__ == "__main__":
         mon.record_reward(r)
     m = mon.get_metrics_dict()
     assert m["trade_count"] == 10
-    print("  Monitoring: all tests passed")
+    log.info("  Monitoring: all tests passed")

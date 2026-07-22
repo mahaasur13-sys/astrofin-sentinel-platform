@@ -14,12 +14,16 @@ Pipeline:
 
 from __future__ import annotations
 
+import logging
 import math
 import sys
 from pathlib import Path
 
 import joblib
 import numpy as np
+
+log = logging.getLogger(__name__)
+
 
 # Add project root
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -109,72 +113,72 @@ def train_residual_model(X, y) -> object:
     )
     cv_rmse = -cv_scores.mean()
 
-    print(f"\n  CV RMSE: {cv_rmse:.2f} arcmin")
-    print(f"  CV RMSE: {cv_rmse / 60:.4f} degrees")
+    log.info(f"\n  CV RMSE: {cv_rmse:.2f} arcmin")
+    log.info(f"  CV RMSE: {cv_rmse / 60:.4f} degrees")
 
     return model
 
 
 def main():
-    print("=" * 60)
-    print("ATOM-STEP-4: Training Residual Model (Kepler → SwissEph)")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("ATOM-STEP-4: Training Residual Model (Kepler → SwissEph)")
+    log.info("=" * 60)
 
     # Generate training data
-    print("\n[1/4] Generating training data...")
+    log.info("\n[1/4] Generating training data...")
     X, y = generate_training_data(n_samples=500)
-    print(f"  Generated {len(X)} samples")
-    print(
+    log.info(f"  Generated {len(X)} samples")
+    log.info(
         f"  Residual stats (arcmin): mean={y.mean():.2f}, std={y.std():.2f}, min={y.min():.2f}, max={y.max():.2f}"
     )
 
     # Train model
-    print("\n[2/4] Training RandomForestRegressor...")
+    log.info("\n[2/4] Training RandomForestRegressor...")
     model = train_residual_model(X, y)
 
     # Feature importance
     if hasattr(model, "feature_importances_"):
-        print("\n[3/4] Feature importances:")
+        log.info("\n[3/4] Feature importances:")
         for name, imp in zip(FEATURE_NAMES, model.feature_importances_, strict=False):
-            print(f"  {name:<20}: {imp:.4f}")
+            log.info(f"  {name:<20}: {imp:.4f}")
 
     # Save model
     model_dir = Path(__file__).parent.parent / "models"
     model_dir.mkdir(exist_ok=True)
     model_path = model_dir / "residual_model.joblib"
     joblib.dump(model, model_path)
-    print(f"\n[4/4] Model saved: {model_path}")
+    log.info(f"\n[4/4] Model saved: {model_path}")
 
     # Test on held-out points
-    print("\n--- Test: Jupiter at J2000 ---")
+    log.info("\n--- Test: Jupiter at J2000 ---")
     from core.kepler_hybrid import hybrid_propagate
 
     h = hybrid_propagate(2451545.0, "jupiter", use_ml=True)
     swiss = eph.calculate_planet("jupiter", 2451545.0)
     delta_raw = (h.kepler_lon - swiss.longitude + 180) % 360 - 180
     delta_corr = (h.corrected_lon - swiss.longitude + 180) % 360 - 180
-    print(f"  Kepler residual:  {delta_raw * 60:.2f} arcmin ({delta_raw:.4f}°)")
-    print(f"  ML predicted:     {h.residual_predicted_arcmin:.2f} arcmin")
-    print(f"  Corrected residual: {delta_corr * 60:.2f} arcmin ({delta_corr:.4f}°)")
-    print(f"  Confidence:       {h.confidence:.2f}")
+    log.info(f"  Kepler residual:  {delta_raw * 60:.2f} arcmin ({delta_raw:.4f}°)")
+    log.info(f"  ML predicted:     {h.residual_predicted_arcmin:.2f} arcmin")
+    log.info(f"  Corrected residual: {delta_corr * 60:.2f} arcmin ({delta_corr:.4f}°)")
+    log.info(f"  Confidence:       {h.confidence:.2f}")
 
-    print("\n--- Test: Saturn at J2000 ---")
+    log.info("\n--- Test: Saturn at J2000 ---")
     h = hybrid_propagate(2451545.0, "saturn", use_ml=True)
     swiss = eph.calculate_planet("saturn", 2451545.0)
     delta_raw = (h.kepler_lon - swiss.longitude + 180) % 360 - 180
     delta_corr = (h.corrected_lon - swiss.longitude + 180) % 360 - 180
-    print(f"  Kepler residual:  {delta_raw * 60:.2f} arcmin ({delta_raw:.4f}°)")
-    print(f"  ML predicted:     {h.residual_predicted_arcmin:.2f} arcmin")
-    print(f"  Corrected residual: {delta_corr * 60:.2f} arcmin ({delta_corr:.4f}°)")
-    print(f"  Confidence:       {h.confidence:.2f}")
+    log.info(f"  Kepler residual:  {delta_raw * 60:.2f} arcmin ({delta_raw:.4f}°)")
+    log.info(f"  ML predicted:     {h.residual_predicted_arcmin:.2f} arcmin")
+    log.info(f"  Corrected residual: {delta_corr * 60:.2f} arcmin ({delta_corr:.4f}°)")
+    log.info(f"  Confidence:       {h.confidence:.2f}")
 
     # Final message
     final_rmse = abs(y.std())  # naive baseline
-    print(f"\n{'=' * 60}")
-    print("✅ Training complete!")
-    print(f"   Baseline (naive mean): {final_rmse:.2f} arcmin RMSE")
-    print(f"   Model file: {model_path}")
-    print(f"{'=' * 60}")
+    log.info(f"\n{'=' * 60}")
+    log.info("✅ Training complete!")
+    log.info(f"   Baseline (naive mean): {final_rmse:.2f} arcmin RMSE")
+    log.info(f"   Model file: {model_path}")
+    log.info(f"{'=' * 60}")
 
 
 if __name__ == "__main__":

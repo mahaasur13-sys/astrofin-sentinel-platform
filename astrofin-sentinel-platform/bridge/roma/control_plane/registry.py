@@ -1,8 +1,9 @@
 """Worker Registry — Source of Truth"""
-import time
-import threading
 import logging
-from typing import Optional, List, Dict, Any
+import threading
+import time
+from typing import Any, Dict, List, Optional
+
 from .core_models import Worker, WorkerStatus
 
 log = logging.getLogger("registry")

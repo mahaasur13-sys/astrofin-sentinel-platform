@@ -21,6 +21,10 @@ import os
 import threading
 import time
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class SafetyViolationError(Exception):
     '''Raised when ledger ordering invariant is violated.'''
@@ -49,7 +53,7 @@ class AtomicLedgerWriter:
 
         # Verify
         result = writer.verify_linearizability()
-        print(result['is_linearizable'])  # True
+        log.info(result['is_linearizable'])  # True
     '''
 
     _instance: AtomicLedgerWriter | None = None

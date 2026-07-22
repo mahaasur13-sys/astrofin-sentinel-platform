@@ -23,8 +23,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Protocol, runtime_checkable
 
-from datetime import datetime, timezone
-
 
 def _utc_now_deterministic() -> datetime:
     """Local shim for utc_now_deterministic (acos_contracts not installed)."""
@@ -148,7 +146,7 @@ class SwissEphemerisProvider:
                     retrograde=speed < 0,
                 )
             except Exception:
-                pass
+                log.warning("Ephemeris calculation failed", exc_info=True)
         lon, speed = _simple_position(name, jd)
         return PlanetPosition(
             planet=name, longitude=lon, speed=speed, retrograde=speed < 0
@@ -183,7 +181,7 @@ class SwissEphemerisProvider:
             try:
                 self._swe.set_sid_mode(1)
             except Exception:
-                pass
+                log.warning("Ephemeris calculation failed", exc_info=True)
         return {
             name: self.calculate_planet(name, self.julian_day(dt), flags)
             for name in PLANETS

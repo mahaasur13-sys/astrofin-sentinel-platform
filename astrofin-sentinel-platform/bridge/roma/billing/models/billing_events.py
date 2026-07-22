@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """ROMA Billing Events — Core billing event definitions for GPU usage."""
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
 from enum import Enum
+from typing import Any, Dict, Optional
+
 
 class BillingEventType(Enum):
     JOB_SUBMITTED = "job.submitted"

@@ -19,6 +19,10 @@ import math
 from dataclasses import dataclass, field
 from typing import Literal
 
+import logging
+log = logging.getLogger(__name__)
+
+
 THRESHOLD_SAFE = 0.70
 THRESHOLD_DEGRADED = 0.40
 MAX_DRIFT = 1.0
@@ -287,10 +291,10 @@ class GSL:
 # ─── Tests ─────────────────────────────────────────────────────────────────
 
 def _run_tests():
-    print("=== v10.9 GSL Tests ===")
+    log.info("=== v10.9 GSL Tests ===")
 
     def check(name: str, cond: bool, detail: str = "") -> bool:
-        print(f"  {'✅' if cond else '❌'} {name}" + (f": {detail}" if detail else ""))
+        log.info(f"  {'✅' if cond else '❌'} {name}" + (f": {detail}" if detail else ""))
         return cond
 
     ok = True
@@ -364,9 +368,9 @@ def _run_tests():
     ok &= check("T6 refresh_observation action", "refresh_observation" in r6.actions)
     ok &= check("T6 not FAILURE region", r6.region != "FAILURE")
 
-    print()
-    print(f"{'='*50}")
-    print(f"RESULT: {'ALL PASSED ✅' if ok else 'SOME TESTS FAILED ❌'}")
+    log.info()
+    log.info(f"{'='*50}")
+    log.info(f"RESULT: {'ALL PASSED ✅' if ok else 'SOME TESTS FAILED ❌'}")
     return ok
 
 

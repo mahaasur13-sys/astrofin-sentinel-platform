@@ -6,7 +6,11 @@ Computes trading rewards from market outcomes.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -157,9 +161,9 @@ if __name__ == "__main__":
     uncertainties = [0.2, 0.6]
     rewards = engine.batch_compute(outcomes, astro_alignments, uncertainties)
     for i, r in enumerate(rewards):
-        print(
+        log.info(
             f"Trade {i + 1}: reward={r.total_reward:.4f}  pnl={r.pnl_reward:.4f}  astro={r.astro_bonus:.4f}  risk={r.risk_penalty:.4f}  unc={r.uncertainty_penalty:.4f}"
         )
     stats = engine.summary_stats(rewards)
-    print(f"\nSummary: {stats}")
-    print(f"Discounted (γ=0.95): {engine.discounted_reward(rewards):.4f}")
+    log.info(f"\nSummary: {stats}")
+    log.info(f"Discounted (γ=0.95): {engine.discounted_reward(rewards):.4f}")

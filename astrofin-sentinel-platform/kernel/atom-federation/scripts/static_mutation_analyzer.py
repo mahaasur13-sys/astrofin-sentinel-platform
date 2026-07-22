@@ -18,6 +18,10 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── Configuration ─────────────────────────────────────────────────────────────
 
 ALLOWED_MODULES = frozenset({
@@ -241,24 +245,24 @@ def main():
     script_dir = Path(__file__).parent
     repo_root = script_dir.parent
 
-    print(f'Scanning {repo_root} for mutation violations...')
-    print()
+    log.info(f'Scanning {repo_root} for mutation violations...')
+    log.info()
 
     violations = scan_directory(repo_root)
 
     if violations:
-        print(f'Found {len(violations)} violation(s):')
-        print()
+        log.info(f'Found {len(violations)} violation(s):')
+        log.info()
 
         for v in violations:
-            print(f'  {v}')
-        print()
-        print('STATIC ANALYSIS FAILED')
-        print('All mutations must flow through ExecutionGateway.execute().')
-        print('Fix violations before committing.')
+            log.info(f'  {v}')
+        log.info()
+        log.info('STATIC ANALYSIS FAILED')
+        log.info('All mutations must flow through ExecutionGateway.execute().')
+        log.info('Fix violations before committing.')
         sys.exit(1)
 
-    print('No violations found. Static analysis passed.')
+    log.info('No violations found. Static analysis passed.')
     sys.exit(0)
 
 

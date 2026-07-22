@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """Replicated Event Store — 3-node write quorum."""
+import logging
 import threading
 from dataclasses import dataclass
 from typing import List
+
+log = logging.getLogger(__name__)
+
 
 @dataclass
 class Replica:
@@ -49,5 +53,5 @@ if __name__ == "__main__":
     store = ReplicatedEventStore(3)
     for i in range(3):
         r = store.write({"type": f"event-{i}", "tick": i})
-        print(f"Event {i}: index={r['index']}, commit={r['commit_index']}, quorum={r['quorum']}")
-    print(store.get_state())
+        log.info(f"Event {i}: index={r['index']}, commit={r['commit_index']}, quorum={r['quorum']}")
+    log.info(store.get_state())

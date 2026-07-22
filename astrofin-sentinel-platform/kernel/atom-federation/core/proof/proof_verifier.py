@@ -20,6 +20,10 @@ from typing import Any
 from core.deterministic import DeterministicClock, DeterministicUUIDFactory
 from core.proof.execution_request import ExecutionRequest
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ─── Exceptions ────────────────────────────────────────────────────────────────
 
 
@@ -80,9 +84,9 @@ class ProofVerifier:
 
         try:
             verifier.verify(request)   # raises on failure
-            print("PROOF VALID — proceed with execution")
+            log.info("PROOF VALID — proceed with execution")
         except ProofVerificationError as e:
-            print(f"PROOF INVALID: {e}")
+            log.info(f"PROOF INVALID: {e}")
     """
 
     MAX_AGE_SECONDS: float = 300.0  # 5 minutes

@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import logging
 from enum import Enum
+
+log = logging.getLogger(__name__)
+
 
 """
 Incident Model — auto-classification + severity scoring.
@@ -121,7 +125,7 @@ class IncidentManager:
         if self.alerting_callback:
             self.alerting_callback(message)
         # Also log to incident channel
-        print(f"[INCIDENT] {message} | {incident.trigger_type} | nodes={incident.affected_nodes}")
+        log.info(f"[INCIDENT] {message} | {incident.trigger_type} | nodes={incident.affected_nodes}")
 
     def get_active(self) -> list[Incident]:
         return [i for i in self._incidents if not i.resolved]

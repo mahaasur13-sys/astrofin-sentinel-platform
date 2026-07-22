@@ -1,12 +1,13 @@
 """ROMA SaaS — Stripe Webhook Handler + Revenue-Share."""
-from fastapi import APIRouter, Request, HTTPException, Header
-from pydantic import BaseModel
-from typing import Optional
-import hmac
 import hashlib
-import time
+import hmac
 import json
 import os
+import time
+from typing import Optional
+
+from fastapi import APIRouter, Header, HTTPException, Request
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/webhook", tags=["webhooks"])
 
@@ -86,6 +87,7 @@ async def stripe_webhook(
 
         elif etype == "invoice.paid":
             from billing.ledger import BillingLedger
+
             from saas.webhooks.revenue_share import RevenueShareCalculator
             ledger = BillingLedger()
             calc = RevenueShareCalculator(ledger)

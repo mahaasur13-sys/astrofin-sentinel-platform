@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 import logging
 import random
 import threading
 from dataclasses import dataclass
+
 import numpy as np
+
 from core.belief import get_belief_tracker
 
 """

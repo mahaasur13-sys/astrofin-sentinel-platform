@@ -1,8 +1,9 @@
 """ROMA Audit Log — Immutable append-only event log."""
-import time
-import json
 import csv
 import io
+import json
+import time
+
 
 class AuditLog:
     def __init__(self):
@@ -62,5 +63,5 @@ if __name__ == "__main__":
     log.log_event("alice", "org_acme", "JOB_EXECUTED", {"job_id": "j001", "cost": 2.50})
     log.log_event("bob", "org_acme", "API_KEY_CREATED", {"key_id": "kid_123"})
     entries = log.query_events(org_id="org_acme", limit=10)
-    print(f"Audit entries: {len(entries)}")
-    print("CSV:", log.export_csv("org_acme").splitlines()[:3])
+    log.info(f"Audit entries: {len(entries)}")
+    log.info("CSV:", log.export_csv("org_acme").splitlines()[:3])

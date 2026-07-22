@@ -5,11 +5,10 @@ ADR-001 Sprint 3: Message-based interface (on_message, publish_event, contextvar
 """
 from __future__ import annotations
 
-import asyncio
 import contextvars
-import time
 import copy
 import logging
+import time
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -18,7 +17,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
-    from core.envelopes import TaskEnvelope, ResultEnvelope
+    from core.envelopes import ResultEnvelope, TaskEnvelope
     from core.message_broker import MessageBroker
     from core.outbox import Outbox
 

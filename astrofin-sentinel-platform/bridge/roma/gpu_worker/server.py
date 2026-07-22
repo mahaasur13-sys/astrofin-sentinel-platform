@@ -2,15 +2,19 @@
 """ROMA GPU Worker — Distributed Compute Execution Node
 Receives jobs from ROMA control plane, executes on GPU, returns results."""
 
-import os
-import uuid
-import subprocess
 import asyncio
+import logging
+import os
+import subprocess
+import uuid
 from datetime import datetime
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from pydantic import BaseModel
+
+log = logging.getLogger(__name__)
+
 
 # =============================================================================
 # Config
@@ -268,9 +272,9 @@ def metrics():
 # =============================================================================
 if __name__ == "__main__":
     import uvicorn
-    print("=== ROMA GPU Worker ===")
-    print(f"Worker ID: {WORKER_ID}")
-    print(f"GPU Device: {GPU_DEVICE}")
-    print(f"GPU Available: {state.gpu_available}")
-    print(f"Listening on: {GPU_WORKER_HOST}:{GPU_WORKER_PORT}")
+    log.info("=== ROMA GPU Worker ===")
+    log.info(f"Worker ID: {WORKER_ID}")
+    log.info(f"GPU Device: {GPU_DEVICE}")
+    log.info(f"GPU Available: {state.gpu_available}")
+    log.info(f"Listening on: {GPU_WORKER_HOST}:{GPU_WORKER_PORT}")
     uvicorn.run(app, host=GPU_WORKER_HOST, port=GPU_WORKER_PORT)

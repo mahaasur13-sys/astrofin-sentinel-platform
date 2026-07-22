@@ -39,7 +39,7 @@ import os
 import random
 import sys
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -212,7 +212,7 @@ def save_state(state: CycleState) -> None:
             json.dump(asdict(state), f, indent=2, ensure_ascii=False)
         os.replace(tmp, STATE_FILE)
     except OSError as e:
-        print(f"[WARN] failed to save state: {e}", file=sys.stderr)
+        log.info(f"[WARN] failed to save state: {e}", file=sys.stderr)
 
 
 def load_state() -> CycleState:
@@ -227,7 +227,7 @@ def load_state() -> CycleState:
             data["best_loss"] = float("inf")
         return CycleState(**data)
     except (OSError, json.JSONDecodeError, TypeError) as e:
-        print(f"[WARN] state file corrupt, starting fresh: {e}", file=sys.stderr)
+        log.info(f"[WARN] state file corrupt, starting fresh: {e}", file=sys.stderr)
         return CycleState()
 
 
@@ -252,11 +252,11 @@ def run_cycle(
     agent = Agent(seed=42)
 
     if verbose:
-        print(
+        log.info(
             f"[INIT] state loaded: best_lr={state.best_lr:.6f}, best_loss={state.best_loss:.6f}"
         )
-        print(f"[INIT] target_loss={TARGET_LOSS}, max_iterations={max_iterations}")
-        print("-" * 70)
+        log.info(f"[INIT] target_loss={TARGET_LOSS}, max_iterations={max_iterations}")
+        log.info("-" * 70)
 
     start_iter = len(state.attempts)
     converged = False
@@ -271,7 +271,7 @@ def run_cycle(
                 loss = env.evaluate(proposed_lr)
             except Exception as e:
                 if verbose:
-                    print(f"[ITER {i:03d}] environment error: {e}")
+                    log.info(f"[ITER {i:03d}] environment error: {e}")
                 state.attempts.append(
                     Attempt(
                         iteration=i,
@@ -312,30 +312,30 @@ def run_cycle(
             # ---- 6. Лог ----
             if verbose:
                 tag = "ACCEPT" if accepted else "REJECT"
-                print(
+                log.info(
                     f"[ITER {i:03d}] {tag} | lr={proposed_lr:.6f} "
                     f"loss={loss:.6f} | best_lr={state.best_lr:.6f} "
                     f"best_loss={state.best_loss:.6f}"
                 )
                 if accepted:
-                    print(f"         reason: {reason}")
+                    log.info(f"         reason: {reason}")
 
             # ---- 7. Проверка условия остановки ----
             if state.best_loss <= TARGET_LOSS:
                 if verbose:
-                    print("-" * 70)
-                    print(
+                    log.info("-" * 70)
+                    log.info(
                         f"[STOP] target loss {TARGET_LOSS} достигнут (best_loss={state.best_loss:.6f})"
                     )
                 converged = True
                 break
 
     except KeyboardInterrupt:
-        print("\n[INTERRUPT] пользователь прервал цикл, state сохранён")
+        log.info("\n[INTERRUPT] пользователь прервал цикл, state сохранён")
 
     if verbose and not converged:
-        print("-" * 70)
-        print(f"[STOP] исчерпан лимит итераций ({max_iterations})")
+        log.info("-" * 70)
+        log.info(f"[STOP] исчерпан лимит итераций ({max_iterations})")
 
     return state
 
@@ -354,36 +354,36 @@ def print_report(state: CycleState) -> dict[str, Any]:
     first_loss = state.attempts[0]["loss"] if state.attempts else float("inf")
     improvement = (first_loss - state.best_loss) if first_loss != float("inf") else 0.0
 
-    print()
-    print("=" * 70)
-    print("LOOPCRAFT CYCLE REPORT")
-    print("=" * 70)
-    print(f"State file:           {STATE_FILE}")
-    print(f"Total attempts:       {total}")
-    print(f"  accepted:           {state.accepted_count}")
-    print(f"  rejected:           {state.rejected_count}")
-    print(f"Acceptance rate:      {acceptance_rate:.1%}")
-    print(f"Best lr:              {state.best_lr:.6f}")
-    print(f"Best loss:            {state.best_loss:.6f}")
-    print(f"Initial loss:         {first_loss:.6f}")
-    print(
+    log.info()
+    log.info("=" * 70)
+    log.info("LOOPCRAFT CYCLE REPORT")
+    log.info("=" * 70)
+    log.info(f"State file:           {STATE_FILE}")
+    log.info(f"Total attempts:       {total}")
+    log.info(f"  accepted:           {state.accepted_count}")
+    log.info(f"  rejected:           {state.rejected_count}")
+    log.info(f"Acceptance rate:      {acceptance_rate:.1%}")
+    log.info(f"Best lr:              {state.best_lr:.6f}")
+    log.info(f"Best loss:            {state.best_loss:.6f}")
+    log.info(f"Initial loss:         {first_loss:.6f}")
+    log.info(
         f"Improvement:          {improvement:.6f}  ({improvement / first_loss * 100:.1f}%)"
         if first_loss > 0
         else ""
     )
-    print(f"Target loss:          {TARGET_LOSS}")
-    print(f"Converged:            {'YES' if state.best_loss <= TARGET_LOSS else 'NO'}")
-    print()
-    print(f"Cost per accepted change (CPA):  {cpa:.2f} attempts per accepted")
-    print(f"  (interpretation: каждая принятая правка стоила {cpa:.1f} попыток,")
-    print(f"   из них {cpa - 1:.1f} были отклонены шлюзом как не-улучшения)")
-    print("=" * 70)
+    log.info(f"Target loss:          {TARGET_LOSS}")
+    log.info(f"Converged:            {'YES' if state.best_loss <= TARGET_LOSS else 'NO'}")
+    log.info()
+    log.info(f"Cost per accepted change (CPA):  {cpa:.2f} attempts per accepted")
+    log.info(f"  (interpretation: каждая принятая правка стоила {cpa:.1f} попыток,")
+    log.info(f"   из них {cpa - 1:.1f} были отклонены шлюзом как не-улучшения)")
+    log.info("=" * 70)
 
     if accepted_attempts:
-        print()
-        print("Accepted improvements (history of convergence):")
+        log.info()
+        log.info("Accepted improvements (history of convergence):")
         for a in accepted_attempts:
-            print(
+            log.info(
                 f"  iter {a['iteration']:3d}  lr={a['lr']:.6f}  loss={a['loss']:.6f}  -> {a['reason']}"
             )
 
@@ -435,14 +435,14 @@ def main() -> int:
 
     if args.reset and STATE_FILE.exists():
         STATE_FILE.unlink()
-        print(f"[RESET] state file удалён: {STATE_FILE}")
+        log.info(f"[RESET] state file удалён: {STATE_FILE}")
 
     t0 = time.time()
     final_state = run_cycle(verbose=args.verbose, max_iterations=args.iterations)
     elapsed = time.time() - t0
 
     stats = print_report(final_state)
-    print(f"\nElapsed: {elapsed:.2f}s")
+    log.info(f"\nElapsed: {elapsed:.2f}s")
 
     # Код возврата: 0 если сошлись, 1 если нет
     return 0 if stats["converged"] else 1

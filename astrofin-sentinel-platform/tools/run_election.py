@@ -12,6 +12,10 @@ Usage:
 import sys
 from datetime import datetime, timezone, timedelta
 
+import logging
+log = logging.getLogger(__name__)
+
+
 SYM = "━" * 68
 
 def run_election(date_str: str | None = None):
@@ -41,26 +45,26 @@ def run_election(date_str: str | None = None):
     base_risk = 0.05
     risk_pct = round(base_risk * mult * (0.85 if mult > 1.15 else 1.0), 3)
 
-    print(f"\n{SYM}")
-    print(f"  🎯 ASTROFIN ELECTION — {dt.strftime('%d.%m.%Y')}")
-    print(f"{SYM}")
-    print(f"  Nakshatra:  {N} (#{nak['number']}, Lord {nak['lord']}, Pada {nak['pada']})")
-    print(f"  Tithi:      {tit['name']} ({'Shukla' if tit['is_waxing'] else 'Krishna'})")
-    print(f"  Yoga:       {yog['name']} (#{yog['number']})")
-    print(f"  Karana:     {kar['name']}")
-    print(f"  Moon Rashi: {p['moon_rashi']}")
-    print(f"  Muhurta:    {ms['score']}/100 — {ms['verdict']}")
-    print()
-    print(f"  Risk mult:  ×{mult:.2f}  |  Grade: {grade.value}")
-    print(f"  Danger:     {'⚠️  YES' if is_dangerous_nakshatra(N) else '✅ No'}")
-    print(f"  Favorable:  {'✅ YES' if is_favorable_nakshatra(N) else '—'}")
-    print(f"  Position:   {risk_pct*100:.1f}% risk")
-    print(f"  Stop-loss:  ×{1.2 if mult > 1.15 else 1.0}")
+    log.info(f"\n{SYM}")
+    log.info(f"  🎯 ASTROFIN ELECTION — {dt.strftime('%d.%m.%Y')}")
+    log.info(f"{SYM}")
+    log.info(f"  Nakshatra:  {N} (#{nak['number']}, Lord {nak['lord']}, Pada {nak['pada']})")
+    log.info(f"  Tithi:      {tit['name']} ({'Shukla' if tit['is_waxing'] else 'Krishna'})")
+    log.info(f"  Yoga:       {yog['name']} (#{yog['number']})")
+    log.info(f"  Karana:     {kar['name']}")
+    log.info(f"  Moon Rashi: {p['moon_rashi']}")
+    log.info(f"  Muhurta:    {ms['score']}/100 — {ms['verdict']}")
+    log.info()
+    log.info(f"  Risk mult:  ×{mult:.2f}  |  Grade: {grade.value}")
+    log.info(f"  Danger:     {'⚠️  YES' if is_dangerous_nakshatra(N) else '✅ No'}")
+    log.info(f"  Favorable:  {'✅ YES' if is_favorable_nakshatra(N) else '—'}")
+    log.info(f"  Position:   {risk_pct*100:.1f}% risk")
+    log.info(f"  Stop-loss:  ×{1.2 if mult > 1.15 else 1.0}")
 
-    print(f"\n  🕐 CHOGHADIYA (Dubai +4 UTC):")
+    log.info(f"\n  🕐 CHOGHADIYA (Dubai +4 UTC):")
     for c in p["choghadiya"]:
         bar = "▐" if c["recommended"] else " "
-        print(f"  {bar} {c['start']}–{c['end']}  {c['icon']} {c['name']:<8s} ({c['quality']})")
+        log.info(f"  {bar} {c['start']}–{c['end']}  {c['icon']} {c['name']:<8s} ({c['quality']})")
 
     verdicts = {
         "Excellent": "🟢 ОТЛИЧНЫЙ день для входа",
@@ -68,8 +72,8 @@ def run_election(date_str: str | None = None):
         "Average": "🟡 СРЕДНИЙ — осторожно",
         "Poor": "🔴 ПЛОХОЙ — HOLD",
     }
-    print(f"\n  {verdicts.get(ms['verdict'], ms['verdict'])}")
-    print(f"{SYM}\n")
+    log.info(f"\n  {verdicts.get(ms['verdict'], ms['verdict'])}")
+    log.info(f"{SYM}\n")
 
 if __name__ == "__main__":
     run_election(sys.argv[1] if len(sys.argv) > 1 else None)

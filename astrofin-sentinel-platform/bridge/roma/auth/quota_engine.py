@@ -2,6 +2,7 @@
 """ROMA Quota Engine — Per-tenant quota tracking and enforcement."""
 from typing import Dict
 
+
 class QuotaEngine:
     """
     Tracks per-tenant quota usage against plan limits.

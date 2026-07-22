@@ -3,10 +3,10 @@ ROMA Global State Model — Single Source of Truth contract.
 Defines: truth hierarchy, conflict resolution rules, consistency guarantees.
 """
 
-from enum import Enum
-from typing import Optional, Dict, Any
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, Optional
 
 
 class TruthSource(str, Enum):

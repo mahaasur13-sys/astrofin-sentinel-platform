@@ -10,6 +10,10 @@ from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── States ────────────────────────────────────────────────────────────────────
 
 S_IDLE = "idle"
@@ -281,10 +285,10 @@ def verify(name: str, trans_fn, expect_vulnerable: bool) -> None:
     mc = MC(trans_fn)
     mc.build(State(st=S_IDLE, nu=False, nl=False, rt="none"))
 
-    print(f"\n{'='*62}")
-    print(f"  {name}")
-    print(f"  States: {len(mc.states)} | {'VULNERABLE' if expect_vulnerable else 'FIXED'}")
-    print(f"{'='*62}")
+    log.info(f"\n{'='*62}")
+    log.info(f"  {name}")
+    log.info(f"  States: {len(mc.states)} | {'VULNERABLE' if expect_vulnerable else 'FIXED'}")
+    log.info(f"{'='*62}")
 
     props = {}
 
@@ -314,43 +318,43 @@ def verify(name: str, trans_fn, expect_vulnerable: bool) -> None:
     # AG(Exec → NonceLocked)
     props["AG(Exec → NonceLocked)"] = mc.AG(lambda s: not AP_exec_and_not_nl(s))
 
-    print()
+    log.info()
     for prop, result in props.items():
         ok = "✅" if result == (not expect_vulnerable) else "❌"
         expected = "⊢ TRUE" if not expect_vulnerable else "⊢ FALSE"
-        print(f"  {ok} {prop}: {result} {expected}")
+        log.info(f"  {ok} {prop}: {result} {expected}")
 
     vulnerable = mc.F(AP_exec_and_not_nl)
     fixed = not vulnerable
 
-    print()
-    print(f"  TOCTOU state reachable: {vulnerable}")
-    print(f"  System: {'❌ VULNERABLE' if vulnerable else '✅ SECURE'}")
+    log.info()
+    log.info(f"  TOCTOU state reachable: {vulnerable}")
+    log.info(f"  System: {'❌ VULNERABLE' if vulnerable else '✅ SECURE'}")
 
     return fixed == (not expect_vulnerable)
 
 
 def main():
-    print("╔══════════════════════════════════════════════════════════════╗")
-    print("║  P5 REPLAY TIMING BUG — Formal CTL/LTL Verification         ║")
-    print("║  atom-federation-os v9.0 | 2026-04-15                      ║")
-    print("╚══════════════════════════════════════════════════════════════╝")
+    log.info("╔══════════════════════════════════════════════════════════════╗")
+    log.info("║  P5 REPLAY TIMING BUG — Formal CTL/LTL Verification         ║")
+    log.info("║  atom-federation-os v9.0 | 2026-04-15                      ║")
+    log.info("╚══════════════════════════════════════════════════════════════╝")
 
-    print("\n── T_BEFORE (expect VULNERABLE) ──")
+    log.info("\n── T_BEFORE (expect VULNERABLE) ──")
     ok1 = verify("T_BEFORE (TOCTOU: nonce cached AFTER exec)", trans_BEFORE, expect_vulnerable=True)
 
-    print("\n── T_AFTER (expect FIXED) ──")
+    log.info("\n── T_AFTER (expect FIXED) ──")
     ok2 = verify("T_AFTER  (TOCTOU: nonce locked BEFORE exec)", trans_AFTER, expect_vulnerable=False)
 
-    print("\n╔══════════════════════════════════════════════════════════════╗")
+    log.info("\n╔══════════════════════════════════════════════════════════════╗")
     if ok1 and ok2:
-        print("║  ✅  FORMAL VERIFICATION COMPLETE                           ║")
-        print("║  T_BEFORE: TOCTOU vulnerability confirmed                 ║")
-        print("║  T_AFTER:  TOCTOU window eliminated                       ║")
-        print("║  CWE-367 TOCTOU race condition: RESOLVED                  ║")
+        log.info("║  ✅  FORMAL VERIFICATION COMPLETE                           ║")
+        log.info("║  T_BEFORE: TOCTOU vulnerability confirmed                 ║")
+        log.info("║  T_AFTER:  TOCTOU window eliminated                       ║")
+        log.info("║  CWE-367 TOCTOU race condition: RESOLVED                  ║")
     else:
-        print("║  ❌  VERIFICATION INCONCLUSIVE                             ║")
-    print("╚══════════════════════════════════════════════════════════════╝")
+        log.info("║  ❌  VERIFICATION INCONCLUSIVE                             ║")
+    log.info("╚══════════════════════════════════════════════════════════════╝")
 
 
 if __name__ == "__main__":

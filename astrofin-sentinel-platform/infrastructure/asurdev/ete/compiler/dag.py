@@ -7,10 +7,14 @@ Every execution unit becomes a node with explicit dependencies.
 """
 from __future__ import annotations
 
+import logging
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
+
+log = logging.getLogger(__name__)
+
 
 
 class NodeType(Enum):
@@ -132,6 +136,6 @@ if __name__ == "__main__":
     compiler = DAGCompiler()
     job = {"type": "agent", "agent_type": "quant", "priority": 80}
     dag = compiler.compile(job)
-    print(f"DAG compiled: {dag['dag_id']}, nodes: {len(dag['nodes'])}")
+    log.info(f"DAG compiled: {dag['dag_id']}, nodes: {len(dag['nodes'])}")
     ok, errs = compiler.validate_dag(dag)
-    print(f"Valid: {ok}, Errors: {errs}")
+    log.info(f"Valid: {ok}, Errors: {errs}")

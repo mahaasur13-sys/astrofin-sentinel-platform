@@ -43,6 +43,10 @@ from dataclasses import dataclass, field
 from federation.delta_gossip.consensus import ConvergeQuorumResult
 from federation.delta_gossip.dag_hash_modes import DAGHashMode
 from orchestration.consistency.invariant_contract.cross_origin_proof import (
+
+import logging
+log = logging.getLogger(__name__)
+
     ProofOrigin,
     SemanticProofEngine,
 )
@@ -270,7 +274,7 @@ def _test_v9_3_phase2():
     assert winner is not None and winner.candidate_id == "node_2", (
         f"Expected node_2 (proof_valid=True), got {winner.candidate_id if winner else None}"
     )
-    print(f"✅ Case 1: proof_valid=True wins (score={winner.raw_score:.2f})")
+    log.info(f"✅ Case 1: proof_valid=True wins (score={winner.raw_score:.2f})")
 
     # Case 2: require_proof filters out invalid
     c3 = ProofAwareConsensusCandidate(
@@ -285,7 +289,7 @@ def _test_v9_3_phase2():
     )
     winner2 = resolver.rank_candidates([c3, c4], require_proof=True)
     assert winner2.candidate_id == "node_4"
-    print("✅ Case 2: require_proof filters proof_valid=False")
+    log.info("✅ Case 2: require_proof filters proof_valid=False")
 
     # Case 3: origin priority — REMOTE > REPLAY > SYNTHETIC
     c_remote = ProofAwareConsensusCandidate(
@@ -301,7 +305,7 @@ def _test_v9_3_phase2():
     # Both same stability/drift; REMOTE gets +0.5 vs +0.1 → wins
     winner3 = resolver.rank_candidates([c_replay, c_remote])  # order reversed
     assert winner3.candidate_id == "remote_node"
-    print("✅ Case 3: origin priority — REMOTE > REPLAY")
+    log.info("✅ Case 3: origin priority — REMOTE > REPLAY")
 
     # Case 4: no proof data — rank by stability + drift only
     c_no_proof = ProofAwareConsensusCandidate(
@@ -316,9 +320,9 @@ def _test_v9_3_phase2():
     )
     winner4 = resolver.rank_candidates([c_no_proof, c_weak_proof])
     assert winner4.candidate_id == "no_proof_node"  # higher stability, lower drift
-    print("✅ Case 4: no proof data — fallback to stability + drift")
+    log.info("✅ Case 4: no proof data — fallback to stability + drift")
 
-    print("\n✅ v9.3 Phase 2: ProofAwareConsensusResolver — all checks passed")
+    log.info("\n✅ v9.3 Phase 2: ProofAwareConsensusResolver — all checks passed")
 
 
 if __name__ == "__main__":

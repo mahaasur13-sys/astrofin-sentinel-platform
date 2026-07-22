@@ -7,6 +7,10 @@ import sys
 import threading
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 try:
     from rich.console import Console
     from rich.panel import Panel
@@ -23,9 +27,9 @@ console = Console() if RICH else None
 
 def cprint(msg, style=None):
     if RICH:
-        console.print(msg, style=style or "")
+        console.log.info(msg, style=style or "")
     else:
-        print(msg)
+        log.info(msg)
 
 
 def print_banner():
@@ -66,7 +70,7 @@ def print_decision_rich(record, amre, synth):
     main.append(f"  CONF={confidence:3}  ", style="bold white")
     main.append(f"  ID={decision_id}", style="dim")
     try:
-        console.print(
+        console.log.info(
             Panel(
                 main,
                 title="[bold]KARL DECISION[/bold]",
@@ -75,7 +79,7 @@ def print_decision_rich(record, amre, synth):
             )
         )
     except Exception as e:
-        print(f"[WARN] {e}")
+        log.info(f"[WARN] {e}")
 
 
 def print_decision_ascii(record, amre, synth):
@@ -88,7 +92,7 @@ def print_decision_ascii(record, amre, synth):
         "NEUTRAL": "=NEUT",
         "AVOID": "!AVOID",
     }.get(action, " ? ")
-    print(f"{icon}  CONF={confidence}  ID={decision_id}")
+    log.info(f"{icon}  CONF={confidence}  ID={decision_id}")
 
 
 def save_decision_jsonl(record, filepath="data/karl_decisions.jsonl"):
@@ -113,11 +117,11 @@ def generate_html_report(result, output_path="data/karl_report.html"):
 
 
 def print_topology_viz(_topology_dict=None, session_id=None):
-    print("[INFO] Topology visualization placeholder")
+    log.info("[INFO] Topology visualization placeholder")
 
 
 async def visualize_current_topology(session_id=None):
-    print("[INFO] Topology visualization placeholder")
+    log.info("[INFO] Topology visualization placeholder")
 
 
 # ── CLI (Click) ─────────────────────────────────────────────────

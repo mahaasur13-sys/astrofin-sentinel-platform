@@ -4,9 +4,13 @@ Slurm Prometheus Exporter
 Exports: queue depth, node state, GPU allocation, job states
 Endpoint: /metrics  (text format for Prometheus)
 """
+import logging
 import re
 import subprocess
 from http.server import BaseHTTPRequestHandler, HTTPServer
+
+log = logging.getLogger(__name__)
+
 
 SLURMCTL_HOST = "10.20.20.10"
 SLURMCTL_PORT = 6817
@@ -103,5 +107,5 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", 9341), Handler)
-    print("Slurm exporter listening on :9341/metrics")
+    log.info("Slurm exporter listening on :9341/metrics")
     server.serve_forever()

@@ -3,11 +3,15 @@
 ROMA Stripe Client — Metered billing integration.
 Maps: ROMA billing events → Stripe usage records → invoice finalization.
 """
-from dataclasses import dataclass
-from typing import Callable
-import time
 import hashlib
 import hmac
+import logging
+import time
+from dataclasses import dataclass
+from typing import Callable
+
+log = logging.getLogger(__name__)
+
 
 @dataclass
 class StripeConfig:
@@ -33,13 +37,13 @@ class StripeBillingClient:
     def create_customer(self, tenant_id: str, email: str, name: str) -> str:
         cid = f"cus_{hashlib.md5(tenant_id.encode()).hexdigest()[:14]}"
         self._customers[tenant_id] = cid
-        print(f"  [Stripe] Customer created: {cid} for tenant {tenant_id}")
+        log.info(f"  [Stripe] Customer created: {cid} for tenant {tenant_id}")
         return cid
 
     def create_subscription(self, tenant_id: str, plan: str) -> str:
         sid = f"sub_{hashlib.md5((tenant_id + plan).encode()).hexdigest()[:14]}"
         self._subscriptions[tenant_id] = sid
-        print(f"  [Stripe] Subscription: {sid} (plan={plan})")
+        log.info(f"  [Stripe] Subscription: {sid} (plan={plan})")
         return sid
 
     def submit_usage_record(self, record: StripeUsageRecord) -> dict:
@@ -53,7 +57,7 @@ class StripeBillingClient:
 
     def finalize_invoice(self, customer_id: str, usage_total: float) -> str:
         invoice_id = f"in_{int(time.time())}"
-        print(f"  [Stripe] Invoice {invoice_id} finalized for customer {customer_id} | total=${usage_total:.4f}")
+        log.info(f"  [Stripe] Invoice {invoice_id} finalized for customer {customer_id} | total=${usage_total:.4f}")
         return invoice_id
 
     def verify_webhook_signature(self, payload: bytes, sig: str) -> bool:
@@ -83,7 +87,7 @@ class StripeWebhookHandler:
         import json
         raw = json.loads(payload)
         event = WebhookEvent(event_type=raw.get("type", ""), data=raw.get("data", {}).get("object", {}))
-        print(f"  [Webhook] Processing: {event.event_type}")
+        log.info(f"  [Webhook] Processing: {event.event_type}")
 
         if event.event_type == "invoice.paid":
             tenant_id = event.data.get("metadata", {}).get("tenant_id", "unknown")
@@ -121,11 +125,11 @@ if __name__ == "__main__":
         idempotency_key="usage-001"
     )
     result = stripe.submit_usage_record(record)
-    print(f"  [Stripe] Usage record: {result}")
+    log.info(f"  [Stripe] Usage record: {result}")
 
     # Invoice
     inv = stripe.finalize_invoice("cus_abc123", 12.50)
-    print(f"  [Stripe] Invoice: {inv}")
+    log.info(f"  [Stripe] Invoice: {inv}")
 
     # Webhook handler
     from billing.ledger import BillingLedger; ledger = BillingLedger()
@@ -137,5 +141,5 @@ if __name__ == "__main__":
         "data": {"object": {"id": "in_123", "amount_paid": 1250, "metadata": {"tenant_id": "tenant-abc"}}}
     }).encode()
     result = wh.handle(test_payload, "sig_test")
-    print(f"  [Webhook] Result: {result}")
-    print(f"  [Ledger] ABC balance after webhook: ${ledger.get_tenant_balance('tenant-abc'):.2f}")
+    log.info(f"  [Webhook] Result: {result}")
+    log.info(f"  [Ledger] ABC balance after webhook: ${ledger.get_tenant_balance('tenant-abc'):.2f}")

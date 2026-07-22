@@ -4,6 +4,10 @@ Runtime bootstrap — wires ClusterNode from components.
 import os
 import sys
 
+import logging
+log = logging.getLogger(__name__)
+
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
@@ -20,16 +24,16 @@ class BootstrapNode:
         self._running = False
 
     def start(self):
-        print(f"[BOOT] {self.node_id} starting with peers: {self.peers}")
+        log.info(f"[BOOT] {self.node_id} starting with peers: {self.peers}")
 
         self.node = ClusterNode(node_id=self.node_id, peers=self.peers)
         self.node.start()
 
         self._running = True
-        print(f"[BOOT] {self.node_id} fully ready (ClusterNode + all layers)")
+        log.info(f"[BOOT] {self.node_id} fully ready (ClusterNode + all layers)")
 
     def stop(self):
         self._running = False
         if self.node:
             self.node.stop()
-        print(f"[SHUTDOWN] {self.node_id} stopped")
+        log.info(f"[SHUTDOWN] {self.node_id} stopped")

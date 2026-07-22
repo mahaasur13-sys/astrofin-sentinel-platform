@@ -6,10 +6,14 @@ Population: ACOS jobs → evaluated on cluster → fitness aggregated in TSDB.
 """
 import hashlib
 import json
+import logging
 import random
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
+
+log = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -149,7 +153,7 @@ class MetaRLEngine:
             self.generation += 1
             self.history.extend(selected)
             best = max(self.population, key=lambda x: x.fitness)
-            print(f"  Generation {self.generation}: best_fitness={best.fitness:.4f}")
+            log.info(f"  Generation {self.generation}: best_fitness={best.fitness:.4f}")
         return self.history
 
 
