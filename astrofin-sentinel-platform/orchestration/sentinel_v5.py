@@ -43,170 +43,21 @@ except Exception:
 
 from agents._impl.amre.oap_optimizer import get_oap_optimizer
 
-OAP_WEIGHTING_ENABLED = True
+# P2-04: OAP/Thompson helpers extracted to context_manager
+from orchestration.context_manager import _compute_oap_adjustments, _select_for_flow, OAP_WEIGHTING_ENABLED  # noqa: F401
+
+# P2-04: Flow runners extracted to result_aggregator
+from orchestration.result_aggregator import (  # noqa: F401
+    _fetch_price,
+    run_astro_flow,
+    run_electoral_flow,
+    run_macro_flow,
+    run_technical_flow,
+)
 
 logger = logging.getLogger(__name__)
 
 KARL_ENABLED = os.getenv("KARL_ENABLED", "true").lower() == "true"
-
-
-def _compute_oap_adjustments(oap_state, agents: list) -> dict:
-    if not hasattr(oap_state, "agent_stats") or not oap_state.agent_stats:
-        if not agents:
-            return {}
-        entropy = getattr(oap_state, "entropy_avg", 0.5) or 0.5
-        sharpe = getattr(oap_state, "sharpe_ratio", 0.0) or 0.0
-        oap_score = 0.5 * entropy + 0.5 * max(0.0, sharpe)
-        adjustment = (oap_score - 0.5) * 0.4
-        logger.debug(f"[OAP] no per-agent stats — uniform adj={adjustment:+.3f}")
-        return dict.fromkeys(agents, adjustment)
-    adjustments = {}
-    for agent_name in agents:
-        stats = oap_state.agent_stats.get(agent_name)
-        if stats is None:
-            adjustments[agent_name] = 0.0
-            continue
-        try:
-            entropy = getattr(stats, "entropy_contribution", 0.5) or 0.5
-            sharpe = max(0.0, getattr(stats, "sharpe_contribution", 0.0) or 0.0)
-            recent_q = getattr(stats, "recent_decision_quality", 0.5) or 0.5
-            agent_score = entropy * 0.4 + sharpe * 0.4 + recent_q * 0.2
-            adjustment = max(-0.25, min(0.25, (agent_score - 0.5) * 0.5))
-            adjustments[agent_name] = adjustment
-        except Exception:
-            adjustments[agent_name] = 0.0
-    return adjustments
-
-
-async def run_technical_flow(state: dict, selected_agents: list | None = None) -> dict:
-    pool_agents = selected_agents or TECHNICAL_POOL.agents
-    tasks, names = [], []
-    if "MarketAnalyst" in pool_agents:
-        tasks.append(run_market_analyst(state))
-        names.append("MarketAnalyst")
-    if "BullResearcher" in pool_agents:
-        tasks.append(run_bull_researcher(state))
-        names.append("BullResearcher")
-    if "BearResearcher" in pool_agents:
-        tasks.append(run_bear_researcher(state))
-        names.append("BearResearcher")
-    if not tasks:
-        return {}
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    merged = {}
-    for name, r in zip(names, results, strict=False):
-        if isinstance(r, dict):
-            merged[f"{name.lower()}_signal"] = (
-                r.get(f"{name.lower()}_signal") or list(r.values())[0]
-            )
-        elif isinstance(r, Exception):
-            logger.error(f"[TechFlow] Agent {name} failed: {r}")
-            merged[f"{name.lower()}_signal"] = AgentResponse(
-                agent_name=name,
-                signal=SignalDirection.NEUTRAL,
-                confidence=30,
-                reasoning=f"Agent error: {str(r)[:100]}",
-                sources=[],
-            ).to_dict()
-    return merged
-
-
-async def run_astro_flow(state: dict, selected_agents: list | None = None) -> dict:
-    pool_agents = selected_agents or ASTRO_POOL.agents
-    state = {**state, "_thompson_selected_astro": pool_agents}
-    return await run_astro_council(state)
-
-
-async def run_electoral_flow(state: dict, selected_agents: list | None = None) -> dict:
-    return await run_electoral_agent(state)
-
-
-async def run_macro_flow(state: dict, selected_agents: list | None = None) -> dict:
-    pool_agents = selected_agents or MACRO_POOL.agents
-    tasks, names = [], []
-    if "FundamentalAgent" in pool_agents:
-        tasks.append(run_fundamental_agent(state))
-        names.append("FundamentalAgent")
-    if "MacroAgent" in pool_agents:
-        tasks.append(run_macro_agent(state))
-        names.append("MacroAgent")
-    if "QuantAgent" in pool_agents:
-        tasks.append(run_quant_agent(state))
-        names.append("QuantAgent")
-    if "OptionsFlowAgent" in pool_agents:
-        tasks.append(run_options_flow_agent(state))
-        names.append("OptionsFlowAgent")
-    if "SentimentAgent" in pool_agents:
-        tasks.append(run_sentiment_agent(state))
-        names.append("SentimentAgent")
-    if not tasks:
-        return {}
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    merged = {}
-    for name, r in zip(names, results, strict=False):
-        if isinstance(r, dict):
-            sig = (
-                r.get(f"{name.lower()}_signal")
-                or r.get("signal")
-                or (list(r.values())[0] if r else None)
-            )
-            merged[f"{name.lower()}_signal"] = sig
-        elif isinstance(r, Exception):
-            logger.error(f"[MacroFlow] Agent {name} failed: {r}")
-            merged[f"{name.lower()}_signal"] = AgentResponse(
-                agent_name=name,
-                signal=SignalDirection.NEUTRAL,
-                confidence=30,
-                reasoning=f"Agent error: {str(r)[:100]}",
-                sources=[],
-            ).to_dict()
-    return merged
-
-
-def _select_for_flow(
-    pool: AgentPool,
-    excluded: list | None = None,
-    k: int | None = None,
-    oap_adjustments: dict | None = None,
-) -> list:
-    adj = oap_adjustments if OAP_WEIGHTING_ENABLED else None
-    sampler = get_thompson_sampler()
-    if excluded:
-        selected = sampler.select_with_exclusions(
-            pool, excluded=excluded, k=k, oap_adjustments=adj
-        )
-    else:
-        selected = sampler.select(pool, k=k, oap_adjustments=adj)
-    return [name for name, _ in selected]
-
-
-async def _fetch_price(symbol: str, fallback_price: float = 50000.0) -> float:
-    import httpx
-
-    max_retries = 3
-    async with httpx.AsyncClient() as client:
-        for attempt in range(max_retries):
-            try:
-                url = f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
-                resp = await client.get(url, timeout=5)
-                resp.raise_for_status()
-                data = resp.json()
-                price = float(data.get("price", 0))
-                if price > 0:
-                    logger.debug(f"[Price] {symbol} = {price}")
-                    return price
-                else:
-                    logger.warning(f"[Price] Invalid price for {symbol}: {price}")
-            except Exception as e:
-                logger.warning(
-                    f"[Price] Attempt {attempt + 1}/{max_retries} error: {e}"
-                )
-            if attempt < max_retries - 1:
-                await asyncio.sleep(2**attempt)
-    logger.error(
-        f"[Price] All {max_retries} attempts failed for {symbol}, using fallback {fallback_price}"
-    )
-    return fallback_price
 
 
 async def run_sentinel_v5(

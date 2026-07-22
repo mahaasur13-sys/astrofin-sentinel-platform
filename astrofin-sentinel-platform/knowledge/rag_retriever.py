@@ -8,15 +8,12 @@ from __future__ import annotations
 import json
 import urllib.request
 from pathlib import Path
+import logging
 
 import faiss
 import numpy as np
 
 from tools.metrics_server import (
-
-import logging
-log = logging.getLogger(__name__)
-
     CACHE_HITS,
     CACHE_MISSES,
     OLLAMA_STATUS,
