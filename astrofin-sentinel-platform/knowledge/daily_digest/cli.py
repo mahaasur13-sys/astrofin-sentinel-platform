@@ -16,6 +16,9 @@ Usage:
 """
 
 from __future__ import annotations
+
+import logging
+log = logging.getLogger(__name__)
 import argparse
 import sys
 from datetime import datetime

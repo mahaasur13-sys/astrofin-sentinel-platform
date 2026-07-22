@@ -6,6 +6,9 @@ from datetime import datetime
 
 from .portfolio import Portfolio, PositionSide
 
+import logging
+log = logging.getLogger(__name__)
+
 
 @dataclass
 class BacktestConfig:

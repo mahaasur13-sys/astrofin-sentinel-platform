@@ -19,6 +19,9 @@ Public surface preserved verbatim for callers in:
 
 from __future__ import annotations
 
+import logging
+log = logging.getLogger(__name__)
+
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Protocol, runtime_checkable

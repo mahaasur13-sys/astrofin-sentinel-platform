@@ -41,6 +41,25 @@ CREATE INDEX IF NOT EXISTS idx_pg_sessions_symbol    ON sessions(symbol);
 CREATE INDEX IF NOT EXISTS idx_pg_sessions_timeframe ON sessions(timeframe);
 CREATE INDEX IF NOT EXISTS idx_pg_sessions_timestamp ON sessions(created_at);
 CREATE INDEX IF NOT EXISTS idx_pg_sessions_signal    ON sessions(final_signal);
+CREATE TABLE IF NOT EXISTS agent_weights_history (
+    id               SERIAL PRIMARY KEY,
+    calibration_ts   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    agent_name       TEXT    NOT NULL,
+    old_weight       REAL    NOT NULL,
+    new_weight       REAL    NOT NULL,
+    win_rate         REAL    NOT NULL DEFAULT 0.0,
+    sharpe           REAL    NOT NULL DEFAULT 0.0,
+    trades_count     INTEGER NOT NULL DEFAULT 0,
+    pnl_total        REAL    NOT NULL DEFAULT 0.0,
+    max_drawdown     REAL    NOT NULL DEFAULT 0.0,
+    metadata         JSONB   NOT NULL DEFAULT ''{}''
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_weights_ts
+    ON agent_weights_history(calibration_ts);
+CREATE INDEX IF NOT EXISTS idx_agent_weights_name
+    ON agent_weights_history(agent_name);
+
 """
 
 

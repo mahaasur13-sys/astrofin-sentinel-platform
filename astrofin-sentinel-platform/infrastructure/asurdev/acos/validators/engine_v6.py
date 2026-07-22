@@ -6,6 +6,9 @@ After execution, records trace to recorder for idempotency.
 """
 from __future__ import annotations
 
+import logging
+log = logging.getLogger(__name__)
+
 import time
 
 from acos.recorder.recorder import DeterministicTraceRecorder

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import logging
+log = logging.getLogger(__name__)
+
 import sys as _sys
 
 _sys.path.insert(0, "")
