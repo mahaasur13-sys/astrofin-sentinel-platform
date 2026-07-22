@@ -29,7 +29,7 @@
 | R-11 | Coverage нового агента = 100% unit + 1 integration |
 | R-12 | Subtree/submodule — запрещены; всё inlined в master |
 
-## Текущее состояние (2026-07-21 — SEC EDGAR + Telegram Bot ✅)
+## Текущее состояние (2026-07-22 — P0 Security ✅ + P1 Code Quality ✅)
 
 - **Branch:** `feature/architecture-consolidation` @ `5b2565c` (PR #201 squash-merged)
 - **Phase B1 + 4.x:** завершены — 10 артефактов восстановлены, 0 hard linter violations
