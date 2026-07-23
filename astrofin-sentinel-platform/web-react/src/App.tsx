@@ -6,6 +6,8 @@ import { AgentPerformanceGrid } from '@/components/sentinel/AgentPerformanceGrid
 import { EquityCurve } from '@/components/sentinel/EquityCurve';
 import { MetaRLEvolution } from '@/components/sentinel/MetaRLEvolution';
 import { RegimeHeatmap } from '@/components/sentinel/RegimeHeatmap';
+import RadialOrbitalGraph from '@/components/sentinel/RadialOrbitalGraph';
+import AstroMindChat from '@/components/sentinel/AstroMindChat';
 import SessionTable from '@/components/SessionTable';
 import { useSentinelStream } from '@/hooks/use-sentinel-stream';
 
@@ -26,6 +28,7 @@ export default function App() {
   const [tf, setTf] = useState<string>('1D');
   const [ticker, setTicker] = useState('BTC-USD');
   const [showRightPanel, setShowRightPanel] = useState(true);
+  const state = useSentinelStream(true);
 
   const stream = useSentinelStream(true);
   const regime: Regime = stream.regime?.regime as Regime ?? 'bull';
@@ -210,7 +213,13 @@ export default function App() {
           </div>
 
           {/* Session Table */}
+          <RadialOrbitalGraph agentStatuses={{}} ensembleResult={null} isAnalyzing={false} />
+
           <SessionTable />
+
+          <div className="mt-3">
+            <AstroMindChat />
+          </div>
         </main>
 
         {/* === RIGHT PANEL === */}
