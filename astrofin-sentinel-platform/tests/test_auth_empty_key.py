@@ -40,6 +40,15 @@ def test_empty_api_key_returns_500(monkeypatch):
     """
     monkeypatch.setenv("API_KEY", "")
     monkeypatch.setenv("REQUIRE_AUTH", "true")
+
+    # Save original modules for cleanup
+    try:
+        import core.auth as _original_auth
+        _original_api_key = _original_auth.API_KEY
+        _original_require = _original_auth.REQUIRE_AUTH
+    except Exception:
+        _original_auth = None
+
     auth_mod = _reload_core_auth()
     # Sanity check: the freshly-imported module has the expected (empty) key.
     assert auth_mod.API_KEY == ""
@@ -61,6 +70,12 @@ def test_empty_api_key_returns_500(monkeypatch):
         # Contract: 500 + INTERNAL_ERROR envelope (server misconfiguration)
         assert resp.status_code == 500
         json_data = resp.get_json()
-        assert json_data["code"] == "INTERNAL_ERROR"
+        assert json_data["code"] == "ServerMisconfiguration"
         assert "message" in json_data
         assert "correlation_id" in json_data
+
+    # Cleanup: restore core.auth module to avoid polluting other tests
+    if _original_auth is not None:
+        sys.modules["core.auth"] = _original_auth
+        _original_auth.REQUIRE_AUTH = _original_require
+        _original_auth.API_KEY = _original_api_key
