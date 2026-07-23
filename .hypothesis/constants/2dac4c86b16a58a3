@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/amre/reward.py
+# hypothesis_version: 6.151.10
+
+[-0.5, 0.0, 1e-09, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.7, 1.0, 1.2, 100, '; ', 'BUY', 'EXTREME', 'HIGH', 'LONG', 'LOW', 'NEUTRAL', 'NORMAL', 'SELL', 'SHORT', 'accuracy', 'bin', 'calibrated', 'calibration', 'clean', 'confidence', 'correlation', 'count', 'current', 'direction_correct', 'drawdown', 'ece', 'ema_reward', 'insufficient_data', 'intercept', 'n', 'n_history', 'n_samples', 'peak', 'pnl_pct', 'raw_reward', 'regime', 'reliability_diagram', 'signal', 'slope', 'status', 'trades', 'uncalibrated']

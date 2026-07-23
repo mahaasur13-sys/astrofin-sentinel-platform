@@ -1,0 +1,101 @@
+"""
+ROMASDK — Python client for ROMA Execution Platform.
+
+Usage:
+    from roma_sdk import ROMAClient
+    client = ROMAClient(base_url="http://localhost:8000")
+    job = client.submit("train YOLOv8 on RTX3060", gpu_required=True)
+    status = client.status(job["job_id"])
+"""
+
+from dataclasses import dataclass
+from typing import Any, Dict, Optional
+
+import requests
+
+API_BASE = "http://localhost:8000"
+
+
+class ROMAException(Exception):
+    pass
+
+
+@dataclass
+class ROMAJob:
+    job_id: str
+    status: str
+    queue_priority: int
+    dag: list
+    estimated_resources: dict
+
+
+@dataclass
+class ATOMClusterJob:
+    """Placeholder for ATOMCluster job response."""
+
+    data: dict
+
+
+class ROMAClient:
+    def __init__(self, base_url: str = API_BASE):
+        self.base_url = base_url.rstrip("/")
+
+    def submit(
+        self, task: str, *, gpu_required: bool = False, priority: int = 5, execution_mode: str = "k8s_job"
+    ) -> ROMAJob:
+        """Submit a standard task."""
+        if not task or not task.strip():
+            resp = requests.post(f"{self.base_url}/submit", json={"task": ""})
+            if resp.status_code == 400:
+                data = resp.json()
+                raise ROMAException(
+                    f"REJECTED: {data.get('error', {}).get('code')} — " f"{data.get('error', {}).get('message')}"
+                )
+            resp.raise_for_status()
+
+        payload = {"task": task, "gpu_required": gpu_required, "priority": priority, "execution_mode": execution_mode}
+        resp = requests.post(f"{self.base_url}/submit", json=payload)
+
+        if resp.status_code == 429:
+            raise ROMAException("BACKPRESSURE: Queue saturated, retry later")
+        if resp.status_code >= 400:
+            raise ROMAException(f"HTTP {resp.status_code}: {resp.text}")
+
+        data = resp.json()
+        return ROMAJob(
+            job_id=data["job_id"],
+            status=data["status"],
+            queue_priority=data.get("roma_dispatch", {}).get("queue_priority", 0),
+            dag=data.get("dag", []),
+            estimated_resources=data.get("estimated_resources", {}),
+        )
+
+    def submit_atom_cluster(self, task: str, cluster_spec: dict) -> ATOMClusterJob:
+        """Submit execution as ATOMCluster managed job."""
+        resp = requests.post(
+            f"{self.base_url}/submit",
+            json={"task": task, "execution_mode": "atom_cluster", "cluster_spec": cluster_spec},
+        )
+        resp.raise_for_status()
+        return ATOMClusterJob(resp.json())
+
+    def status(self, job_id: str) -> dict[str, Any]:
+        resp = requests.get(f"{self.base_url}/status/{job_id}")
+        if resp.status_code == 404:
+            raise ROMAException(f"Job {job_id} not found")
+        resp.raise_for_status()
+        return resp.json()
+
+    def queue_status(self) -> dict[str, Any]:
+        resp = requests.get(f"{self.base_url}/queue/status")
+        resp.raise_for_status()
+        return resp.json()
+
+    def health(self) -> bool:
+        resp = requests.get(f"{self.base_url}/health")
+        return resp.status_code == 200
+
+
+if __name__ == "__main__":
+    client = ROMAClient()
+    print("ROMA SDK ready. Usage: client.submit('train YOLOv8')")

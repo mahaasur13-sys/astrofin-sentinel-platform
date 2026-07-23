@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/amre/uncertainty.py
+# hypothesis_version: 6.151.10
+
+[0.3, 0.5, 100, 1000, 'aleatoric', 'confidence', 'epistemic', 'n_signals', 'signal', 'total']

@@ -1,0 +1,4 @@
+# file: /home/felix/Projects/astrofin-sentinel-platform/agents/metrics.py
+# hypothesis_version: 6.155.7
+
+[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.5, 1.0, 5.0, '(?<!^)(?=[A-Z])', 'P', 'R', '_', '_+', 'agent', 'agent_counter', 'agent_latency', 'name', 'signal', 'track_agent_metrics', 'unknown', 'value']

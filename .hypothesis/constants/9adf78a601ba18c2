@@ -1,0 +1,4 @@
+# file: /home/workspace/orchestration/sentinel_v5_mas.py
+# hypothesis_version: 6.151.10
+
+[0.0, 0.5, 50000, '?', 'Analyze BTC', 'BTCUSDT', 'NEUTRAL', 'NORMAL', 'SWING', 'Synthesis failed', '__main__', 'agent_count', 'all_signals', 'birth_data', 'confidence', 'current_price', 'db.save_failed', 'execution_log', 'final_recommendation', 'flows_run', 'karl_enabled', 'mas_factory', 'mas_factory_mode', 'masfactory.query', 'masfactory.result', 'masfactory.roles', 'meta_question_bias', 'meta_questions', 'q_star', 'query_type', 'reasoning', 'regime', 'roles', 'router.query_type', 'session_id', 'signal', 'started_at', 'symbol', 'synthesis.error', 'timeframe', 'timeframe_requested', 'timestamp', 'to_dict', 'topology', 'topology_hash', 'uncertainty', 'user_query']

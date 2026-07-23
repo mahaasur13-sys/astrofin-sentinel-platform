@@ -1,0 +1,7 @@
+[09:22:42] [OK]  DRY-RUN MODE — no changes will be made
+[09:22:42] Starting installation — Profile: ai-dev
+[09:22:42] 
+[09:22:42] ══ 01 ══ [Stage 1]
+[09:22:42] [OK]  [DRY-RUN] Would execute: stage_1
+[09:22:42] 
+[09:22:42] ══ 02 ══ [Stage 2]

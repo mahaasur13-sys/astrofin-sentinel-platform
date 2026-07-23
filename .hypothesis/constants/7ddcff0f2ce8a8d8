@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/amre/lag_windowing.py
+# hypothesis_version: 6.151.10
+
+[0.0, 1e-06, 0.005, 0.02, 0.15, 0.3, 1.0, 1.5, 2.0, 100, 'BLEND_MATURE', 'BLEND_WARMUP', 'DEFAULT_BASE_WINDOW', 'DEFAULT_MAX_WINDOW', 'DEFAULT_MIN_WINDOW', 'LAG_ADAPTIVE_WINDOW', 'LAG_BASE_WINDOW_SIZE', 'LAG_MAX_WINDOW_SIZE', 'LAG_MIN_WINDOW_SIZE', 'LAG_VOL_HIGH_THRESH', 'LAG_VOL_LOW_THRESH', 'LagWindow', 'WARMUP_THRESHOLD', '[LagWindow] reset', 'adaptive_enabled', 'alpha', 'blend', 'count', 'ema', 'final_confidence', 'get_lag_window', 'lag_adj', 'position_history_len', 'position_lag', 'raw_confidence', 'reset_lag_window', 'true', 'window_size']

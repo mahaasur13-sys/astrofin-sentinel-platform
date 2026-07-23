@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/amre/trajectory.py
+# hypothesis_version: 6.151.10
+
+[0.0, 0.5, 1.0, 50.0, 100.0, 'NORMAL', 'metadata', 'price', 'regime', 'steps', 'timestamp']

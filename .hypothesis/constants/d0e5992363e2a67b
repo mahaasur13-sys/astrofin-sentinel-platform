@@ -1,0 +1,4 @@
+# file: /home/felix/Projects/astrofin-sentinel-platform/meta_rl/git_agent_exporter.py
+# hypothesis_version: 6.155.7
+
+[0.0, 2.0, 15.0, 60.0, '-', '--+', 'ALL', 'BEAR-RESTRICTED', 'BEAR_ONLY', 'BULL-RESTRICTED', 'BULL_ONLY', 'SOUL.md', 'agent.yaml', 'astrofin', 'atr_multiplier', 'capabilities', 'chromosome', 'chromosome_hash', 'compliance', 'confidence_base', 'confidence_threshold', 'description', 'evaluate', 'evaluation', 'generation', 'meta-rl', 'meta-rl-strategy', 'model', 'name', 'position_size_pct', 'provider', 'regime_filter', 'risk_adjusted_pnl', 'risk_level', 'sharpe', 'strategy', 'strategy_params.json', 'sub_agents', 'to_dict', 'tools', 'utf-8', 'uuid', 'version', 'w', 'workflows']

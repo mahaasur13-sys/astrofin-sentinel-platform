@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/amre/karl_integration.py
+# hypothesis_version: 6.151.10
+
+[0.0, 0.02, 0.1, 0.5, 0.55, 0.8, 1.0, 100, '#', '$', '0', '@', 'BTC', 'BTCUSDT', 'FAANG', 'MCP', 'NCL', 'NEUTRAL', 'NICKEL', 'NORMAL', 'QQQ', 'SWING', 'UNKNOWN', '^', 'action', 'advantage', 'agent_name', 'aleatoric', 'amre_diagnostics', 'amre_passed', 'audit_summary', 'avg_confidence', 'confidence', 'current_price', 'current_ttc_depth', 'depth', 'entropy', 'entropy_avg', 'exploration_rate', 'fallback_applied', 'fallback_reason', 'grounding_strength', 'hashlib', 'id', 'issues', 'karluar', 'name', 'oap_kpi', 'oos_fail_rate', 'original_symbol', 'passed', 'policy', 'position_size', 'q_star', 'q_value', 'regime', 'regime_stability', 'session_id', 'sharpe_ratio', 'signal', 'symbol', 'timeframe_requested', 'timestamp', 'total', 'ttc_depth', 'uncertainty', 'unknown', 'weight', 'win_rate']

@@ -1,0 +1,4 @@
+# file: /home/workspace/scripts/architecture_linter.py
+# hypothesis_version: 6.151.10
+
+[-200, '*', '*.py', '--changed', '--diff-filter=ACMR', '--name-only', '.', '.bak', '.git', '.py', '.pyc', '.pyo', '.pytest_cache', '.route(', '.ruff_cache', '.swp', '.venv', '1', '2', '31;1', '32', '33', '36', '?', '@app.route', '@bp.route', '@require_ephemeris', 'AKIA[0-9A-Z]{16}', 'Agent', 'BaseAgent', 'BaseAgent\\[.*\\]', 'FAIL', 'HEAD', 'PUBLIC', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'S1', 'SYNTAX', 'WARN', '_', '__', '__init__.py', '__main__', '__pycache__', '_archived', '_impl', '_templates', 'agents', 'aspect', 'auth_required', 'core', 'data_room', 'diff', 'docs/', 'ephemeris', 'f"', 'ghp_[A-Za-z0-9]{20,}', 'git', 'gitagent_registry.py', 'healthz', 'natal', 'node_modules', 'orchestration', 'paths', 'planet_position', 'print', 'public_', 'require_auth', 'scripts', 'scripts/', 'store_true', 'swisseph', 'tests/', 'tools', 'tools/', 'utf-8', 'venv', 'web', '⚠', '✖']

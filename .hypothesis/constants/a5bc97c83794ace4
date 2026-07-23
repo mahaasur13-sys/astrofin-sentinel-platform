@@ -1,0 +1,4 @@
+# file: /home/felix/Projects/astrofin-sentinel-platform/strategies/base.py
+# hypothesis_version: 6.155.7
+
+[25.0, 50.0, '1.0.0', 'BEAR', 'BULL', 'BaseStrategy', 'LONG', 'NEUTRAL', 'PerformanceRecord', 'Regime', 'SHORT', 'Signal', 'StrategyConfig', 'StrategyResult', 'VOLATILE']

@@ -1,0 +1,41 @@
+# =============================================================================
+# Vault Agent Sidecar Template for ROMA Pods
+# =============================================================================
+# Add to roma-api-server and roma-gpu-worker deployments:
+#   template.Annotations:
+#     vault.hashicorp.com/agent-inject: "true"
+#     vault.hashicorp.com/role: "roma-pod"
+#     vault.hashicorp.com/agent-inject-secret-stripe: "roma/stripe#secret_key"
+#     vault.hashicorp.com/agent-inject-template-stripe: |
+#       {{- with secret "roma/stripe" -}}
+#       STRIPE_SECRET_KEY={{ .Data.data.secret_key }}
+#       {{- end }}
+# =============================================================================
+
+---
+# Service account for ROMA pods to authenticate to Vault
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: roma-vault
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma
+    app.kubernetes.io/component: vault
+
+---
+# Vault Role (maps k8s SA to Vault policies)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: roma-vault-binding
+  labels:
+    app.kubernetes.io/name: roma
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: roma-vault
+    namespace: roma-system

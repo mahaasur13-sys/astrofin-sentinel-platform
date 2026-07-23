@@ -1,0 +1,31 @@
+# =============================================================================
+# ROMA External Access via Tailscale NodePort (no Ingress Controller needed)
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: roma-api-server-external
+  namespace: roma-system
+  labels:
+    app.kubernetes.io/name: roma-execution-bridge
+    app.kubernetes.io/component: api-server
+  annotations:
+    # Tailscale Funnel — public HTTPS through Tailscale
+    tailscale.com/funnel: "true"
+spec:
+  type: NodePort
+  ports:
+    - port: 8443
+      targetPort: 8080
+      protocol: TCP
+      name: https
+      nodePort: 30443
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+      nodePort: 30080
+  selector:
+    app.kubernetes.io/name: roma-execution-bridge
+    app.kubernetes.io/component: api-server

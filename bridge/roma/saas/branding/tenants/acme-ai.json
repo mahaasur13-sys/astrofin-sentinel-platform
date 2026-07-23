@@ -1,0 +1,15 @@
+{
+  "tenant_id": "acme-ai",
+  "app_name": "AcmeAI GPU Cloud",
+  "logo_url": "https://acme-ai.com/logo.png",
+  "primary_color": "#10b981",
+  "secondary_color": "#064e3b",
+  "accent_color": "#f59e0b",
+  "support_email": "support@acme-ai.com",
+  "from_name": "AcmeAI GPU Cloud",
+  "custom_domain": "gpu.acme-ai.com",
+  "metadata": {
+    "brand": "acme-ai",
+    "powered_by": "mahaasur13-sys"
+  }
+}

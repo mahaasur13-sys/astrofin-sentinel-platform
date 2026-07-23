@@ -1,0 +1,4 @@
+# file: /home/workspace/meta_rl/backtest_adapter.py
+# hypothesis_version: 6.151.10
+
+[0.0, 1e-08, 0.01, 0.02, 4.0, 5.0, 50.0, 100.0, 10000.0, 49999.0, 50000.0, 50001.0, 1000000000.0, 252, 'BTC/USDT', 'BTCUSDT', 'BUY', 'ETHUSDT', 'MARKET', 'NEUTRAL_R', 'NORMAL', 'REJECTED', 'SPY', 'adv_24h', 'ask_price', 'atr', 'bid_price', 'close', 'confidence', 'current_vol_regime', 'dt', 'entry_price', 'high', 'initial_capital', 'last_price', 'low', 'max_drawdown_pct', 'momentum', 'open', 'realized_vol_20d', 'reasoning', 'regime', 'side', 'signal', 'signal_strength', 'size', 'slippage_bp', 'spread_bps', 'symbol', 'timestamp', 'total_return_pct', 'trades', 'validate', 'value', 'volume']

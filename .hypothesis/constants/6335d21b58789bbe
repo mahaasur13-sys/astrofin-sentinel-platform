@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/amre/risk_control.py
+# hypothesis_version: 6.151.10
+
+['0.01', '0.20', '0.3', '0.8', '1.1', 'RISK_INCREASE_FACTOR', 'RISK_MAX_POSITION', 'RISK_MIN_POSITION', 'true']

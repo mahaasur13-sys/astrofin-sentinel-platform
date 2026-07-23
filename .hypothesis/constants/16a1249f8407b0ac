@@ -1,0 +1,4 @@
+# file: /home/workspace/meta_rl/meta_agent.py
+# hypothesis_version: 6.151.10
+
+[-1.0, 0.0, 0.15, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 2.0, 15.0, 60.0, 1000, 10000, 'BULL', 'HIGH', 'NORMAL', '_session_id', 'adaptive', 'atr_mult', 'atr_multiplier', 'base', 'chromosome', 'conf_th', 'confidence_threshold', 'current_q_star', 'current_regime', 'disabled', 'error', 'gen', 'generation', 'historical_qstar_len', 'id', 'import_error', 'inf', 'last_update_gen', 'latest_drift_score', 'meta_rl_default', 'nan', 'no_sessions', 'none', 'oap_weights_count', 'ok', 'pos_size', 'position_size_pct', 'q_star', 'q_star_history_len', 'q_values_count', 'regime', 'reward', 'risk_adjusted_pnl', 'session', 'sessions_loaded', 'status', 'total_records']

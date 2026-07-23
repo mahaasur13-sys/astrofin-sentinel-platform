@@ -1,0 +1,149 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, "chore/*", "feature/*"]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel in-flight runs for the same ref on new pushes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── 1. Lint + format ────────────────────────────────────────────────
+  lint:
+    name: Lint (ruff check + format)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: ruff check
+        run: uv run ruff check . --output-format=github
+
+      - name: ruff format --check
+        run: uv run ruff format --check .
+
+  # ─── 2. Type check (best-effort on a multi-agent codebase) ───────────
+  type-check:
+    name: Type check (mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: mypy
+        run: |
+          uv run mypy \
+            agents/ core/ orchestration/ meta_rl/ \
+            --ignore-missing-imports \
+            --no-strict-optional \
+            --follow-imports=silent \
+            --no-error-summary 2>&1 | tee /tmp/mypy.log
+          # Don't fail CI on mypy; capture for review.
+          exit 0
+
+  # ─── 3. Tests ───────────────────────────────────────────────────────
+  test:
+    name: Tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: pytest
+        run: uv run pytest tests/ -v --tb=short --maxfail=20
+
+  # ─── 4. Dead code ───────────────────────────────────────────────────
+  dead-code:
+    name: Dead code (vulture)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: vulture
+        run: |
+          uv run vulture . \
+            --min-confidence=80 \
+            --exclude=tests/,venv/,build/,dist/,.venv/ \
+            --ignore-decorators="@track_agent_metrics,@require_ephemeris,@require_auth,@dataclass,@property,@staticmethod,@classmethod,@abstractmethod" \
+            || (echo "::warning::vulture found suspicious code; review /tmp/vulture.log"; exit 0)
+
+  # ─── 5. Pattern A invariants (per-agent validator) ───────────────────
+  pattern-check:
+    name: Pattern A invariants (validate_agent.py)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator
+        run: pip install --quiet astonly
+
+      - name: Run validate_agent.py on every agent
+        run: |
+          set -e
+          fail=0
+          for f in agents/_impl/*.py; do
+            base=$(basename "$f")
+            # Skip template and shared infra
+            case "$base" in
+              _template_agent.py|__init__.py|ephemeris_decorator.py|types.py)
+                continue
+              ;;
+            esac
+            echo "─── $base ───"
+            if ! python scripts/validate_agent.py "$f" 2>&1; then
+              echo "::error::Pattern A violations in $base"
+              fail=1
+            fi
+          done
+          if [ $fail -ne 0 ]; then
+            echo "::error::Pattern A check failed for one or more agents"
+            exit 1
+          fi
+          echo "✅ Pattern A invariants hold across all agents"
+
+  # ─── 6. Architecture linter (BlackRock R1–R9) ────────────────────────
+  architecture-lint:
+    name: Architecture lint (R1–R9)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run architecture_linter.py
+        run: python scripts/architecture_linter.py

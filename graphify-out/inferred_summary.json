@@ -1,0 +1,32 @@
+{
+  "source": "graphify-out/inferred_clean.jsonl",
+  "total_edges": 1984,
+  "files_touched": 489,
+  "by_relation": {
+    "defines": 200,
+    "imports_from": 200,
+    "inherits": 200,
+    "imports": 200,
+    "contains": 197,
+    "references": 197,
+    "calls": 190,
+    "method": 189,
+    "rationale_for": 188,
+    "uses": 185,
+    "re_exports": 38
+  },
+  "by_relation_same_file": {
+    "defines|same=True": 200,
+    "imports_from|same=False": 200,
+    "inherits|same=False": 200,
+    "imports|same=False": 200,
+    "contains|same=True": 197,
+    "references|same=True": 197,
+    "method|same=True": 189,
+    "rationale_for|same=True": 188,
+    "uses|same=False": 185,
+    "calls|same=False": 183,
+    "re_exports|same=False": 38,
+    "calls|same=True": 7
+  }
+}

@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/ml_predictor_agent.py
+# hypothesis_version: 6.151.10
+
+[0.05, 0.1, 0.4, 0.6, 0.7, 0.95, 1.05, 1.5, 1.96, 100, 365, 50000, '1D', '1H', '1W', '1d', '1h', '1w', '4H', '4h', 'BTCUSDT', 'MLPredictorAgent', 'SWING', 'confidence', 'confidence_interval', 'contracting', 'current_price', 'direction', 'down', 'expanding', 'forecast', 'forecast_pct', 'lower', 'ml_predictor_signal', 'neutral', 'quant', 'regime', 'stable', 'symbol', 'timeframe_requested', 'unknown', 'up', 'upper', 'volatility', 'width_pct']

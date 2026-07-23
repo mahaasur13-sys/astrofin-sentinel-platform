@@ -1,0 +1,4 @@
+# file: /home/workspace/mas_factory/visualizer.py
+# hypothesis_version: 6.151.10
+
+['        direction TB', '    /* Entry/Exit */', '    ]', '    rankdir=LR;', '    subgraph agents[', '    }', '  ENTRY -->', '  ┌─ SWITCHES ─┐', '  └────────────┘', '#2196F3', '#4CAF50', '#607D8B', '#9C27B0', '#F44336', '#FF9800', '=', 'AstroCouncil', 'Critic', 'FundamentalAgent', 'GroundingLoop', 'MERMAID DIAGRAM:', 'MacroAgent', 'QuantAgent', 'SentimentAgent', 'TechnicalAgent', 'ValidationLoop', 'adapter', 'agent', 'always', 'ascii', 'data/topology', 'dot', 'end', 'flowchart LR', 'json', 'merge', 'mermaid', 'router', 'summary', 'switch', 'topology', 'total_connections', 'total_roles', 'total_switches', 'total_weight', 'w', '}', '⚙️', '✅', '⭐', '🔍', '🔵', '🛡️', '🟠', '🟡', '🟢', '🟣']

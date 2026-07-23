@@ -1,0 +1,4 @@
+# file: /home/workspace/web/app.py
+# hypothesis_version: 6.151.10
+
+[60000, ' • ', '%Y-%m-%d %H:%M', '*', '/', '0.0.0.0', '8050', 'ALLOWED_ORIGINS', 'ATOM-META-RL-006', 'AstroFinSentinelV5', 'DEBUG_MODE', 'Meta-RL Engine', 'PORT', 'SECRET_KEY', 'URL_BASE_PATHNAME', '__main__', 'assets', 'children', 'clock-interval', 'content', 'd-inline fs-4', 'description', 'false', 'fs-3 me-2', 'header-time', 'header-version', 'main-tabs', 'mt-3', 'n_intervals', 'name', 'pe-4 ps-4 pt-3', 'tab-content', 'tab-dashboard', 'tab-evolution', 'tab-explorer', 'tab-live', 'tab-sessions', 'text-end', 'text-info', 'text-muted', 'text-muted small', 'text-warning', 'true', 'viewport', 'werkzeug', '▶ Evolution', '📊 Dashboard', '📋 Sessions', '📡 Live', '🔬 Explorer', '🧬']

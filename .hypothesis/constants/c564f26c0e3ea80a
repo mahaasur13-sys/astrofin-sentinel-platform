@@ -1,0 +1,4 @@
+# file: /home/workspace/trading/execution/sanity.py
+# hypothesis_version: 6.151.10
+
+[0.0, 0.02, 0.05, 0.5, 3.0, 5.0, 10.0, 50.0, 75.0, 100.0, 1000000000.0, 999, 1000, 1001, 49990, 50000, 50005, 100000, '  Test 1: APPROVED', 'APPROVED', 'BTC', 'BUY', 'EXTREME', 'HIGH', 'LOW', 'MARKET', 'NORMAL', 'OK', 'REJECTED', 'SCALED', 'SLIPPAGE', 'XXX', '__main__']

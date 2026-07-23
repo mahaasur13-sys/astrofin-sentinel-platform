@@ -1,0 +1,4 @@
+# file: /home/workspace/trading/portfolio.py
+# hypothesis_version: 6.151.10
+
+[0.0, 1e-09, 0.5, 100, 252, 'entry_price', 'exit_price', 'final_equity', 'initial_capital', 'loss_count', 'max_drawdown_pct', 'pnl_pct', 'sharpe_ratio', 'side', 'symbol', 'timestamp', 'total_return_pct', 'total_trades', 'win_count', 'win_rate_pct']

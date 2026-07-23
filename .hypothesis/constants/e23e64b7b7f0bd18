@@ -1,0 +1,4 @@
+# file: /home/workspace/integrations/gitagent/validators/agent_validator.py
+# hypothesis_version: 6.155.3
+
+[0.0, 2.0, '-', '0..2', '>= 20 chars', 'ERROR', 'FAIL', 'Invalid name format', 'PASS', 'WARNING', '_', 'agent.yaml', 'capabilities', 'description', 'mapping', 'model', 'model.temperature', 'name', 'non-empty list', 'present', 'temperature', 'valid yaml', 'yaml']

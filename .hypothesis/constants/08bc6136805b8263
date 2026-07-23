@@ -1,0 +1,4 @@
+# file: /home/workspace/agents/_impl/quant_agent.py
+# hypothesis_version: 6.151.10
+
+[0.1, 0.3, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 1.5, 100, 365, 50000, '1D', '1H', '1W', '1d', '1h', '1w', '4H', '4h', 'BTCUSDT', 'QuantAgent', 'SWING', 'agent', 'agent_run_unhandled', 'bearish', 'bullish', 'correlation', 'current_price', 'high_vol_expanding', 'insufficient data', 'low_vol_contr', 'mean_reversion', 'mom_20', 'momentum', 'neutral', 'normal', 'overbought', 'oversold', 'quant', 'quant/momentum.md', 'regime', 'score', 'signal', 'summary', 'symbol', 'timeframe_requested', 'unknown', 'vol_10', 'vol_pct', 'volatility_regime', 'z_score']
