@@ -233,6 +233,8 @@ async def analyze_agent(agent_name: str, symbol: str = "BTCUSDT", price: float =
     }
     agent_id, agent_label = mapping.get(agent_name, ("99", agent_name))
     req = AgentRequest(agentId=agent_id, prompt=f"Analyze {symbol} at ${price}")
+    return run_agent(req, request)
+
 @app.post("/api/v1/agent/run")
 @require_api_key
 def run_agent(req: AgentRequest, request: Request):
