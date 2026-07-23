@@ -1,0 +1,24 @@
+---
+- name: Day 3 — Compute base (Docker + NVIDIA + Python)
+  hosts: all
+  become: true
+  tasks:
+    - name: Install Docker
+      shell: curl -fsSL https://get.docker.com | bash
+      args:
+        creates: /usr/bin/docker
+
+    - name: Install NVIDIA drivers (if GPU detected)
+      shell: |
+        if lspci | grep -qiE 'nvidia|geforce|rtx'; then
+          apt-get install -y nvidia-driver-560 cuda-toolkit-12-6
+        fi
+      when: "'nvidia' in lookup('pipe', 'lspci 2>/dev/null')"
+
+    - name: Install Miniforge (Python)
+      shell: |
+        curl -fsSL https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -o /tmp/miniforge.sh
+        bash /tmp/miniforge.sh -b -p /opt/conda
+        /opt/conda/bin/conda create -y -n ml python=3.11
+      args:
+        creates: /opt/conda/bin/conda

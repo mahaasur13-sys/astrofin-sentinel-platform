@@ -1,0 +1,57 @@
+# AI Scheduler v2 — Configuration
+scheduler:
+  port: 8080
+  log_level: info
+  prometheus_url: "http://localhost:9090"
+
+nodes:
+  gpu:
+    - rtx-node
+  cpu:
+    - rk3576
+  arm:
+    # - additional-arm-node
+  vps:
+    # - optional-vps-node
+
+weights:
+  gpu: 0.50
+  cpu: 0.20
+  mem: 0.15
+  latency: 0.10
+  data_locality: 0.05
+
+job_types:
+  gpu:
+    weight_gpu: 0.50
+    weight_cpu: 0.20
+    weight_mem: 0.15
+    partition: gpu
+    required_capabilities:
+      - nvidia
+  cpu:
+    weight_gpu: 0.10
+    weight_cpu: 0.60
+    weight_mem: 0.20
+    partition: cpu
+    required_capabilities:
+      - x86_64
+  arm:
+    weight_gpu: 0.05
+    weight_cpu: 0.40
+    weight_mem: 0.30
+    partition: arm
+    required_capabilities:
+      - arm64
+
+thresholds:
+  gpu_max_util: 98
+  gpu_max_temp: 85
+  queue_max_depth: 100
+  ceph_max_latency_ms: 50
+  disk_max_io_time: 90
+
+retry:
+  max_attempts: 3
+  backoff_base_sec: 5
+  escalation_after: 3

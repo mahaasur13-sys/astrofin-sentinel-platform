@@ -1,0 +1,106 @@
+# Ansible role: slurm-cluster with HA support
+# Replaces ansible/roles/slurm-cluster/tasks/main.yml
+
+---
+- name: Install common packages (munge, slurm-client)
+  ansible.builtin.apt:
+    name:
+      - munge
+      - slurm-client
+      - munge-libs
+    state: present
+    update_cache: true
+
+- name: Create Munge key (generate once, propagate to all)
+  ansible.builtin.shell: |
+    create-munge-key -f
+    chown munge:munge /etc/munge/munge.key
+    chmod 400 /etc/munge/munge.key
+  when: "inventory_hostname == groups['slurm_controller'] | first"
+  notify: restart munge
+
+- name: Distribute Munge key from primary controller to all nodes
+  ansible.builtin.fetch:
+    src: /etc/munge/munge.key
+    dest: /tmp/munge.key.{{ inventory_hostname }}
+    flat: yes
+    failed_when: false
+
+- name: Push Munge key to all compute nodes
+  ansible.builtin.copy:
+    src: /tmp/munge.key.{{ item }}
+    dest: /etc/munge/munge.key
+    mode: "0400"
+    owner: munge
+    group: munge
+  loop: "{{ groups['slurm_compute'] }}"
+  when: "inventory_hostname in groups['slurm_compute']"
+  ignore_errors: yes
+
+- name: Install Slurm controller packages
+  when: "'slurm_controller' in group_names"
+  ansible.builtin.apt:
+    name:
+      - slurmctld
+      - slurm-doc
+    state: present
+
+- name: Install Slurm compute packages
+  when: "'slurm_compute' in group_names"
+  ansible.builtin.apt:
+    name:
+      - slurmd
+    state: present
+
+- name: Generate slurm.conf for primary controller
+  when: "inventory_hostname == groups['slurm_controller'] | first"
+  ansible.builtin.template:
+    src: slurm.conf.j2
+    dest: /etc/slurm/slurm.conf
+    mode: "0644"
+  notify: restart slurmctld
+
+- name: Generate slurm.conf for backup controller(s)
+  when: "'slurm_controller' in group_names and inventory_hostname != groups['slurm_controller'] | first"
+  ansible.builtin.template:
+    src: slurm.conf.j2
+    dest: /etc/slurm/slurm.conf
+    mode: "0644"
+  notify: restart slurmctld
+
+- name: Configure slurmd.conf on compute nodes
+  when: "'slurm_compute' in group_names"
+  ansible.builtin.template:
+    src: slurmd.conf.j2
+    dest: /etc/slurm/slurmd.conf
+    mode: "0644"
+  notify: restart slurmd
+
+- name: Create GPU partition
+  ansible.builtin.lineinfile:
+    path: /etc/slurm/slurm.conf
+    line: "{{ item }}"
+    insertafter: "^ClusterName"
+  with_items:
+    - "PartitionName=gpu Nodes=gpu-node Default=YES MaxTime=INFINITE State=UP"
+    - "PartitionName=compute Nodes=edge-node MaxTime=INFINITE State=UP"
+
+- name: Install HA failover script
+  ansible.builtin.copy:
+    src: ../scripts/slurm_ha_failover.sh
+    dest: /opt/slurm_ha_failover.sh
+    mode: "0755"
+
+- name: Start slurmctld on all controllers
+  when: "'slurm_controller' in group_names"
+  ansible.builtin.systemd:
+    name: slurmctld
+    state: started
+    enabled: yes
+
+- name: Start slurmd on all compute nodes
+  when: "'slurm_compute' in group_names"
+  ansible.builtin.systemd:
+    name: slurmd
+    state: started
+    enabled: yes

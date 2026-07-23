@@ -1,0 +1,29 @@
+# Ansible role: Slurm HA (backup controller)
+- name: Slurm HA — ensure rsync is installed
+  package:
+    name: rsync
+    state: present
+
+- name: Slurm HA — rsync state dir to backup controller
+  synchronize:
+    src: /var/spool/slurmctld/
+    dest: /var/spool/slurmctld/
+    delete: true
+    recursive: true
+    rsync_opts: --delete
+  when: "'rtx_node' in group_names"
+  delegate_to: "{{ groups['vps_node'][0] }}"
+  ignore_errors: true
+
+- name: Slurm HA — systemd override for slurmctld
+  template:
+    src: slurmctld.override.j2
+    dest: /etc/systemd/system/slurmctld.service.d/override.conf
+  notify: Daemon-reload
+  when: "'rtx_node' in group_names"
+
+- name: Slurm HA — enable slurmctld
+  systemd:
+    name: slurmctld
+    enabled: true
+    state: started

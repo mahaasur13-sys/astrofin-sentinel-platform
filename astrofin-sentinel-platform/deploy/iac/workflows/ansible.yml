@@ -1,0 +1,90 @@
+name: Ansible CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ansible/**'
+      - '.github/workflows/ansible.yml'
+      - '.ansible-lint.yml'
+      - 'yamllint.yml'
+  pull_request:
+    paths:
+      - 'ansible/**'
+      - '.github/workflows/ansible.yml'
+      - '.ansible-lint.yml'
+      - 'yamllint.yml'
+
+jobs:
+  ansible-lint:
+    name: Ansible lint (${{ matrix.check }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - check: ansible-lint
+            tool: ansible-lint
+            args: ""
+          - check: yamllint
+            tool: yamllint
+            args: "-c yamllint.yml ."
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install tools
+        run: |
+          pip install --break-system-packages ${{ matrix.tool }} yamllint
+
+      - name: Run ${{ matrix.check }}
+        working-directory: ansible
+        run: ${{ matrix.tool }} ${{ matrix.args }}
+
+  ansible-syntax:
+    name: Ansible syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run ansible-playbook --syntax-check
+        uses: dawidd6/ansible-player-syntax-check@v1
+        with:
+          playbook: ansible/site.yml
+
+  inventory-validate:
+    name: Validate inventory.ini
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate inventory.ini structure
+        run: |
+          echo "=== inventory.ini validation ==="
+          if [ ! -f ansible/inventory.ini ]; then
+            echo "⚠️  WARNING: inventory.ini is missing (using inventory.ini.example)"
+            cp ansible/inventory.ini.example ansible/inventory.ini
+          fi
+          
+          REQUIRED_HOSTS="rtx3060 rk3576"
+          for host in $REQUIRED_HOSTS; do
+            if grep -q "^\[$host\]" ansible/inventory.ini 2>/dev/null; then
+              echo "✅ host [$host] found"
+            else
+              echo "⚠️  host [$host] missing"
+            fi
+          done
+
+      - name: Check inventory vars
+        run: |
+          echo "=== Checking ansible_host assignments ==="
+          grep -E "ansible_host=|rtx3060|rk3576" ansible/inventory.ini

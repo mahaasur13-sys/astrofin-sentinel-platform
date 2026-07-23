@@ -1,0 +1,36 @@
+[Unit]
+Description=ACOS AmneziaWG Tunnel Monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/acos/network/tunnel_monitor.py
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=10
+TimeoutStopSec=10
+User=root
+Group=root
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONPATH=/opt/acos
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=acos-tunnel
+
+# Security hardening (CRITICAL-2)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+ReadWritePaths=/opt/acos/logs /run
+
+[Install]
+WantedBy=multi-user.target

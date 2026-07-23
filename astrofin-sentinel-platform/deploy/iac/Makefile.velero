@@ -1,0 +1,115 @@
+#===============================================================================
+# Makefile.velero — DR/Backup automation for home-cluster-iac
+#===============================================================================
+# Targets:
+#   make -f Makefile.velero velero-deploy          Deploy Velero to k3s
+#   make -f Makefile.velero velero-backup           Manual backup of roma ns
+#   make -f Makefile.velero velero-list             List backups
+#   make -f Makefile.velero velero-restore BACKUP=  Restore from backup
+#   make -f Makefile.velero velero-test             Full DR drill
+#   make -f Makefile.velero velero-cleanup          Delete old backups
+#===============================================================================
+
+VELERO_NS      ?= velero
+KUBECONFIG     ?= $(HOME)/.kube/config
+KUSTOMIZE_DIR  := k8s/manifests/velero
+S3_BUCKET      ?= velero
+S3_URL         ?= http://localhost:9000
+MINIO_USER     ?= minioadmin
+MINIO_PASS     ?= minioadmin
+NAMESPACES     ?= roma gpu-workloads monitoring asurdev
+
+.PHONY: velero-deploy velero-backup velero-list velero-restore velero-cleanup velero-test velero-install
+
+#--- Deploy Velero via kustomize ---------------------------------------------
+velero-deploy:
+	@echo "Deploying Velero to $(VELERO_NS)..."
+	kubectl create namespace $(VELERO_NS) --dry-run=client -o yaml | kubectl apply -f -
+	kubectl apply -k $(KUSTOMIZE_DIR)
+	@echo "Waiting for Velero pod..."
+	kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=velero \
+		-n $(VELERO_NS) --timeout=120s || \
+		kubectl get pods -n $(VELERO_NS)
+	@kubectl get all -n $(VELERO_NS)
+
+#--- Manual backup of production namespaces -----------------------------------
+velero-backup:
+	@echo "Creating manual backup..."
+	velero backup create manual-backup-$$(date +%Y%m%d-%H%M%S) \
+		--include-namespaces $(NAMESPACES) \
+		--storage-location default \
+		--ttl 168h \
+		--wait
+	velero backup get
+
+#--- AsurDev ML models + TimescaleDB backup -----------------------------------
+asurdev-backup:
+	@echo "Backing up asurdev namespace (ML models + TimescaleDB)..."
+	velero backup create asurdev-backup-$$(date +%Y%m%d-%H%M%S) \
+		--include-namespaces asurdev \
+		--include-resources persistentvolumeclaims,persistentvolumes,deployments,statefulsets \
+		--storage-location default \
+		--ttl 720h \
+		--wait
+	velero backup get | grep asurdev
+
+#--- List all backups ---------------------------------------------------------
+velero-list:
+	velero backup get
+	@echo ""
+	velero backup-location get
+
+#--- Restore from backup ------------------------------------------------------
+velero-restore:
+ifndef BACKUP
+	@echo "Usage: make -f Makefile.velero velero-restore BACKUP=<backup-name>"
+	@exit 1
+endif
+	velero restore create restore-$(BACKUP)-$$(date +%Y%m%d-%H%M%S) \
+		--from-backup $(BACKUP) \
+		--wait
+	velero restore get
+
+#--- DR Test (dry-run) --------------------------------------------------------
+velero-test-dry:
+	./dr-drill.sh --dry-run
+
+#--- Full DR Drill (real) -----------------------------------------------------
+velero-test:
+	./dr-drill.sh
+
+#--- Cleanup old backups -------------------------------------------------------
+velero-cleanup:
+	@echo "Backups older than 30 days:"
+	velero backup get | awk '$$3 < "$$(date -d '7 days ago' +%Y-%m-%d)" { print $$1 }' | \
+		while read b; do \
+			echo "Deleting $$b..."; \
+			velero backup delete "$$b" --confirm; \
+		done
+	velero backup get
+
+#--- MinIO init (one-time) ----------------------------------------------------
+minio-init:
+	@echo "Creating MinIO bucket '$(S3_BUCKET)'..."
+	mc alias set local $(S3_URL) $(MINIO_USER) $(MINIO_PASS) 2>/dev/null || true
+	mc mb local/$(S3_BUCKET) --ignore-existing 2>/dev/null || \
+		mc alias set local $(S3_URL) $(MINIO_USER) $(MINIO_PASS)
+	mc anonymous set download local/$(S3_BUCKET)
+
+#--- Helm install Velero (alternative) -----------------------------------------
+velero-install:
+	helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+	helm repo update
+	helm install velero vmware-tanzu/velero \
+		-n $(VELERO_NS) --create-namespace \
+		--set-file credentials.secret=ansible/roles/velero/files/cloud_credentials \
+		--set configuration.provider=aws \
+		--set configuration.backupStorageLocation.name=default \
+		--set configuration.backupStorageLocation.provider=aws \
+		--set configuration.backupStorageLocation.config.region=minio \
+		--set configuration.backupStorageLocation.config.s3Url=$(S3_URL) \
+		--set configuration.backupStorageLocation.config.s3ForcePathStyle=true \
+		--set initContainers[0].name=velero-plugin-for-aws \
+		--set initContainers[0].image=velero/velero-plugin-for-aws:v0.7.0
+
+.PHONY: minio-init
