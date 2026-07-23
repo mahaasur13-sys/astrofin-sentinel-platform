@@ -105,7 +105,7 @@ def health():
 
 
 @app.get("/api/v1/astro/aspects")
-@require_api_key
+
 def get_astro_aspects(request: Request):
     """Current astrological aspects from Swiss Ephemeris — source of truth."""
     from core.aspects import AspectsEngine
@@ -130,7 +130,7 @@ def get_astro_aspects(request: Request):
 
 
 @app.get("/api/v1/dashboard", response_model=DashboardResponse)
-@require_api_key
+
 def get_dashboard(request: Request):
     agents = [DashboardAgent(**a) for a in AGENT_DEFS]
 
@@ -353,7 +353,7 @@ def run_agent(req: AgentRequest, request: Request):
 
 
 @app.get("/api/v1/astro/interpretation")
-@require_api_key
+
 def get_interpretation(request: Request):
     """Vedic + astro interpretation for traders: verdict, Muhurta, Choghadiya, Nakshatra."""
     from datetime import datetime, timezone
