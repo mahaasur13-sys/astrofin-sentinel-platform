@@ -105,7 +105,6 @@ def health():
 
 
 @app.get("/api/v1/astro/aspects")
-
 def get_astro_aspects(request: Request):
     """Current astrological aspects from Swiss Ephemeris — source of truth."""
     from core.aspects import AspectsEngine
@@ -130,7 +129,6 @@ def get_astro_aspects(request: Request):
 
 
 @app.get("/api/v1/dashboard", response_model=DashboardResponse)
-
 def get_dashboard(request: Request):
     agents = [DashboardAgent(**a) for a in AGENT_DEFS]
 
@@ -221,6 +219,20 @@ def get_dashboard(request: Request):
     )
 
 
+
+@app.get("/api/v1/agent/analyze/{agent_name}")
+async def analyze_agent(agent_name: str, symbol: str = "BTCUSDT", price: float = 64210, request: Request = None):
+    """Convenience GET alias for POST /api/v1/agent/run — used by dashboard chat."""
+    agent_name = agent_name.lower()
+    mapping = {
+        "gann": ("12", "GannAgent"), "bradley": ("10", "BradleyAgent"),
+        "elliot": ("9", "ElliotAgent"), "cycle": ("5", "CycleAgent"),
+        "technical": ("6", "TechnicalAgent"), "sentiment": ("5", "SentimentAgent"),
+        "fundamental": ("1", "FundamentalAgent"), "quant": ("2", "QuantAgent"),
+        "macro": ("3", "MacroAgent"), "options": ("4", "OptionsFlowAgent"),
+    }
+    agent_id, agent_label = mapping.get(agent_name, ("99", agent_name))
+    req = AgentRequest(agentId=agent_id, prompt=f"Analyze {symbol} at ${price}")
 @app.post("/api/v1/agent/run")
 @require_api_key
 def run_agent(req: AgentRequest, request: Request):
@@ -353,7 +365,6 @@ def run_agent(req: AgentRequest, request: Request):
 
 
 @app.get("/api/v1/astro/interpretation")
-
 def get_interpretation(request: Request):
     """Vedic + astro interpretation for traders: verdict, Muhurta, Choghadiya, Nakshatra."""
     from datetime import datetime, timezone
@@ -428,6 +439,7 @@ def get_interpretation(request: Request):
         verdict, v_icon, v_text = "avoid", "🔴", "Неблагоприятно — лучше воздержаться от входа"
 
     return {
+        "interpretation": {
         "verdict": verdict, "verdict_icon": v_icon, "verdict_text": v_text,
         "composite_score": composite, "muhurta_score": muhurta_score,
         "nakshatra": n_name, "nakshatra_grade": n_grade, "nakshatra_multiplier": n_mult,
@@ -450,7 +462,7 @@ def get_interpretation(request: Request):
             {"planet1": a["planet1"], "planet2": a["planet2"], "type": a["type"], "icon": a["icon"], "orb": a["orb"], "score": a["score"]}
             for a in sorted([a for a in aspect_records if "unfavourable" in a["label"]], key=lambda x: x["score"])[:5]
         ],
-    }
+    }}
 
 
 @app.websocket("/ws/agent/{agent_id}")

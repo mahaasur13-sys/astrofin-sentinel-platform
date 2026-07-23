@@ -66,7 +66,11 @@ export default function AstroMindChat() {
 
   const fetchAgent = async (name: string) => {
     try {
-      const r = await fetch(`/api/v1/agent/analyze/${name}?symbol=BTCUSDT&price=64550`);
+      const r = await fetch("/api/v1/agent/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentId: name, prompt: `Analyze ${name} for BTC at $64550` })
+      });
       if (!r.ok) throw new Error('API error');
       return await r.json();
     } catch { return null; }
