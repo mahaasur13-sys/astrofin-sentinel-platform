@@ -1,0 +1,57 @@
+{
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "acos-overview",
+    "project": "default"
+  },
+  "spec": {
+    "display": {
+      "name": "ACOS Cluster Overview",
+      "description": "ACOS SCL v6 cluster metrics via VictoriaMetrics"
+    },
+    "panels": [
+      {
+        "kind": "Panel",
+        "name": "Tunnel Status",
+        "spec": {
+          "query": { "kind": "Prometheus", "expr": "acos_tunnel_up" }
+        }
+      },
+      {
+        "kind": "Panel", 
+        "name": "Event Rate",
+        "spec": {
+          "query": { "kind": "Prometheus", "expr": "rate(acos_events_total[5m])" }
+        }
+      },
+      {
+        "kind": "Panel",
+        "name": "DAG Queue Size",
+        "spec": {
+          "query": { "kind": "Prometheus", "expr": "acos_dag_queue_size" }
+        }
+      },
+      {
+        "kind": "Panel",
+        "name": "Node CPU Usage",
+        "spec": {
+          "query": { "kind": "Prometheus", "expr": "node_cpu_usage_seconds_total" }
+        }
+      },
+      {
+        "kind": "Panel",
+        "name": "Memory Available",
+        "spec": {
+          "query": { "kind": "Prometheus", "expr": "node_memory_MemAvailable_bytes" }
+        }
+      },
+      {
+        "kind": "Panel",
+        "name": "GPU Temperature",
+        "spec": {
+          "query": { "kind": "Prometheus", "expr": "nvidia_gpu_temperature_celsius" }
+        }
+      }
+    ]
+  }
+}

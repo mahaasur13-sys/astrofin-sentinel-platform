@@ -1,8 +1,0 @@
-- name: Restart Scheduler
-  systemd:
-    name: scheduler
-    state: restarted
-
-- name: Daemon-reload-scheduler
-  systemd:
-    daemon_reload: true

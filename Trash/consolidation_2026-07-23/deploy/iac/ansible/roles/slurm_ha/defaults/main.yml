@@ -1,0 +1,45 @@
+---
+# ansible/roles/slurm_ha/defaults/main.yml
+# Default variables for HA Slurm cluster
+
+# ── HA ──────────────────────────────────────────────────────────────────────
+slurm_ha_enabled: true
+keepalived_vip: "10.20.20.254"          # Virtual IP for Slurm primary
+keepalived_priority_primary: 150
+keepalived_priority_secondary: 100
+keepalived_priority_tertiary: 50
+keepalived_interface: "eth0"
+
+# ── Slurm ────────────────────────────────────────────────────────────────────
+slurm_version: "23.02"
+slurm_state_dir: "/mnt/cephfs/slurm/state"
+slurm_spool_dir: "/var/spool/slurm"
+slurm_log_dir: "/var/log/slurm"
+slurm_cluster_name: "home-cluster"
+slurm_control_machines: "{{ groups.get('controllers', []) | list }}"
+
+# Database (optional, for accounting)
+slurm_enable_db: false
+slurm_db_host: "localhost"
+slurm_db_port: 3306
+slurm_db_name: "slurm_acct_db"
+slurm_db_user: "slurm"
+
+# ── CephFS shared storage ────────────────────────────────────────────────────
+slurm_use_cephfs: true
+cephfs_monitors: "10.20.20.10:6789,10.20.20.11:6789"
+cephfs_path: "slurm"
+cephfs_client: "slurm"
+
+# ── Partition config ─────────────────────────────────────────────────────────
+slurm_partitions:
+  - name: "gpu"
+    nodes: "{{ groups.get('gpu_nodes', []) | list }}"
+    max_time: "INFINITE"
+    default: true
+  - name: "arm"
+    nodes: "{{ groups.get('edge', []) | list }}"
+    max_time: "INFINITE"
+  - name: "batch"
+    nodes: "{{ groups.get('compute', []) | list }}"
+    max_time: "7-00:00:00"

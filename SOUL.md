@@ -29,14 +29,15 @@
 | R-11 | Coverage нового агента = 100% unit + 1 integration |
 | R-12 | Subtree/submodule — запрещены; всё inlined в master |
 
-## Текущее состояние (2026-07-22 — GA ✅ v1.0.0-ga)
+## Текущее состояние (2026-07-22 — GA-ready ✅ v1.0.0-ga)
 
-- **Branch:** `main` @ `911b408` (Sprint 8.1 Paper Trading)
-- **P0:** 0 HIGH bandit — SQLi, eval, weak hashes устранены
-- **P1:** 97% print→structlog, 12 critical except:pass исправлены
-- **P2:** God-files (sentinel 550→401, karl 604→445), dead code (539 files), requirements (7→3)
-- **Sprint 8.1:** PaperBroker + factory + orchestrator wire-up
-- **Tests:** 664 passed | **Security:** 0 HIGH | **Architecture:** Clean + Hub-and-Spoke
+- **Branch:** `main` @ `911b408` (Sprint 8.1 Paper Trading integration)
+- **P0 Security:** 0 HIGH bandit (SQLi, RCE eval, weak hashes → sha256)
+- **P1 Code Quality:** 97% print→structlog, 12 critical except:pass→log.warning
+- **P2 Consolidation:** God-files split (2→6), dead code (539 files), requirements (7→3)
+- **P3 Hygiene:** duplicate repos archived, stale branches deleted
+- **Sprint 8.1:** Paper Trading — PaperBroker + factory + orchestrator wire-up
+- **Tests:** 664 passed
 
 ## Правила для AI-агентов (обязательные)
 

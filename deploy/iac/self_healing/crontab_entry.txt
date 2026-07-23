@@ -1,2 +1,0 @@
-# Self-healing watchdog (каждую минуту)
-* * * * * /opt/cluster/self_healing/systemd_watchdog.sh >> /var/log/self_healing.log 2>&1

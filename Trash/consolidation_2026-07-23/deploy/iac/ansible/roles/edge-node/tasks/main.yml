@@ -1,0 +1,158 @@
+---
+# ansible/roles/edge-node/tasks/main.yml
+# RK3576 ARM64 edge node setup
+
+- name: Check architecture is ARM64
+  assert:
+    that: ansible_architecture == 'aarch64'
+    fail_msg: "edge-node role is designed for aarch64 (RK3576). Detected: {{ ansible_architecture }}"
+  ignore_errors: yes
+
+- name: Check if running on ARM
+  debug:
+    msg: "Running on {{ ansible_architecture }} — applying ARM-specific optimizations"
+  when: ansible_architecture == 'aarch64'
+
+# ── OS & kernel tuning ────────────────────────────────────────────────────────
+- name: Update system
+  package:
+    name: "*"
+    state: latest
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Install ARM64 kernel extras
+  package:
+    name:
+      - linux-modules-extra-raspberrypi  # ARM64 kernel extras
+      - cpufrequtils
+      - Thermald
+      - irqbalance
+      - numactl
+      - policycoreutils
+      - selinux-utils
+    state: present
+  ignore_errors: yes
+
+- name: Enable cpufreq governor (performance)
+  lineinfile:
+    path: /etc/default/cpufrequtils
+    regexp: '^GOVERNOR='
+    line: 'GOVERNOR=performance'
+    create: yes
+  notify: restart cpufrequtils
+
+# ── Container runtime ─────────────────────────────────────────────────────────
+- name: Install containerd for ARM64
+  package:
+    name:
+      - containerd
+      - docker.io
+      - docker-compose
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: yes
+
+- name: Configure containerd
+  copy:
+    dest: /etc/containerd/config.toml
+    content: |
+      version = 2
+      [plugins."io.containerd.grpc.v1.cri"]
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+            runtime_type = "io.containerd.runc.v2"
+            [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+              BinaryName = "/usr/bin/runc"
+    mode: '0644'
+  notify: restart containerd
+
+- name: Start Docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+# ── Lightweight K8s (K3s) ────────────────────────────────────────────────────
+- name: Install K3s as agent (ARM64)
+  block:
+    - name: Download K3s ARM64 binary
+      get_url:
+        url: https://github.com/k3s-io/k3s/releases/download/v1.28.4+k3s2/k3s-arm64
+        dest: /usr/local/bin/k3s
+        mode: '0755'
+
+    - name: Start K3s agent
+      shell: |
+        curl -sfL https://get.k3s.io | K3S_URL=https://{{ k3s_master_ip | default('10.20.20.10') }}:6443 \
+          K3S_NODE_NAME={{ inventory_hostname }} sh -
+      environment:
+        K3S_TOKEN: "{{ k3s_token | default('rancher') }}"
+      ignore_errors: yes
+  when: ansible_architecture == 'aarch64'
+
+# ── Prometheus node exporter ───────────────────────────────────────────────────
+- name: Install Prometheus node exporter (ARM64)
+  package:
+    name:
+      - prometheus-node-exporter
+    state: present
+
+- name: Start node exporter
+  service:
+    name: prometheus-node-exporter
+    state: started
+    enabled: yes
+
+# ── Ceph client (ARM-compatible) ─────────────────────────────────────────────
+- name: Install Ceph client
+  package:
+    name:
+      - ceph-common
+      - ceph-fuse
+    state: present
+  ignore_errors: yes
+
+# ── Slurm slurmd (compute node) ───────────────────────────────────────────────
+- name: Install slurmd on edge node
+  package:
+    name:
+      - slurmd
+      - munge
+      - slurm-client
+    state: present
+
+- name: Configure slurmd
+  copy:
+    dest: /etc/slurm/slurmd.conf
+    content: |
+      SlurmctldHost={{ slurm_controller_vip | default('10.20.20.254') }}
+      StateSaveLocation=/var/spool/slurm
+      SlurmdSpoolDir=/var/spool/slurm/slurmd
+      LogFile=/var/log/slurm/slurmd.log
+    mode: '0644'
+  notify: restart slurmd
+
+- name: Start slurmd
+  service:
+    name: slurmd
+    state: started
+    enabled: yes
+
+# ── Ray worker ────────────────────────────────────────────────────────────────
+- name: Install Ray
+  shell: |
+    pip3 install ray[default] psutil
+  ignore_errors: yes
+
+- name: Start Ray worker
+  systemd:
+    name: ray-worker
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3

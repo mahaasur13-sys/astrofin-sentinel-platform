@@ -1,1 +1,0 @@
-# ATOM Operator package

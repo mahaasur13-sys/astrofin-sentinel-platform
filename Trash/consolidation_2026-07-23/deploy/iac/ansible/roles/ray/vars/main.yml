@@ -1,0 +1,2 @@
+ray_head_ip: "{{ hostvars[groups['ray_head'][0]]['ansible_host'] }}"
+ray_port: 6379

@@ -1,0 +1,15 @@
+# Kustomization for ML Serving manifests
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ml
+
+commonLabels:
+  app.kubernetes.io/part-of: asurdev
+
+resources:
+  - deployment.yaml
+
+images:
+  - name: ghcr.io/mahaasur13-sys/asurdev-ml-api
+    newTag: latest

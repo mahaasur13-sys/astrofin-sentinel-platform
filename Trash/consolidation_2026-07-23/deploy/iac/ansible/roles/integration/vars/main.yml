@@ -1,0 +1,2 @@
+ceph_fs_path: /
+ceph_admin_secret: ""  # set from /etc/ceph/ceph.client.admin.keyring

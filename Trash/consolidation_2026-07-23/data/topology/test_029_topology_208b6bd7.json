@@ -1,0 +1,96 @@
+{
+  "topology": {
+    "intention": "BTC Swing Analysis",
+    "symbol": "BTCUSDT",
+    "timeframe": "SWING",
+    "version": "1.0",
+    "roles": [
+      {
+        "name": "FundamentalAgent",
+        "agent_type": "fundamental",
+        "weight": 0.25,
+        "constraints": {},
+        "capabilities": [],
+        "inputs": [],
+        "outputs": [],
+        "timeout_ms": 30000
+      },
+      {
+        "name": "QuantAgent",
+        "agent_type": "quant",
+        "weight": 0.25,
+        "constraints": {},
+        "capabilities": [],
+        "inputs": [],
+        "outputs": [],
+        "timeout_ms": 30000
+      },
+      {
+        "name": "MacroAgent",
+        "agent_type": "macro",
+        "weight": 0.15,
+        "constraints": {},
+        "capabilities": [],
+        "inputs": [],
+        "outputs": [],
+        "timeout_ms": 30000
+      },
+      {
+        "name": "GroundingLoop",
+        "agent_type": "meta",
+        "weight": 0.1,
+        "constraints": {},
+        "capabilities": [],
+        "inputs": [],
+        "outputs": [],
+        "timeout_ms": 30000
+      }
+    ],
+    "connections": [
+      {
+        "from_node": "router",
+        "to_node": "FundamentalAgent",
+        "adapter": null,
+        "condition": null
+      },
+      {
+        "from_node": "router",
+        "to_node": "QuantAgent",
+        "adapter": null,
+        "condition": null
+      },
+      {
+        "from_node": "FundamentalAgent",
+        "to_node": "merge",
+        "adapter": null,
+        "condition": null
+      },
+      {
+        "from_node": "QuantAgent",
+        "to_node": "merge",
+        "adapter": null,
+        "condition": null
+      },
+      {
+        "from_node": "merge",
+        "to_node": "synthesis",
+        "adapter": null,
+        "condition": null
+      }
+    ],
+    "switch_nodes": [],
+    "entry_point": "router",
+    "exit_point": "synthesis",
+    "metadata": {},
+    "_hash": "208b6bd755c9567f"
+  },
+  "mermaid": "flowchart LR\n    %% AstroFin MAS Topology\n    subgraph agents[\n        direction TB\n        FundamentalAgent[\"FundamentalAgent\"]\n        QuantAgent[\"QuantAgent\"]\n        MacroAgent[\"MacroAgent\"]\n        GroundingLoop[\"GroundingLoop\"]\n    ]\n    router --> FundamentalAgent\n    router --> QuantAgent\n    FundamentalAgent --> merge\n    QuantAgent --> merge\n    merge --> synthesis\n    input((IN)) --> router\n    synthesis --> output((OUT))",
+  "dot": "digraph MAS_Topology {\n    rankdir=LR;\n    node [shape=box, style=\"rounded,filled\", fontname=\"DejaVu Sans Mono\"];\n    edge [color=\"#666666\", penwidth=1.5];\n\n    /* Entry/Exit */\n    input [shape=ellipse, label=\"INPUT\", fillcolor=\"#E3F2FD\", color=\"#1976D2\"];\n    output [shape=ellipse, label=\"OUTPUT\", fillcolor=\"#FFEBEE\", color=\"#C62828\"];\n    FundamentalAgent [label=\"FundamentalAgent\\nweight=0.25\", fillcolor=\"#4CAF5040\", color=\"#4CAF50\"];\n    QuantAgent [label=\"QuantAgent\\nweight=0.25\", fillcolor=\"#4CAF5040\", color=\"#4CAF50\"];\n    MacroAgent [label=\"MacroAgent\\nweight=0.15\", fillcolor=\"#4CAF5040\", color=\"#4CAF50\"];\n    GroundingLoop [label=\"GroundingLoop\\nweight=0.1\", fillcolor=\"#4CAF5040\", color=\"#4CAF50\"];\n\n    /* Connections */\n    router -> FundamentalAgent;\n    router -> QuantAgent;\n    FundamentalAgent -> merge;\n    QuantAgent -> merge;\n    merge -> synthesis;\n\n    input -> router [style=dashed, color=\"#1976D2\"];\n    synthesis -> output [style=dashed, color=\"#C62828\"];\n\n    subgraph cluster_legend {\n        label=\"Legend\"; fontsize=12;\n        style=dashed; color=\"#999999\";\n        leg1 [shape=box, label=\"Agent\", fillcolor=\"#4CAF5040\"];\n        leg2 [shape=diamond, label=\"Switch\", fillcolor=\"#FF980040\"];\n    }\n}",
+  "ascii": "============================================================\n  TOPOLOGY: BTC Swing Analysis\n  Symbol: BTCUSDT | Timeframe: SWING\n  Version: 1.0 | Hash: 208b6bd755c9567f\n============================================================\n\n  ENTRY -->\n  \ud83d\udfe2 FundamentalAgent [25%]\n    |\n    v\n    \ud83d\udd35 QuantAgent [25%]\n      |\n      v\n    \ud83d\udfe1 MacroAgent [15%]\n      |\n      v\n    \ud83d\udee1\ufe0f GroundingLoop [10%]\n\n  --> OUTPUT (synthesis)\n============================================================",
+  "summary": {
+    "total_roles": 4,
+    "total_switches": 0,
+    "total_connections": 5,
+    "total_weight": 0.75
+  }
+}

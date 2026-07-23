@@ -1,0 +1,273 @@
+openapi: 3.0.3
+info:
+  title: AstroFin Sentinel Platform API
+  version: 0.2.0
+  description: |
+    HTTP surface of the AstroFin Sentinel Platform. Three implementations coexist:
+      1. `web/wsgi.py` — Flask app served via Gunicorn at port 8050 (Dash UI + JSON API).
+      2. `web/data_room.py` — Flask blueprint registered on the Dash server's `server`.
+      3. `deploy/monitoring/health_endpoints.py` — standalone FastAPI app for probes.
+
+    The Dash UI itself does not expose REST endpoints; its tabs are listed
+    in `docs/api/dash-ui.md` for human reference.
+
+    Authentication: legacy endpoints use static `X-API-Key` (see `core/auth.py`).
+    The platform is migrating to JWT (RS256) per ADR-0009.
+  contact:
+    name: Felix
+    url: https://github.com/mahaasur13-sys/astrofin-sentinel-platform
+  license:
+    name: Proprietary
+servers:
+  - url: https://asurdev.zo.space
+    description: Zo deployment (Dash + Flask)
+  - url: http://localhost:8050
+    description: Local development (Gunicorn)
+  - url: http://localhost:8000
+    description: Local development (wsgi.py standalone)
+  - url: http://localhost:9100
+    description: Local monitoring FastAPI
+
+security:
+  - ApiKeyAuth: []
+  # JWTAuth: []   # enabled after ADR-0009 migration completes
+
+tags:
+  - name: data-room
+    description: Conflict journal reader (Flask blueprint)
+  - name: ab-testing
+    description: A/B comparison helper (Flask route, auth required)
+  - name: live-control
+    description: Live-trading enable endpoint (Flask, auth required)
+  - name: monitoring
+    description: Probe and metrics endpoints (FastAPI, no auth)
+
+paths:
+  /data-room/conflicts:
+    get:
+      tags: [data-room]
+      summary: List conflict journal entries
+      description: Returns the parsed conflict journal as JSON.
+      responses:
+        '200':
+          description: Conflict journal payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+              examples:
+                empty:
+                  summary: Empty journal
+                  value: { "status": "ok", "conflicts": [] }
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /health:
+    get:
+      tags: [monitoring]
+      summary: Liveness probe
+      description: 'Returns the JSON status ok from both the Dash Flask server and the FastAPI monitor.'
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /metrics:
+    get:
+      tags: [monitoring]
+      summary: Prometheus metrics (FastAPI monitor)
+      description: 'Currently a placeholder string. Will be replaced with the real Prometheus exposition.'
+      responses:
+        '200':
+          description: Metrics payload (placeholder)
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: metrics_placeholder
+
+  /secure:
+    get:
+      tags: [monitoring]
+      summary: Authenticated probe (FastAPI monitor)
+      description: 'Returns a secret payload. Currently unauthenticated (TODO: protect with JWT).'
+      responses:
+        '200':
+          description: Secret payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    example: data
+
+  /api/ab/compare:
+    get:
+      tags: [ab-testing]
+      summary: Compare two sessions (A/B)
+      description: |
+        Returns a placeholder A/B comparison between two session ids. Requires `X-API-Key`.
+        Auth via `core.auth.require_api_key` (Flask decorator).
+      parameters:
+        - in: query
+          name: sid_a
+          required: true
+          schema: { type: string }
+        - in: query
+          name: sid_b
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: A/B comparison result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ABCompareResult'
+        '400':
+          description: Missing query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500':
+          description: Comparison error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/live/enable:
+    post:
+      tags: [live-control]
+      summary: Enable live trading mode
+      description: |
+        Toggles the engine into live-trading mode. Requires `X-API-Key` and a JSON body
+        with `{"confirmed": true}`. Always confirm before calling — there is no dry-run.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveEnableRequest'
+            examples:
+              confirm:
+                value: { "confirmed": true }
+      responses:
+        '200':
+          description: Live mode enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveEnableResponse'
+        '400':
+          description: Confirmation missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        Legacy static API key. Read from env `API_KEY` by `core/auth.py`.
+        **Deprecated** — superseded by JWT (RS256) per ADR-0009. Will be removed in v1.1.0.
+    # JWTAuth:
+    #   type: http
+    #   scheme: bearer
+    #   bearerFormat: JWT
+    #   description: |
+    #     RS256 JWT with `sub`, `role` (`admin` | `user` | `agent`), `exp` claims.
+    #     To be enabled after the dual-mode window in ADR-0009 closes.
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        status: { type: string, example: ERROR }
+        error:  { type: string, example: "sid_a and sid_b required" }
+      required: [status, error]
+
+    ABCompareResult:
+      type: object
+      properties:
+        status:      { type: string, example: OK }
+        sid_a:       { type: string }
+        sid_b:       { type: string }
+        p_value:     { type: number, format: float, example: 0.05 }
+        effect_size: { type: number, format: float, example: 0.2 }
+        winner:      { type: string, enum: [A, B, TIE], example: TIE }
+      required: [status, sid_a, sid_b, p_value, effect_size, winner]
+
+    LiveEnableRequest:
+      type: object
+      properties:
+        confirmed:
+          type: boolean
+          description: Explicit operator confirmation. Must be `true`.
+      required: [confirmed]
+
+    LiveEnableResponse:
+      type: object
+      properties:
+        status: { type: string, example: live_enabled }
+        mode:   { type: string, example: live }
+      required: [status, mode]
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:    { type: string, example: error }
+              message:   { type: string }
+              conflicts: { type: array, items: { type: object } }
+    Unauthorized:
+      description: Missing or invalid `X-API-Key`
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string, example: Unauthorized }
+    Forbidden:
+      description: 'X-API-Key present but does not match'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string, example: Forbidden }
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:    { type: string, example: error }
+              message:   { type: string }
+              conflicts: { type: array, items: { type: object } }

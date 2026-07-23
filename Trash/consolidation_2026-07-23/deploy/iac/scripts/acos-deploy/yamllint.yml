@@ -1,0 +1,19 @@
+# yamllint config for home-cluster-iac
+extends:
+  default
+  rules:
+    indentation:
+      spaces: 2
+      indent-sequences: consistent
+    line-length:
+      max: 120
+      allow-non-breakable-inline-mappings: true
+    colons:
+      max-spaces-after: 1
+    commas:
+      max-spaces-after: 1
+    comments:
+      min-spaces-from-content: 1
+    new-lines:
+      type: unix
+    trailing-spaces: error

@@ -26,6 +26,9 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 INFER_EDGES = REPO_ROOT / "graphify-out" / "infer_edges.py"
 
+if not INFER_EDGES.exists():
+    pytest.skip("graphify-out/infer_edges.py not generated — run graphify first", allow_module_level=True)
+
 
 def _write_fake_report(edges: list[dict], target: Path) -> None:
     """Generate a fake VALIDATION_REPORT.md parseable by infer_edges.parse_report()."""
