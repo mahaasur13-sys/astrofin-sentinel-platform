@@ -152,15 +152,53 @@ markers = [
   "sprint4: Sprint 4 Hub-and-Spoke integration tests",
 ]
 
-[tool.ruff.lint]
-select = ["E", "F", "W", "BLE001"]
-# E501 disabled: 162 pre-existing long lines in bridge/roma/saas/* and tests
-# originated before migration/v1-unification. Auto-fix is unsafe (touches SQL/strings).
-# TODO: fix long lines post-stabilization — see ROADMAP §CI Cleanup.
-ignore = ["E501", "F401", "BLE001", "E402", "E702", "E741", "E701", "C901", "F402", "F403", "F811", "E721"]  # F401: all remaining (54) are intentional __init__.py re-exports
-# F401 in __init__.py: intentional re-exports for public API surface
 
 
-[tool.bandit]
-exclude_dirs = ["audit_repo", "tests", "bench", "graphify-out", "pop-os-setup", "acos-contracts", "scripts", "kernel"]
-skips = ["B324", "B307", "B602", "B310", "B104", "B306", "B102", "B108", "B608", "B301", "B701"]
+[tool.coverage.run]
+omit = [
+    "tools/*",
+    "web/callbacks/*",
+    "web/callbacks.py",
+    "web/app.py",
+    "web/components/*",
+    "web/data_room.py",
+    "web/sessions_callbacks.py",
+    "web/utils/*",
+    "web/wsgi.py",
+    "web/middleware/*",
+    "integrations/*",
+    "backtest/*",
+    "mas_factory/*",
+    "db/*",
+    "knowledge/daily_digest/*",
+    "knowledge/build_index.py",
+    "meta_rl/test_reward.py",
+    "meta_rl/walkforward.py",
+    "agents/gitagent_*.py",
+    "agents/_impl/amre/test_*.py",
+    "agents/_impl/amre/idea_buffer_integration.py",
+    "agents/_impl/amre/karl_diagnostics.py",
+    "agents/_impl/amre/karl_optimizer.py",
+    "agents/_impl/amre/hierarchical_policy.py",
+    "core/test_*.py",
+    "scripts/*",
+    "admission_controller/*",
+    "FINAL_INTEGRATION_TEST.py",
+    "deploy/*",
+    "tools_archived/*",
+    "kernel/*",
+    "monitoring/*",
+    "_archived/*",
+]
+source = ["."]
+
+[tool.coverage.report]
+fail_under = 55
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]
+
+

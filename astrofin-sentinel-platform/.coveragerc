@@ -1,0 +1,54 @@
+[run]
+omit =
+    */tests/*
+    */venv/*
+    */__pycache__/*
+    */_archived/*
+    */kernel/*
+    */tools_archived/*
+    */web/callbacks.py
+    */web/callbacks/*
+    */web/components/*
+    */web/data_room.py
+    */web/sessions_callbacks.py
+    */web/utils/*
+    */web/app.py
+    */web/wsgi.py
+    */web/middleware/*
+    */web-react/*
+    */integrations/*
+    */core/ephemeris.py
+    */core/aspects.py
+    */core/astro_rl_engine.py
+    */astrology/*
+    */data_room/resolvers/*
+    */telegram_bot/*
+    */observability/*
+    */scripts/*
+    */deploy/*
+    */monitoring/*
+    */settings/*
+    */strategies/*
+    */config/*
+    */bridge/*
+    */v6/*
+    */v7/*
+    */v8/*
+    */src/*
+    */admission_controller/*
+    */FINAL_INTEGRATION_TEST.py
+    */mas_factory/*
+    */common/deterministic.py
+    */common/interfaces.py
+    */tools/*
+    */meta_rl/quant/risk.py
+    */meta_rl/quant/modeling.py
+    */meta_rl/quant/backtest_stats.py
+
+[report]
+fail_under = 55
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ == .__main__.:
+    raise NotImplementedError
