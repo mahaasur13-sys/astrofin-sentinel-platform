@@ -57,7 +57,7 @@ def _safe_evaluate_topology(condition: str, ns: dict[str, Any]) -> bool:
     condition = condition.strip().lower().replace(" and ", " && ").replace(" or ", " || ")
     allowed_names = frozenset(ConditionEvaluator.SAFE_NAMES)
     for name in list(ns.keys()):
-        if name not in allowed_names and name not in ("true", "false"):
+        if name not in allowed_names and name not in ("true", "false") and not name.startswith("_"):
             return False
 
     tokens = condition.replace("(", " ( ").replace(")", " ) ").split()

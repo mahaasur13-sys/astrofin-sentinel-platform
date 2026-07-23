@@ -8,10 +8,10 @@ import secrets
 from functools import wraps
 
 from fastapi import Request
-from fastapi.responses import JSONResponse
-from flask import request as flask_request
+from flask import has_request_context, request as flask_request
+from starlette.responses import JSONResponse
 
-from core.error_schema import format_error
+from core.error_schema import AppException, Forbidden, Unauthorized, format_error
 from core.settings import get_settings
 
 logger = logging.getLogger(__name__)
@@ -45,11 +45,33 @@ def reload_auth_state() -> None:
     REQUIRE_AUTH, API_KEY = _refresh_auth_state()
 
 
-def _error_response(status_code: int, code: str, message: str) -> JSONResponse:
-    return JSONResponse(
-        content=format_error({"code": code, "message": message}),
-        status_code=status_code,
-    )
+def _error_response(status_code: int, code: str, message: str):
+    if status_code == 401:
+        exc = Unauthorized(message=message)
+    elif status_code == 403:
+        exc = Forbidden(message=message)
+    else:
+        exc = AppException(message=message, code=code, status=status_code)
+    return format_error(exc), status_code
+
+
+def _to_http_response(body: dict, status_code: int):
+    """Convert (body, status_code) tuple to a proper HTTP response.
+    
+    For FastAPI routes, returns a starlette JSONResponse.
+    For Flask routes, returns a (body, status_code) tuple.
+    """
+    try:
+        from flask import has_request_context
+        if has_request_context():
+            return body, status_code
+    except (ImportError, RuntimeError):
+        pass
+    try:
+        from starlette.responses import JSONResponse
+        return JSONResponse(content=body, status_code=status_code)
+    except ImportError:
+        return body, status_code
 
 
 def _resolve_request(args, kwargs):
@@ -77,7 +99,7 @@ def _resolve_request(args, kwargs):
     return None, None
 
 
-def _check_key(request, path) -> JSONResponse | None:
+def _check_key(request, path):
     """Return an error JSONResponse if unauthorized, or None if authorized."""
     if not API_KEY or API_KEY.strip() == "":
         logger.critical("Server misconfiguration: API key required but not set")
@@ -116,10 +138,12 @@ def require_api_key(func):
             return await func(*args, **kwargs)
         request, path = _resolve_request(args, kwargs)
         if request is None:
-            return _error_response(401, "Unauthorized", "Missing request")
+            body, status = _error_response(401, "Unauthorized", "Missing request")
+            return JSONResponse(content=body, status_code=status)
         err = _check_key(request, path)
         if err is not None:
-            return err
+            body, status = err
+            return JSONResponse(content=body, status_code=status)
         return await func(*args, **kwargs)
 
     @wraps(func)
@@ -128,10 +152,12 @@ def require_api_key(func):
             return func(*args, **kwargs)
         request, path = _resolve_request(args, kwargs)
         if request is None:
-            return _error_response(401, "Unauthorized", "Missing request")
+            body, status = _error_response(401, "Unauthorized", "Missing request")
+            return _to_http_response(body, status)
         err = _check_key(request, path)
         if err is not None:
-            return err
+            body, status = err
+            return _to_http_response(body, status)
         return func(*args, **kwargs)
 
     return async_wrapper if is_coro else sync_wrapper

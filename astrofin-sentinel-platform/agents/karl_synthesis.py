@@ -21,7 +21,7 @@ from agents._impl.amre import (
 )
 from agents._impl.amre import create_backtest_runner, estimate_uncertainty
 from agents._impl.amre.lag_windowing import get_lag_window
-from agents._impl.amre.reward import RewardState
+from agents._impl.amre.reward import RewardState, compute_trajectory_reward, update_reward_ema
 from agents._impl.amre.risk_control import apply_position_lag_risk
 from agents._impl.amre.trajectory import MarketState, market_state_hash
 from agents._impl.synthesis_agent import SynthesisAgent
