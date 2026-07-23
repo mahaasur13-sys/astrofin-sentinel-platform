@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Activity, Layers, Zap, TrendingUp, BarChart3, Settings, ChevronDown, Bell, Maximize2, Route, Hexagon, Cpu } from 'lucide-react';
 import { RegimeRadar, type Regime } from '@/components/sentinel/RegimeRadar';
 import { SafetyGateCard } from '@/components/sentinel/SafetyGateCard';
@@ -7,12 +7,13 @@ import { EquityCurve } from '@/components/sentinel/EquityCurve';
 import { MetaRLEvolution } from '@/components/sentinel/MetaRLEvolution';
 import { RegimeHeatmap } from '@/components/sentinel/RegimeHeatmap';
 import SessionTable from '@/components/SessionTable';
+import { useSentinelStream } from '@/hooks/use-sentinel-stream';
 
 const modeTabs = ['LIVE', 'BACKTEST', 'PAPER', 'OPTIMIZE'] as const;
 const timeframes = ['1m', '5m', '15m', '1H', '4H', '1D', '1W'] as const;
 const watchlist = ['BTC-USD', 'ETH-USD', 'SPX', 'NDX', 'NVDA', 'AAPL', 'GC=F', 'CL=F'] as const;
 const navItems = [
-  { icon: Activity, label: 'Dashboard', active: true },
+  { icon: Activity, label: 'Dashboard' },
   { icon: TrendingUp, label: 'Trading' },
   { icon: BarChart3, label: 'Analytics' },
   { icon: Layers, label: 'Agents' },
@@ -110,8 +111,8 @@ export default function App() {
             {navItems.map(item => (
               <div
                 key={item.label}
-                className={`sidebar-nav-item flex items-center gap-3 px-4 py-2.5 cursor-pointer text-xs ${item.active ? 'active' : ''}`}
-                style={{ color: item.active ? '#e0e0ff' : '#8899aa' }}
+                className={`sidebar-nav-item flex items-center gap-3 px-4 py-2.5 cursor-pointer text-xs`}
+                style={{ color: '#8899aa' }}
               >
                 <item.icon size={15} />
                 <span className="font-medium">{item.label}</span>
@@ -182,27 +183,23 @@ export default function App() {
 
           {/* Equity Curve */}
           <div className="mb-3 chart-reveal">
-            <EquityCurve height={240} currentEquity={117510} pnlPct={17.51} />
+            <EquityCurve height={240} data={[{ date: "2026-01", equity: 100000, regime: "bull" as const }, { date: "2026-03", equity: 105000, regime: "bull" as const }, { date: "2026-05", equity: 112000, regime: "bull" as const }, { date: "2026-07", equity: 117510, regime: "bull" as const }]} />
           </div>
 
           {/* Mid Grid: Agent Grid + Regime */}
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div className="col-span-2">
-              <AgentPerformanceGrid compact={false} />
+              <AgentPerformanceGrid agents={[]} />
             </div>
             <div className="flex flex-col gap-3">
-              <RegimeRadar size={150} />
+              <RegimeRadar probabilities={{ bull: 0.7, bear: 0.1, sideways: 0.1, high_vol: 0.05, anomaly: 0.05 }} currentRegime={regime} compact={true} />
               <SafetyGateCard
                 status="safe"
-                maxDrawdownPct={5.2}
-                dailyLossPct={-1.27}
+                riskPct={2.0}
+                maxDrawdown={5.2}
+                var95={3.1}
                 leverage={1.5}
-                maxLeverage={5}
-                triggers={[
-                  { id: '1', rule: 'Max DD > 5%', level: 'caution', message: 'Portfolio DD approaching 5%', timestamp: Date.now() - 3600000 },
-                  { id: '2', rule: 'VaR > 3%', level: 'caution', message: 'Daily VaR at 3.1%', timestamp: Date.now() - 1800000 },
-                ]}
-              />
+                triggers={[{ time: "1h ago", reason: "Max DD > 5%" }, { time: "30m ago", reason: "VaR > 3%" }]} />
             </div>
           </div>
 
@@ -213,7 +210,7 @@ export default function App() {
           </div>
 
           {/* Session Table */}
-          <SessionTable compact={false} />
+          <SessionTable />
         </main>
 
         {/* === RIGHT PANEL === */}

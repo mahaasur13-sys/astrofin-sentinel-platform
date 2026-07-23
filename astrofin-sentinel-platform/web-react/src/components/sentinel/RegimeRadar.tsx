@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 
-type Regime = 'bull' | 'bear' | 'sideways' | 'high_vol' | 'anomaly';
+export type Regime = 'bull' | 'bear' | 'sideways' | 'high_vol' | 'anomaly';
 
-interface RegimeData {
+export interface RegimeData {
   regime: Regime;
   label: string;
   probability: number;
@@ -10,7 +10,7 @@ interface RegimeData {
   description: string;
 }
 
-interface RegimeRadarProps {
+export interface RegimeRadarProps {
   probabilities: Record<Regime, number>;
   currentRegime: Regime;
   compact?: boolean;

@@ -175,7 +175,7 @@ function Th({ onClick, children }: { onClick: () => void; children: React.ReactN
   );
 }
 
-function Td({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+function Td({ children, style, className }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
   return (
     <td style={{ padding: '10px 14px', ...style }}>
       {children}

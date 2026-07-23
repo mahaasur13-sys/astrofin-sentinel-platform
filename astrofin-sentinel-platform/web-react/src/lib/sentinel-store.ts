@@ -5,14 +5,14 @@
 'use client';
 
 import { create } from 'zustand';
-import type {
+import {
   AgentType,
   AgentResult,
   EnsembleResult,
   AnalysisSession,
   AGENT_TYPES,
 } from './agents';
-import type { AgentStatus, AgentStatusUpdate } from './sentinel-socket';
+import { AgentStatus, AgentStatusUpdate } from './sentinel-socket';
 
 // ---------------------------------------------------------------------------
 // Agent live status per session

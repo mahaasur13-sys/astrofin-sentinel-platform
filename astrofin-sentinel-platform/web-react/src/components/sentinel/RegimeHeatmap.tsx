@@ -23,7 +23,7 @@ const ASSET_LIST = ['BTC', 'ETH', 'SPX', 'NDX', 'GOLD', 'OIL', 'EUR', 'JPY', 'TN
 
 function generateMockData(assets: string[], regime: Regime): CorrelationCell[] {
   const cells: CorrelationCell[] = [];
-  const baseCorr: Record<Regime, number> = { bull: 0.3, bear: 0.6, sideways: 0.1, highvol: 0.7 };
+  const baseCorr: Record<Regime, number> = { bull: 0.3, bear: 0.6, sideways: 0.1, high_vol: 0.7, anomaly: 0.85 };
   for (let i = 0; i < assets.length; i++) {
     for (let j = 0; j < assets.length; j++) {
       const base = baseCorr[regime];

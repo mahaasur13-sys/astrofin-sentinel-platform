@@ -5,7 +5,7 @@
 'use client';
 
 import { io, Socket } from 'socket.io-client';
-import { AgentResult, EnsembleResult } from './agents';
+import type { AgentResult } from './agents';
 
 export type AgentStatus = 'pending' | 'running' | 'complete' | 'error';
 

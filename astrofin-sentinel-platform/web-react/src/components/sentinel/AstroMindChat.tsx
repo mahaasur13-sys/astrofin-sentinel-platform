@@ -1,5 +1,5 @@
 // VBUILD-20260720-v2
-if (typeof window !== "undefined") { window.__AstroMindChat = AstroMindChat; }
+if (typeof window !== "undefined") { (window as any).__AstroMindChat = AstroMindChat; }
 import { useState, useRef, useEffect } from 'react';
 
 // ────────────────────────────────────── types

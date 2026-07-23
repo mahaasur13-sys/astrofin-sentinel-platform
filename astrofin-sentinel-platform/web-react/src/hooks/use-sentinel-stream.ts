@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import type { RegimeProbability } from '@/components/sentinel/RegimeRadar';
+type RegimeProbability = { regime: string; probability: number }
 
 export interface RegimeUpdate {
   regime: string;
