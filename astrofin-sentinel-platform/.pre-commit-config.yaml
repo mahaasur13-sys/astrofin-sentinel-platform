@@ -33,7 +33,7 @@ repos:
     rev: 1.8.0
     hooks:
       - id: bandit
-        args: [--exit-zero, -ll, --skip=B101]
+        args: [-ll, --skip=B101]
 
   # ─── Static type check (best-effort on a multi-agent codebase) ─────────
   - repo: https://github.com/pre-commit/mirrors-mypy

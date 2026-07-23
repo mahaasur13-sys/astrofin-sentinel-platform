@@ -61,7 +61,7 @@ def load_chunks(chunks_dir: Path) -> list[dict]:
                 body = section.strip()
             if not body or len(body) < 20:
                 continue
-            chunk_id = hashlib.md5(
+            chunk_id = hashlib.md5(usedforsecurity=False, 
                 f"{md_file.name}#{current_title}".encode()
             ).hexdigest()[:12]
             chunks.append(
