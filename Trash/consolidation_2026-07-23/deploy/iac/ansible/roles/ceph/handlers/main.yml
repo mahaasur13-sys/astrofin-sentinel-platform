@@ -1,2 +1,0 @@
-- name: Ceph restart
-  ansible.builtin.shell: ceph orch restart osd

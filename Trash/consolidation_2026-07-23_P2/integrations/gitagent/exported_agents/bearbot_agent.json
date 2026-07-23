@@ -1,9 +1,0 @@
-{
-  "name": "BearBot",
-  "module": "unified-platform.domain.astrofin.agents.registry",
-  "acos_job_type": "astrofin_bear",
-  "acos_layer": "L5",
-  "description": "Bear case scenario construction - Research bearish risks",
-  "tools": ["bearish_scenarios", "downside_analysis", "risk_identification"],
-  "instructions": "Construct bear case scenarios for assets. Identify risks, downside targets, and adverse conditions. Research negative factors and contraction potential."
-}

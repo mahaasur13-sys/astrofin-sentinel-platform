@@ -21,9 +21,24 @@ export default defineConfig({
       '.zocomputer.io',
     ],
     proxy: {
-      '/api': 'http://localhost:8000',
-      '/health': 'http://localhost:8000',
-      '/ws': { target: 'ws://localhost:8000', ws: true },
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/api/v1/stream': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        ws: true,
+      },
+      '/health': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://localhost:8000',
+        ws: true,
+        changeOrigin: true,
+      },
     },
   },
 })
