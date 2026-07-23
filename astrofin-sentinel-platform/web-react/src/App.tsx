@@ -28,11 +28,10 @@ export default function App() {
   const [tf, setTf] = useState<string>('1D');
   const [ticker, setTicker] = useState('BTC-USD');
   const [showRightPanel, setShowRightPanel] = useState(true);
+  const state = useSentinelStream(true);
+
   const stream = useSentinelStream(true);
   const regime: Regime = stream.regime?.regime as Regime ?? 'bull';
-  const equityCurve = stream.dashboard?.equity_curve;
-  const liveAgents = stream.dashboard?.agents ?? [];
-  const ensembleResult = stream.dashboard?.ensemble ?? null;
 
   return (
     <div className="h-screen flex flex-col bg-[#0a0a0f] text-[#e0e0ff]">
@@ -187,13 +186,13 @@ export default function App() {
 
           {/* Equity Curve */}
           <div className="mb-3 chart-reveal">
-            {equityCurve && <EquityCurve height={240} data={equityCurve.map((p: Record<string,unknown>) => ({...p, regime: (p.regime ?? "bull") as Regime}))} />}
+            <EquityCurve height={240} data={[{ date: "2026-01", equity: 100000, regime: "bull" as const }, { date: "2026-03", equity: 105000, regime: "bull" as const }, { date: "2026-05", equity: 112000, regime: "bull" as const }, { date: "2026-07", equity: 117510, regime: "bull" as const }]} />
           </div>
 
           {/* Mid Grid: Agent Grid + Regime */}
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div className="col-span-2">
-              <AgentPerformanceGrid agents={liveAgents as any} />
+              <AgentPerformanceGrid agents={[]} />
             </div>
             <div className="flex flex-col gap-3">
               <RegimeRadar probabilities={{ bull: 0.7, bear: 0.1, sideways: 0.1, high_vol: 0.05, anomaly: 0.05 }} currentRegime={regime} compact={true} />
@@ -214,7 +213,7 @@ export default function App() {
           </div>
 
           {/* Session Table */}
-          <RadialOrbitalGraph agentStatuses={{}} ensembleResult={ensembleResult as any} isAnalyzing={false} />
+          <RadialOrbitalGraph agentStatuses={{}} ensembleResult={null} isAnalyzing={false} />
 
           <SessionTable />
 

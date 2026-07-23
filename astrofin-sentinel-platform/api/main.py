@@ -450,20 +450,24 @@ def get_interpretation(request: Request):
             "icon": current.get("icon", "DIAMOND") if isinstance(current, dict) else "DIAMOND",
             "quality": current.get("quality", "auspicious") if isinstance(current, dict) else "auspicious",
             "recommended": current.get("recommended", True) if isinstance(current, dict) else True,
+            "start": current.get("start", None) if isinstance(current, dict) else None,
+            "end": current.get("end", None) if isinstance(current, dict) else None,
         },
         "choghadiya_slots": [
             {"period": i, "name": s.get("name", "?"), "start": s.get("start", "--"), "end": s.get("end", "--"),
              "icon": s.get("icon", "QUESTION"), "quality": s.get("quality", "--")}
             for i, s in enumerate(slots[:8]) if isinstance(s, dict)
         ],
-        "top_favourable": [
+        "aspects": {
+            "top_favourable": [
             {"planet1": a["planet1"], "planet2": a["planet2"], "type": a["type"], "icon": a["icon"], "orb": a["orb"], "score": a["score"]}
             for a in sorted([a for a in aspect_records if "favourable" in a["label"]], key=lambda x: -x["score"])[:5]
         ],
         "top_unfavourable": [
             {"planet1": a["planet1"], "planet2": a["planet2"], "type": a["type"], "icon": a["icon"], "orb": a["orb"], "score": a["score"]}
             for a in sorted([a for a in aspect_records if "unfavourable" in a["label"]], key=lambda x: x["score"])[:5]
-        ],
+        ]
+        },
     }}
 
 
