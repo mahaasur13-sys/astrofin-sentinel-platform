@@ -29,7 +29,6 @@ htmlcov/
 *.swo
 .DS_Store
 Thumbs.db
-
 # ─── Конфиденциальные данные ──────────────────────────────
 .env
 .env.*
@@ -40,12 +39,10 @@ Thumbs.db
 *.pfx
 secrets/
 .gitleaks-baseline.json.bak
-
 # ─── Бэкапы и корзина ─────────────────────────────────────
 backup_*.tar.gz
 workspace_backup_*.tar.gz
 Trash/
-
 # ─── Документы и личные папки (не код) ────────────────────
 Documents/
 Downloads/
@@ -54,7 +51,6 @@ AsurDev/
 _pr_logs/
 _sbs_old/
 graphify-out/
-
 # ─── IDE и редакторы ───────────────────────────────────────
 .idea/
 .vscode/
@@ -63,19 +59,13 @@ graphify-out/
 *.iws
 .cursor/
 .aider*
-
 # ─── Coverage и отчёты ─────────────────────────────────────
 coverage.xml
-.coverage
-.coverage.*
 lcov.info
-.pytest_cache/
 reports/
 artifacts/coverage/
-
 # ─── Zo internal scratch ──────────────────────────────────
 .zo_scratch/
-
 # ─── Временные файлы и патчи ──────────────────────────────
 *.patch
 *.bak
@@ -91,17 +81,20 @@ to-pip.txt
 pr118_files.txt
 pr120_files_all.txt
 pr120_files_full.txt
-
 # ─── Артефакты сборки/визуализации ───────────────────────
-graphify-out/
-
 # ─── Локальные env-файлы (секреты) ────────────────────────
-.env
 .env.local
 .env.*.local
-
 # Consolidation tooling & backups (2026-07-24 Variant C reverse-merge)
 consolidation_backup/
 consolidate_merge.py
 fix_broken_imports.py
 /tmp/
+# Binary artifacts — untracked from HEAD 2026-07-24 (should move to Git LFS / external storage)
+*.db
+*.rdb
+*.joblib
+data/rag_index/
+hmm_dashboard.html
+*.bak2
+*.bak3
