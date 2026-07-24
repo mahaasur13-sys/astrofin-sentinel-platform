@@ -1,4 +1,4 @@
-"""api/routes/sessions.py — Session detail endpoint with KARL agent decisions."""
+"""api/routes/sessions.py — Session endpoints: list + detail with KARL agent decisions."""
 
 from __future__ import annotations
 
@@ -7,13 +7,72 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from api.schemas import AgentDecisionDetail, SessionDetailResponse
+from api.schemas import (
+    AgentDecisionDetail,
+    SessionDetailResponse,
+    SessionListItem,
+    SessionListResponse,
+)
 from db.models import KARLDecisionRecord, Session
 from db.session import get_db_manager
 
 log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
+
+
+@router.get("/", response_model=SessionListResponse)
+async def get_sessions_list(skip: int = 0, limit: int = 50):
+    """Returns paginated list of sessions for SessionTable component.
+    
+    Args:
+        skip: Number of records to skip (offset)
+        limit: Maximum number of records to return (max 100)
+    
+    Returns:
+        SessionListResponse with items and total count
+    """
+    limit = min(limit, 100)  # cap at 100 to prevent abuse
+    
+    with get_db_manager().session() as db:
+        total = db.query(Session).count()
+        sessions = (
+            db.query(Session)
+            .order_by(Session.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+        
+        items = []
+        for s in sessions:
+            # Get average confidence from KARL decisions for this session
+            decisions = (
+                db.query(KARLDecisionRecord)
+                .filter(KARLDecisionRecord.session_id == str(s.session_id))
+                .all()
+            )
+            confidences = [
+                float(d.confidence_final)
+                for d in decisions
+                if d.confidence_final is not None
+            ]
+            avg_confidence = (
+                sum(confidences) / len(confidences) if confidences else 0.0
+            )
+            
+            items.append(
+                SessionListItem(
+                    id=str(s.session_id),
+                    timestamp=s.created_at,
+                    symbol=s.symbol,
+                    signal=s.final_signal or "NEUTRAL",
+                    confidence=avg_confidence / 100.0,  # normalize to 0-1 range
+                    final_pnl=None,  # TODO: compute from broker execution data
+                )
+            )
+        
+        return SessionListResponse(items=items, total=total)
 
 
 @router.get("/{session_id}/details", response_model=SessionDetailResponse)
