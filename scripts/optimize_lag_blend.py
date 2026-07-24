@@ -311,27 +311,27 @@ def print_table(results: list[BlendResult], best: BlendResult, metric: str):
     header += f"  {'MAE':>8}"
     separator = "-" * len(header)
 
-    log.info(f"\n{'=' * 60}")
-    log.info(f"Metric optimized: {metric.upper()}")
-    log.info(f"{'=' * 60}")
-    log.info(header)
-    log.info(separator)
+    logger.info(f"\n{'=' * 60}")
+    logger.info(f"Metric optimized: {metric.upper()}")
+    logger.info(f"{'=' * 60}")
+    logger.info(header)
+    logger.info(separator)
 
     for r in results:
         row = f"{r.blend:>6.2f}  {r.reversals:>10}  {r.stability:>10.4f}"
         if has_sharpe:
             row += f"  {str(r.sharpe) if r.sharpe is not None else 'N/A':>10}"
         row += f"  {r.mae:>8.4f}"
-        log.info(row)
+        logger.info(row)
 
-    log.info(separator)
+    logger.info(separator)
     marker = ">>>" if metric != "stability" else "<<<"
     best_row = f"{best.blend:>6.2f}  {best.reversals:>10}  {best.stability:>10.4f}"
     if best.sharpe is not None:
         best_row += f"  {best.sharpe:>10.4f}"
     best_row += f"  {best.mae:>8.4f}"
-    log.info(f"{marker} Optimal: {best_row}")
-    log.info("")
+    logger.info(f"{marker} Optimal: {best_row}")
+    logger.info("")
 
 
 def save_json(
@@ -489,8 +489,8 @@ def main():
         df = load_data(args.data)
         data_label = args.data
     else:
-        log.info("Error: specify --data <path.csv> or --demo")
-        log.info(__doc__)
+        logger.info("Error: specify --data <path.csv> or --demo")
+        logger.info(__doc__)
         sys.exit(1)
 
     logger.info(
@@ -515,8 +515,8 @@ def main():
         plot_results(results, best, args.metric, plot_path)
 
     if args.update_env:
-        log.info("\n# Add to .env:")
-        log.info(f"LAG_BLEND_MATURE={best.blend}")
+        logger.info("\n# Add to .env:")
+        logger.info(f"LAG_BLEND_MATURE={best.blend}")
 
     # Summary
     metric_key = args.metric
@@ -525,7 +525,7 @@ def main():
         if args.metric == "reversals"
         else best.stability if args.metric == "stability" else best.sharpe
     )
-    log.info(
+    logger.info(
         f"Optimal blend for metric '{args.metric}': {best.blend} ({metric_key}={best_val})"
     )
 
