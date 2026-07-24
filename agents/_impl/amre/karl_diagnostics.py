@@ -1,9 +1,12 @@
-"""amre/karl_diagnostics.py - ATOM-021: Enhanced KARL Diagnostics"""
-
-"""Extended diagnostics for KARL self-improvement loop."""
+from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from typing import Any
+
+"""amre/karl_diagnostics.py - ATOM-021: Enhanced KARL Diagnostics"""
+
+
+"""Extended diagnostics for KARL self-improvement loop."""
 
 
 @dataclass
@@ -70,22 +73,30 @@ def compute_karl_health(
     # Confidence trend (simple linear)
     if len(confidences) >= 10:
         first_half = sum(confidences[: len(confidences) // 2]) / (len(confidences) // 2)
-        second_half = sum(confidences[len(confidences) // 2 :]) / (len(confidences) - len(confidences) // 2)
+        second_half = sum(confidences[len(confidences) // 2 :]) / (
+            len(confidences) - len(confidences) // 2
+        )
         m.confidence_trend = second_half - first_half
 
     # Reward metrics
     if reward_history:
         m.avg_reward = sum(reward_history) / len(reward_history)
-        m.positive_reward_ratio = sum(1 for r in reward_history if r > 0) / len(reward_history)
+        m.positive_reward_ratio = sum(1 for r in reward_history if r > 0) / len(
+            reward_history
+        )
         if len(reward_history) > 1:
             mean = m.avg_reward
-            variance = sum((r - mean) ** 2 for r in reward_history) / len(reward_history)
+            variance = sum((r - mean) ** 2 for r in reward_history) / len(
+                reward_history
+            )
             m.reward_volatility = variance**0.5
 
     # Astro metrics
     if astro_scores:
         m.avg_astro_score = sum(astro_scores) / len(astro_scores)
-        m.astro_alignment_ratio = sum(1 for s in astro_scores if s >= 1.0) / len(astro_scores)
+        m.astro_alignment_ratio = sum(1 for s in astro_scores if s >= 1.0) / len(
+            astro_scores
+        )
 
     # Meta-questioning
     if meta_questions:
@@ -190,14 +201,24 @@ def format_diagnostics_rich(health: KARLHealthMetrics) -> str:
     status_info = get_system_status(health)
     lines = []
 
-    status_icon = {"HEALTHY": "✓", "STABLE": "~", "DEGRADING": "✗"}.get(status_info["status"], "?")
+    status_icon = {"HEALTHY": "✓", "STABLE": "~", "DEGRADING": "✗"}.get(
+        status_info["status"], "?"
+    )
 
     lines.append(f"{status_icon} Status: {status_info['status']}")
     lines.append(f"  Decisions: {health.decision_count}")
-    lines.append(f"  Avg Confidence: {health.avg_confidence:.1f} (trend: {health.confidence_trend:+.1f})")
-    lines.append(f"  Avg Reward: {health.avg_reward:.4f} (vol: {health.reward_volatility:.4f})")
-    lines.append(f"  Astro Score: {health.avg_astro_score:.3f} (aligned: {health.astro_alignment_ratio:.1%})")
-    lines.append(f"  Meta Q's: {health.meta_question_count} (avg adj: {health.meta_adjustment_avg:+.1f})")
+    lines.append(
+        f"  Avg Confidence: {health.avg_confidence:.1f} (trend: {health.confidence_trend:+.1f})"
+    )
+    lines.append(
+        f"  Avg Reward: {health.avg_reward:.4f} (vol: {health.reward_volatility:.4f})"
+    )
+    lines.append(
+        f"  Astro Score: {health.avg_astro_score:.3f} (aligned: {health.astro_alignment_ratio:.1%})"
+    )
+    lines.append(
+        f"  Meta Q's: {health.meta_question_count} (avg adj: {health.meta_adjustment_avg:+.1f})"
+    )
     lines.append(f"  OOS Fail Rate: {health.oos_fail_rate:.1%}")
     lines.append(f"  Decision Time: {health.avg_decision_time_ms:.1f}ms")
 

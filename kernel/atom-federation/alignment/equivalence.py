@@ -55,7 +55,7 @@ class L3Equivalence:
 class MergeDecision:
     """
     Formal merge decision with full justification trail.
-    
+
     Invariant:
       l1_equivalent and l2_equivalent and l3_equivalent → decision == MERGE
       l1_conflict or (l2_conflict and not l3_equivalent) → decision in {KEEP_A, KEEP_B, SPLIT}
@@ -127,12 +127,12 @@ class EquivalenceChecker:
     ) -> MergeDecision:
         """
         Compare two branches against their shared LCA checkpoint.
-        
+
         Args:
             branch_a_summary: summary of branch A (nodes, deps, semantic state)
             branch_b_summary: summary of branch B
             lca_checkpoint: shared checkpoint (lowest common ancestor)
-        
+
         Returns:
             MergeDecision with full equivalence analysis
         """

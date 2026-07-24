@@ -20,6 +20,10 @@ from federation.consensus_resolver import QuorumConfig
 from federation.gossip_protocol import GossipConfig
 from federation.state_vector import StateVector
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── Fault injectors ────────────────────────────────────────────────────────────
 
 
@@ -210,11 +214,9 @@ class ClusterSimulator:
             if scenario:
                 self._apply_scenario_faults(step, scenario, active_faults)
 
-            step_events = []
 
             for nid in self.node_ids:
                 node = self.nodes[nid]
-                node_metrics_before = node.metrics
 
                 # Determine fault injector
                 fault_type = active_faults.get(nid)
@@ -384,17 +386,17 @@ class ScenarioRunner:
 
         results = {}
         for s in scenarios:
-            print(f"Running scenario: {s.name}...")
+            log.info(f"Running scenario: {s.name}...")
             trace = self.run_scenario(s, steps=50)
             results[s.name] = trace
-            print(trace.summary())
+            log.info(trace.summary())
 
         return results
 
     def print_report(self, results: dict[str, ClusterTrace]) -> None:
-        print("\n" + "=" * 60)
-        print("FEDERATION BOOTSTRAP — SCENARIO REPORT")
-        print("=" * 60)
+        log.info("\n" + "=" * 60)
+        log.info("FEDERATION BOOTSTRAP — SCENARIO REPORT")
+        log.info("=" * 60)
 
         all_passed = True
         for name, trace in results.items():
@@ -402,9 +404,9 @@ class ScenarioRunner:
             if not trace.converged:
                 all_passed = False
             osc = " ⚠️" if trace.oscillation_count > 0 else ""
-            print(f"  [{status}] {name}{osc}")
-            print(f"         converge_step={trace.convergence_step}  osc={trace.oscillation_count}"
+            log.info(f"  [{status}] {name}{osc}")
+            log.info(f"         converge_step={trace.convergence_step}  osc={trace.oscillation_count}"
                   f"  div={trace.divergence_events}  quar={trace.quarantine_events}")
 
-        print("-" * 60)
-        print(f"Overall: {'✅ ALL PASSED' if all_passed else '❌ FAILURES DETECTED'}")
+        log.info("-" * 60)
+        log.info(f"Overall: {'✅ ALL PASSED' if all_passed else '❌ FAILURES DETECTED'}")

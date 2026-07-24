@@ -13,6 +13,10 @@ import random
 from dataclasses import dataclass, field
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class ExecutionContext:
@@ -85,6 +89,6 @@ if __name__ == "__main__":
     ctx = ExecutionContext(seed=42, allowed_network=False)
     dc = DeterminismController(ctx)
     dc.setup()
-    print(f"Seed locked: {dc.ctx.get_seed()}")
-    print(f"ML locked: {dc.ctx.ml_model_snapshot}")
-    print(f"Network isolated: {not dc.ctx.allowed_network}")
+    log.info(f"Seed locked: {dc.ctx.get_seed()}")
+    log.info(f"ML locked: {dc.ctx.ml_model_snapshot}")
+    log.info(f"Network isolated: {not dc.ctx.allowed_network}")

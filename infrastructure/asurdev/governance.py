@@ -3,10 +3,17 @@
 ACOS GOVERNANCE KERNEL v2.0 — CORRECTED
 Static + Runtime + Adversarial validation engine.
 """
-import os, sys, json, hashlib
+import hashlib
+import json
+import logging
+import os
+import sys
 from collections import defaultdict
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+log = logging.getLogger(__name__)
+
 
 BASE = Path("/home/workspace/home-cluster-iac")
 LAYER_ORDER = ["v8","v7","v6","v5","fp","ts","v4","lt","acos","infra"]
@@ -93,8 +100,12 @@ def adversarial_analysis(violations, reachability, layer_edges, dynamic_findings
     critical = sum(1 for v in violations if v["severity"]=="critical")
     high = sum(1 for v in violations if v["severity"]=="high")
     medium = sum(1 for v in violations if v["severity"]=="medium")
-    if critical: score -= 0.5; findings.append(f"{critical} CRITICAL")
-    elif high: score -= 0.25; findings.append(f"{high} HIGH")
+    if critical:
+        score -= 0.5
+        findings.append(f"{critical} CRITICAL")
+    elif high:
+        score -= 0.25
+        findings.append(f"{high} HIGH")
     if medium: score -= medium * 0.05
     if len(dynamic_findings) >= 5:
         score -= min(0.15, (len(dynamic_findings)-4)*0.03)
@@ -118,7 +129,7 @@ def run():
             fp = os.path.join(root, f)
             try:
                 src = open(fp).read()
-            except:
+            except Exception:
                 continue
             src_layer = classify(fp)
             module_count[src_layer] = module_count.get(src_layer, 0) + 1
@@ -190,5 +201,5 @@ def run():
 
 if __name__ == "__main__":
     r = run()
-    print(json.dumps(r, indent=2))
+    log.info(json.dumps(r, indent=2))
     sys.exit(0 if r["STATUS"]=="PASS" else 1 if r["STATUS"]=="BLOCK" else 2)

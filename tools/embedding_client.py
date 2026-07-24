@@ -57,7 +57,7 @@ class EmbeddingConfig(BaseModel):
     ollama_host: str = "http://localhost:11434"
 
     @classmethod
-    def from_env(cls) -> EmbeddingConfig:
+    def from_env(cls) -> "EmbeddingConfig":
         """Build config from env vars. Used by the singleton below."""
         provider = os.getenv("RAG_PROVIDER", "openai")
         try:
@@ -79,12 +79,14 @@ class EmbeddingConfig(BaseModel):
 class EmbeddingClient:
     """Async embedding client. Use the `embedding_client` singleton or instantiate directly."""
 
-    def __init__(self, config: EmbeddingConfig | None = None):
+    def __init__(self, config: Optional[EmbeddingConfig] = None):
         self.config = config or EmbeddingConfig.from_env()
         self._validate_config()
 
-        self._openai_client: openai.AsyncOpenAI | None = None
-        self._httpx_client: httpx.AsyncClient | None = None  # lazy: created on first ollama call
+        self._openai_client: Optional[openai.AsyncOpenAI] = None
+        self._httpx_client: Optional[httpx.AsyncClient] = (
+            None  # lazy: created on first ollama call
+        )
         # Cache: key -> (vector, monotonic_ts)
         self._cache: LRUCache[str, tuple[list[float], float]] = LRUCache(maxsize=10000)
 
@@ -117,14 +119,17 @@ class EmbeddingClient:
                 "Use RAG_EMBEDDING_DIM=1536 with RAG_PROVIDER=openai."
             )
         if self.config.provider not in ("openai", "ollama", "stub"):
-            raise ValueError(f"Unknown RAG_PROVIDER: {self.config.provider!r}. " "Use one of: openai, ollama, stub.")
+            raise ValueError(
+                f"Unknown RAG_PROVIDER: {self.config.provider!r}. "
+                "Use one of: openai, ollama, stub."
+            )
 
     # ─── Cache helpers ───────────────────────────────────────────────────────
 
     def _cache_key(self, text: str) -> str:
         return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
-    def _cache_get(self, text: str) -> list[float] | None:
+    def _cache_get(self, text: str) -> Optional[list[float]]:
         if not self.config.cache_enabled:
             return None
         key = self._cache_key(text)
@@ -154,19 +159,21 @@ class EmbeddingClient:
         Critical property: identical inputs MUST produce identical outputs in tests.
         Uses sha256 (not md5) for better distribution; seed reduced to 2^32 via mod.
         """
-        seed = int(hashlib.sha256(text.encode("utf-8")).hexdigest()[:8], 16)  # first 8 hex = 32 bits
+        seed = int(
+            hashlib.sha256(text.encode("utf-8")).hexdigest()[:8], 16
+        )  # first 8 hex = 32 bits
         rng = random.Random(seed)
         return [rng.uniform(-1.0, 1.0) for _ in range(self.config.dimension)]
 
     # ─── Public API ──────────────────────────────────────────────────────────
 
-    async def embed(self, texts: list[str]) -> list[list[float]]:
+    async def embed(self, texts: List[str]) -> List[List[float]]:
         """Embed a batch of texts. Order is preserved. Empty/None inputs get zero vectors."""
         if not texts:
             return []
 
         # Step 1: separate cache hits from misses
-        result: list[list[float] | None] = [None] * len(texts)
+        result: list[Optional[list[float]]] = [None] * len(texts)
         to_embed: list[str] = []
         indices: list[int] = []
 
@@ -186,7 +193,8 @@ class EmbeddingClient:
 
         # Step 2: chunk by max_batch_size
         chunks: list[list[str]] = [
-            to_embed[i : i + self.config.max_batch_size] for i in range(0, len(to_embed), self.config.max_batch_size)
+            to_embed[i : i + self.config.max_batch_size]
+            for i in range(0, len(to_embed), self.config.max_batch_size)
         ]
 
         # Step 3: dispatch to provider
@@ -213,7 +221,7 @@ class EmbeddingClient:
             return [0.0] * self.config.dimension
         return (await self.embed([text]))[0]
 
-    def embed_sync(self, texts: list[str]) -> list[list[float]]:
+    def embed_sync(self, texts: List[str]) -> List[List[float]]:
         """Sync wrapper. DO NOT call from a running event loop — will deadlock."""
         try:
             loop = asyncio.get_running_loop()
@@ -221,7 +229,8 @@ class EmbeddingClient:
             loop = None
         if loop is not None and loop.is_running():
             raise RuntimeError(
-                "embed_sync() called from a running event loop. " "Use `await embedding_client.embed(texts)` instead."
+                "embed_sync() called from a running event loop. "
+                "Use `await embedding_client.embed(texts)` instead."
             )
         return asyncio.run(self.embed(texts))
 
@@ -238,10 +247,10 @@ class EmbeddingClient:
             self._openai_client = openai.AsyncOpenAI(api_key=api_key, timeout=30.0)
         return self._openai_client
 
-    async def _embed_openai(self, texts: list[str]) -> list[list[float]]:
+    async def _embed_openai(self, texts: List[str]) -> List[List[float]]:
         """Call OpenAI embeddings. Retries transient errors once, re-raises config errors."""
         client = await self._get_openai_client()
-        last_exc: Exception | None = None
+        last_exc: Optional[Exception] = None
         for attempt in range(2):  # 0 = first try, 1 = single retry
             try:
                 response = await client.embeddings.create(
@@ -265,23 +274,29 @@ class EmbeddingClient:
                 raise ValueError(f"OPENAI_API_KEY is invalid: {e}") from e
             except openai.PermissionDeniedError as e:
                 # 403 — quota or org issue
-                raise ValueError(f"OpenAI permission denied (check billing/quota): {e}") from e
+                raise ValueError(
+                    f"OpenAI permission denied (check billing/quota): {e}"
+                ) from e
             except (openai.APIConnectionError, openai.APITimeoutError) as e:
                 # Network — retry
                 last_exc = e
                 wait = 0.5 * (3**attempt)
-                logger.warning("OpenAI connection error, retrying in %.1fs: %s", wait, e)
+                logger.warning(
+                    "OpenAI connection error, retrying in %.1fs: %s", wait, e
+                )
                 await asyncio.sleep(wait)
         # Both attempts failed on transient errors — do NOT silently fall back to stub.
         # Caller can decide policy. Re-raise the last exception.
-        raise RuntimeError(f"OpenAI embedding failed after 2 attempts: {last_exc}") from last_exc
+        raise RuntimeError(
+            f"OpenAI embedding failed after 2 attempts: {last_exc}"
+        ) from last_exc
 
     async def _get_httpx(self) -> httpx.AsyncClient:
         if self._httpx_client is None:
             self._httpx_client = httpx.AsyncClient(timeout=30.0)
         return self._httpx_client
 
-    async def _embed_ollama(self, texts: list[str]) -> list[list[float]]:
+    async def _embed_ollama(self, texts: List[str]) -> List[List[float]]:
         """Call Ollama embeddings endpoint. Falls back to stub on connection error."""
         client = await self._get_httpx()
         results: list[list[float]] = []
@@ -301,7 +316,8 @@ class EmbeddingClient:
             if os.getenv("OLLAMA_REQUIRED", "0") == "1":
                 raise
             logger.warning(
-                "Ollama unavailable (%s) — falling back to stub. " "Set OLLAMA_REQUIRED=1 to fail loudly.",
+                "Ollama unavailable (%s) — falling back to stub. "
+                "Set OLLAMA_REQUIRED=1 to fail loudly.",
                 type(e).__name__,
             )
             return [self._deterministic_vector(t) for t in texts]
@@ -309,7 +325,7 @@ class EmbeddingClient:
 
 # ─── Module-level singleton ──────────────────────────────────────────────────
 # Lazy: built on first attribute access. Avoids side effects at import time.
-_singleton: EmbeddingClient | None = None
+_singleton: Optional[EmbeddingClient] = None
 
 
 def get_embedding_client() -> EmbeddingClient:

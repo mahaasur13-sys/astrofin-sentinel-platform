@@ -53,7 +53,7 @@ class TestPhase1ProofAwarePolicySync:
         assert decision.verdict == SyncVerdict.ACCEPT
         assert decision.proof.is_valid()
         assert decision.enforcement_action.name == "LOG_ONLY"
-        print("✅ test_identical_digests_accept")
+        log.info("✅ test_identical_digests_accept")
 
     def test_diverged_digests_quarantine(self):
         sync = ProofAwarePolicySync(node_id="node_A")
@@ -62,14 +62,14 @@ class TestPhase1ProofAwarePolicySync:
         assert decision.verdict == SyncVerdict.QUARANTINE
         assert decision.enforcement_action.name == "QUARANTINE"
         assert decision.quarantined_nodes == []
-        print("✅ test_diverged_digests_quarantine")
+        log.info("✅ test_diverged_digests_quarantine")
 
     def test_one_side_empty_partial(self):
         sync = ProofAwarePolicySync(node_id="node_A")
         d = ["d1", "d2", "d3", "d4"]
         decision = sync.evaluate_remote_theta([], d, tick=3)
         assert decision.verdict == SyncVerdict.PARTIAL
-        print("✅ test_one_side_empty_partial")
+        log.info("✅ test_one_side_empty_partial")
 
     def test_quarantine_node_tracking(self):
         sync = ProofAwarePolicySync(node_id="node_A")
@@ -82,7 +82,7 @@ class TestPhase1ProofAwarePolicySync:
         assert "node_B" in sync.quarantined_nodes()
         sync.lift_quarantine("node_B")
         assert "node_B" not in sync.quarantined_nodes()
-        print("✅ test_quarantine_node_tracking")
+        log.info("✅ test_quarantine_node_tracking")
 
     def test_batch_evaluation(self):
         sync = ProofAwarePolicySync(node_id="node_A")
@@ -97,7 +97,7 @@ class TestPhase1ProofAwarePolicySync:
         assert decisions[0].verdict == SyncVerdict.ACCEPT
         assert decisions[1].verdict == SyncVerdict.QUARANTINE
         assert decisions[2].verdict == SyncVerdict.ACCEPT
-        print("✅ test_batch_evaluation")
+        log.info("✅ test_batch_evaluation")
 
     def test_decision_log(self):
         sync = ProofAwarePolicySync(node_id="node_A")
@@ -108,7 +108,7 @@ class TestPhase1ProofAwarePolicySync:
         assert len(log) == 2
         assert log[0].verdict == SyncVerdict.ACCEPT
         assert log[1].verdict == SyncVerdict.QUARANTINE
-        print("✅ test_decision_log")
+        log.info("✅ test_decision_log")
 
 
 class TestPhase2ProofAwareConsensus:
@@ -128,7 +128,7 @@ class TestPhase2ProofAwareConsensus:
         )
         winner = resolver.rank_candidates([c1, c2])
         assert winner.candidate_id == "node_X"
-        print("✅ test_proof_valid_wins_over_invalid")
+        log.info("✅ test_proof_valid_wins_over_invalid")
 
     def test_require_proof_filters_false(self):
         resolver = ProofAwareConsensusResolver(node_id="node_A")
@@ -144,7 +144,7 @@ class TestPhase2ProofAwareConsensus:
         )
         winner = resolver.rank_candidates([c1, c2], require_proof=True)
         assert winner.candidate_id == "node_X"
-        print("✅ test_require_proof_filters_false")
+        log.info("✅ test_require_proof_filters_false")
 
     def test_origin_priority_remote_over_replay(self):
         resolver = ProofAwareConsensusResolver(node_id="node_A")
@@ -160,7 +160,7 @@ class TestPhase2ProofAwareConsensus:
         )
         winner = resolver.rank_candidates([c_replay, c_remote])
         assert winner.candidate_id == "remote_peer"
-        print("✅ test_origin_priority_remote_over_replay")
+        log.info("✅ test_origin_priority_remote_over_replay")
 
     def test_no_proof_fallback_to_stability(self):
         resolver = ProofAwareConsensusResolver(node_id="node_A")
@@ -176,20 +176,20 @@ class TestPhase2ProofAwareConsensus:
         )
         winner = resolver.rank_candidates([c_no_proof, c_weak])
         assert winner.candidate_id == "no_proof"
-        print("✅ test_no_proof_fallback_to_stability")
+        log.info("✅ test_no_proof_fallback_to_stability")
 
     def test_empty_candidates_returns_none(self):
         resolver = ProofAwareConsensusResolver(node_id="node_A")
         winner = resolver.rank_candidates([])
         assert winner is None
-        print("✅ test_empty_candidates_returns_none")
+        log.info("✅ test_empty_candidates_returns_none")
 
 
 class TestPhase3ProofEnrichedGossip:
     """Phase 3: proof metadata in delta gossip."""
 
     def test_attach_proof_to_message(self):
-        gpe = GossipProofEngine()
+        GossipProofEngine()
         base_msg = DeltaGossipMessage(
             source_node_id="node_2",
             root_hash="root_abc",
@@ -209,7 +209,7 @@ class TestPhase3ProofEnrichedGossip:
         assert enriched.proof_metadata.proof_hash == "fedcba9876543210"
         assert enriched.proof_metadata.proof_valid is True
         assert enriched.is_proof_valid() is True
-        print("✅ test_attach_proof_to_message")
+        log.info("✅ test_attach_proof_to_message")
 
     def test_proof_cache_hit(self):
         gpe = GossipProofEngine()
@@ -226,7 +226,7 @@ class TestPhase3ProofEnrichedGossip:
         enriched = ProofEnrichedDeltaMessage.from_base_message(base_msg, meta)
         gpe.cache_proof_result("cached_hash", True)
         assert gpe.verify_proof_from_message(enriched) is True
-        print("✅ test_proof_cache_hit")
+        log.info("✅ test_proof_cache_hit")
 
     def test_proof_cache_miss_returns_none(self):
         gpe = GossipProofEngine()
@@ -242,7 +242,7 @@ class TestPhase3ProofEnrichedGossip:
         meta = ProofMetadata(proof_hash="unknown_hash", proof_valid=None)
         enriched = ProofEnrichedDeltaMessage.from_base_message(base_msg, meta)
         assert gpe.verify_proof_from_message(enriched) is None
-        print("✅ test_proof_cache_miss_returns_none")
+        log.info("✅ test_proof_cache_miss_returns_none")
 
     def test_filter_by_proof_trust(self):
         base_msg = DeltaGossipMessage(
@@ -267,7 +267,7 @@ class TestPhase3ProofEnrichedGossip:
         assert msg_invalid not in filtered
         assert msg_valid in filtered
         assert msg_unchecked in filtered
-        print("✅ test_filter_by_proof_trust")
+        log.info("✅ test_filter_by_proof_trust")
 
     def test_rank_messages_by_proof(self):
         base_msg = DeltaGossipMessage(
@@ -289,7 +289,7 @@ class TestPhase3ProofEnrichedGossip:
         ranked = rank_messages_by_proof([msg_invalid, msg_valid, msg_unchecked])
         assert ranked[0].proof_metadata.proof_valid is True
         assert ranked[-1].proof_metadata.proof_valid is False
-        print("✅ test_rank_messages_by_proof")
+        log.info("✅ test_rank_messages_by_proof")
 
 
 class TestIntegrationFullPipeline:
@@ -345,7 +345,7 @@ class TestIntegrationFullPipeline:
         assert winner.candidate_id == "node_B"
         assert winner.proof_valid is True
 
-        print("✅ test_full_pipeline")
+        log.info("✅ test_full_pipeline")
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -362,7 +362,7 @@ def run_all():
 
     total = passed = 0
     for cls in test_classes:
-        print(f"\n--- {cls.__name__} ---")
+        log.info(f"\n--- {cls.__name__} ---")
         instance = cls()
         for method_name in dir(instance):
             if method_name.startswith("test_"):
@@ -371,16 +371,16 @@ def run_all():
                     getattr(instance, method_name)()
                     passed += 1
                 except AssertionError as e:
-                    print(f"  ❌ {method_name}: {e}")
+                    log.info(f"  ❌ {method_name}: {e}")
                 except Exception as e:
-                    print(f"  💥 {method_name}: {e}")
+                    log.info(f"  💥 {method_name}: {e}")
 
-    print(f"\n{'='*50}")
-    print(f"Results: {passed}/{total} passed")
+    log.info(f"\n{'='*50}")
+    log.info(f"Results: {passed}/{total} passed")
     if passed == total:
-        print("✅ All v9.3 federation binding tests pass")
+        log.info("✅ All v9.3 federation binding tests pass")
     else:
-        print(f"❌ {total - passed} tests failed")
+        log.info(f"❌ {total - passed} tests failed")
 
 
 if __name__ == "__main__":

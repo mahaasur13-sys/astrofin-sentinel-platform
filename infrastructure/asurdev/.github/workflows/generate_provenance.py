@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-import json, os, sys
+import json
+import os
+
 repo = os.environ.get('GITHUB_REPOSITORY', 'mahaasur13-sys/AsurDev')
 sha = os.environ.get('GITHUB_SHA', 'abc123')
 run_id = os.environ.get('GITHUB_RUN_ID', '1')
@@ -26,4 +28,4 @@ prov = {
 }
 os.makedirs('provenance', exist_ok=True)
 open('provenance/provenance.json', 'w').write(json.dumps(prov, indent=2))
-print("Provenance generated OK")
+log.info("Provenance generated OK")

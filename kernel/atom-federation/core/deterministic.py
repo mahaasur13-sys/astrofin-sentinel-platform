@@ -26,10 +26,10 @@ from typing import Any
 class DeterministicClock:
     '''
     Monotonic tick-based clock — replaces time.time() in control flow.
-    
+
     ONE physical timestamp taken at initialization (for external APIs only).
     All internal timing uses tick (logical, deterministic).
-    
+
     Usage:
         tick = DeterministicClock.get_tick()        # current tick
         DeterministicClock.advance()                # atomically advance
@@ -47,7 +47,7 @@ class DeterministicClock:
         '''
         Configure clock with explicit seed (for reproducibility).
         Call once at system startup.
-        
+
         Args:
             seed: Seed for deterministic derivations
             start_tick: Initial tick value (default 0)
@@ -121,12 +121,12 @@ class DeterministicClock:
 class DeterministicRNG:
     '''
     Seeded RNG factory — replaces np.random.default_rng() in control flow.
-    
+
     Guarantees:
         - Same (agent_id, tick) → same random sequence
         - Per-agent isolation (different agents get different streams)
         - Cache invalidation on tick advance
-    
+
     Usage:
         rng = DeterministicRNG.get_rng(agent_id='MutationExecutor', tick=42)
         value = rng.random()  # deterministic for same agent_id + tick
@@ -141,11 +141,11 @@ class DeterministicRNG:
         '''
         Get or create deterministic RNG for agent_id at tick.
         Same inputs → same RNG instance with same state.
-        
+
         Args:
             agent_id: Unique identifier for the agent
             tick: Current tick (monotonic integer)
-        
+
         Returns:
             np.random.Generator (seeded deterministically)
         '''
@@ -166,11 +166,11 @@ class DeterministicRNG:
         '''
         Deterministic seed: same agent_id + same tick → same seed.
         Uses SHA256 to derive 64-bit integer from inputs.
-        
+
         Args:
             agent_id: Agent identifier
             tick: Current tick
-        
+
         Returns:
             int: deterministic seed value
         '''
@@ -212,12 +212,12 @@ class DeterministicRNG:
 class DeterministicUUIDFactory:
     '''
     Content-addressed ID factory — replaces uuid.uuid4() for identity.
-    
+
     Guarantees:
         - Same inputs → same ID (deterministic)
         - No random generation
         - Collision-resistant (SHA256-based)
-    
+
     Usage:
         ctx_id = DeterministicUUIDFactory.make_context_id('Agent1', tick=42, depth=1)
         entry_id = DeterministicUUIDFactory.make_entry_id('mutation', tick=42, seq=5)
@@ -230,12 +230,12 @@ class DeterministicUUIDFactory:
     def make_id(prefix: str, content: str, salt: str = '') -> str:
         '''
         Generate deterministic ID: same inputs → same ID.
-        
+
         Args:
             prefix: ID prefix (e.g., 'ctx', 'entry', 'nonce')
             content: Content to hash (determines ID)
             salt: Additional salt for domain separation
-        
+
         Returns:
             str: deterministic ID in format 'prefix_hex12'
         '''
@@ -257,7 +257,7 @@ class DeterministicUUIDFactory:
         '''
         Context ID for EnhancedExecutionContext.
         Replaces uuid.uuid4()[:8] in execution_context.py.
-        
+
         Args:
             agent_id: Agent class name
             tick: Current tick
@@ -274,7 +274,7 @@ class DeterministicUUIDFactory:
         '''
         Audit entry ID.
         Replaces uuid.uuid4()[:8] in execution_context.py audit log.
-        
+
         Args:
             operation: Operation name
             tick: Current tick
@@ -291,7 +291,7 @@ class DeterministicUUIDFactory:
         '''
         Deterministic nonce for ExecutionRequest.
         Replaces uuid.uuid4().hex in proof-related code.
-        
+
         Args:
             request_id: Request identifier
             tick: Current tick
@@ -307,7 +307,7 @@ class DeterministicUUIDFactory:
         '''
         Consensus round ID.
         Replaces uuid.uuid4().hex[:8] in consensus.py.
-        
+
         Args:
             term: Consensus term
             tick: Current tick
@@ -318,7 +318,7 @@ class DeterministicUUIDFactory:
     def make_proof_id(content_hash: str, tick: int) -> str:
         '''
         Proof/contract ID.
-        
+
         Args:
             content_hash: Hash of proof content
             tick: Current tick
@@ -333,13 +333,13 @@ class DeterministicUUIDFactory:
     def verify_id(id: str, prefix: str, content: str, salt: str = '') -> bool:
         '''
         Verify ID matches expected derivation.
-        
+
         Args:
             id: ID to verify
             prefix: Expected prefix
             content: Expected content
             salt: Expected salt
-        
+
         Returns:
             bool: True if ID matches, False otherwise
         '''
@@ -352,13 +352,13 @@ class DeterministicUUIDFactory:
 class GlobalExecutionSequencer:
     '''
     Single monotonically increasing tick + ordered mutation queue.
-    
+
     Guarantees:
         1. Strict FIFO ordering by tick
         2. No concurrent mutation execution (single-writer)
         3. Deterministic scheduling (tick-only)
         4. Atomic commit
-    
+
     Usage:
         tick = GlobalExecutionSequencer.next_tick()
         GlobalExecutionSequencer.enqueue(request)
@@ -394,10 +394,10 @@ class GlobalExecutionSequencer:
         '''
         Enqueue request with current tick.
         Returns tick assigned to this request.
-        
+
         Args:
             request: Mutation request to enqueue
-        
+
         Returns:
             int: tick assigned to this request
         '''
@@ -413,7 +413,7 @@ class GlobalExecutionSequencer:
         '''
         Return all requests with tick <= current_tick, in tick order.
         Removes dequeued items from queue.
-        
+
         Returns:
             list[tuple[int, Any]]: list of (tick, request) in order
         '''
@@ -464,12 +464,12 @@ class GlobalExecutionSequencer:
 class ExecutionToken:
     '''
     Immutable capability token for mutation authorization.
-    
+
     Created when GlobalExecutionSequencer.enqueue() is called.
     Must be passed explicitly to AtomicMutationProcessor.execute().
-    
+
     Cannot be forged — hash includes gateway_id, tick, and counter.
-    
+
     Usage:
         token = ExecutionToken(gateway_id=id(gateway), tick=42)
         processor.execute(payload, token=token)
@@ -508,11 +508,11 @@ class ExecutionToken:
     def verify(self, gateway_id: int, tick: int) -> bool:
         '''
         Verify token is still valid for this gateway and tick.
-        
+
         Args:
             gateway_id: Expected gateway ID
             tick: Expected tick
-        
+
         Returns:
             bool: True if valid, False otherwise
         '''
@@ -542,14 +542,14 @@ class ExecutionToken:
 class GlobalTieBreaker:
     """
     Deterministic tie-breaking for alignment layer.
-    
+
     Invariant: same inputs → same output (pure function).
     No time, no randomness, no side effects.
-    
+
     Protocol:
         if score_a == score_b:
             return min(hash(id_a), hash(id_b)) → entity with smaller hash wins
-    
+
     Usage:
         winner = GlobalTieBreaker.choose(score_a=0.85, id_a='branch_a',
                                          score_b=0.85, id_b='branch_b')
@@ -565,13 +565,13 @@ class GlobalTieBreaker:
     ) -> tuple[str, float]:
         """
         Choose winner by score, with deterministic tie-break on id hash.
-        
+
         Args:
             score_a: score for entity A
             id_a: entity A identifier
             score_b: score for entity B
             id_b: entity B identifier
-        
+
         Returns:
             (winner_id, winner_score) — the higher-score entity,
             or the smaller-hash entity if scores are equal
@@ -593,10 +593,10 @@ class GlobalTieBreaker:
     ) -> tuple[str, float]:
         """
         Choose winner from N entries by (score, hash) — fully deterministic.
-        
+
         Args:
             entries: list of (entity_id, score) tuples
-        
+
         Returns:
             (winner_id, winner_score)
         """
@@ -621,10 +621,10 @@ class GlobalTieBreaker:
         """
         Sort items by score descending, tie-break by entity_id hash.
         Produces deterministic ordering for lists that would otherwise be unstable.
-        
+
         Args:
             items: list of (entity_id, score) tuples
-        
+
         Returns:
             sorted list — deterministic, replay-safe
         """
@@ -639,7 +639,7 @@ class GlobalTieBreaker:
     def compare_floats(a: float, b: float, epsilon: float = 1e-9) -> int:
         """
         Deterministic float comparison with epsilon tolerance.
-        
+
         Returns:
             -1 if a < b
              0 if |a - b| <= epsilon (equal within tolerance)

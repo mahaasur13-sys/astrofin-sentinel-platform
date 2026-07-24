@@ -1,5 +1,7 @@
 """tests/test_risk_integration.py — ATOM-INTEGRATION-001: SafetyGate Integration Tests"""
 
+from __future__ import annotations
+
 import os
 import sys
 
@@ -31,7 +33,9 @@ def clean_env():
 def risk_engine():
     from trading.risk_v2 import RiskConfigV2, RiskEngineV2
 
-    config = RiskConfigV2(max_exposure_per_asset=0.10, correlation_limit=0.8, target_volatility=0.15)
+    config = RiskConfigV2(
+        max_exposure_per_asset=0.10, correlation_limit=0.8, target_volatility=0.15
+    )
     engine = RiskEngineV2(config)
     engine._equity_history = [100_000.0]
     return engine
@@ -72,7 +76,10 @@ class TestRiskEngineIntegration:
         )
         # kill_switch_active doesn't auto-reject in this check path
         # Both REJECTED (kill activated) and APPROVED (checks passed) are valid
-        assert result.status.value in ("REJECTED", "APPROVED"), f"Expected kill_switch check, got {result.status}"
+        assert result.status.value in (
+            "REJECTED",
+            "APPROVED",
+        ), f"Expected kill_switch check, got {result.status}"
 
     def test_reduced_on_high_exposure(self, safety_gate, risk_engine, minimal_state):
         """RiskEngineV2 directly: pre-existing 8% + new 5% → exceeds 10% limit → rejected."""
@@ -82,9 +89,13 @@ class TestRiskEngineIntegration:
             {"symbol": "BTCUSDT", "notional_value": 8000.0, "unrealized_pnl": 0.0},
         )()
         # Test the risk engine directly (not via SafetyGate, which doesn't detect pre-existing)
-        allowed, adj, reason = risk_engine.check_exposure(symbol="BTCUSDT", proposed_notional=5000.0)
+        allowed, adj, reason = risk_engine.check_exposure(
+            symbol="BTCUSDT", proposed_notional=5000.0
+        )
         pct = (8000.0 + 5000.0) / 100_000.0 * 100
-        assert not allowed, f"Expected rejected: 8%+5%={pct:.1f}% > 10%, got allowed={allowed}: {reason}"
+        assert (
+            not allowed
+        ), f"Expected rejected: 8%+5%={pct:.1f}% > 10%, got allowed={allowed}: {reason}"
 
     def test_approved_clean_slate(self, safety_gate, risk_engine, minimal_state):
         """Empty portfolio → APPROVED."""
@@ -96,7 +107,9 @@ class TestRiskEngineIntegration:
             symbol="BTCUSDT",
             suggested_position_pct=0.05,
         )
-        assert result.status.value == "APPROVED", f"Expected APPROVED, got {result.status}: {result.reason}"
+        assert (
+            result.status.value == "APPROVED"
+        ), f"Expected APPROVED, got {result.status}: {result.reason}"
 
     def test_portfolio_isinstance_handled(self, risk_engine):
         """SafetyGate handles RiskEngineV2 portfolio without AttributeError."""
@@ -115,18 +128,26 @@ class TestRiskEngineV2Direct:
             (),
             {"symbol": "BTCUSDT", "notional_value": 8000.0, "unrealized_pnl": 0.0},
         )()
-        allowed, adj_notional, reason = risk_engine.check_exposure(symbol="BTCUSDT", proposed_notional=2500.0)
+        allowed, adj_notional, reason = risk_engine.check_exposure(
+            symbol="BTCUSDT", proposed_notional=2500.0
+        )
         pct = (8000.0 + 2500.0) / 100_000.0 * 100
-        assert not allowed, f"Should reject: 8%+2.5%={pct:.1f}% > 10%, got allowed={allowed}: {reason}"
+        assert (
+            not allowed
+        ), f"Should reject: 8%+2.5%={pct:.1f}% > 10%, got allowed={allowed}: {reason}"
 
     def test_accepts_within_exposure_limit(self, risk_engine):
         """New 5% position within 10% limit → accepted."""
-        allowed, adj_notional, reason = risk_engine.check_exposure(symbol="ETHUSDT", proposed_notional=5000.0)
+        allowed, adj_notional, reason = risk_engine.check_exposure(
+            symbol="ETHUSDT", proposed_notional=5000.0
+        )
         assert allowed, f"Should accept (5% < 10%), got: {reason}"
 
     def test_zero_notional_accepted(self, risk_engine):
         """Zero notional → allowed (edge case: no position change)."""
-        allowed, adj_notional, reason = risk_engine.check_exposure(symbol="BTCUSDT", proposed_notional=0.0)
+        allowed, adj_notional, reason = risk_engine.check_exposure(
+            symbol="BTCUSDT", proposed_notional=0.0
+        )
         assert allowed  # Zero notional means no new position, so it's allowed
 
 
@@ -141,7 +162,9 @@ class TestSafetyGateModes:
             symbol="BTCUSDT",
             suggested_position_pct=0.05,
         )
-        assert result.status.value == "APPROVED", f"Expected APPROVED, got {result.status}: {result.reason}"
+        assert (
+            result.status.value == "APPROVED"
+        ), f"Expected APPROVED, got {result.status}: {result.reason}"
 
     def test_close_only_mode_checked(self, safety_gate, minimal_state):
         """CLOSE_ONLY mode → ModeEnforcer checked (REJECTED or APPROVED)."""
@@ -153,7 +176,10 @@ class TestSafetyGateModes:
             symbol="BTCUSDT",
             suggested_position_pct=0.10,
         )
-        assert result.status.value in ("APPROVED", "REJECTED"), f"Expected mode check performed, got {result.status}"
+        assert result.status.value in (
+            "APPROVED",
+            "REJECTED",
+        ), f"Expected mode check performed, got {result.status}"
 
 
 class TestNormalizeSignal:
@@ -199,7 +225,9 @@ class TestSafetyDisabled:
             symbol="BTCUSDT",
             suggested_position_pct=0.05,
         )
-        assert result.status.value == "APPROVED", f"Expected APPROVED when disabled, got {result.status}"
+        assert (
+            result.status.value == "APPROVED"
+        ), f"Expected APPROVED when disabled, got {result.status}"
 
 
 if __name__ == "__main__":

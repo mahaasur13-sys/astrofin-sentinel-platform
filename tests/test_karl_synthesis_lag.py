@@ -12,6 +12,8 @@ Tests:
     pytest tests/test_karl_synthesis_lag.py -v
 """
 
+from __future__ import annotations
+
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
@@ -33,7 +35,9 @@ def mock_karl_dependencies():
         get_karl_diagnostics=MagicMock(),
         build_decision_record=MagicMock(),
         estimate_uncertainty=MagicMock(return_value={"total": 0.5}),
-        validate_with_grounding=MagicMock(return_value={"passed": True, "confidence_adjustment": 0}),
+        validate_with_grounding=MagicMock(
+            return_value={"passed": True, "confidence_adjustment": 0}
+        ),
         compute_trajectory_reward=MagicMock(return_value=0.6),
         create_backtest_runner=MagicMock(),
         SelfQuestioningEngine=MagicMock(),
@@ -45,6 +49,12 @@ def mock_karl_dependencies():
         update_reward_ema=MagicMock(return_value=0.6),
     ):
         yield
+
+
+# Backward-compat alias: some older test classes reference the leading-underscore name.
+mock_karl_dependencies_underscore = pytest.fixture(name="_mock_karl_dependencies")(
+    mock_karl_dependencies.__wrapped__
+)
 
 
 @pytest.fixture
@@ -61,6 +71,12 @@ def mock_lag_window():
         "blend": 0.15,
         "count": 25,  # mature window
     }
+
+
+# Backward-compat alias: some older test classes reference the leading-underscore name.
+mock_lag_window_underscore = pytest.fixture(name="_mock_lag_window")(
+    mock_lag_window.__wrapped__
+)
 
 
 @pytest.fixture

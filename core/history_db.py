@@ -5,11 +5,16 @@ SQLite-backed session history. Every run_sentinel_v5() call is persisted.
 Supports: save, get, list, stats, clear.
 """
 
+from __future__ import annotations
+
 import json
 import sqlite3
 from pathlib import Path
 
 from core.checkpoint import get_project_root
+
+import logging
+log = logging.getLogger(__name__)
 
 # ─── Database Path ─────────────────────────────────────────────────────────────
 
@@ -69,7 +74,9 @@ class HistoryDB:
         self._init_db()
 
     def _conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(str(self.db_path), timeout=10, isolation_level="IMMEDIATE")
+        conn = sqlite3.connect(
+            str(self.db_path), timeout=10, isolation_level="IMMEDIATE"
+        )
         conn.row_factory = sqlite3.Row
         return conn
 
@@ -140,7 +147,9 @@ class HistoryDB:
     def get(self, session_id: str) -> dict | None:
         """Retrieve a session by session_id. Returns None if not found."""
         with self._conn() as conn:
-            row = conn.execute("SELECT * FROM sessions WHERE session_id = ?", (session_id,)).fetchone()
+            row = conn.execute(
+                "SELECT * FROM sessions WHERE session_id = ?", (session_id,)
+            ).fetchone()
 
         if not row:
             return None
@@ -186,35 +195,51 @@ class HistoryDB:
         days_arg = f"-{days} days"
 
         if symbol:
-            where += " AND symbol = ?"
+            where = "WHERE created_at >= datetime('now', ?) AND symbol = ?"
             args = (days_arg, symbol)
         else:
+            where = "WHERE created_at >= datetime('now', ?)"
             args = (days_arg,)
 
         with self._conn() as conn:
-            # Count + avg confidence
-            meta = conn.execute(
-                f"""
+            meta_sql = """
                 SELECT
                     COUNT(*)                          AS total,
                     AVG(final_confidence)              AS avg_conf,
                     MIN(final_confidence)              AS min_conf,
                     MAX(final_confidence)              AS max_conf
-                FROM sessions {where}
-            """,
-                args,
-            ).fetchone()
+                FROM sessions
+            """ + where
+            meta = conn.execute(meta_sql, args).fetchone()  # nosec B608
 
-            # Signal distribution
-            dist_rows = conn.execute(
-                f"""
+            dist_sql = (
+                """
                 SELECT final_signal, COUNT(*) AS cnt
-                FROM sessions {where}
+                FROM sessions
+            """
+                + where
+                + """
                 GROUP BY final_signal
                 ORDER BY cnt DESC
-            """,
-                args,
-            ).fetchall()
+            """
+            )
+            dist_rows = conn.execute(dist_sql, args).fetchall()  # nosec B608
+
+            daily_sql = (
+                """
+                SELECT
+                    DATE(created_at)                    AS day,
+                    COUNT(*)                            AS sessions,
+                    AVG(final_confidence)               AS avg_conf
+                FROM sessions
+            """
+                + where
+                + """
+                GROUP BY DATE(created_at)
+                ORDER BY day ASC
+            """
+            )
+            conn.execute(daily_sql, args).fetchall()  # nosec B608
 
             # Recent trend: LONG vs SHORT ratio per day (last 7 days)
             trend_sql = """
@@ -231,14 +256,20 @@ class HistoryDB:
                 trend_sql += " AND symbol = ?"
                 trend_args = (symbol,)
 
-            trend_rows = conn.execute(trend_sql + " GROUP BY DATE(created_at) ORDER BY day DESC", trend_args).fetchall()
+            trend_rows = conn.execute(
+                trend_sql + " GROUP BY DATE(created_at) ORDER BY day DESC", trend_args
+            ).fetchall()
 
         dist = {r["final_signal"]: r["cnt"] for r in dist_rows}
         total = meta["total"] or 0
 
         long_cnt = dist.get("LONG", 0)
         short_cnt = dist.get("SHORT", 0)
-        win_rate = round(long_cnt / (long_cnt + short_cnt), 4) if (long_cnt + short_cnt) > 0 else None
+        win_rate = (
+            round(long_cnt / (long_cnt + short_cnt), 4)
+            if (long_cnt + short_cnt) > 0
+            else None
+        )
 
         return {
             "total_sessions": total,
@@ -292,9 +323,26 @@ _db: HistoryDB | None = None
 
 
 def get_db() -> HistoryDB:
+    """Returns the active history database backend.
+
+    Auto-selects PostgreSQL (via DATABASE_URL) over SQLite.
+    Falls back to SQLite when PostgreSQL is unavailable.
+    """
     global _db
-    if _db is None:
-        _db = HistoryDB()
+    if _db is not None:
+        return _db
+
+    import os
+    dsn = os.environ.get("DATABASE_URL", "")
+    if dsn and any(kw in dsn.lower() for kw in ("postgres", "postgresql", "psycopg")):
+        try:
+            from core.history_db_pg import PostgresHistoryDB  # noqa: F401
+
+            _db = PostgresHistoryDB(dsn)
+            return _db
+        except Exception:
+            log.warning("History DB operation failed", exc_info=True)
+    _db = HistoryDB()
     return _db
 
 

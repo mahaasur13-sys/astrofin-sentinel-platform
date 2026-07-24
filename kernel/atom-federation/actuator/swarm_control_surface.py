@@ -152,7 +152,7 @@ class SwarmControlSurface:
                 coherence_target = canonical_S.get(axis, 0.0) + delta * 0.5
 
                 priority_key = (worker_id, axis)
-                priority = priorities.get(priority_key, 3) if priorities else 3
+                priorities.get(priority_key, 3) if priorities else 3
 
                 vectors.append(ControlVector(
                     worker_id=worker_id,

@@ -10,6 +10,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── PATH ────────────────────────────────────────────────
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
@@ -131,7 +135,7 @@ class ChaosResult:
             )
             return fr.save(incident.incident_id)
         except Exception as e:
-            print(f"Failed to save to FailureReplay: {e}")
+            log.info(f"Failed to save to FailureReplay: {e}")
             return None
 
 
@@ -328,11 +332,11 @@ class ChaosHarness:
         # ── Сохраняем в FailureReplay (через правильный метод) ──
         replay_path = result.save_to_failure_replay()
         if replay_path:
-            print(f"✅ Saved to replay: {replay_path}")
+            log.info(f"✅ Saved to replay: {replay_path}")
 
-        print(f"\n🔥 Scenario: {self.scenario.name}")
-        print(f"Verdict: {verdict.value}")
-        print(f"Saved: {path}")
+        log.info(f"\n🔥 Scenario: {self.scenario.name}")
+        log.info(f"Verdict: {verdict.value}")
+        log.info(f"Saved: {path}")
 
         return result
 
@@ -347,5 +351,5 @@ if __name__ == "__main__":
         cluster_ctx={"nodes": ["node-a", "node-b", "node-c"]},
     )
     result = harness.run()
-    print("\n=== RESULT ===")
-    print(result)
+    log.info("\n=== RESULT ===")
+    log.info(result)

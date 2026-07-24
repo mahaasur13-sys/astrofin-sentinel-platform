@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from unittest.mock import AsyncMock, Mock, patch
 from agents._impl.sentiment_agent import SentimentAgent
@@ -12,7 +14,9 @@ async def test_fetch_fear_greed_uses_async_http():
         mock_get.return_value = Mock(
             status_code=200,
             raise_for_status=Mock(),
-            json=Mock(return_value={"data": [{"value": "25", "value_classification": "Fear"}]}),
+            json=Mock(
+                return_value={"data": [{"value": "25", "value_classification": "Fear"}]}
+            ),
         )
         mock_client.return_value.__aenter__.return_value.get = mock_get
 

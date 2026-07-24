@@ -21,9 +21,9 @@ class TenantStatus(str, Enum):
 
 
 class TenantTier(str, Enum):
-    STARTER = "starter"  # ≤ $100 MRR
-    GROWTH = "growth"  # ≤ $1,000 MRR
-    SCALE = "scale"  # ≤ $10,000 MRR
+    STARTER = "starter"       # ≤ $100 MRR
+    GROWTH = "growth"        # ≤ $1,000 MRR
+    SCALE = "scale"          # ≤ $10,000 MRR
     ENTERPRISE = "enterprise"  # > $10,000 MRR
 
 
@@ -43,14 +43,14 @@ class TenantBase(BaseModel):
 class TenantBrandingMinimal(BaseModel):
     app_name: str = "ROMA"
     primary_color: str = "#6366F1"
-    logo_url: str | None = None
+    logo_url: Optional[str] = None
     support_email: str = "support@roma.ai"
-    website_url: str | None = None
+    website_url: Optional[str] = None
 
 
 class Tenant(TenantBase):
     branding: TenantBrandingMinimal = Field(default_factory=TenantBrandingMinimal)
-    stripe_connect_account_id: str | None = None
+    stripe_connect_account_id: Optional[str] = None
     contact_email: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
@@ -73,7 +73,7 @@ class TenantCreate(BaseModel):
     contact_email: str
     revenue_share_percent: int = Field(default=15, ge=0, le=50)
     tier: TenantTier = TenantTier.STARTER
-    branding: TenantBrandingMinimal | None = None
+    branding: Optional[TenantBrandingMinimal] = None
 
     def make_tenant(self) -> Tenant:
         tenant_id = generate_tenant_id(self.slug)
@@ -88,9 +88,9 @@ class TenantCreate(BaseModel):
 
 
 class TenantUpdate(BaseModel):
-    display_name: str | None = None
-    status: TenantStatus | None = None
-    revenue_share_percent: int | None = Field(default=None, ge=0, le=50)
-    tier: TenantTier | None = None
-    branding: TenantBrandingMinimal | None = None
-    stripe_connect_account_id: str | None = None
+    display_name: Optional[str] = None
+    status: Optional[TenantStatus] = None
+    revenue_share_percent: Optional[int] = Field(default=None, ge=0, le=50)
+    tier: Optional[TenantTier] = None
+    branding: Optional[TenantBrandingMinimal] = None
+    stripe_connect_account_id: Optional[str] = None

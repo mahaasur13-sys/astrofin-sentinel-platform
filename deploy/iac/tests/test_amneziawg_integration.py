@@ -46,7 +46,7 @@ def test_awg_tunnel_event_immutable():
     )
     with pytest.raises(FrozenInstanceError):
         event.event_type = "TUNNEL_DOWN"
-    print("  [OK] INV-AWG1 — TunnelEvent immutable")
+    log.info("  [OK] INV-AWG1 — TunnelEvent immutable")
     return True
 
 
@@ -61,7 +61,7 @@ def test_awg_deterministic_delay():
     delay2 = mgr2._deterministic_delay(attempt=0)
 
     ok = delay1 == delay2
-    print(
+    log.info(
         f"  [OK{'=' if ok else '!'}] INV-AWG2 — Delay deterministic: {delay1:.4f} == {delay2:.4f}"
     )
     return ok
@@ -79,7 +79,7 @@ def test_awg_idempotent_start():
 
     events_before = log.get_event_count()
     ok = result is True and events_before == 0
-    print(
+    log.info(
         f"  [OK{'=' if ok else '!'}] INV-AWG3 — Idempotent start: events={events_before}"
     )
     return ok
@@ -93,7 +93,7 @@ def test_awg_status_read_only():
     _ = mgr.status()
     count_after = log.get_event_count()
     ok = count_before == count_after
-    print(
+    log.info(
         f"  [OK{'=' if ok else '!'}] INV-AWG4 — status() read-only: delta_events={count_after - count_before}"
     )
     return ok
@@ -106,7 +106,7 @@ def test_awg_stop_idempotent():
     mgr._started = False  # Already stopped
     result = mgr.stop()
     ok = result is True
-    print(f"  [OK{'=' if ok else '!'}] INV-AWG5 — stop() idempotent: result={result}")
+    log.info(f"  [OK{'=' if ok else '!'}] INV-AWG5 — stop() idempotent: result={result}")
     return ok
 
 
@@ -120,7 +120,7 @@ def test_awg_events_written_to_eventlog():
 
     events = log.get_trace("eventlog-test")
     ok = len(events) == 1 and events[0].event_type.value == "TUNNEL_UP"
-    print(
+    log.info(
         f"  [OK{'=' if ok else '!'}] INV-AWG6 — Events in EventLog: count={len(events)}, type={events[0].event_type.value}"
     )
     return ok
@@ -143,7 +143,7 @@ def test_awg_tunnel_state_enum():
             TunnelState("FAILED"),
         ]
     )
-    print(f"  [OK{'=' if ok else '!'}] INV-AWG7 — TunnelState enum: {list(valid)}")
+    log.info(f"  [OK{'=' if ok else '!'}] INV-AWG7 — TunnelState enum: {list(valid)}")
     return ok
 
 
@@ -153,7 +153,7 @@ def test_awg_trace_id_required():
     mgr1 = AmneziaWGManager(log, trace_id="explicit-trace")
     mgr2 = AmneziaWGManager(log, trace_id=None)  # Uses default
     ok = mgr1._trace_id == "explicit-trace" and mgr2._trace_id is not None
-    print(
+    log.info(
         f"  [OK{'=' if ok else '!'}] INV-AWG8 — trace_id required: explicit={mgr1._trace_id}, default={mgr2._trace_id}"
     )
     return ok
@@ -172,7 +172,7 @@ def test_inv1_action_produces_event():
     returned = engine.execute(dag, {}, "inv1")
     all_events = log.get_all()
     ok = returned == "inv1" and len(all_events) >= 8
-    print(
+    log.info(
         f"  [OK{'=' if ok else '!'}] INV1 — Events: {len(all_events)}, returned: {returned}"
     )
     return ok
@@ -198,9 +198,9 @@ def test_inv2_engine_write_side_pure():
                 "rebuild",
             ):
                 if isinstance(func.value, ast.Name) and func.value.id == "self":
-                    print(f"  [FAIL] INV2 — Found self.{func.attr}() call")
+                    log.info(f"  [FAIL] INV2 — Found self.{func.attr}() call")
                     return False
-    print("  [OK] INV2 — Engine write-side pure")
+    log.info("  [OK] INV2 — Engine write-side pure")
     return True
 
 
@@ -218,9 +218,9 @@ def test_inv3_reducer_read_side_pure():
             func = node.func
             if isinstance(func, ast.Attribute) and func.attr in ("emit", "append"):
                 if isinstance(func.value, ast.Name) and func.value.id == "self":
-                    print(f"  [FAIL] INV3 — Found self.{func.attr}() in Reducer")
+                    log.info(f"  [FAIL] INV3 — Found self.{func.attr}() in Reducer")
                     return False
-    print("  [OK] INV3 — Reducer read-side pure")
+    log.info("  [OK] INV3 — Reducer read-side pure")
     return True
 
 
@@ -230,7 +230,7 @@ def test_inv4_hash_chain_integrity():
     log.emit("inv4", EventType.DAG_CREATED, {})
     log.emit("inv4", EventType.NODE_SCHEDULED, {})
     ok = log.verify_chain("inv4")
-    print(f"  [OK{'=' if ok else '!'}] INV4 — Hash chain: {ok}")
+    log.info(f"  [OK{'=' if ok else '!'}] INV4 — Hash chain: {ok}")
     return ok
 
 
@@ -244,7 +244,7 @@ def test_inv5_deterministic_replay():
     r1 = StateReducer(log).rebuild("inv5")
     r2 = StateReducer(log).rebuild("inv5")
     ok = r1["status"] == r2["status"] == "COMPLETED"
-    print(f"  [OK{'=' if ok else '!'}] INV5 — Deterministic: {r1['status']}")
+    log.info(f"  [OK{'=' if ok else '!'}] INV5 — Deterministic: {r1['status']}")
     return ok
 
 
@@ -260,7 +260,7 @@ def test_inv6_trace_index_o1():
         _ = log.get_trace("trace-50")
     elapsed = time.perf_counter() - t0
     ok = elapsed < 0.1  # 1000 lookups in < 100ms = O(1)
-    print(
+    log.info(
         f"  [OK{'=' if ok else '!'}] INV6 — O(1) lookup: {elapsed:.4f}s for 1000 lookups (100 traces)"
     )
     return ok
@@ -273,7 +273,7 @@ def test_inv7_projection_separation():
     raw = RawEventProjection(log).get_trace_events("inv7")
     state = StateProjection(log).get_trace("inv7")
     ok = len(raw) == 1 and state["status"] == "CREATED"
-    print(
+    log.info(
         f"  [OK{'=' if ok else '!'}] INV7 — Separation: raw={len(raw)}, state={state['status']}"
     )
     return ok
@@ -285,7 +285,7 @@ def test_inv8_write_read_separation():
     EventSourcedEngine(log).execute({"nodes": [{"id": "a"}], "edges": []}, {}, "inv8")
     state = StateProjection(log).get_trace("inv8")
     ok = state["status"] == "COMPLETED"
-    print(f"  [OK{'=' if ok else '!'}] INV8 — Separation: {state['status']}")
+    log.info(f"  [OK{'=' if ok else '!'}] INV8 — Separation: {state['status']}")
     return ok
 
 
@@ -293,7 +293,7 @@ def test_inv9_trace_record_normalized():
     """INV9: TraceRecord has no redundant nesting."""
     tr = TraceRecord(trace_id="test", metadata={}, created_at=None)
     ok = tr.created_at is not None and tr.trace_id == "test"
-    print(f"  [OK{'=' if ok else '!'}] INV9 — Normalized: created_at={tr.created_at}")
+    log.info(f"  [OK{'=' if ok else '!'}] INV9 — Normalized: created_at={tr.created_at}")
     return ok
 
 
@@ -302,10 +302,10 @@ def test_inv10_event_immutable():
     e = Event(event_type=EventType.DAG_CREATED, payload={})
     try:
         e.event_hash = "x"
-        print("  [FAIL] INV10 — Event is mutable")
+        log.info("  [FAIL] INV10 — Event is mutable")
         return False
     except FrozenInstanceError:
-        print("  [OK] INV10 — Event immutable")
+        log.info("  [OK] INV10 — Event immutable")
         return True
 
 
@@ -332,7 +332,7 @@ def test_patch1a_network_validation():
     ok_dup = any("Duplicate" in v.message for v in violations_dup)
 
     ok = ok_valid and ok_net and ok_dup
-    print(
+    log.info(
         f"  [OK{'=' if ok else '!'}] PATCH 1a — Network validation: valid={ok_valid}, dup={ok_dup}"
     )
     return ok
@@ -344,9 +344,9 @@ def test_patch1a_network_validation():
 
 
 def main():
-    print("=" * 70)
-    print("ACOS × AmneziaWG — 21 INVARIANTS VERIFICATION")
-    print("=" * 70)
+    log.info("=" * 70)
+    log.info("ACOS × AmneziaWG — 21 INVARIANTS VERIFICATION")
+    log.info("=" * 70)
 
     all_tests = [
         # AmneziaWG-specific
@@ -378,20 +378,20 @@ def main():
         try:
             results.append((name, fn()))
         except Exception as ex:
-            print(f"  [ERROR] {name}: {ex}")
+            log.info(f"  [ERROR] {name}: {ex}")
             results.append((name, False))
 
-    print()
+    log.info("")
     passed = sum(1 for _, r in results if r)
     total = len(results)
-    print(f"Result: {passed}/{total} passed")
+    log.info(f"Result: {passed}/{total} passed")
 
     if passed == total:
-        print("STATUS: ALL_INVARIANTS_AND_PATCHES_HOLD ✅")
-        print("ARCHITECTURE: ACOS × AmneziaWG FULLY VERIFIED")
+        log.info("STATUS: ALL_INVARIANTS_AND_PATCHES_HOLD ✅")
+        log.info("ARCHITECTURE: ACOS × AmneziaWG FULLY VERIFIED")
         return 0
     failed = [n for n, r in results if not r]
-    print(f"FAILED: {failed}")
+    log.info(f"FAILED: {failed}")
     return 1
 
 

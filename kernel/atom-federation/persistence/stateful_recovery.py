@@ -180,7 +180,6 @@ class WriteAheadLog:
                 return []
 
             entries = []
-            partial = None
 
             with open(self.wal_path) as f:
                 for line in f:
@@ -192,11 +191,10 @@ class WriteAheadLog:
                         # Verify entry has required fields
                         if 'tick' in entry and 'event_type' in entry:
                             entries.append(entry)
-                            partial = None
                         else:
-                            partial = line  # potentially partial write
+                            pass  # potentially partial write
                     except json.JSONDecodeError:
-                        partial = line  # partial write at end of file
+                        pass  # partial write at end of file
 
             return entries
 

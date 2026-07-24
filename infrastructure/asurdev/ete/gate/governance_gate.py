@@ -8,8 +8,10 @@ Mid-execution: kill switch (interrupt on threshold breach)
 Post-execution: audit trail generation
 """
 from __future__ import annotations
+
 import uuid
 from enum import Enum
+
 
 class Decision(Enum):
     APPROVED = "APPROVED"
@@ -58,4 +60,4 @@ class GovernanceGate:
 if __name__ == "__main__":
     gate = GovernanceGate()
     d, r = gate.pre_check({"dag_id": "test", "metadata": {"constraints": {"max_risk": 0.25}}}, {"risk_score": 0.1})
-    print(f"Decision: {d.value}, Reason: {r}")
+    log.info(f"Decision: {d.value}, Reason: {r}")

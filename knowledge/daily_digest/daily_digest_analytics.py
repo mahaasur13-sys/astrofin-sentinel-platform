@@ -6,12 +6,17 @@ Parses multi-agent digest files, categorizes findings,
 and evaluates relevance to AstroFinSentinelV5.
 """
 
+from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+
+import logging
+log = logging.getLogger(__name__)
+
 
 
 class Category(Enum):
@@ -265,7 +270,11 @@ class DigestAnalyzer:
 
             if not title:
                 # Fallback: first line
-                lines = [l.strip() for l in section.split("\n") if l.strip() and not l.startswith("#")]
+                lines = [
+                    l.strip()
+                    for l in section.split("\n")
+                    if l.strip() and not l.startswith("#")
+                ]
                 if lines:
                     title = lines[0][:100]
 
@@ -290,7 +299,9 @@ class DigestAnalyzer:
 
             # Extract description: **Описание:** ...
             description = ""
-            desc_match = re.search(r"\*\*Описание:\*\*\s*(.+?)(?:\n\*\*|$)", section, re.DOTALL)
+            desc_match = re.search(
+                r"\*\*Описание:\*\*\s*(.+?)(?:\n\*\*|$)", section, re.DOTALL
+            )
             if desc_match:
                 description = desc_match.group(1).strip()
 
@@ -310,7 +321,9 @@ class DigestAnalyzer:
             relevance = RelevanceScore.score(full_text)
 
             # Generate implications
-            apps, risks = self._generate_implications(title, description, category, relevance)
+            apps, risks = self._generate_implications(
+                title, description, category, relevance
+            )
 
             if len(title) > 10:
                 finding = Finding(
@@ -347,8 +360,14 @@ class DigestAnalyzer:
         text = f"{title} {description}".lower()
 
         if relevance >= 0.5:
-            if "multi-agent" in text or "coordination" in text or "pressure field" in text:
-                apps.append("Улучшить MAS Factory координацию через pressure field концепцию")
+            if (
+                "multi-agent" in text
+                or "coordination" in text
+                or "pressure field" in text
+            ):
+                apps.append(
+                    "Улучшить MAS Factory координацию через pressure field концепцию"
+                )
                 apps.append("Оптимизировать AgentNode/SwitchNode взаимодействие")
 
             if "thompson" in text or "sampling" in text:
@@ -380,7 +399,9 @@ class DigestAnalyzer:
             raise FileNotFoundError(f"Digest not found: {path}")
 
         content = path.read_text(encoding="utf-8")
-        date = date_hint or path.stem.split("_")[-1] or datetime.now().strftime("%Y-%m-%d")
+        date = (
+            date_hint or path.stem.split("_")[-1] or datetime.now().strftime("%Y-%m-%d")
+        )
 
         findings = self.parse_digest(content, date)
 
@@ -426,7 +447,9 @@ class DigestAnalyzer:
             "total_findings": self.current_analysis.total_findings,
             "findings": [f.__dict__ for f in self.current_analysis.findings],
             "category_breakdown": self.current_analysis.category_breakdown,
-            "high_relevance_findings": [f.__dict__ for f in self.current_analysis.high_relevance_findings],
+            "high_relevance_findings": [
+                f.__dict__ for f in self.current_analysis.high_relevance_findings
+            ],
             "summary": self.current_analysis.summary,
             "analyzed_at": self.current_analysis.analyzed_at,
         }
@@ -434,45 +457,47 @@ class DigestAnalyzer:
 
     def print_report(self):
         if not self.current_analysis:
-            print("No analysis loaded. Run analyze() first.")
+            log.info("No analysis loaded. Run analyze() first.")
             return
 
         a = self.current_analysis
 
-        print(f"\n{'=' * 70}")
-        print(f"  📊 DAILY DIGEST ANALYSIS — {a.date}")
-        print(f"{'=' * 70}")
+        log.info(f"\n{'=' * 70}")
+        log.info(f"  📊 DAILY DIGEST ANALYSIS — {a.date}")
+        log.info(f"{'=' * 70}")
 
-        print(f"\n📈 Всего находок: {a.total_findings} | Высокая релевантность: {len(a.high_relevance_findings)}")
+        log.info(
+            f"\n📈 Всего находок: {a.total_findings} | Высокая релевантность: {len(a.high_relevance_findings)}"
+        )
 
         if a.category_breakdown:
-            print("\n📋 Категории:")
+            log.info("\n📋 Категории:")
             for cat, count in sorted(a.category_breakdown.items(), key=lambda x: -x[1]):
                 bar = "█" * count
-                print(f"   {cat:<25} {bar} ({count})")
+                log.info(f"   {cat:<25} {bar} ({count})")
 
-        print(f"\n{'=' * 70}")
-        print("  🔥 HIGH RELEVANCE FINDINGS (≥0.5)")
-        print(f"{'=' * 70}")
+        log.info(f"\n{'=' * 70}")
+        log.info("  🔥 HIGH RELEVANCE FINDINGS (≥0.5)")
+        log.info(f"{'=' * 70}")
 
         for f in sorted(a.high_relevance_findings, key=lambda x: -x.relevance_score):
-            print(f"\n  [{f.relevance_score:.2f}] {f.title[:60]}")
-            print(f"       📂 {f.category} | 📡 {f.source}")
+            log.info(f"\n  [{f.relevance_score:.2f}] {f.title[:60]}")
+            log.info(f"       📂 {f.category} | 📡 {f.source}")
             if f.source_url:
-                print(f"       🔗 {f.source_url[:60]}")
+                log.info(f"       🔗 {f.source_url[:60]}")
             if f.potential_applications:
-                print("       ✅ Применения:")
+                log.info("       ✅ Применения:")
                 for app in f.potential_applications[:2]:
-                    print(f"          • {app[:70]}")
+                    log.info(f"          • {app[:70]}")
             if f.risks:
-                print("       ⚠️ Риски:")
+                log.info("       ⚠️ Риски:")
                 for risk in f.risks[:1]:
-                    print(f"          • {risk[:70]}")
+                    log.info(f"          • {risk[:70]}")
 
-        print(f"\n{'=' * 70}")
-        print("  💡 SUMMARY")
-        print(f"{'=' * 70}")
-        print(f"\n{a.summary}\n")
+        log.info(f"\n{'=' * 70}")
+        log.info("  💡 SUMMARY")
+        log.info(f"{'=' * 70}")
+        log.info(f"\n{a.summary}\n")
 
 
 if __name__ == "__main__":
@@ -498,6 +523,6 @@ if __name__ == "__main__":
     analysis = analyzer.analyze()
 
     if args.json:
-        print(analyzer.to_json())
+        log.info(analyzer.to_json())
     else:
         analyzer.print_report()

@@ -1,5 +1,4 @@
 """ROMA SaaS API — Auth (API key + quota + rate limit)"""
-
 import os
 import sys
 
@@ -12,20 +11,14 @@ from billing.pricing_engine import PricingEngine
 from tenancy.manager import TenantManager
 
 
-class QuotaExceeded(Exception):
-    pass
-
-
-class RateLimitExceeded(Exception):
-    pass
-
+class QuotaExceeded(Exception): pass
+class RateLimitExceeded(Exception): pass
 
 _akm = APIKeyManager()
 _tenant_mgr = TenantManager()
 _usage = BillingLedger()
 _pricing = PricingEngine()
 _last_call = {}
-
 
 def verify_api_key(token: str) -> dict:
     key_record = _akm.validate_key(token)

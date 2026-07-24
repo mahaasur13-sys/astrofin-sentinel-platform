@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
-import ast, os, sys, unittest
+import os
+import sys
+import unittest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from acos.events.event_log import EventLog
 from acos.events.event import Event
+from acos.events.event_log import EventLog
 from acos.events.types import EventType
-from acos.state.reducer import StateReducer
 from acos.network.amnezia_wg import AmneziaWGManager
+from acos.state.reducer import StateReducer
 from acos.utils import payload_to_dict
+
 
 class TestPayloadToDict(unittest.TestCase):
     def test_tuple_payload(self):

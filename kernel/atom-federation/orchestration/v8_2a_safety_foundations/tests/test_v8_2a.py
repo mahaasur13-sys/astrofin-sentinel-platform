@@ -302,7 +302,7 @@ class TestRollbackEngine:
 
     def test_latest_checkpoint(self):
         engine = RollbackEngine()
-        cp1 = engine.checkpoint(np.array([1.0]))
+        engine.checkpoint(np.array([1.0]))
         cp2 = engine.checkpoint(np.array([2.0]))
         assert engine.latest().checkpoint_id == cp2.checkpoint_id
 
@@ -384,8 +384,8 @@ class TestFullPipeline:
         When governor blocks, no mutation should be recorded.
         Simulates a blocked drift episode.
         """
-        theta_old = np.zeros(4)
-        theta_new = np.ones(4) * 0.5
+        np.zeros(4)
+        np.ones(4) * 0.5
 
         gov = StabilityGovernor()
         signal = GovernorSignal(
@@ -401,6 +401,6 @@ class TestFullPipeline:
 
         # No ledger entry should be created for blocked mutations
         # (caller is responsible for this invariant)
-        ledger = MutationLedger()
+        MutationLedger()
         # In real code: skip ledger.record() when decision != ALLOW
         assert decision != GovernorDecision.ALLOW

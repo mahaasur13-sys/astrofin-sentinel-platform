@@ -158,9 +158,9 @@ def test_event_metrics_trace_consistency():
         assert "atom_healer_repair_total" in text
         assert "atom_lattice_decisions_total" in text
 
-        print("✅ test_event_metrics_trace_consistency PASSED")
-        print(f"   Events emitted: {len(events)}")
-        print(f"   Prometheus /metrics rendered: {len(text)} chars")
+        log.info("✅ test_event_metrics_trace_consistency PASSED")
+        log.info(f"   Events emitted: {len(events)}")
+        log.info(f"   Prometheus /metrics rendered: {len(text)} chars")
 
 
 def test_replay_completeness():
@@ -223,8 +223,8 @@ def test_replay_completeness():
             assert replayed[i].ts >= replayed[i - 1].ts, \
                 f"Event ordering violated at index {i}"
 
-        print("✅ test_replay_completeness PASSED")
-        print(f"   Replayed events: {len(replayed)}")
+        log.info("✅ test_replay_completeness PASSED")
+        log.info(f"   Replayed events: {len(replayed)}")
 
 
 def test_metric_consistency():
@@ -257,9 +257,9 @@ def test_metric_consistency():
         )
         assert counter == 5.0, f"Expected counter=5, got {counter}"
 
-        print("✅ test_metric_consistency PASSED")
-        print(f"   events(SBS_VIOLATION) = {len(sbs_events)}")
-        print(f"   prom_counter = {counter}")
+        log.info("✅ test_metric_consistency PASSED")
+        log.info(f"   events(SBS_VIOLATION) = {len(sbs_events)}")
+        log.info(f"   prom_counter = {counter}")
 
 
 def test_payload_validation():
@@ -290,7 +290,7 @@ def test_payload_validation():
         except ValueError as e:
             assert "target_node" in str(e) or "reason" in str(e)
 
-        print("✅ test_payload_validation PASSED")
+        log.info("✅ test_payload_validation PASSED")
 
 
 def test_concurrent_emission():
@@ -336,14 +336,14 @@ def test_concurrent_emission():
         )
         assert total == 40.0, f"Expected 40 total counter across all label combos, got {total}"
 
-        print("✅ test_concurrent_emission PASSED")
-        print(f"   Concurrent events emitted: {len(events)}")
+        log.info("✅ test_concurrent_emission PASSED")
+        log.info(f"   Concurrent events emitted: {len(events)}")
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("STEP 2.5 — Observability Integration Tests v7.0")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("STEP 2.5 — Observability Integration Tests v7.0")
+    log.info("=" * 60)
 
     test_event_metrics_trace_consistency()
     test_replay_completeness()
@@ -351,10 +351,10 @@ if __name__ == "__main__":
     test_payload_validation()
     test_concurrent_emission()
 
-    print()
-    print("🎉 ALL TESTS PASSED — Step 2.5 complete")
-    print()
-    print("Coverage matrix: COHERENCE ✔ SBS ✔ HEALER ✔")
-    print("                   LATTICE ✔  RPC   ✔ QUORUM ✔")
-    print()
-    print("Next: STEP 3 — Prometheus scrape + OTEL export + Loki")
+    log.info("")
+    log.info("🎉 ALL TESTS PASSED — Step 2.5 complete")
+    log.info("")
+    log.info("Coverage matrix: COHERENCE ✔ SBS ✔ HEALER ✔")
+    log.info("                   LATTICE ✔  RPC   ✔ QUORUM ✔")
+    log.info("")
+    log.info("Next: STEP 3 — Prometheus scrape + OTEL export + Loki")

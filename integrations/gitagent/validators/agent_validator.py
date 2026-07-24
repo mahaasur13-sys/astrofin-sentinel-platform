@@ -7,6 +7,10 @@ from typing import Any
 
 import yaml
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class Severity(Enum):
     ERROR = "ERROR"
@@ -83,7 +87,11 @@ class AgentYamlValidator:
                     severity=Severity.ERROR,
                 )
             )
-        elif not isinstance(name, str) or not name.replace("-", "").replace("_", "").isalnum() or name.lower() != name:
+        elif (
+            not isinstance(name, str)
+            or not name.replace("-", "").replace("_", "").isalnum()
+            or name.lower() != name
+        ):
             result.valid = False
             result.errors.append(
                 ValidationIssue(
@@ -122,7 +130,10 @@ class AgentYamlValidator:
                     )
                 )
 
-        if isinstance(data.get("capabilities"), list) and len(data["capabilities"]) == 0:
+        if (
+            isinstance(data.get("capabilities"), list)
+            and len(data["capabilities"]) == 0
+        ):
             result.valid = False
             result.errors.append(
                 ValidationIssue(
@@ -138,7 +149,9 @@ class AgentYamlValidator:
         result.valid = len(result.errors) == 0
         return result
 
-    def validate_directory(self, path: Path, recursive: bool = False) -> ValidationReport:
+    def validate_directory(
+        self, path: Path, recursive: bool = False
+    ) -> ValidationReport:
         path = Path(path)
         report = ValidationReport()
         files = list(path.rglob("agent.yaml") if recursive else path.glob("agent.yaml"))
@@ -154,9 +167,9 @@ class AgentYamlValidator:
         return report
 
     def print_report(self, report: ValidationReport) -> None:
-        print(
+        log.info(
             f"Total: {report.total}, Passed: {report.passed}, Failed: {report.failed}, Warnings: {report.warning_count}"
         )
         for result in report.results:
             status = "PASS" if result.valid else "FAIL"
-            print(f"{status}: {result.file_path}")
+            log.info(f"{status}: {result.file_path}")

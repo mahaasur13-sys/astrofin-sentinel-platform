@@ -5,12 +5,21 @@ False Positive Recovery — transient failure triggers unnecessary recovery
 HYPOTHESIS: brief network jitter (5s) causes recovery → degradation
 EXPECTED: recovery_triggered on transient error OR multiple restart of same OSD
 """
-import random, time, json
+import json
+import logging
+import time
 from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class OSDState:
-    osd_id: str; is_down: bool; restart_count: int; last_recovery_action: float
+    osd_id: str
+    is_down: bool
+    restart_count: int
+    last_recovery_action: float
 
 class FalsePositiveScenario:
     def __init__(self, cooldown_sec=30, debounce_sec=5, duration_sec=120):
@@ -58,10 +67,11 @@ class FalsePositiveScenario:
         return result
 
 def run():
-    print("[FALSE POSITIVE] Starting scenario...")
+    log.info("[FALSE POSITIVE] Starting scenario...")
     s = FalsePositiveScenario()
     r = s.simulate()
-    print(f"Failure detected: {r['failure_detected']}")
-    print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
+    log.info(f"Failure detected: {r['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
-if __name__ == "__main__": run()
+if __name__ == "__main__":
+    run()

@@ -3,10 +3,10 @@
 ACOS × AstroFin — Constraint Compiler
 Transforms AstroFin trading constraints → executable DAG → L9 enforcement hooks.
 """
-from dataclasses import dataclass, field
-from typing import Any, Optional
-from enum import Enum
 import hashlib
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
 
 
 class ConstraintOp(Enum):
@@ -75,7 +75,7 @@ class PolicyBlock:
     block_id: str
     name: str
     constraints: list[Constraint] = field(default_factory=list)
-    parent: Optional[str] = None   # block_id of parent
+    parent: str | None = None   # block_id of parent
     children: list[str] = field(default_factory=list)
 
     def all_constraints(self) -> list[Constraint]:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from meta_rl.config import HYPEROPT_ENABLED
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -13,25 +14,24 @@ from meta_rl.config import (
     ALPHA_DECAY_REWARD_DROP_PCT,
     ALPHA_DECAY_WINDOW_GENS,
     DECAY_KILL_THRESHOLD,
-    HYPEROPT_ENABLED,
     MIN_DIVERSITY_POPULATION,
 )
 from meta_rl.meta_agent import KARL_META_UPDATE_ENABLED, MetaAgent
+from meta_rl.persistence import get_persistence
+from meta_rl.strategy_pool import ScoredStrategy
 from meta_rl.metrics import (
-    BEST_REWARD,
     EVOLUTION_RUNS,
     GENERATION_CURRENT,
-    GENERATION_DURATION,
-    GENERATIONS_TOTAL,
+    BEST_REWARD,
     MEAN_REWARD,
-    POPULATION_SIZE,
     REWARD_STD,
+    POPULATION_SIZE,
     STRATEGIES_CREATED,
     STRATEGIES_EVALUATED,
     STRATEGY_EVALUATED_TOTAL,
+    GENERATIONS_TOTAL,
+    GENERATION_DURATION,
 )
-from meta_rl.persistence import get_persistence
-from meta_rl.strategy_pool import ScoredStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,9 @@ class EvolutionEngine:
     def stats_history(self) -> list[EvolutionStats]:
         return list(self._history)
 
-    def run(self, ensemble_seeds: int = 3) -> tuple[list[ScoredStrategy], list[EvolutionStats]]:
+    def run(
+        self, ensemble_seeds: int = 3
+    ) -> tuple[list[ScoredStrategy], list[EvolutionStats]]:
         logger.info(
             f"[META-RL-INTEGRATION] Starting: {self.max_generations} gens, "
             f"population={self.agent.config.population_size}, walk_forward={self.walk_forward_enabled}"
@@ -124,9 +126,15 @@ class EvolutionEngine:
             best_params = opt.optimize(n_trials=10)
             logger.info(f"[META-RL] HyperOptimizer best params: {best_params}")
             # Применяем найденные параметры к конфигу агента
-            self.agent.config.population_size = best_params.get("population_size", self.agent.config.population_size)
-            self.agent.config.mutation_rate = best_params.get("mutation_rate", self.agent.config.mutation_rate)
-            self.agent.config.crossover_rate = best_params.get("crossover_rate", self.agent.config.crossover_rate)
+            self.agent.config.population_size = best_params.get(
+                "population_size", self.agent.config.population_size
+            )
+            self.agent.config.mutation_rate = best_params.get(
+                "mutation_rate", self.agent.config.mutation_rate
+            )
+            self.agent.config.crossover_rate = best_params.get(
+                "crossover_rate", self.agent.config.crossover_rate
+            )
 
         population = self.agent.initialize_population()
         for scored in population:
@@ -150,11 +158,16 @@ class EvolutionEngine:
                 GENERATIONS_TOTAL.inc()
                 elites = self.agent.select(population)
                 if self._should_stop(elites):
-                    logger.info(f"[META-RL-INTEGRATION] Early stopping at gen {gen_idx}")
+                    logger.info(
+                        f"[META-RL-INTEGRATION] Early stopping at gen {gen_idx}"
+                    )
                     break
 
                 karl_updated = False
-                if KARL_META_UPDATE_ENABLED and gen_idx % self.agent.config.karl_update_interval == 0:
+                if (
+                    KARL_META_UPDATE_ENABLED
+                    and gen_idx % self.agent.config.karl_update_interval == 0
+                ):
                     karl_state = self.agent.update_karl(elites)
                     self._karl_state_history.append(karl_state)
                     karl_updated = True
@@ -203,16 +216,26 @@ class EvolutionEngine:
             train_start = max(0, train_end - self.train_window)
             test_start = min(train_end, len(ohlcv) - self.test_window)
             test_end = min(test_start + self.test_window, len(ohlcv))
-            train_data = ohlcv[train_start:train_end] if train_start < train_end else ohlcv[: self.train_window]
+            train_data = (
+                ohlcv[train_start:train_end]
+                if train_start < train_end
+                else ohlcv[: self.train_window]
+            )
             wf = dict(self.market_data)
             wf["ohlcv"] = train_data
-            wf["test_ohlcv"] = ohlcv[test_start:test_end] if test_start < test_end else ohlcv[-self.test_window :]
+            wf["test_ohlcv"] = (
+                ohlcv[test_start:test_end]
+                if test_start < test_end
+                else ohlcv[-self.test_window :]
+            )
             return wf
         except Exception as e:
             logger.warning(f"[META-RL-INTEGRATION] Walk-forward failed: {e}")
             return self.market_data
 
-    def _compute_stats(self, population: list[ScoredStrategy], karl_updated: bool = False) -> EvolutionStats:
+    def _compute_stats(
+        self, population: list[ScoredStrategy], karl_updated: bool = False
+    ) -> EvolutionStats:
         if not population:
             return EvolutionStats(
                 generation=self.agent.generation,
@@ -224,7 +247,9 @@ class EvolutionEngine:
                 improvement_over_prev=0.0,
                 karl_updated=karl_updated,
             )
-        rewards = [s.reward_history[-1] if s.reward_history else s.reward for s in population]
+        rewards = [
+            s.reward_history[-1] if s.reward_history else s.reward for s in population
+        ]
         improvement = 0.0
         if self._history:
             prev_best = self._history[-1].max_reward
@@ -234,7 +259,11 @@ class EvolutionEngine:
             key=lambda s: s.reward_history[-1] if s.reward_history else s.reward,
         )
         mean_r = sum(rewards) / len(rewards)
-        std_r = (sum((r - mean_r) ** 2 for r in rewards) / len(rewards)) ** 0.5 if len(rewards) > 1 else 0.0
+        std_r = (
+            (sum((r - mean_r) ** 2 for r in rewards) / len(rewards)) ** 0.5
+            if len(rewards) > 1
+            else 0.0
+        )
 
         # Emit Prometheus metrics
         GENERATION_CURRENT.set(self.agent.generation)
@@ -244,8 +273,8 @@ class EvolutionEngine:
         POPULATION_SIZE.set(len(population))
         STRATEGIES_CREATED.inc(len(population))
         STRATEGIES_EVALUATED.inc(len(population))
-        GENERATIONS_TOTAL.set(GENERATIONS_TOTAL.get() + 1)
-        GENERATION_DURATION.set(time.time() - self._start_time)
+        GENERATIONS_TOTAL.inc()
+        GENERATION_DURATION.observe(time.time() - self._start_time)
 
         return EvolutionStats(
             generation=self.agent.generation,
@@ -297,7 +326,11 @@ class EvolutionEngine:
             return None
 
         recent = [s.max_reward for s in self._history[-window:]]
-        baseline = self._history[-window - 1].max_reward if len(self._history) > window else recent[0]
+        baseline = (
+            self._history[-window - 1].max_reward
+            if len(self._history) > window
+            else recent[0]
+        )
 
         # Check: is reward in a continuous downward trend?
         if not all(recent[i] <= recent[i - 1] for i in range(1, len(recent))):
@@ -362,7 +395,9 @@ class EvolutionEngine:
                 self.agent.pool.add(scored)
 
             self.agent._generations_no_improve = 0
-            self.agent._best_reward = max(s.reward for s in self.agent.pool) if self.agent.pool else 0.0
+            self.agent._best_reward = (
+                max(s.reward for s in self.agent.pool) if self.agent.pool else 0.0
+            )
 
             logger.warning(
                 f"[META-RL-ALPHA-DECAY] Force-reset complete: "
@@ -381,21 +416,19 @@ class EvolutionEngine:
         )
 
     def get_best_strategy(self) -> ScoredStrategy | None:
-        """Return best from final_elites, not full pool (avoids stale gen-1 false positives)."""
-        final = getattr(self, "_final_elites", None)
-        if final:
-            if not final:
-                return None
-            return max(
-                final,
-                key=lambda s: s.reward_history[-1] if s.reward_history else s.reward,
-            )
-        if not self._history:
+        """Loopcraft-compatible best strategy getter."""
+        # Приоритет: final elites после завершения run()
+        candidates = getattr(self, "_final_elites", None) or list(self.agent.pool or [])
+
+        if not candidates:
             return None
-        all_s = list(self.agent.pool)
-        if not all_s:
-            return None
-        return max(all_s, key=lambda s: s.reward_history[-1] if s.reward_history else s.reward)
+
+        return max(
+            candidates,
+            key=lambda s: (
+                s.reward_history[-1] if getattr(s, "reward_history", None) else s.reward
+            ),
+        )
 
     def convergence_report(self) -> dict:
         if len(self._history) < 2:
@@ -410,7 +443,8 @@ class EvolutionEngine:
             "total_generations": len(self._history),
             "best_overall": max(max_rewards),
             "final_mean": mean_rewards[-1],
-            "improvement_rate": (max_rewards[-1] - max_rewards[0]) / max(len(max_rewards) - 1, 1),
+            "improvement_rate": (max_rewards[-1] - max_rewards[0])
+            / max(len(max_rewards) - 1, 1),
             "karl_updates": sum(1 for s in self._history if s.karl_updated),
             "first_half_avg": round(first, 4),
             "second_half_avg": round(second, 4),
@@ -426,7 +460,11 @@ class EvolutionEngine:
             best = max(elites, key=lambda s: s.reward) if elites else None
             br = best.reward if best else 0.0
             bg = best.generation if best else self.agent.generation
-            symbol = self.market_data.get("symbol", "BTCUSDT") if self.market_data else "BTCUSDT"
+            symbol = (
+                self.market_data.get("symbol", "BTCUSDT")
+                if self.market_data
+                else "BTCUSDT"
+            )
             gs = [s.to_dict() for s in self._history]
             persist.save_evolution_session(
                 session_id=sid,

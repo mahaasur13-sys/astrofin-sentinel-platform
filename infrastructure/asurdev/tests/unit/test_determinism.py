@@ -3,8 +3,10 @@
 Determinism Tests (L10) — verify scheduler produces same decision for same input.
 Run: pytest tests/unit/test_determinism.py -v
 """
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
+
 from scheduler_v3.scorer import score_and_select
 
 
@@ -81,7 +83,6 @@ def test_gpu_load_changes_ranking():
 def test_duplicate_submission_prevented():
     """Test 3: Deduplication — scheduler must not double-submit."""
     from job_engine import JobEngine
-    from state_store import JobStatus
 
     store = MagicMock()
     admission = MagicMock()

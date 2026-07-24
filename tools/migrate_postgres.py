@@ -95,14 +95,14 @@ async def run(args: argparse.Namespace) -> int:
         pending = [(v, p) for v, p in migrations if v not in applied]
 
         if args.status:
-            print(f"Applied ({len(applied)}): {sorted(applied)}")
-            print(f"Pending ({len(pending)}): {[v for v, _ in pending]}")
+            log.info(f"Applied ({len(applied)}): {sorted(applied)}")
+            log.info(f"Pending ({len(pending)}): {[v for v, _ in pending]}")
             return 0
 
         if args.dry_run:
             for v, p in pending:
                 if args.version is None or v <= args.version:
-                    print(f"  would apply {p.name}")
+                    log.info(f"  would apply {p.name}")
             return 0
 
         n_applied = 0
@@ -119,14 +119,20 @@ async def run(args: argparse.Namespace) -> int:
 
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--status", action="store_true", help="show applied/pending and exit")
-    ap.add_argument("--version", type=int, default=None, help="apply up to this version (inclusive)")
+    ap.add_argument(
+        "--status", action="store_true", help="show applied/pending and exit"
+    )
+    ap.add_argument(
+        "--version", type=int, default=None, help="apply up to this version (inclusive)"
+    )
     ap.add_argument("--dry-run", action="store_true", help="print plan, do not execute")
     return ap.parse_args()
 
 
 def main() -> int:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+    )
     return asyncio.run(run(parse_args()))
 
 

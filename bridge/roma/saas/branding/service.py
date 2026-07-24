@@ -1,7 +1,6 @@
 """
 saas/branding/service.py
 """
-
 from .loader import load_by_api_key, load_by_tenant_id, load_default
 from .models import TenantBranding
 

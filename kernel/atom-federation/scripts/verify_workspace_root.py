@@ -15,6 +15,10 @@ import os
 import pathlib
 import sys
 
+import logging
+log = logging.getLogger(__name__)
+
+
 CANONICAL = pathlib.Path("/home/workspace/atom-federation-os").resolve()
 SCRIPTS_DIR = CANONICAL / "scripts"
 TOOLS_DIR = CANONICAL / "tools"
@@ -25,20 +29,20 @@ warnings: list[str] = []
 
 def diagnose():
     """Print diagnostic info."""
-    print("=== WORKSPACE DIAGNOSTIC ===")
-    print(f"  canonical root: {CANONICAL}")
-    print(f"  cwd:           {pathlib.Path.cwd()}")
-    print(f"  canonical exists: {CANONICAL.exists()}")
-    print()
-    print("  sys.path (first 8 entries):")
+    log.info("=== WORKSPACE DIAGNOSTIC ===")
+    log.info(f"  canonical root: {CANONICAL}")
+    log.info(f"  cwd:           {pathlib.Path.cwd()}")
+    log.info(f"  canonical exists: {CANONICAL.exists()}")
+    log.info("")
+    log.info("  sys.path (first 8 entries):")
     for i, p in enumerate(sys.path[:8]):
-        print(f"    [{i}] {p}")
-    print()
-    print("  canonical children:")
+        log.info(f"    [{i}] {p}")
+    log.info("")
+    log.info("  canonical children:")
     for d in sorted(CANONICAL.iterdir()):
         if d.name not in ("__pycache__", ".git", "node_modules"):
-            print(f"    {d.name}/")
-    print()
+            log.info(f"    {d.name}/")
+    log.info("")
 
 
 def _import_with_path(name: str, *extra_paths: str) -> tuple | None:
@@ -55,7 +59,7 @@ def _import_with_path(name: str, *extra_paths: str) -> tuple | None:
             if extra not in sys.path:
                 sys.path.insert(0, extra)
         try:
-            mod = importlib.import_module(name)
+            importlib.import_module(name)
             hits.append((extra or "(sys.path)", name))
         except ImportError:
             pass
@@ -123,7 +127,7 @@ def assert_single_root() -> None:
 
 def check_shadowing() -> None:
     """Detect duplicate .py files across sys.path directories."""
-    print("=== SHADOW IMPORT CHECK ===")
+    log.info("=== SHADOW IMPORT CHECK ===")
     name_to_files: dict[str, list[str]] = {}
     for path_str in sys.path:
         if not path_str or not pathlib.Path(path_str).exists():
@@ -140,12 +144,12 @@ def check_shadowing() -> None:
         if len(files) > 1:
             errors.append(f"  SHADOWED: '{name}' in {len(files)} locations: {files}")
     if not errors:
-        print("  No shadow imports detected.")
+        log.info("  No shadow imports detected.")
 
 
 def check_sys_path_order() -> None:
     """Warn if '' (cwd) comes before canonical paths in sys.path."""
-    print("=== SYSPATH ORDER CHECK ===")
+    log.info("=== SYSPATH ORDER CHECK ===")
     canonical = [str(CANONICAL), str(SCRIPTS_DIR), str(TOOLS_DIR)]
     empty_idx = len(sys.path)
     try:
@@ -158,8 +162,8 @@ def check_sys_path_order() -> None:
             idx = sys.path.index(cp)
             if idx < first_canon:
                 first_canon = idx
-    print(f"  First canonical path at: {first_canon}")
-    print(f"  Empty string (cwd) at:   {empty_idx if empty_idx < len(sys.path) else 'not found'}")
+    log.info(f"  First canonical path at: {first_canon}")
+    log.info(f"  Empty string (cwd) at:   {empty_idx if empty_idx < len(sys.path) else 'not found'}")
     if empty_idx < first_canon:
         warnings.append(
             f"  '' (cwd) at [{empty_idx}] before canonical at [{first_canon}]. "
@@ -169,7 +173,7 @@ def check_sys_path_order() -> None:
 
 def check_ci_environment() -> None:
     """Warn if CI env vars are not set."""
-    print("=== CI ENVIRONMENT ===")
+    log.info("=== CI ENVIRONMENT ===")
     checks = [
         ("PYTHONPATH", "/home/workspace/atom-federation-os"),
         ("ATOM_REPO_ROOT", str(CANONICAL)),
@@ -181,40 +185,40 @@ def check_ci_environment() -> None:
         elif val != expected:
             warnings.append(f"  {var}={val} (expected: {expected})")
         else:
-            print(f"  {var}={val} ✓")
+            log.info(f"  {var}={val} ✓")
 
 
 def main() -> int:
-    print("╔══════════════════════════════════════════════════════╗")
-    print("║  atom-federation-os v9.0 — WORKSPACE CONSISTENCY  ║")
-    print("╚══════════════════════════════════════════════════════╝")
-    print()
+    log.info("╔══════════════════════════════════════════════════════╗")
+    log.info("║  atom-federation-os v9.0 — WORKSPACE CONSISTENCY  ║")
+    log.info("╚══════════════════════════════════════════════════════╝")
+    log.info("")
     diagnose()
     check_sys_path_order()
-    print()
+    log.info("")
     check_shadowing()
-    print()
+    log.info("")
     assert_single_root()
-    print()
+    log.info("")
     check_ci_environment()
-    print()
-    print("═══════════════════════════════════════")
+    log.info("")
+    log.info("═══════════════════════════════════════")
     if errors:
-        print(f"❌ FAIL — {len(errors)} error(s):")
+        log.info(f"❌ FAIL — {len(errors)} error(s):")
         for e in errors:
-            print(e)
+            log.info(e)
         if warnings:
-            print(f"\n⚠️  {len(warnings)} warning(s):")
+            log.info(f"\n⚠️  {len(warnings)} warning(s):")
             for w in warnings:
-                print(w)
+                log.info(w)
         return 1
     if warnings:
-        print(f"⚠️  {len(warnings)} warning(s):")
+        log.info(f"⚠️  {len(warnings)} warning(s):")
         for w in warnings:
-            print(w)
-        print("\n✅ PASS — workspace functional")
+            log.info(w)
+        log.info("\n✅ PASS — workspace functional")
         return 0
-    print("✅ PASS — workspace fully consistent")
+    log.info("✅ PASS — workspace fully consistent")
     return 0
 
 

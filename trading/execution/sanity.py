@@ -7,6 +7,10 @@ import math
 from dataclasses import dataclass
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class ValidationStatus(Enum):
     APPROVED = "APPROVED"
@@ -60,7 +64,9 @@ class ExecutionSanityChecker:
         if not self._is_valid(order.qty) or order.qty <= 0:
             return SanityResult(ValidationStatus.REJECTED, f"INVALID_QTY: {order.qty}")
         if not self._is_valid(market.last_price) or market.last_price <= 0:
-            return SanityResult(ValidationStatus.REJECTED, f"INVALID_PRICE: {market.last_price}")
+            return SanityResult(
+                ValidationStatus.REJECTED, f"INVALID_PRICE: {market.last_price}"
+            )
         vol_rank = {"LOW": 0, "NORMAL": 1, "HIGH": 2, "EXTREME": 3}
         regime_level = vol_rank.get(market.current_vol_regime, 1)
         max_level = vol_rank.get(self.config.max_vol_regime, 2)
@@ -84,7 +90,11 @@ class ExecutionSanityChecker:
             participation = order_notional / market.adv_24h
             if participation > self.config.max_adv_participation:
                 if self.config.scale_instead_of_reject:
-                    scaled = market.adv_24h * self.config.max_adv_participation / market.last_price
+                    scaled = (
+                        market.adv_24h
+                        * self.config.max_adv_participation
+                        / market.last_price
+                    )
                     scaled = max(0.0, scaled)
                     return SanityResult(
                         ValidationStatus.SCALED,
@@ -109,14 +119,14 @@ if __name__ == "__main__":
     o = OrderRequest("BTC", "BUY", 0.5, 50000, "MARKET", 5.0)
     r = checker.validate(o, m)
     assert r.status == ValidationStatus.APPROVED
-    print("  Test 1: APPROVED")
+    log.info("  Test 1: APPROVED")
     o2 = OrderRequest("BTC", "BUY", 0.5, 50000, "MARKET", 75.0)
     r2 = checker.validate(o2, m)
     assert r2.status == ValidationStatus.REJECTED and "SLIPPAGE" in r2.reason
-    print("  Test 2: REJECTED (slippage)")
+    log.info("  Test 2: REJECTED (slippage)")
     m3 = MarketState("XXX", 1000, 999, 1001, 20, 100_000, 0.05, "NORMAL")
     o3 = OrderRequest("XXX", "BUY", 10.0, 1000, "MARKET", 3.0)
     r3 = checker.validate(o3, m3)
     assert r3.status == ValidationStatus.SCALED and r3.adjusted_qty < 10.0
-    print("  Test 3: SCALED (liquidity)")
-    print("SanityChecker: all tests passed")
+    log.info("  Test 3: SCALED (liquidity)")
+    log.info("SanityChecker: all tests passed")

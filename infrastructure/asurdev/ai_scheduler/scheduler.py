@@ -12,14 +12,17 @@ Routing:
   vps_fallback       → vps-node (if both above unavailable)
 """
 
-import subprocess
-import time
 import json
-import math
-from typing import Optional, Literal
-from dataclasses import dataclass, asdict
+import logging
+import subprocess
+from dataclasses import dataclass
+from typing import Literal
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+
+log = logging.getLogger(__name__)
+
 
 PROMETHEUS_URL = "http://localhost:9090"
 
@@ -277,7 +280,7 @@ def cli_route():
         gpu_required=(sys.argv[1] == "gpu" if len(sys.argv) > 1 else True),
     )
     result = route_job(job)
-    print(f"target={result.target} partition={result.partition} score={result.score} reason={result.reason}")
+    log.info(f"target={result.target} partition={result.partition} score={result.score} reason={result.reason}")
 
 
 if __name__ == "__main__":

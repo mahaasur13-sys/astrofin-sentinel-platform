@@ -3,6 +3,9 @@ test_streaming_invariant_engine.py
 ==================================
 Tests for StreamingInvariantEngine — continuous delta verification.
 """
+import logging
+log = logging.getLogger(__name__)
+
 from consistency_v2.streaming_invariant_engine import (
     StreamingInvariantEngine,
 )
@@ -99,4 +102,4 @@ if __name__ == "__main__":
     test_streaming_invariant_engine_sliding_window()
     test_streaming_invariant_engine_no_causal_fns()
     test_streaming_invariant_engine_to_dict()
-    print("All StreamingInvariantEngine tests passed.")
+    log.info("All StreamingInvariantEngine tests passed.")

@@ -1,36 +1,31 @@
 #!/usr/bin/env python3
 """ROMA Production Worker Loop — fault-tolerant GPU execution"""
+import logging
 import queue
 import threading
 import time
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Optional
+from typing import Callable, Optional
+
+log = logging.getLogger(__name__)
+
 
 # These will be imported from the modules above
 # import worker_registry, gpu_lock_manager, retry_system, observability
 
-
 class ExecutionResult:
-    def __init__(
-        self,
-        success: bool,
-        output: dict | None = None,
-        error: str | None = None,
-        duration_ms: float = 0.0,
-    ):
+    def __init__(self, success: bool, output: Optional[dict] = None,
+                 error: Optional[str] = None, duration_ms: float = 0.0):
         self.success = success
         self.output = output
         self.error = error
         self.duration_ms = duration_ms
-
 
 @dataclass
 class WorkerNode:
     worker_id: str
     gpu_ids: list
     executor_func: Callable  # func(job) -> ExecutionResult
-
 
 class ROMAWorkerLoop:
     """
@@ -41,16 +36,13 @@ class ROMAWorkerLoop:
     - Result persistence
     """
 
-    def __init__(
-        self,
-        worker_id: str,
-        job_queue,  # queue.Queue or Redis-like
-        lock_manager,
-        retry_manager,
-        registry,
-        observability,
-        executor_func: Callable,
-    ):
+    def __init__(self, worker_id: str,
+                 job_queue,  # queue.Queue or Redis-like
+                 lock_manager,
+                 retry_manager,
+                 registry,
+                 observability,
+                 executor_func: Callable):
         self.worker_id = worker_id
         self.job_queue = job_queue
         self.lock_mgr = lock_manager
@@ -59,11 +51,14 @@ class ROMAWorkerLoop:
         self.observability = observability
         self.executor_func = executor_func
         self._running = False
-        self._thread: threading.Thread | None = None
+        self._thread: Optional[threading.Thread] = None
 
-    def select_best_worker(self, workers: list) -> WorkerNode | None:
+    def select_best_worker(self, workers: list) -> Optional[WorkerNode]:
         """Select worker with most available VRAM"""
-        available = [w for w in workers if w.current_job is None and w.status == "healthy"]
+        available = [
+            w for w in workers
+            if w.current_job is None and w.status == "healthy"
+        ]
         if not available:
             return None
         # Sort by available VRAM descending
@@ -72,7 +67,6 @@ class ROMAWorkerLoop:
     def execute_docker(self, job: dict, gpu_id: str) -> ExecutionResult:
         """Execute job in Docker container with GPU isolation"""
         import time
-
         start = time.time()
         try:
             # In production: docker run --gpus all --memory=8g --cpus=4 --rm roma-job-image
@@ -87,9 +81,9 @@ class ROMAWorkerLoop:
         """Handle job failure with retry"""
         action = self.retry_mgr.handle_failure(job["id"], job.get("error", "unknown"))
         if action == "retry":
-            print(f"[{self.worker_id}] Job {job['id']} re-enqueued (retry {job.get('retries', 0)})")
+            log.info(f"[{self.worker_id}] Job {job['id']} re-enqueued (retry {job.get('retries', 0)})")
         elif action == "fail":
-            print(f"[{self.worker_id}] Job {job['id']} FAILED permanently")
+            log.info(f"[{self.worker_id}] Job {job['id']} FAILED permanently")
 
     def run_iteration(self) -> bool:
         """Single iteration of worker loop. Returns True if job was processed."""
@@ -117,21 +111,21 @@ class ROMAWorkerLoop:
         # Select best worker
         all_workers = self.registry.get_all_workers()
         if not all_workers:
-            print(f"[{self.worker_id}] No workers available")
+            log.info(f"[{self.worker_id}] No workers available")
             return False
 
         # Find worker with enough free VRAM
         required_vram = job.payload.get("gpu_memory_gb", 4.0)
         available = self.registry.get_available_workers(min_vram_gb=required_vram)
         if not available:
-            print(f"[{self.worker_id}] No worker with {required_vram}GB free VRAM")
+            log.info(f"[{self.worker_id}] No worker with {required_vram}GB free VRAM")
             return False
 
         worker = available[0]
 
         # Try to acquire GPU lock
         if not self.lock_mgr.acquire(worker.worker_id, job.job_id):
-            print(f"[{self.worker_id}] GPU {worker.worker_id} already locked by {job.job_id}")
+            log.info(f"[{self.worker_id}] GPU {worker.worker_id} already locked by {job.job_id}")
             return False
 
         # Execute job
@@ -143,22 +137,20 @@ class ROMAWorkerLoop:
 
             if result.success:
                 self.retry_mgr.mark_completed(job.job_id, result.output)
-                self.observability.record_job_result(job.job_id, worker.worker_id, True, result.duration_ms)
+                self.observability.record_job_result(
+                    job.job_id, worker.worker_id, True, result.duration_ms
+                )
                 # Commit to event store (final guarantee)
                 self.retry_mgr.mark_committed(job.job_id)
-                print(f"[{self.worker_id}] Job {job.job_id} completed and committed")
+                log.info(f"[{self.worker_id}] Job {job.job_id} completed and committed")
             else:
                 self.observability.record_job_result(
-                    job.job_id,
-                    worker.worker_id,
-                    False,
-                    result.duration_ms,
-                    result.error,
+                    job.job_id, worker.worker_id, False, result.duration_ms, result.error
                 )
                 self.handle_failure(job)
 
         except Exception as e:
-            print(f"[{self.worker_id}] Job {job.job_id} exception: {e}")
+            log.info(f"[{self.worker_id}] Job {job.job_id} exception: {e}")
             job.payload["error"] = str(e)
             self.handle_failure(job)
 
@@ -173,13 +165,13 @@ class ROMAWorkerLoop:
         self._running = True
         self._thread = threading.Thread(target=self._loop, daemon=True)
         self._thread.start()
-        print(f"[{self.worker_id}] Worker loop started")
+        log.info(f"[{self.worker_id}] Worker loop started")
 
     def stop(self):
         self._running = False
         if self._thread:
             self._thread.join(timeout=5)
-        print(f"[{self.worker_id}] Worker loop stopped")
+        log.info(f"[{self.worker_id}] Worker loop stopped")
 
     def _loop(self):
         while self._running:
@@ -201,10 +193,8 @@ class GPUWorkerDeployment:
 """
 
     @staticmethod
-    def build_dockerfile(
-        base_image: str = "nvidia/cuda:12.1-runtime-ubuntu22.04",
-        python_packages: list = None,
-    ) -> str:
+    def build_dockerfile(base_image: str = "nvidia/cuda:12.1-runtime-ubuntu22.04",
+                         python_packages: list = None) -> str:
         python_packages = python_packages or ["fastapi", "uvicorn", "requests", "numpy"]
         pkgs_str = " ".join(python_packages)
         return f"""FROM {base_image}
@@ -223,12 +213,13 @@ CMD ["python3", "-m", "uvicorn", "gpu_worker.server:app", "--host", "0.0.0.0", "
 """
 
     @staticmethod
-    def get_deployment_command(control_plane: str, worker_id: str, memory_gb: int = 8, cpus: int = 4) -> str:
+    def get_deployment_command(control_plane: str, worker_id: str,
+                               memory_gb: int = 8, cpus: int = 4) -> str:
         return GPUWorkerDeployment.DOCKER_TEMPLATE.format(
             memory_limit=memory_gb,
             cpus=cpus,
             control_plane=control_plane,
-            worker_id=worker_id,
+            worker_id=worker_id
         )
 
 
@@ -236,7 +227,7 @@ if __name__ == "__main__":
     # Test production worker loop
     import queue
 
-    print("=== Production Worker Loop Module ===")
-    print("Supports: job retry, GPU locking, heartbeat, result persistence")
-    print("Docker template available for GPU worker deployment")
-    print("=== PASS ===")
+    log.info("=== Production Worker Loop Module ===")
+    log.info("Supports: job retry, GPU locking, heartbeat, result persistence")
+    log.info("Docker template available for GPU worker deployment")
+    log.info("=== PASS ===")

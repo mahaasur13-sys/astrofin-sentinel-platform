@@ -10,9 +10,15 @@ No external dependencies (stdlib only for core math).
 
 Usage:
     from core.kepler import KeplerOrbit, propagate_kepler, validate_vs_swiss_ephemeris
+
+import logging
+log = logging.getLogger(__name__)
+
     orbit = KeplerOrbit.earth()
     pos = orbit.at_jd(2460692.5)  # J2000.0
 """
+
+from __future__ import annotations
 
 import math
 from dataclasses import dataclass
@@ -106,10 +112,16 @@ class KeplerOrbit:
     def mean_anomaly_at(self, jd: float) -> float:
         """M = M₀ + n · (JD - JD₀)  [degrees]"""
         elapsed = jd - self.elements.epoch_jd
-        M = (self.elements.mean_longitude - self.elements.long_perihelion + self.elements.mean_motion * elapsed) % 360.0
+        M = (
+            self.elements.mean_longitude
+            - self.elements.long_perihelion
+            + self.elements.mean_motion * elapsed
+        ) % 360.0
         return M if M >= 0 else M + 360.0
 
-    def eccentric_anomaly(self, M: float, tolerance: float = 1e-10, max_iter: int = 100) -> float:
+    def eccentric_anomaly(
+        self, M: float, tolerance: float = 1e-10, max_iter: int = 100
+    ) -> float:
         """
         Solve M = E - e·sin(E) via Newton-Raphson.
         M, E in degrees. Converts to radians internally.
@@ -149,7 +161,9 @@ class KeplerOrbit:
         M = self.mean_anomaly_at(jd)
         E = self.eccentric_anomaly(M)
         nu = self.true_anomaly(E)
-        longitude = (self.elements.long_ascending_node + self.elements.arg_perihelion + nu) % 360.0
+        longitude = (
+            self.elements.long_ascending_node + self.elements.arg_perihelion + nu
+        ) % 360.0
         return longitude if longitude >= 0 else longitude + 360.0
 
     def radius(self, jd: float) -> float:
@@ -187,7 +201,11 @@ class KeplerOrbit:
             true_anomaly=nu,
             mean_motion=self.elements.mean_motion,
             orbital_period=self.elements.orbital_period,
-            days_to_next_return=((360.0 - M) / self.elements.mean_motion if self.elements.mean_motion > 0 else 0),
+            days_to_next_return=(
+                (360.0 - M) / self.elements.mean_motion
+                if self.elements.mean_motion > 0
+                else 0
+            ),
             is_retrograde=False,
             speed_deg_per_day=self.elements.mean_motion,
         )
@@ -243,7 +261,7 @@ def validate_vs_swiss_ephemeris(
     body: str,
     jd: float,
     tolerance_deg: float = 1.0,
-    tolerance_au: float = 0.01,
+    _tolerance_au: float = 0.01,
 ) -> dict:
     """
     Compare Keplerian propagation against Swiss Ephemeris positions.
@@ -309,9 +327,7 @@ def validate_vs_swiss_ephemeris(
         message = f"✅ Keplerian agrees with Swiss Ephemeris within {tolerance_deg}° (Δ={delta:.4f}°)"
     elif delta <= tolerance_deg * 5:
         status = "WARN"
-        message = (
-            f"⚠️  Keplerian deviates from Swiss Ephemeris by {delta:.4f}° (> {tolerance_deg}°, ≤ {tolerance_deg * 5}°)"
-        )
+        message = f"⚠️  Keplerian deviates from Swiss Ephemeris by {delta:.4f}° (> {tolerance_deg}°, ≤ {tolerance_deg * 5}°)"
     else:
         status = "FAIL"
         message = f"❌ Keplerian differs from Swiss Ephemeris by {delta:.4f}° (>{tolerance_deg * 5}°) — check orbital elements"
@@ -340,37 +356,42 @@ if __name__ == "__main__":
         _sys.path.insert(0, _project_root)
 
     J2000 = 2451545.0
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.utcnow()
     # Approximate current JD
-    now_jd = J2000 + (now - datetime.datetime(2000, 1, 1, 12, 0, 0)).total_seconds() / 86400.0
+    now_jd = (
+        J2000
+        + (now - datetime.datetime(2000, 1, 1, 12, 0, 0)).total_seconds() / 86400.0
+    )
 
-    print("=" * 60)
-    print("  Kepler Orbital Mechanics — ATOM-STEP-1")
-    print("=" * 60)
-    print(f"\n  Reference epoch: J2000.0 = JD {J2000}")
-    print(f"  Current UTC:   {now.isoformat()}")
-    print(f"  Current JD:    {now_jd:.4f}")
-    print()
+    log.info("=" * 60)
+    log.info("  Kepler Orbital Mechanics — ATOM-STEP-1")
+    log.info("=" * 60)
+    log.info(f"\n  Reference epoch: J2000.0 = JD {J2000}")
+    log.info(f"  Current UTC:   {now.isoformat()}")
+    log.info(f"  Current JD:    {now_jd:.4f}")
+    log.info("")
 
     bodies = ["earth", "jupiter", "saturn"]
     for body in bodies:
         result = propagate_kepler(body, now_jd)
-        print(f"  ── {result.body} ──")
-        print(f"     Heliocentric longitude: {result.heliocentric_longitude:.4f}°")
-        print(f"     Radius:                   {result.radius_au:.6f} AU")
-        print(f"     Mean anomaly:             {result.mean_anomaly:.4f}°")
-        print(f"     True anomaly:             {result.true_anomaly:.4f}°")
-        print(f"     Orbital period:           {result.orbital_period:.2f} days")
-        print()
+        log.info(f"  ── {result.body} ──")
+        log.info(f"     Heliocentric longitude: {result.heliocentric_longitude:.4f}°")
+        log.info(f"     Radius:                   {result.radius_au:.6f} AU")
+        log.info(f"     Mean anomaly:             {result.mean_anomaly:.4f}°")
+        log.info(f"     True anomaly:             {result.true_anomaly:.4f}°")
+        log.info(f"     Orbital period:           {result.orbital_period:.2f} days")
+        log.info("")
 
-    print("  ── Swiss Ephemeris Validation ──")
+    log.info("  ── Swiss Ephemeris Validation ──")
     for body in bodies:
         v = validate_vs_swiss_ephemeris(body, now_jd)
-        print(f"     {body}: {v['message']}")
+        log.info(f"     {body}: {v['message']}")
         if v.get("delta_lon") is not None:
-            print(f"            Kepler={v['kepler_lon']}°  Swiss={v['swiss_lon']}°  Δ={v['delta_lon']}°")
-    print()
-    print("=" * 60)
+            log.info(
+                f"            Kepler={v['kepler_lon']}°  Swiss={v['swiss_lon']}°  Δ={v['delta_lon']}°"
+            )
+    log.info("")
+    log.info("=" * 60)
 
 
 # ─── Convenience Database ─────────────────────────────────────────────────────

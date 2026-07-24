@@ -31,13 +31,13 @@ from .bm25_retriever import Chunk
 class _VectorRetrieverLike(Protocol):
     """Async retriever returning Chunk-like objects with `.id`."""
 
-    async def retrieve(self, query: str, top_k: int) -> list[Chunk]: ...
+    async def retrieve(self, query: str, top_k: int) -> List[Chunk]: ...
 
 
 class _BM25RetrieverLike(Protocol):
     """Sync retriever returning Chunk-like objects with `.id`."""
 
-    def retrieve(self, query: str, top_k: int) -> list[Chunk]: ...
+    def retrieve(self, query: str, top_k: int) -> List[Chunk]: ...
 
 
 @dataclass
@@ -50,8 +50,8 @@ class HybridScore:
 
     chunk: Chunk
     hybrid_score: float
-    vector_rank: int | None = None
-    bm25_rank: int | None = None
+    vector_rank: Optional[int] = None
+    bm25_rank: Optional[int] = None
 
 
 class HybridRetriever:
@@ -85,7 +85,7 @@ class HybridRetriever:
         self.vector_weight = vector_weight
         self.bm25_weight = bm25_weight
 
-    async def retrieve(self, query: str, top_k: int = 10) -> list[HybridScore]:
+    async def retrieve(self, query: str, top_k: int = 10) -> List[HybridScore]:
         """Top-`top_k` chunks by weighted RRF, descending by hybrid_score.
 
         Implementation notes:
@@ -121,7 +121,7 @@ class HybridRetriever:
         for c in bm25_results:
             chunk_by_id.setdefault(c.id, c)
 
-        fused: list[HybridScore] = []
+        fused: List[HybridScore] = []
         for chunk_id, src_ranks in ranks.items():
             score = 0.0
             v_rank = src_ranks.get("vector")

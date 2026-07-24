@@ -33,6 +33,10 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── Types ────────────────────────────────────────────────────────────────────
 
 class DivergenceType(Enum):
@@ -346,8 +350,8 @@ class RealtimeDivergenceDetector:
         """Run one detection tick and return report."""
         exec_state = self._exec_state_fn()
         replay_state = self._replay_state_fn()
-        exec_events = self._exec_events_fn()
-        replay_events = self._replay_events_fn()
+        self._exec_events_fn()
+        self._replay_events_fn()
 
         self._record_transition(exec_state, "exec")
         self._record_transition(replay_state, "replay")
@@ -385,7 +389,7 @@ class RealtimeDivergenceDetector:
                     self._tick()
                 except Exception as e:
                     import sys
-                    print(f"[RealtimeDivergenceDetector] tick error: {e}", file=sys.stderr)
+                    log.info(f"[RealtimeDivergenceDetector] tick error: {e}", file=sys.stderr)
                 time.sleep(interval_sec)
 
         self._thread = threading.Thread(target=loop, daemon=True)

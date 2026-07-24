@@ -6,11 +6,11 @@ POST /simulate    — async batch digital twin evaluation (parallel, non-blockin
 GET  /policy/eval  — policy evaluation with regret tracking
 GET  /health
 """
-import time, asyncio
+import time
 from concurrent.futures import ProcessPoolExecutor
-from fastapi import FastAPI, HTTPException
+
+from fastapi import FastAPI
 from pydantic import BaseModel, Field
-from typing import Optional
 
 app = FastAPI(title="v6 Optimizer", version="1.0.0")
 
@@ -23,7 +23,7 @@ class OptimizationRequest(BaseModel):
     ml_predictions: dict        # {node_id: {failure_prob, load_forecast, risk_score}}
     mode: str = Field(default="hybrid")  # ilp | heuristic | hybrid
     timeout_ms: int = Field(default=500)
-    policy_id: Optional[str] = None
+    policy_id: str | None = None
 
 class OptimizationResult(BaseModel):
     placements: list[dict]
@@ -55,7 +55,7 @@ def _get_engine():
     return ConstraintEngine()
 
 def _get_twin():
-    from v6.digital_twin.simulator import DigitalTwin, SimState, NodeState
+    from v6.digital_twin.simulator import DigitalTwin
     return DigitalTwin()
 
 def _get_ilp():
@@ -94,10 +94,10 @@ def optimize(req: OptimizationRequest) -> OptimizationResult:
         result = ilp.solve(candidates, req.cluster_state, req.ml_predictions)
     else:
         result = ilp._fallback_heuristic(
-            [type('C', (), {'job_id': c.job_id, 'node_id': c.node_id, 'score': c.score})() 
+            [type('C', (), {'job_id': c.job_id, 'node_id': c.node_id, 'score': c.score})()
              for c in candidates],
-            list(set(c.job_id for c in candidates)),
-            list(set(c.node_id for c in candidates if c.node_id != "REJECT")),
+            list({c.job_id for c in candidates}),
+            list({c.node_id for c in candidates if c.node_id != "REJECT"}),
             t0
         )
 
@@ -118,7 +118,7 @@ def optimize(req: OptimizationRequest) -> OptimizationResult:
         twin_results = [f.result() for f in futures]
 
     # Step 5: Policy selection (regret-aware)
-    policy = _get_policy()
+    _get_policy()
     best_idx = max(range(len(twin_results)), key=lambda i: twin_results[i].get("expected_utility", 0))
     final_placements = [result.placements[best_idx]] if twin_results else result.placements[:1]
 
@@ -139,7 +139,7 @@ def optimize(req: OptimizationRequest) -> OptimizationResult:
 def simulate(req: SimulationRequest) -> SimulationResult:
     """Async batch digital twin — O(K) parallel, not O(K×sim)."""
     twin = _get_twin()
-    t0 = time.time()
+    time.time()
 
     with ProcessPoolExecutor(max_workers=min(8, len(req.candidate_actions))) as pool:
         futures = [
@@ -156,7 +156,7 @@ def simulate(req: SimulationRequest) -> SimulationResult:
     )
 
 @app.get("/policy/eval")
-def policy_eval(policy_id: Optional[str] = None):
+def policy_eval(policy_id: str | None = None):
     """Policy evaluation with regret tracking."""
     from v6.policy_eval.evaluator import PolicyEvaluator
     pe = PolicyEvaluator()
@@ -172,7 +172,7 @@ def health():
 # Internal
 # ---------------------------------------------------------------------------
 def _sim_wrapper(twin, cluster_state, action, ml_predictions, horizon):
-    from v6.digital_twin.simulator import DigitalTwin, SimState, NodeState
+    from v6.digital_twin.simulator import NodeState, SimState
     init_state = SimState(
         timestamp=__import__("datetime").datetime.now(),
         nodes={nid: NodeState(node_id=nid, gpu_util_pct=0.5, gpu_mem_used_gb=4.0,

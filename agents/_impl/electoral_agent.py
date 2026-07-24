@@ -6,7 +6,7 @@ Electional astrology for trading entry timing.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
@@ -68,7 +68,7 @@ class ElectoralAgent(BaseAgent[AgentResponse]):
             get_current_nakshatra,
         )
 
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         symbol = state.get("symbol", "BTCUSDT")
 
         # Current state
@@ -122,9 +122,7 @@ class ElectoralAgent(BaseAgent[AgentResponse]):
             confidence = 45
             bw_info = (
                 (
-                    f"Best available: {best_window['choghadiya']['name']} "
-                    f"at {best_window['start'].strftime('%H:%M')} "
-                    f"(score: {best_window['score']:.1f}/10)"
+                    f"Best available: {best_window['choghadiya']['name']} at {best_window['start'].strftime('%H:%M')} (score: {best_window['score']:.1f}/10)"
                 )
                 if best_window
                 else "No window found"
@@ -184,3 +182,8 @@ async def run_electoral_agent(state: dict) -> dict:
     agent = ElectoralAgent()
     result = await agent.run(state)
     return {"electoral_signal": result.to_dict()}
+
+
+def create() -> ElectoralAgent:
+    """Factory for 6-fn test contract."""
+    return ElectoralAgent()

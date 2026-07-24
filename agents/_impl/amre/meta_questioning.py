@@ -2,8 +2,30 @@
 Self-Improvement: Agent generates + refines questions.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any
+
+_SAFE_OPS: dict[str, Any] = {
+    ">": lambda a, b: a > b,
+    "<": lambda a, b: a < b,
+    ">=": lambda a, b: a >= b,
+    "<=": lambda a, b: a <= b,
+    "==": lambda a, b: a == b,
+    "!=": lambda a, b: a != b,
+    "in": lambda a, b: a in b,
+}
+
+
+def _safe_compare(ctx_val: Any, op: str, val: Any) -> bool:
+    """Safe comparison without eval(). Supports > < >= <= == != in."""
+    try:
+        if op in _SAFE_OPS:
+            return bool(_SAFE_OPS[op](ctx_val, val))
+        return False
+    except Exception:
+        return False
 
 
 @dataclass
@@ -107,7 +129,7 @@ class MetaQuestionBank:
                             return False
                         if isinstance(ctx_val, str):
                             ctx_val = ctx_val.strip()
-                        return eval(f"{ctx_val} {op} {val}", {"__builtins__": {}}, {})
+                        return _safe_compare(ctx_val, op, val)
         except Exception:
             pass
         return False
@@ -124,7 +146,11 @@ class MetaQuestionBank:
         if q.times_asked >= 5 and q.effectiveness_score > 0.8 and not outcome:
             refined = q.text.replace("!", "? (Double-check)")
             if refined != q.text:
-                self.evolutions.append(QuestionEvolution(q.text, refined, "High pass but poor outcome", passed, False))
+                self.evolutions.append(
+                    QuestionEvolution(
+                        q.text, refined, "High pass but poor outcome", passed, False
+                    )
+                )
                 q.text = refined
                 q.weight *= 0.9
                 return refined
@@ -182,7 +208,9 @@ class MetaQuestioningEngine:
             return True
         return sum(1 for a in answers if a["passed"]) >= len(answers) / 2
 
-    def refine(self, questions: list[MetaQuestion], answers: list[dict], outcome: bool) -> list[str]:
+    def refine(
+        self, questions: list[MetaQuestion], answers: list[dict], outcome: bool
+    ) -> list[str]:
         refinements = []
         for q, a in zip(questions, answers, strict=False):
             r = self.bank.refine_question(q.id, a["passed"], outcome)

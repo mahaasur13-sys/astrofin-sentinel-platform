@@ -106,12 +106,7 @@ class QuantAgent(BaseAgent[AgentResponse]):
 
         confidence = int(sum(scores) / len(scores) * 100) if scores else 50
 
-        reasoning = (
-            f"Momentum: {momentum['summary']}. "
-            f"MeanRev: {mean_reversion['signal']} ({mean_reversion['z_score']:.1f}σ). "
-            f"VolRegime: {volatility_regime['regime']}. "
-            f"Correlation: {correlation}"
-        )
+        reasoning = f"Momentum: {momentum['summary']}. MeanRev: {mean_reversion['signal']} ({mean_reversion['z_score']:.1f}σ). VolRegime: {volatility_regime['regime']}. Correlation: {correlation}"
 
         return AgentResponse(
             agent_name="QuantAgent",
@@ -254,3 +249,8 @@ async def run_quant_agent(state: dict) -> dict:
     agent = QuantAgent()
     result = await agent.analyze(state)
     return {"quant_signal": result.to_dict()}
+
+
+def create() -> QuantAgent:
+    """Factory for 6-fn test contract."""
+    return QuantAgent()

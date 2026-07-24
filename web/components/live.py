@@ -1,5 +1,6 @@
 """web/components/live.py — Live monitoring tab (ATOM-META-RL-003)"""
 
+from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 

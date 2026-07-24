@@ -195,4 +195,4 @@ async def run_template_agent(state: dict[str, Any]) -> AgentResponse:
     return await TemplateAgent().run(state)
 
 
-__all__ = ["TemplateAgent", "run_template_agent"]
+__all__ = ["TemplateAgent", "run_template_agent", "TEMPLATE_LATENCY_SECONDS", "TEMPLATE_RUNS_TOTAL", "logger"]

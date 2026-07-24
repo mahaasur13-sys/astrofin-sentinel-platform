@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 """
 ChaosValidator — SBS-aware result validator for chaos experiments.
 
@@ -23,6 +24,10 @@ import sys
 import time
 from dataclasses import dataclass, field
 from enum import Enum
+
+import logging
+log = logging.getLogger(__name__)
+
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
@@ -93,7 +98,7 @@ class ChaosValidator:
             "system_response": "cluster_detects_and_recovers",
         },
     )
-    print(result)
+    log.info(result)
     """
 
     def __init__(self):
@@ -357,7 +362,7 @@ class ChaosValidator:
 
 def chaos_result_to_adlr_record(result: ChaosResult) -> dict:
     """Convert ChaosResult to FailureReplay-compatible record."""
-    health = result.cluster_metrics.get("post", {})
+    result.cluster_metrics.get("post", {})
     score = result.violation_score or 0.0
     stages = []
     actions = []

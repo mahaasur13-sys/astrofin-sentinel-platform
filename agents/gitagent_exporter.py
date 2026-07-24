@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """agents/gitagent_exporter.py — Export all agents to GitAgent format (fixed YAML)"""
 
+from __future__ import annotations
+
+import logging
 from pathlib import Path
 from typing import Union
 
 import yaml
+
+log = logging.getLogger(__name__)
+
 
 AGENTS = {
     "bull_researcher": {
@@ -535,7 +541,9 @@ def generate_tests_yaml(agent: dict) -> str:
             "supports_selfq": agent.get("karl", {}).get("supports_selfq", True),
         },
     }
-    return yaml.dump(data, default_flow_style=False, sort_keys=False, allow_unicode=True)
+    return yaml.dump(
+        data, default_flow_style=False, sort_keys=False, allow_unicode=True
+    )
 
 
 def generate_tools_py(agent: dict) -> str:
@@ -558,9 +566,9 @@ def generate_tools_py(agent: dict) -> str:
 '''
 
 
-def export_agent(agent_key: str, output_dir: str | Path) -> bool:
+def export_agent(agent_key: str, output_dir: Union[str, Path]) -> bool:
     if agent_key not in AGENTS:
-        print(f" ❌ Unknown agent: {agent_key}")
+        log.info(f" ❌ Unknown agent: {agent_key}")
         return False
     out_path = Path(output_dir)
     agent = AGENTS[agent_key]
@@ -575,11 +583,13 @@ def export_agent(agent_key: str, output_dir: str | Path) -> bool:
     }
     for filename, content in files.items():
         (pkg_dir / filename).write_text(content)
-    print(f" ✅ {agent['name']}: agent.yaml, prompt.md, schema.py, tests.yaml, tools.py")
+    log.info(
+        f" ✅ {agent['name']}: agent.yaml, prompt.md, schema.py, tests.yaml, tools.py"
+    )
     return True
 
 
-def export_all(output_dir: str | Path) -> dict:
+def export_all(output_dir: Union[str, Path]) -> dict:
     out_path = Path(output_dir)
     results = {"success": [], "failed": []}
     for agent_key in AGENTS:
@@ -605,13 +615,13 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     if args.all:
-        print("📦 Exporting all agents...")
+        log.info("📦 Exporting all agents...")
         results = export_all(args.output)
-        print(f"\n✅ Exported: {len(results['success'])}/{len(AGENTS)}")
+        log.info(f"\n✅ Exported: {len(results['success'])}/{len(AGENTS)}")
     elif args.agent:
         export_agent(args.agent, args.output)
     else:
         parser.print_help()
-        print(f"\nAvailable agents ({len(AGENTS)}):")
+        log.info(f"\nAvailable agents ({len(AGENTS)}):")
         for key in sorted(AGENTS):
-            print(f" - {key} ({AGENTS[key]['name']})")
+            log.info(f" - {key} ({AGENTS[key]['name']})")

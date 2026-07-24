@@ -6,6 +6,8 @@ Alpha=0.3 means: 30% new signal + 70% historical EMA.
 Critical: first value seeds EMA (NOT 0).
 """
 
+from __future__ import annotations
+
 from collections import defaultdict
 
 

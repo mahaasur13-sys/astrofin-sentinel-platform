@@ -5,13 +5,11 @@ Features(t) → Label(t + horizon_minutes).
 Time-based split (80/10/10) — no future leakage.
 """
 import json
-import csv
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-from datetime import datetime
-from dataclasses import asdict
-from .schemas import LabeledExample, MLBatch, LabelType
+
 from .builder import FeatureBuilder
+from .schemas import LabeledExample, LabelType, MLBatch
 from .window_engine import WindowEngine
 
 # =============================================================================
@@ -55,7 +53,7 @@ class DatasetExporter:
     def __init__(
         self,
         state_store=None,        # optional: StateStore instance
-        window_engine: Optional[WindowEngine] = None,
+        window_engine: WindowEngine | None = None,
         horizon_minutes: int = 30,
     ):
         self.state_store = state_store
@@ -63,14 +61,14 @@ class DatasetExporter:
         self.horizon_minutes = horizon_minutes
         self.feature_builder = FeatureBuilder(self.window_engine)
 
-    def _load_events(self) -> List[Dict]:
+    def _load_events(self) -> list[dict]:
         """Load job events from state_store. Falls back to synthetic data."""
         if self.state_store is not None:
             return self.state_store.get_all_events()
         # Synthetic fallback: generate demo events for testing
         return self._generate_synthetic_events()
 
-    def _generate_synthetic_events(self) -> List[Dict]:
+    def _generate_synthetic_events(self) -> list[dict]:
         """Generate synthetic job events for testing/demos."""
         import random
         from datetime import timedelta
@@ -94,7 +92,7 @@ class DatasetExporter:
             })
         return events
 
-    def _get_label(self, node_id: str, current_time: datetime, future_events: List[Dict]) -> int:
+    def _get_label(self, node_id: str, current_time: datetime, future_events: list[dict]) -> int:
         """Determine label: did node fail within horizon_minutes?"""
         horizon = timedelta(minutes=self.horizon_minutes)
         cutoff = current_time + horizon
@@ -136,7 +134,7 @@ class DatasetExporter:
             "test":  events[val_end:],
         }
 
-        batch_data: Dict[str, List[LabeledExample]] = {"train": [], "val": [], "test": []}
+        batch_data: dict[str, list[LabeledExample]] = {"train": [], "val": [], "test": []}
 
         for split_name, split_events in splits.items():
             future_events = events  # full list for label look-ahead

@@ -19,6 +19,10 @@ from sbs.cli_replay import run_replay
 from sbs.cli_run import run_scenario
 from sbs.version import BUILD, VERSION, VERSION_DATE
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── App ──────────────────────────────────────────────────────────────────────
 app = typer.Typer(
     name="sbs",
@@ -65,9 +69,9 @@ def main(
             "build": BUILD,
         }
         if json_flag:
-            out.print(json.dumps(info, indent=2))
+            out.log.info(json.dumps(info, indent=2))
         else:
-            out.print(f"[cyan]sbs[/] [bold]{__version__}[/] ({VERSION_DATE}, {BUILD})")
+            out.log.info(f"[cyan]sbs[/] [bold]{__version__}[/] ({VERSION_DATE}, {BUILD})")
         raise typer.Exit(0)
 
     ctx.meta["json"] = json_flag
@@ -89,13 +93,13 @@ def verify(
         ok, report = run_verify(spec)
     except Exception as e:
         if json_out:
-            out.print(json.dumps({"ok": False, "error": str(e)}))
+            out.log.info(json.dumps({"ok": False, "error": str(e)}))
         else:
-            out.print(f"[red]✗[/] Verification error: {e}", stderr=True)
+            out.log.info(f"[red]✗[/] Verification error: {e}", stderr=True)
         raise typer.Exit(1)
 
     if json_out:
-        out.print(json.dumps(report, indent=2, default=str))
+        out.log.info(json.dumps(report, indent=2, default=str))
     else:
         _print_verify_report(report, spec)
 
@@ -110,13 +114,13 @@ def status(json_out: bool = json_opt):
         data = run_status()
     except Exception as e:
         if json_out:
-            out.print(json.dumps({"ok": False, "error": str(e)}))
+            out.log.info(json.dumps({"ok": False, "error": str(e)}))
         else:
-            out.print(f"[red]✗[/] Status error: {e}", stderr=True)
+            out.log.info(f"[red]✗[/] Status error: {e}", stderr=True)
         raise typer.Exit(1)
 
     if json_out:
-        out.print(json.dumps(data, indent=2, default=str))
+        out.log.info(json.dumps(data, indent=2, default=str))
     else:
         _print_status(data)
 
@@ -132,20 +136,20 @@ def inspect(
 
     layers = ["drl", "ccl", "f2", "desc", "sbs"]
     if layer and layer not in layers:
-        out.print(f"[red]Unknown layer: {layer}[/]. Valid: {', '.join(layers)}", stderr=True)
+        out.log.info(f"[red]Unknown layer: {layer}[/]. Valid: {', '.join(layers)}", stderr=True)
         raise typer.Exit(1)
 
     try:
         data = run_inspect(layer)
     except Exception as e:
         if json_out:
-            out.print(json.dumps({"ok": False, "error": str(e)}))
+            out.log.info(json.dumps({"ok": False, "error": str(e)}))
         else:
-            out.print(f"[red]✗[/] Inspect error: {e}", stderr=True)
+            out.log.info(f"[red]✗[/] Inspect error: {e}", stderr=True)
         raise typer.Exit(1)
 
     if json_out:
-        out.print(json.dumps(data, indent=2, default=str))
+        out.log.info(json.dumps(data, indent=2, default=str))
     else:
         _print_inspect(data, layer)
 
@@ -164,13 +168,13 @@ def schema_check(
         ok, result = run_schema_check(data, file)
     except Exception as e:
         if json_out:
-            out.print(json.dumps({"ok": False, "error": str(e)}))
+            out.log.info(json.dumps({"ok": False, "error": str(e)}))
         else:
-            out.print(f"[red]✗[/] Schema error: {e}", stderr=True)
+            out.log.info(f"[red]✗[/] Schema error: {e}", stderr=True)
         raise typer.Exit(1)
 
     if json_out:
-        out.print(json.dumps({"ok": ok, **result}, indent=2))
+        out.log.info(json.dumps({"ok": ok, **result}, indent=2))
     else:
         _print_schema(result, ok)
 
@@ -186,13 +190,13 @@ def doctor(
         report = run_doctor(verbose=verbose)
     except Exception as e:
         if json_out:
-            out.print(json.dumps({"ok": False, "error": str(e)}))
+            out.log.info(json.dumps({"ok": False, "error": str(e)}))
         else:
-            out.print(f"[red]✗[/] Doctor error: {e}", stderr=True)
+            out.log.info(f"[red]✗[/] Doctor error: {e}", stderr=True)
         raise typer.Exit(1)
 
     if json_out:
-        out.print(json.dumps(report, indent=2, default=str))
+        out.log.info(json.dumps(report, indent=2, default=str))
     else:
         _print_doctor(report)
 
@@ -208,11 +212,11 @@ def config(
     try:
         result = run_config(action, key, value)
     except Exception as e:
-        out.print(f"[red]✗[/] Config error: {e}", stderr=True)
+        out.log.info(f"[red]✗[/] Config error: {e}", stderr=True)
         raise typer.Exit(1)
 
     if result.get("json"):
-        out.print(json.dumps(result, indent=2, default=str))
+        out.log.info(json.dumps(result, indent=2, default=str))
     else:
         _print_config(result)
 
@@ -250,13 +254,13 @@ def run(
         report = run_scenario(scenario, state)
     except Exception as e:
         if json_out:
-            out.print(json.dumps({"ok": False, "error": str(e)}))
+            out.log.info(json.dumps({"ok": False, "error": str(e)}))
         else:
-            out.print(f"[red]✗[/] Run error: {e}", stderr=True)
+            out.log.info(f"[red]✗[/] Run error: {e}", stderr=True)
         raise typer.Exit(1)
 
     if json_out:
-        out.print(json.dumps(report, indent=2, default=str))
+        out.log.info(json.dumps(report, indent=2, default=str))
     else:
         _print_run(report)
 
@@ -280,32 +284,32 @@ def replay(
     try:
         recorder = FailureRecorder()
     except Exception as e:
-        out.print(f"[red]✗[/] Failed to init FailureRecorder: {e}", stderr=True)
+        out.log.info(f"[red]✗[/] Failed to init FailureRecorder: {e}", stderr=True)
         raise typer.Exit(1)
 
     if list_scenarios or incident_id is None:
         scenarios = recorder.list_scenarios()
         if not scenarios:
-            out.print("[yellow]No saved scenarios found[/]")
+            out.log.info("[yellow]No saved scenarios found[/]")
             return
         table = Table(title="📋 Saved Failure Scenarios", show_header=True, header_style="bold cyan")
         table.add_column("Filename", style="cyan")
         for s in scenarios:
             table.add_row(s)
-        out.print(table)
+        out.log.info(table)
         return
 
     try:
         result = recorder.replay_scenario(incident_id)
     except ValueError as e:
-        out.print(f"[red]✗[/] {e}", stderr=True)
+        out.log.info(f"[red]✗[/] {e}", stderr=True)
         raise typer.Exit(1)
     except Exception as e:
-        out.print(f"[red]✗[/] Replay error: {e}", stderr=True)
+        out.log.info(f"[red]✗[/] Replay error: {e}", stderr=True)
         raise typer.Exit(1)
 
     if json_out:
-        out.print(json.dumps(result, indent=2, default=str))
+        out.log.info(json.dumps(result, indent=2, default=str))
         return
 
     if result["success"]:
@@ -315,7 +319,7 @@ def replay(
         icon = "[red]❌[/]"
         verdict = f"[red]RECOVERY FAILED[/] — {result.get('final_violations', [])}"
 
-    out.print(Panel(
+    out.log.info(Panel(
         f"{icon} Incident [cyan]{incident_id}[/cyan]\n"
         f"Status: {verdict}\n"
         f"Action: {result.get('action', {})}\n"
@@ -345,10 +349,10 @@ def _print_verify_report(report: dict, spec: str):
         if not ok:
             all_ok = False
 
-    out.print(table)
+    out.log.info(table)
     summary = report.get("summary", {})
     verdict = "[green]✅ ALL PASS[/]" if all_ok else "[red]❌ FAILURES DETECTED[/]"
-    out.print(f"\n{verdict}  ({summary.get('passed', 0)}/{summary.get('total', 0)} layers)")
+    out.log.info(f"\n{verdict}  ({summary.get('passed', 0)}/{summary.get('total', 0)} layers)")
 
 
 def _print_status(data: dict):
@@ -359,7 +363,7 @@ def _print_status(data: dict):
         title="SBS Runtime Status",
         border_style="cyan",
     )
-    out.print(panel)
+    out.log.info(panel)
 
     layers = data.get("layers", {})
     table = Table(show_header=True, header_style="bold cyan")
@@ -368,7 +372,7 @@ def _print_status(data: dict):
     table.add_column("Health")
     for name, info in layers.items():
         table.add_row(name, str(info.get("state", "-")), str(info.get("health", "-")))
-    out.print(table)
+    out.log.info(table)
 
 
 def _print_inspect(data: dict, layer: str | None):
@@ -376,16 +380,16 @@ def _print_inspect(data: dict, layer: str | None):
         info = data.get(layer, data)
     else:
         info = data
-    out.print(Panel(str(info), title=f"Layer: {layer or 'all'}", border_style="cyan"))
+    out.log.info(Panel(str(info), title=f"Layer: {layer or 'all'}", border_style="cyan"))
 
 
 def _print_schema(result: dict, ok: bool):
     status = "[green]✅ State schema valid[/]" if ok else "[red]❌ State schema invalid[/]"
-    out.print(status)
+    out.log.info(status)
     if result.get("missing"):
-        out.print(f"  Missing layers: {', '.join(result['missing'])}")
+        out.log.info(f"  Missing layers: {', '.join(result['missing'])}")
     if result.get("version"):
-        out.print(f"  Version: {result['version']}")
+        out.log.info(f"  Version: {result['version']}")
 
 
 def _print_doctor(report: dict):
@@ -403,8 +407,8 @@ def _print_doctor(report: dict):
         status_str = f"[{status_color}]{status_icon} {check.get('name','')}[/{status_color}]"
         table.add_row(status_str, check.get("status", ""), check.get("message", ""))
 
-    out.print(table)
-    out.print(f"\nOverall: [{color}]{overall.upper()}[/{color}]")
+    out.log.info(table)
+    out.log.info(f"\nOverall: [{color}]{overall.upper()}[/{color}]")
 
 
 def _print_config(result: dict):
@@ -415,16 +419,16 @@ def _print_config(result: dict):
         table.add_column("Value")
         for key, val in result.get("config", {}).items():
             table.add_row(key, str(val))
-        out.print(table)
+        out.log.info(table)
     else:
-        out.print(f"[cyan]Config:[/] {result.get('message', 'ok')}")
+        out.log.info(f"[cyan]Config:[/] {result.get('message', 'ok')}")
 
 
 def _print_run(report: dict):
     ok = report.get("ok", False)
     status = "[green]✅ Scenario PASSED[/]" if ok else "[red]❌ Scenario FAILED[/]"
-    out.print(status)
+    out.log.info(status)
     if report.get("duration"):
-        out.print(f"  Duration: {report['duration']:.2f}s")
+        out.log.info(f"  Duration: {report['duration']:.2f}s")
     if report.get("output"):
-        out.print(f"  Output: {report['output']}")
+        out.log.info(f"  Output: {report['output']}")

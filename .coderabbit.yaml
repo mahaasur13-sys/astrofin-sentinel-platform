@@ -1,120 +1,19 @@
-# .coderabbit.yaml — AstroFin Sentinel V5
-# CodeRabbit настроен как **дополнительный** ревьюер к pre-commit хукам.
-# Подробная матрица ответственности — в docs/CODE_REVIEW.md.
+# CodeRabbit configuration for AstroFin Sentinel Platform
+# https://docs.coderabbit.ai/guides/configure-coderabbit
 
-# ==================== REVIEW PROFILE ====================
-language: ru
 reviews:
-  profile: assertive              # строгий стиль, обращается к автору напрямую
+  # Auto-review on all branches, not just default
+  auto_review:
+    enabled: true
+    base_branches: ["main", "consolidation-v1", "master"]
+  profile: "ASSERTIVE"
+  request_changes_workflow: true
   high_level_summary: true
-  suggest_code_changes: true      # предлагать конкретные исправления
   poem: false
-  humor: false
-  request_changes_workflow: true # PR нельзя слить, пока CodeRabbit ставит request_changes
-  review_status: true            # показывать статус "Review skipped/finished" в PR
 
-  # ==================== PATH FILTERS (v2 — бывший exclude) ====================
-  # Двухсписочная семантика: паттерны с "!" — override default blocks (allow),
-  # паттерны без "!" — exclude (block).
-  # CodeRabbit v2 по умолчанию блокирует .md/.txt/doc-файлы → добавляем explicit allow.
-  path_filters:
-    - "!**/__pycache__/**"
-    - "!**/.pytest_cache/**"
-    - "!**/.mypy_cache/**"
-    - "!**/data/raw/**"
-    - "!**/data/processed/**"
-    - "!**/*.log"
-    - "!**/.env*"
-    - "!**/venv/**"
-    - "!**/node_modules/**"
-    - "!**/agents/_archived/**"   # deprecated
-    - "!**/*.bak"                  # KI-007/KI-008
-    - "!**/dist/**"
-    - "!**/build/**"
-    - "!**/.eggs/**"
-    # ----- allow (override defaults) -----
-    - "!**/*.md"
-    - "!**/LICENSE"
-    - "!**/CHANGELOG.md"
-    - "!**/*.txt"                  # allow текстовые документы
-
-# ==================== TRIGGER ====================
-# CodeRabbit работает ТОЛЬКО на pull_request (не на push, не на /review вручную).
-# Цель: дать обратную связь автору ДО merge в master/develop.
-
-# ==================== KNOWLEDGE BASE ====================
-knowledge_base:
-  instructions: |
-    Ты — Senior AI Engineer, Quantitative Researcher и Principal Software Architect
-    в BlackRock-стиле для проекта AstroFin Sentinel V5 — продвинутой автономной
-    AI-торговой системы на multi-agent архитектуре, Meta-RL и backtesting.
-
-    ## Главная цель ревью
-    "Enforce architecture compliance (R1–R9), catch security issues, and ensure
-    Data Room pattern adherence before merge."
-
-    ## Правила архитектурного линтера (scripts/architecture_linter.py)
-    Архитектурный линтер уже проверяет AST-синтаксис и базовые паттерны. Твоя
-    задача — ДОБАВИТЬ рассуждения, контекст и cross-file impact, а не дублировать
-    то, что делает Ruff/Bandit/architecture_linter.
-
-    | Правило | Что проверяет | Твоя дополнительная ценность |
-    |---------|---------------|-----------------------------|
-    | **R1** | Все агенты наследуют BaseAgent | Проверь, что weight/domain выставлены осмысленно |
-    | **R2** | @require_ephemeris на астрологических агентах | Укажи, КАКОЙ planet weight соответствует агенту |
-    | **R3** | НЕТ прямых requests.* в агентах | Покажи, как мигрировать на data_room.blueprint.get_price() |
-    | **R4** | @require_auth на non-public routes | Проверь, что FastAPI роуты не leak'ают внутренние данные |
-    | **R5** | Каждый агент в AGENT_AGENTS | Предложи оптимальный domain и weight |
-    | **R6** | НЕТ top-level print | Замени на logger.info/debug |
-    | **R7** | НЕТ f-string SQL | Покажи, как переписать на parameterized query |
-    | **R8** | НЕТ hardcoded secrets | Покажи правильное использование Settings/env |
-    | **R9** | run_<agent_name> экспортируется | Проверь async-сигнатуру и return type |
-
-    ## P1 blockers (docs/KNOWN_ISSUES.md)
-    При ревью ОБЯЗАТЕЛЬНО упоминай эти P1-блокеры, если релевантно:
-
-    - **KI-001** — Data Room pattern: любой `import requests` или `requests.get/post(...)`
-      в `agents/` — нарушение. Агенты должны идти через `data_room.blueprint`.
-    - **KI-007** — `.bak` файлы в `core/`, `web/`, `meta_rl/`, `agents/`: предупреди
-      и предложи `git rm` или `git mv ... .archive/`.
-    - **KI-011** — backwards-compat stubs в `agents/__init__.py` (см. R5 registry coverage).
-    - **KI-012** — `.env` файлы, hardcoded API keys, tokens. Требуй `Settings()` или
-      переменные окружения через `os.environ`.
-
-    ## Focus areas (бывший focus_areas, переехал в knowledge_base)
-    - "architecture compliance (R1–R9)"
-    - "Data Room pattern enforcement"
-    - "security: secrets, auth, SQL"
-    - "graceful degradation (try/except in run)"
-    - "test coverage: BlackRock Six"
-    - "documentation freshness (ARCHITECTURE.md, KNOWN_ISSUES.md)"
-
-    ## Style ревью
-    1. **Русский язык** — все комментарии на русском, кратко, по делу.
-    2. **Assertive** — обращайся к автору напрямую: "Вы нарушили R3", "Замените
-       на data_room.get_price()".
-    3. **С кодом** — каждый finding содержит сниппет "как должно быть".
-    4. **Блокирующее** — P1 violations (R1, R3, R5, R8, R9) → request_changes.
-    5. **Soft (S1–S3)** — docstring, ARCHITECTURE.md, style — комментарии, но
-       НЕ блокируют merge.
-
-    ## Чего НЕ делать
-    - НЕ дублируй Ruff formatting, Bandit AST checks, detect-secrets baseline.
-      Это уже делает pre-commit (см. docs/CODE_REVIEW.md для overlap matrix).
-    - НЕ комментируй data/raw, data/processed (это шум).
-    - НЕ критикуй agents/_archived/ (deprecated, no active imports).
-    - НЕ ревьюй изменения в .coderabbit.yaml (это meta-config).
-
-# ==================== CHAT (in-app Zo) ====================
 chat:
-  auto_reply: false
+  auto_reply: true
 
-# ==================== INTEGRATION ====================
-# CodeRabbit дополняет pre-commit. Не дублирует.
-# Pre-commit: ruff format, ruff lint, bandit, detect-secrets, architecture_linter.py,
-#             validate_registry.py, end-of-file fixer, large files.
-# CodeRabbit:   architectural reasoning, KNOWN_ISSUES context, cross-file impact,
-#             test coverage gaps, soft rules (S1–S3 docstrings).
-#
-# Review cycle: quarterly — пересмотр правил и path_instructions каждые 3 месяца.
-# Reviewers: @architect + @lead
+knowledge_base:
+  learnings:
+    scope: "auto"

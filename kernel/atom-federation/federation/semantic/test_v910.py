@@ -64,9 +64,9 @@ class TestEventStore:
     def test_emit_multiple_same_entity(self):
         """Multiple events can reference the same entity_hash across layers."""
         EventStore.reset()
-        g = EventStore.emit(EventType.GOSSIP, "shared-root", metadata=["from=n1"])
-        c = EventStore.emit(EventType.CONSENSUS, "shared-root", metadata=["voters=n1,n2"])
-        p = EventStore.emit(EventType.PROOF, "shared-root", metadata=["proof=abc"])
+        EventStore.emit(EventType.GOSSIP, "shared-root", metadata=["from=n1"])
+        EventStore.emit(EventType.CONSENSUS, "shared-root", metadata=["voters=n1,n2"])
+        EventStore.emit(EventType.PROOF, "shared-root", metadata=["proof=abc"])
         assert EventStore.size() == 3
         events = EventStore.query_entity("shared-root")
         assert len(events) == 3
@@ -135,7 +135,7 @@ class TestDriftDetector:
         # PROOF with consensus_ref pointing to a different entity_hash
         consensus_ev = EventStore.emit(EventType.CONSENSUS, "agreed-root")
         # PROOF was computed for a different root but references this consensus
-        proof_ev = EventStore.emit(
+        EventStore.emit(
             EventType.PROOF,
             "drifted-root",  # different from consensus entity_hash
             consensus_ref=consensus_ev.event_id,
@@ -211,9 +211,9 @@ class TestSemanticBinder:
     def test_full_integration(self):
         """Canonical cycle: gossip delta -> consensus decision -> proof -> bind all."""
         EventStore.reset()
-        delta_ev = SemanticBinder.bind_gossip("delta-root", seq=1, peers=["n2"])
+        SemanticBinder.bind_gossip("delta-root", seq=1, peers=["n2"])
         consensus_ev = SemanticBinder.bind_consensus("delta-root", voters=["n1", "n2"], outcome="agree")
-        proof_ev = SemanticBinder.bind_proof("delta-root", "zkp-xyz", consensus_ref=consensus_ev.event_id)
+        SemanticBinder.bind_proof("delta-root", "zkp-xyz", consensus_ref=consensus_ev.event_id)
 
         assert EventStore.size() == 3
         proj = EventStore.resolve("delta-root")

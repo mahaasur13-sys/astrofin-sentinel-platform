@@ -51,7 +51,7 @@ class GannAgent(BaseAgent[AgentResponse]):
         symbol = state.get("symbol", "BTCUSDT")
         state.get("current_price", 50000)
 
-        price_data = await self._fetch_ohlcv(symbol, "1d", 90)
+        price_data = state.get("_price_data", []) or await self._fetch_ohlcv(symbol, "1D", 90)
         if not price_data:
             return AgentResponse(
                 agent_name="GannAgent",
@@ -61,9 +61,9 @@ class GannAgent(BaseAgent[AgentResponse]):
                 sources=[],
             )
 
-        closes = [d[0] for d in price_data]
-        highs = [d[1] for d in price_data]
-        lows = [d[2] for d in price_data]
+        closes = [d[4] for d in price_data]
+        highs = [d[2] for d in price_data]
+        lows = [d[3] for d in price_data]
 
         # Gann angle analysis
         angles = self._calculate_gann_angles(lows[-1], highs[-1], closes[-1])
@@ -89,13 +89,7 @@ class GannAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 40
 
-        reasoning = (
-            f"Gann angles: {angles['summary']}. "
-            f"Price square: {price_square['summary']}. "
-            f"Time clusters: {time_clusters['summary']}. "
-            f"Astro dates: {astro_dates['summary']}. "
-            f"Gann score: {gann_score:.2f}"
-        )
+        reasoning = f"Gann angles: {angles['summary']}. Price square: {price_square['summary']}. Time clusters: {time_clusters['summary']}. Astro dates: {astro_dates['summary']}. Gann score: {gann_score:.2f}"
 
         return AgentResponse(
             agent_name="GannAgent",
@@ -130,14 +124,17 @@ class GannAgent(BaseAgent[AgentResponse]):
         import httpx
 
         try:
-            url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}-USDT&interval={interval}&limit={limit}"
+            inst_id = symbol if "-" in symbol else symbol + "-USDT"
+            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval}&limit={limit}"
             async with httpx.AsyncClient() as client:
                 resp = await client.get(url, timeout=10)
                 resp.raise_for_status()
                 data = resp.json()
-                return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
+                return [[float(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
-            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}")
+            logger.warning(
+                f"Failed to fetch OHLCV data for {symbol} with interval {interval} and limit {limit}"
+            )
             return []
 
     def _calculate_gann_angles(self, low: float, high: float, close: float) -> dict:
@@ -218,14 +215,14 @@ class GannAgent(BaseAgent[AgentResponse]):
 
     async def _check_astro_time_dates(self, state: dict) -> dict:
         """Check for Gann-style astro time dates."""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from core.ephemeris import HAS_SWISS_EPHEMERIS, _julian_day, calculate_planet
 
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         jd = _julian_day(now)
 
         # Check if any major planet is at a Gann degree (0°, 90°, 180°, 270°)
@@ -267,3 +264,8 @@ async def run_gann_agent(state: dict) -> dict:
     agent = GannAgent()
     result = await agent.analyze(state)
     return {"gann_signal": result.to_dict()}
+
+
+def create() -> GannAgent:
+    """Factory for 6-fn test contract."""
+    return GannAgent()

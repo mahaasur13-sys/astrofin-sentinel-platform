@@ -2,6 +2,9 @@
 Stores KARL trajectories in PostgreSQL + TimescaleDB.
 """
 
+from __future__ import annotations
+
+
 import json
 from typing import Any
 
@@ -40,7 +43,12 @@ class PostgresReplayBuffer:
 
     def get_all(self, limit: int = 1000) -> list[dict]:
         with pg_session() as s:
-            rows = s.query(KARLTrajectory).order_by(KARLTrajectory.created_at.desc()).limit(limit).all()
+            rows = (
+                s.query(KARLTrajectory)
+                .order_by(KARLTrajectory.created_at.desc())
+                .limit(limit)
+                .all()
+            )
             return [self._row_to_dict(r) for r in rows]
 
     def get_by_symbol(self, symbol: str, limit: int = 100) -> list[dict]:

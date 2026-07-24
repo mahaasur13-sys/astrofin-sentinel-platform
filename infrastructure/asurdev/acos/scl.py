@@ -4,21 +4,24 @@ ACOS SCL v1 — Integration Test
 Validates all 5 system invariants.
 """
 from __future__ import annotations
+
 import time
-from acos.events.event_log import EventLog, EventType, Event
-from acos.state.reducer import StateReducer
-from acos.projection.projection import EventProjection
+
+from acos.events.event_log import Event, EventLog, EventType
 from acos.eventsourced.engine import EventSourcedEngine
+from acos.projection.projection import EventProjection
+from acos.state.reducer import StateReducer
+
 
 def test_invariant_1():
     """INV1: Every action produces an event."""
     log = EventLog()
     engine = EventSourcedEngine(log, StateReducer(log))
     dag = {"nodes": [{"id": "n1"}, {"id": "n2"}], "edges": []}
-    result = engine.execute(dag, {}, "trace-1")
+    engine.execute(dag, {}, "trace-1")
     all_events = log.get_all()
     actions = len(all_events)
-    print(f"  [{'OK' if actions >= 4 else 'FAIL'}] INV1 — Events emitted: {actions} (expected >= 4)")
+    log.info(f"  [{'OK' if actions >= 4 else 'FAIL'}] INV1 — Events emitted: {actions} (expected >= 4)")
     return actions >= 4
 
 def test_invariant_2():
@@ -29,7 +32,7 @@ def test_invariant_2():
     log.emit("t2", EventType.GOVERNANCE_APPROVED, {"reason": "ok"})
     state = reducer.rebuild("t2")
     ok = state["governance_decision"] == "APPROVED"
-    print(f"  [{'OK' if ok else 'FAIL'}] INV2 — Governance decision derived from events: {state['governance_decision']}")
+    log.info(f"  [{'OK' if ok else 'FAIL'}] INV2 — Governance decision derived from events: {state['governance_decision']}")
     return ok
 
 def test_invariant_3():
@@ -45,7 +48,7 @@ def test_invariant_3():
     s1 = reducer2.rebuild("trace-replay")
     s2 = reducer2.rebuild("trace-replay")
     ok = s1["status"] == s2["status"] == "COMPLETED"
-    print(f"  [{'OK' if ok else 'FAIL'}] INV3 — Replay deterministic: {s1['status']} == {s2['status']}")
+    log.info(f"  [{'OK' if ok else 'FAIL'}] INV3 — Replay deterministic: {s1['status']} == {s2['status']}")
     return ok
 
 def test_invariant_4():
@@ -54,7 +57,7 @@ def test_invariant_4():
     log.emit("t4", EventType.DAG_CREATED, {})
     log.emit("t4", EventType.NODE_SCHEDULED, {})
     ok = log.verify_chain("t4")
-    print(f"  [{'OK' if ok else 'FAIL'}] INV4 — Hash chain intact: {ok}")
+    log.info(f"  [{'OK' if ok else 'FAIL'}] INV4 — Hash chain intact: {ok}")
     return ok
 
 def test_invariant_5():
@@ -68,7 +71,7 @@ def test_invariant_5():
     r1 = StateReducer(log).rebuild("t5")
     r2 = StateReducer(log).rebuild("t5")
     ok = r1["status"] == r2["status"] == "COMPLETED"
-    print(f"  [{'OK' if ok else 'FAIL'}] INV5 — Trace deterministic: {r1['status']}")
+    log.info(f"  [{'OK' if ok else 'FAIL'}] INV5 — Trace deterministic: {r1['status']}")
     return ok
 
 def test_projection_layer():
@@ -79,7 +82,7 @@ def test_projection_layer():
     proj = EventProjection(log)
     trace = proj.get_trace("proj-test")
     ok = trace is not None and trace["executed_count"] == 1
-    print(f"  [{'OK' if ok else 'FAIL'}] PROJ — Projection derives trace from events: {trace['executed_count']} nodes")
+    log.info(f"  [{'OK' if ok else 'FAIL'}] PROJ — Projection derives trace from events: {trace['executed_count']} nodes")
     return ok
 
 def test_full_trace():
@@ -98,11 +101,11 @@ def test_full_trace():
     ok = (state["status"] == "COMPLETED" and
           state["scheduled_count"] == 2 and
           state["executed_count"] == 2)
-    print(f"  [{'OK' if ok else 'FAIL'}] FULL TRACE — {state['status']}, scheduled={state['scheduled_count']}, executed={state['executed_count']}")
+    log.info(f"  [{'OK' if ok else 'FAIL'}] FULL TRACE — {state['status']}, scheduled={state['scheduled_count']}, executed={state['executed_count']}")
     return ok
 
 if __name__ == "__main__":
-    print("=== ACOS SCL v1 — Event-Sourced Kernel ===")
+    log.info("=== ACOS SCL v1 — Event-Sourced Kernel ===")
     results = []
     results.append(("INV1: Every action → event", test_invariant_1()))
     results.append(("INV2: No mutable truth", test_invariant_2()))
@@ -111,8 +114,8 @@ if __name__ == "__main__":
     results.append(("INV5: Trace determinism", test_invariant_5()))
     results.append(("PROJ: Projection layer", test_projection_layer()))
     results.append(("FULL: Complete trace flow", test_full_trace()))
-    print()
+    log.info("")
     passed = sum(1 for _, r in results if r)
-    print(f"Result: {passed}/{len(results)} passed")
+    log.info(f"Result: {passed}/{len(results)} passed")
     if passed == len(results):
-        print("STATUS: ALL_INVARIANTS_HOLD")
+        log.info("STATUS: ALL_INVARIANTS_HOLD")

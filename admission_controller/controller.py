@@ -106,7 +106,9 @@ class AdmissionController:
                     f"Low priority throttled: load {avg_load:.1f}% >= {LOAD_THRESHOLD_LOW_PRI*100:.0f}%",
                     cluster_util,
                 )
-                log.info("REJECT low-priority job %s: load %.1f%%", job.get("id"), avg_load)
+                log.info(
+                    "REJECT low-priority job %s: load %.1f%%", job.get("id"), avg_load
+                )
                 return AdmitResult(
                     AdmitDecision.REJECT,
                     f"Low priority throttled (load={avg_load:.1f}%)",
@@ -116,11 +118,15 @@ class AdmissionController:
         # Rule 4: Memory check (per-node)
         job_mem_gb = job.get("memory_gb", 8)
         if self._check_memory(job_mem_gb, job_type, cluster_util):
-            self.state.write_admission_decision(job.get("id"), "ADMIT", "passed all checks", cluster_util)
+            self.state.write_admission_decision(
+                job.get("id"), "ADMIT", "passed all checks", cluster_util
+            )
             return AdmitResult(AdmitDecision.ADMIT, "accepted", job_id=job.get("id"))
 
         # Default: admit
-        self.state.write_admission_decision(job.get("id"), "ADMIT", "no pressure", cluster_util)
+        self.state.write_admission_decision(
+            job.get("id"), "ADMIT", "no pressure", cluster_util
+        )
         return AdmitResult(AdmitDecision.ADMIT, "accepted", job_id=job.get("id"))
 
     def _check_memory(self, job_mem_gb: int, job_type: str, cluster_util: dict) -> bool:

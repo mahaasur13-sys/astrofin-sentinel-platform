@@ -4,9 +4,11 @@ Unified knowledge retrieval interface for all agents.
 FAISS-backed semantic search with Ollama embeddings.
 """
 
+from __future__ import annotations
 import json
 import urllib.request
 from pathlib import Path
+import logging
 
 import faiss
 import numpy as np
@@ -16,10 +18,15 @@ from tools.metrics_server import (
     CACHE_MISSES,
     OLLAMA_STATUS,
     RAG_CHUNK_COUNT,
-    RAG_QUERY_CACHE_HITS,
-    RAG_QUERY_CACHE_MISSES,
+    RAG_CHUNKS_RETURNED,
+    RAG_LATENCY_SECONDS,
+    RAG_QUERIES_TOTAL,
+    RAG_RELEVANCE_AVG,
     RAG_RELEVANCE_SCORE,
 )
+from core.logging import get_logger
+
+logger = get_logger(__name__)
 
 DIM = 768
 
@@ -99,7 +106,6 @@ class RAGRetriever:
         """
         Semantic search across knowledge chunks.
 
-
         Args:
             query: Natural-language query from the agent
             domain: Optional domain filter (astrology / technical / trading).
@@ -110,74 +116,85 @@ class RAGRetriever:
         Returns:
             List of dicts with keys: content, source, title, domain, relevance_score
         """
-        # Проверка кеша запросов
+        # P2-04 observability metrics
         cache_key = (query, domain, top_k)
-        if cache_key in self._query_cache:
-            RAG_QUERY_CACHE_HITS.inc()
+        domain_label = domain or "all"
+        cache_hit = cache_key in self._query_cache
+        backend_label = "faiss"  # this retriever is FAISS-only
+        if cache_hit:
+            RAG_QUERIES_TOTAL.labels(
+                status="ok", backend=backend_label, domain=domain_label
+            ).inc()
             return self._query_cache[cache_key]
-        RAG_QUERY_CACHE_MISSES.inc()
 
-        domains = [domain] if domain else ["astrology", "technical", "trading"]
-        all_results: list[dict] = []
+        try:
+            with RAG_LATENCY_SECONDS.time():
+                domains = [domain] if domain else ["astrology", "technical", "trading"]
+                all_results: list[dict] = []
 
-        q_vec = _embed(query).reshape(1, -1)
+                q_vec = _embed(query).reshape(1, -1)
 
-        for d in domains:
-            index, chunks = self._load(d)
-            if index is None or index.ntotal == 0:
-                continue
+                for d in domains:
+                    index, chunks = self._load(d)
+                    if index is None or index.ntotal == 0:
+                        continue
 
-            k = min(top_k, index.ntotal)
-            scores, indices = index.search(q_vec.astype("float32"), k)
+                    k = min(top_k, index.ntotal)
+                    scores, indices = index.search(q_vec.astype("float32"), k)
 
-            for score, idx in zip(scores[0], indices[0], strict=False):
-                if idx < 0:
-                    continue
-                chunk = chunks[idx]
-                result = {
-                    "content": chunk["content"],
-                    "source": chunk["source"],
-                    "title": chunk["title"],
-                    "domain": chunk.get("domain", d),
-                    "relevance_score": float(score),
-                }
-                all_results.append(result)
+                    for score, idx in zip(scores[0], indices[0], strict=False):
+                        if idx < 0:
+                            continue
+                        chunk = chunks[idx]
+                        result = {
+                            "content": chunk["content"],
+                            "source": chunk["source"],
+                            "title": chunk["title"],
+                            "domain": chunk.get("domain", d),
+                            "relevance_score": float(score),
+                        }
+                        all_results.append(result)
 
-        # Sort by score, filter, deduplicate by source+title
-        all_results.sort(key=lambda x: x["relevance_score"], reverse=True)
-        seen: set = set()
-        deduped: list[dict] = []
-        for r in all_results:
-            key = (r["source"], r["title"])
-            if key not in seen and r["relevance_score"] >= min_score:
-                seen.add(key)
-                deduped.append(r)
+                # Sort by score, filter, deduplicate by source+title
+                all_results.sort(key=lambda x: x["relevance_score"], reverse=True)
+                seen: set = set()
+                deduped: list[dict] = []
+                for r in all_results:
+                    key = (r["source"], r["title"])
+                    if key not in seen and r["relevance_score"] >= min_score:
+                        seen.add(key)
+                        deduped.append(r)
 
-        # Обновляем RAG quality метрики
-        if deduped:
-            avg_rel = sum(r["relevance_score"] for r in deduped) / len(deduped)
-        else:
-            avg_rel = 0.0
-        # Исправлено: .set() -> .observe() для Histogram
-        RAG_RELEVANCE_SCORE.observe(avg_rel)
-        RAG_CHUNK_COUNT.set(len(deduped))
+                # Update RAG quality metrics (P2-04):
+                # - RAG_CHUNKS_RETURNED is a Histogram; observe per-query count
+                # - RAG_RELEVANCE_SCORE is a Histogram; observe per-chunk score
+                # - RAG_RELEVANCE_AVG is a Gauge; set the per-query average
+                # - RAG_CHUNK_COUNT kept as a Gauge for legacy back-compat
+                RAG_CHUNKS_RETURNED.observe(len(deduped))
+                RAG_CHUNK_COUNT.set(len(deduped))
+                if deduped:
+                    avg_rel = sum(r["relevance_score"] for r in deduped) / len(deduped)
+                    RAG_RELEVANCE_AVG.set(avg_rel)
+                    for r in deduped:
+                        RAG_RELEVANCE_SCORE.observe(r["relevance_score"])
+                else:
+                    RAG_RELEVANCE_AVG.set(0.0)
 
-        # Сохраняем результат в кеш запросов
-        self._query_cache[cache_key] = deduped[:top_k]
+                # Cache the result for future calls
+                self._query_cache[cache_key] = deduped[:top_k]
+                RAG_QUERIES_TOTAL.labels(
+                    status="ok", backend=backend_label, domain=domain_label
+                ).inc()
+                return deduped[:top_k]
+        except Exception as exc:
+            from tools.metrics_server import RAG_ERRORS_TOTAL
 
-        return deduped[:top_k]
-
-    def stats(self) -> dict:
-        """Return per-domain index statistics."""
-        domains = ["astrology", "technical", "trading"]
-        result = {}
-        for d in domains:
-            index, chunks = self._load(d)
-            result[d] = {
-                "indexed_chunks": index.ntotal if index else 0,
-                "files": list({c["source"] for c in chunks}),
-            }
-        return result
+            kind = type(exc).__name__
+            RAG_ERRORS_TOTAL.labels(stage="retrieve", kind=kind).inc()
+            RAG_QUERIES_TOTAL.labels(
+                status="error", backend=backend_label, domain=domain_label
+            ).inc()
+            raise
 
 
 # ─── Agent Tool ───────────────────────────────────────────────────────────────
@@ -232,8 +249,10 @@ if __name__ == "__main__":
 
     if args.query:
         results = retriever.retrieve(args.query, domain=args.domain, top_k=args.top_k)
-        print(retrieve_knowledge(args.query, domain=args.domain, top_k=args.top_k))
+        log.info(retrieve_knowledge(args.query, domain=args.domain, top_k=args.top_k))
     else:
-        print("\n📊 Index stats:")
+        log.info("\n📊 Index stats:")
         for domain, stat in retriever.stats().items():
-            print(f"  {domain:12s}: {stat['indexed_chunks']:3d} chunks  files={stat['files']}")
+            log.info(
+                f"  {domain:12s}: {stat['indexed_chunks']:3d} chunks  files={stat['files']}"
+            )

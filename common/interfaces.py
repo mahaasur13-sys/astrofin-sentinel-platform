@@ -1,20 +1,55 @@
-"""DEPRECATED compatibility shim — use ``acos_contracts.interfaces``.
-
-All Protocol symbols previously defined here have been moved to the
-standalone ``acos_contracts`` package (v0.1.0+). This module re-exports
-them for callers that still import from ``common.interfaces`` during
-the migration window and will be removed in a future release.
 """
-
+Local Protocol stubs (formerly acos_contracts.interfaces).
+Self-contained — no external package dependency.
+"""
 from __future__ import annotations
 
-from acos_contracts.interfaces import (
-    AgentResponseProtocol,
-    BaseAgentProtocol,
-    DeterministicClock,
-    EphemerisProtocol,
-    SignalDirectionProtocol,
-)
+from datetime import datetime
+from typing import Protocol, runtime_checkable
+
+
+@runtime_checkable
+class SignalDirectionProtocol(Protocol):
+    """Protocol for signal direction enum."""
+    @property
+    def value(self) -> str: ...
+
+
+@runtime_checkable
+class AgentResponseProtocol(Protocol):
+    """Protocol for agent response dataclass."""
+    agent_id: str
+    signal: str
+    confidence: float
+    reasoning: str
+    sources: list[str]
+    metadata: dict
+
+    def to_dict(self) -> dict: ...
+
+
+@runtime_checkable
+class BaseAgentProtocol(Protocol):
+    """Protocol for base agent class."""
+    agent_id: str
+    agent_name: str
+
+    async def analyze(self, state: dict) -> AgentResponseProtocol: ...
+    def run_sync(self, state: dict) -> AgentResponseProtocol: ...
+
+
+@runtime_checkable
+class DeterministicClock(Protocol):
+    """Protocol for deterministic clock."""
+    def utc_now(self) -> datetime: ...
+
+
+@runtime_checkable
+class EphemerisProtocol(Protocol):
+    """Protocol for ephemeris computation."""
+    def get_positions(self, dt: datetime) -> dict: ...
+    def get_aspects(self, positions: dict) -> list[dict]: ...
+
 
 __all__ = [
     "AgentResponseProtocol",

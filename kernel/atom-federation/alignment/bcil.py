@@ -230,9 +230,9 @@ class TrustWeightedMergeDecider:
         all_trusts = list(branch_trusts.values())
         if all_trusts:
             max_trust = max(all_trusts)
-            min_trust = min(all_trusts)
+            min(all_trusts)
         else:
-            max_trust = min_trust = 0.0
+            max_trust = 0.0
 
         trust_threshold_met = max_trust >= self.MIN_TRUST_THRESHOLD
         quorum_satisfied = len(quorum_passed) >= 1

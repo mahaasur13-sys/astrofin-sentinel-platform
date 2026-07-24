@@ -1,28 +1,136 @@
-# Dependabot configuration
-# Updates GitHub Actions and pip dependencies weekly.
+# =============================================================================
+# Dependabot config — AstroFin Sentinel Platform
+#
+# Расписание:
+#   - pip:       понедельник 09:00 MSK (early week — gives time to react)
+#   - docker:    вторник      09:00 MSK
+#   - github-actions: среда 09:00 MSK
+#
+# Группировка: minor + patch объединяются в один PR ("deps-minor"),
+# major-обновления и security — отдельными PR для ревью.
+# =============================================================================
+
 version: 2
+
+# ----------------------------------------------------------------------
+# pip (Python ecosystem)
+# ----------------------------------------------------------------------
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "ci"
-    labels:
-      - "dependencies"
-      - "ci"
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-    commit-message:
-      prefix: "deps"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Samara"
     labels:
       - "dependencies"
       - "python"
+    # Группируем все non-major обновления в один PR
+    groups:
+      python-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      python-major:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
+    # Коммитим через auto в существующий PR (без review на каждом коммите)
+    commit-message:
+      prefix: "deps(pip)"
+      prefix-development: "deps(pip-dev)"
+      include: "scope"
+    # Сразу открываем PR, но требуем human review (см. CODEOWNERS)
+    open-pull-requests-limit: 10
+    # Игнорируем heavy ML-зависимости (часто ломают обратную совместимость)
+    ignore:
+      - dependency-name: "torch"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "transformers"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tensorflow"
+      - dependency-name: "jax*"
+    # Reviewers
+    reviewers:
+      - "mahaasur13-sys"
+    # Без авто-rebase — стараемся не переписывать историю активных веток
+    rebase-strategy: "disabled"
+
+# ----------------------------------------------------------------------
+# Docker (Dockerfile base images)
+# ----------------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:00"
+      timezone: "Europe/Samara"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "deps(docker)"
+      include: "scope"
+    open-pull-requests-limit: 5
+    # Только patch для базового образа (major может сломать многое)
+    ignore:
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major"]
+
+# ----------------------------------------------------------------------
+# GitHub Actions
+# ----------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
+      timezone: "Europe/Samara"
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "deps(ci)"
+      include: "scope"
     open-pull-requests-limit: 5
     groups:
-      production:
-        dependency-type: "production"
-      development:
-        dependency-type: "development"
+      actions-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+# ----------------------------------------------------------------------
+# Pre-commit hooks (если используется .pre-commit-config.yaml)
+# ----------------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "precommit"
+    allow:
+      - dependency-type: "direct"
+    # Обновляем только pre-commit-related пакеты
+    ignore:
+      - dependency-name: "*"
+    commit-message:
+      prefix: "deps(precommit)"
+
+# =============================================================================
+# Security-only updates — отдельный конфиг (ежедневный)
+# =============================================================================
+# Dependabot автоматически открывает security PR при наличии advisories
+# в GitHub Security Advisories database (независимо от расписания).
+# severity: critical -> немедленно
+# severity: high     -> daily
+# =============================================================================

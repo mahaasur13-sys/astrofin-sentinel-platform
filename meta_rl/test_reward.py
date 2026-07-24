@@ -71,7 +71,8 @@ class TestRewardConfig:
             RewardConfig()
         reward_warnings = [w for w in caught if "RewardConfig" in str(w.message)]
         assert reward_warnings == [], (
-            f"Default RewardConfig unexpectedly warned: " f"{[str(w.message) for w in reward_warnings]}"
+            f"Default RewardConfig unexpectedly warned: "
+            f"{[str(w.message) for w in reward_warnings]}"
         )
 
     def test_misweighted_construction_warns_and_renormalises(self):
@@ -107,7 +108,8 @@ class TestRewardConfig:
             )
         reward_warnings = [w for w in caught if "RewardConfig" in str(w.message)]
         assert reward_warnings == [], (
-            f"Sum 1.005 (within tolerance) should not warn, got: " f"{[str(w.message) for w in reward_warnings]}"
+            f"Sum 1.005 (within tolerance) should not warn, got: "
+            f"{[str(w.message) for w in reward_warnings]}"
         )
 
 

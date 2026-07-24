@@ -22,6 +22,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class OriginMode(Enum):
     ALLOW_ALL = auto()       # No restrictions
@@ -157,7 +161,7 @@ def _test_origin_policy():
     policy = OriginPolicy(mode=OriginMode.ALLOW_ALL)
     r = policy.check("anyone")
     assert r.allowed is True
-    print("✅ ALLOW_ALL: any sender accepted")
+    log.info("✅ ALLOW_ALL: any sender accepted")
 
     # ── WHITELIST ─────────────────────────────────────────────────
     policy = OriginPolicy(
@@ -166,14 +170,14 @@ def _test_origin_policy():
     )
     r1 = policy.check("node_A")
     assert r1.allowed is True
-    print("✅ WHITELIST: node_A accepted")
+    log.info("✅ WHITELIST: node_A accepted")
 
     try:
         policy.check("node_C")
         assert False, "should have raised"
     except OriginViolation as e:
         assert "node_C" in str(e)
-        print("✅ WHITELIST: node_C rejected")
+        log.info("✅ WHITELIST: node_C rejected")
 
     # ── TRUST_THRESHOLD ───────────────────────────────────────────
     policy = OriginPolicy(
@@ -182,14 +186,14 @@ def _test_origin_policy():
     )
     r2 = policy.check("node_X", trust_score=0.8)
     assert r2.allowed is True
-    print("✅ TRUST_THRESHOLD: score=0.8 >= 0.3 → accepted")
+    log.info("✅ TRUST_THRESHOLD: score=0.8 >= 0.3 → accepted")
 
     try:
         policy.check("node_Y", trust_score=0.1)
         assert False, "should have raised"
     except OriginViolation as e:
         assert "0.1" in str(e) and "0.3" in str(e)
-        print("✅ TRUST_THRESHOLD: score=0.1 < 0.3 → rejected")
+        log.info("✅ TRUST_THRESHOLD: score=0.1 < 0.3 → rejected")
 
     # ── missing trust score ────────────────────────────────────────
     policy = OriginPolicy(mode=OriginMode.TRUST_THRESHOLD, trust_threshold=0.3)
@@ -198,14 +202,14 @@ def _test_origin_policy():
         assert False, "should have raised"
     except OriginViolation as e:
         assert "requires trust_score" in str(e)
-        print("✅ TRUST_THRESHOLD: missing trust_score → rejected")
+        log.info("✅ TRUST_THRESHOLD: missing trust_score → rejected")
 
     # ── update_trust_score ─────────────────────────────────────────
     policy = OriginPolicy(mode=OriginMode.TRUST_THRESHOLD, trust_threshold=0.5)
     policy.update_trust_score("node_Z", 0.9)
     r3 = policy.check("node_Z")
     assert r3.allowed is True
-    print("✅ update_trust_score: dynamic trust update")
+    log.info("✅ update_trust_score: dynamic trust update")
 
     # ── whitelist add/remove ───────────────────────────────────────
     policy = OriginPolicy(mode=OriginMode.WHITELIST, allowed_nodes={"node_A"})
@@ -213,9 +217,9 @@ def _test_origin_policy():
     assert "node_B" in policy.allowed_nodes
     policy.remove_from_whitelist("node_A")
     assert "node_A" not in policy.allowed_nodes
-    print("✅ whitelist add/remove")
+    log.info("✅ whitelist add/remove")
 
-    print("\n✅ v9.9 OriginPolicy — all checks passed")
+    log.info("\n✅ v9.9 OriginPolicy — all checks passed")
 
 
 if __name__ == "__main__":

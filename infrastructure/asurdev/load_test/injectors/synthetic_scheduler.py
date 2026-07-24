@@ -4,12 +4,12 @@ Synthetic Scheduler — injects jobs into simulated cluster state.
 Used when real Slurm/System76 is not available.
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Optional
+
 import random
-from ..workload.types import WorkloadProfile
-from ..workload.generator import WorkloadGenerator, Job
+from dataclasses import dataclass
+from datetime import datetime
+
+from ..workload.generator import Job
 
 
 @dataclass
@@ -30,9 +30,9 @@ class JobResult:
     """Result of job execution in simulator."""
     job_id: str
     started_at: datetime
-    completed_at: Optional[datetime]
+    completed_at: datetime | None
     exit_code: int
-    node: Optional[str]
+    node: str | None
     wait_time_sec: float
     runtime_sec: float
     scheduled: bool = False
@@ -127,7 +127,7 @@ class SyntheticScheduler:
             p50_runtime_sec=float(sorted(runtimes)[len(runtimes)//2]) if runtimes else 0,
             p99_runtime_sec=float(sorted(runtimes)[int(len(runtimes)*0.99)]) if len(runtimes) > 10 else 0,
             queue_depth_peak=max_queue,
-            node_states={k: v for k, v in self.nodes.items()},
+            node_states=dict(self.nodes.items()),
         )
 
     def _try_schedule(self, job: Job) -> bool:

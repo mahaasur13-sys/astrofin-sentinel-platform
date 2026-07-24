@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 # ATOM-R-041 Unified Data Contract
 #
 # Single source of truth for Idea structure. All modules that touch
 # Idea must import from here. No dict/dataclass divergence.
 #
 # Lifecycle: proposed -> scored -> injected -> tested -> accepted/rejected
-
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -87,7 +88,9 @@ class Idea:
         ]
 
     def items(self):
-        return dict(zip(self.keys(), [getattr(self, k) for k in self.keys()], strict=False))
+        return dict(
+            zip(self.keys(), [getattr(self, k) for k in self.keys()], strict=False)
+        )
 
     def stage(self) -> IdeaStage:
         if self.status == IdeaStatus.PROPOSED.value:

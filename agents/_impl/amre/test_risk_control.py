@@ -12,6 +12,8 @@ Tests:
     pytest agents/_impl/amre/test_risk_control.py -v
 """
 
+from __future__ import annotations
+
 from unittest.mock import patch
 
 # Импортируем после patch окружения

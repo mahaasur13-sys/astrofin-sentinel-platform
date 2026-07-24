@@ -3,6 +3,8 @@ Registry: централизованный доступ ко всем агент
 Output Adapter: единый нормализатор после registry.run().
 """
 
+from __future__ import annotations
+
 import asyncio
 import builtins
 import logging
@@ -221,7 +223,17 @@ AGENT_AGENTS: dict[str, dict] = {
         "ttc": True,
         "selfq": False,
         "path": "agents._impl.synthesis_agent",
-        "method": "SynthesisAgent",
+        "method": "run_synthesis_agent",
+    },
+    "CompromiseAgent": {
+        "name": "CompromiseAgent",
+        "domain": "synthesis",
+        "weight": 0.00,
+        "karl": False,
+        "ttc": False,
+        "selfq": False,
+        "path": "agents._impl.compromise_agent",
+        "method": "run_compromise_agent",
     },
 }
 
@@ -287,7 +299,9 @@ class GitAgentRegistry:
             return False, f"No path defined for {agent_name}"
         return True, "OK"
 
-    async def run(self, agent_name: str, input_state: dict[str, Any], use_ttc: bool = False) -> NormalizedOutput:
+    async def run(
+        self, agent_name: str, input_state: dict[str, Any], use_ttc: bool = False
+    ) -> NormalizedOutput:
         """
         Run agent with unified output normalization.
         Automatically handles TTC fallback for non-TTC agents.
@@ -308,7 +322,9 @@ class GitAgentRegistry:
 
         if use_ttc and not supports_ttc:
             # TTC fallback: single-pass execution
-            logger.debug(f"[Registry] {agent_name} doesn't support TTC, using single-pass")
+            logger.debug(
+                f"[Registry] {agent_name} doesn't support TTC, using single-pass"
+            )
             raw_output = await self._single_pass(agent_name, input_state)
         elif use_ttc and supports_ttc:
             # Full TTC execution
@@ -337,7 +353,9 @@ class GitAgentRegistry:
                     instance = cls()
                     if hasattr(instance, "run"):
                         result = await instance.run(input_state)
-                        return result.to_dict() if hasattr(result, "to_dict") else result
+                        return (
+                            result.to_dict() if hasattr(result, "to_dict") else result
+                        )
                 return {
                     "signal": "NEUTRAL",
                     "confidence": 50,
@@ -368,7 +386,9 @@ class GitAgentRegistry:
                 "metadata": {"error": str(e)},
             }
 
-    async def _ttc_pass(self, agent_name: str, input_state: dict, k: int = 5) -> dict[str, Any]:
+    async def _ttc_pass(
+        self, agent_name: str, input_state: dict, k: int = 5
+    ) -> dict[str, Any]:
         """
         Multi-trajectory TTC execution.
         Returns aggregated result across k trajectories.
@@ -430,7 +450,9 @@ class GitAgentRegistry:
         tasks = [self.run(a, input_state, use_ttc=use_ttc) for a in agents]
         return await asyncio.gather(*tasks)
 
-    def weighted_consensus(self, outputs: builtins.list[NormalizedOutput]) -> dict[str, Any]:
+    def weighted_consensus(
+        self, outputs: builtins.list[NormalizedOutput]
+    ) -> dict[str, Any]:
         """Compute domain-weighted consensus signal."""
         weights = [self.get_info(o.agent_name).get("weight", 0.05) for o in outputs]
         return compute_weighted_signal(outputs, weights)
@@ -492,11 +514,11 @@ def main():
             ttc_only=args.ttc_only,
         )
         fmt = "{:<25} {:<12} {:>6} {:>6} {:>6} {:>6}"
-        print(fmt.format("Name", "Domain", "Wt%", "KARL", "TTC", "SelfQ"))
-        print("-" * 65)
+        log.info(fmt.format("Name", "Domain", "Wt%", "KARL", "TTC", "SelfQ"))
+        log.info("-" * 65)
         for name in agents:
             info = get_agent_info(name)
-            print(
+            log.info(
                 fmt.format(
                     name,
                     info["domain"],
@@ -506,11 +528,11 @@ def main():
                     "✅" if info.get("selfq") else "❌",
                 )
             )
-        print(f"\nTotal: {len(agents)} agents")
+        log.info(f"\nTotal: {len(agents)} agents")
 
     elif args.cmd == "validate":
         ok, msg = validate_agent(args.name)
-        print(f"{'✅' if ok else '❌'} {args.name}: {msg}")
+        log.info(f"{'✅' if ok else '❌'} {args.name}: {msg}")
 
     elif args.cmd == "run":
         import asyncio
@@ -524,10 +546,10 @@ def main():
                 "regime": "NORMAL",
             }
             out = await reg.run(args.name, state, use_ttc=args.ttc)
-            print(f"Signal:    {out.signal}")
-            print(f"Confidence: {out.confidence}")
-            print(f"Reasoning: {out.reasoning[:200]}")
-            print(f"Metadata:  {out.metadata}")
+            log.info(f"Signal:    {out.signal}")
+            log.info(f"Confidence: {out.confidence}")
+            log.info(f"Reasoning: {out.reasoning[:200]}")
+            log.info(f"Metadata:  {out.metadata}")
 
         asyncio.run(do_run())
 

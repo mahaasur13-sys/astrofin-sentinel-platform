@@ -3,10 +3,8 @@
 ACOS Memory Storage Backend — with has_trace() for idempotency.
 Patch 2: Added has_trace() method.
 """
-import json
 import threading
 from datetime import datetime
-from typing import Any
 
 
 class MemoryTraceStorage:

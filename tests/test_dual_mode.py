@@ -1,5 +1,7 @@
 """tests/test_dual_mode.py - ATOM-R-027: Dual-Mode Backward Compatibility Tests"""
 
+from __future__ import annotations
+
 import asyncio
 import sys
 import traceback
@@ -27,7 +29,9 @@ def test_legacy_mode_produces_same_result():
         )
         assert result is not None
         assert "final_recommendation" in result
-        print(f"   Legacy result: signal={result['final_recommendation'].get('signal', 'N/A')}")
+        print(
+            f"   Legacy result: signal={result['final_recommendation'].get('signal', 'N/A')}"
+        )
         return True
 
     return asyncio.run(run_test())

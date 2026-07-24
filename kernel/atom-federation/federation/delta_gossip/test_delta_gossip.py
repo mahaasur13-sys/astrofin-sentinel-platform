@@ -321,7 +321,7 @@ class TestDeltaGossipIntegration:
             changed_node_ids=["node_A", "node_B"],
             changed_hashes={"node_A": "ha", "node_B": "hb"},
         )
-        vec1 = make_vector("n1", theta_hash="root_v2")
+        make_vector("n1", theta_hash="root_v2")
 
         # Node2: receives delta
         p2 = DeltaGossipProtocol(node_id="n2")

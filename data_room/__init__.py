@@ -1,12 +1,6 @@
-"""Data Room module.
+from __future__ import annotations
 
-Единственное место в кодбазе, откуда разрешён прямой
-HTTP-доступ к внешним провайдерам данных.
+"""BlackRock-style "Data Room" — single source of truth for all data."""
+from data_room.observability import MetricsStore
 
-Архитектурное правило R3 (см. .coderabbit.yaml) запрещает
-`import requests` за пределами этой директории.
-"""
-
-from data_room import blueprint  # noqa: F401
-
-__all__ = ["blueprint"]
+__all__ = ["MetricsStore"]

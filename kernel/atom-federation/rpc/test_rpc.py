@@ -120,8 +120,10 @@ def pump_nodes(node_a, node_b):
     t_a, r_a = start_pump(node_a)
     t_b, r_b = start_pump(node_b)
     yield (node_a, node_b)
-    r_a[0] = False; r_b[0] = False
-    t_a.join(timeout=0.3); t_b.join(timeout=0.3)
+    r_a[0] = False
+    r_b[0] = False
+    t_a.join(timeout=0.3)
+    t_b.join(timeout=0.3)
 
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
@@ -320,7 +322,8 @@ def test_deterministic_replay_over_rpc(two_ports):
 
         srv_a = create_server(None, "a", port_a, adapter_a.inbound_queue)
         srv_b = create_server(None, "b", port_b, adapter_b.inbound_queue)
-        srv_a.start(); srv_b.start()
+        srv_a.start()
+        srv_b.start()
         time.sleep(0.1)
 
         mesh_a = NodeMesh("a")
@@ -340,7 +343,8 @@ def test_deterministic_replay_over_rpc(two_ports):
                 msg_ids.append(mid)
 
         time.sleep(0.3)
-        srv_a.stop(0); srv_b.stop(0)
+        srv_a.stop(0)
+        srv_b.stop(0)
         mesh_a.get_endpoint("b").client.close()
         mesh_b.get_endpoint("a").client.close()
         return msg_ids

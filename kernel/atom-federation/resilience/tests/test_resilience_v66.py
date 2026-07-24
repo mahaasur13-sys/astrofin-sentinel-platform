@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.dirname(__file__) + "/..")
 
 try:
     from resilience.adaptive_objective import AdaptiveObjectiveController
-    from resilience.decision_lattice import DecisionLattice, LatticeDecision
+    from resilience.decision_lattice import DecisionLattice, LatticeDecision  # noqa: F401
     from resilience.predictive_controller import PredictiveController
     from resilience.self_model import SelfModel, SystemState
     HAS_V66 = True
@@ -267,7 +267,7 @@ class TestGlobalObjectiveIntegration:
             {"action": "ADD_OBSERVATION", "outcome": "success", "latency_ms": 30, "violations": 0, "conflicts": 0},
         ]
         snap = ctrl.get_snapshot()
-        w1 = obj_ctrl.optimizer.get_weights()
+        obj_ctrl.optimizer.get_weights()
         obj_ctrl.optimizer.gradient_descent_step(snap, history)
         w2 = obj_ctrl.optimizer.get_weights()
         # Weights may or may not change depending on history, but should not raise

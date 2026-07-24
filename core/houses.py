@@ -3,6 +3,8 @@
 Michael P. Munkasey's "An Astrological House Formulary"
 """
 
+from __future__ import annotations
+
 import math
 from dataclasses import dataclass
 from datetime import datetime
@@ -23,7 +25,11 @@ def julian_day_to_local_sidereal_time(jd: float, longitude: float) -> float:
     """Конверсия JD в местное звёздное время"""
     # Greenwich Sidereal Time
     T = (jd - 2451545.0) / 36525.0
-    GST = 280.46061837 + 360.98564736629 * (jd - 2451545.0) + T * T * (0.000387933 - T / 38710000.0)
+    GST = (
+        280.46061837
+        + 360.98564736629 * (jd - 2451545.0)
+        + T * T * (0.000387933 - T / 38710000.0)
+    )
     GST = GST % 360
     # Местное
     LST = (GST + longitude) % 360
@@ -72,7 +78,9 @@ def normalize_degrees(deg: float) -> float:
     return deg
 
 
-def calculate_ascendant(local_sidereal_time: float, latitude: float, obliquity: float = 23.4393) -> float:
+def calculate_ascendant(
+    local_sidereal_time: float, latitude: float, obliquity: float = 23.4393
+) -> float:
     """
     Расчёт Асцендента
 
@@ -105,7 +113,9 @@ def calculate_ascendant(local_sidereal_time: float, latitude: float, obliquity: 
     return normalize_degrees(asc)
 
 
-def calculate_midheaven(local_sidereal_time: float, obliquity: float = 23.4393) -> float:
+def calculate_midheaven(
+    local_sidereal_time: float, obliquity: float = 23.4393
+) -> float:
     """
     Расчёт Середины Неба (MC)
 
@@ -122,7 +132,9 @@ def calculate_midheaven(local_sidereal_time: float, obliquity: float = 23.4393) 
     obl_rad = math.radians(obliquity)
     lst_rad = math.radians(local_sidereal_time)
 
-    mc = math.degrees(math.atan2(math.sin(lst_rad) * math.cos(obl_rad), math.cos(lst_rad)))
+    mc = math.degrees(
+        math.atan2(math.sin(lst_rad) * math.cos(obl_rad), math.cos(lst_rad))
+    )
 
     return normalize_degrees(mc)
 
@@ -133,8 +145,8 @@ def calculate_placidus_cusps(
     ra_asc: float,
     ra_mc: float,
     latitude: float,
-    declination: float,
-) -> list[float]:
+    _declination: float,
+) -> List[float]:
     """
     Расчёт куспидов по системе Placidus
 
@@ -183,7 +195,7 @@ def calculate_placidus_cusps(
     return cusps
 
 
-def calculate_porphyry_cusps(asc: float, mc: float) -> list[float]:
+def calculate_porphyry_cusps(asc: float, mc: float) -> List[float]:
     """
     Расчёт куспидов по системе Porphyry
 
@@ -230,7 +242,7 @@ def calculate_porphyry_cusps(asc: float, mc: float) -> list[float]:
     return cusps
 
 
-def calculate_equal_houses(asc: float) -> list[float]:
+def calculate_equal_houses(asc: float) -> List[float]:
     """
     Расчёт Equal Houses (от ASC)
 
@@ -245,7 +257,7 @@ def calculate_equal_houses(asc: float) -> list[float]:
     return [normalize_degrees(asc + i * 30) for i in range(12)]
 
 
-def calculate_whole_sign_houses(asc: float) -> list[float]:
+def calculate_whole_sign_houses(asc: float) -> List[float]:
     """
     Расчёт Whole Sign Houses
 
@@ -262,7 +274,7 @@ def calculate_whole_sign_houses(asc: float) -> list[float]:
     return [normalize_degrees(asc_sign_start + i * 30) for i in range(12)]
 
 
-def calculate_alcabitius_cusps(ra_asc: float, ra_mc: float) -> list[float]:
+def calculate_alcabitius_cusps(ra_asc: float, ra_mc: float) -> List[float]:
     """
     Расчёт куспидов по системе Alcabitius
 
@@ -311,7 +323,7 @@ def calculate_alcabitius_cusps(ra_asc: float, ra_mc: float) -> list[float]:
     return cusps_ra
 
 
-def normalize_degrees(deg: float, is_ra: bool = False) -> float:
+def normalize_degrees_custom(deg: float, is_ra: bool = False) -> float:
     """Нормализовать градусы
 
     Args:
@@ -350,7 +362,7 @@ class HouseCalculator:
         latitude: float,
         longitude: float,
         obliquity: float = 23.4393,
-    ) -> dict:
+    ) -> Dict:
         """
         Расчёт всех куспидов домов
 

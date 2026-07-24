@@ -13,6 +13,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class ViolationType(Enum):
     FS_WRITE = "FS_WRITE"
@@ -120,8 +124,8 @@ if __name__ == "__main__":
         max_memory_bytes=1_000_000_000,
     )
     result = sandbox.execute({"id": "test", "output": 42})
-    print(f"Allowed: {result.allowed}, Output: {result.output}")
+    log.info(f"Allowed: {result.allowed}, Output: {result.output}")
     result2 = sandbox.execute({"id": "bad", "write_path": "/etc/passwd"})
-    print(
+    log.info(
         f"Blocked: {result2.violations[0].type.value if result2.violations else 'none'}"
     )

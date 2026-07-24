@@ -8,6 +8,8 @@ Tests:
   5. Mode gating works
 """
 
+from __future__ import annotations
+
 import math
 import os
 import sys
@@ -44,7 +46,9 @@ class TestDrawdownKillSwitch:
         assert ok, f"Kill should NOT trigger at 6% DD, got dd={dd:.2%}"
 
     def test_kill_disabled(self):
-        engine = RiskEngineV2(RiskConfigV2(max_drawdown=0.05, kill_switch_enabled=False))
+        engine = RiskEngineV2(
+            RiskConfigV2(max_drawdown=0.05, kill_switch_enabled=False)
+        )
         engine.update_equity(100_000)
         engine.update_equity(88_000)
         ok, _, _ = engine.check_kill_switch()
@@ -126,7 +130,9 @@ class TestSlippageThreshold:
     def test_rejects_high_slippage(self):
         checker = ExecutionSanityChecker(SanityConfig(max_slippage_bps=50.0))
         market = MarketState("BTC", 50_000, 49_990, 50_005, 10, 1e9, 0.02, "NORMAL")
-        order = OrderRequest("BTC", "BUY", 0.5, 50_000, "MARKET", slippage_bp_estimate=75.0)
+        order = OrderRequest(
+            "BTC", "BUY", 0.5, 50_000, "MARKET", slippage_bp_estimate=75.0
+        )
         result = checker.validate(order, market)
         assert result.status == ValidationStatus.REJECTED
         assert "SLIPPAGE" in result.reason
@@ -134,7 +140,9 @@ class TestSlippageThreshold:
     def test_approves_normal_slippage(self):
         checker = ExecutionSanityChecker(SanityConfig(max_slippage_bps=50.0))
         market = MarketState("BTC", 50_000, 49_990, 50_005, 10, 1e9, 0.02, "NORMAL")
-        order = OrderRequest("BTC", "BUY", 0.5, 50_000, "MARKET", slippage_bp_estimate=5.0)
+        order = OrderRequest(
+            "BTC", "BUY", 0.5, 50_000, "MARKET", slippage_bp_estimate=5.0
+        )
         result = checker.validate(order, market)
         assert result.status == ValidationStatus.APPROVED
 
@@ -249,17 +257,25 @@ class TestModeGating:
 class TestIntegration:
     def test_full_pipeline(self):
         enforcer = ModeEnforcer(TradingMode.LIVE_LIMITED)
-        engine = RiskEngineV2(RiskConfigV2(max_drawdown=0.10, max_exposure_per_asset=0.20))
-        checker = ExecutionSanityChecker(SanityConfig(max_slippage_bps=50, max_spread_bps=100))
+        engine = RiskEngineV2(
+            RiskConfigV2(max_drawdown=0.10, max_exposure_per_asset=0.20)
+        )
+        checker = ExecutionSanityChecker(
+            SanityConfig(max_slippage_bps=50, max_spread_bps=100)
+        )
 
         engine.update_equity(100_000)
         engine.update_equity(95_000)
         market = MarketState("BTC", 50_000, 49_990, 50_005, 15, 1e9, 0.03, "NORMAL")
-        order = OrderRequest("BTC", "BUY", 0.5, 50_000, "MARKET", slippage_bp_estimate=10.0)
+        order = OrderRequest(
+            "BTC", "BUY", 0.5, 50_000, "MARKET", slippage_bp_estimate=10.0
+        )
 
         ok, _ = enforcer.check_order(0.15, True, False, False, False, 100_000)
         assert ok
-        status, size, msg = engine.pre_trade_check("BTC", 0.15 * 100_000, 0.03, "NORMAL")
+        status, size, msg = engine.pre_trade_check(
+            "BTC", 0.15 * 100_000, 0.03, "NORMAL"
+        )
         assert status in ("APPROVED", "REDUCED"), f"Got {status}: {msg}"
         result = checker.validate(order, market)
         assert result.status == ValidationStatus.APPROVED

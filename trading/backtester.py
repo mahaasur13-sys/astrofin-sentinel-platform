@@ -1,9 +1,13 @@
 """trading/backtester.py — ATOM-STEP-8: Backtesting Engine"""
 
+from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
 from .portfolio import Portfolio, PositionSide
+
+import logging
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -41,20 +45,22 @@ class BacktestResult:
     def print_summary(self):
         s = self.portfolio_summary
         trades = self.trades
-        print()
-        print("=" * 60)
-        print("  BACKTEST RESULTS")
-        print("=" * 60)
-        print(f"  Initial Capital:  ${s['initial_capital']:,.2f}")
-        print(f"  Final Equity:    ${s['final_equity']:,.2f}")
-        print(f"  Total Return:    {s['total_return_pct']:+.2f}%")
-        print(f"  Max Drawdown:    {s['max_drawdown_pct']:.2f}%")
-        print(f"  Sharpe Ratio:    {s['sharpe_ratio']:.2f}")
-        print(f"  Win Rate:        {s['win_rate_pct']:.1f}% ({s['win_count']}/{s['total_trades']})")
-        print(f"  Total Trades:    {s['total_trades']}")
+        log.info("")
+        log.info("=" * 60)
+        log.info("  BACKTEST RESULTS")
+        log.info("=" * 60)
+        log.info(f"  Initial Capital:  ${s['initial_capital']:,.2f}")
+        log.info(f"  Final Equity:    ${s['final_equity']:,.2f}")
+        log.info(f"  Total Return:    {s['total_return_pct']:+.2f}%")
+        log.info(f"  Max Drawdown:    {s['max_drawdown_pct']:.2f}%")
+        log.info(f"  Sharpe Ratio:    {s['sharpe_ratio']:.2f}")
+        log.info(
+            f"  Win Rate:        {s['win_rate_pct']:.1f}% ({s['win_count']}/{s['total_trades']})"
+        )
+        log.info(f"  Total Trades:    {s['total_trades']}")
         total_comm = sum(t.commission for t in trades)
-        print(f"  Commission Paid: ${total_comm:.2f}")
-        print("=" * 60)
+        log.info(f"  Commission Paid: ${total_comm:.2f}")
+        log.info("=" * 60)
 
 
 class Backtester:
@@ -85,22 +91,36 @@ class Backtester:
             self.signals_log.append(sig)
             pos = self.portfolio.positions.get(symbol)
             in_position = pos and pos.side != PositionSide.FLAT
-            if signal == "LONG" and not in_position and len(self.portfolio.positions) < self.config.max_positions:
+            if (
+                signal == "LONG"
+                and not in_position
+                and len(self.portfolio.positions) < self.config.max_positions
+            ):
                 size = self._position_size(confidence)
                 sl = current_price * (1 - self.config.stop_loss_pct / 100)
                 tp = current_price * (1 + self.config.take_profit_pct / 100)
-                self.portfolio.open_position(symbol, PositionSide.LONG, current_price, size, sl, tp)
-            elif signal == "SHORT" and not in_position and len(self.portfolio.positions) < self.config.max_positions:
+                self.portfolio.open_position(
+                    symbol, PositionSide.LONG, current_price, size, sl, tp
+                )
+            elif (
+                signal == "SHORT"
+                and not in_position
+                and len(self.portfolio.positions) < self.config.max_positions
+            ):
                 size = self._position_size(confidence)
                 sl = current_price * (1 + self.config.stop_loss_pct / 100)
                 tp = current_price * (1 - self.config.take_profit_pct / 100)
-                self.portfolio.open_position(symbol, PositionSide.SHORT, current_price, size, sl, tp)
+                self.portfolio.open_position(
+                    symbol, PositionSide.SHORT, current_price, size, sl, tp
+                )
             elif signal == "NEUTRAL" and in_position:
                 self._close_trade(symbol, current_price, ts)
             if in_position:
                 self._check_stops(pos, current_price, ts)
             self.portfolio.record_equity({symbol: current_price})
-            self.equity_curve.append((ts, self.portfolio.equity({symbol: current_price})))
+            self.equity_curve.append(
+                (ts, self.portfolio.equity({symbol: current_price}))
+            )
         for symbol, pos in list(self.portfolio.positions.items()):
             if pos.side != PositionSide.FLAT:
                 ps = prices.get(symbol, [])

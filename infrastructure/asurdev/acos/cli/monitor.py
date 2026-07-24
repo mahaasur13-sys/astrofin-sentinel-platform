@@ -4,7 +4,15 @@ ACOS Monitor CLI — unified monitoring interface switcher.
 Usage: acos monitor [status|switch|list|logs|alerts]
 """
 from __future__ import annotations
-import os, sys, json, subprocess, time, socket
+
+import logging
+log = logging.getLogger(__name__)
+
+import json
+import os
+import socket
+import subprocess
+import sys
 from pathlib import Path
 
 CONFIG_DIR = Path(os.getenv("ACOS_CONFIG_DIR", "/etc/acos"))
@@ -31,7 +39,7 @@ def check_port(host: str, port: int, timeout: float = 2.0) -> bool:
     try:
         with socket.create_connection((host, port), timeout=timeout):
             return True
-    except (socket.error, OSError):
+    except OSError:
         return False
 
 def get_tunnel_status() -> dict:
@@ -47,11 +55,11 @@ def cmd_status() -> int:
     cfg = load_config()
     active = cfg.get("active_backend", DEFAULT_BACKEND)
     victoria_url = cfg.get("victoria_url", "http://localhost:8428")
-    print("═══════════════════════════════════════")
-    print("  ACOS Cluster Status")
-    print("═══════════════════════════════════════")
+    log.info("═══════════════════════════════════════")
+    log.info("  ACOS Cluster Status")
+    log.info("═══════════════════════════════════════")
     tunnel = get_tunnel_status()
-    print(f"  {'✅' if tunnel['up'] else '❌'} AmneziaWG Tunnel (wg0): {'UP' if tunnel['up'] else 'DOWN'}")
+    log.info(f"  {'✅' if tunnel['up'] else '❌'} AmneziaWG Tunnel (wg0): {'UP' if tunnel['up'] else 'DOWN'}")
     # VictoriaMetrics
     try:
         import urllib.request
@@ -59,10 +67,10 @@ def cmd_status() -> int:
         vm_up = req.status == 200
     except Exception:
         vm_up = False
-    print(f"  {'✅' if vm_up else '❌'} VictoriaMetrics: {victoria_url} [{'up' if vm_up else 'DOWN'}]")
+    log.info(f"  {'✅' if vm_up else '❌'} VictoriaMetrics: {victoria_url} [{'up' if vm_up else 'DOWN'}]")
     # Backends
-    print()
-    print("  Monitoring Backends:")
+    log.info("")
+    log.info("  Monitoring Backends:")
     for name, info in BACKENDS.items():
         marker = "◀ ACTIVE" if name == active else "  "
         if info["port"] is None:
@@ -71,19 +79,19 @@ def cmd_status() -> int:
             up = check_port("localhost", info["port"])
             icon = "✅" if up else "❌"
             status = "up" if up else "DOWN"
-        print(f"    {marker} {icon} {name:12} {info['label']:20} [{status}]")
-    print()
+        log.info(f"    {marker} {icon} {name:12} {info['label']:20} [{status}]")
+    log.info("")
     return 0
 
 def cmd_switch(backend: str) -> int:
     if backend not in BACKENDS:
-        print(f"ERROR: Unknown backend '{backend}'. Available: {', '.join(BACKENDS.keys())}")
+        log.info(f"ERROR: Unknown backend '{backend}'. Available: {', '.join(BACKENDS.keys())}")
         return 1
     cfg = load_config()
     old = cfg.get("active_backend", DEFAULT_BACKEND)
     cfg["active_backend"] = backend
     save_config(cfg)
-    print(f"Switched: {old} → {backend}  [{BACKENDS[backend]['label']}]")
+    log.info(f"Switched: {old} → {backend}  [{BACKENDS[backend]['label']}]")
     # Log event
     try:
         sys.path.insert(0, "/opt/acos")
@@ -92,9 +100,9 @@ def cmd_switch(backend: str) -> int:
         log = EventLog()
         log.emit("acos-monitor", EventType.DAG_CREATED,
             {"action": "MONITOR_SWITCH", "from": old, "to": backend})
-        print("  ✅ Event logged to EventLog")
+        log.info("  ✅ Event logged to EventLog")
     except Exception:
-        print("  ⚠️  EventLog unavailable")
+        log.info("  ⚠️  EventLog unavailable")
     return 0
 
 HELP = """ACOS Monitor CLI
@@ -114,20 +122,25 @@ Examples:
 
 def main() -> int:
     if len(sys.argv) < 2 or sys.argv[1] in ("help", "--help"):
-        print(HELP); return 0
+        log.info(HELP)
+        return 0
     cmd = sys.argv[1]
-    if cmd == "status": return cmd_status()
+    if cmd == "status":
+        return cmd_status()
     elif cmd == "switch":
-        if len(sys.argv) < 3: print("Usage: acos monitor switch <backend>"); return 1
+        if len(sys.argv) < 3: log.info("Usage: acos monitor switch <backend>")
+        return 1
         return cmd_switch(sys.argv[2])
     elif cmd == "list":
         cfg = load_config()
         active = cfg.get("active_backend", DEFAULT_BACKEND)
         for name, info in BACKENDS.items():
-            print(f"  {'◀ ' if name == active else '  '}{name:12} {info['label']}")
+            log.info(f"  {'◀ ' if name == active else '  '}{name:12} {info['label']}")
         return 0
     else:
-        print(f"Unknown: {cmd}"); print(HELP); return 1
+        log.info(f"Unknown: {cmd}")
+        log.info(HELP)
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())

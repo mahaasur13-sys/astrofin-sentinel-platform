@@ -155,11 +155,19 @@ class Settings(BaseSettings):
     redis_host: str = Field(default="localhost")
     redis_port: int = Field(default=6379, ge=1, le=65_535)
 
-    # ── RAG / Knowledge ───────────────────────────────────────────────
-    rag_backend: str = Field(default="pgvector")
+    # ── Production RAG Configuration (Phase 4.8b) ────────────────────────
+    RAG_MODEL_NAME: str = Field(default="intfloat/multilingual-e5-large")
+    RAG_INDEX_PATH: str = Field(default="data/rag_index")
+    RAG_TOP_K: int = Field(default=3)
+    RAG_ENABLED: bool = Field(default=True)
+
+    # ── Database — Dual-Write Migration (Phase 4.8c) ──────────────
+    ENABLE_DUAL_WRITE: bool = Field(default=True, description="Write to both PG and SQLite")
+    SQLITE_FALLBACK_PATH: str = Field(default="data/astrofin.db")
+    DB_POOL_SIZE: int = Field(default=10, ge=1)
+    DB_MAX_OVERFLOW: int = Field(default=20, ge=0)
+
     afs_pg_dsn: SecretStr = Field(default=SecretStr(""))
-    rag_legacy_fallback: bool = Field(default=True)
-    rag_faiss_dir: str = Field(default="knowledge/indexes")
 
     # ── Web app / Dash ────────────────────────────────────────────────
     secret_key: SecretStr = Field(default=SecretStr(""))
@@ -254,6 +262,9 @@ class Settings(BaseSettings):
         missing: list[str] = []
         if not self.api_key.get_secret_value().strip():
             missing.append("API_KEY")
+        # Block shipment of dev placeholder into production
+        if "dev-api-key-change-me" in self.api_key.get_secret_value() or "change-me" in self.api_key.get_secret_value():
+            missing.append("API_KEY (placeholder — set a real key)")
         if not self.redis_url.get_secret_value().strip():
             missing.append("REDIS_URL")
         if not self.database_url.get_secret_value().strip():
@@ -268,11 +279,16 @@ class Settings(BaseSettings):
                 missing.append(f"{p} (file not found)")
         if missing:
             raise RuntimeError(
-                f"REFUSING TO START in env={self.env}: missing required " f"secrets: {', '.join(missing)}"
+                f"REFUSING TO START in env={self.env}: missing required "
+                f"secrets: {', '.join(missing)}"
             )
 
     def __repr__(self) -> str:  # pragma: no cover - safety only
-        masked = {k: "***" for k in self.model_fields if k.endswith(("_key", "_secret", "_password", "dsn"))}
+        masked = {
+            k: "***"
+            for k in self.model_fields
+            if k.endswith(("_key", "_secret", "_password", "dsn"))
+        }
         return f"Settings(env={self.env!r}, masked={masked})"
 
 

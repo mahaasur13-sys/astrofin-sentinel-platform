@@ -33,8 +33,8 @@ class EventType(str, Enum):
 class Event:
     event_id: str = field(default_factory=lambda: uuid.uuid4().hex[:16])
     event_type: str = ""
-    job_id: str | None = None
-    payload: dict[str, Any] = field(default_factory=dict)
+    job_id: Optional[str] = None
+    payload: Dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     sequence: int = 0
 
@@ -59,11 +59,7 @@ class EventStore:
     Uses SQLite by default (swap to PostgreSQL via connection_string).
     """
 
-    def __init__(
-        self,
-        db_path: str = "/tmp/roma-events.db",
-        connection_string: str | None = None,
-    ):
+    def __init__(self, db_path: str = "/tmp/roma-events.db", connection_string: Optional[str] = None):
         self.db_path = db_path
         self.connection_string = connection_string  # Not used yet — PostgreSQL swap possible
         self._lock = threading.RLock()
@@ -74,8 +70,7 @@ class EventStore:
     def _init_db(self):
         """Create tables if not exists."""
         conn = self._get_conn()
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS events (
                 event_id TEXT PRIMARY KEY,
                 event_type TEXT NOT NULL,
@@ -84,23 +79,16 @@ class EventStore:
                 timestamp TEXT NOT NULL,
                 sequence INTEGER NOT NULL
             )
-        """
-        )
-        conn.execute(
-            """
+        """)
+        conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_events_job_id ON events(job_id)
-        """
-        )
-        conn.execute(
-            """
+        """)
+        conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_events_sequence ON events(sequence)
-        """
-        )
-        conn.execute(
-            """
+        """)
+        conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type)
-        """
-        )
+        """)
         conn.commit()
 
         # Get current max sequence
@@ -133,12 +121,7 @@ class EventStore:
 
         return event
 
-    def emit(
-        self,
-        event_type: EventType,
-        job_id: str | None = None,
-        payload: dict | None = None,
-    ) -> Event:
+    def emit(self, event_type: EventType, job_id: Optional[str] = None, payload: Optional[Dict] = None) -> Event:
         """Convenience method to emit a new event."""
         event = Event(
             event_type=event_type.value,
@@ -147,7 +130,7 @@ class EventStore:
         )
         return self.append(event)
 
-    def replay(self, from_sequence: int = 0, event_filter: list[str] | None = None) -> list[Event]:
+    def replay(self, from_sequence: int = 0, event_filter: Optional[List[str]] = None) -> List[Event]:
         """
         Replay all events from from_sequence (exclusive) to latest.
         Optionally filter by event types.
@@ -164,7 +147,7 @@ class EventStore:
         rows = conn.execute(query, args).fetchall()
         return [self._row_to_event(row) for row in rows]
 
-    def get_events_for_job(self, job_id: str) -> list[Event]:
+    def get_events_for_job(self, job_id: str) -> List[Event]:
         """Get all events for a specific job."""
         conn = self._get_conn()
         rows = conn.execute(
@@ -177,7 +160,7 @@ class EventStore:
         """Get the latest event sequence number."""
         return self._sequence
 
-    def get_events_since(self, since: int) -> list[Event]:
+    def get_events_since(self, since: int) -> List[Event]:
         """Get events after a specific sequence number."""
         return self.replay(from_sequence=since)
 
@@ -191,13 +174,13 @@ class EventStore:
             sequence=row[5],
         )
 
-    def replay_to_state(self, job_id: str) -> dict[str, Any]:
+    def replay_to_state(self, job_id: str) -> Dict[str, Any]:
         """
         Replay all events for a job and compute final state.
         Returns: {job_id, status, gpu_used, events[], final_state}
         """
         events = self.get_events_for_job(job_id)
-        state: dict[str, Any] = {
+        state: Dict[str, Any] = {
             "job_id": job_id,
             "status": "unknown",
             "gpu_used": False,
@@ -206,10 +189,7 @@ class EventStore:
         }
 
         for event in events:
-            if event.event_type in (
-                EventType.JOB_COMPLETED.value,
-                (EventType.JOB_SUCCEEDED.value if hasattr(EventType, "JOB_SUCCEEDED") else "job.completed"),
-            ):
+            if event.event_type in (EventType.JOB_COMPLETED.value, EventType.JOB_SUCCEEDED.value if hasattr(EventType, 'JOB_SUCCEEDED') else "job.completed"):
                 state["status"] = "completed"
             elif event.event_type == EventType.JOB_FAILED.value:
                 state["status"] = "failed"
@@ -225,7 +205,7 @@ class EventStore:
 
         return state
 
-    def export_events(self, from_seq: int = 0) -> list[dict]:
+    def export_events(self, from_seq: int = 0) -> List[Dict]:
         """Export events as list of dicts (for backup / migration)."""
         return [e.to_dict() for e in self.replay(from_sequence=from_seq)]
 
@@ -244,12 +224,7 @@ class DurabilityLayer:
         self.snapshots = EventStore(db_path.replace(".db", "-snapshots.db"))
         self._snapshots_interval = 100  # snapshot every 100 events
 
-    def record(
-        self,
-        event_type: EventType,
-        job_id: str | None = None,
-        payload: dict | None = None,
-    ) -> Event:
+    def record(self, event_type: EventType, job_id: Optional[str] = None, payload: Optional[Dict] = None) -> Event:
         """Record an event to the append-only log."""
         return self.events.emit(event_type, job_id, payload)
 
@@ -257,13 +232,9 @@ class DurabilityLayer:
         return self.record(EventType.JOB_SUBMITTED, job_id, {"plan": plan, "priority": priority})
 
     def record_job_dispatched(self, job_id: str, manifest_name: str, execution_mode: str) -> Event:
-        return self.record(
-            EventType.JOB_DISPATCHED,
-            job_id,
-            {"manifest": manifest_name, "mode": execution_mode},
-        )
+        return self.record(EventType.JOB_DISPATCHED, job_id, {"manifest": manifest_name, "mode": execution_mode})
 
-    def record_job_completed(self, job_id: str, result: dict | None = None) -> Event:
+    def record_job_completed(self, job_id: str, result: Optional[Dict] = None) -> Event:
         return self.record(EventType.JOB_COMPLETED, job_id, result or {})
 
     def record_job_failed(self, job_id: str, error: str) -> Event:
@@ -275,14 +246,14 @@ class DurabilityLayer:
     def record_gpu_released(self, job_id: str) -> Event:
         return self.record(EventType.GPU_RELEASED, job_id, {})
 
-    def replay_job_history(self, job_id: str) -> dict[str, Any]:
+    def replay_job_history(self, job_id: str) -> Dict[str, Any]:
         """Full replay of job lifecycle."""
         return self.events.replay_to_state(job_id)
 
-    def replay_all(self, from_sequence: int = 0) -> list[Event]:
+    def replay_all(self, from_sequence: int = 0) -> List[Event]:
         return self.events.replay(from_sequence=from_sequence)
 
-    def get_durability_report(self) -> dict[str, Any]:
+    def get_durability_report(self) -> Dict[str, Any]:
         """Current durability metrics."""
         total_events = self.events.get_latest_sequence()
         return {
@@ -295,7 +266,7 @@ class DurabilityLayer:
             "last_sequence": total_events,
         }
 
-    def checkpoint(self, component: str, state: dict) -> Event:
+    def checkpoint(self, component: str, state: Dict) -> Event:
         """Write a system checkpoint snapshot."""
         return self.snapshots.emit(
             EventType.SYSTEM_STARTUP,  # reuse for checkpoint

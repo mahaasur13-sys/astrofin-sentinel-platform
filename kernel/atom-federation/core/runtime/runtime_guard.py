@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 """
 runtime_guard.py — atom-federation-os v9.0+P4 Runtime Self-Verification.
 

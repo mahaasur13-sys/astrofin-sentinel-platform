@@ -339,7 +339,7 @@ class MutationExecutor:
 
         # Step 6: Commit to ledger
         self._exec_counter += 1
-        entry = self._ledger.record(
+        self._ledger.record(
             theta_old=theta_before,
             theta_new=self._theta,
             trigger_source="drift_autocorrect",

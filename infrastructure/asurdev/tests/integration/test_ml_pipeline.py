@@ -127,7 +127,6 @@ def trained_models(synthetic_dataset, tmp_model_dir):
     End-to-end training: split → train failure + load models → register.
     Returns dict of model_name → model artifact path.
     """
-    from ml_engine.training.trainer import Trainer
     from ml_engine.dataset.splitter import time_aware_split
     from ml_engine.models import FailureXGBoost, LoadXGBoost
 
@@ -147,11 +146,11 @@ def trained_models(synthetic_dataset, tmp_model_dir):
 
     train_df, val_df, test_df = time_aware_split(df)
     X_train = X.loc[train_df.index]
-    X_val   = X.loc[val_df.index]
-    X_test  = X.loc[test_df.index]
-    yf_train, yf_val, yf_test = y_failure.loc[train_df.index], y_failure.loc[val_df.index], y_failure.loc[test_df.index]
-    yq_train, yq_val, yq_test = y_queue.loc[train_df.index], y_queue.loc[val_df.index], y_queue.loc[test_df.index]
-    yg_train, yg_val, yg_test = y_gpu.loc[train_df.index], y_gpu.loc[val_df.index], y_gpu.loc[test_df.index]
+    X.loc[val_df.index]
+    X.loc[test_df.index]
+    yf_train, _yf_val, _yf_test = y_failure.loc[train_df.index], y_failure.loc[val_df.index], y_failure.loc[test_df.index]
+    yq_train, _yq_val, _yq_test = y_queue.loc[train_df.index], y_queue.loc[val_df.index], y_queue.loc[test_df.index]
+    yg_train, _yg_val, _yg_test = y_gpu.loc[train_df.index], y_gpu.loc[val_df.index], y_gpu.loc[test_df.index]
 
     # ── train failure model ───────────────────────────────────────────────────
     failure_model = FailureXGBoost()
@@ -192,8 +191,8 @@ def api_server(trained_models, tmp_model_dir):
     Yields the base URL. Process is killed after tests complete.
     """
     import multiprocessing
-    import time
     import socket
+    import time
 
     # Write feature list where api.py expects it
     features_src = trained_models["features"]
@@ -211,6 +210,7 @@ def api_server(trained_models, tmp_model_dir):
 
     def run_server():
         import uvicorn
+
         # Import the app factory (lazy init — model loads on startup)
         from ml_engine.inference.api import app
         uvicorn.run(app, host="127.0.0.1", port=8765, log_level="error")
@@ -322,8 +322,9 @@ class TestModelQuality:
 
     def test_failure_model_auc_on_holdout(self, synthetic_dataset, trained_models):
         """Trained failure model must achieve AUC >= 0.60 on hold-out set."""
-        from sklearn.metrics import roc_auc_score
         import pickle
+
+        from sklearn.metrics import roc_auc_score
 
         df = synthetic_dataset
         exclude_cols = {
@@ -349,8 +350,9 @@ class TestModelQuality:
 
     def test_load_model_rmse_on_holdout(self, synthetic_dataset, trained_models):
         """Trained load model must achieve RMSE <= 10.0 on hold-out set."""
-        from sklearn.metrics import mean_squared_error
         import pickle
+
+        from sklearn.metrics import mean_squared_error
 
         df = synthetic_dataset
         exclude_cols = {

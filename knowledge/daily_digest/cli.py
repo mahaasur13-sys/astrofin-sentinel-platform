@@ -15,6 +15,10 @@ Usage:
     python -m knowledge.daily_digest run --date 2026-03-29
 """
 
+from __future__ import annotations
+
+import logging
+log = logging.getLogger(__name__)
 import argparse
 import sys
 from datetime import datetime
@@ -38,23 +42,23 @@ def cmd_analyze(args):
             if briefs:
                 path = briefs[0]
             else:
-                print(f"Error: No digest found for {date}")
+                log.info(f"Error: No digest found for {date}")
                 return 1
 
-    print(f"Analyzing: {path}")
+    log.info(f"Analyzing: {path}")
 
     analyzer = DigestAnalyzer(str(path))
     analysis = analyzer.analyze()
 
     if args.json:
-        print(analyzer.to_json())
+        log.info(analyzer.to_json())
     else:
         analyzer.print_report()
 
     # Save analysis for later use
     analysis_file = Path(__file__).parent / f"analysis_{analysis.date}.json"
     analysis_file.write_text(analyzer.to_json(), encoding="utf-8")
-    print(f"\nAnalysis saved: {analysis_file}")
+    log.info(f"\nAnalysis saved: {analysis_file}")
 
     return 0
 
@@ -75,7 +79,9 @@ def cmd_propose(args):
             analysis_data = json.loads(path.read_text())
     else:
         # Try to find latest analysis
-        analyses = sorted(Path(__file__).parent.glob("analysis_????-??-??.json"), reverse=True)
+        analyses = sorted(
+            Path(__file__).parent.glob("analysis_????-??-??.json"), reverse=True
+        )
         if analyses:
             import json
 
@@ -87,9 +93,11 @@ def cmd_propose(args):
             if briefs:
                 analyzer = DigestAnalyzer(str(briefs[0]))
                 analysis = analyzer.analyze()
-                analysis_data = analysis.__dict__ if hasattr(analysis, "__dict__") else analysis
+                analysis_data = (
+                    analysis.__dict__ if hasattr(analysis, "__dict__") else analysis
+                )
             else:
-                print("Error: No digest found. Run analyze first.")
+                log.info("Error: No digest found. Run analyze first.")
                 return 1
 
     proposer = AtomProposer()
@@ -100,7 +108,7 @@ def cmd_propose(args):
 
     if args.save:
         path = proposer.save_proposals(args.save)
-        print(f"\nProposals saved: {path}")
+        log.info(f"\nProposals saved: {path}")
 
     return 0
 
@@ -113,13 +121,13 @@ def cmd_log(args):
 
     if args.stats:
         stats = log.get_stats()
-        print(f"\n{'=' * 50}")
-        print("  📊 DIGEST LOG STATISTICS")
-        print(f"{'=' * 50}")
-        print(f"  Total digests: {stats.get('total', 0)}")
-        print("\n  By status:")
+        log.info(f"\n{'=' * 50}")
+        log.info("  📊 DIGEST LOG STATISTICS")
+        log.info(f"{'=' * 50}")
+        log.info(f"  Total digests: {stats.get('total', 0)}")
+        log.info("\n  By status:")
         for status, count in stats.get("by_status", {}).items():
-            print(f"    {status}: {count}")
+            log.info(f"    {status}: {count}")
     else:
         log.list_entries(limit=args.limit, status_filter=args.filter)
 
@@ -132,12 +140,14 @@ def cmd_run(args):
     from .daily_digest_analytics import DigestAnalyzer
     from .daily_digest_log import DigestLog
 
-    print(f"\n{'=' * 70}")
-    print(f"  🔄 DAILY DIGEST PIPELINE — {args.date or datetime.now().strftime('%Y-%m-%d')}")
-    print(f"{'=' * 70}\n")
+    log.info(f"\n{'=' * 70}")
+    log.info(
+        f"  🔄 DAILY DIGEST PIPELINE — {args.date or datetime.now().strftime('%Y-%m-%d')}"
+    )
+    log.info(f"{'=' * 70}\n")
 
     # Step 1: Find and analyze digest
-    print("📥 Step 1: Analyzing digest...")
+    log.info("📥 Step 1: Analyzing digest...")
 
     if args.path:
         path = Path(args.path)
@@ -150,7 +160,7 @@ def cmd_run(args):
             if briefs:
                 path = briefs[0]
             else:
-                print("Error: No digest found")
+                log.info("Error: No digest found")
                 return 1
 
     analyzer = DigestAnalyzer(str(path))
@@ -159,10 +169,10 @@ def cmd_run(args):
     # Save analysis
     analysis_file = Path(__file__).parent / f"analysis_{analysis.date}.json"
     analysis_file.write_text(analyzer.to_json(), encoding="utf-8")
-    print(f"   ✅ Analysis saved: {analysis_file}")
+    log.info(f"   ✅ Analysis saved: {analysis_file}")
 
     # Step 2: Generate proposals
-    print("\n📋 Step 2: Generating ATOM proposals...")
+    log.info("\n📋 Step 2: Generating ATOM proposals...")
 
     analysis_data = analysis.__dict__ if hasattr(analysis, "__dict__") else analysis
     proposer = AtomProposer()
@@ -171,18 +181,20 @@ def cmd_run(args):
     if proposals:
         proposals_file = Path(__file__).parent.parent / "proposed_atoms.md"
         proposer.save_proposals(str(proposals_file))
-        print(f"   ✅ Proposals saved: {proposals_file}")
+        log.info(f"   ✅ Proposals saved: {proposals_file}")
     else:
-        print("   ⚠️ No proposals generated")
+        log.info("   ⚠️ No proposals generated")
 
     # Step 3: Log the digest
-    print("\n📔 Step 3: Logging digest...")
+    log.info("\n📔 Step 3: Logging digest...")
 
     log = DigestLog()
 
     # Extract key ideas for log
     key_ideas = []
-    for f in sorted(analysis.high_relevance_findings, key=lambda x: -x.relevance_score)[:3]:
+    for f in sorted(analysis.high_relevance_findings, key=lambda x: -x.relevance_score)[
+        :3
+    ]:
         key_ideas.append(f.title[:40])
 
     entry = log.add_entry(
@@ -191,16 +203,16 @@ def cmd_run(args):
         key_ideas=key_ideas,
         status="ANALYZED" if proposals else "PROCESSED",
     )
-    print(f"   ✅ Logged: {entry.date}")
+    log.info(f"   ✅ Logged: {entry.date}")
 
     # Summary
-    print(f"\n{'=' * 70}")
-    print("  ✅ PIPELINE COMPLETE")
-    print(f"{'=' * 70}")
-    print(f"   Findings: {analysis.total_findings}")
-    print(f"   High relevance: {len(analysis.high_relevance_findings)}")
-    print(f"   Proposals: {len(proposals)}")
-    print()
+    log.info(f"\n{'=' * 70}")
+    log.info("  ✅ PIPELINE COMPLETE")
+    log.info(f"{'=' * 70}")
+    log.info(f"   Findings: {analysis.total_findings}")
+    log.info(f"   High relevance: {len(analysis.high_relevance_findings)}")
+    log.info(f"   Proposals: {len(proposals)}")
+    log.info("")
 
     return 0
 

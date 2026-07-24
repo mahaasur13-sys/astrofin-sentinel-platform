@@ -15,12 +15,13 @@ Tests:
 """
 
 import sys
+import os
 
 import pytest
 
 sys.path.insert(0, "/home/workspace/atom-federation-os")
 sys.path.insert(0, "/home/workspace/atomos_pkg")
-sys.path.insert(0, "/home/workspace/agents")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../agents"))
 
 from sbs import (
     SBS_MODE,

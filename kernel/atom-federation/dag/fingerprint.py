@@ -108,7 +108,6 @@ class IncrementalNodeHash:
         content_hash = hashlib.sha256(content_bytes).digest()
 
         # Parent hashes for inheritance
-        parent_hashes = ()
 
         # Full hash = H(content_hash || parent_hashes)
         h = hashlib.sha256()
@@ -195,7 +194,7 @@ class IncrementalFingerprint:
             node_layers[nid] = layer
 
             parent_ids = deps[nid]
-            parent_layers = [toporder[p] for p in parent_ids if p in toporder]
+            [toporder[p] for p in parent_ids if p in toporder]
 
             inh = IncrementalNodeHash(
                 node_id=nid,
@@ -238,7 +237,6 @@ class IncrementalFingerprint:
             ]
 
         prev_hashes = previous.node_hashes
-        prev_order = previous.node_toporder
 
         changes: list[DAGChange] = []
 

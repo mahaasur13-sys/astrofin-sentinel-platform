@@ -28,6 +28,10 @@ import pathlib
 import sys
 from dataclasses import dataclass, field
 
+import logging
+log = logging.getLogger(__name__)
+
+
 ENTRY_PATTERNS = (
     "execute", "apply_mutation", "run", "commit", "propose",
     "verify", "enforce", "accept", "commit", "finalize",
@@ -193,7 +197,7 @@ def save_graph(nodes: list[ExecNode], stats: GraphStats, graph_hash: str,
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(graph_data, indent=2, sort_keys=True))
-    print(f"Saved: {output_path}  graph_hash={graph_hash}")
+    log.info(f"Saved: {output_path}  graph_hash={graph_hash}")
 
 
 def main() -> int:
@@ -209,7 +213,7 @@ def main() -> int:
 
     repo = args.repo.resolve()
     if not repo.exists():
-        print(f"ERROR: repo not found: {repo}", file=sys.stderr)
+        log.info(f"ERROR: repo not found: {repo}", file=sys.stderr)
         return 1
 
     nodes, stats = build_execution_graph(repo)
@@ -221,7 +225,7 @@ def main() -> int:
         return 0
 
     if args.output == "hash":
-        print(graph_hash)
+        log.info(graph_hash)
 
     if args.output == "json":
         result = {
@@ -233,10 +237,10 @@ def main() -> int:
                 "files_scanned": stats.files_scanned,
             },
         }
-        print(json.dumps(result, indent=2))
+        log.info(json.dumps(result, indent=2))
 
     if args.expected_hash and graph_hash != args.expected_hash:
-        print(f"MISMATCH: computed={graph_hash}  expected={args.expected_hash}",
+        log.info(f"MISMATCH: computed={graph_hash}  expected={args.expected_hash}",
               file=sys.stderr)
         return 1
 

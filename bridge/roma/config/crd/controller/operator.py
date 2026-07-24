@@ -27,27 +27,21 @@ logger = logging.getLogger(__name__)
 # Kubernetes clients
 # =============================================================================
 
-
 def get_core_v1():
     return kubernetes.client.CoreV1Api()
-
 
 def get_networking_v1():
     return kubernetes.client.NetworkingV1Api()
 
-
 def get_custom_api():
     return kubernetes.client.CustomObjectsApi()
-
 
 def get_rbac_v1():
     return kubernetes.client.RbacAuthorizationV1Api()
 
-
 # =============================================================================
 # Resource builders
 # =============================================================================
-
 
 def build_namespace(tenant_id: str, labels: dict) -> dict:
     ns_manifest = {
@@ -58,12 +52,11 @@ def build_namespace(tenant_id: str, labels: dict) -> dict:
             "labels": {
                 "roma.io/tenant": tenant_id,
                 "app.kubernetes.io/managed-by": "roma-tenant-controller",
-                **labels,
-            },
-        },
+                **labels
+            }
+        }
     }
     return ns_manifest
-
 
 def build_configmap(tenant_id: str, branding: dict) -> dict:
     cm = {
@@ -72,7 +65,9 @@ def build_configmap(tenant_id: str, branding: dict) -> dict:
         "metadata": {
             "name": f"roma-{tenant_id}-branding",
             "namespace": f"roma-{tenant_id}",
-            "labels": {"roma.io/tenant": tenant_id},
+            "labels": {
+                "roma.io/tenant": tenant_id
+            }
         },
         "data": {
             "logo-url": branding.get("logoUrl", ""),
@@ -80,10 +75,9 @@ def build_configmap(tenant_id: str, branding: dict) -> dict:
             "secondary-color": branding.get("secondaryColor", "#1E1E2E"),
             "company-name": branding.get("companyName", tenant_id),
             "support-email": branding.get("supportEmail", ""),
-        },
+        }
     }
     return cm
-
 
 def build_api_secret(tenant_id: str, api_key: str, secret_name: str = "api-key") -> dict:
     """Create API key secret for tenant from Vault-sourced value."""
@@ -93,12 +87,14 @@ def build_api_secret(tenant_id: str, api_key: str, secret_name: str = "api-key")
         "metadata": {
             "name": secret_name,
             "namespace": f"roma-{tenant_id}",
-            "labels": {"roma.io/tenant": tenant_id},
+            "labels": {"roma.io/tenant": tenant_id}
         },
         "type": "Opaque",
-        "stringData": {"api-key": api_key, "tenant-id": tenant_id},
+        "stringData": {
+            "api-key": api_key,
+            "tenant-id": tenant_id
+        }
     }
-
 
 def build_ingress(tenant_id: str, domain: str, subdomain: str, namespace: str) -> dict:
     """Ingress with cert-manager TLS for tenant API."""
@@ -113,38 +109,31 @@ def build_ingress(tenant_id: str, domain: str, subdomain: str, namespace: str) -
                 "cert-manager.io/cluster-issuer": CERT_CLUSTER_ISSUER,
                 "nginx.ingress.kubernetes.io/ssl-redirect": "true",
                 "roma.io/tenant": tenant_id,
-            },
+            }
         },
         "spec": {
             "ingressClassName": "nginx",
-            "tls": [
-                {
-                    "hosts": [f"{subdomain}.{domain}", domain],
-                    "secretName": f"roma-{tenant_id}-tls",
-                }
-            ],
-            "rules": [
-                {
-                    "host": f"{subdomain}.{domain}",
-                    "http": {
-                        "paths": [
-                            {
-                                "path": "/",
-                                "pathType": "Prefix",
-                                "backend": {
-                                    "service": {
-                                        "name": f"roma-{tenant_id}-api",
-                                        "port": {"number": 8080},
-                                    }
-                                },
+            "tls": [{
+                "hosts": [f"{subdomain}.{domain}", domain],
+                "secretName": f"roma-{tenant_id}-tls"
+            }],
+            "rules": [{
+                "host": f"{subdomain}.{domain}",
+                "http": {
+                    "paths": [{
+                        "path": "/",
+                        "pathType": "Prefix",
+                        "backend": {
+                            "service": {
+                                "name": f"roma-{tenant_id}-api",
+                                "port": {"number": 8080}
                             }
-                        ]
-                    },
+                        }
+                    }]
                 }
-            ],
-        },
+            }]
+        }
     }
-
 
 def build_certificate(tenant_id: str, domain: str, subdomain: str, namespace: str) -> dict:
     """Certificate resource for cert-manager."""
@@ -154,15 +143,17 @@ def build_certificate(tenant_id: str, domain: str, subdomain: str, namespace: st
         "metadata": {
             "name": f"roma-{tenant_id}-cert",
             "namespace": namespace,
-            "labels": {"roma.io/tenant": tenant_id},
+            "labels": {"roma.io/tenant": tenant_id}
         },
         "spec": {
             "secretName": f"roma-{tenant_id}-tls",
-            "issuerRef": {"name": CERT_CLUSTER_ISSUER, "kind": "ClusterIssuer"},
-            "dnsNames": [f"{subdomain}.{domain}", domain],
-        },
+            "issuerRef": {
+                "name": CERT_CLUSTER_ISSUER,
+                "kind": "ClusterIssuer"
+            },
+            "dnsNames": [f"{subdomain}.{domain}", domain]
+        }
     }
-
 
 def build_kong_consumer(tenant_id: str, api_key: str) -> dict:
     """Kong consumer for tenant with API key auth."""
@@ -172,57 +163,68 @@ def build_kong_consumer(tenant_id: str, api_key: str) -> dict:
         "metadata": {
             "name": tenant_id,
             "namespace": KONG_NAMESPACE,
-            "annotations": {"konghq.com/plugins": f"rate-limit-{tenant_id}"},
+            "annotations": {
+                "konghq.com/plugins": f"rate-limit-{tenant_id}"
+            }
         },
         "username": tenant_id,
-        "credentials": [f"{tenant_id}-credential"],
+        "credentials": [f"{tenant_id}-credential"]
     }
-
 
 def build_kong_credential(tenant_id: str, api_key: str) -> dict:
     """Kong API key credential for tenant consumer."""
     return {
         "apiVersion": "configuration.konghq.com/v1",
         "kind": "KongCredential",
-        "metadata": {"name": f"{tenant_id}-credential", "namespace": KONG_NAMESPACE},
+        "metadata": {
+            "name": f"{tenant_id}-credential",
+            "namespace": KONG_NAMESPACE
+        },
         "type": "key-auth",
-        "consumerRef": tenant_id,
+        "consumerRef": tenant_id
     }
-
 
 def build_rate_limit_plugin(tenant_id: str, plan: str) -> dict:
     """KongPlugin: rate limiting per tenant plan."""
     limits = {
-        "free": {"minute": 60, "hour": 500, "day": 5000},
-        "pro": {"minute": 300, "hour": 5000, "day": 50000},
-        "enterprise": {"minute": 3000, "hour": 50000, "day": 500000},
+        "free":    {"minute": 60,   "hour": 500,   "day": 5000},
+        "pro":     {"minute": 300,  "hour": 5000,  "day": 50000},
+        "enterprise": {"minute": 3000, "hour": 50000, "day": 500000}
     }
     pl = limits.get(plan, limits["free"])
     return {
         "apiVersion": "configuration.konghq.com/v1",
         "kind": "KongPlugin",
-        "metadata": {"name": f"rate-limit-{tenant_id}", "namespace": ROMA_SYSTEM_NS},
+        "metadata": {
+            "name": f"rate-limit-{tenant_id}",
+            "namespace": ROMA_SYSTEM_NS
+        },
         "plugin": "rate-limiting",
         "config": {
             "minute": pl["minute"],
             "hour": pl["hour"],
             "day": pl["day"],
             "policy": "local",
-            "hide_client_headers": False,
-        },
+            "hide_client_headers": False
+        }
     }
-
 
 def build_tenant_config_plugin(tenant_id: str) -> dict:
     """KongPlugin: tenant-specific config (branding headers, cors, etc)."""
     return {
         "apiVersion": "configuration.konghq.com/v1",
         "kind": "KongPlugin",
-        "metadata": {"name": f"tenant-config-{tenant_id}", "namespace": ROMA_SYSTEM_NS},
+        "metadata": {
+            "name": f"tenant-config-{tenant_id}",
+            "namespace": ROMA_SYSTEM_NS
+        },
         "plugin": "response-transformer",
-        "config": {"add": {"headers": [f"X-Tenant-ID: {tenant_id}"]}},
+        "config": {
+            "add": {
+                "headers": [f"X-Tenant-ID: {tenant_id}"]
+            }
+        }
     }
-
 
 def build_service(tenant_id: str) -> dict:
     """Headless service for tenant API."""
@@ -232,20 +234,22 @@ def build_service(tenant_id: str) -> dict:
         "metadata": {
             "name": f"roma-{tenant_id}-api",
             "namespace": f"roma-{tenant_id}",
-            "labels": {"roma.io/tenant": tenant_id},
+            "labels": {"roma.io/tenant": tenant_id}
         },
         "spec": {
             "type": "ClusterIP",
             "selector": {"roma.io/tenant": tenant_id},
-            "ports": [{"name": "http", "port": 8080, "targetPort": 8080}],
-        },
+            "ports": [{
+                "name": "http",
+                "port": 8080,
+                "targetPort": 8080
+            }]
+        }
     }
-
 
 # =============================================================================
 # Upsert helpers (idempotent)
 # =============================================================================
-
 
 def ensure_namespace(core, tenant_id: str, labels: dict):
     ns_name = f"roma-{tenant_id}"
@@ -260,7 +264,6 @@ def ensure_namespace(core, tenant_id: str, labels: dict):
         else:
             raise
 
-
 def ensure_configmap(core, tenant_id: str, branding: dict):
     ns = f"roma-{tenant_id}"
     name = f"roma-{tenant_id}-branding"
@@ -273,7 +276,6 @@ def ensure_configmap(core, tenant_id: str, branding: dict):
             logger.info(f"Created ConfigMap: {name}")
         else:
             raise
-
 
 def ensure_secret(core, tenant_id: str, api_key: str):
     ns = f"roma-{tenant_id}"
@@ -288,7 +290,6 @@ def ensure_secret(core, tenant_id: str, api_key: str):
         else:
             raise
 
-
 def ensure_ingress(networking, tenant_id: str, domain: str, subdomain: str):
     ns = f"roma-{tenant_id}"
     name = f"roma-{tenant_id}-ingress"
@@ -301,7 +302,6 @@ def ensure_ingress(networking, tenant_id: str, domain: str, subdomain: str):
             logger.info(f"Created Ingress: {name}")
         else:
             raise
-
 
 def ensure_certificate(cert_client, tenant_id: str, domain: str, subdomain: str):
     ns = f"roma-{tenant_id}"
@@ -316,7 +316,6 @@ def ensure_certificate(cert_client, tenant_id: str, domain: str, subdomain: str)
         else:
             raise
 
-
 def ensure_kong_consumer(custom_api, tenant_id: str, api_key: str):
     try:
         custom_api.get_namespaced_custom_object(
@@ -324,7 +323,7 @@ def ensure_kong_consumer(custom_api, tenant_id: str, api_key: str):
             version="v1",
             namespace=KONG_NAMESPACE,
             plural="kongconsumers",
-            name=tenant_id,
+            name=tenant_id
         )
         logger.info(f"KongConsumer {tenant_id} already exists — skipping")
     except ApiException as e:
@@ -334,12 +333,11 @@ def ensure_kong_consumer(custom_api, tenant_id: str, api_key: str):
                 version="v1",
                 namespace=KONG_NAMESPACE,
                 plural="kongconsumers",
-                body=build_kong_consumer(tenant_id, api_key),
+                body=build_kong_consumer(tenant_id, api_key)
             )
             logger.info(f"Created KongConsumer: {tenant_id}")
         else:
             raise
-
 
 def ensure_kong_plugin(custom_api, plugin_body: dict):
     name = plugin_body["metadata"]["name"]
@@ -350,7 +348,7 @@ def ensure_kong_plugin(custom_api, plugin_body: dict):
             version="v1",
             namespace=ns,
             plural="kongplugins",
-            name=name,
+            name=name
         )
         logger.info(f"KongPlugin {name} already exists — skipping")
     except ApiException as e:
@@ -360,17 +358,15 @@ def ensure_kong_plugin(custom_api, plugin_body: dict):
                 version="v1",
                 namespace=ns,
                 plural="kongplugins",
-                body=plugin_body,
+                body=plugin_body
             )
             logger.info(f"Created KongPlugin: {name}")
         else:
             raise
 
-
 # =============================================================================
 # kopf handlers
 # =============================================================================
-
 
 @kopf.on.create("romatenants", "roma.io", "v1")
 @kopf.on.update("romatenants", "roma.io", "v1")
@@ -378,13 +374,13 @@ def reconcile_tenant(meta, spec, status, namespace, name, **kwargs):
     """Main reconciliation handler for RomaTenant CR."""
     logger.info(f"[RECONCILE] tenant={name}")
 
-    tenant_id = spec["tenantId"]
-    domain = spec["domain"]
-    subdomain = spec.get("subdomain", tenant_id)
-    plan = spec.get("plan", "free")
-    branding = spec.get("branding", {})
-    spec.get("compute", {})
-    tier = spec.get("tier", 1)
+    tenant_id   = spec["tenantId"]
+    domain      = spec["domain"]
+    subdomain   = spec.get("subdomain", tenant_id)
+    plan        = spec.get("plan", "free")
+    branding    = spec.get("branding", {})
+    _compute = spec.get("compute", {})
+    tier        = spec.get("tier", 1)
 
     core = get_core_v1()
     networking = get_networking_v1()
@@ -392,19 +388,17 @@ def reconcile_tenant(meta, spec, status, namespace, name, **kwargs):
 
     try:
         from cert_manager_client import CertManagerV1Api
-
         cert_client = CertManagerV1Api()
     except Exception:
         # Fallback: use dynamic client for cert-manager
         import kubernetes
-
         cert_client = kubernetes.client.CustomObjectsApi()
 
     # Build labels
     labels = {
         "roma.io/plan": plan,
         "roma.io/tier": str(tier),
-        "roma.io/tenant": tenant_id,
+        "roma.io/tenant": tenant_id
     }
 
     # ---- 1. Namespace ----
@@ -438,20 +432,15 @@ def reconcile_tenant(meta, spec, status, namespace, name, **kwargs):
     ensure_kong_consumer(custom, tenant_id, api_key)
     try:
         custom.get_namespaced_custom_object(
-            "configuration.konghq.com",
-            "v1",
-            KONG_NAMESPACE,
-            "kongcredentials",
-            f"{tenant_id}-credential",
+            "configuration.konghq.com", "v1", KONG_NAMESPACE,
+            "kongcredentials", f"{tenant_id}-credential"
         )
     except ApiException as e:
         if e.status == 404:
             custom.create_namespaced_custom_object(
-                "configuration.konghq.com",
-                "v1",
-                KONG_NAMESPACE,
+                "configuration.konghq.com", "v1", KONG_NAMESPACE,
                 "kongcredentials",
-                build_kong_credential(tenant_id, api_key),
+                build_kong_credential(tenant_id, api_key)
             )
             logger.info(f"Created KongCredential: {tenant_id}-credential")
 
@@ -468,19 +457,23 @@ def reconcile_tenant(meta, spec, status, namespace, name, **kwargs):
             "ingressEndpoint": f"https://{subdomain}.{domain}",
             "certificateReady": True,
             "kongConsumerReady": True,
-            "conditions": [
-                {
-                    "type": "Provisioned",
-                    "status": "True",
-                    "message": "All resources created",
-                    "lastTransitionTime": "2026-04-18T00:00:00Z",
-                }
-            ],
+            "conditions": [{
+                "type": "Provisioned",
+                "status": "True",
+                "message": "All resources created",
+                "lastTransitionTime": "2026-04-18T00:00:00Z"
+            }]
         }
     }
 
     try:
-        custom.patch_cluster_custom_object(group="roma.io", version="v1", plural="romatenants", name=name, body=patch)
+        custom.patch_cluster_custom_object(
+            group="roma.io",
+            version="v1",
+            plural="romatenants",
+            name=name,
+            body=patch
+        )
         logger.info(f"Status updated: {name} → Ready")
     except Exception as e:
         logger.warning(f"Failed to update status: {e}")

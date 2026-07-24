@@ -1,5 +1,8 @@
 """test_alignment.py — v10.0 Alignment Layer integration tests."""
 
+import logging
+log = logging.getLogger(__name__)
+
 from alignment.drift_detector import (
     CausalOrderDriftDetector,
     DriftEngine,
@@ -55,8 +58,8 @@ def test_l1_structural():
     ])
     rv = engine._l1.analyze(trace_viol)
     assert rv.violation_count == 1, f"viol→{rv.violation_count}"
-    print("  L1 clean: violations=0 ✅")
-    print("  L1 unsatisfied: violations=1 ✅")
+    log.info("  L1 clean: violations=0 ✅")
+    log.info("  L1 unsatisfied: violations=1 ✅")
 
 
 def test_l2_causal():
@@ -66,7 +69,7 @@ def test_l2_causal():
     trace_ok = make_trace("c", "p", "goal", [enode("n1","s","t"), enode("n2","s","t")])
     r_ok = det.analyze(trace_ok, plan_ok)
     assert r_ok.inversion_count == 0, f"L2_ok→{r_ok.inversion_count}"
-    print(f"  L2 correct order: inversions={r_ok.inversion_count} ✅")
+    log.info(f"  L2 correct order: inversions={r_ok.inversion_count} ✅")
 
     # Case B: inversion — planned=[n1,n3,n2], n3 deps=(n2,), executed=[n1,n3,n2]
     # n3 ran before n2 despite depending on n2 → inversion
@@ -82,7 +85,7 @@ def test_l2_causal():
     ])
     r_sw = det.analyze(trace_sw, plan_sw)
     assert r_sw.inversion_count == 1, f"L2_swapped→{r_sw.inversion_count}"
-    print(f"  L2 swapped (n3 before n2 despite dep): inversions={r_sw.inversion_count} ✅")
+    log.info(f"  L2 swapped (n3 before n2 despite dep): inversions={r_sw.inversion_count} ✅")
 
 
 def test_l3_semantic():
@@ -95,7 +98,7 @@ def test_l3_semantic():
     ])
     r_g = det.analyze(trace_g, plan_g)
     assert r_g.fidelity_components["goal_distance"] < 0.01, f"gd={r_g.fidelity_components['goal_distance']}"
-    print(f"  L3 goal_match: distance={r_g.fidelity_components['goal_distance']:.3f} ✅")
+    log.info(f"  L3 goal_match: distance={r_g.fidelity_components['goal_distance']:.3f} ✅")
 
     # Failed node → diverged
     plan_f = make_plan("pf", "goal", [pnode("n1","s","t"), pnode("n2","s","t")], ["n1","n2"])
@@ -105,7 +108,7 @@ def test_l3_semantic():
     ])
     rf = det.analyze(trace_f, plan_f)
     assert rf.is_diverged, "failed→diverged"
-    print(f"  L3 failure: diverged={rf.is_diverged} ✅")
+    log.info(f"  L3 failure: diverged={rf.is_diverged} ✅")
 
 
 def test_composite():
@@ -121,10 +124,10 @@ def test_composite():
         enode("n1","step1","bash"),
         enode("n2","cluster","bash"),
     ])
-    binding_ok = comp.bind(plan_ok, trace_ok)
+    comp.bind(plan_ok, trace_ok)
     rep_ok = engine.analyze(trace_ok, plan_ok)
     assert rep_ok.severity.name == "OK", f"OK→{rep_ok.severity}"
-    print(f"  composite OK: severity={rep_ok.severity.name} ✅")
+    log.info(f"  composite OK: severity={rep_ok.severity.name} ✅")
 
     # DEGRADED: L1 only (structural violation, L3 aligned by word overlap)
     # n2 planned_deps=(n1,) but runtime_waits=() → L1 violation, score=0.5
@@ -141,7 +144,7 @@ def test_composite():
     # But wait — n2 has planned_deps=(n1,) and L1 score = violation_rate * 2 = 1.0
     # With L1.score=1.0 and L3.semantic_distance=0: composite = 0.15*1.0 + 0.70*0 = 0.15 → DEGRADED
     assert rep_deg.severity.name in ("OK", "DEGRADED"), f"deg→{rep_deg.severity} (score={rep_deg.drift_score:.3f} L1={rep_deg.layer1.score} L3={rep_deg.layer3.semantic_distance:.3f})"
-    print(f"  composite DEGRADED: severity={rep_deg.severity.name} ✅")
+    log.info(f"  composite DEGRADED: severity={rep_deg.severity.name} ✅")
 
     # CRITICAL: failed node → high L3
     plan_c = make_plan("pc", "goal", [pnode("n1","s","t"), pnode("n2","s","t")], ["n1","n2"])
@@ -151,7 +154,7 @@ def test_composite():
     ])
     rep_c = engine.analyze(trace_c, plan_c)
     assert rep_c.is_rollback_candidate, f"crit→cand={rep_c.is_rollback_candidate}"
-    print(f"  composite CRITICAL: cand={rep_c.is_rollback_candidate} ✅")
+    log.info(f"  composite CRITICAL: cand={rep_c.is_rollback_candidate} ✅")
 
 
 def test_rollback_decider():
@@ -167,7 +170,7 @@ def test_rollback_decider():
     rep_ok = engine.analyze(trace_ok, plan_ok)
     scope_ok = decider.decide(bind_ok, rep_ok)
     assert scope_ok.rollback_type.name in ("NONE", "SHADOW"), f"noop→{scope_ok.rollback_type}"
-    print(f"  decider OK→noop: type={scope_ok.rollback_type.name} ✅")
+    log.info(f"  decider OK→noop: type={scope_ok.rollback_type.name} ✅")
 
     plan_c = make_plan("pc", "goal", [pnode("n1","s","t"), pnode("n2","s","t")], ["n1","n2"])
     trace_c = make_trace("tc", "pc", "goal", [enode("n1","s","t"), enode("n2","s","t", ok=False, err="crash")])
@@ -177,37 +180,37 @@ def test_rollback_decider():
     assert scope_c.rollback_type.name == "FULL", f"full→{scope_c.rollback_type}"
     assert len(scope_c.invalidate_nodes) > 0, "full→invalidate"
     assert scope_c.branch_id != "", "full→branch"
-    print(f"  decider CRITICAL→FULL: type={scope_c.rollback_type.name} ✅")
-    print(f"  decider FULL invalidates: {len(scope_c.invalidate_nodes)} nodes ✅")
-    print("  decider FULL creates branch ✅")
+    log.info(f"  decider CRITICAL→FULL: type={scope_c.rollback_type.name} ✅")
+    log.info(f"  decider FULL invalidates: {len(scope_c.invalidate_nodes)} nodes ✅")
+    log.info("  decider FULL creates branch ✅")
 
     plan_out = planner.plan(scope_c, bind_c)
     assert len(plan_out.recovery_steps) > 0
     assert plan_out.estimated_retry_cost_ms > 0
-    print(f"  planner output: {len(plan_out.recovery_steps)} steps ✅")
+    log.info(f"  planner output: {len(plan_out.recovery_steps)} steps ✅")
 
     result = executor.apply(plan_out, bind_c, 0.6)
     assert result.applied
     assert len(executor.history()) == 1
     assert result.new_branch_id != ""
     assert result.previous_trace_id == bind_c.trace_id
-    print("  executor applied ✅")
-    print(f"  executor history: {len(executor.history())} entries ✅")
-    print(f"  executor branch_id: {result.new_branch_id[:8]}... ✅")
-    print("  executor previous_trace: ✅")
+    log.info("  executor applied ✅")
+    log.info(f"  executor history: {len(executor.history())} entries ✅")
+    log.info(f"  executor branch_id: {result.new_branch_id[:8]}... ✅")
+    log.info("  executor previous_trace: ✅")
 
 
 if __name__ == "__main__":
-    print("=== v10.0 Alignment Layer Tests ===\n")
+    log.info("=== v10.0 Alignment Layer Tests ===\n")
     test_l1_structural()
-    print()
+    log.info("")
     test_l2_causal()
-    print()
+    log.info("")
     test_l3_semantic()
-    print()
+    log.info("")
     test_composite()
-    print()
+    log.info("")
     test_rollback_decider()
-    print(f"\n{'='*40}")
-    print("  ALL TESTS PASSED ✅")
-    print(f"{'='*40}")
+    log.info(f"\n{'='*40}")
+    log.info("  ALL TESTS PASSED ✅")
+    log.info(f"{'='*40}")

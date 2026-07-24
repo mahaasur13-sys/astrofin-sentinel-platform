@@ -74,7 +74,7 @@ class RCF:
         bcil_safety = model_state.get("bcil_safety", 0.0)
         branch_entropy = branch_state.get("entropy", 0.0)
         branch_id = branch_state.get("current_branch", "primary")
-        branch_realm = branch_state.get("status", "nominal")
+        branch_state.get("status", "nominal")
 
         drift_vector = {
             "model_vs_observed": otl_fusion - gcpl_C,

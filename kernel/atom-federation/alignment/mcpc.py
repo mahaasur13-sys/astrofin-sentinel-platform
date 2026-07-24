@@ -81,8 +81,11 @@ class MCPC:
         max_sev = max([0.0] + [d.severity for d in drifts]) if drifts else 0.0
         status = MCPCStatus.COHERENT
         blocked = False
-        if blocked_drifts: status = MCPCStatus.BLOCKED; blocked = True
-        elif drifts: status = MCPCStatus.DRIFT_DETECTED
+        if blocked_drifts:
+            status = MCPCStatus.BLOCKED
+            blocked = True
+        elif drifts:
+            status = MCPCStatus.DRIFT_DETECTED
         return MCPCReport(
             run_id=DeterministicUUIDFactory.make_id('mcpc', 'check', salt=''), status=status,
             overall_coherence=max(0.0, 1.0 - max_sev),

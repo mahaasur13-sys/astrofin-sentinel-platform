@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from unittest.mock import AsyncMock, Mock, patch
 from agents._impl.bear_researcher import BearResearcherAgent

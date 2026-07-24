@@ -11,9 +11,9 @@ Usage:
     vectors = builder.build_batch(['rtx-node', 'rk3576'])
 """
 import os
+from typing import Literal
+
 import structlog
-from typing import Dict, List, Optional, Literal
-from dataclasses import asdict
 
 logger = structlog.get_logger()
 
@@ -29,7 +29,7 @@ class FeatureBuilder:
     def __init__(
         self,
         backend: Backend = 'timescale',
-        tsdb_dsn: Optional[str] = None,
+        tsdb_dsn: str | None = None,
         prometheus_url: str = 'http://localhost:9090',
     ):
         self.backend = backend
@@ -50,7 +50,7 @@ class FeatureBuilder:
             self._conn = psycopg2.connect(self.tsdb_dsn)
         return self._conn
 
-    def _query_tsdb(self, node_id: str, window_minutes: int = 5) -> Dict[str, Dict]:
+    def _query_tsdb(self, node_id: str, window_minutes: int = 5) -> dict[str, dict]:
         """Query TimescaleDB continuous aggregate for a node."""
         conn = self._tsdb_connect()
         cur = conn.cursor()
@@ -63,7 +63,7 @@ class FeatureBuilder:
             LIMIT 1000
         """, (node_id, window_minutes))
         rows = cur.fetchall()
-        result: Dict[str, Dict] = {}
+        result: dict[str, dict] = {}
         for metric, avg, min_v, max_v, stddev, p50, p95, p99 in rows:
             if metric not in result:
                 result[metric] = {'avg': avg, 'min': min_v, 'max': max_v,
@@ -73,7 +73,7 @@ class FeatureBuilder:
     # -------------------------------------------------------------------------
     # Prometheus path (FALLBACK/DEV)
     # -------------------------------------------------------------------------
-    def _query_prometheus(self, node_id: str) -> Dict[str, float]:
+    def _query_prometheus(self, node_id: str) -> dict[str, float]:
         import requests
         queries = {
             'gpu_util': f'avg by (node) (DCGM_FI_DEV_GPU_UTIL{{node="{node_id}"}})',
@@ -100,7 +100,7 @@ class FeatureBuilder:
     # -------------------------------------------------------------------------
     # Build
     # -------------------------------------------------------------------------
-    def build(self, node_id: str) -> Dict:
+    def build(self, node_id: str) -> dict:
         """
         Build a single feature vector for node_id.
         Uses TimescaleDB if backend='timescale', Prometheus otherwise.
@@ -115,17 +115,17 @@ class FeatureBuilder:
         from feature_pipeline import build_features
         return build_features(node_id, metrics)
 
-    def build_batch(self, node_ids: List[str]) -> List[Dict]:
+    def build_batch(self, node_ids: list[str]) -> list[dict]:
         return [fv for node_id in node_ids if (fv := self.build(node_id))]
 
 
-def build_features(node_id: str, metrics: Dict) -> Dict:
+def build_features(node_id: str, metrics: dict) -> dict:
     """
     Convert raw metrics dict into a feature vector, using window_engine aggregations.
     Called by FeatureBuilder internally.
     """
-    from feature_pipeline.window_engine import WindowEngine
     from feature_pipeline.feature_registry import get_feature_names
+    from feature_pipeline.window_engine import WindowEngine
 
     engine = WindowEngine()
     for metric, vals in metrics.items():

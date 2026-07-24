@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
 """ATOM-R-032: Final MAS Factory E2E Test"""
 
+from __future__ import annotations
+
 import asyncio
 import sys
 import time
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 def p(msg, style=""):
-    s = {"g": "\033[92m", "r": "\033[91m", "y": "\033[93m", "b": "\033[94m"}.get(style, "")
-    print(f"{s}{msg}\033[0m")
+    s = {"g": "\033[92m", "r": "\033[91m", "y": "\033[93m", "b": "\033[94m"}.get(
+        style, ""
+    )
+    log.info(f"{s}{msg}\033[0m")
 
 
 def sec(name):
-    print(f"\n{'=' * 70}\n{p(f' {name}', 'b')}\n{'=' * 70}")
+    log.info(f"\n{'=' * 70}\n{p(f' {name}', 'b')}\n{'=' * 70}")
 
 
 async def main():
@@ -147,7 +155,7 @@ async def main():
                 p(f"    - {name}", "r")
     else:
         p("  🎉 ALL TESTS PASSED!", "g")
-    print(f"\n{'=' * 70}\n")
+    log.info(f"\n{'=' * 70}\n")
     return passed >= 5  # Pass if 5+/7
 
 

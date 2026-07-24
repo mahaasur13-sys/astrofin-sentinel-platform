@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import datetime
+import logging
 import os
 import re
 import subprocess
 import sys
 
 from openai import OpenAI
+
+log = logging.getLogger(__name__)
+
 
 # ---------- Конфигурация ----------
 MAX_RETRIES = 3
@@ -27,7 +33,9 @@ def write_file(path, content):
 
 
 def run(cmd, capture=True):
-    return subprocess.run(cmd, shell=True, capture_output=capture, text=True)
+    return subprocess.run(
+        cmd, shell=True, capture_output=capture, text=True
+    )  # nosec B602 — dev CLI tool, not production entrypoint
 
 
 def is_protected_file(filepath):
@@ -59,23 +67,23 @@ def log_audit(log_path, task, llm_response, status, error=None):
 
 def run_checks():
     """Выполняет обязательные проверки: ruff, pytest с coverage, docker ps."""
-    print("🔍 Ruff check...")
+    log.info("🔍 Ruff check...")
     ruff = run("ruff check orchestration/ agents/ core/ meta_rl/ trading/ web/")
     if ruff.returncode != 0:
         return False, ruff.stdout + "\n" + ruff.stderr
-    print("✅ Ruff ok")
+    log.info("✅ Ruff ok")
 
-    print("🧪 Pytest + coverage...")
+    log.info("🧪 Pytest + coverage...")
     test = run("pytest tests/ -v --cov=. --cov-fail-under=60")
     if test.returncode != 0:
         return False, test.stdout + "\n" + test.stderr
-    print("✅ Tests ok")
+    log.info("✅ Tests ok")
 
-    print("🐳 Docker health...")
+    log.info("🐳 Docker health...")
     ps = run("docker compose ps --filter status=running")
     if "unhealthy" in ps.stdout.lower():
         return False, "Unhealthy containers detected:\n" + ps.stdout
-    print("✅ All containers healthy")
+    log.info("✅ All containers healthy")
     return True, "All checks passed"
 
 
@@ -83,33 +91,35 @@ def run_checks():
 def main():
     api_key = os.getenv("VSELM_API_KEY")
     if not api_key:
-        print("❌ Переменная VSELM_API_KEY не установлена")
+        log.info("❌ Переменная VSELM_API_KEY не установлена")
         sys.exit(1)
 
     client = OpenAI(api_key=api_key, base_url="https://api.vsellm.ru/v1")
 
     tickets = read_file(TICKETS_FILE)
     progress = read_file(PROGRESS_FILE)
-    instructions = read_file(INSTRUCTIONS_FILE) if os.path.exists(INSTRUCTIONS_FILE) else ""
+    instructions = (
+        read_file(INSTRUCTIONS_FILE) if os.path.exists(INSTRUCTIONS_FILE) else ""
+    )
 
     # Ищем первую невыполненную задачу
     match = re.search(r"^- \[ \] (.+?)$", tickets, re.MULTILINE)
     if not match:
-        print("✅ Все задачи выполнены!")
+        log.info("✅ Все задачи выполнены!")
         sys.exit(0)
     task = match.group(1)
-    print(f"🎯 Задача: {task}")
+    log.info(f"🎯 Задача: {task}")
 
     # Проверяем, не трогает ли агент уже сейчас защищённые файлы (хотя до коммита ещё далеко)
     # Эта проверка будет также после выполнения LLM.
     for attempt in range(1, MAX_RETRIES + 1):
-        print(f"\n🔄 Попытка {attempt}/{MAX_RETRIES}")
+        log.info(f"\n🔄 Попытка {attempt}/{MAX_RETRIES}")
         # Stash несохранённых изменений (создаём точку отката)
         stash_cmd = f"git stash push -m 'ralph-attempt-{attempt}'"
         stash_res = run(stash_cmd)
         if stash_res.returncode != 0:
             log_audit(AUDIT_LOG, task, "N/A", "STASH_FAILED", error=stash_res.stderr)
-            print("❌ Не удалось создать stash, прерываем.")
+            log.info("❌ Не удалось создать stash, прерываем.")
             sys.exit(1)
 
         # Формируем запрос к LLM
@@ -136,24 +146,24 @@ def main():
             answer = response.choices[0].message.content
         except Exception as e:
             log_audit(AUDIT_LOG, task, "LLM_ERROR", "ERROR", error=str(e))
-            print(f"❌ Ошибка LLM: {e}")
+            log.info(f"❌ Ошибка LLM: {e}")
             sys.exit(1)
 
-        print(f"🤖 Ответ модели:\n{answer}")
+        log.info(f"🤖 Ответ модели:\n{answer}")
         log_audit(AUDIT_LOG, task, answer, "LLM_DONE")
 
         # Проверяем, не трогает ли агент защищённые файлы
         if not check_protected_files_in_diff():
-            print("🛑 Обнаружены изменения в защищённых файлах! Откатываем.")
+            log.info("🛑 Обнаружены изменения в защищённых файлах! Откатываем.")
             run("git checkout -- .")  # откат изменений
             run("git stash pop")  # возвращаем исходное состояние
-            print("Задача не выполнена из-за нарушения защиты.")
+            log.info("Задача не выполнена из-за нарушения защиты.")
             sys.exit(1)
 
         # Запускаем проверки
         ok, msg = run_checks()
         if ok:
-            print("✅ Все проверки пройдены, коммитим.")
+            log.info("✅ Все проверки пройдены, коммитим.")
             run("git add -A")
             run(f'git commit -m "feat: {task}"')
             # Обновляем tickets и progress
@@ -164,24 +174,24 @@ def main():
                 pf.write(entry)
             # Сливаем stash (он больше не нужен)
             run("git stash pop")
-            print("📌 Прогресс обновлён.")
+            log.info("📌 Прогресс обновлён.")
             log_audit(AUDIT_LOG, task, answer, "SUCCESS")
             break
         else:
             # Откатываем изменения и пробуем снова
-            print(f"❌ Проверки не пройдены:\n{msg}")
+            log.info(f"❌ Проверки не пройдены:\n{msg}")
             run("git checkout -- .")
             run("git stash pop")
             log_audit(AUDIT_LOG, task, answer, "CHECK_FAILED", error=msg)
             if attempt == MAX_RETRIES:
-                print("⛔ Исчерпаны все попытки.")
+                log.info("⛔ Исчерпаны все попытки.")
                 with open(PROGRESS_FILE, "a") as pf:
                     pf.write(
                         f"\n## {task}\n- Статус: BLOCKED\n- Причина: не прошла проверки после {MAX_RETRIES} попыток\n"
                     )
                 sys.exit(1)
     else:
-        print("Задача не выполнена.")
+        log.info("Задача не выполнена.")
 
 
 if __name__ == "__main__":

@@ -12,6 +12,9 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
 from .load_simulator import (
     BurstPattern,
     ChaosConfig,
@@ -273,11 +276,11 @@ class ChaosRunner:
     def run_all(self) -> list[ScenarioResult]:
         results = []
         for name in SCENARIOS:
-            print(f"Running {name}...")
+            log.info(f"Running {name}...")
             try:
                 r = self.run(name)
                 results.append(r)
-                print(f"  → PASS={r.passed} FAIL={r.failed} INCONCLUSIVE={r.inconclusive}")
+                log.info(f"  → PASS={r.passed} FAIL={r.failed} INCONCLUSIVE={r.inconclusive}")
             except Exception as e:
-                print(f"  → ERROR: {e}")
+                log.info(f"  → ERROR: {e}")
         return results

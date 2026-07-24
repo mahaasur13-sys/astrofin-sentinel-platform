@@ -10,6 +10,10 @@ get_tracer() helper (which returns None if not yet bootstrapped).
 
 Usage:
     from observability.core.otel_exporter import setup_otel_exporter
+
+import logging
+log = logging.getLogger(__name__)
+
     tracer = setup_otel_exporter(
         endpoint="http://localhost:4317",   # OTEL collector gRPC
         service_name="atom-node-a",
@@ -65,7 +69,7 @@ def setup_otel_exporter(
     global _setup_done
 
     if not _HAS_OTEL:
-        print("[otel] opentelemetry not installed — tracing disabled")
+        log.info("[otel] opentelemetry not installed — tracing disabled")
         return None
 
     tracer: Any | None = None
@@ -97,16 +101,16 @@ def setup_otel_exporter(
             )
             tracer_provider.add_span_processor(BatchSpanProcessor(exporter))
         except ImportError:
-            print(f"[otel] OTLPSpanExporter not available — traces will not be exported to {endpoint}")
+            log.info(f"[otel] OTLPSpanExporter not available — traces will not be exported to {endpoint}")
         except Exception as exc:
-            print(f"[otel] Failed to configure OTLP exporter ({endpoint}): {exc}")
+            log.info(f"[otel] Failed to configure OTLP exporter ({endpoint}): {exc}")
 
         trace.set_tracer_provider(tracer_provider)
         metrics.set_meter_provider(meter_provider)
 
         tracer = trace.get_tracer("atom-federation-os", "7.0")
         _setup_done = True
-        print(f"[otel] configured — exporting traces to {endpoint}")
+        log.info(f"[otel] configured — exporting traces to {endpoint}")
 
     return tracer
 

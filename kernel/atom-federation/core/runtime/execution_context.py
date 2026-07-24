@@ -61,21 +61,21 @@ class MutationAuditEntry:
 class EnhancedExecutionContext:
     '''
     Thread-safe + Async-aware execution context for mutations.
-    
+
     Features:
         - Reentrant lock (RLock) — same thread can re-enter
         - Async-safe (no event-loop dependencies)
         - Full audit trail of all mutation attempts
         - Nested context support (inner context inherits outer)
         - Deterministic tick propagation
-    
+
     Usage:
         ctx = EnhancedExecutionContext()
-        
+
         # Mutation allowed
         with ctx.mutation_context(can_mutate=True):
             # ... perform mutations ...
-        
+
         # Read-only
         with ctx.mutation_context(can_mutate=False):
             # ... read state, no mutations allowed ...
@@ -175,21 +175,21 @@ class EnhancedExecutionContext:
                          mode: ContextMode = ContextMode.MUTATION_ALLOWED):
         '''
         Thread-safe context manager for mutations.
-        
+
         Args:
             can_mutate: If True, mutations are allowed inside this context.
                        If False, only read-only operations permitted.
             mode: Context mode (READ_ONLY or MUTATION_ALLOWED)
-        
+
         Usage:
             # Allow mutations
             with ctx.mutation_context(can_mutate=True):
                 executor.execute(payload)
-            
+
             # Read-only (no mutations)
             with ctx.mutation_context(can_mutate=False):
                 state = read_state()
-        
+
         Thread-safety:
             - Uses RLock — same thread can re-enter multiple times
             - Async-safe — no event loop assumptions
@@ -276,7 +276,7 @@ class EnhancedExecutionContext:
     def internal_context(self):
         '''
         Internal gateway context (highest priority).
-        
+
         Used for gateway-internal operations that bypass normal checks.
         '''
         with self._ctx_lock:
@@ -312,11 +312,11 @@ class EnhancedExecutionContext:
                                  payload_summary: str = '') -> None:
         '''
         HARD ASSERT: Verify mutation is allowed in current context.
-        
+
         Raises:
             SafetyViolationError: if mutation not allowed
             SystemShutdown: if bypass attempt detected
-        
+
         Called by @requires_gateway decorator and MutationExecutor.
         '''
         from core.runtime.guard_policy import ExecutionGuardPolicy, SystemShutdown
@@ -329,7 +329,7 @@ class EnhancedExecutionContext:
                 # No context at all — check if this is a bypass
                 policy = ExecutionGuardPolicy.instance()
 
-                violation_entry = self._log_audit_entry(
+                self._log_audit_entry(
                     mode=ContextMode.READ_ONLY,
                     caller_module=self._get_caller_module(stack),
                     caller_function=self._get_caller_function(stack),
@@ -497,7 +497,7 @@ class EnhancedExecutionContext:
                                       mode: ContextMode = ContextMode.MUTATION_ALLOWED):
         '''
         Async-compatible context manager.
-        
+
         Usage:
             async with ctx.async_mutation_context(can_mutate=True):
                 await do_async_work()
@@ -510,7 +510,7 @@ class EnhancedExecutionContext:
 class AsyncExecutionContext:
     '''
     Async-aware execution context wrapper.
-    
+
     For use with asyncio-based code:
         async with ctx.async_mutation_context():
             await executor.execute_async(payload)

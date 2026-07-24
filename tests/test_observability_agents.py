@@ -1,41 +1,40 @@
-"""Tests for agent observability hooks.
-
-The previous version of this test asserted that
-`AGENT_SELECTION_COUNTS.labels(agent_name=..., pool=...)._value.get()` was
-incremented after `_select_for_flow`. That label scheme is not the one
-declared in `tools/metrics_server.py` (which has a single `agent` label),
-and `_select_for_flow` does not currently call `.inc()` on the counter.
-These tests therefore exercise what is actually implemented today.
-"""
+from __future__ import annotations
 
 from unittest.mock import patch
+
+
+from tools.metrics_server import AGENT_SELECTION_COUNTS
+
 
 import pytest
 
 
 @pytest.mark.unit
-def test_agent_selection_returns_picked_agents():
-    """`_select_for_flow` should return the agent names selected by the
-    Thompson sampler."""
+def test_agent_selection_increments_counter():
+    """После выбора агентов через _select_for_flow счётчик должен инкрементироваться."""
     from core.thompson import TECHNICAL_POOL
     from orchestration.sentinel_v5 import _select_for_flow
 
     with patch("core.thompson.ThompsonSampler.select") as mock_select:
         mock_select.return_value = [("TechnicalAgent", 0.9)]
-        selected = _select_for_flow(TECHNICAL_POOL, k=1)
+        _select_for_flow(TECHNICAL_POOL, k=1)
 
-    assert "TechnicalAgent" in selected
+    # Проверяем, что значение дочернего счётчика стало > 0
+    val = AGENT_SELECTION_COUNTS.labels(
+        agent_name="TechnicalAgent", pool="technical"
+    )._value.get()
+    assert val > 0, f"Expected counter > 0, got {val}"
 
 
 @pytest.mark.unit
 def test_signal_distribution_increments():
-    """run_technical_flow with a mocked market analyst should not raise
-    and should return a state that includes the analyst's signal."""
+    """При получении сигнала от агента счётчик распределения должен инкрементироваться."""
     import asyncio
     from unittest.mock import patch
 
     from orchestration.sentinel_v5 import run_technical_flow
 
+    # Мокаем run_market_analyst, чтобы вернуть LONG
     async def mock_run(state):
         from agents.base_agent import AgentResponse, SignalDirection
 
@@ -49,25 +48,12 @@ def test_signal_distribution_increments():
 
     with patch("orchestration.sentinel_v5.run_market_analyst", side_effect=mock_run):
         state = {"symbol": "BTCUSDT", "current_price": 50000}
-        result = asyncio.run(run_technical_flow(state))
-
-    assert isinstance(result, dict)
+        asyncio.run(run_technical_flow(state))
 
 
 @pytest.mark.unit
-@pytest.mark.xfail(
-    reason=(
-        "Pre-existing bug: core/belief.py sets THOMPSON_PARAMS via "
-        "`labels(agent_name=..., param=...)`, but the Gauge in "
-        "tools/metrics_server.py is declared with label `[\"pool\"]`. "
-        "Track in Phase 4 (observability hardening) — not in scope for "
-        "Phase 5 production-readiness work."
-    ),
-    strict=False,
-)
 def test_thompson_params_gauge_updated():
-    """After BeliefTracker.update_from_session, THOMPSON_PARAMS gauge
-    should have a positive alpha value for the agent."""
+    """После обновления belief параметры Thompson должны отражаться в Gauge."""
     from core.belief import BeliefTracker
     from tools.metrics_server import THOMPSON_PARAMS
 
@@ -80,8 +66,7 @@ def test_thompson_params_gauge_updated():
         }
     )
 
-    # THOMPSON_PARAMS is declared with label `["pool"]`, while belief.py
-    # sets it via `labels(agent_name=..., param=...)`. The current
-    # implementation in belief.py raises on this mismatch, so we only
-    # assert the call did not corrupt any *registered* gauge values.
-    assert THOMPSON_PARAMS is not None
+    alpha_val = THOMPSON_PARAMS.labels(
+        agent_name="TechnicalAgent", param="alpha"
+    )._value.get()
+    assert alpha_val > 1.0, f"Expected alpha > 1.0, got {alpha_val}"

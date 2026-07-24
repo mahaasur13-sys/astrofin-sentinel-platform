@@ -2,12 +2,13 @@
 """SchedulerAdapter — routes jobs to Slurm/Ray schedulers."""
 import uuid
 
+
 class SchedulerAdapter:
     """Routes jobs to Slurm or Ray based on workload type."""
-    
+
     def __init__(self):
         self.route_map = {}
-    
+
     def route(self, job: dict) -> dict:
         """Determine scheduler for job."""
         jtype = job.get("type", "agent")
@@ -24,13 +25,13 @@ class SchedulerAdapter:
                 {"node_id": "node-1", "scheduler": target, "partition": "gpu" if target == "slurm" else "head"}
             ]
         }
-    
+
     def to_ray(self, job: dict) -> dict:
         return {"ray_options": {"cpu": job.get("cpu", 1), "gpu": job.get("gpu", 0)}}
-    
+
     def to_slurm(self, job: dict) -> dict:
         return {"slurm_options": {"cpu": job.get("cpu", 1), "gpu": job.get("gpu", 0)}}
-    
+
     def schedule(self, dag: dict, context: dict) -> dict:
         """Compile DAG into executable schedule. Contract-required method."""
         return {

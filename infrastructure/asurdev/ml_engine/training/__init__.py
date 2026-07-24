@@ -1,2 +1,2 @@
+from .evaluate import detect_drift, evaluate_classifier, evaluate_regressor
 from .trainer import Trainer
-from .evaluate import evaluate_classifier, evaluate_regressor, detect_drift

@@ -1,16 +1,24 @@
 """amre/hierarchical_policy.py — Hierarchical Policy + Regime Detection"""
 
+from __future__ import annotations
+
 from typing import Any
 
 
 class HierarchicalPolicy:
     def __init__(self):
+        """Function __init__."""
         self.regimes = ["LOW", "NORMAL", "HIGH", "EXTREME"]
 
     def detect_regime(self, state: dict[str, Any]) -> str:
+        """Function detect_regime."""
         state.get("price", 0)
         n_signals = state.get("n_signals", 1)
-        confs = [s.get("confidence", 50) for s in state.get("signals", []) if isinstance(s, dict)]
+        confs = [
+            s.get("confidence", 50)
+            for s in state.get("signals", [])
+            if isinstance(s, dict)
+        ]
         avg_conf = sum(confs) / len(confs) if confs else 50
         if n_signals >= 7 and avg_conf > 70:
             return "LOW"
@@ -21,6 +29,7 @@ class HierarchicalPolicy:
         return "EXTREME"
 
     def get_action(self, regime: str, amre_data: dict[str, Any]) -> dict[str, Any]:
+        """Function get_action."""
         uncertainty = amre_data.get("uncertainty", {}).get("total", 0.5)
         q_star = amre_data.get("q_star", 0.5)
         if regime == "LOW" and uncertainty < 0.3:

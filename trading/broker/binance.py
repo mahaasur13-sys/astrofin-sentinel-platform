@@ -6,6 +6,10 @@ import time
 
 import yaml
 
+import logging
+log = logging.getLogger(__name__)
+
+
 try:
     import ccxt
 
@@ -52,7 +56,7 @@ class BinanceBroker(BaseBroker):
 
     def connect(self) -> bool:
         if not HAS_CCXT:
-            print("Warning: ccxt not installed. Running in simulation mode.")
+            log.info("Warning: ccxt not installed. Running in simulation mode.")
             self.connected = True
             return True
         try:
@@ -65,22 +69,24 @@ class BinanceBroker(BaseBroker):
             self.exchange = ccxt.binance(config)
             self.exchange.fetch_balance()
             self.connected = True
-            print(f"BinanceBroker connected (paper={self.paper})")
+            log.info(f"BinanceBroker connected (paper={self.paper})")
             return True
         except Exception as e:
             BROKER_ERRORS.inc()
-            print(f"Binance connection failed: {e}")
+            log.info(f"Binance connection failed: {e}")
             self.connected = False
             return False
 
     def disconnect(self):
         self.exchange = None
         self.connected = False
-        print("BinanceBroker disconnected")
+        log.info("BinanceBroker disconnected")
 
     def get_account_balance(self) -> AccountBalance:
         if not self.connected:
-            return AccountBalance(total_equity=0, available_cash=0, positions_value=0, total_pnl=0)
+            return AccountBalance(
+                total_equity=0, available_cash=0, positions_value=0, total_pnl=0
+            )
         if not HAS_CCXT or not self.exchange:
             return AccountBalance(
                 total_equity=10000.0,
@@ -102,7 +108,9 @@ class BinanceBroker(BaseBroker):
             )
         except Exception:
             BROKER_ERRORS.inc()
-            return AccountBalance(total_equity=10000, available_cash=10000, positions_value=0, total_pnl=0)
+            return AccountBalance(
+                total_equity=10000, available_cash=10000, positions_value=0, total_pnl=0
+            )
 
     def get_positions(self) -> list[Position]:
         if not self.connected:
@@ -176,9 +184,13 @@ class BinanceBroker(BaseBroker):
             side_str = "buy" if side == OrderSide.BUY else "sell"
             type_str = order_type.value
             if order_type == OrderType.LIMIT or order_type == OrderType.STOP_LIMIT:
-                order = self.exchange.create_order(symbol, type_str, side_str, quantity, price)
+                order = self.exchange.create_order(
+                    symbol, type_str, side_str, quantity, price
+                )
             elif order_type == OrderType.STOP:
-                order = self.exchange.create_order(symbol, "stop", side_str, quantity, price)
+                order = self.exchange.create_order(
+                    symbol, "stop", side_str, quantity, price
+                )
             else:
                 order = self.exchange.create_order(symbol, "market", side_str, quantity)
             return Order(
@@ -233,7 +245,11 @@ class BinanceBroker(BaseBroker):
                 order_type=OrderType.MARKET,
                 quantity=float(order["amount"]),
                 price=float(order.get("price", 0)),
-                status=(OrderStatus.FILLED if order["status"] == "closed" else OrderStatus.PENDING),
+                status=(
+                    OrderStatus.FILLED
+                    if order["status"] == "closed"
+                    else OrderStatus.PENDING
+                ),
                 filled_qty=float(order.get("filled", 0)),
             )
         except Exception:

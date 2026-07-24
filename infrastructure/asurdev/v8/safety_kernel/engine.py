@@ -4,9 +4,8 @@ Safety Kernel — final admission gate for all decisions.
 v8: admit / reject / downgrade decisions from v6+v7.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Optional
 from enum import Enum
 
 
@@ -45,16 +44,16 @@ class DecisionContext:
 @dataclass
 class AdmissionResult:
     status: DecisionStatus
-    reason: Optional[str] = None
+    reason: str | None = None
     risk_score: float = 0.0
     violations: list[str] = field(default_factory=list)
-    approved_by: Optional[str] = None
+    approved_by: str | None = None
 
 
 class SafetyKernel:
     """
     Final admission gate — runs BEFORE every decision executes.
-    
+
     Pipeline:
         1. constraint_engine.validate(decision)
         2. policy_verifier.check(decision)
@@ -85,7 +84,7 @@ class SafetyKernel:
         # STEP 1: constraint validation
         violations = self.constraint_engine.validate(decision, context)
         if violations:
-            incident = self.incident_manager.create(
+            self.incident_manager.create(
                 trigger_type="constraint_violation",
                 severity=self._severity_from_violations(violations),
                 details={"decision": decision, "violations": violations},
@@ -114,7 +113,7 @@ class SafetyKernel:
             degraded = self._try_degrade(decision, context, risk)
             if degraded:
                 return degraded
-            incident = self.incident_manager.create(
+            self.incident_manager.create(
                 trigger_type="risk_threshold_exceeded",
                 severity=0.8,
                 details={"decision": decision, "risk_score": risk},
@@ -156,7 +155,7 @@ class SafetyKernel:
 
     def _try_degrade(
         self, decision: dict, context: DecisionContext, risk: float
-    ) -> Optional[AdmissionResult]:
+    ) -> AdmissionResult | None:
         """Attempt degraded admission instead of hard reject."""
         # Downgrade GPU job → CPU-only
         if decision.get("requires_gpu") and not decision.get("gpu_compatible"):

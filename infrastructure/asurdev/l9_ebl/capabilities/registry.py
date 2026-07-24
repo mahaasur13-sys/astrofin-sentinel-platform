@@ -3,10 +3,9 @@
 L9 EBL — Capability Registry
 Capability-based access control for all infra actions.
 """
-from enum import Enum, auto
-from typing import Dict, Set, List, Optional
 from dataclasses import dataclass, field
-import uuid
+from enum import Enum
+
 
 class Capability(Enum):
     INFRA_READ = "infra:read"
@@ -23,19 +22,19 @@ class Capability(Enum):
 @dataclass
 class CapabilitySet:
     name: str
-    capabilities: Set[Capability]
+    capabilities: set[Capability]
     description: str = ""
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
 
     def grants(self, cap: Capability) -> bool:
         return cap in self.capabilities
 
-    def grants_any(self, caps: List[Capability]) -> bool:
+    def grants_any(self, caps: list[Capability]) -> bool:
         return bool(self.capabilities & set(caps))
 
-ROLE_CAPABILITIES: Dict[str, CapabilitySet] = {}
+ROLE_CAPABILITIES: dict[str, CapabilitySet] = {}
 
-def register_role(name: str, caps: List[str], description: str = "", tags: List[str] = None) -> CapabilitySet:
+def register_role(name: str, caps: list[str], description: str = "", tags: list[str] = None) -> CapabilitySet:
     cap_set = CapabilitySet(
         name=name,
         capabilities={Capability(c) for c in caps},
@@ -76,9 +75,9 @@ class ExecutionContext:
     trace_id: str
     role: str
     session_id: str
-    granted: Set[Capability] = field(default_factory=set)
-    denied: Set[Capability] = field(default_factory=set)
-    checked_at: Optional[str] = None
+    granted: set[Capability] = field(default_factory=set)
+    denied: set[Capability] = field(default_factory=set)
+    checked_at: str | None = None
 
     @staticmethod
     def create(trace_id: str, role: str, session_id: str) -> "ExecutionContext":
@@ -116,7 +115,7 @@ class CapabilityDenied(Exception):
 def enforce(ctx: ExecutionContext, cap: Capability, reason: str = "") -> None:
     ctx.check(cap, reason)
 
-def enforce_any(ctx: ExecutionContext, caps: List[Capability], reason: str = "") -> None:
+def enforce_any(ctx: ExecutionContext, caps: list[Capability], reason: str = "") -> None:
     for cap in caps:
         try:
             ctx.check(cap, reason)
@@ -130,14 +129,14 @@ def enforce_any(ctx: ExecutionContext, caps: List[Capability], reason: str = "")
         reason=f"None of {[c.value for c in caps]} granted to role={ctx.role}"
     )
 
-def enforce_all(ctx: ExecutionContext, caps: List[Capability], reason: str = "") -> None:
+def enforce_all(ctx: ExecutionContext, caps: list[Capability], reason: str = "") -> None:
     for cap in caps:
         ctx.check(cap, reason)
 
 # Capability registry query
-def query_capabilities(role: str) -> List[str]:
+def query_capabilities(role: str) -> list[str]:
     cs = ROLE_CAPABILITIES.get(role)
     return [c.value for c in cs.capabilities] if cs else []
 
-def list_roles() -> List[str]:
+def list_roles() -> list[str]:
     return list(ROLE_CAPABILITIES.keys())

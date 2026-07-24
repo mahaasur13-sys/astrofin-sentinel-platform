@@ -92,6 +92,10 @@ import sys
 from dataclasses import dataclass
 from enum import Enum, auto
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 
@@ -118,7 +122,7 @@ class LayerMetrics:
 class CrossLayerTheorem:
     """
     Formal cross-layer consistency checker.
-    
+
     Proves that layer states are compatible at each timestep.
     Returns (proved: bool, violations: list[str])
     """
@@ -258,9 +262,9 @@ def _run_tests():
         ok, v = tl.check_all(m)
         ok_match = (ok == expect_ok)
         status = "✅" if ok_match else "❌"
-        print(f"  {status} {name}")
+        log.info(f"  {status} {name}")
         if not ok_match:
-            print(f"    violations: {v}")
+            log.info(f"    violations: {v}")
         return ok_match
 
     all_ok = True
@@ -330,8 +334,9 @@ def _run_tests():
     adlr_stage="STABLE", bcsl_veto_count=0,
     gcpl_C=0.5, branch_count=15, gcpl_max_branches=3,
     adlr_total=5, oscillation_free=True))
-    if ok: print("  ✅ COROLLARY branch_count at theoretical bound")
-    else: print("  ❌ COROLLARY branch_count at theoretical bound")
+    if ok:
+        log.info("  ✅ COROLLARY branch_count at theoretical bound")
+    else: log.info("  ❌ COROLLARY branch_count at theoretical bound")
     all_ok &= ok
 
     all_ok &= check("COROLLARY branch_count exceeds T*max → violation", LayerMetrics(
@@ -339,12 +344,12 @@ def _run_tests():
         gcpl_C=1.0, branch_count=20, gcpl_max_branches=3,
         adlr_total=5, oscillation_free=True), False)
 
-    print()
+    log.info("")
     if all_ok:
-        print("  ALL CROSS-LAYER THEOREMS PROVED ✅")
+        log.info("  ALL CROSS-LAYER THEOREMS PROVED ✅")
         return True
     else:
-        print("  SOME THEOREMS FAILED ❌")
+        log.info("  SOME THEOREMS FAILED ❌")
         return False
 
 

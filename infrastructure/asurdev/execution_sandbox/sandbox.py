@@ -4,10 +4,17 @@ ExecutionSandbox — Node-level isolation
 Block: fs writes outside scope, network calls, env mutation, memory overflow
 """
 from __future__ import annotations
-import hashlib, json, os, resource, sys, tempfile
+
+import logging
+import os
+import resource
 from dataclasses import dataclass, field
-from typing import Any
 from enum import Enum
+from typing import Any
+
+log = logging.getLogger(__name__)
+
+
 
 class ViolationType(Enum):
     FS_WRITE = "FS_WRITE"
@@ -82,6 +89,6 @@ class ExecutionSandbox:
 if __name__ == "__main__":
     sandbox = ExecutionSandbox(allowed_dirs=["/tmp/scope"], max_memory_bytes=1_000_000_000)
     result = sandbox.execute({"id": "test", "output": 42})
-    print(f"Allowed: {result.allowed}, Output: {result.output}")
+    log.info(f"Allowed: {result.allowed}, Output: {result.output}")
     result2 = sandbox.execute({"id": "bad", "write_path": "/etc/passwd"})
-    print(f"Blocked: {result2.violations[0].type.value if result2.violations else 'none'}")
+    log.info(f"Blocked: {result2.violations[0].type.value if result2.violations else 'none'}")

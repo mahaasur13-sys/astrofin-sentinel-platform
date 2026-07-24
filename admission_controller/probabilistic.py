@@ -6,9 +6,13 @@ Replaces static threshold (GPU>85%) with P(overload in next M minutes).
 v4.1 → v5 bridge component.
 """
 
+import logging
 import math
 
 from state_store import StateStore
+
+log = logging.getLogger(__name__)
+
 
 
 # Rolling window estimator (online stats, no distribution assumption)
@@ -92,10 +96,16 @@ class ProbabilisticAdmissionController:
         """Approximation of standard normal CDF at z."""
         # Abramowitz and Stegun approximation
         t = 1.0 / (1.0 + 0.2316419 * abs(z))
-        poly = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))))
+        poly = t * (
+            0.319381530
+            + t
+            * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429)))
+        )
         return 1.0 - (1.0 / math.sqrt(2 * math.pi)) * math.exp(-0.5 * z * z) * poly
 
-    def should_reject(self, node_id: str, lookahead_minutes: int = 10) -> tuple[bool, float]:
+    def should_reject(
+        self, node_id: str, lookahead_minutes: int = 10
+    ) -> tuple[bool, float]:
         """
         Main decision: reject if P(overload in next M min) > threshold.
         Returns (should_reject, p_overload).
@@ -137,4 +147,4 @@ if __name__ == "__main__":
         controller.update("rtx-node", val)
 
     reject, p = controller.should_reject("rtx-node")
-    print(f"rtx-node: P(overload) = {p:.3f} → {'REJECT' if reject else 'ADMIT'}")
+    log.info(f"rtx-node: P(overload) = {p:.3f} → {'REJECT' if reject else 'ADMIT'}")

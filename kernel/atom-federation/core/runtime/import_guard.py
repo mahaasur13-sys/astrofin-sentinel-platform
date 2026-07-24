@@ -25,7 +25,7 @@ import threading
 class GatewayContext:
     """
     Process-wide execution context flag.
-    
+
     Active ONLY during ExecutionGateway.execute() call.
     All other code runs with active=False.
     """
@@ -166,7 +166,7 @@ def is_installed() -> bool:
 class GatewayContextGuard:
     """
     Context manager that activates gateway context for a block of code.
-    
+
     Usage inside ExecutionGateway.execute():
         with GatewayContextGuard("execute"):
             # gateway context is active here

@@ -10,6 +10,10 @@ import json
 import random
 from dataclasses import dataclass
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class Node:
@@ -78,11 +82,11 @@ class MLRiskIgnoredScenario:
 
 
 def run():
-    print("[ML RISK IGNORED] Starting scenario...")
+    log.info("[ML RISK IGNORED] Starting scenario...")
     s = MLRiskIgnoredScenario()
     r = s.simulate()
-    print(f"Failure detected: {r['failure_detected']}")
-    print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
+    log.info(f"Failure detected: {r['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
 
 

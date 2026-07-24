@@ -323,8 +323,10 @@ class TestClosedLoopBehavior:
         max_severity_t0 = max(ep.severity for ep in episodes_t0)
 
         # Simulate governor blocks: 7/10 = 0.70 block rate
-        for _ in range(7): bridge.record_governor_decision(True)
-        for _ in range(3): bridge.record_governor_decision(False)
+        for _ in range(7):
+            bridge.record_governor_decision(True)
+        for _ in range(3):
+            bridge.record_governor_decision(False)
         impact_t0 = bridge.compute_impact(
             oscillation=max_severity_t0,
             coherence_drop=max_severity_t0,
@@ -408,8 +410,10 @@ class TestClosedLoopBehavior:
             max_sev = max((e.severity for e in episodes), default=0.0)
 
             # Record governor blocks: chaos causes high block rate
-            for _ in range(6): bridge.record_governor_decision(True)
-            for _ in range(4): bridge.record_governor_decision(False)
+            for _ in range(6):
+                bridge.record_governor_decision(True)
+            for _ in range(4):
+                bridge.record_governor_decision(False)
 
             impact = bridge.compute_impact(
                 oscillation=max_sev,

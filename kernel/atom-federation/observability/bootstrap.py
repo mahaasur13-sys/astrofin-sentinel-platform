@@ -11,6 +11,10 @@ Minimal one-shot startup for a cluster node or test harness.
 Usage:
     from observability.bootstrap import start_observability
 
+import logging
+log = logging.getLogger(__name__)
+
+
     tracer = start_observability(
         node_id="atom-node-a",
         metrics_port=9464,
@@ -67,6 +71,6 @@ def start_observability(
         insecure=otel_insecure,
     )
 
-    print(f"[observability] bootstrap complete — node={node_id} metrics=:~/{metrics_port} otel=~/{otel_endpoint}")
+    log.info(f"[observability] bootstrap complete — node={node_id} metrics=:~/{metrics_port} otel=~/{otel_endpoint}")
 
     return tracer

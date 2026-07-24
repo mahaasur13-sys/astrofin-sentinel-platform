@@ -63,7 +63,7 @@ class CascadeNode:
 class SystemState:
     """
     Internal causal model of the cluster.
-    
+
     Maintains:
       - node_roles: current role of each node
       - dependency_graph: RPC call graph (who depends on whom)
@@ -203,7 +203,6 @@ class SelfModel:
         predicted_healthy = s.node_count_healthy
         predicted_convergence = s.convergence_time_ms
         predicted_violations = s.violation_count_60s
-        predicted_leader_count = s.leader_count
         predicted_sbs_health = s.sbs_health
         predicted_network_health = s.network_health
 

@@ -22,6 +22,7 @@ Conflict resolution matrix:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 from enum import Enum, auto
 
 from core.deterministic import DeterministicClock, DeterministicUUIDFactory
@@ -86,7 +87,7 @@ class MergeLog:
     confidence: float
 
     def summary(self) -> str:
-        conflict_kinds = [c.conflict_type.name for c in self.conflicts_resolved]
+        [c.conflict_type.name for c in self.conflicts_resolved]
         return (
             f"merge_id={self.merge_id[:12]} "
             f"decision={self.decision.name} "
@@ -134,7 +135,7 @@ class MergeEngine:
         started = DeterministicClock.get_tick_ns()
 
         # Get both branches
-        ba = self._branches.get(decision.l1.l1_equivalent and decision.l2.l2_equivalent and decision.l3.l3_equivalent)  # resolved via decision attrs
+        self._branches.get(decision.l1.l1_equivalent and decision.l2.l2_equivalent and decision.l3.l3_equivalent)  # resolved via decision attrs
         # Source branches are identified via decision attributes from equivalence
         # In practice these come from the equivalence checker context
         # For this implementation we reconstruct from decision
@@ -291,7 +292,6 @@ class MergeEngine:
 
         if ts_a != ts_b:
             earlier = event_a if ts_a < ts_b else event_b
-            later = event_b if ts_a < ts_b else event_a
             return MergeConflict(
                 conflict_type=ConflictType.L2_ORDERING,
                 node_id=node_id,
@@ -412,7 +412,7 @@ class MergeEngine:
 
         merges = sum(1 for l in self._logs if l.decision == Decision.MERGE)
         splits = sum(1 for l in self._logs if l.decision == Decision.SPLIT)
-        keeps = sum(1 for l in self._logs if l.decision in (Decision.KEEP_A, Decision.KEEP_B))
+        sum(1 for l in self._logs if l.decision in (Decision.KEEP_A, Decision.KEEP_B))
 
         avg_confidence = sum(l.confidence for l in self._logs) / total
 

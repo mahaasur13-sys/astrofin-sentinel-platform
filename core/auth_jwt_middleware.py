@@ -100,7 +100,11 @@ async def require_jwt(
     remain explicit. A 401 HTTPException is raised on every failure
     path.
     """
-    header = authorization if authorization is not None else request.headers.get("Authorization")
+    header = (
+        authorization
+        if authorization is not None
+        else request.headers.get("Authorization")
+    )
     try:
         token = _extract_bearer(header)
         claims = verify_token(token, expected_type="access")

@@ -1,6 +1,7 @@
 """Security Gate — validates ROMA JSON before compilation."""
 
 
+
 class SecurityGate:
     """
     Filters ROMA JSON for dangerous patterns.

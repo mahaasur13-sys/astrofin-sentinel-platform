@@ -93,8 +93,8 @@ def test_auth_disabled_allows_request(monkeypatch: pytest.MonkeyPatch):
 
     get_settings.cache_clear()
 
-    from web.wsgi import server
     from core.auth import reload_auth_state
+    from web.wsgi import server
 
     reload_auth_state()
 
@@ -127,8 +127,8 @@ def test_constant_time_compare_used(monkeypatch: pytest.MonkeyPatch):
 
     get_settings.cache_clear()
 
-    from web.wsgi import server
     from core.auth import reload_auth_state
+    from web.wsgi import server
 
     reload_auth_state()
 

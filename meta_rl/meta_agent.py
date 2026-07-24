@@ -107,7 +107,9 @@ class MetaAgent:
     updates internal state for cross-session learning.
     """
 
-    def __init__(self, evaluator=None, reward_config=None, config=None, karl_state=None):
+    def __init__(
+        self, evaluator=None, reward_config=None, config=None, karl_state=None
+    ):
         self.evaluator = evaluator or StrategyEvaluator()
         self.reward_calc = RewardCalculator(reward_config or RewardConfig())
         self.config = config or EvolutionConfig()
@@ -136,7 +138,11 @@ class MetaAgent:
 
         population = []
         for _ in range(self.config.population_size):
-            strategy = generator_fn() if generator_fn else GeneratedStrategy(random_chromosome(), generation=1)
+            strategy = (
+                generator_fn()
+                if generator_fn
+                else GeneratedStrategy(random_chromosome(), generation=1)
+            )
             scored = ScoredStrategy(
                 strategy=strategy,
                 reward=0.0,
@@ -182,12 +188,17 @@ class MetaAgent:
     def select(self, population):
         if not population:
             return []
-        scored_pop = [(s, s.reward_history[-1] if s.reward_history else s.reward) for s in population]
+        scored_pop = [
+            (s, s.reward_history[-1] if s.reward_history else s.reward)
+            for s in population
+        ]
         elites = []
         for _ in range(self.config.elite_count):
             if not scored_pop:
                 break
-            tournament = self._rng.sample(scored_pop, min(self.config.tournament_size, len(scored_pop)))
+            tournament = self._rng.sample(
+                scored_pop, min(self.config.tournament_size, len(scored_pop))
+            )
             winner = max(tournament, key=lambda x: x[1])
             elites.append(winner[0])
             scored_pop.remove(winner)
@@ -195,7 +206,11 @@ class MetaAgent:
             key=lambda s: s.reward_history[-1] if s.reward_history else s.reward,
             reverse=True,
         )
-        top_r = elites[0].reward_history[-1] if (elites and elites[0].reward_history) else float("nan")
+        top_r = (
+            elites[0].reward_history[-1]
+            if (elites and elites[0].reward_history)
+            else float("nan")
+        )
         logger.info(f"[META-RL] Selected {len(elites)} elites, top_reward={top_r:.4f}")
         return elites
 
@@ -230,8 +245,12 @@ class MetaAgent:
                 )
             elif roll < adaptive_rate + self.config.mutation_rate:
                 p = self._rng.choice(elites)
-                chrom = mutate(dict(p.strategy.chromosome), rate=self.config.mutation_rate * 2)
-                child = GeneratedStrategy(chrom, generation=elites[0].generation + 1, parent_fitness=p.reward)
+                chrom = mutate(
+                    dict(p.strategy.chromosome), rate=self.config.mutation_rate * 2
+                )
+                child = GeneratedStrategy(
+                    chrom, generation=elites[0].generation + 1, parent_fitness=p.reward
+                )
                 new_pop.append(
                     ScoredStrategy(
                         strategy=child,
@@ -242,7 +261,9 @@ class MetaAgent:
                     )
                 )
             else:
-                child = self._generate_random_strategy(generator_fn, elites[0].generation + 1)
+                child = self._generate_random_strategy(
+                    generator_fn, elites[0].generation + 1
+                )
                 new_pop.append(
                     ScoredStrategy(
                         strategy=child,
@@ -280,12 +301,20 @@ class MetaAgent:
         q_star = float(q_star)
         regime = str(regime)
         self._karl_state.current_q_star = max(-1.0, min(1.0, q_star))
-        self._karl_state.q_star_history.append({"gen": self._generation, "q_star": q_star, "regime": regime})
+        self._karl_state.q_star_history.append(
+            {"gen": self._generation, "q_star": q_star, "regime": regime}
+        )
         self._karl_state.current_regime = regime
-        self._karl_state.regime_history.append({"gen": self._generation, "regime": regime})
-        regime_mult = 1.0 if regime in ("NORMAL", "BULL") else 0.8 if regime == "HIGH" else 0.6
+        self._karl_state.regime_history.append(
+            {"gen": self._generation, "regime": regime}
+        )
+        regime_mult = (
+            1.0 if regime in ("NORMAL", "BULL") else 0.8 if regime == "HIGH" else 0.6
+        )
         eff = self._compute_adaptive_crossover_rate() * regime_mult
-        logger.debug(f"[META-RL] External feedback: Q*={q_star:.3f} regime={regime} -> effective_crossover={eff:.3f}")
+        logger.debug(
+            f"[META-RL] External feedback: Q*={q_star:.3f} regime={regime} -> effective_crossover={eff:.3f}"
+        )
 
     def update_karl(self, elites) -> dict:
         if not KARL_META_UPDATE_ENABLED:
@@ -301,7 +330,9 @@ class MetaAgent:
                     "reward": s.reward,
                     "generation": s.generation,
                     "id": s.id,
-                    "risk_adjusted_pnl": getattr(s.evaluation, "risk_adjusted_pnl", 0.0),
+                    "risk_adjusted_pnl": getattr(
+                        s.evaluation, "risk_adjusted_pnl", 0.0
+                    ),
                 }
                 for s in top_n
             ]
@@ -328,7 +359,9 @@ class MetaAgent:
                 self._karl_state.add_best_chromosome(bc)
 
             self._karl_state.last_update_gen = self._generation
-            logger.info(f"[META-RL] KARL update: {len(top_n)} elites, memory={self._karl_state.get_memory_usage()}")
+            logger.info(
+                f"[META-RL] KARL update: {len(top_n)} elites, memory={self._karl_state.get_memory_usage()}"
+            )
         except Exception as e:
             logger.warning(f"[META-RL] KARL update failed: {e}")
         return self._karl_state.__dict__
@@ -371,7 +404,9 @@ class MetaAgent:
                 drift_reports.append(report)
                 # FIXED: Use deque.append for memory safety
                 for r in rewards:
-                    self._karl_state.historical_qstar.append({"session": sid, "reward": r})
+                    self._karl_state.historical_qstar.append(
+                        {"session": sid, "reward": r}
+                    )
 
             if all_qstar:
                 self._karl_state.current_q_star = float(max(all_qstar))
@@ -394,8 +429,12 @@ class MetaAgent:
                 "status": "ok",
                 "sessions_loaded": len(sessions),
                 "total_records": total_records,
-                "latest_drift_severity": (drift_reports[-1].drift_severity if drift_reports else "none"),
-                "latest_drift_score": (drift_reports[-1].drift_score if drift_reports else 0.0),
+                "latest_drift_severity": (
+                    drift_reports[-1].drift_severity if drift_reports else "none"
+                ),
+                "latest_drift_score": (
+                    drift_reports[-1].drift_score if drift_reports else 0.0
+                ),
             }
         except Exception as e:
             logger.warning(f"[META-RL] Cross-session replay failed: {e}")
@@ -408,7 +447,9 @@ class MetaAgent:
         parent = elites[0]
         while len(new_pop) < self.config.population_size:
             chrom = mutate(dict(parent.strategy.chromosome), rate=0.30)
-            child = GeneratedStrategy(chrom, generation=parent.generation + 1, parent_fitness=parent.reward)
+            child = GeneratedStrategy(
+                chrom, generation=parent.generation + 1, parent_fitness=parent.reward
+            )
             new_pop.append(
                 ScoredStrategy(
                     strategy=child,

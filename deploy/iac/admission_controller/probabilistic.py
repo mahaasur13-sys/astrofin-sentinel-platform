@@ -10,6 +10,10 @@ import math
 
 from state_store import StateStore
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 # Rolling window estimator (online stats, no distribution assumption)
 class RollingWindow:
@@ -143,4 +147,4 @@ if __name__ == "__main__":
         controller.update("rtx-node", val)
 
     reject, p = controller.should_reject("rtx-node")
-    print(f"rtx-node: P(overload) = {p:.3f} → {'REJECT' if reject else 'ADMIT'}")
+    log.info(f"rtx-node: P(overload) = {p:.3f} → {'REJECT' if reject else 'ADMIT'}")

@@ -8,22 +8,21 @@ class QuotaEngine:
     Tracks per-tenant quota usage against plan limits.
     Enforces GPU-second quotas per billing cycle.
     """
-
     PLAN_QUOTAS = {
-        "FREE": 360_000,  # GPU-seconds / month
-        "PRO": 3_600_000,
+        "FREE":       360_000,    # GPU-seconds / month
+        "PRO":       3_600_000,
         "ENTERPRISE": 36_000_000,
     }
     PLAN_PRIORITY = {
-        "FREE": 1,
-        "PRO": 2,
+        "FREE":       1,
+        "PRO":        2,
         "ENTERPRISE": 3,
     }
 
     def __init__(self, metering_engine=None):
         self.metering = metering_engine
-        self.usage: dict[str, float] = {}  # tenant_id → GPU-sec used
-        self.cycle_start: dict[str, float] = {}  # tenant_id → cycle start
+        self.usage: Dict[str, float] = {}     # tenant_id → GPU-sec used
+        self.cycle_start: Dict[str, float] = {} # tenant_id → cycle start
 
     def get_usage(self, tenant_id: str) -> float:
         return self.usage.get(tenant_id, 0.0)

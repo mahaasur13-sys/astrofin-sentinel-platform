@@ -3,6 +3,7 @@ AstroFin Sentinel v5 — Router Agent
 Routes user queries to appropriate specialist flows.
 """
 
+from __future__ import annotations
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -134,7 +135,9 @@ def route_query(user_query: str, context: dict | None = None) -> RouterOutput:
             confidence_threshold=context.get("confidence_threshold", 0.5),
         )
     elif has_technical or symbols:
-        query_type = QueryType.SINGLE_SYMBOL if len(symbols) == 1 else QueryType.MULTI_SYMBOL
+        query_type = (
+            QueryType.SINGLE_SYMBOL if len(symbols) == 1 else QueryType.MULTI_SYMBOL
+        )
         include_technical = True
         include_astro = context.get("include_astro", True)
         include_electional = False

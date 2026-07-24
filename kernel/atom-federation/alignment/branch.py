@@ -34,7 +34,7 @@ class BranchStatus(Enum):
 class BranchPoint:
     """
     A divergence point: the checkpoint from which two branches diverged.
-    
+
     Immutable: the point of divergence is a historical fact.
     """
     checkpoint_id: str          # shared checkpoint before divergence
@@ -49,7 +49,7 @@ class BranchPoint:
 class Branch:
     """
     A causal history of committed events, originating from a shared checkpoint.
-    
+
     Branch is immutable — once created it is never modified.
     New events are appended; the branch_id is the identity.
     """

@@ -1,5 +1,7 @@
 """mas_factory/architect.py - MASFactoryArchitect: builds topology from intention"""
 
+from __future__ import annotations
+
 import hashlib
 import json
 from dataclasses import dataclass
@@ -158,7 +160,9 @@ class MASFactoryArchitect:
 
         return topology
 
-    def _parse_intention(self, intention: str, symbol: str, timeframe: str, **kwargs) -> Intention:
+    def _parse_intention(
+        self, intention: str, symbol: str, timeframe: str, **kwargs
+    ) -> Intention:
         """Parse natural language into structured Intention"""
         lower = intention.lower()
         keywords = []
@@ -187,17 +191,19 @@ class MASFactoryArchitect:
             if timeframe == "INTRADAY":
                 required_capabilities.update(["technical_analysis", "price_action"])
             elif timeframe == "SWING":
-                required_capabilities.update(["fundamental_analysis", "technical_analysis", "astro_timing"])
+                required_capabilities.update(
+                    ["fundamental_analysis", "technical_analysis", "astro_timing"]
+                )
             else:
-                required_capabilities.update(["fundamental_analysis", "macro_analysis", "sentiment"])
+                required_capabilities.update(
+                    ["fundamental_analysis", "macro_analysis", "sentiment"]
+                )
 
         # Determine complexity
         complexity = (
             "simple"
             if len(required_capabilities) <= 3
-            else "moderate"
-            if len(required_capabilities) <= 5
-            else "complex"
+            else "moderate" if len(required_capabilities) <= 5 else "complex"
         )
 
         # Constraints
@@ -257,7 +263,9 @@ class MASFactoryArchitect:
 
         return selected
 
-    def _build_connections(self, roles: list[Role], intention: Intention) -> list[Connection]:
+    def _build_connections(
+        self, roles: list[Role], intention: Intention
+    ) -> list[Connection]:
         """Build data flow connections between roles"""
         connections = []
 
@@ -307,7 +315,9 @@ class MASFactoryArchitect:
 
         return connections
 
-    def _build_switch_nodes(self, roles: list[Role], intention: Intention) -> list[SwitchNode]:
+    def _build_switch_nodes(
+        self, roles: list[Role], intention: Intention
+    ) -> list[SwitchNode]:
         """Build conditional routing nodes"""
         switch_nodes = []
 

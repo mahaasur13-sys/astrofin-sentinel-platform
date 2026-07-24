@@ -12,6 +12,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class ViolationType(Enum):
     I1_CYCLE = "I1_CYCLE"
@@ -204,7 +208,7 @@ if __name__ == "__main__":
         "edges": [["a", "b"], ["b", "c"]],
     }
     result = validator.validate(dag, seed=42)
-    print(f"DAG valid: {result.valid}")
-    print(f"Invariants: {result.invariants_satisfied}")
-    print(f"Hash: {result.dag_hash}")
-    print(f"Violations: {[v.type.value for v in result.violations]}")
+    log.info(f"DAG valid: {result.valid}")
+    log.info(f"Invariants: {result.invariants_satisfied}")
+    log.info(f"Hash: {result.dag_hash}")
+    log.info(f"Violations: {[v.type.value for v in result.violations]}")

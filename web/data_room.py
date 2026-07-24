@@ -4,20 +4,21 @@ web/data_room.py
 Data Room API endpoints.
 """
 
+from __future__ import annotations
 import json
 from pathlib import Path
 
 from flask import Blueprint, jsonify
 
-from core.auth import require_api_key as require_auth
+from core.auth import require_api_key
 
 data_room_bp = Blueprint("data_room", __name__)
 
 CONFLICT_JOURNAL = Path("data_room/conflict_journal.json")
 
 
-@require_auth
 @data_room_bp.route("/data-room/conflicts", methods=["GET"])
+@require_api_key
 def list_conflicts():
     """
     Return conflict journal contents as JSON.

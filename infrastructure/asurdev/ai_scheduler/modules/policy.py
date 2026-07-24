@@ -4,13 +4,9 @@ AI Scheduler v2 — Policy Engine
 Top-level decision logic: routes jobs to best node based on scores + rules.
 """
 import os
-from typing import Optional
-from .scoring import rank_nodes, score_node
-from .metrics import (
-    slurm_queue_depth, ceph_osd_latency, slurm_node_state,
-    disk_io_time, gpu_temp
-)
 
+from .metrics import ceph_osd_latency, disk_io_time, gpu_temp, slurm_queue_depth
+from .scoring import rank_nodes
 
 GPU_NODES = os.environ.get("GPU_NODES", "rtx-node").split(",")
 CPU_NODES = os.environ.get("CPU_NODES", "rk3576").split(",")

@@ -95,11 +95,7 @@ class OptionsFlowAgent(BaseAgent[AgentResponse]):
 
         confidence = int(sum(scores) / len(scores) * 100)
 
-        reasoning = (
-            f"GEX: {gex_analysis['summary']}. "
-            f"Activity: {activity_analysis['summary']}. "
-            f"Squeeze: {squeeze_analysis['probability']}"
-        )
+        reasoning = f"GEX: {gex_analysis['summary']}. Activity: {activity_analysis['summary']}. Squeeze: {squeeze_analysis['probability']}"
 
         return AgentResponse(
             agent_name="OptionsFlowAgent",
@@ -189,3 +185,8 @@ async def run_options_flow_agent(state: dict) -> dict:
     agent = OptionsFlowAgent()
     result = await agent.analyze(state)
     return {"options_flow_signal": result.to_dict()}
+
+
+def create() -> OptionsFlowAgent:
+    """Factory for 6-fn test contract."""
+    return OptionsFlowAgent()

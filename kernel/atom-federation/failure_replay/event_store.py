@@ -438,7 +438,7 @@ class EventStore:
         recent = self.query(limit=100)
         mismatches = []
         for e in recent:
-            expected = self.make_event_id(
+            self.make_event_id(
                 node_id=e.node_id,
                 event_type=e.event_type,
                 tick=0,  # can't reconstruct tick, but can verify format

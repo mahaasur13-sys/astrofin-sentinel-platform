@@ -17,7 +17,7 @@ class TenantNotFoundError(Exception):
 
 class TenantManager:
     def __init__(self) -> None:
-        self._tenants: dict[str, Tenant] = {}
+        self._tenants: Dict[str, Tenant] = {}
 
     # ── Create ─────────────────────────────────────────────────────────────────
 
@@ -33,17 +33,17 @@ class TenantManager:
             raise TenantNotFoundError(tenant_id)
         return self._tenants[tenant_id]
 
-    def get_by_slug(self, slug: str) -> Tenant | None:
+    def get_by_slug(self, slug: str) -> Optional[Tenant]:
         for t in self._tenants.values():
             prefix = t.tenant_id.rsplit("-", 1)[0]
             if prefix == slug.lower():
                 return t
         return None
 
-    def list_all(self) -> list[Tenant]:
+    def list_all(self) -> List[Tenant]:
         return list(self._tenants.values())
 
-    def list_active(self) -> list[Tenant]:
+    def list_active(self) -> List[Tenant]:
         return [t for t in self._tenants.values() if t.status == TenantStatus.ACTIVE]
 
     # ── Update ────────────────────────────────────────────────────────────────

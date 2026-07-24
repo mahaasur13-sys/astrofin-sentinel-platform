@@ -4,9 +4,11 @@ Constraint Compiler — DSL → executable constraints.
 Input: YAML DSL → AST → lambda(state) → bool.
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Callable, Any
+
 import re
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -20,7 +22,7 @@ class CompiledConstraint:
 class ConstraintCompiler:
     """
     Compiles DSL constraints into executable Python functions.
-    
+
     DSL examples:
         latency_guard:     "p99_latency < 200"
         cpu_guard:          "cpu_util < 0.95"

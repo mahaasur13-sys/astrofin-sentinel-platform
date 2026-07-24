@@ -32,6 +32,7 @@ Files:
 - knowledge/daily_digest/daily_digest_log.md — Digest history
 """
 
+from __future__ import annotations
 from .atom_proposer import AtomProposal, AtomProposer
 from .daily_digest_analytics import (
     Category,

@@ -25,12 +25,12 @@ class Job:
     status: JobStatus = JobStatus.PENDING
     priority: int = 0
     created_at: str = ""
-    started_at: str | None = None
-    completed_at: str | None = None
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
     gpu_required: bool = True
     tenant_id: str = "default"
-    result: dict | None = None
-    error: str | None = None
+    result: Optional[dict] = None
+    error: Optional[str] = None
 
     def __post_init__(self):
         if not self.created_at:
@@ -50,7 +50,7 @@ class QueueManager:
         self.queue.sort(key=lambda j: j.priority, reverse=True)
         return job_id
 
-    def dequeue(self) -> Job | None:
+    def dequeue(self) -> Optional[Job]:
         if not self.queue:
             return None
         job = self.queue.pop(0)
@@ -86,7 +86,7 @@ class QueueManager:
             return True
         return False
 
-    def get_status(self, job_id: str) -> JobStatus | None:
+    def get_status(self, job_id: str) -> Optional[JobStatus]:
         for job in self.queue:
             if job.job_id == job_id:
                 return job.status
@@ -105,14 +105,14 @@ class QueueManager:
             "queue_depth": len(self.queue),
             "running": len(self.running),
             "completed": len(self.completed),
-            "total": len(self.queue) + len(self.running) + len(self.completed),
+            "total": len(self.queue) + len(self.running) + len(self.completed)
         }
 
 
 # =============================================================================
 # Singleton
 # =============================================================================
-_queue: QueueManager | None = None
+_queue: Optional[QueueManager] = None
 
 
 def get_queue() -> QueueManager:

@@ -4,10 +4,13 @@ Ceph Prometheus Exporter
 Exports: OSD up/down, PG states, storage utilization, MON quorum
 Endpoint: /metrics  (text format for Prometheus)
 """
-import subprocess
 import json
-import re
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import logging
+import subprocess
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+log = logging.getLogger(__name__)
+
 
 CEPH_CMD = ["ceph", "-f", "json"]
 METRICS = {}
@@ -58,7 +61,7 @@ def build_metrics() -> str:
         "# HELP ceph_cluster_health Cluster health status",
         "# TYPE ceph_cluster_health gauge",
         f'ceph_cluster_health{{status="{health.get("status","UNKNOWN")}"}} 1',
-        f"# HELP ceph_mon_quorum_size MON quorum count",
+        "# HELP ceph_mon_quorum_size MON quorum count",
         "# TYPE ceph_mon_quorum_size gauge",
         f"ceph_mon_quorum_size {len(mon_quorum)}",
         "# HELP ceph_osd_up OSD up status",
@@ -77,8 +80,8 @@ def build_metrics() -> str:
         osd_id = osd.get("osd", "unknown")
         lines.append(f'ceph_osd_up{{osd="{osd_id}"}} {up}')
 
-    lines.append(f"# HELP ceph_osd_summary OSD summary")
-    lines.append(f"# TYPE ceph_osd_summary gauge")
+    lines.append("# HELP ceph_osd_summary OSD summary")
+    lines.append("# TYPE ceph_osd_summary gauge")
     lines.append(f"ceph_osd_up_total {osd_up}")
     lines.append(f"ceph_osd_down_total {osd_down}")
 
@@ -88,8 +91,8 @@ def build_metrics() -> str:
         state = pg.get("state", "unknown")
         pg_states[state] = pg_states.get(state, 0) + 1
 
-    lines.append(f"# HELP ceph_pg_count PG count by state")
-    lines.append(f"# TYPE ceph_pg_count gauge")
+    lines.append("# HELP ceph_pg_count PG count by state")
+    lines.append("# TYPE ceph_pg_count gauge")
     for state, count in pg_states.items():
         lines.append(f'ceph_pg_count{{state="{state}"}} {count}')
 
@@ -98,8 +101,8 @@ def build_metrics() -> str:
     total_bytes = sum(p.get("stats", {}).get("stored", 0) for p in pool_stats)
     total_bytes_avail = sum(p.get("stats", {}).get("max_avail", 0) for p in pool_stats)
 
-    lines.append(f"# HELP ceph_storage Storage bytes")
-    lines.append(f"# TYPE ceph_storage gauge")
+    lines.append("# HELP ceph_storage Storage bytes")
+    lines.append("# TYPE ceph_storage gauge")
     lines.append(f"ceph_storage_used_bytes {total_bytes}")
     lines.append(f"ceph_storage_available_bytes {total_bytes_avail}")
 
@@ -120,5 +123,5 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", 9342), Handler)
-    print("Ceph exporter listening on :9342/metrics")
+    log.info("Ceph exporter listening on :9342/metrics")
     server.serve_forever()

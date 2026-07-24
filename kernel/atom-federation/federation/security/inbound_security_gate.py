@@ -31,6 +31,9 @@ from dataclasses import dataclass
 
 from federation.byzantine.message_signatures import FederationMessageSigning
 from federation.security.origin_policy import OriginPolicy, OriginViolation
+import logging
+log = logging.getLogger(__name__)
+
 from federation.security.replay_protection import (
     NonceSequenceValidator,
     NonceStatus,
@@ -203,7 +206,7 @@ def _test_security_gate():
     envelope = builder.wrap("{\"type\": \"TRUST_DELTA\"}", category=MessageCategory.TRUST)
     result = gate.verify(envelope, trust_score=0.5)
     assert result.passed is True
-    print("✅ gate accept + trust policy OK")
+    log.info("✅ gate accept + trust policy OK")
 
     # ── replay rejection ────────────────────────────────────────────────
     try:
@@ -211,7 +214,7 @@ def _test_security_gate():
         assert False, "duplicate should be rejected"
     except SecurityGateError as exc:
         assert exc.args[0].violation.startswith("replay_rejected")
-        print("✅ gate rejects replayed envelope")
+        log.info("✅ gate rejects replayed envelope")
 
     # ── origin rejection ────────────────────────────────────────────────
     builder_b = EnvelopeBuilder(node_id="node_B", signer=signer)
@@ -221,9 +224,9 @@ def _test_security_gate():
         assert False
     except SecurityGateError as exc:
         assert "origin_policy_violation" in exc.args[0].violation
-        print("✅ gate rejects low-trust sender")
+        log.info("✅ gate rejects low-trust sender")
 
-    print("\n✅ v9.9 FederationInboundSecurityGate — all checks passed")
+    log.info("\n✅ v9.9 FederationInboundSecurityGate — all checks passed")
 
 
 if __name__ == "__main__":

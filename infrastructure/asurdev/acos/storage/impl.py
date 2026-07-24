@@ -7,13 +7,10 @@ longer need a direct clock import.
 """
 from __future__ import annotations
 
-from typing import Any
-
 from datetime import datetime as _datetime
 
 from common.deterministic import utc_now_deterministic
 
-from .protocol import TraceStoreProtocol
 from .types import TraceRecord
 
 

@@ -16,6 +16,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class RiskConfigV2:
@@ -28,7 +32,9 @@ class RiskConfigV2:
     close_on_kill: bool = True
 
     def __post_init__(self):
-        assert 0 < self.max_drawdown <= 1.0, f"max_drawdown={self.max_drawdown} out of range"
+        assert (
+            0 < self.max_drawdown <= 1.0
+        ), f"max_drawdown={self.max_drawdown} out of range"
         assert 0 < self.max_exposure_per_asset <= 1.0
         assert 0 < self.correlation_limit <= 1.0
         assert self.target_volatility > 0
@@ -62,9 +68,9 @@ class RiskEngineV2:
         self._return_history: list = []
 
     def update_position(self, pos: AssetPosition) -> None:
-        pos.unrealized_pnl = pos.notional_value - pos.entry_price * abs(pos.notional_value) / max(
-            pos.current_price, 1e-10
-        )
+        pos.unrealized_pnl = pos.notional_value - pos.entry_price * abs(
+            pos.notional_value
+        ) / max(pos.current_price, 1e-10)
         self._positions[pos.symbol] = pos
 
     def update_equity(self, equity: float) -> None:
@@ -77,7 +83,9 @@ class RiskEngineV2:
         equity = self._equity_history[-1] if self._equity_history else 100_000.0
         peak = max(self._equity_history) if self._equity_history else equity
         dd = max(0.0, (peak - equity) / peak) if peak > 0 else 0.0
-        kill = dd >= self.config.max_drawdown if self.config.kill_switch_enabled else False
+        kill = (
+            dd >= self.config.max_drawdown if self.config.kill_switch_enabled else False
+        )
         return RiskState(
             total_equity=equity,
             cash=equity,
@@ -100,12 +108,19 @@ class RiskEngineV2:
         state = self.get_state()
         if state.total_equity <= 0:
             return False, 0.0, "Invalid equity"
-        current_notional = abs(self._positions.get(symbol, AssetPosition(symbol, 0, 0, 0, 0, 0)).notional_value)
+        current_notional = abs(
+            self._positions.get(
+                symbol, AssetPosition(symbol, 0, 0, 0, 0, 0)
+            ).notional_value
+        )
         total_exposure = sum(abs(p.notional_value) for p in self._positions.values())
         new_total = total_exposure + proposed_notional
         new_asset_exposure = (current_notional + proposed_notional) / state.total_equity
         if new_asset_exposure > self.config.max_exposure_per_asset:
-            scaled = self.config.max_exposure_per_asset * state.total_equity - current_notional
+            scaled = (
+                self.config.max_exposure_per_asset * state.total_equity
+                - current_notional
+            )
             return (
                 False,
                 max(0.0, scaled),
@@ -116,7 +131,7 @@ class RiskEngineV2:
             return False, max(0.0, scaled), "TOTAL EXPOSURE > 100%"
         return True, proposed_notional, "OK"
 
-    def check_correlation(self, symbol, proposed_return):
+    def check_correlation(self, symbol, _proposed_return):
         if len(self._return_history) < 5:
             return True, 1.0, "OK"
         symbols = list(self._positions.keys())
@@ -145,7 +160,9 @@ class RiskEngineV2:
                 if not math.isnan(cv):
                     max_corr = max(max_corr, cv)
         if max_corr > self.config.correlation_limit:
-            reduction = max(0.1, min(1.0, 1.0 - (max_corr - self.config.correlation_limit)))
+            reduction = max(
+                0.1, min(1.0, 1.0 - (max_corr - self.config.correlation_limit))
+            )
             return False, reduction, f"CORRELATION REDUCE: {max_corr:.3f} > limit"
         return True, 1.0, "OK"
 
@@ -160,11 +177,61 @@ class RiskEngineV2:
         size = base_size * vol_scalar * kelly
         return self._clamp_size(size)
 
-    def pre_trade_check(self, symbol, proposed_notional, realized_vol=0.0, regime="NORMAL"):
+
+    def get_current_params(
+        self, observations=None, hmm_probs=None, nakshatra=None
+    ):
+        """Return current risk parameters, optionally modulated by Nakshatra.
+
+        Sprint 6: integrates trading.vedic.nakshatra_risk.NAKSHATRA_RISK
+        as a multiplier on max_leverage, position_size, and stop_loss.
+
+        Returns:
+            dict with keys: max_leverage, position_size_pct, stop_loss_multiplier,
+            nakshatra_multiplier, nakshatra_name
+        """
+        state = self.get_state()
+        eq = max(state.total_equity, 1_000.0)
+        base = {
+            "max_leverage": 3.0,
+            "position_size_pct": min(0.20, 50_000.0 / eq),
+            "stop_loss_multiplier": 1.0,
+            "nakshatra_multiplier": 1.0,
+            "nakshatra_name": nakshatra or "",
+            "equity": eq,
+            "drawdown": state.current_drawdown,
+        }
+
+        if nakshatra:
+            from trading.vedic.nakshatra_risk import get_nakshatra_multiplier, is_dangerous_nakshatra
+
+            mult = get_nakshatra_multiplier(nakshatra)
+            base["nakshatra_multiplier"] = mult
+            base["max_leverage"] *= mult
+            base["position_size_pct"] *= (mult * 0.85)
+
+            if mult > 1.15:
+                base["stop_loss_multiplier"] = 1.20
+            elif is_dangerous_nakshatra(nakshatra):
+                base["stop_loss_multiplier"] = 1.50
+
+        if hmm_probs and isinstance(hmm_probs, dict):
+            reg = hmm_probs.get("regime", "NORMAL")
+            kelly = {"LOW": 1.0, "NORMAL": 0.75, "HIGH": 0.50, "EXTREME": 0.20}
+            base["position_size_pct"] *= kelly.get(reg.upper(), 0.75)
+
+        base["position_size_pct"] = min(base["position_size_pct"], 0.50)
+        return base
+
+    def pre_trade_check(
+        self, symbol, proposed_notional, realized_vol=0.0, regime="NORMAL"
+    ):
         ok, dd, msg = self.check_kill_switch()
         if not ok:
             return "REJECTED", 0.0, f"KILL_SWITCH: {msg}"
-        vol_size = self.compute_vol_adjusted_size(proposed_notional, realized_vol, regime)
+        vol_size = self.compute_vol_adjusted_size(
+            proposed_notional, realized_vol, regime
+        )
         ok, capped, msg = self.check_exposure(symbol, vol_size)
         if not ok:
             return "REDUCED" if capped > 0 else "REJECTED", capped, f"EXPOSURE: {msg}"
@@ -253,43 +320,47 @@ class RiskEngineV2:
             return self.config.target_volatility
         try:
             vol = float(np.std(rets, ddof=0))
-            return vol if not (math.isnan(vol) or vol <= 0) else self.config.target_volatility
+            return (
+                vol
+                if not (math.isnan(vol) or vol <= 0)
+                else self.config.target_volatility
+            )
         except Exception:
             return self.config.target_volatility
 
 
 if __name__ == "__main__":
-    print("RiskEngineV2 self-test...")
+    log.info("RiskEngineV2 self-test...")
     engine = RiskEngineV2(RiskConfigV2(max_drawdown=0.10, kill_switch_enabled=True))
     engine.update_equity(100_000)
     engine.update_equity(88_000)
     ok, dd, msg = engine.check_kill_switch()
     assert not ok
-    print(f"  Test 1 (Kill Switch): TRIGGERED at {dd:.2%}")
+    log.info(f"  Test 1 (Kill Switch): TRIGGERED at {dd:.2%}")
     engine2 = RiskEngineV2(RiskConfigV2(max_exposure_per_asset=0.30))
     engine2.update_equity(100_000)
     engine2.update_position(AssetPosition("BTC", 35_000, 50_000, 48_000))
     ok, size, msg = engine2.check_exposure("ETH", 20_000)
     assert not ok
-    print("  Test 2 (Exposure Cap): REJECTED")
+    log.info("  Test 2 (Exposure Cap): REJECTED")
     engine3 = RiskEngineV2(RiskConfigV2(target_volatility=0.15))
     size = engine3.compute_vol_adjusted_size(10_000, 0.30, "HIGH")
     expected = 10_000 * (0.15 / 0.30) * 0.50
     assert abs(size - expected) < 1
-    print(f"  Test 3 (Vol Targeting): size={size:.0f}")
+    log.info(f"  Test 3 (Vol Targeting): size={size:.0f}")
     engine4 = RiskEngineV2(RiskConfigV2())
     engine4.update_equity(float("nan"))
     state = engine4.get_state()
     assert not math.isnan(state.total_equity)
-    print(f"  Test 4 (NaN Safety): equity={state.total_equity:.2f}")
+    log.info(f"  Test 4 (NaN Safety): equity={state.total_equity:.2f}")
     engine5 = RiskEngineV2(RiskConfigV2(max_drawdown=0.05))
     engine5.update_equity(100_000)
     engine5.update_equity(92_000)
     status, size, msg = engine5.pre_trade_check("BTC", 10_000, 0.15, "NORMAL")
     assert status == "APPROVED"
-    print(f"  Test 5 (Pre-Trade APPROVED): {status}")
+    log.info(f"  Test 5 (Pre-Trade APPROVED): {status}")
     engine5.update_equity(88_000)
     status2, _, _ = engine5.pre_trade_check("BTC", 10_000, 0.15, "NORMAL")
     assert status2 == "REJECTED"
-    print(f"  Test 6 (Pre-Trade Kill): {status2}")
-    print("\nRiskEngineV2: all tests passed")
+    log.info(f"  Test 6 (Pre-Trade Kill): {status2}")
+    log.info("\nRiskEngineV2: all tests passed")

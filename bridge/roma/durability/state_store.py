@@ -18,7 +18,7 @@ class StateStore:
 
     def __init__(self, db_path: str = "/tmp/roma-state.db"):
         self._event_store = EventStore(db_path.replace(".db", "-events.db"))
-        self._snapshots: dict[str, dict[str, Any]] = {}
+        self._snapshots: Dict[str, Dict[str, Any]] = {}
         self._snapshots_path = db_path.replace(".db", "-snapshots.json")
         self._load_snapshots()
 
@@ -39,7 +39,7 @@ class StateStore:
     # Job state operations
     # -------------------------------------------------------------------------
 
-    def get_job_state(self, job_id: str) -> dict[str, Any]:
+    def get_job_state(self, job_id: str) -> Dict[str, Any]:
         """
         Get current job state: reconstruct via event replay.
         """
@@ -86,7 +86,7 @@ class StateStore:
 
         return state
 
-    def save_job_state(self, job_id: str, state: dict[str, Any]) -> Event:
+    def save_job_state(self, job_id: str, state: Dict[str, Any]) -> Event:
         """
         Save a checkpoint snapshot for a job.
         This creates a "boundary" so replay doesn't start from 0.
@@ -104,11 +104,11 @@ class StateStore:
     # Global state
     # -------------------------------------------------------------------------
 
-    def get_all_jobs(self) -> list[str]:
+    def get_all_jobs(self) -> List[str]:
         """Get list of all known job IDs from snapshots."""
         return list(self._snapshots.keys())
 
-    def get_global_state(self) -> dict[str, Any]:
+    def get_global_state(self) -> Dict[str, Any]:
         """
         Reconstruct full system state.
         """
@@ -121,7 +121,7 @@ class StateStore:
     # Comparison / diff
     # -------------------------------------------------------------------------
 
-    def diff_state(self, job_id: str, expected: dict[str, Any]) -> list[str]:
+    def diff_state(self, job_id: str, expected: Dict[str, Any]) -> List[str]:
         """
         Compare current state vs expected.
         Returns list of differences.
@@ -167,14 +167,14 @@ class StateStore:
     # Export / import (for backup / migration)
     # -------------------------------------------------------------------------
 
-    def export_all(self) -> dict[str, Any]:
+    def export_all(self) -> Dict[str, Any]:
         """Export full state (snapshots + events) as dict."""
         return {
             "snapshots": self._snapshots,
             "events": self._event_store.export_events(),
         }
 
-    def import_all(self, data: dict[str, Any]):
+    def import_all(self, data: Dict[str, Any]):
         """Import state from dict (for recovery)."""
         self._snapshots = data.get("snapshots", {})
         self._save_snapshots()

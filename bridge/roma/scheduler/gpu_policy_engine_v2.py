@@ -14,15 +14,19 @@
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional
 
+log = logging.getLogger(__name__)
+
+
+
 # ============================================================================
 # Config
 # ============================================================================
-
 
 class RTX3060Config:
     VRAM_TOTAL_GB = 10.5
@@ -37,28 +41,26 @@ class RTX3060Config:
 # Enums
 # ============================================================================
 
-
 class JobState(Enum):
-    PENDING = "pending"
-    QUEUED = "queued"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+    PENDING = 'pending'
+    QUEUED = 'queued'
+    RUNNING = 'running'
+    COMPLETED = 'completed'
+    FAILED = 'failed'
+    CANCELLED = 'cancelled'
 
 
 class SchedulingDecision(Enum):
-    SCHEDULE_NOW = "schedule_now"
-    QUEUE_PRIORITY = "queue_priority"
-    QUEUE_FAIR = "queue_fair"
-    REJECT_BACKPRESSURE = "reject_backpressure"
-    REJECT_GPU_UNAVAILABLE = "reject_gpu_unavailable"
+    SCHEDULE_NOW = 'schedule_now'
+    QUEUE_PRIORITY = 'queue_priority'
+    QUEUE_FAIR = 'queue_fair'
+    REJECT_BACKPRESSURE = 'reject_backpressure'
+    REJECT_GPU_UNAVAILABLE = 'reject_gpu_unavailable'
 
 
 # ============================================================================
 # Data Classes
 # ============================================================================
-
 
 @dataclass
 class VRAMAllocation:
@@ -70,12 +72,12 @@ class VRAMAllocation:
 @dataclass
 class GPUPolicyResult:
     decision: SchedulingDecision
-    assigned_node: str | None
-    assigned_vram_gb: float | None
-    auto_batch_size: int | None
-    queue_position: int | None
-    rejection_reason: str | None
-    wait_estimate_seconds: float | None
+    assigned_node: Optional[str]
+    assigned_vram_gb: Optional[float]
+    auto_batch_size: Optional[int]
+    queue_position: Optional[int]
+    rejection_reason: Optional[str]
+    wait_estimate_seconds: Optional[float]
 
 
 @dataclass
@@ -93,14 +95,13 @@ class JobMetrics:
 # GPU Node State
 # ============================================================================
 
-
 class GPUNode:
     def __init__(self, name: str, vram_total_gb: float = RTX3060Config.VRAM_TOTAL_GB):
         self.name = name
         self.vram_total_gb = vram_total_gb
         self.vram_used_gb = 0.0
-        self.allocations: dict[str, VRAMAllocation] = {}
-        self.active_job_ids: list[str] = []
+        self.allocations: Dict[str, VRAMAllocation] = {}
+        self.active_job_ids: List[str] = []
         self.last_updated = time.time()
 
     @property
@@ -109,7 +110,8 @@ class GPUNode:
 
     @property
     def can_allocate(self) -> bool:
-        return len(self.active_job_ids) < RTX3060Config.MAX_CONCURRENT_JOBS and self.vram_free_gb >= 2.0  # min 2GB
+        return (len(self.active_job_ids) < RTX3060Config.MAX_CONCURRENT_JOBS
+                and self.vram_free_gb >= 2.0)  # min 2GB
 
     @property
     def utilization_ratio(self) -> float:
@@ -151,11 +153,10 @@ class GPUNode:
 # Policy Engine v2
 # ============================================================================
 
-
 class GPUPolicyEngineV2:
     def __init__(self):
-        self.nodes: dict[str, GPUNode] = {}
-        self.pending_jobs: list[JobMetrics] = []
+        self.nodes: Dict[str, GPUNode] = {}
+        self.pending_jobs: List[JobMetrics] = []
         self.backpressure_threshold = 0.85  # reject new jobs at 85% queue saturation
         self.max_queue_depth = 50
         self.fair_share_weight_factor = 1.5  # priority weight multiplier for aging
@@ -168,7 +169,7 @@ class GPUPolicyEngineV2:
             self.nodes[name].release_all()
             del self.nodes[name]
 
-    def release_job(self, job_id: str, node_name: str | None = None) -> None:
+    def release_job(self, job_id: str, node_name: Optional[str] = None) -> None:
         if node_name and node_name in self.nodes:
             self.nodes[node_name].release(job_id)
         else:
@@ -198,7 +199,7 @@ class GPUPolicyEngineV2:
             return True
         return False
 
-    def select_best_node(self, vram_gb: float) -> GPUNode | None:
+    def select_best_node(self, vram_gb: float) -> Optional[GPUNode]:
         candidates = [n for n in self.nodes.values() if n.can_allocate and n.vram_free_gb >= vram_gb]
         if not candidates:
             return None
@@ -207,16 +208,11 @@ class GPUPolicyEngineV2:
     def age_jobs(self) -> None:
         now = time.time()
         for job in self.pending_jobs:
-            job.age_seconds = now - (getattr(job, "enqueued_at", now))
+            job.age_seconds = now - (getattr(job, 'enqueued_at', now))
             job.wait_time_seconds = job.age_seconds
 
-    def schedule(
-        self,
-        job_id: str,
-        priority: int,
-        vram_requested_gb: float,
-        estimated_run_time: float = 300.0,
-    ) -> GPUPolicyResult:
+    def schedule(self, job_id: str, priority: int, vram_requested_gb: float,
+                 estimated_run_time: float = 300.0) -> GPUPolicyResult:
 
         job_metrics = JobMetrics(
             job_id=job_id,
@@ -225,7 +221,7 @@ class GPUPolicyEngineV2:
             age_seconds=0.0,
             wait_time_seconds=0.0,
             backpressure_ratio=len(self.pending_jobs) / self.max_queue_depth,
-            estimated_run_time_seconds=estimated_run_time,
+            estimated_run_time_seconds=estimated_run_time
         )
 
         # Backpressure check
@@ -236,8 +232,8 @@ class GPUPolicyEngineV2:
                 assigned_vram_gb=None,
                 auto_batch_size=None,
                 queue_position=None,
-                rejection_reason=f"Queue saturation {job_metrics.backpressure_ratio:.2f} >= {self.backpressure_threshold}",
-                wait_estimate_seconds=None,
+                rejection_reason=f'Queue saturation {job_metrics.backpressure_ratio:.2f} >= {self.backpressure_threshold}',
+                wait_estimate_seconds=None
             )
 
         # Node selection
@@ -253,7 +249,7 @@ class GPUPolicyEngineV2:
                 auto_batch_size=batch_size,
                 queue_position=None,
                 rejection_reason=None,
-                wait_estimate_seconds=0.0,
+                wait_estimate_seconds=0.0
             )
 
         # Queue with priority + aging
@@ -274,10 +270,10 @@ class GPUPolicyEngineV2:
             auto_batch_size=None,
             queue_position=queue_position,
             rejection_reason=None,
-            wait_estimate_seconds=wait_estimate,
+            wait_estimate_seconds=wait_estimate
         )
 
-    def get_status(self) -> dict:
+    def get_status(self) -> Dict:
         total_vram = sum(n.vram_total_gb for n in self.nodes.values())
         used_vram = sum(n.vram_used_gb for n in self.nodes.values())
         free_vram = sum(n.vram_free_gb for n in self.nodes.values())
@@ -287,27 +283,25 @@ class GPUPolicyEngineV2:
 
         node_states = []
         for name, node in self.nodes.items():
-            node_states.append(
-                {
-                    "name": name,
-                    "vram_used_gb": round(node.vram_used_gb, 2),
-                    "vram_free_gb": round(node.vram_free_gb, 2),
-                    "utilization": round(node.utilization_ratio, 3),
-                    "active_jobs": node.active_job_ids.copy(),
-                }
-            )
+            node_states.append({
+                'name': name,
+                'vram_used_gb': round(node.vram_used_gb, 2),
+                'vram_free_gb': round(node.vram_free_gb, 2),
+                'utilization': round(node.utilization_ratio, 3),
+                'active_jobs': node.active_job_ids.copy()
+            })
 
         return {
-            "nodes": node_states,
-            "cluster_vram_total_gb": round(total_vram, 2),
-            "cluster_vram_used_gb": round(used_vram, 2),
-            "cluster_vram_free_gb": round(free_vram, 2),
-            "cluster_avg_utilization": round(avg_util, 3),
-            "queue_depth": queue_depth,
-            "queue_saturation": round(queue_saturation, 3),
-            "backpressure_threshold": self.backpressure_threshold,
-            "max_queue_depth": self.max_queue_depth,
-            "decision": "ready",
+            'nodes': node_states,
+            'cluster_vram_total_gb': round(total_vram, 2),
+            'cluster_vram_used_gb': round(used_vram, 2),
+            'cluster_vram_free_gb': round(free_vram, 2),
+            'cluster_avg_utilization': round(avg_util, 3),
+            'queue_depth': queue_depth,
+            'queue_saturation': round(queue_saturation, 3),
+            'backpressure_threshold': self.backpressure_threshold,
+            'max_queue_depth': self.max_queue_depth,
+            'decision': 'ready'
         }
 
 
@@ -315,26 +309,25 @@ class GPUPolicyEngineV2:
 # CLI for testing
 # ============================================================================
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     engine = GPUPolicyEngineV2()
-    engine.register_node("gpu-node-1")
-    engine.register_node("gpu-node-2")
+    engine.register_node('gpu-node-1')
+    engine.register_node('gpu-node-2')
 
     # Test scheduling
-    result = engine.schedule("job-001", priority=5, vram_requested_gb=4.0)
-    print(f"Job 001: {result.decision.value} → node={result.assigned_node}, batch={result.auto_batch_size}")
+    result = engine.schedule('job-001', priority=5, vram_requested_gb=4.0)
+    log.info(f'Job 001: {result.decision.value} → node={result.assigned_node}, batch={result.auto_batch_size}')
 
-    result = engine.schedule("job-002", priority=8, vram_requested_gb=6.0)
-    print(f"Job 002: {result.decision.value} → node={result.assigned_node}")
+    result = engine.schedule('job-002', priority=8, vram_requested_gb=6.0)
+    log.info(f'Job 002: {result.decision.value} → node={result.assigned_node}')
 
-    result = engine.schedule("job-003", priority=3, vram_requested_gb=4.0)
-    print(f"Job 003: {result.decision.value} → queue_pos={result.queue_position}, wait={result.wait_estimate_seconds}s")
+    result = engine.schedule('job-003', priority=3, vram_requested_gb=4.0)
+    log.info(f'Job 003: {result.decision.value} → queue_pos={result.queue_position}, wait={result.wait_estimate_seconds}s')
 
     import json
-
-    print(json.dumps(engine.get_status(), indent=2))
+    log.info(json.dumps(engine.get_status(), indent=2))
 
     # Release
-    engine.release_job("job-001", "gpu-node-1")
-    print("Released job-001")
-    print(json.dumps(engine.get_status(), indent=2))
+    engine.release_job('job-001', 'gpu-node-1')
+    log.info('Released job-001')
+    log.info(json.dumps(engine.get_status(), indent=2))

@@ -3,6 +3,10 @@
 import pathlib
 import sys
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 from core.economics.slashing_engine import EconomicSecurityViolation, SlashingEngine, SlashingReason
@@ -11,9 +15,9 @@ from core.economics.stake_registry import StakeRegistry, StakeTier
 
 def check(cond, msg):
     if not cond:
-        print(f"  FAIL: {msg}")
+        log.info(f"  FAIL: {msg}")
         raise AssertionError(msg)
-    print(f"  PASS: {msg}")
+    log.info(f"  PASS: {msg}")
 
 def slashed(reg, node_id, initial):
     return reg.get_stake(node_id) < initial
@@ -28,7 +32,7 @@ def make():
     return registry, slashing, initial
 
 def test1_invalid_proof():
-    print("\n[1] Invalid Proof Slash")
+    log.info("\n[1] Invalid Proof Slash")
     reg, slash, init = make()
     amt = slash.slash_invalid_proof("attacker", {"proof": "INVALID"})
     check(amt > 0, f"Slashed {amt} for invalid proof")
@@ -36,28 +40,28 @@ def test1_invalid_proof():
     check(slash.get_records("attacker")[-1].reason == SlashingReason.INVALID_PROOF, "Reason recorded")
 
 def test2_replay():
-    print("\n[2] Replay Attack Slash")
+    log.info("\n[2] Replay Attack Slash")
     reg, slash, init = make()
     slash.slash_replay_attack("attacker", {"nonce": "reused"})
     check(slashed(reg, "attacker", init["attacker"]), "Attacker slashed for replay")
     check(slash.get_records("attacker")[-1].reason == SlashingReason.REPLAY_ATTACK, "Reason recorded")
 
 def test3_fork():
-    print("\n[3] Fork Slash (100%)")
+    log.info("\n[3] Fork Slash (100%)")
     reg, slash, init = make()
     slash.slash_fork("attacker", {"forks": 2})
     check(slashed(reg, "attacker", init["attacker"]), "Attacker slashed for fork")
     check(reg.get_stake("attacker") == 0.0, "Fork = 100% slash: stake=0")
 
 def test4_runtime():
-    print("\n[4] Runtime Violation Slash (50%)")
+    log.info("\n[4] Runtime Violation Slash (50%)")
     reg, slash, init = make()
     slash.slash_runtime_violation("attacker", {"violation": "ast_hash_mismatch"})
     check(slashed(reg, "attacker", init["attacker"]), "Attacker slashed for runtime violation")
     check(slash.get_records("attacker")[-1].fraction == 0.50, "50% slash for runtime violation")
 
 def test5_double_vote():
-    print("\n[5] Double Vote Slash")
+    log.info("\n[5] Double Vote Slash")
     reg, slash, init = make()
     clean = slash.verify_and_slash_vote("attacker", "prop-A")
     check(clean, "First vote accepted")
@@ -66,32 +70,32 @@ def test5_double_vote():
     check(slashed(reg, "attacker", init["attacker"]), f"Attacker slashed for double vote: {reg.get_stake('attacker')} < {init['attacker']}")
 
 def test6_bypass():
-    print("\n[6] Bypass Attempt Slash")
+    log.info("\n[6] Bypass Attempt Slash")
     reg, slash, init = make()
     slash.slash_bypass_attempt("attacker", {"caller": "direct_apply_mutation"})
     check(slashed(reg, "attacker", init["attacker"]), "Attacker slashed for bypass attempt")
     check(slash.get_records("attacker")[-1].fraction == 0.25, "25% slash for bypass")
 
 def test7_triple_vote():
-    print("\n[7] Triple Vote = 100% Slash")
+    log.info("\n[7] Triple Vote = 100% Slash")
     reg, slash, init = make()
     # Three votes on different proposals
     slash.verify_and_slash_vote("attacker", "prop-A")  # 1st: clean
     slash.verify_and_slash_vote("attacker", "prop-B")  # 2nd: double vote -> rejected, no additional slash (already slashed)
-    stake_after_double = reg.get_stake("attacker")  # 1000 * 0.5 = 500 after first slash
+    reg.get_stake("attacker")  # 1000 * 0.5 = 500 after first slash
     slash.verify_and_slash_vote("attacker", "prop-C")  # 3rd: triple vote -> 100% on remaining
     check(reg.get_stake("attacker") == 0.0, f"After triple vote: 0: {reg.get_stake('attacker')}")
     check(slashed(reg, "attacker", init["attacker"]), "Attacker slashed for triple vote")
 
 def test8_validator_miss():
-    print("\n[8] Validator Missed Violation Slash")
+    log.info("\n[8] Validator Missed Violation Slash")
     reg, slash, init = make()
     was_late = slash.record_validator_miss(validator_node_id="validator", violation_type="invalid_proof", request_hash="rh1", detection_lag_ms=5000)
     check(was_late, "Validator flagged for late detection (lag >= 5000ms)")
     check(slashed(reg, "validator", init["validator"]), f"Validator slashed for miss: {reg.get_stake('validator')} < {init['validator']}")
 
 def test9_no_stake_no_influence():
-    print("\n[9] No Stake = No Weight")
+    log.info("\n[9] No Stake = No Weight")
     reg, slash, init = make()
     reg.withdraw("zero", reg.get_stake("zero"))
     check(reg.get_stake("zero") == 0.0, "Zero-stake node has 0 stake")
@@ -99,7 +103,7 @@ def test9_no_stake_no_influence():
     check(w == 0.0, f"Zero stake = zero weight: {w}")
 
 def test10_slash_persistence():
-    print("\n[10] Slash Cannot Be Reversed")
+    log.info("\n[10] Slash Cannot Be Reversed")
     reg, slash, init = make()
     slash.slash_fork("attacker", {})
     stake_after = reg.get_stake("attacker")
@@ -111,7 +115,7 @@ def test10_slash_persistence():
     check(reg.get_stake("attacker") == stake_after, "Stake unchanged after reversal attempt")
 
 def test11_weighted_slash():
-    print("\n[11] Weighted Slash (larger stake = larger penalty)")
+    log.info("\n[11] Weighted Slash (larger stake = larger penalty)")
     reg, slash, init = make()
     slash.slash_invalid_proof("rich", {})  # 25% of 10000 = 2500
     slash.slash_invalid_proof("attacker", {})  # 25% of 1000 = 250
@@ -120,7 +124,7 @@ def test11_weighted_slash():
     check(rich_slashed > attacker_slashed * 2, f"Weighted: rich={rich_slashed} > attacker*2={attacker_slashed*2}")
 
 def test12_records_immutable():
-    print("\n[12] Slash Records Immutable (tuple)")
+    log.info("\n[12] Slash Records Immutable (tuple)")
     reg, slash, init = make()
     slash.slash_fork("attacker", {})
     records = slash.get_records("attacker")
@@ -128,7 +132,7 @@ def test12_records_immutable():
     check(len(records) == 1, f"1 record: {len(records)}")
 
 def test13_jailing():
-    print("\n[13] Node Jailed After Full Slash")
+    log.info("\n[13] Node Jailed After Full Slash")
     reg, slash, init = make()
     slash.slash_fork("attacker", {})  # 100% slash
     check(reg.get_stake("attacker") == 0.0, f"Stake zero after fork slash: {reg.get_stake('attacker')}")
@@ -144,8 +148,9 @@ if __name__ == "__main__":
     passed = 0
     for t in tests:
         try:
-            t(); passed += 1
+            t()
+            passed += 1
         except Exception as e:
-            print(f"  EXCEPTION: {e}")
-    print(f"\n{'='*60}\n{passed}/{len(tests)} P8 TESTS PASSED\n{'='*60}")
+            log.info(f"  EXCEPTION: {e}")
+    log.info(f"\n{'='*60}\n{passed}/{len(tests)} P8 TESTS PASSED\n{'='*60}")
     sys.exit(0 if passed == len(tests) else 1)

@@ -1,8 +1,6 @@
 """Tenant detection + routing middleware."""
-
 import re
-from collections.abc import Callable
-from typing import Optional
+from typing import Callable, Optional
 
 from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -39,11 +37,12 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
             if not tenant_id and self.require_tenant:
                 from starlette.responses import JSONResponse
-
                 return JSONResponse({"detail": "Tenant ID required"}, status_code=400)
 
             request.state.tenant_id = tenant_id or self.DEFAULT_TENANT
-            request.state.tenant_config = self.tenant_config.get(request.state.tenant_id, {})
+            request.state.tenant_config = self.tenant_config.get(
+                request.state.tenant_id, {}
+            )
 
             response = await call_next(request)
 
@@ -61,7 +60,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         except Exception:
             raise
 
-    async def _resolve_tenant(self, request: Request) -> str | None:
+    async def _resolve_tenant(self, request: Request) -> Optional[str]:
         # 1. Header
         tenant_header = request.headers.get("X-Tenant-ID")
         if tenant_header:
@@ -88,7 +87,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
         return None
 
-    def _extract_subdomain(self, host: str) -> str | None:
+    def _extract_subdomain(self, host: str) -> Optional[str]:
         # host = "acme.roma.ai" → "acme"
         if "." in host:
             parts = host.split(".")
@@ -96,12 +95,12 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 return parts[0]
         return None
 
-    def _extract_api_key(self, request: Request) -> str | None:
+    def _extract_api_key(self, request: Request) -> Optional[str]:
         for header in ["X-API-KEY", "X-API-KEY", "API_KEY"]:
             if header in request.headers:
                 return request.headers[header]
         return None
 
-    async def _default_resolver(self, api_key: str) -> str | None:
+    async def _default_resolver(self, api_key: str) -> Optional[str]:
         """Override this for custom tenant resolution via DB/Redis/etc."""
         return None

@@ -1,6 +1,46 @@
 
 ---
 
+## 2026-07-19 — Sprint 3 + Sprint 4 Complete
+
+### Sprint 3: Hub-and-Spoke Architecture (ADR-001) ✅
+
+**Commit:** `088f5fb`
+
+**New modules:**
+- `core/envelopes.py` — TaskEnvelope/ResultEnvelope, W3C traceparent, deepcopy isolation
+- `core/circuit_breaker.py` — 3-phase state machine, CBState Enum, CircuitBreakerRegistry
+- `core/message_broker.py` — MessageBroker ABC + InProcessBroker worker pool + RedisBroker stub + BrokerStats
+- `core/outbox.py` — OutboxStore (SQLite WAL), OutboxConfig, OutboxRetryWorker, OutboxStatus
+- `core/base_agent.py` — on_message(), publish_event(), set_broker(), context_envelope (P3-07)
+- `orchestration/sentinel_v5_broker.py` — Hub-and-Spoke orchestrator
+
+**Tests:** `tests/test_sprint3.py` — **32/32 passed** ✅
+
+**Risks closed:**
+- Risk #1: Shared mutable state → deepcopy in TaskEnvelope.__post_init__
+- Risk #2: Lost task_id in run() → contextvars.ContextVar
+- Risk #3: Global CB → per-provider CircuitBreakerRegistry
+- Risk #4: Fire-and-forget publish → OutboxStore + retry worker
+
+### Sprint 4: RedisBroker + Distributed Tracing + WebSocket ✅
+
+**Commit:** `9089ef4`
+
+**New:**
+- RedisBroker (Redis Streams + PubSub), idempotent close()
+- WebSocket `/ws/agent/{agent_id}` endpoint
+- Distributed tracing via W3C traceparent (P3-06/P3-07)
+
+**Tests:** `tests/test_sprint4.py` — **22/23 passed** (96%) ✅
+
+**2 skipped:** SentinelV5Broker integration — require real agents + Swisseph
+
+### Healthcheck
+  - Ollama: ✅ (llama3.2:1b, qwen2.5-coder:14b, phi4)
+  - PostgreSQL: N/A (expected)
+  - Redis: ✅
+
 ## Knowledge Base ✅ STARTED (2026-03-27)
 
 | Страница | Статус |
@@ -636,7 +676,1246 @@ Logseq/
   - healthcheck: unavailable
 
 
-## 2026-06-30
+## 2026-06-17
+
+### Commits
+  - Test commit for progress
+  - fix: add missing SymbolMetrics dataclass and align BasketMetrics fields
+  - Phase 1-3: agent Pattern A, basket.py imports, quant_agent.py
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-06-17
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-06-17
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-13
+
+### Commits
+  - Test commit for progress
+  - test(policy): add smoke tests for AuditLog and governance_gate (R-POL-2, R-POL-3) (#205)
+  - Policy/audit cleanup (Phase B2b) (#204)
+  - docs: mark KI-130 and KI-131 as RESOLVED
+  - ci: extend quality-gate paths to orchestration/** and web/** (KI-130) (#202)
+  - docs: fix DEPLOYMENT.md path + update KNOWN_ISSUES (KI-130, KI-131)
+  - fix(step-4.7): close R4 — @require_api_key on data_room.list_conflicts + linter accepts require_api_key as canonical; rename public /health handler to public_health (K8s liveness stays unauthenticated)
+  - docs: refresh AGENTS.md + add SOUL.md (Phase B1/4.x post-merge)
+  - chore: recover B1 + 4.x untracked artifacts (10 files, 2 commits) (#201)
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+  - Merge remote-tracking branch 'origin/main' into consolidation-v1
+  - chore: consolidate AstroFin Sentinel Platform
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+  - ATOM-GITAGENT-002 REFRESH: add pyproject.toml with ruff config
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+  - chore: consolidate AstroFin Sentinel Platform
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+  - Merge remote-tracking branch 'origin/main' into consolidation-v1
+  - fix: add graphify-out/ from origin/main to satisfy test_infer_edges.py
+  - chore: consolidate AstroFin Sentinel Platform
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+  - chore: consolidate AstroFin Sentinel Platform
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+  - fix(ruff): resolve critical F821 errors
+  - docs: post-audit roadmap (REMAINING_RUFF_ERRORS + revised sprints + release plan)
+  - chore: apply ruff auto-fixes (unsafe)
+  - chore: consolidate AstroFin Sentinel Platform
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-14
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-15
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-15
+
+### Commits
+  - Test commit for progress
+  - chore: fix 4 syntax errors + ruff auto-fixes
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-15
+
+### Commits
+  - Test commit for progress
+  - docs: dependency audit + CVE report (15 conflicts, 6 vulnerable packages)
+  - fix(ruff): safe autoformat E702,E701 (46 files, no logic changes)
+  - chore: fix 4 syntax errors + ruff auto-fixes
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-15
+
+### Commits
+  - Test commit for progress
+  - fix(ruff): add noqa: F401 to try/except optional imports (9 files, 20 errors)
+  - docs: dependency audit + CVE report (15 conflicts, 6 vulnerable packages)
+  - fix(ruff): safe autoformat E702,E701 (46 files, no logic changes)
+  - chore: fix 4 syntax errors + ruff auto-fixes
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-15
+
+### Commits
+  - Test commit for progress
+  - fix(ruff): P0 invalid-syntax → 0 (4 files), pyproject: F401 ignore for __init__.py
+  - fix(ruff): resolve 11 invalid-syntax errors → 0 (4 files)
+  - fix(ruff): resolve F821 undefined-name errors (87→0 actual, 11 invalid-syntax remain)
+  - fix(ruff): add noqa: F401 to try/except optional imports (9 files, 20 errors)
+  - docs: dependency audit + CVE report (15 conflicts, 6 vulnerable packages)
+  - fix(ruff): safe autoformat E702,E701 (46 files, no logic changes)
+  - chore: fix 4 syntax errors + ruff auto-fixes
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-15
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-15
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-15
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-15
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-15
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-18
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-21
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - venv: True, postgres: True, ollama: True
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+## 2026-07-22 (Evening)
+
+### Completed
+  - Sprint 8.1: Paper Trading — PaperBroker + factory + broker wire-up in CouncilOrchestrator
+  - P1-01 regression fix: 40 files with missing logging imports
+  - P0-02 eval() → safe ast evaluator in topology.py
+  - 664 tests green (pre-existing failures: PG sandbox, switch_nodes cache)
+
+### Next
+  - PostgreSQL skipif marks for sandbox failures
+  - Paper Trading go-live (TRADING_MODE=PAPER)
+  - Meta-RL daily calibration pipeline
+
+## 2026-07-22 — GA Release (v1.0.0-ga) 🚀
+
+### Audit & Consolidation (3-Step Deep Audit)
+- **Step 1:** Инвентаризация — монорепо astrofin-sentinel-platform, 13 agents, Clean Architecture
+- **Step 2:** Глубокий аудит — 661-line AUDIT_REPORT.md, оценка 4.0/5
+- **Step 3:** Консолидация — P0/P1/P2 fixes + god-files refactoring + dead code removal
+
+### Completed
+- **P0 Security:** SQLi (rag_admin.py), RCE eval (topology.py, meta_questioning.py), weak hashes (md5→sha256 in 4 files) — bandit 0 HIGH
+- **P1 Code Quality:** 97% print→structlog (2,990 calls in 275 files), 12 critical except:pass→log.warning
+- **P2 Consolidation:** 
+  - God-files: sentinel_v5.py 550→401, karl_synthesis.py 604→445 via context_manager, result_aggregator, conflict_resolver, weights_calibrator
+  - Dead code: 539 files removed (audit_repo/, v6/, v7/, v8/, Projects/)
+  - Stale branches: 8 deleted
+  - Requirements: 7→3 files (runtime/dev/test)
+  - Duplicate repos: AstroFinSentinelV5, astrofin-sentinel-v5, ATOMFederationOS archived
+- **P3 Docs:** SOUL.md, AGENTS.md, CONSOLIDATION_PLAN.md updated
+- **Sprint 8.1:** Paper Trading — PaperBroker + BaseBroker + factory + orchestrator wire-up
+- **Post-GA:** CI skip for PostgreSQL tests, daily Meta-RL calibration pipeline (tools/run_daily_calibration.py)
+
+### Metrics
+- **Tests:** 644 passed, 17 skipped (PostgreSQL sandbox), 15 deselected
+- **Security:** 0 HIGH bandit, 0 gitleaks secrets (57 pre-existing false-positives tracked)
+- **Architecture:** Clean + Hub-and-Spoke + Transactional Outbox
+- **Observability:** Jaeger tracing, Prometheus metrics, structlog structured logging
+- **ML Pipeline:** KARL synthesis, AMRE reward calibration, Bayesian weight updates
+- **Trading:** PaperBroker (virtual PnL), ModeEnforcer (PAPER/LIVE), BinanceBroker (ready)
+
+### Launch Commands
+```bash
+# .env
+TRADING_MODE=PAPER
+BINANCE_API_KEY=your_key
+BINANCE_API_SECRET=your_secret
+DATABASE_URL=postgresql+psycopg://astrofin:astrofin_secret@localhost:5432/astrofin_db
+
+# Start
+python -m orchestration.sentinel_v5 "Analyze BTC" BTCUSDT SWING
+
+# Monitor
+curl http://localhost:16686  # Jaeger
+curl http://localhost:3000   # Grafana
+curl http://localhost:8000/metrics  # Prometheus
+
+# Daily calibration (cron)
+python -m tools.run_daily_calibration --lookback-days 7
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
+
+### Commits
+  - Test commit for progress
+
+### Environment Health
+  - healthcheck: unavailable
+
+
+## 2026-07-22
 
 ### Commits
   - Test commit for progress

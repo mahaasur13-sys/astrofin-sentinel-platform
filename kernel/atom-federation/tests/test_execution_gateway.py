@@ -70,7 +70,7 @@ class TestMutationContextThreadSafety:
 
 class TestRequiresGatewayDecorator:
     def test_decorator_blocks_without_context(self):
-        gateway = ExecutionGateway()
+        ExecutionGateway()
 
         class TestExecutor:
             @ExecutionGateway.requires_gateway

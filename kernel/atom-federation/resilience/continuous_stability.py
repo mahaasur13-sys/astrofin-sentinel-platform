@@ -155,7 +155,7 @@ class ContinuousStabilityEngine:
             # 1. Collect all subsystem states
             snapshot = self.ctrl.get_snapshot()
             router_state = self.ctrl.get_all_routes()
-            heal_state = self.ctrl.healer.state() if hasattr(self.ctrl.healer, "state") else {}
+            self.ctrl.healer.state() if hasattr(self.ctrl.healer, "state") else {}
             score = snapshot.stability_score
 
             # 2. SLO checks

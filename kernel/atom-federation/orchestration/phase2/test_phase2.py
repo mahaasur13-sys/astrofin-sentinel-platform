@@ -73,8 +73,8 @@ class TestGoalMemory:
 
     def test_avg_outcome(self):
         gm = GoalMemory()
-        g1 = gm.append({}, "a", 0.5, True, 0.8, actual_outcome=0.7)
-        g2 = gm.append({}, "b", 0.5, True, 0.8, actual_outcome=0.9)
+        gm.append({}, "a", 0.5, True, 0.8, actual_outcome=0.7)
+        gm.append({}, "b", 0.5, True, 0.8, actual_outcome=0.9)
         assert gm.avg_outcome() == pytest.approx(0.8)
 
     def test_replan_rate(self):

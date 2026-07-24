@@ -179,7 +179,7 @@ class NodeRuntime:
             },
             feedback={"action": "validate"},
         )
-        trace = self._replay_validator.finalize_trace(trace_id)
+        self._replay_validator.finalize_trace(trace_id)
 
         # Simulate eval: if psi > 0.9 and cdr < 0.1 → valid
         valid = psi >= 0.0 and cdr <= 1.0
@@ -230,7 +230,6 @@ class NodeRuntime:
         # 7. Policy sync — apply remote theta if consensus says to
         if consensus.theta_hash != local_hash:
             # Remote theta is different — try to sync
-            remote_vector = my_vector  # simplified: use my own for self-sync
             # Find the vector that matches consensus theta_hash
             matching_peer = next(
                 (v for v in peer_vectors if v.theta_hash == consensus.theta_hash),

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 from enum import Enum
 
 """
 Rollback Engine — state snapshot + restore.
 Levels: L1 (policy revert) / L2 (optimizer reset) / L3 (full cluster state).
 """
-from __future__ import annotations
 
 import copy
 from collections.abc import Callable

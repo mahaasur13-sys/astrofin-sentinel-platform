@@ -1,7 +1,4 @@
-"""
-AstroFin Sentinel v5 — Thompson Sampling Agent Selector
-FIXED: thread-safe singleton, guaranteed minimum agents, structured logging
-"""
+from __future__ import annotations
 
 import logging
 import random
@@ -10,9 +7,16 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from core.belief import get_belief_tracker
+
+"""
+AstroFin Sentinel v5 — Thompson Sampling Agent Selector
+FIXED: thread-safe singleton, guaranteed minimum agents, structured logging
+"""
+
+
 logger = logging.getLogger(__name__)
 
-from core.belief import get_belief_tracker
 
 # ═════════════════════════════════════════════════
 # Agent Pools
@@ -179,10 +183,14 @@ class ThompsonSampler:
             selected = [(fallback_agent, fallback_sample)]
 
         names = [name for name, _, _ in selected]
-        logger.info(f"[Thompson] '{pool.name}': {len(selected)}/{len(pool.agents)} → {names}")
+        logger.info(
+            f"[Thompson] '{pool.name}': {len(selected)}/{len(pool.agents)} → {names}"
+        )
         return [(name, score) for name, score, _ in selected]
 
-    def select_with_exclusions(self, pool, excluded, k=None, oap_adjustments=None) -> list:
+    def select_with_exclusions(
+        self, pool, excluded, k=None, oap_adjustments=None
+    ) -> list:
         candidates = [a for a in pool.agents if a not in excluded]
         if not candidates:
             return []

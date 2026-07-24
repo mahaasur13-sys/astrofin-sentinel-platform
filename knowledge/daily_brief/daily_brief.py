@@ -9,10 +9,15 @@ Usage:
     python knowledge/daily_brief/daily_brief.py --parse FILE   # Parse specific file
 """
 
+from __future__ import annotations
 import argparse
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
+
+import logging
+log = logging.getLogger(__name__)
+
 
 BRIEF_DIR = Path(__file__).parent
 BRIEF_GLOB = "brief_????-??-??.md"
@@ -31,13 +36,13 @@ def list_briefs():
     """List all stored briefs."""
     briefs = sorted(BRIEF_DIR.glob(BRIEF_GLOB), reverse=True)
     if not briefs:
-        print("No briefs stored.")
+        log.info("No briefs stored.")
         return []
-    print(f"\n=== Stored Briefs ({len(briefs)} found) ===")
+    log.info(f"\n=== Stored Briefs ({len(briefs)} found) ===")
     for b in briefs:
         stat = b.stat()
         dt = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
-        print(f"  {b.name}  (modified: {dt})")
+        log.info(f"  {b.name}  (modified: {dt})")
     return briefs
 
 
@@ -67,9 +72,16 @@ def generate_ideas(brief_content: str) -> list:
     ideas = []
 
     # Detect patterns in brief
-    has_tool_release = any(kw in brief_content.lower() for kw in ["github", "release", "tool", "framework"])
-    has_research = any(kw in brief_content.lower() for kw in ["arxiv", "paper", "research", "study"])
-    has_community = any(kw in brief_content.lower() for kw in ["reddit", "hacker news", "discussion", "forum"])
+    has_tool_release = any(
+        kw in brief_content.lower() for kw in ["github", "release", "tool", "framework"]
+    )
+    has_research = any(
+        kw in brief_content.lower() for kw in ["arxiv", "paper", "research", "study"]
+    )
+    has_community = any(
+        kw in brief_content.lower()
+        for kw in ["reddit", "hacker news", "discussion", "forum"]
+    )
 
     if has_tool_release:
         ideas.append(
@@ -142,7 +154,7 @@ def ideas_to_tracker(ideas: list, source: str = "daily_brief"):
 
         return imported, skipped
     except ImportError as e:
-        print(f"Warning: idea_tracker not available: {e}")
+        log.info(f"Warning: idea_tracker not available: {e}")
         return 0, 0
 
 
@@ -151,24 +163,24 @@ def show_brief(path: Path):
     content = path.read_text()
     parsed = parse_brief_content(content)
 
-    print(f"\n{'=' * 60}")
-    print(f"  Brief: {path.name}")
-    print(f"{'=' * 60}\n")
+    log.info(f"\n{'=' * 60}")
+    log.info(f"  Brief: {path.name}")
+    log.info(f"{'=' * 60}\n")
 
     # Show items
     if parsed["items"]:
-        print("### Key Items\n")
+        log.info("### Key Items\n")
         for i, item in enumerate(parsed["items"], 1):
-            print(f"  {i}. {item[:100]}{'...' if len(item) > 100 else ''}")
-        print()
+            log.info(f"  {i}. {item[:100]}{'...' if len(item) > 100 else ''}")
+        log.info("")
 
     # Show ideas
     ideas = generate_ideas(content)
     if ideas:
-        print("### Suggested ATOM Ideas\n")
+        log.info("### Suggested ATOM Ideas\n")
         for idea in ideas:
-            print(f"  [{idea['category']}]")
-            print(f"    → {idea['prompt']}\n")
+            log.info(f"  [{idea['category']}]")
+            log.info(f"    → {idea['prompt']}\n")
 
 
 def garbage_collect():
@@ -187,18 +199,24 @@ def main():
     parser = argparse.ArgumentParser(description="Daily Brief CLI")
     parser.add_argument("--latest", action="store_true", help="Show latest brief")
     parser.add_argument("--list", action="store_true", help="List all briefs")
-    parser.add_argument("--ideas", action="store_true", help="Generate ATOM ideas from latest")
+    parser.add_argument(
+        "--ideas", action="store_true", help="Generate ATOM ideas from latest"
+    )
     parser.add_argument("--parse", type=str, help="Parse specific brief file")
     parser.add_argument("--gc", action="store_true", help="Garbage collect old briefs")
-    parser.add_argument("--save", type=str, help="Save brief content (for webhook/email)")
-    parser.add_argument("--track", action="store_true", help="Import ideas into idea_tracker")
+    parser.add_argument(
+        "--save", type=str, help="Save brief content (for webhook/email)"
+    )
+    parser.add_argument(
+        "--track", action="store_true", help="Import ideas into idea_tracker"
+    )
 
     args = parser.parse_args()
 
     # Garbage collect old briefs
     if args.gc:
         removed = garbage_collect()
-        print(f"Removed {removed} old briefs.")
+        log.info(f"Removed {removed} old briefs.")
         return
 
     if args.save:
@@ -213,7 +231,7 @@ def main():
             latest.unlink()
         latest.symlink_to(path.name)
 
-        print(f"Saved: {path}")
+        log.info(f"Saved: {path}")
         return
 
     if args.parse:
@@ -223,7 +241,7 @@ def main():
         if path.exists():
             show_brief(path)
         else:
-            print(f"File not found: {path}")
+            log.info(f"File not found: {path}")
         return
 
     if args.latest or args.ideas:
@@ -232,12 +250,14 @@ def main():
             show_brief(path)
             if args.ideas:
                 ideas = generate_ideas(path.read_text())
-                print("\n### ATOM Ideas for This Brief\n")
+                log.info("\n### ATOM Ideas for This Brief\n")
                 for idea in ideas:
-                    print(f"  [{idea['category']}]")
-                    print(f"    → {idea['prompt']}\n")
+                    log.info(f"  [{idea['category']}]")
+                    log.info(f"    → {idea['prompt']}\n")
         else:
-            print("No briefs found. Run with --gc to clean up or wait for next daily email.")
+            log.info(
+                "No briefs found. Run with --gc to clean up or wait for next daily email."
+            )
         return
 
     if args.list:
@@ -249,7 +269,7 @@ def main():
     if path:
         show_brief(path)
     else:
-        print("No briefs stored. Use --save to add one.")
+        log.info("No briefs stored. Use --save to add one.")
 
 
 if __name__ == "__main__":

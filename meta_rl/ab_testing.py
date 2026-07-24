@@ -1,5 +1,7 @@
 """meta_rl/ab_testing.py -- ATOM-META-RL-012: A/B Testing Framework"""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
 
@@ -44,7 +46,7 @@ def welch_t_test(a, b):
         df = num / max(df_a + df_b, 1e-12)
         p_value = 2.0 * (1.0 - t_dist.cdf(abs(t_stat), df))
     except Exception:
-        pass
+        log.warning("A/B testing setup failed", exc_info=True)
     return float(t_stat), float(p_value)
 
 
@@ -82,7 +84,11 @@ class ABTestResult:
 
     def summary(self) -> str:
         arrow = "A" if self.winner == "A" else ("B" if self.winner == "B" else "NONE")
-        eff = "LARGE" if abs(self.effect_size) > 0.8 else "MEDIUM" if abs(self.effect_size) > 0.5 else "SMALL"
+        eff = (
+            "LARGE"
+            if abs(self.effect_size) > 0.8
+            else "MEDIUM" if abs(self.effect_size) > 0.5 else "SMALL"
+        )
         return (
             f"[META-RL-AB] {self.version_a} vs {self.version_b}: "
             f"winner={arrow} p={self.p_value:.4f} d={self.effect_size:.3f}({eff}) "
@@ -110,7 +116,9 @@ class ABTest:
         self.results_b: list = []
         self.versions_loaded: dict[str, list] = {}
 
-    def compare_versions(self, version_a: str, version_b: str, market_data_a: dict, market_data_b=None) -> ABTestResult:
+    def compare_versions(
+        self, version_a: str, version_b: str, market_data_a: dict, market_data_b=None
+    ) -> ABTestResult:
         """Public API: A/B test between two versions. market_data_b defaults to market_data_a."""
         if market_data_b is None:
             market_data_b = market_data_a
@@ -119,7 +127,9 @@ class ABTest:
         chrom_a = self.persistence.load_elite_chromosomes(version_a)
         chrom_b = self.persistence.load_elite_chromosomes(version_b)
         if not chrom_a or not chrom_b:
-            logger.warning(f"[META-RL-AB] Version load failed: A={len(chrom_a)} B={len(chrom_b)}")
+            logger.warning(
+                f"[META-RL-AB] Version load failed: A={len(chrom_a)} B={len(chrom_b)}"
+            )
             return self._fail_result(version_a, version_b)
         self.versions_loaded = {version_a: chrom_a, version_b: chrom_b}
         return self._run_test(version_a, version_b, market_data_a, market_data_b)
@@ -149,9 +159,13 @@ class ABTest:
                     reward = getattr(res, "risk_adjusted_pnl", getattr(res, "pnl", 0.0))
                     out_list.append(reward)
                 except Exception as e:
-                    logger.warning(f"[META-RL-AB] Evaluation failed for chromosome: {e}")
+                    logger.warning(
+                        f"[META-RL-AB] Evaluation failed for chromosome: {e}"
+                    )
         if len(ma) < self.config.min_samples or len(mb) < self.config.min_samples:
-            logger.warning(f"[META-RL-AB] Insufficient samples: A={len(ma)} B={len(mb)}")
+            logger.warning(
+                f"[META-RL-AB] Insufficient samples: A={len(ma)} B={len(mb)}"
+            )
             return self._fail_result(va, vb)
         mean_a = float(np.mean(ma))
         mean_b = float(np.mean(mb))

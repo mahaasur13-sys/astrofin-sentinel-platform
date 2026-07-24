@@ -21,6 +21,9 @@ from .cancellation import CancellationStrength, HardCancellation
 from .dag_recorder import DAGRecorder, StepStatus
 from .event_sourcing import EventType, TaskEvent
 from .event_store import EventStore
+import logging
+log = logging.getLogger(__name__)
+
 from .resilience import (
     CircuitBreakerRegistry,
     CircuitOpenError,
@@ -173,11 +176,11 @@ async def run_step_with_trace(
     """Execute a single step with DAG recording + cancellation monitoring."""
     step_id = step.get("id", "")
     tool = step.get("tool", "unknown")
-    action = step.get("action", "")
+    step.get("action", "")
     params = step.get("params", {})
 
     dag = await get_dag_recorder()
-    cancellation = await get_cancellation()
+    await get_cancellation()
 
     await dag.start_step(dag_id, step_id)
 
@@ -240,7 +243,7 @@ async def run(task: str, context: dict | None = None) -> dict:
     5. Return result
     """
     dag = await get_dag_recorder()
-    cancellation = await get_cancellation()
+    await get_cancellation()
 
     # ── planning ──────────────────────────────────────────────────────────
     steps = await plan(task)
@@ -281,7 +284,7 @@ async def run(task: str, context: dict | None = None) -> dict:
         raise
 
     # ── finalize DAG ─────────────────────────────────────────────────────
-    final_dag = await dag.finalize(dag_id)
+    await dag.finalize(dag_id)
 
     # ── build response ───────────────────────────────────────────────────
     outputs = []
@@ -307,15 +310,15 @@ async def worker_loop():
     """
     await get_dag_recorder()
     scheduler = await get_scheduler()
-    cancellation = await get_cancellation()
+    await get_cancellation()
 
-    loop = asyncio.get_running_loop()
+    asyncio.get_running_loop()
 
     while True:
         try:
             # adapt concurrency dynamically
             concurrency = await scheduler.compute_target_concurrency()
-            semaphore = asyncio.Semaphore(concurrency)
+            asyncio.Semaphore(concurrency)
 
             # dequeue highest-priority tasks
             tasks = await scheduler.dequeue(count=concurrency)
@@ -360,7 +363,6 @@ async def worker_loop():
                 dag_id = await (await get_dag_recorder()).create(task_id, epoch=claimed_epoch)
 
                 attempt = 0
-                last_error = ""
 
                 while True:
                     try:
@@ -429,5 +431,5 @@ async def worker_loop():
             await asyncio.sleep(0.1)
 
         except Exception as e:
-            print(f"worker error: {e}")
+            log.info(f"worker error: {e}")
             await asyncio.sleep(5)

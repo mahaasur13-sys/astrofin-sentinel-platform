@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
 from data.market_adapter import OHLCV
@@ -40,12 +40,12 @@ def market_data_to_ohlcv(market_data: dict[str, Any]) -> list[OHLCV]:
     highs = market_data.get("high", closes)
     lows = market_data.get("low", closes)
     volumes = market_data.get("volume", [0.0] * len(closes))
-    timestamps = market_data.get("timestamps", [datetime.now(timezone.utc)] * len(closes))
+    timestamps = market_data.get("timestamps", [datetime.utcnow()] * len(closes))
 
     n = len(closes)
     return [
         OHLCV(
-            timestamp=(timestamps[i] if i < len(timestamps) else datetime.now(timezone.utc)),
+            timestamp=timestamps[i] if i < len(timestamps) else datetime.utcnow(),
             open=float(opens[i] if i < len(opens) else closes[i]),
             high=float(highs[i] if i < len(highs) else closes[i]),
             low=float(lows[i] if i < len(lows) else closes[i]),
@@ -56,7 +56,7 @@ def market_data_to_ohlcv(market_data: dict[str, Any]) -> list[OHLCV]:
     ]
 
 
-def normalize_symbol(symbol: str) -> str:
+def normalize_symbol(symbol: str, _exchange_id: str = "binance") -> str:
     """
     Normalize symbol between CCXT format (with slash) and internal format.
 

@@ -79,7 +79,9 @@ class OAPDriftReport:
     recommendations: list[str]
 
 
-def analyze_oap_drift(records: list[dict[str, Any]], session_id: str = "") -> OAPDriftReport:
+def analyze_oap_drift(
+    records: list[dict[str, Any]], session_id: str = ""
+) -> OAPDriftReport:
     """Analyze OAP drift from historical decision records.
 
     Computes:
@@ -145,9 +147,13 @@ def analyze_oap_drift(records: list[dict[str, Any]], session_id: str = "") -> OA
                 f"Reward rising ({early:.3f} → {late:.3f}) with high variance (std={std_q:.3f})"
             )
         if len(gen_means) >= 3:
-            recent_deltas = [gen_means[i] - gen_means[i - 1] for i in range(1, len(gen_means))]
+            recent_deltas = [
+                gen_means[i] - gen_means[i - 1] for i in range(1, len(gen_means))
+            ]
             if all(d > 0 for d in recent_deltas[-2:]) and std_q > DRIFT_SCORE_MILD:
-                overfitting_evidence.append("Consecutive generation reward increases — possible memorization")
+                overfitting_evidence.append(
+                    "Consecutive generation reward increases — possible memorization"
+                )
 
     if is_overfitting or severity in ("moderate", "severe"):
         recommendations.append("increase_mutation_rate")

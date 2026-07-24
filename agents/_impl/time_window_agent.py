@@ -5,7 +5,7 @@ Time Window Agent — entry timing and best trading windows.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 
 from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
@@ -132,7 +132,9 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
                 data = resp.json()
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
-            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}")
+            logger.warning(
+                f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}"
+            )
             return []
 
     async def _scan_4h_window(self, symbol: str) -> dict:
@@ -142,7 +144,7 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
             return {"direction": "neutral", "summary": "insufficient 4H data"}
 
         closes = [d[0] for d in data]
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         hour = now.hour
 
         # Check if we're at start of 4H candle (higher volume expected)
@@ -177,7 +179,7 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
             return {"direction": "neutral", "summary": "insufficient 1D data"}
 
         closes = [d[0] for d in data]
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         weekday = now.weekday()  # 0=Monday
 
         # Check day-of-week patterns
@@ -240,11 +242,11 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
 
     async def _check_astro_timing(self, state: dict) -> dict:
         """Check astro timing windows."""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from astrology.vedic import get_choghadiya, get_current_nakshatra
 
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
 
         choghadiya = get_choghadiya(now)
         nakshatra = get_current_nakshatra(now)
@@ -273,3 +275,8 @@ async def run_time_window_agent(state: dict) -> dict:
     agent = TimeWindowAgent()
     result = await agent.analyze(state)
     return {"time_window_signal": result.to_dict()}
+
+
+def create() -> TimeWindowAgent:
+    """Factory for 6-fn test contract."""
+    return TimeWindowAgent()

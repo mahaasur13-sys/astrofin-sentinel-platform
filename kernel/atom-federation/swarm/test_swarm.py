@@ -79,7 +79,6 @@ class TestCausalMergeProtocol:
 
     def test_swarm_causal_depth(self):
         proto = CausalMergeProtocol()
-        dag = {"C": ["B"], "B": ["A"], "A": []}
         swarm_dag = SwarmDAG(nodes=["A", "B", "C"], edges=[("A", "B"), ("B", "C")], conflicts_resolved=[], edge_origin_count={})
         depths = proto.compute_swarm_causal_depth(swarm_dag)
         assert depths["A"] == 0

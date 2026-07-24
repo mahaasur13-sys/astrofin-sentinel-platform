@@ -11,6 +11,10 @@ Usage:
     python knowledge/daily_digest/daily_digest_log.py --status PROPOSED
 """
 
+from __future__ import annotations
+
+import logging
+log = logging.getLogger(__name__)
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -64,7 +68,11 @@ class DigestLog:
         # Parse markdown table
         entries = []
         for line in content.split("\n"):
-            if line.startswith("|") and not line.startswith("|--") and "Date" not in line:
+            if (
+                line.startswith("|")
+                and not line.startswith("|--")
+                and "Date" not in line
+            ):
                 parts = [p.strip() for p in line.split("|")[1:-1]]
                 if len(parts) >= 4:
                     entry = DigestEntry(
@@ -72,7 +80,9 @@ class DigestLog:
                         source=parts[1],
                         key_ideas=parts[2].split(", ") if parts[2] else [],
                         status=parts[3],
-                        linked_atoms=(parts[4].split(", ") if len(parts) > 4 and parts[4] else []),
+                        linked_atoms=(
+                            parts[4].split(", ") if len(parts) > 4 and parts[4] else []
+                        ),
                     )
                     entries.append(entry)
 
@@ -91,11 +101,15 @@ class DigestLog:
         for e in sorted(self.entries, key=lambda x: x.date, reverse=True):
             ideas_str = ", ".join(e.key_ideas[:3])
             atoms_str = ", ".join(e.linked_atoms) if e.linked_atoms else "—"
-            lines.append(f"| {e.date} | {e.source} | {ideas_str} | {e.status} | {atoms_str} |")
+            lines.append(
+                f"| {e.date} | {e.source} | {ideas_str} | {e.status} | {atoms_str} |"
+            )
 
         self.LOG_FILE.write_text("\n".join(lines), encoding="utf-8")
 
-    def add_entry(self, date: str, source: str, key_ideas: list, status: str = None) -> DigestEntry:
+    def add_entry(
+        self, date: str, source: str, key_ideas: list, status: str = None
+    ) -> DigestEntry:
         """Add a new digest entry."""
         # Check if entry for date exists
         for e in self.entries:
@@ -151,21 +165,21 @@ class DigestLog:
         entries = sorted(entries, key=lambda x: x.date, reverse=True)[:limit]
 
         if not entries:
-            print("No entries found.")
+            log.info("No entries found.")
             return
 
-        print(f"\n{'=' * 80}")
-        print(f"  📔 DAILY DIGEST LOG — {len(entries)} entries")
-        print(f"{'=' * 80}\n")
-        print(f"{'Date':<12} {'Source':<12} {'Status':<12} {'Key Ideas':<35} {'ATOMs'}")
-        print("-" * 80)
+        log.info(f"\n{'=' * 80}")
+        log.info(f"  📔 DAILY DIGEST LOG — {len(entries)} entries")
+        log.info(f"{'=' * 80}\n")
+        log.info(f"{'Date':<12} {'Source':<12} {'Status':<12} {'Key Ideas':<35} {'ATOMs'}")
+        log.info("-" * 80)
 
         for e in entries:
             ideas = ", ".join(e.key_ideas[:2])[:33]
             atoms = ", ".join(e.linked_atoms) if e.linked_atoms else "—"
-            print(f"{e.date:<12} {e.source:<12} {e.status:<12} {ideas:<35} {atoms}")
+            log.info(f"{e.date:<12} {e.source:<12} {e.status:<12} {ideas:<35} {atoms}")
 
-        print(f"\nTotal: {len(entries)} entries")
+        log.info(f"\nTotal: {len(entries)} entries")
 
     def get_stats(self) -> dict:
         """Get statistics."""
@@ -188,7 +202,9 @@ def main():
 
     parser = argparse.ArgumentParser(description="Daily Digest Log")
     parser.add_argument("--log", type=str, help="Add log entry for date")
-    parser.add_argument("--source", type=str, default="email", help="Source (email, webhook, file)")
+    parser.add_argument(
+        "--source", type=str, default="email", help="Source (email, webhook, file)"
+    )
     parser.add_argument("--ideas", type=str, help="Comma-separated key ideas")
     parser.add_argument("--status", type=str, help="Set status for --log")
     parser.add_argument("--list", action="store_true", help="List all entries")
@@ -208,7 +224,7 @@ def main():
             ideas = [i.strip() for i in args.ideas.split(",")]
 
         entry = log.add_entry(args.log, args.source, ideas, args.status)
-        print(f"Logged: {entry.date} [{entry.status}]")
+        log.info(f"Logged: {entry.date} [{entry.status}]")
         return
 
     if args.update:
@@ -218,20 +234,20 @@ def main():
 
         entry = log.update_status(args.update, args.status or "PROCESSED", atoms)
         if entry:
-            print(f"Updated: {entry.date} → {entry.status}")
+            log.info(f"Updated: {entry.date} → {entry.status}")
         else:
-            print(f"Entry not found: {args.update}")
+            log.info(f"Entry not found: {args.update}")
         return
 
     if args.stats:
         stats = log.get_stats()
-        print(f"\n{'=' * 50}")
-        print("  📊 DIGEST LOG STATISTICS")
-        print(f"{'=' * 50}")
-        print(f"  Total digests: {stats.get('total', 0)}")
-        print("\n  By status:")
+        log.info(f"\n{'=' * 50}")
+        log.info("  📊 DIGEST LOG STATISTICS")
+        log.info(f"{'=' * 50}")
+        log.info(f"  Total digests: {stats.get('total', 0)}")
+        log.info("\n  By status:")
         for status, count in stats.get("by_status", {}).items():
-            print(f"    {status}: {count}")
+            log.info(f"    {status}: {count}")
         return
 
     if args.list:

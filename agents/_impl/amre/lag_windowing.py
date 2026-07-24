@@ -17,6 +17,8 @@
     # result = {final_confidence: int, ema: float, lag_adj: float, ...}
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from typing import Any
@@ -96,16 +98,24 @@ class LagWindow:
     ):
         # Env-driven defaults with constructor overrides
         self.adaptive_enabled = (
-            adaptive_window_enabled if adaptive_window_enabled is not None else _env_bool("LAG_ADAPTIVE_WINDOW", "true")
+            adaptive_window_enabled
+            if adaptive_window_enabled is not None
+            else _env_bool("LAG_ADAPTIVE_WINDOW", "true")
         )
         self.base_window_size = (
-            base_window_size if base_window_size is not None else _env_int("LAG_BASE_WINDOW_SIZE", DEFAULT_BASE_WINDOW)
+            base_window_size
+            if base_window_size is not None
+            else _env_int("LAG_BASE_WINDOW_SIZE", DEFAULT_BASE_WINDOW)
         )
         self.min_window_size = (
-            min_window_size if min_window_size is not None else _env_int("LAG_MIN_WINDOW_SIZE", DEFAULT_MIN_WINDOW)
+            min_window_size
+            if min_window_size is not None
+            else _env_int("LAG_MIN_WINDOW_SIZE", DEFAULT_MIN_WINDOW)
         )
         self.max_window_size = (
-            max_window_size if max_window_size is not None else _env_int("LAG_MAX_WINDOW_SIZE", DEFAULT_MAX_WINDOW)
+            max_window_size
+            if max_window_size is not None
+            else _env_int("LAG_MAX_WINDOW_SIZE", DEFAULT_MAX_WINDOW)
         )
         self.vol_low = (
             volatility_low_threshold
@@ -126,9 +136,7 @@ class LagWindow:
         self._position_history: list[float] = []
 
         logger.debug(
-            f"[LagWindow] init: adaptive={self.adaptive_enabled} "
-            f"window={self.window_size} alpha={self.alpha:.4f} "
-            f"vol_thresh=[{self.vol_low}, {self.vol_high}]"
+            f"[LagWindow] init: adaptive={self.adaptive_enabled} window={self.window_size} alpha={self.alpha:.4f} vol_thresh=[{self.vol_low}, {self.vol_high}]"
         )
 
     # ─── Alpha recalculation ──────────────────────────────────────────────────
@@ -163,9 +171,7 @@ class LagWindow:
             self._update_alpha()
 
             logger.info(
-                f"[LagWindow] adaptive window changed: "
-                f"{old_size} → {new_size} "
-                f"(alpha {old_alpha:.4f} → {self.alpha:.4f}, vol={volatility:.4f})"
+                f"[LagWindow] adaptive window changed: {old_size} → {new_size} (alpha {old_alpha:.4f} → {self.alpha:.4f}, vol={volatility:.4f})"
             )
 
     # ─── Main entry point ────────────────────────────────────────────────────

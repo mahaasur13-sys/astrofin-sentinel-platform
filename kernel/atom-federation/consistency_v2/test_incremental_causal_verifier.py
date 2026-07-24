@@ -3,6 +3,9 @@ test_incremental_causal_verifier.py
 ===================================
 Tests for IncrementalCausalVerifier — O(1) causal equivalence.
 """
+import logging
+log = logging.getLogger(__name__)
+
 from consistency_v2.incremental_causal_verifier import (
     CausalFingerprint,
     IncrementalCausalVerifier,
@@ -84,4 +87,4 @@ if __name__ == "__main__":
     test_incremental_causal_verifier_divergence()
     test_incremental_causal_verifier_sync_from_events()
     test_incremental_causal_verifier_fingerprint_dict()
-    print("All IncrementalCausalVerifier tests passed.")
+    log.info("All IncrementalCausalVerifier tests passed.")

@@ -5,6 +5,10 @@ import pathlib
 import sys
 import time
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # Fixed: use correct repo root (2 levels up from tools/, not 3)
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
@@ -16,7 +20,7 @@ from core.federation.quorum_certificate import QuorumCertificate
 
 def test_quorum_enforcement():
     """✅ Quorum enforcement: < quorum → reject"""
-    print("\n[TEST 1] Quorum enforcement: < quorum → reject")
+    log.info("\n[TEST 1] Quorum enforcement: < quorum → reject")
 
     node_a = FederatedExecutionGateway(
         node_id="node-a",
@@ -30,12 +34,12 @@ def test_quorum_enforcement():
     )
 
     assert not result["committed"], f"Should reject: {result['reason']}"
-    print(f"  ✅ Rejected: {result['reason']}")
+    log.info(f"  ✅ Rejected: {result['reason']}")
 
 
 def test_node_independent_verification():
     """✅ Each node verifies proof independently"""
-    print("\n[TEST 2] Node-independent verification")
+    log.info("\n[TEST 2] Node-independent verification")
 
     proof = "valid-proof-sig-abc123"
     payload = {"action": "deploy"}
@@ -47,7 +51,7 @@ def test_node_independent_verification():
     )
 
     result_a = node_a.execute(payload=payload, proof=proof)
-    print(f"  Node A: committed={result_a['committed']}")
+    log.info(f"  Node A: committed={result_a['committed']}")
 
     node_b = FederatedExecutionGateway(
         node_id="node-b",
@@ -56,15 +60,15 @@ def test_node_independent_verification():
     )
 
     result_b = node_b.execute(payload=payload, proof=proof)
-    print(f"  Node B: committed={result_b['committed']}")
+    log.info(f"  Node B: committed={result_b['committed']}")
 
     assert result_a["committed"] == result_b["committed"], "Nodes disagree on valid proof"
-    print("  ✅ Nodes agree on valid proof")
+    log.info("  ✅ Nodes agree on valid proof")
 
 
 def test_distributed_ledger_consistency():
     """✅ Distributed ledger: all committed entries are consistent"""
-    print("\n[TEST 3] Distributed ledger consistency")
+    log.info("\n[TEST 3] Distributed ledger consistency")
 
     ledger_a = DistributedLedger()
     ledger_b = DistributedLedger()
@@ -130,13 +134,13 @@ def test_distributed_ledger_consistency():
     assert ok_b2, "Ledger B entry2 should succeed"
 
     assert ledger_a.head_hash == ledger_b.head_hash, "Ledger heads differ"
-    print(f"  ✅ Ledger A: head={ledger_a.head_hash[:12]}...  Ledger B: head={ledger_b.head_hash[:12]}...")
-    print("  ✅ Both ledgers consistent")
+    log.info(f"  ✅ Ledger A: head={ledger_a.head_hash[:12]}...  Ledger B: head={ledger_b.head_hash[:12]}...")
+    log.info("  ✅ Both ledgers consistent")
 
 
 def test_fork_detection():
     """✅ Fork detection: divergent prev_hash → reject"""
-    print("\n[TEST 4] Fork detection")
+    log.info("\n[TEST 4] Fork detection")
 
     ledger = DistributedLedger()
 
@@ -170,7 +174,7 @@ def test_fork_detection():
 
     ok = ledger.try_append(entry)
     assert ok, "First append should succeed"
-    print(f"  Ledger head after entry 1: {ledger.head_hash[:12]}...")
+    log.info(f"  Ledger head after entry 1: {ledger.head_hash[:12]}...")
 
     bad_entry = LedgerEntry(
         entry_hash="bad-entry-hash",
@@ -183,12 +187,12 @@ def test_fork_detection():
 
     ok_bad = ledger.try_append(bad_entry)
     assert not ok_bad, "Fork should be rejected"
-    print(f"  ✅ Fork rejected: {not ok_bad} (entry with wrong prev_hash blocked)")
+    log.info(f"  ✅ Fork rejected: {not ok_bad} (entry with wrong prev_hash blocked)")
 
 
 def test_consensus_quorum_reached():
     """✅ Consensus: quorum reached → commit"""
-    print("\n[TEST 5] Consensus quorum reached → commit")
+    log.info("\n[TEST 5] Consensus quorum reached → commit")
 
     from core.federation.consensus import RaftConsensus
 
@@ -218,18 +222,18 @@ def test_consensus_quorum_reached():
     consensus.receive_vote(v2)
 
     assert consensus.quorum_reached(), "Quorum should be reached"
-    print(f"  ✅ Quorum reached: {consensus.current_round().commit_count} commits / {consensus.votes_required} required")
+    log.info(f"  ✅ Quorum reached: {consensus.current_round().commit_count} commits / {consensus.votes_required} required")
 
     decision = consensus.get_decision()
     assert decision is not None, "Decision should be reached"
     outcome, votes = decision
     assert outcome == VoteValue.COMMIT, f"Should be COMMIT, got {outcome}"
-    print(f"  ✅ Decision: {outcome.value}")
+    log.info(f"  ✅ Decision: {outcome.value}")
 
 
 def test_full_federated_consensus():
     """✅ Full federated consensus → PASS"""
-    print("\n[TEST 6] Full federated consensus → PASS")
+    log.info("\n[TEST 6] Full federated consensus → PASS")
 
     node_a = FederatedExecutionGateway(
         node_id="node-a",
@@ -242,19 +246,19 @@ def test_full_federated_consensus():
         proof="valid-proof-from-authority",
     )
 
-    print(f"  committed={result['committed']}")
-    print(f"  reason={result['reason']}")
-    print(f"  ledger_length={result['ledger_length']}")
+    log.info(f"  committed={result['committed']}")
+    log.info(f"  reason={result['reason']}")
+    log.info(f"  ledger_length={result['ledger_length']}")
     if result["qc"]:
-        print(f"  qc.commits={result['qc']['commit_count']}/{result['qc']['threshold']}")
+        log.info(f"  qc.commits={result['qc']['commit_count']}/{result['qc']['threshold']}")
 
-    print("  ⚠️  Note: in simulation, proof must be verified by peer nodes")
-    print("       Real RPC-based peers would complete the full quorum")
+    log.info("  ⚠️  Note: in simulation, proof must be verified by peer nodes")
+    log.info("       Real RPC-based peers would complete the full quorum")
 
 
 def test_federation_disabled_single_node():
     """✅ Federation disabled → single-node mode (like ExecutionGateway)"""
-    print("\n[TEST 7] Federation disabled → single-node mode")
+    log.info("\n[TEST 7] Federation disabled → single-node mode")
 
     node = FederatedExecutionGateway(
         node_id="node-a",
@@ -267,19 +271,19 @@ def test_federation_disabled_single_node():
         proof="any-proof",
     )
 
-    print(f"  committed={result['committed']}")
-    print(f"  reason={result['reason']}")
-    print(f"  federation_enabled={result.get('federation_enabled', 'N/A')}")
+    log.info(f"  committed={result['committed']}")
+    log.info(f"  reason={result['reason']}")
+    log.info(f"  federation_enabled={result.get('federation_enabled', 'N/A')}")
 
     assert result["committed"] or "consensus_pending" in result["reason"], \
         f"Unexpected result: {result}"
-    print("  ✅ Single-node mode works")
+    log.info("  ✅ Single-node mode works")
 
 
 def main():
-    print("=" * 70)
-    print(" atom-federation-os v9.0+P6 — Federated Execution Tests")
-    print("=" * 70)
+    log.info("=" * 70)
+    log.info(" atom-federation-os v9.0+P6 — Federated Execution Tests")
+    log.info("=" * 70)
 
     tests = [
         test_quorum_enforcement,
@@ -296,18 +300,18 @@ def main():
         try:
             t()
         except AssertionError as e:
-            print(f"  ❌ FAILED: {e}")
+            log.info(f"  ❌ FAILED: {e}")
             failed += 1
         except Exception as e:
-            print(f"  ❌ ERROR: {e}")
+            log.info(f"  ❌ ERROR: {e}")
             failed += 1
 
-    print("\n" + "=" * 70)
+    log.info("\n" + "=" * 70)
     if failed == 0:
-        print("  ✅ ALL TESTS PASSED")
+        log.info("  ✅ ALL TESTS PASSED")
     else:
-        print(f"  ❌ {failed}/{len(tests)} TESTS FAILED")
-    print("=" * 70)
+        log.info(f"  ❌ {failed}/{len(tests)} TESTS FAILED")
+    log.info("=" * 70)
     return 0 if failed == 0 else 1
 
 

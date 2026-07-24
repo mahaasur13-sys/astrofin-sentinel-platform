@@ -6,6 +6,7 @@ Converts ProofDriftDetector output → actionable policy modifications.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Optional
 
 from proof.proof_drift_detector import DriftType
 from proof.temporal_verifier import TemporalVerificationReport

@@ -1,5 +1,4 @@
 """Rate limiting — Token Bucket + SlowAPI + Redis backend."""
-
 import asyncio
 import os
 import time
@@ -18,7 +17,6 @@ def _get_redis():
         return _redis_client
     try:
         import redis
-
         url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
         _redis_client = redis.from_url(url, decode_responses=True)
         _redis_client.ping()
@@ -67,7 +65,7 @@ class RedisTokenBucket:
             results = pipe.execute()
             current = results[0]
             window = current * 60.0 / self.burst
-            max(0, window - (now - self.redis.get(f"{self.key}:reset") or now))
+            _retry_after = max(0, window - (now - self.redis.get(f"{self.key}:reset") or now))
             allowed = current <= self.burst
             if allowed:
                 self.redis.setex(f"{self.key}:reset", 60, str(now))
@@ -83,12 +81,12 @@ def _tenant_key(request: Request) -> str:
     return get_remote_address(request)
 
 
-def create_limiter(redis_url: str | None = None) -> Limiter:
+def create_limiter(redis_url: Optional[str] = None) -> Limiter:
     limiter = Limiter(key_func=_tenant_key, default_limits=["60/minute"])
     return limiter
 
 
-_default_limiter: Limiter | None = None
+_default_limiter: Optional[Limiter] = None
 _buckets: dict[str, TokenBucket] = {}
 _bucket_lock = asyncio.Lock()
 
@@ -128,5 +126,4 @@ def rate_limit_dependency(
 ):
     async def dep(request: Request):
         await check_rate_limit(request, requests_per_minute, burst_size, use_redis)
-
     return dep

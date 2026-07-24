@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 from enum import Enum
+
 """
 Rollback Engine — state snapshot + restore.
 Levels: L1 (policy revert) / L2 (optimizer reset) / L3 (full cluster state).
 """
-from __future__ import annotations
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Optional, Callable
+
 import copy
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime
 
 
 class RollbackLevel(Enum):
@@ -52,12 +55,12 @@ class ClusterSnapshot:
 class RollbackEngine:
     """
     3-level rollback with snapshot persistence.
-    
+
     Snapshot triggers:
         - Periodic: every N good cycles
         - Pre-decision: before major optimization
         - On incident: before recovery action
-    
+
     Restore flow:
         1. load snapshot from state store
         2. apply to cluster
@@ -69,7 +72,7 @@ class RollbackEngine:
         self.cluster_api = cluster_api
         self._snapshots: list[ClusterSnapshot] = []
         self._events: list[RollbackEvent] = []
-        self._last_good: Optional[ClusterSnapshot] = None
+        self._last_good: ClusterSnapshot | None = None
         self._rollback_handlers: dict[RollbackLevel, list[Callable]] = {
             RollbackLevel.L1: [],
             RollbackLevel.L2: [],
@@ -148,7 +151,7 @@ class RollbackEngine:
     def register_handler(self, level: RollbackLevel, handler: Callable) -> None:
         self._rollback_handlers[level].append(handler)
 
-    def get_last_good_snapshot(self) -> Optional[ClusterSnapshot]:
+    def get_last_good_snapshot(self) -> ClusterSnapshot | None:
         return self._last_good
 
     def get_events(self) -> list[RollbackEvent]:
@@ -162,6 +165,7 @@ class RollbackEngine:
         return list(snap.policy_state.get("affected_policies", []))
 
     def _hash_state(self, state: dict) -> str:
-        import hashlib, json
+        import hashlib
+        import json
         s = json.dumps(state, sort_keys=True)
         return hashlib.sha256(s.encode()).hexdigest()[:16]

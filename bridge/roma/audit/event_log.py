@@ -1,5 +1,4 @@
 """ROMA Audit Log — Immutable append-only event log."""
-
 import csv
 import io
 import json
@@ -20,17 +19,12 @@ class AuditLog:
             "org_id": org_id,
             "event_type": event_type,
             "metadata": metadata,
-            "immutable": True,
+            "immutable": True
         }
         self._events.append(entry)
 
-    def query_events(
-        self,
-        org_id: str = None,
-        user_id: str = None,
-        event_type: str = None,
-        limit: int = 100,
-    ) -> list:
+    def query_events(self, org_id: str = None, user_id: str = None,
+                     event_type: str = None, limit: int = 100) -> list:
         results = self._events
         if org_id:
             results = [e for e in results if e["org_id"] == org_id]
@@ -57,20 +51,17 @@ class AuditLog:
         events = self.query_events(org_id=org_id, limit=10000)
         return {
             "org_id": org_id,
-            "period": {
-                "from": events[0]["timestamp"] if events else None,
-                "to": events[-1]["timestamp"] if events else None,
-            },
+            "period": {"from": events[0]["timestamp"] if events else None,
+                       "to": events[-1]["timestamp"] if events else None},
             "total_events": len(events),
-            "event_types": list({e["event_type"] for e in events}),
-            "report_url": f"/audit/org/{org_id}/report.pdf",
+            "event_types": list(set(e["event_type"] for e in events)),
+            "report_url": f"/audit/org/{org_id}/report.pdf"
         }
-
 
 if __name__ == "__main__":
     log = AuditLog()
     log.log_event("alice", "org_acme", "JOB_EXECUTED", {"job_id": "j001", "cost": 2.50})
     log.log_event("bob", "org_acme", "API_KEY_CREATED", {"key_id": "kid_123"})
     entries = log.query_events(org_id="org_acme", limit=10)
-    print(f"Audit entries: {len(entries)}")
-    print("CSV:", log.export_csv("org_acme").splitlines()[:3])
+    log.info(f"Audit entries: {len(entries)}")
+    log.info("CSV:", log.export_csv("org_acme").splitlines()[:3])

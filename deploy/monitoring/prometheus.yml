@@ -1,10 +1,79 @@
+# =============================================================================
+# Prometheus — AstroFin Sentinel Platform
+# Scrapes the docker-network services.
+# =============================================================================
+
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: astrofin-sentinel
+
+rule_files:
+  - /etc/prometheus/recording_rules.yml
+  - /etc/prometheus/alert_rules.yml
+
+# `alerts.yml` and `prometheus-alerts.yml` are kept for backwards
+# compatibility with existing Alertmanager routing; new alerts go
+# into `alert_rules.yml` (groups: astrofin_slo, astrofin_service_health,
+# astrofin_meta).
 
 scrape_configs:
-  - job_name: 'astrofin'
-    scrape_interval: 5s
+  # Web dashboard
+  - job_name: 'astrofin-web'
+    metrics_path: /metrics
     static_configs:
-      - targets: ['host.docker.internal:9091']
+      - targets: ['app:8050']
         labels:
-          service: 'astrofin-sentinel'
+          service: 'web-dashboard'
+
+  # ML inference API
+  - job_name: 'acos-ml-engine'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['ml-engine:8081']
+        labels:
+          service: 'ml-inference'
+
+  # Feature pipeline (optional /metrics endpoint)
+  - job_name: 'acos-feature-pipeline'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['feature-pipeline:8090']
+        labels:
+          service: 'feature-pipeline'
+    honor_labels: true
+
+  # GPU worker (only on NVIDIA hosts)
+  - job_name: 'roma-gpu-worker'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['gpu-worker:8000']
+        labels:
+          service: 'gpu-worker'
+    # Tolerate absence — profile-gated service
+    honor_labels: true
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'astrofin-app'
+    static_configs:
+      - targets: ['host.docker.internal:8050']
+        labels: {service: app, role: web}
+
+  - job_name: 'astrofin-ml-engine'
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+        labels: {service: ml-engine, role: api}
+
+  - job_name: 'astrofin-feature-pipeline'
+    static_configs:
+      - targets: ['host.docker.internal:8090']
+        labels: {service: feature-pipeline, role: batch}
+
+  - job_name: 'astrofin-gpu-worker'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+        labels: {service: gpu-worker, role: worker}

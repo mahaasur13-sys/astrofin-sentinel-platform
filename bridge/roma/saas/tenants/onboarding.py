@@ -1,13 +1,16 @@
 """saas.tenants.onboarding — Tenant onboarding wizard."""
-
 from __future__ import annotations
 
+import logging
 import re
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
+
+log = logging.getLogger(__name__)
+
 
 
 class OnboardingStep(str, Enum):
@@ -119,11 +122,7 @@ class OnboardingSession:
         self.step = OnboardingStep.BILLING_SETUP
         return self, tenant
 
-    def start_stripe_onboarding(
-        self,
-        return_url: str = "https://dashboard.roma.ai/stripe/return",
-        refresh_url: str = "https://dashboard.roma.ai/stripe/refresh",
-    ) -> OnboardingSession:
+    def start_stripe_onboarding(self, return_url: str = "https://dashboard.roma.ai/stripe/return", refresh_url: str = "https://dashboard.roma.ai/stripe/refresh") -> OnboardingSession:
         self.stripe_onboarding_url = f"https://connect.stripe.com/oauth/authorize?response_type=code&client_id={{ROM_A_STOR E_CLIENT_ID}}&scope=read_write&redirect_uri={return_url}&state={self.tenant_id}"
         self.step = OnboardingStep.STRIPE_CONNECT
         return self
@@ -140,35 +139,19 @@ class OnboardingSession:
             "stripe_onboarding_url": self.stripe_onboarding_url,
             "progress": {
                 "basic_info": True,
-                "branding": self.step
-                in (
-                    OnboardingStep.BRANDING,
-                    OnboardingStep.BILLING_SETUP,
-                    OnboardingStep.STRIPE_CONNECT,
-                    OnboardingStep.READY,
-                ),
-                "billing_setup": self.step
-                in (
-                    OnboardingStep.BILLING_SETUP,
-                    OnboardingStep.STRIPE_CONNECT,
-                    OnboardingStep.READY,
-                ),
+                "branding": self.step in (OnboardingStep.BRANDING, OnboardingStep.BILLING_SETUP, OnboardingStep.STRIPE_CONNECT, OnboardingStep.READY),
+                "billing_setup": self.step in (OnboardingStep.BILLING_SETUP, OnboardingStep.STRIPE_CONNECT, OnboardingStep.READY),
                 "stripe_connect": self.step == OnboardingStep.READY,
             },
         }
 
 
 if __name__ == "__main__":
-    s = OnboardingSession(
-        display_name="VEGA Cloud",
-        slug="vega-kz",
-        email="ops@vega.kz",
-        revenue_share=15.0,
-    )
+    s = OnboardingSession(display_name="VEGA Cloud", slug="vega-kz", email="ops@vega.kz", revenue_share=15.0)
     s, tenant = s.create_tenant()
-    print(f"Tenant: {tenant['id']}")
-    print(f"Step: {s.step.value}")
+    log.info(f"Tenant: {tenant['id']}")
+    log.info(f"Step: {s.step.value}")
     s.set_branding("VEGA Cloud", "#E53935")
     s.start_stripe_onboarding()
-    print(f"Stripe: {s.stripe_onboarding_url[:60]}...")
-    print(f"Status: {s.get_status()}")
+    log.info(f"Stripe: {s.stripe_onboarding_url[:60]}...")
+    log.info(f"Status: {s.get_status()}")

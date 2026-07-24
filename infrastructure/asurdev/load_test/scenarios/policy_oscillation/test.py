@@ -7,13 +7,15 @@ HYPOTHESIS: ML (v5) retraining faster than policy (v7) stabilizes → oscillatio
 EXPECTED: policy_switch_rate rises, utility variance increases, no stabilization
 CRITICAL: policy_switch_rate > threshold OR utility_variance rising without stabilization
 """
+import json
+import logging
 import random
 import time
-import json
 from collections import deque
-from dataclasses import dataclass, asdict
-from datetime import datetime
-from typing import Optional
+from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -129,7 +131,7 @@ class PolicyOscillationScenario:
             base = random.uniform(0.7, 0.9)  # high base during idle (easier)
 
         # Simulate oscillation from ML updates
-        oscillation = random.uniform(-0.15, 0.15)
+        random.uniform(-0.15, 0.15)
         self.ema_score = self.ema_alpha * base + (1 - self.ema_alpha) * self.ema_score
 
         risk_penalty = random.uniform(0.05, 0.3)
@@ -175,8 +177,8 @@ class PolicyOscillationScenario:
             "switch_rate_per_min": round(switch_rate, 3),
             "utility_variance": round(variance, 4),
             "total_decisions": len(self.policy_history),
-            "policy_versions_seen": len(set(s.version for s in self.policy_history)),
-            "ml_versions_seen": len(set(s.ml_version for s in self.policy_history)),
+            "policy_versions_seen": len({s.version for s in self.policy_history}),
+            "ml_versions_seen": len({s.ml_version for s in self.policy_history}),
         }
 
     def _check_failure(self, metrics: dict) -> bool:
@@ -198,7 +200,6 @@ class PolicyOscillationScenario:
     def _simulate_after_fix(self, fix: str) -> dict:
         """Simulate behavior after fix."""
         # Re-run with corrected params
-        old_alpha = self.ema_alpha
         self.ema_alpha = max(0.05, self.ema_alpha * 0.5)
 
         # Quick simulation
@@ -225,16 +226,16 @@ def run_all():
         retrain_interval=30,
     )
 
-    print("[POLICY OSCILLATION] Starting scenario...")
+    log.info("[POLICY OSCILLATION] Starting scenario...")
     results = scenario.simulate(duration_sec=120)
 
-    print(f"\n=== SCENARIO RESULT ===")
-    print(f"Failure detected: {results['failure_detected']}")
-    print(f"Metrics: {json.dumps(results['metrics'], indent=2)}")
+    log.info("\n=== SCENARIO RESULT ===")
+    log.info(f"Failure detected: {results['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(results['metrics'], indent=2)}")
 
     if results["correction_applied"]:
-        print(f"\nCorrection: {results['correction_applied']}")
-        print(f"Result after fix: {json.dumps(results['result_after_fix'], indent=2)}")
+        log.info(f"\nCorrection: {results['correction_applied']}")
+        log.info(f"Result after fix: {json.dumps(results['result_after_fix'], indent=2)}")
 
     return results
 

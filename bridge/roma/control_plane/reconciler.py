@@ -1,5 +1,4 @@
 """Reconciler — Self-Healing Control Loop"""
-
 import logging
 import threading
 import time
@@ -12,22 +11,16 @@ from .registry import WorkerRegistry
 
 log = logging.getLogger("reconciler")
 
-
 class Reconciler:
-    def __init__(
-        self,
-        registry: WorkerRegistry,
-        jobs: JobStore,
-        leases: GPULeaseManager,
-        ht: float = 15.0,
-    ):
+    def __init__(self, registry: WorkerRegistry, jobs: JobStore,
+                 leases: GPULeaseManager, ht: float = 15.0):
         self.reg = registry
         self.jobs = jobs
         self.leases = leases
         self._ht = ht
         self._running = False
-        self._thread: threading.Thread | None = None
-        self._tick_count: int = 0  # renamed: was _tick (shadowed method)
+        self._thread: Optional[threading.Thread] = None
+        self._tick_count: int = 0   # renamed: was _tick (shadowed method)
 
     def _tick(self):
         self._tick_count += 1
@@ -54,7 +47,8 @@ class Reconciler:
         if ready:
             log.info(f"AdvancePending: {len(ready)} jobs back to SUBMITTED")
 
-        log.debug(f"[Tick {self._tick_count}] recovered={recovered} " f"healthy={len(self.reg.list_healthy())}")
+        log.debug(f"[Tick {self._tick_count}] recovered={recovered} "
+                  f"healthy={len(self.reg.list_healthy())}")
 
     def start(self, interval: float = 5.0):
         self._running = True

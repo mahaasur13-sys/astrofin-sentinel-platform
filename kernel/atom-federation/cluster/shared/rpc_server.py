@@ -16,6 +16,10 @@ from concurrent import futures
 
 import grpc
 
+import logging
+log = logging.getLogger(__name__)
+
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
@@ -152,7 +156,7 @@ class RPCServer:
         self._server.start()
         self._thread = threading.Thread(target=self._serve_loop, daemon=True)
         self._thread.start()
-        print(f"[RPC] {self.node_id} listening on :{self.port}")
+        log.info(f"[RPC] {self.node_id} listening on :{self.port}")
 
     def set_app(self, app):
         self._servicer.set_app(app)
@@ -161,13 +165,13 @@ class RPCServer:
         try:
             self._server.wait_for_termination()
         except Exception as e:
-            print(f"[RPC] {self.node_id} server error: {e}")
+            log.info(f"[RPC] {self.node_id} server error: {e}")
 
     def stop(self):
         if self._server:
             self._server.stop(grace=5)
         self._pool.close_all()
-        print(f"[RPC] {self.node_id} server stopped (calls={self._calls} errors={self._errors})")
+        log.info(f"[RPC] {self.node_id} server stopped (calls={self._calls} errors={self._errors})")
 
     # ── Outbound peer calls ────────────────────────────────────────────────
 
@@ -245,6 +249,6 @@ class RPCServer:
         stub = self._pool.get_stub(peer_id, target)
         try:
             for event in stub.StreamEvents(pb2.EventRequest(), timeout=10.0):
-                print(f"[STREAM] {self.node_id} ← {event.node_id} seq={event.seq} type={event.type}")
+                log.info(f"[STREAM] {self.node_id} ← {event.node_id} seq={event.seq} type={event.type}")
         except grpc.RpcError as e:
-            print(f"[STREAM] {self.node_id} stream error from {peer_id}: {e.code().name}")
+            log.info(f"[STREAM] {self.node_id} stream error from {peer_id}: {e.code().name}")

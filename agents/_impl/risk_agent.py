@@ -76,7 +76,9 @@ class RiskAgent(BaseAgent[AgentResponse]):
 
         # Stop-loss calculation
         stop_distance = atr * 1.5
-        stop_loss = current_price - stop_distance if stop_distance > 0 else current_price * 0.97
+        stop_loss = (
+            current_price - stop_distance if stop_distance > 0 else current_price * 0.97
+        )
 
         # Risk assessment
         risk_score = self._assess_risk(
@@ -145,7 +147,9 @@ class RiskAgent(BaseAgent[AgentResponse]):
                 data = resp.json()
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
-            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}")
+            logger.warning(
+                f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}"
+            )
             return []
 
     def _calculate_atr(self, data: list, period: int = 14) -> float:
@@ -164,7 +168,9 @@ class RiskAgent(BaseAgent[AgentResponse]):
 
         return sum(true_ranges[-period:]) / period
 
-    def _calc_position_size(self, volatility: float, win_rate: float, avg_win: float, avg_loss: float) -> float:
+    def _calc_position_size(
+        self, volatility: float, win_rate: float, avg_win: float, avg_loss: float
+    ) -> float:
         """
         Calculate position size using simplified Kelly + volatility adjustment.
         """
@@ -184,7 +190,9 @@ class RiskAgent(BaseAgent[AgentResponse]):
 
         return kelly
 
-    def _assess_risk(self, volatility: float, position_size: float, atr: float, current_price: float) -> float:
+    def _assess_risk(
+        self, volatility: float, position_size: float, atr: float, current_price: float
+    ) -> float:
         """Assess overall risk score (0-1, higher = more risky)."""
         risk = 0.3
 
@@ -215,3 +223,8 @@ async def run_risk_agent(state: dict) -> dict:
     agent = RiskAgent()
     result = await agent.analyze(state)
     return {"risk_signal": result.to_dict()}
+
+
+def create() -> RiskAgent:
+    """Factory for 6-fn test contract."""
+    return RiskAgent()

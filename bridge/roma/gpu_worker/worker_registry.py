@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """ROMA Worker Registry + Heartbeat System"""
+import logging
 import threading
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Dict, List, Optional
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -16,13 +19,12 @@ class WorkerStatus:
     last_heartbeat: datetime
     jobs_completed: int
     jobs_failed: int
-    current_job: str | None = None
-
+    current_job: Optional[str] = None
 
 class WorkerRegistry:
     def __init__(self):
-        self._workers: dict[str, WorkerStatus] = {}
-        self._locks: dict[str, str] = {}  # gpu_id -> job_id
+        self._workers: Dict[str, WorkerStatus] = {}
+        self._locks: Dict[str, str] = {}  # gpu_id -> job_id
         self._heartbeat_timeout = 30  # seconds
         self._mu = threading.Lock()
 
@@ -38,18 +40,13 @@ class WorkerRegistry:
                 status="healthy",
                 last_heartbeat=datetime.utcnow(),
                 jobs_completed=0,
-                jobs_failed=0,
+                jobs_failed=0
             )
             return True
 
-    def heartbeat(
-        self,
-        worker_id: str,
-        gpu_util: float,
-        vram_used_gb: float,
-        status: str = "healthy",
-        current_job: str | None = None,
-    ) -> bool:
+    def heartbeat(self, worker_id: str, gpu_util: float,
+                   vram_used_gb: float, status: str = "healthy",
+                   current_job: Optional[str] = None) -> bool:
         with self._mu:
             if worker_id not in self._workers:
                 return False
@@ -61,20 +58,21 @@ class WorkerRegistry:
             ws.current_job = current_job
             return True
 
-    def get_worker(self, worker_id: str) -> WorkerStatus | None:
+    def get_worker(self, worker_id: str) -> Optional[WorkerStatus]:
         with self._mu:
             return self._workers.get(worker_id)
 
-    def get_all_workers(self) -> list[WorkerStatus]:
+    def get_all_workers(self) -> List[WorkerStatus]:
         with self._mu:
             return list(self._workers.values())
 
-    def get_available_workers(self, min_vram_gb: float = 4.0) -> list[WorkerStatus]:
+    def get_available_workers(self, min_vram_gb: float = 4.0) -> List[WorkerStatus]:
         with self._mu:
             return [
-                w
-                for w in self._workers.values()
-                if w.status == "healthy" and (w.vram_total_gb - w.vram_used_gb) >= min_vram_gb and w.current_job is None
+                w for w in self._workers.values()
+                if w.status == "healthy"
+                and (w.vram_total_gb - w.vram_used_gb) >= min_vram_gb
+                and w.current_job is None
             ]
 
     def mark_worker_dead(self, worker_id: str):
@@ -82,7 +80,7 @@ class WorkerRegistry:
             if worker_id in self._workers:
                 self._workers[worker_id].status = "dead"
 
-    def heartbeat_timeout_check(self) -> list[str]:
+    def heartbeat_timeout_check(self) -> List[str]:
         """Return list of dead worker IDs"""
         dead = []
         now = datetime.utcnow()
@@ -95,7 +93,10 @@ class WorkerRegistry:
 
     def cleanup_dead_workers(self):
         with self._mu:
-            self._workers = {wid: ws for wid, ws in self._workers.items() if ws.status != "dead"}
+            self._workers = {
+                wid: ws for wid, ws in self._workers.items()
+                if ws.status != "dead"
+            }
 
     def acquire_gpu_lock(self, worker_id: str, job_id: str) -> bool:
         with self._mu:
@@ -122,15 +123,11 @@ class WorkerRegistry:
                     ws.jobs_failed += 1
                 ws.current_job = None
 
-    def aggregate_gpu_usage(self) -> dict:
+    def aggregate_gpu_usage(self) -> Dict:
         with self._mu:
             if not self._workers:
-                return {
-                    "total_workers": 0,
-                    "avg_gpu_util": 0,
-                    "total_vram_used_gb": 0,
-                    "total_vram_gb": 0,
-                }
+                return {"total_workers": 0, "avg_gpu_util": 0,
+                        "total_vram_used_gb": 0, "total_vram_gb": 0}
             total_util = sum(w.gpu_util for w in self._workers.values())
             total_vram = sum(w.vram_used_gb for w in self._workers.values())
             total_cap = sum(w.vram_total_gb for w in self._workers.values())
@@ -141,7 +138,7 @@ class WorkerRegistry:
                 "avg_gpu_util": total_util / len(self._workers) if self._workers else 0,
                 "total_vram_used_gb": round(total_vram, 2),
                 "total_vram_gb": round(total_cap, 2),
-                "utilization_pct": round((total_vram / total_cap * 100) if total_cap else 0, 1),
+                "utilization_pct": round((total_vram / total_cap * 100) if total_cap else 0, 1)
             }
 
     def to_dict(self) -> dict:
@@ -174,10 +171,10 @@ if __name__ == "__main__":
 
     # Get available workers (need 4GB free)
     available = reg.get_available_workers(min_vram_gb=4.0)
-    print(f"Available workers (need 4GB free): {[w.worker_id for w in available]}")
+    log.info(f"Available workers (need 4GB free): {[w.worker_id for w in available]}")
 
     # Get aggregate stats
     stats = reg.aggregate_gpu_usage()
-    print(f"GPU usage: {stats}")
+    log.info(f"GPU usage: {stats}")
 
-    print("=== Worker Registry: PASS ===")
+    log.info("=== Worker Registry: PASS ===")

@@ -6,6 +6,10 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class LogLevel(Enum):
     DEBUG = "DEBUG"
@@ -51,7 +55,7 @@ class ClusterLogger:
             "ERROR":   "[ERR]",
             "CRITICAL":"[CRT]",
         }.get(level, "[???]")
-        print(f"{prefix} {self.node_id} {event}  {details}")
+        log.info(f"{prefix} {self.node_id} {event}  {details}")
 
     def debug(self, event: str, **details):
         self.log("DEBUG", event, **details)
