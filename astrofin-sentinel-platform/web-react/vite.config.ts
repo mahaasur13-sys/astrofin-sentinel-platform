@@ -9,10 +9,6 @@ export default defineConfig({
       '/health': 'http://localhost:8000',
       '/ws': { target: 'ws://localhost:8000', ws: true },
     },
-    allowedHosts: [
-      'localhost',
-      '127.0.0.1',
-      '.proxy.zo.computer',
-    ],
+    allowedHosts: true,
   },
 })
