@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from core.envelopes import ResultEnvelope, TaskEnvelope
     from core.message_broker import MessageBroker
     from core.outbox import Outbox
+    from knowledge.rag_index import RAGIndex
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +162,6 @@ class BaseAgent(ABC, Generic[T]):
                 extra={"agent": self.name, "error": str(exc)},
             )
             self._retriever = _DegradedRetriever()
-        self.use_rag = use_rag
         return self._retriever
 
     async def retrieve(self, query: str, domain: str = None, top_k: int = 5) -> list[dict]:
