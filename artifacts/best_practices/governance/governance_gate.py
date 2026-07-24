@@ -10,8 +10,11 @@ Post-execution: audit trail generation
 
 from __future__ import annotations
 
+import logging
 import uuid
 from enum import Enum
+
+log = logging.getLogger(__name__)
 
 
 class Decision(Enum):

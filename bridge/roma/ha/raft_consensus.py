@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """ROMA Raft Consensus Layer — True distributed consensus implementation."""
+import logging
 import random
 import threading
 import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
+
+log = logging.getLogger(__name__)
 
 
 @dataclass

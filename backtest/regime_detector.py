@@ -63,7 +63,7 @@ class RegimeDetector:
         if threshold is not None:
             self._anomaly_threshold = threshold
         if window is None or window <= 0:
-            window = _WINDOW
+            window = self._lookback
         ohlcv = [{"close": 100.0 * (1.0 + float(np.sum(returns[:i+1])))} for i in range(len(returns))]
         self.fit(ohlcv)
         return [ll < self._anomaly_threshold for ll in self._log_lik]

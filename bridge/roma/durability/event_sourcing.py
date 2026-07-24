@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import threading
 import time
@@ -16,6 +17,8 @@ import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, Iterator, List, Optional
+
+log = logging.getLogger(__name__)
 
 # ============================================================================
 # Event Types (typed, not string-based)

@@ -14,6 +14,12 @@ import time
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s"
+)
+log = logging.getLogger("roma-controller")
+
 # Kubernetes client (install via: pip install kubernetes)
 try:
     from kubernetes import client, config, watch
@@ -22,12 +28,6 @@ try:
 except ImportError:
     HAS_K8S = False
     log.info("WARNING: kubernetes client not installed. Controller running in DRY_RUN mode.")
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(message)s"
-)
-log = logging.getLogger("roma-controller")
 
 # =============================================================================
 # K8s Client Setup
