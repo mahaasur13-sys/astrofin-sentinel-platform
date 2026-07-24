@@ -51,7 +51,9 @@ class MCPAdapter:
 
     @staticmethod
     def _qualified_name(item: dict[str, Any]) -> str:
-        return str(item.get("qualifiedName") or item.get("qualified_name") or item.get("name") or "")
+        return str(
+            item.get("qualifiedName") or item.get("qualified_name") or item.get("name") or ""
+        )
 
     @staticmethod
     def _json_from_output(output: str) -> Any:
@@ -224,13 +226,16 @@ class MCPAdapter:
         ]
         query_lower = query.lower()
         if query_lower == "github":
-            return [entries[0], {
-                "name": "@modelcontextprotocol/server-github",
-                "qualifiedName": "modelcontextprotocol/server-github",
-                "description": "GitHub MCP tools for repositories and issues.",
-                "category": "development",
-                "source": "fallback",
-            }]
+            return [
+                entries[0],
+                {
+                    "name": "@modelcontextprotocol/server-github",
+                    "qualifiedName": "modelcontextprotocol/server-github",
+                    "description": "GitHub MCP tools for repositories and issues.",
+                    "category": "development",
+                    "source": "fallback",
+                },
+            ]
         if query_lower == "filesystem":
             return [
                 {
@@ -251,9 +256,7 @@ class MCPAdapter:
         if not query_lower:
             return entries
         return [
-            item
-            for item in entries
-            if query_lower in json.dumps(item, ensure_ascii=False).lower()
+            item for item in entries if query_lower in json.dumps(item, ensure_ascii=False).lower()
         ]
 
     def mcp_search(self, query: str, category: str | None = None) -> list[dict[str, Any]]:
@@ -299,20 +302,20 @@ class MCPAdapter:
 
     @staticmethod
     def _redact_config(value: Any) -> Any:
-        """Redact common credential fields before writing connection metadata."""
+        """Redact credential-like values before persisting connection metadata."""
         sensitive = ("key", "token", "secret", "password", "credential", "authorization")
         if isinstance(value, dict):
             return {
-                key: "[REDACTED]" if any(word in key.lower() for word in sensitive) else MCPAdapter._redact_config(item)
+                key: "[REDACTED]"
+                if any(word in key.lower() for word in sensitive)
+                else MCPAdapter._redact_config(item)
                 for key, item in value.items()
             }
         if isinstance(value, list):
             return [MCPAdapter._redact_config(item) for item in value]
         return value
 
-    def mcp_install(
-        self, server_name: str, config: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    def mcp_install(self, server_name: str, config: dict[str, Any] | None = None) -> dict[str, Any]:
         """Connect an MCP server through Smithery and persist its connection."""
         qualified_name = server_name.strip()
         connection_id = self._connection_id(qualified_name)
@@ -337,7 +340,9 @@ class MCPAdapter:
 
         payload = self._json_from_output(completed.stdout)
         if completed.returncode != 0:
-            result.update(status="failed", error=completed.stderr.strip() or "Smithery connection failed")
+            result.update(
+                status="failed", error=completed.stderr.strip() or "Smithery connection failed"
+            )
             if payload is not None:
                 result["response"] = payload
             return result

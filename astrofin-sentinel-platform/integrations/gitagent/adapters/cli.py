@@ -7,14 +7,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import logging
 import sys
 from pathlib import Path
 from typing import Any
 
 from .mcp_adapter import MCPAdapter
-
-log = logging.getLogger(__name__)
 
 
 def _emit_json(value: Any) -> None:
@@ -27,9 +24,7 @@ def _emit_json(value: Any) -> None:
 # =============================================================================
 
 
-def export_agent(
-    agent_name: str, output_dir: str = "./exported_agents"
-) -> dict[str, Any]:
+def export_agent(agent_name: str, output_dir: str = "./exported_agents") -> dict[str, Any]:
     """Export a canonical AstroFin agent as a portable GitAgent manifest."""
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -133,9 +128,7 @@ def mcp_search_cli(query: str, category: str | None = None) -> list[dict[str, An
     return adapter.mcp_search(query, category=category)
 
 
-def mcp_install_cli(
-    server_name: str, config: dict[str, Any] | None = None
-) -> dict[str, Any]:
+def mcp_install_cli(server_name: str, config: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Install an MCP server from Smithery.
 
@@ -188,9 +181,7 @@ def main():
     subparsers.add_parser("list-agents", help="List all available agents")
 
     # MCP commands
-    mcp_search_parser = subparsers.add_parser(
-        "mcp-search", help="Search Smithery MCP registry"
-    )
+    mcp_search_parser = subparsers.add_parser("mcp-search", help="Search Smithery MCP registry")
     mcp_search_parser.add_argument("query", help="Search query")
     mcp_search_parser.add_argument(
         "--category", "-c", help="Category filter (financial, crypto, news, calendar)"

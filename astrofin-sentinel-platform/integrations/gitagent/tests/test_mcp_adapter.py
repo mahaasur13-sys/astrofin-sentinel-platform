@@ -64,6 +64,7 @@ class TestMCPAdapter:
         adapter = MCPAdapter()
         wrapped = adapter.wrap_tools([{"name": "one"}, {"name": "two"}])
         assert [tool["name"] for tool in wrapped] == ["one", "two"]
+
     def test_round_trip_install_list_wrap_and_call(self, tmp_path, monkeypatch):
         """Test the install-to-tool-call path with three MCP tools."""
         import subprocess
@@ -72,7 +73,11 @@ class TestMCPAdapter:
         tool_defs = [
             {"name": "get_quote", "description": "Get a quote", "inputSchema": {"type": "object"}},
             {"name": "get_news", "description": "Get news", "inputSchema": {"type": "object"}},
-            {"name": "get_calendar", "description": "Get events", "inputSchema": {"type": "object"}},
+            {
+                "name": "get_calendar",
+                "description": "Get events",
+                "inputSchema": {"type": "object"},
+            },
         ]
 
         def fake_run(arguments, timeout=60):
@@ -90,7 +95,9 @@ class TestMCPAdapter:
         wrapped = adapter.mcp_list_tools()
         assert [tool["name"] for tool in wrapped] == ["get_quote", "get_news", "get_calendar"]
         assert all(tool["connection_id"] == installed["connection_id"] for tool in wrapped)
-        assert adapter.call_tool(installed["connection_id"], "get_quote", {"symbol": "BTCUSDT"}) == {"ok": True}
+        assert adapter.call_tool(
+            installed["connection_id"], "get_quote", {"symbol": "BTCUSDT"}
+        ) == {"ok": True}
 
     def test_redacts_credentials_before_persisting(self, tmp_path, monkeypatch):
         """Test that connection metadata cannot persist credential values."""
