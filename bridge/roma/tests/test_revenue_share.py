@@ -1,5 +1,10 @@
 """Tests for RevenueShareCalculator + Stripe Webhook."""
-import sys; sys.path.insert(0, '.')
+import logging
+import sys
+
+sys.path.insert(0, '.')
+
+log = logging.getLogger(__name__)
 
 class MockLedger:
     def get_monthly_revenue(self, tid):

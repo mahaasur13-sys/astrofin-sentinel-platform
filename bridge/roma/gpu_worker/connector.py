@@ -208,10 +208,10 @@ if __name__ == "__main__":
         connector = get_gpu_connector()
         metrics = connector.get_metrics()
 
-        log.info("=== ROMA GPU Connector ===")
-        log.info(f"Available: {metrics['connector_available']}")
-        log.info(f"Workers: {metrics['worker_count']}")
-        log.info(f"URL: {ROMA_GPU_WORKER_URL}")
+        logger.info("=== ROMA GPU Connector ===")
+        logger.info(f"Available: {metrics['connector_available']}")
+        logger.info(f"Workers: {metrics['worker_count']}")
+        logger.info(f"URL: {ROMA_GPU_WORKER_URL}")
 
         # Test job
         test_job = {
@@ -221,10 +221,10 @@ if __name__ == "__main__":
             "timeout": 30
         }
 
-        log.info(f"\n--- Test job: {test_job['job_id']} ---")
+        logger.info(f"\n--- Test job: {test_job['job_id']} ---")
         result = await connector.execute(test_job)
-        log.info(f"Status: {result.get('status')}")
-        log.info(f"Worker: {result.get('worker_id', 'none')}")
-        log.info(f"Output: {result.get('stdout', result.get('error', ''))[:200]}")
+        logger.info(f"Status: {result.get('status')}")
+        logger.info(f"Worker: {result.get('worker_id', 'none')}")
+        logger.info(f"Output: {result.get('stdout', result.get('error', ''))[:200]}")
 
     asyncio.run(demo())

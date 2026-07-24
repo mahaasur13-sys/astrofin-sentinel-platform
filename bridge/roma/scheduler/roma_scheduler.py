@@ -148,8 +148,8 @@ def get_executor() -> ROMAJobExecutor:
 if __name__ == "__main__":
     async def demo():
         executor = get_executor()
-        log.info("=== ROMA GPU Scheduler ===")
-        log.info(f"Status: {executor.get_metrics()}")
+        logger.info("=== ROMA GPU Scheduler ===")
+        logger.info(f"Status: {executor.get_metrics()}")
 
         gpu_job = {
             "job_id": "demo-gpu-001",
@@ -161,12 +161,12 @@ if __name__ == "__main__":
             "tenant_tier": "PRO"
         }
 
-        log.info("\n--- Submit GPU job ---")
+        logger.info("\n--- Submit GPU job ---")
         result = await executor.submit(gpu_job)
-        log.info(f"Status: {result.get('status')}")
-        log.info(f"Target: {result.get('execution_target', 'unknown')}")
-        log.info(f"Worker: {result.get('worker_id', 'none')}")
-        log.info(f"Output: {result.get('stdout', result.get('error', ''))[:200]}")
+        logger.info(f"Status: {result.get('status')}")
+        logger.info(f"Target: {result.get('execution_target', 'unknown')}")
+        logger.info(f"Worker: {result.get('worker_id', 'none')}")
+        logger.info(f"Output: {result.get('stdout', result.get('error', ''))[:200]}")
 
         local_job = {
             "job_id": "demo-local-001",
@@ -176,9 +176,9 @@ if __name__ == "__main__":
             "tenant_tier": "FREE"
         }
 
-        log.info("\n--- Submit local job ---")
+        logger.info("\n--- Submit local job ---")
         result = await executor.submit(local_job)
-        log.info(f"Status: {result.get('status')}")
-        log.info(f"Target: {result.get('execution_target')}")
+        logger.info(f"Status: {result.get('status')}")
+        logger.info(f"Target: {result.get('execution_target')}")
 
     asyncio.run(demo())

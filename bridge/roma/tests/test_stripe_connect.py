@@ -4,8 +4,12 @@ import sys
 
 sys.path.insert(0, '/home/workspace/roma-execution-bridge')
 
+import logging
+
 from saas.webhooks.revenue_share import RevenueShareCalculator
 from saas.webhooks.stripe_connect import calculate_application_fee
+
+log = logging.getLogger(__name__)
 
 calc = RevenueShareCalculator()
 

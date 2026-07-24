@@ -3,18 +3,18 @@ ROMASDK — Python client for ROMA Execution Platform.
 Usage:
     from roma_sdk import ROMAClient
 
-import logging
-log = logging.getLogger(__name__)
-
     client = ROMAClient(base_url="http://localhost:8000")
     job = client.submit("train YOLOv8 on RTX3060", gpu_required=True)
     status = client.status(job["job_id"])
 """
 
+import logging
 from dataclasses import dataclass
 from typing import Any, Dict
 
 import requests
+
+log = logging.getLogger(__name__)
 
 API_BASE = "http://localhost:8000"
 
