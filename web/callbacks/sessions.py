@@ -1,5 +1,5 @@
 """Session tab callbacks — extracted from web/callbacks.py."""
-from dash import html, ALL, ctx
+from dash import html, ALL, ctx, Input, Output, State
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
