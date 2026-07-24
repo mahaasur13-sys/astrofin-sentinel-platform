@@ -15,10 +15,18 @@ interface UIState {
   setActiveSection: (s: string) => void;
 }
 
-const getSystemTheme = (): Theme =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light';
+function getSystemTheme(): Theme {
+  try {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+    }
+  } catch {
+    // matchMedia unavailable — default to dark
+  }
+  return 'dark';
+}
 
 export const useUIStore = create<UIState>()((set) => ({
   sidebarOpen: true,

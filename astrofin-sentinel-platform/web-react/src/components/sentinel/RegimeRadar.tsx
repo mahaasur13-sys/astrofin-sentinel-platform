@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { memo } from "react";
 
 export type Regime = 'bull' | 'bear' | 'sideways' | 'high_vol' | 'anomaly';
 
@@ -171,4 +172,5 @@ export default function RegimeRadar({ probabilities, currentRegime = "bull" as R
     </div>
   );
 }
+
 export { RegimeRadar };

@@ -10,10 +10,12 @@ interface RequestOptions {
   headers?: Record<string, string>;
 }
 
-let authToken: string | null = null;
+function jitter(ms: number): number {
+  return ms + Math.random() * ms * 0.5;
+}
 
-export function setAuthToken(token: string | null) {
-  authToken = token;
+function isSafeMethod(method: string): boolean {
+  return ['GET', 'HEAD', 'OPTIONS'].includes(method);
 }
 
 export class ApiError extends Error {
@@ -41,9 +43,10 @@ async function request<T>(
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json';
   }
-  if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
+  if (!isSafeMethod(method)) {
+    headers['X-CSRF-Protection'] = '1';
   }
+  headers['X-Requested-With'] = 'XMLHttpRequest';
 
   let retries = 2;
   let lastError: unknown;
@@ -54,6 +57,7 @@ async function request<T>(
         method,
         headers,
         body: body !== undefined ? JSON.stringify(body) : undefined,
+        credentials: 'same-origin',
         signal,
       });
 
@@ -74,7 +78,7 @@ async function request<T>(
       if (retries === 0) throw err;
       lastError = err;
       retries -= 1;
-      await new Promise((r) => setTimeout(r, 500 * (2 - retries)));
+      await new Promise((r) => setTimeout(r, jitter(500 * (2 - retries))));
     }
   }
 

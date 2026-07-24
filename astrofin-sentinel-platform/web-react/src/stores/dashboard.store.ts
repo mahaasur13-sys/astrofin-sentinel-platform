@@ -26,6 +26,8 @@ interface DashboardState {
   latencyMs: number;
   uptime: string;
   lastUpdate: string | null;
+  isContextDrawerOpen: boolean;
+  selectedSessionId: string | null;
 
   setConnectionStatus: (status: ConnectionStatus) => void;
   setLastConnectedAt: (ts: string) => void;
@@ -47,10 +49,12 @@ interface DashboardState {
   setMobileDrawerOpen: (open: boolean) => void;
   setBottomPanelOpen: (open: boolean) => void;
   setIsMobile: (mobile: boolean) => void;
+  openContextDrawer: (sessionId: string) => void;
+  closeContextDrawer: () => void;
   reset: () => void;
 }
 
-const initialState = {
+export const initialState = {
   connectionStatus: 'disconnected' as ConnectionStatus,
   lastConnectedAt: null as string | null,
   snapshot: null as DashboardSnapshot | null,
@@ -71,6 +75,8 @@ const initialState = {
   latencyMs: 0,
   uptime: '--',
   lastUpdate: null as string | null,
+  isContextDrawerOpen: false,
+  selectedSessionId: null as string | null,
 };
 
 export const useDashboardStore = create<DashboardState>()(
@@ -137,6 +143,12 @@ export const useDashboardStore = create<DashboardState>()(
 
       setIsMobile: (isMobile) =>
         set({ isMobile }, false, 'ui/isMobile'),
+
+      openContextDrawer: (sessionId) =>
+        set({ isContextDrawerOpen: true, selectedSessionId: sessionId }, false, 'ui/openContextDrawer'),
+
+      closeContextDrawer: () =>
+        set({ isContextDrawerOpen: false, selectedSessionId: null }, false, 'ui/closeContextDrawer'),
 
       reset: () => set(initialState, false, 'data/reset'),
     }),

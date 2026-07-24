@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import type { AgentLiveStatus } from '@/lib/sentinel-store';
 import type { EnsembleResult } from '@/lib/agents';
+import { memo } from "react";
 
 interface RadialOrbitalGraphProps {
   agentStatuses: Record<string, AgentLiveStatus>;
@@ -281,3 +282,4 @@ export default function RadialOrbitalGraph({
     </div>
   );
 }
+

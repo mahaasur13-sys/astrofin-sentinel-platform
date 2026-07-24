@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { memo } from "react";
 
 type Regime = 'bull' | 'bear' | 'sideways' | 'high_vol' | 'anomaly';
 
@@ -137,4 +138,4 @@ export default function EquityCurve({ data, height = 260 }: EquityCurveProps) {
     </div>
   );
 }
-export { EquityCurve };
+

@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface UseResizablePanelOptions {
@@ -10,6 +8,27 @@ interface UseResizablePanelOptions {
   storageKey?: string;
 }
 
+function readStorage(key: string): string | null {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem(key);
+    }
+  } catch {
+    // localStorage blocked or unavailable
+  }
+  return null;
+}
+
+function writeStorage(key: string, value: string): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(key, value);
+    }
+  } catch {
+    // localStorage blocked
+  }
+}
+
 export function useResizablePanel({
   initialWidth,
   minWidth = 180,
@@ -17,10 +36,7 @@ export function useResizablePanel({
   direction = 'left',
   storageKey,
 }: UseResizablePanelOptions) {
-  const savedWidth =
-    typeof window !== 'undefined' && storageKey
-      ? localStorage.getItem(storageKey)
-      : null;
+  const savedWidth = storageKey ? readStorage(storageKey) : null;
 
   const [width, setWidth] = useState(
     savedWidth ? parseInt(savedWidth, 10) : initialWidth
@@ -36,8 +52,12 @@ export function useResizablePanel({
       startXRef.current = e.clientX;
       startWidthRef.current = width;
 
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
+      try {
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+      } catch {
+        // document.body may not be available
+      }
     },
     [width]
   );
@@ -60,11 +80,15 @@ export function useResizablePanel({
 
     const handleMouseUp = () => {
       setIsResizing(false);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      try {
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      } catch {
+        // ignore
+      }
 
       if (storageKey) {
-        localStorage.setItem(storageKey, width.toString());
+        writeStorage(storageKey, width.toString());
       }
     };
 
@@ -82,7 +106,7 @@ export function useResizablePanel({
       const newWidth = width <= collapsedWidth + 10 ? initialWidth : collapsedWidth;
       setWidth(newWidth);
       if (storageKey) {
-        localStorage.setItem(storageKey, newWidth.toString());
+        writeStorage(storageKey, newWidth.toString());
       }
     },
     [width, initialWidth, storageKey]

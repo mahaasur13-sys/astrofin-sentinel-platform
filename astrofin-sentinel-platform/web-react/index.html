@@ -1,17 +1,20 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/pwa-192x192.png" />
     <link rel="preconnect" href="http://localhost:8000" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss: http://localhost:*; img-src 'self' data: blob:; font-src 'self';"
-    />
+    <meta name="theme-color" content="#0a0a0f" />
+    <meta name="description" content="AstroFin Sentinel — multi-agent trading dashboard" />
     <title>AstroFin Sentinel Dashboard</title>
   </head>
   <body>
+    <a
+      href="#main-content"
+      class="skip-link"
+    >Skip to main content</a>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

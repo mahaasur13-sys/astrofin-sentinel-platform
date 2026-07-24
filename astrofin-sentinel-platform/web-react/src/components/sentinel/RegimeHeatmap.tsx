@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { Regime } from './RegimeRadar';
 import { REGIME_META } from './RegimeRadar';
+import { memo } from "react";
 
 export interface CorrelationCell {
   assetA: string;

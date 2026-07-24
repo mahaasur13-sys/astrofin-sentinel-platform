@@ -1,9 +1,8 @@
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import type { GridColDef, GridRowParams } from '@mui/x-data-grid';
-import { useDispatch } from 'react-redux';
-import { openContextDrawer } from '../store/uiSlice';
-import { useGetSessionsListQuery } from '../api/sessionApi';
+import { useDashboardStore } from '@/stores/dashboard.store';
+import type { SessionListItem, SessionListResponse } from '@/api/sessionApi';
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'Session ID', width: 150 },
@@ -15,17 +14,37 @@ const columns: GridColDef[] = [
 ];
 
 export default function SessionTable() {
-  const dispatch = useDispatch();
-  const { data, isLoading } = useGetSessionsListQuery({ skip: 0, limit: 50 });
+  const openContextDrawer = useDashboardStore((s) => s.openContextDrawer);
+  const [rows, setRows] = useState<SessionListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/v1/sessions/?skip=0&limit=50')
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((d: SessionListResponse) => {
+        if (!cancelled) setRows(d.items ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setRows([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleRowClick = (params: GridRowParams) => {
-    dispatch(openContextDrawer(params.id as string));
+    openContextDrawer(params.id as string);
   };
 
   return (
     <div style={{ height: 400, width: '100%' }}>
       <DataGrid
-        rows={data?.items || []}
+        rows={rows}
         columns={columns}
         loading={isLoading}
         onRowClick={handleRowClick}

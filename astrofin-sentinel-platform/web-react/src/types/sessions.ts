@@ -1,5 +1,3 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-
 export interface AgentDecisionDetail {
   agent_name: string;
   signal: string;
@@ -21,7 +19,6 @@ export interface SessionDetailResponse {
   broker_fee?: number;
 }
 
-
 export interface SessionListItem {
   id: string;
   timestamp: string;
@@ -35,18 +32,3 @@ export interface SessionListResponse {
   items: SessionListItem[];
   total: number;
 }
-
-export const sessionApi = createApi({
-  reducerPath: 'sessionApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api/v1' }),
-  endpoints: (builder) => ({
-    getSessionsList: builder.query<SessionListResponse, { skip?: number; limit?: number }>({
-      query: ({ skip = 0, limit = 50 }) => `/sessions/?skip=${skip}&limit=${limit}`,
-    }),
-    getSessionDetails: builder.query<SessionDetailResponse, string>({
-      query: (sessionId) => `/sessions/${sessionId}/details`,
-    }),
-  }),
-});
-
-export const { useGetSessionDetailsQuery, useGetSessionsListQuery } = sessionApi;

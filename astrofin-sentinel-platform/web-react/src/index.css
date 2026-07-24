@@ -206,3 +206,17 @@ body {
     padding: 0.5rem;
   }
 }
+
+/* ── Light Theme Overrides ── */
+html.light {
+  --bg-primary: #f5f7fa;
+  --bg-panel: #ffffff;
+  --bg-card: #f0f2f5;
+  --bg-hover: #e5e8ec;
+  --text-primary: #111322;
+  --text-secondary: #5a6475;
+  --text-muted: #8d94a3;
+  --accent: #6d28d9;
+  --accent-glow: rgba(109, 40, 217, 0.2);
+  --border: #dde1e7;
+}

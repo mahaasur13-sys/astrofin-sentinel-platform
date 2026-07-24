@@ -1,4 +1,5 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { shallow } from 'zustand/shallow';
 import { useDashboardStore } from '@/stores/dashboard.store';
 import { useDashboardSSE } from '@/hooks/use-dashboard-sse';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
@@ -38,28 +39,53 @@ export function AppShell() {
     setMobileDrawerOpen,
     setBottomPanelOpen,
     setActiveView,
-  } = useDashboardStore((s) => ({
-    mobileDrawerOpen: s.mobileDrawerOpen,
-    bottomPanelOpen: s.bottomPanelOpen,
-    activeView: s.activeView,
-    isMobile: s.isMobile,
-    connectionStatus: s.connectionStatus,
-    latencyMs: s.latencyMs,
-    setMobileDrawerOpen: s.setMobileDrawerOpen,
-    setBottomPanelOpen: s.setBottomPanelOpen,
-    setActiveView: s.setActiveView,
-  }));
+  } = useDashboardStore(
+    (s) => ({
+      mobileDrawerOpen: s.mobileDrawerOpen,
+      bottomPanelOpen: s.bottomPanelOpen,
+      activeView: s.activeView,
+      isMobile: s.isMobile,
+      connectionStatus: s.connectionStatus,
+      latencyMs: s.latencyMs,
+      setMobileDrawerOpen: s.setMobileDrawerOpen,
+      setBottomPanelOpen: s.setBottomPanelOpen,
+      setActiveView: s.setActiveView,
+    }),
+    shallow,
+  );
 
   useDashboardSSE();
   useMobileDetector();
 
-  const toggleDrawer = useCallback(() => setMobileDrawerOpen(!mobileDrawerOpen), [mobileDrawerOpen, setMobileDrawerOpen]);
-  const toggleBottom = useCallback(() => setBottomPanelOpen(!bottomPanelOpen), [bottomPanelOpen, setBottomPanelOpen]);
+  const toggleDrawer = useCallback(
+    () => setMobileDrawerOpen(!mobileDrawerOpen),
+    [mobileDrawerOpen, setMobileDrawerOpen],
+  );
+  const toggleBottom = useCallback(
+    () => setBottomPanelOpen(!bottomPanelOpen),
+    [bottomPanelOpen, setBottomPanelOpen],
+  );
+
+  const sidebarToggle = useMemo(
+    () => () => useDashboardStore.getState().toggleSidebar(),
+    [],
+  );
+
+  const onMenuToggle = useMemo(
+    () => (isMobile ? toggleDrawer : sidebarToggle),
+    [isMobile, toggleDrawer, sidebarToggle],
+  );
 
   return (
     <ErrorBoundary>
       <div className="flex h-screen flex-col bg-background text-foreground">
-        <Header connectionStatus={connectionStatus} latencyMs={latencyMs} activeView={activeView} isMobile={isMobile} onMenuToggle={isMobile ? toggleDrawer : () => useDashboardStore.getState().toggleSidebar()} />
+        <Header
+          connectionStatus={connectionStatus}
+          latencyMs={latencyMs}
+          activeView={activeView}
+          isMobile={isMobile}
+          onMenuToggle={onMenuToggle}
+        />
 
         <div className="flex flex-1 overflow-hidden">
           {isMobile ? (
@@ -68,8 +94,10 @@ export function AppShell() {
             <Sidebar />
           )}
 
-          <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
-            <div className={`flex-1 overflow-y-auto px-2 py-2 sm:px-4 sm:py-3 ${isMobile ? 'pb-20' : ''}`}>
+          <main id="main-content" className="flex min-w-0 flex-1 flex-col overflow-hidden" tabIndex={-1}>
+            <div
+              className={`flex-1 overflow-y-auto px-2 py-2 sm:px-4 sm:py-3 ${isMobile ? 'pb-20' : ''}`}
+            >
               <ErrorBoundary>
                 <DashboardGrid />
               </ErrorBoundary>
@@ -84,7 +112,9 @@ export function AppShell() {
                   aria-expanded={bottomPanelOpen}
                   aria-label="Toggle AstroMind panel"
                 >
-                  <ChevronUp className={`size-3.5 transition-transform ${bottomPanelOpen ? 'rotate-180' : ''}`} />
+                  <ChevronUp
+                    className={`size-3.5 transition-transform ${bottomPanelOpen ? 'rotate-180' : ''}`}
+                  />
                   AstroMind
                 </button>
 
@@ -101,7 +131,6 @@ export function AppShell() {
                         <X className="size-4" />
                       </button>
                     </div>
-
                     <div className="h-[calc(70vh-44px)] overflow-y-auto p-3">
                       <ErrorBoundary>
                         <AstroMindChat variant="embedded" />
@@ -111,7 +140,10 @@ export function AppShell() {
                 )}
               </>
             ) : (
-              <aside className="hidden w-80 shrink-0 border-l border-border bg-card p-3 lg:block" aria-label="AstroMind chat">
+              <aside
+                className="hidden w-80 shrink-0 border-l border-border bg-card p-3 lg:block"
+                aria-label="AstroMind chat"
+              >
                 <ErrorBoundary>
                   <AstroMindChat variant="embedded" />
                 </ErrorBoundary>

@@ -1,29 +1,56 @@
-
+import { useState, useEffect } from 'react';
 import { Drawer, Box, Typography, Chip, Stack, Divider, CircularProgress, Button } from '@mui/material';
-import { useSelector, useDispatch } from 'react-redux';
-import { closeContextDrawer } from '../store/uiSlice';
-import { useGetSessionDetailsQuery } from '../api/sessionApi';
+import { useDashboardStore } from '@/stores/dashboard.store';
+import type { SessionDetailResponse } from '@/api/sessionApi';
 
 export default function ContextDrawer() {
-  const dispatch = useDispatch();
-  const { isContextDrawerOpen, selectedSessionId } = useSelector((state: any) => state.ui);
-  const { data: details, isLoading } = useGetSessionDetailsQuery(
-    selectedSessionId ?? '',
-    { skip: !selectedSessionId }
+  const { isContextDrawerOpen, selectedSessionId, closeContextDrawer } = useDashboardStore(
+    (s) => ({
+      isContextDrawerOpen: s.isContextDrawerOpen,
+      selectedSessionId: s.selectedSessionId,
+      closeContextDrawer: s.closeContextDrawer,
+    }),
   );
+
+  const [details, setDetails] = useState<SessionDetailResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedSessionId) {
+      setDetails(null);
+      return;
+    }
+    let cancelled = false;
+    setIsLoading(true);
+    fetch(`/api/v1/sessions/${selectedSessionId}/details`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((d: SessionDetailResponse) => {
+        if (!cancelled) setDetails(d);
+      })
+      .catch(() => {
+        if (!cancelled) setDetails(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [selectedSessionId]);
 
   return (
     <Drawer
       anchor="right"
       open={isContextDrawerOpen}
-      onClose={() => dispatch(closeContextDrawer())}
+      onClose={() => closeContextDrawer()}
       sx={{ '& .MuiDrawer-paper': { width: { xs: '100%', md: '40%', minWidth: '500px' }, p: 3 } }}
     >
       {isLoading ? (
         <CircularProgress />
       ) : details ? (
         <Box>
-          <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h5">
               Session: {details.symbol}
             </Typography>
@@ -54,7 +81,7 @@ export default function ContextDrawer() {
             fullWidth
             variant="contained"
             sx={{ mt: 4 }}
-            onClick={() => dispatch(closeContextDrawer())}
+            onClick={() => closeContextDrawer()}
           >
             Close
           </Button>
