@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useDashboardStore } from '@/stores/dashboard.store';
+import { shallow } from 'zustand/shallow';
 import { useDashboardSSE } from '@/hooks/use-dashboard-sse';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { Header } from '@/components/layout/Header';
@@ -48,7 +49,7 @@ export function AppShell() {
     setMobileDrawerOpen: s.setMobileDrawerOpen,
     setBottomPanelOpen: s.setBottomPanelOpen,
     setActiveView: s.setActiveView,
-  }));
+  }), shallow);
 
   useDashboardSSE();
   useMobileDetector();
