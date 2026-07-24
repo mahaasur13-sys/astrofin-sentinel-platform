@@ -16,6 +16,13 @@ Unified monorepo aggregating three production-grade projects under one CI/CD:
 | `kernel/atom-federation/` | `atom-federation-os/` | Deterministic alignment kernel, formal verification, K8s operator (re-integration in progress, see [Roadmap](#roadmap--known-issues)) |
 | `bridge/roma/` | `roma-execution-bridge/` | GPU execution bridge, SaaS billing, Stripe webhooks |
 
+> **Repository structure note (2026-07):** A nested duplicate copy of the entire tree
+> (`astrofin-sentinel-platform/astrofin-sentinel-platform/`) was consolidated into this single
+> source of truth. Overlapping files were reverse-merged from the newer nested copy, root-only
+> modules (`v6/`, `v7/`, `v8/`, `src/`, `utils/`, `settings/`) were preserved, and the `api/`,
+> `web-react/`, and `telegram_bot/` directories now live at the repository root. See
+> [`CONSOLIDATION_REPORT.md`](CONSOLIDATION_REPORT.md) for the full audit trail.
+
 ## Quickstart
 
 ```bash
@@ -38,7 +45,10 @@ astrofin-sentinel-platform/
 ├── agents/                       # KARL/AMRE agent implementations (active: agents/_impl/)
 ├── orchestration/                # Sentinel V5 orchestrator + meta-RL pipeline
 ├── core/                         # Cross-cutting primitives: logging, ephemeris, cache
+├── api/                          # FastAPI REST layer (sessions list, schemas — see docs/API_SETUP.md)
 ├── web/                          # FastAPI dashboard (Dash/Plotly) + WebSocket
+├── web-react/                    # React + TypeScript dashboard SPA (Vite, Redux)
+├── telegram_bot/                 # Telegram alerts bot + notification bridge
 ├── tests/                        # Pytest suite (see CONTRIBUTING.md)
 ├── knowledge/                    # RAG index, FAISS, daily-digest pipeline
 ├── trading/                      # Execution adapters, broker integrations
