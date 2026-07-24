@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { DataGrid, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
+import type { GridColDef, GridRowParams } from '@mui/x-data-grid';
 import { useDispatch } from 'react-redux';
 import { openContextDrawer } from '../store/uiSlice';
 import { useGetSessionsListQuery } from '../api/sessionApi';

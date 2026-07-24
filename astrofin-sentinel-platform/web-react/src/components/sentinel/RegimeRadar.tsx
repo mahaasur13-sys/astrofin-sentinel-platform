@@ -2,13 +2,6 @@ import { useMemo } from 'react';
 
 type Regime = 'bull' | 'bear' | 'sideways' | 'high_vol' | 'anomaly';
 
-interface RegimeData {
-  regime: Regime;
-  label: string;
-  probability: number;
-  color: string;
-  description: string;
-}
 
 interface RegimeRadarProps {
   probabilities: Record<Regime, number>;

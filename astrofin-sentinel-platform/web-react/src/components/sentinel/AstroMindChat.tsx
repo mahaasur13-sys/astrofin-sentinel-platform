@@ -1,5 +1,5 @@
 // VBUILD-20260720-v2
-if (typeof window !== "undefined") { window.__AstroMindChat = AstroMindChat; }
+if (typeof window !== "undefined") { (window as unknown as Record<string, unknown>).__AstroMindChat = AstroMindChat; }
 import { useState, useRef, useEffect } from 'react';
 
 // ────────────────────────────────────── types
@@ -38,7 +38,7 @@ export default function AstroMindChat() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [astroData, setAstroData] = useState<AstroResponse | null>(null);
+  const [, setAstroData] = useState<AstroResponse | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);

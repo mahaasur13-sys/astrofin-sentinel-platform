@@ -22,8 +22,8 @@ const REGIME_COLORS: Record<Regime, string> = {
 };
 
 export default function EquityCurve({ data, height = 260 }: EquityCurveProps) {
-  const { path, regimeBands, minEq, maxEq, yRange } = useMemo(() => {
-    if (data.length < 2) return { path: '', regimeBands: [], minEq: 0, maxEq: 1, yRange: 1 };
+  const { path, regimeBands } = useMemo(() => {
+    if (data.length < 2) return { path: '', regimeBands: [] };
 
     const eqValues = data.map((d) => d.equity);
     const min = Math.min(...eqValues);
@@ -39,7 +39,6 @@ export default function EquityCurve({ data, height = 260 }: EquityCurveProps) {
     const scaleY = (v: number) => padding + (1 - (v - min) / range) * plotH;
 
     const pathPoints = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(i).toFixed(1)} ${scaleY(d.equity).toFixed(1)}`);
-    const polyPoints = data.map((d, i) => `${scaleX(i).toFixed(1)},${scaleY(d.equity).toFixed(1)}`);
 
     const bands: Array<{ x: number; w: number; color: string }> = [];
     let currentRegime = data[0].regime;
@@ -59,7 +58,7 @@ export default function EquityCurve({ data, height = 260 }: EquityCurveProps) {
       }
     }
 
-    return { path: pathPoints.join(' '), regimeBands: bands, minEq: min, maxEq: max, yRange: range };
+    return { path: pathPoints.join(' '), regimeBands: bands };
   }, [data]);
 
   const startEq = data[0]?.equity ?? 0;
