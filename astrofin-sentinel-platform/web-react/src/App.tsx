@@ -6,7 +6,6 @@ import AgentPerformanceGrid from './components/sentinel/AgentPerformanceGrid';
 import AstroMindChatV2 from "./components/sentinel/AstroMindChatV2";
 import SessionTable from "./components/SessionTable";
 import ContextDrawer from "./components/ContextDrawer";
-import ContextDrawer from "./components/ContextDrawer";
 
 type Regime = 'bull' | 'bear' | 'sideways' | 'high_vol' | 'anomaly';
 type Signal = 'buy' | 'sell' | 'hold' | 'strong_buy' | 'strong_sell';
@@ -380,11 +379,6 @@ export default function App() {
             compact
           />
 
-          <RegimeRadar
-            probabilities={regimeProbs}
-            currentRegime={dominantRegime}
-          />
-
           <SafetyGateCard
             status={safetyStatus}
             reason="All systems operational. Regime within normal parameters."
@@ -419,7 +413,7 @@ export default function App() {
       {/* AstroMind Chat */}
       <AstroMindChatV2 />
 
-      {{/* Drawer — глобальный, перекрывает всё при dispatch(openContextDrawer) */}}
+      {/* Drawer — глобальный, перекрывает всё при dispatch(openContextDrawer) */}
       <ContextDrawer />
     </main>
   );
