@@ -394,7 +394,7 @@ def main():
             )
         )
 
-    log.info("\nFinal recommendation:", result.get("final_recommendation"))
+    logger.info("\nFinal recommendation: %s", result.get("final_recommendation"))
 
 
 if __name__ == "__main__":

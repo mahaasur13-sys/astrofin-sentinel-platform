@@ -11,17 +11,17 @@ No external dependencies (stdlib only for core math).
 Usage:
     from core.kepler import KeplerOrbit, propagate_kepler, validate_vs_swiss_ephemeris
 
-import logging
-log = logging.getLogger(__name__)
-
     orbit = KeplerOrbit.earth()
     pos = orbit.at_jd(2460692.5)  # J2000.0
 """
 
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
 
 # ─── Orbital Element Database (J2000.0 epoch, heliocentric, J2000 ecliptic) ──
 # Source: JPL DE405/DE406 + IAU 2009 standards
