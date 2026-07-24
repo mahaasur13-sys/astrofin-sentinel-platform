@@ -198,8 +198,8 @@ class AstroFinBot:
 async def main() -> None:
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     if not token:
-        log.info("Error: TELEGRAM_BOT_TOKEN not set in environment.")
-        log.info("Export it or add to .env:  export TELEGRAM_BOT_TOKEN=123456:ABC...")
+        logger.info("Error: TELEGRAM_BOT_TOKEN not set in environment.")
+        logger.info("Export it or add to .env:  export TELEGRAM_BOT_TOKEN=123456:ABC...")
         sys.exit(1)
 
     logging.basicConfig(

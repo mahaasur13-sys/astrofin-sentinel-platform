@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import random
 from dataclasses import dataclass, field
 
 import numpy as np
 
 from strategies.base import BaseStrategy, Regime, Signal, StrategyConfig, StrategyResult
+
+log = logging.getLogger(__name__)
 
 # ── Gene definitions ──────────────────────────────────────────────────────
 
