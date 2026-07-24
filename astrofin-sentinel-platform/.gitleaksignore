@@ -1,7 +1,0 @@
-# .gitleaksignore
-# These files contain dummy values for tests/examples that trigger false positives
-
-# Example configs and docs
-deploy/iac/docs/deployment-day1-day7.md
-deploy/iac/terraform/modules/kubernetes/main.tf
-src/bridges/roma/billing/stripe_client.py
