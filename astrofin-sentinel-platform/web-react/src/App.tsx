@@ -105,15 +105,15 @@ function AgentAnalysisCards({ analysis }: { analysis: Record<string, AgentAnalys
             <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 6 }}>
               {a.reasoning.slice(0, 120)}{a.reasoning.length > 120 ? '…' : ''}
             </div>
-            {key === 'gann' && md.angles && (
+            {key === 'gann' && Boolean(md.angles) && (
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                Score: {(md.angles as Record<string,unknown>).score?.toString() || '—'}
-                {(md.angles as Record<string,unknown>).summary && (
+                Score: {String((md.angles as Record<string,unknown>).score ?? '—')}
+                {Boolean((md.angles as Record<string,unknown>).summary) && (
                   <div>{String((md.angles as Record<string,unknown>).summary)}</div>
                 )}
               </div>
             )}
-            {key === 'elliot' && md.wave_count && (
+            {key === 'elliot' && Boolean(md.wave_count) && (
               <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
                 Waves: {String(md.wave_count)} · Fib: {String((md.fib_targets as Record<string,unknown>)?.primary || '—')}
               </div>
@@ -129,7 +129,6 @@ function AgentAnalysisCards({ analysis }: { analysis: Record<string, AgentAnalys
 }
 
 export default function App() {
-  const [chatOpen, setChatOpen] = useState(false);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
