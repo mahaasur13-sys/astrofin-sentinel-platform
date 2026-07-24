@@ -8,9 +8,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
+
+log = logging.getLogger(__name__)
+
 
 
 class ViolationType(Enum):
@@ -138,7 +142,7 @@ class DAGValidator:
         violations = []
         if seed is not None:
             random.seed(seed)
-        in_deg = {nid: 0 for nid in nodes}
+        in_deg = dict.fromkeys(nodes, 0)
         for src, _ in edges:
             if src in in_deg:
                 in_deg[_] = in_deg.get(src, 0) + 1
@@ -172,7 +176,7 @@ if __name__ == "__main__":
     validator = DAGValidator()
     dag = {"nodes": [{"node_id": "a"}, {"node_id": "b"}, {"node_id": "c"}], "edges": [["a", "b"], ["b", "c"]]}
     result = validator.validate(dag, seed=42)
-    print(f"DAG valid: {result.valid}")
-    print(f"Invariants: {result.invariants_satisfied}")
-    print(f"Hash: {result.dag_hash}")
-    print(f"Violations: {[v.type.value for v in result.violations]}")
+    log.info(f"DAG valid: {result.valid}")
+    log.info(f"Invariants: {result.invariants_satisfied}")
+    log.info(f"Hash: {result.dag_hash}")
+    log.info(f"Violations: {[v.type.value for v in result.violations]}")

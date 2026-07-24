@@ -1,5 +1,6 @@
 """Main entry point with dual-mode + graceful degradation."""
 
+from __future__ import annotations
 import asyncio
 import logging
 import sys

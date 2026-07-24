@@ -11,9 +11,13 @@
 - Надёжная обработка ошибок
 """
 
+import logging
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, TypedDict
+
+log = logging.getLogger(__name__)
+
 
 # ====================== BASE DIRECTORY ======================
 BASE_DIR = Path(__file__).resolve().parent.parent  # roma-execution-bridge/
@@ -27,7 +31,6 @@ from cost.predictor import CostPredictor
 
 class GateResponse(TypedDict, total=False):
     """Стандартизированный ответ DecisionGate."""
-
     task: str
     tenant_id: str
     tier: str
@@ -39,7 +42,7 @@ class GateResponse(TypedDict, total=False):
     approval_required: bool
     gate_message: str
     suggested_action: str
-    risk_flags: list[str]
+    risk_flags: List[str]
     gpu_seconds: int
     confidence: float
 
@@ -54,7 +57,7 @@ class DecisionGate:
       - REJECTED              → блокировка выполнения
     """
 
-    TIER_LIMITS: dict[str, float] = {
+    TIER_LIMITS: Dict[str, float] = {
         "FREE": 1.0,
         "PRO": 50.0,
         "ENTERPRISE": 500.0,
@@ -65,16 +68,11 @@ class DecisionGate:
     def __init__(self):
         self.predictor = CostPredictor()
         self.tenancy = TenantManager()
-        self.decision_history: list[GateResponse] = []
+        self.decision_history: List[GateResponse] = []
 
-    def decide(
-        self,
-        task: str,
-        plugin_type: str = "default",
-        gpu_required: bool = False,
-        tenant_id: str = "default-tenant",
-        **kwargs,
-    ) -> dict[str, Any]:
+    def decide(self, task: str, plugin_type: str = "default",
+               gpu_required: bool = False, tenant_id: str = "default-tenant",
+               **kwargs) -> Dict[str, Any]:
         """
         Основной метод, который должен вызываться из CLI и API.
         Возвращает упрощённый словарь для удобства использования.
@@ -91,14 +89,8 @@ class DecisionGate:
             "full_response": result,
         }
 
-    def evaluate(
-        self,
-        task: str,
-        gpu_required: bool,
-        plugin_type: str,
-        tenant_id: str = "default-tenant",
-        **kwargs,
-    ) -> GateResponse:
+    def evaluate(self, task: str, gpu_required: bool, plugin_type: str,
+                 tenant_id: str = "default-tenant", **kwargs) -> GateResponse:
         """Основная логика оценки стоимости и принятия решения."""
         if not task or not isinstance(task, str):
             raise ValueError("Параметр 'task' обязателен и должен быть непустой строкой.")
@@ -110,32 +102,27 @@ class DecisionGate:
 
             # Фильтруем только разрешённые аргументы для CostPredictor
             allowed_kwargs = {
-                "custom_duration",
-                "duration_sec",
-                "epochs",
-                "batch_size",
-                "dataset_size",
-                "model_size",
-                "image_count",
-                "gpu_seconds",
-                "steps",
+                "custom_duration", "duration_sec", "epochs", "batch_size",
+                "dataset_size", "model_size", "image_count", "gpu_seconds", "steps"
             }
             clean_kwargs = {k: v for k, v in kwargs.items() if k in allowed_kwargs}
 
             # Вызываем предиктор (ВАЖНО: без параметра tier!)
-            prediction: dict[str, Any] = self.predictor.predict(task, gpu_required, plugin_type, **clean_kwargs)
+            prediction: Dict[str, Any] = self.predictor.predict(
+                task, gpu_required, plugin_type, **clean_kwargs
+            )
 
             cost: float = float(prediction.get("estimated_cost", 0.0))
             decision: str = prediction.get("decision", "UNKNOWN")
-            risk_flags: list[str] = prediction.get("risk_flags", [])
-            breakdown: dict = prediction.get("breakdown", {})
+            risk_flags: List[str] = prediction.get("risk_flags", [])
+            breakdown: Dict = prediction.get("breakdown", {})
 
             # Автоматическое определение решения, если predictor его не вернул
             if decision not in ("APPROVED", "REQUIRES_CONFIRMATION", "REJECTED"):
                 limit = self.TIER_LIMITS.get(tier, self.DEFAULT_LIMIT)
                 if cost > limit:
                     decision = "REJECTED"
-                elif cost == 0.0 or cost > limit * 0.7:  # $0.00 считаем как "требует подтверждения"
+                elif cost == 0.0 or cost > limit * 0.7:   # $0.00 считаем как "требует подтверждения"
                     decision = "REQUIRES_CONFIRMATION"
                 else:
                     decision = "APPROVED"
@@ -161,7 +148,7 @@ class DecisionGate:
             return response
 
         except Exception as e:
-            print(f"[ERROR] DecisionGate: {type(e).__name__}: {e}", file=sys.stderr)
+            log.info(f"[ERROR] DecisionGate: {type(e).__name__}: {e}", file=sys.stderr)
             return self._create_error_response(task, tenant_id, e)
 
     def _create_error_response(self, task: str, tenant_id: str, exc: Exception) -> GateResponse:
@@ -180,7 +167,7 @@ class DecisionGate:
             "risk_flags": ["SYSTEM_ERROR"],
         }
 
-    def _gate_message(self, decision: str, cost: float, tier: str, risk_flags: list[str]) -> str:
+    def _gate_message(self, decision: str, cost: float, tier: str, risk_flags: List[str]) -> str:
         limit = self.TIER_LIMITS.get(tier, self.DEFAULT_LIMIT)
 
         if decision == "REJECTED":
@@ -197,7 +184,7 @@ class DecisionGate:
             return "Confirm with: roma run --confirm-cost"
         return "Ready to execute — proceed with roma run"
 
-    def get_gate_status(self, tenant_id: str = "default-tenant") -> dict[str, Any]:
+    def get_gate_status(self, tenant_id: str = "default-tenant") -> Dict[str, Any]:
         """Статистика решений по тенанту."""
         tenant_decisions = [d for d in self.decision_history if d.get("tenant_id") == tenant_id]
         if not tenant_decisions:
@@ -218,11 +205,11 @@ if __name__ == "__main__":
         task="train model on GPU",
         gpu_required=True,
         plugin_type="default",
-        tenant_id="default-tenant",
+        tenant_id="default-tenant"
     )
 
-    print("=== DecisionGate Test ===")
-    print(f"Decision : {result['decision']}")
-    print(f"Cost     : ${result['estimated_cost']:.4f}")
-    print(f"Message  : {result['gate_message']}")
-    print(f"Action   : {result['suggested_action']}")
+    log.info("=== DecisionGate Test ===")
+    log.info(f"Decision : {result['decision']}")
+    log.info(f"Cost     : ${result['estimated_cost']:.4f}")
+    log.info(f"Message  : {result['gate_message']}")
+    log.info(f"Action   : {result['suggested_action']}")

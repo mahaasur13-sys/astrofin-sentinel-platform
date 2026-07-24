@@ -20,7 +20,7 @@ import pytest
 from sbs.boundary_spec import SystemBoundarySpec
 from sbs.failure_classifier import FailureCategory, FailureClassifier, FailureSeverity
 from sbs.global_invariant_engine import GlobalInvariantEngine, LayerState
-from sbs.system_contract import SYSTEM_CONTRACT, InvariantType
+from sbs.system_contract import SYSTEM_CONTRACT
 
 # ── SystemBoundarySpec tests ─────────────────────────────────────────────────
 

@@ -324,7 +324,7 @@ class MergeAuditor:
                 details=f"Replay failed: {replay_errors} errors",
             )
 
-        event_count_ok = len(post_merge_events) >= max(len(pre_merge_checkpoints) * 2 - 1, 1)
+        len(post_merge_events) >= max(len(pre_merge_checkpoints) * 2 - 1, 1)
 
         lamport_ok = True
         if post_merge_events:

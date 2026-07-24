@@ -11,18 +11,16 @@ Usage:
 """
 import argparse
 import logging
-import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
 
-from .window_engine import WindowEngine
-from .feature_registry import FEATURE_REGISTRY, get_feature_names, validate_registry
 from .builder import FeatureBuilder
-from .exporter import DatasetExporter
 from .embedding import NodeEmbeddingBuilder
+from .exporter import DatasetExporter
+from .feature_registry import get_feature_names, validate_registry
 from .schemas import NodeProfile, NodeRole
+from .window_engine import WindowEngine
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,7 +52,7 @@ def parse_args():
 # CONTINUOUS PIPELINE
 # =============================================================================
 
-def run_continuous(nodes: List[str], interval: int):
+def run_continuous(nodes: list[str], interval: int):
     """Continuously push metrics and build feature vectors."""
     log.info("Starting continuous pipeline — interval=%ds, nodes=%s", interval, nodes)
     engine = WindowEngine()
@@ -112,7 +110,7 @@ def run_export(output_dir: str, export_csv: bool, export_json: bool,
 # EMBEDDING
 # =============================================================================
 
-def run_embedding(nodes: List[str]):
+def run_embedding(nodes: list[str]):
     """Compute and display node embeddings."""
     emb_builder = NodeEmbeddingBuilder()
 

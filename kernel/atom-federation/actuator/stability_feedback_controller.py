@@ -20,6 +20,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from enum import Enum, auto
+from typing import Any
 
 
 class OscillationMode(Enum):

@@ -252,8 +252,6 @@ class StabilityEnvelope:
         }
 
         osc_count = 0
-        goal_drift_mag = 0.0
-        dag_drift = 0.0
         coherence_collapse = False
 
         for ep in drift_episodes:

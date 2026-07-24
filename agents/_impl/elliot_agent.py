@@ -51,7 +51,7 @@ class ElliotAgent(BaseAgent[AgentResponse]):
         symbol = state.get("symbol", "BTCUSDT")
         state.get("current_price", 50000)
 
-        price_data = await self._fetch_ohlcv(symbol, "1d", 120)
+        price_data = state.get("_price_data", []) or await self._fetch_ohlcv(symbol, "1D", 120)
         if not price_data:
             return AgentResponse(
                 agent_name="ElliotAgent",
@@ -61,16 +61,20 @@ class ElliotAgent(BaseAgent[AgentResponse]):
                 sources=[],
             )
 
-        closes = [d[0] for d in price_data]
-        highs = [d[1] for d in price_data]
-        lows = [d[2] for d in price_data]
+        closes = [d[4] for d in price_data]
+        highs = [d[2] for d in price_data]
+        lows = [d[3] for d in price_data]
 
         wave_count = self._count_waves(highs, lows, closes)
         fib_targets = self._calculate_fib_targets(wave_count, highs, lows, closes)
         corrective = self._detect_corrective_phase(closes)
 
         # Elliott score
-        elliot_score = wave_count["score"] * 0.50 + fib_targets["score"] * 0.30 + corrective["score"] * 0.20
+        elliot_score = (
+            wave_count["score"] * 0.50
+            + fib_targets["score"] * 0.30
+            + corrective["score"] * 0.20
+        )
 
         if wave_count["suggestion"] == "long":
             signal = SignalDirection.LONG
@@ -82,12 +86,7 @@ class ElliotAgent(BaseAgent[AgentResponse]):
             signal = SignalDirection.NEUTRAL
             confidence = 40
 
-        reasoning = (
-            f"Wave structure: {wave_count['summary']}. "
-            f"Fib targets: {fib_targets['summary']}. "
-            f"Corrective phase: {corrective['summary']}. "
-            f"Elliot score: {elliot_score:.2f}"
-        )
+        reasoning = f"Wave structure: {wave_count['summary']}. Fib targets: {fib_targets['summary']}. Corrective phase: {corrective['summary']}. Elliot score: {elliot_score:.2f}"
 
         return AgentResponse(
             agent_name="ElliotAgent",
@@ -121,14 +120,17 @@ class ElliotAgent(BaseAgent[AgentResponse]):
         import httpx
 
         try:
-            url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}-USDT&interval={interval}&limit={limit}"
+            inst_id = symbol if "-" in symbol else symbol + "-USDT"
+            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval}&limit={limit}"
             async with httpx.AsyncClient() as client:
                 resp = await client.get(url, timeout=10)
                 resp.raise_for_status()
                 data = resp.json()
-                return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
+                return [[float(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
-            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}")
+            logger.warning(
+                f"Failed to fetch OHLCV data for {symbol} with interval {interval} and limit {limit}"
+            )
             return []
 
     def _count_waves(self, highs: list, lows: list, closes: list) -> dict:
@@ -190,7 +192,9 @@ class ElliotAgent(BaseAgent[AgentResponse]):
             "num_swings": num_swings,
         }
 
-    def _calculate_fib_targets(self, wave_count: dict, highs: list, lows: list, closes: list) -> dict:
+    def _calculate_fib_targets(
+        self, wave_count: dict, highs: list, lows: list, closes: list
+    ) -> dict:
         """
         Calculate Fibonacci retracement/extension targets.
         """
@@ -259,3 +263,8 @@ async def run_elliot_agent(state: dict) -> dict:
     agent = ElliotAgent()
     result = await agent.analyze(state)
     return {"elliot_signal": result.to_dict()}
+
+
+def create() -> ElliotAgent:
+    """Factory for 6-fn test contract."""
+    return ElliotAgent()

@@ -28,6 +28,10 @@ import time
 from pathlib import Path
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # Ensure project root on sys.path so `core.rag_client` resolves when run as script
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
@@ -85,31 +89,34 @@ class C:
 def _print_table(headers: list[str], rows: list[list[str]]) -> None:
     """Render a simple table. No box-drawing — pipes + dashes only."""
     if not rows:
-        print(C.dim("  (no data)"))
+        log.info(C.dim("  (no data)"))
         return
-    widths = [max(len(h), max((len(r[i]) for r in rows), default=0)) for i, h in enumerate(headers)]
-    print("  " + " | ".join(C.bold(h.ljust(w)) for h, w in zip(headers, widths, strict=False)))
-    print("  " + "-+-".join("-" * w for w in widths))
+    widths = [
+        max(len(h), max((len(r[i]) for r in rows), default=0))
+        for i, h in enumerate(headers)
+    ]
+    log.info("  " + " | ".join(C.bold(h.ljust(w)) for h, w in zip(headers, widths)))
+    log.info("  " + "-+-".join("-" * w for w in widths))
     for row in rows:
-        print("  " + " | ".join(cell.ljust(w) for cell, w in zip(row, widths, strict=False)))
+        log.info("  " + " | ".join(cell.ljust(w) for cell, w in zip(row, widths)))
 
 
 def _ok(msg: str) -> None:
-    print(f"  {C.green('✓')} {msg}")
+    log.info(f"  {C.green('✓')} {msg}")
 
 
 def _warn(msg: str) -> None:
-    print(f"  {C.yellow('!')} {msg}")
+    log.info(f"  {C.yellow('!')} {msg}")
 
 
 def _err(msg: str) -> None:
-    print(f"  {C.red('✗')} {msg}", file=sys.stderr)
+    log.info(f"  {C.red('✗')} {msg}", file=sys.stderr)
 
 
 def _header(title: str) -> None:
-    print()
-    print(C.bold(C.blue(title)))
-    print(C.dim("  " + "─" * (len(title) + 2)))
+    log.info("")
+    log.info(C.bold(C.blue(title)))
+    log.info(C.dim("  " + "─" * (len(title) + 2)))
 
 
 async def _get_client(args: argparse.Namespace) -> RAGClient:
@@ -162,13 +169,13 @@ async def cmd_health(args: argparse.Namespace) -> int:
 
     status = C.green("healthy") if h.healthy else C.red("unhealthy")
     legacy = C.green("yes") if h.legacy_available else C.dim("no")
-    print(f"  backend            : {C.bold(h.backend)}")
-    print(f"  status             : {status}")
-    print(f"  legacy fallback    : {legacy}")
+    log.info(f"  backend            : {C.bold(h.backend)}")
+    log.info(f"  status             : {status}")
+    log.info(f"  legacy fallback    : {legacy}")
     if h.details:
-        print("  details:")
+        log.info("  details:")
         for k, v in sorted(h.details.items()):
-            print(f"    {C.dim(k)}: {v}")
+            log.info(f"    {C.dim(k)}: {v}")
     await client.aclose()
     return 0 if h.healthy else 1
 
@@ -202,7 +209,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                     try:
                         n = len(json.loads(meta_path.read_text(encoding="utf-8")))
                     except Exception:
-                        pass
+                        log.warning("RAG admin operation failed", exc_info=True)
                 domains_faiss[idx_path.stem] = {"chunks": n, "size": size}
 
         # pgvector: best-effort count
@@ -215,7 +222,14 @@ async def cmd_stats(args: argparse.Namespace) -> int:
         if client._pg_pool is not None:
             try:
                 async with client._pg_pool.acquire() as conn:
-                    pg_total = await conn.fetchval(f"SELECT COUNT(*) FROM {pg_table}")
+                    conn_pg = conn  # type: ignore[assignment]
+                    pg_total = (
+                        await conn_pg.fetchval(
+                            "SELECT COUNT(*) FROM " + conn_pg.quote_ident(pg_table)  # nosec B608 — quote_ident sanitises input
+                        )
+                        if _VALID_TABLE_RE.match(pg_table)
+                        else None
+                    )
             except Exception as e:
                 _warn(f"pgvector count failed: {e}")
 
@@ -244,22 +258,25 @@ async def cmd_stats(args: argparse.Namespace) -> int:
 
         _header("FAISS (legacy)")
         if domains_faiss:
-            rows = [[d, str(v["chunks"]), _format_size(v["size"])] for d, v in sorted(domains_faiss.items())]
+            rows = [
+                [d, str(v["chunks"]), _format_size(v["size"])]
+                for d, v in sorted(domains_faiss.items())
+            ]
             _print_table(["domain", "chunks", "size"], rows)
         else:
             _warn("no FAISS indexes found")
 
         _header("pgvector (primary)")
-        print(f"  table: {pg_table}")
+        log.info(f"  table: {pg_table}")
         if pg_total is not None:
-            print(f"  total rows: {C.bold(str(pg_total))}")
+            log.info(f"  total rows: {C.bold(str(pg_total))}")
         else:
             _warn("not connected (no pool)")
 
         _header("Query cache")
-        print(f"  hits   : {hits}")
-        print(f"  misses : {misses}")
-        print(f"  hit rate: {C.bold(f'{rate:.1f}%')}")
+        log.info(f"  hits   : {hits}")
+        log.info(f"  misses : {misses}")
+        log.info(f"  hit rate: {C.bold(f'{rate:.1f}%')}")
     finally:
         await client.aclose()
     return 0
@@ -292,7 +309,9 @@ async def cmd_retrieve(args: argparse.Namespace) -> int:
         await client.aclose()
         return 1
 
-    print(f"  {len(results)} results in {elapsed_ms:.1f}ms (min_score={args.min_score})")
+    log.info(
+        f"  {len(results)} results in {elapsed_ms:.1f}ms (min_score={args.min_score})"
+    )
     if not results:
         _warn("no results")
     else:
@@ -342,7 +361,9 @@ async def cmd_list_domains(args: argparse.Namespace) -> int:
         if client._pg_pool is not None:
             try:
                 async with client._pg_pool.acquire() as conn:
-                    rows = await conn.fetch("SELECT DISTINCT metadata->>'domain' AS domain FROM documents")
+                    rows = await conn.fetch(
+                        "SELECT DISTINCT metadata->>'domain' AS domain FROM documents"
+                    )
                     for row in rows:
                         domains.add(row["domain"])
             except Exception as e:
@@ -353,9 +374,9 @@ async def cmd_list_domains(args: argparse.Namespace) -> int:
             return 0
 
         for d in sorted(domains):
-            print(f"  • {C.bold(d)}")
-        print()
-        print(C.dim(f"  {len(domains)} domain(s)"))
+            log.info(f"  • {C.bold(d)}")
+        log.info("")
+        log.info(C.dim(f"  {len(domains)} domain(s)"))
     finally:
         await client.aclose()
     return 0
@@ -382,7 +403,9 @@ async def cmd_migrate_status(args: argparse.Namespace) -> int:
                 meta_path = idx_path.with_suffix(".meta.json")
                 if meta_path.exists():
                     try:
-                        faiss_counts[idx_path.stem] = len(json.loads(meta_path.read_text(encoding="utf-8")))
+                        faiss_counts[idx_path.stem] = len(
+                            json.loads(meta_path.read_text(encoding="utf-8"))
+                        )
                     except Exception:
                         faiss_counts[idx_path.stem] = -1
                 else:
@@ -460,7 +483,8 @@ async def cmd_reindex_faiss(args: argparse.Namespace) -> int:
         # Fetch all docs for the domain from pgvector
         async with client._pg_pool.acquire() as conn:  # type: ignore[union-attr]
             rows = await conn.fetch(
-                "SELECT doc_id, content, source, title, domain " "FROM documents WHERE domain = $1",
+                "SELECT doc_id, content, source, title, domain "
+                "FROM documents WHERE domain = $1",
                 args.domain,
             )
         if not rows:
@@ -544,7 +568,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="command", required=True, metavar="COMMAND")
 
     sub.add_parser("health", parents=[common], help="print RAG health status")
-    sub.add_parser("stats", parents=[common], help="per-domain counts and cache hit rate")
+    sub.add_parser(
+        "stats", parents=[common], help="per-domain counts and cache hit rate"
+    )
 
     p_ret = sub.add_parser("retrieve", parents=[common], help="manual RAG search")
     p_ret.add_argument("query", help="search query")

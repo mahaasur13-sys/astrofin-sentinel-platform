@@ -4,9 +4,18 @@ DeterminismController — R1-R4 Strong Guarantees
 R1: Bitwise deterministic replay, R2: Scheduler fidelity, R3: ML version locking, R4: External isolation
 """
 from __future__ import annotations
-import hashlib, json, os, random
+
+import hashlib
+import json
+import logging
+import os
+import random
 from dataclasses import dataclass, field
 from typing import Any
+
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class ExecutionContext:
@@ -71,6 +80,6 @@ if __name__ == "__main__":
     ctx = ExecutionContext(seed=42, allowed_network=False)
     dc = DeterminismController(ctx)
     dc.setup()
-    print(f"Seed locked: {dc.ctx.get_seed()}")
-    print(f"ML locked: {dc.ctx.ml_model_snapshot}")
-    print(f"Network isolated: {not dc.ctx.allowed_network}")
+    log.info(f"Seed locked: {dc.ctx.get_seed()}")
+    log.info(f"ML locked: {dc.ctx.ml_model_snapshot}")
+    log.info(f"Network isolated: {not dc.ctx.allowed_network}")

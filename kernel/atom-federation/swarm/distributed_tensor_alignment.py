@@ -97,7 +97,7 @@ class DistributedTensorAlignment:
             canonical_axes_S[axis] = sum(vals) / len(vals) if vals else 0.0
 
         # Overall canonical S = mean of axis canonicals
-        canonical_total = sum(canonical_axes_S.values()) / len(canonical_axes_S) if canonical_axes_S else 0.0
+        sum(canonical_axes_S.values()) / len(canonical_axes_S) if canonical_axes_S else 0.0
 
         # 2. Compute per-worker deltas from canonical
         worker_deltas: dict[str, dict[str, float]] = {}

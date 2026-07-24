@@ -11,11 +11,12 @@ registry (data_room/blueprint.py:RESOLVERS).
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
-from data_room.blueprint import PriceTick
 from data_room.resolvers.base import Resolver, ResolverError
+from data_room.blueprint import PriceTick
 
 logger = logging.getLogger("data_room.price")
 
@@ -23,7 +24,9 @@ logger = logging.getLogger("data_room.price")
 class CoinGeckoPriceResolver(Resolver[PriceTick]):
     name = "coingecko"
 
-    async def resolve(self, symbol: str, asof: str | None = None, **_: Any) -> PriceTick:
+    async def resolve(
+        self, symbol: str, asof: str | None = None, **_: Any
+    ) -> PriceTick:
         # In production: aiohttp + rate-limit aware client.
         # Here: stub. The shape of the call is what matters.
         raise ResolverError("coingecko not implemented in this stub")
@@ -32,7 +35,9 @@ class CoinGeckoPriceResolver(Resolver[PriceTick]):
 class BinancePriceResolver(Resolver[PriceTick]):
     name = "binance"
 
-    async def resolve(self, symbol: str, asof: str | None = None, **_: Any) -> PriceTick:
+    async def resolve(
+        self, symbol: str, asof: str | None = None, **_: Any
+    ) -> PriceTick:
         # Same comment as above. The point is: this is the *contract*.
         raise ResolverError("binance not implemented in this stub")
 

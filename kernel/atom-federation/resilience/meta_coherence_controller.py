@@ -186,7 +186,7 @@ class MetaCoherenceController:
         adaptive_horizon = self.compute.get_adaptive_horizon(30.0, Subsystem.PREDICTIVE_CONTROLLER)
         self.predictive.forecast_horizon = adaptive_horizon
         t0 = time.monotonic()
-        system_state = SystemState(
+        SystemState(
             node_count_total=len(node_roles),
             node_count_healthy=sum(1 for r in node_roles.values() if r == NodeRole.HEALTHY),
             stability_score=1.0 - alignment.drift_score,

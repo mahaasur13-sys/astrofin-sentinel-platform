@@ -19,6 +19,9 @@ from typing import Annotated, Literal, TypedDict
 from langgraph.graph import END, StateGraph
 
 from core.belief import get_belief_tracker
+import logging
+log = logging.getLogger(__name__)
+
 from core.thompson import (
     ASTRO_POOL,
     ELECTORAL_POOL,
@@ -91,7 +94,11 @@ def _pool_decide(pool: AgentPool, k_override: int = None) -> tuple[bool, list[st
     pool_agents = pool.agents
 
     # Resolve K: explicit arg > pool.k > default_k from sampler
-    k_resolved = k_override if k_override is not None else (pool.k if pool.k is not None else sampler.default_k)
+    k_resolved = (
+        k_override
+        if k_override is not None
+        else (pool.k if pool.k is not None else sampler.default_k)
+    )
     k = max(k_resolved, pool.min_select)
     k = min(k, len(pool_agents))
 
@@ -132,7 +139,9 @@ def _pool_decide(pool: AgentPool, k_override: int = None) -> tuple[bool, list[st
     selected = [name for name, _ in eligible[:k]]
 
     if below:
-        print(f"[BeliefGuard] '{pool.name}' — filtered (low utility): {below} | selected: {selected}")
+        log.info(
+            f"[BeliefGuard] '{pool.name}' — filtered (low utility): {below} | selected: {selected}"
+        )
 
     should_run = len(selected) >= pool.min_select
     return should_run, selected
@@ -179,7 +188,9 @@ def _run_technical_agents(state: AgentState, selected: list[str]) -> dict:
         elif hasattr(r, "model_dump"):  # AgentResponse Pydantic model
             merged[f"{name.lower()}_signal"] = r.model_dump()
         elif isinstance(r, dict):
-            merged[f"{name.lower()}_signal"] = r.get(f"{name.lower()}_signal") or (list(r.values())[0] if r else {})
+            merged[f"{name.lower()}_signal"] = r.get(f"{name.lower()}_signal") or (
+                list(r.values())[0] if r else {}
+            )
         else:
             merged[f"{name.lower()}_signal"] = {"signal": "NEUTRAL", "confidence": 0}
     return merged
@@ -195,10 +206,10 @@ def technical_node(state: AgentState) -> AgentState:
     should_run, selected = _pool_decide(TECHNICAL_POOL)
 
     if not should_run:
-        print("[Graph] technical — SKIPPED (BeliefGuard)")
+        log.info("[Graph] technical — SKIPPED (BeliefGuard)")
         return {**state, "technical_result": None}
 
-    print(f"[Graph] technical — selected: {selected}")
+    log.info(f"[Graph] technical — selected: {selected}")
     selections = dict(state.get("thompson_selections", {}))
     selections["technical"] = selected
 
@@ -230,7 +241,7 @@ def astro_council_node(state: AgentState) -> AgentState:
     candidates = [a for a in ASTRO_POOL.agents if a not in excluded]
 
     if not candidates:
-        print("[Graph] astro_council — SKIPPED (no candidates after exclusion)")
+        log.info("[Graph] astro_council — SKIPPED (no candidates after exclusion)")
         return {**state, "astro_council_result": None}
 
     tmp_pool = AgentPool(
@@ -244,10 +255,10 @@ def astro_council_node(state: AgentState) -> AgentState:
     should_run, selected = _pool_decide(tmp_pool)
 
     if not should_run:
-        print("[Graph] astro_council — SKIPPED (BeliefGuard)")
+        log.info("[Graph] astro_council — SKIPPED (BeliefGuard)")
         return {**state, "astro_council_result": None}
 
-    print(f"[Graph] astro_council — selected: {selected}")
+    log.info(f"[Graph] astro_council — selected: {selected}")
     selections = dict(state.get("thompson_selections", {}))
     selections["astro"] = selected
 
@@ -278,10 +289,10 @@ def electoral_node(state: AgentState) -> AgentState:
     should_run, selected = _pool_decide(ELECTORAL_POOL)
 
     if not should_run:
-        print("[Graph] electoral — SKIPPED (BeliefGuard)")
+        log.info("[Graph] electoral — SKIPPED (BeliefGuard)")
         return {**state, "electoral_result": None}
 
-    print(f"[Graph] electoral — selected: {selected}")
+    log.info(f"[Graph] electoral — selected: {selected}")
     selections = dict(state.get("thompson_selections", {}))
     selections["electoral"] = selected
 

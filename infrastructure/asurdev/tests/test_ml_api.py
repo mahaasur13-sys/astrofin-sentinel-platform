@@ -73,6 +73,7 @@ def client():
 
     # Lazy import to avoid importing the module before patching model paths
     import os
+
     from ml_engine.inference.api import app
 
     # Point at dummy files — the startup will fail gracefully in test env

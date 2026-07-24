@@ -42,13 +42,13 @@ from orchestration.execution_gateway import ExecutionGateway, SafetyViolationErr
 class MutationExecutorMetaclass(type):
     '''
     Metaclass for MutationExecutor — enforces protection at class creation.
-    
+
     Guarantees:
         1. MutationExecutor cannot be instantiated outside Gateway context
         2. All public methods must be decorated with @requires_gateway
         3. Direct calls to apply_mutation() are blocked
         4. Class structure is verified at creation time
-    
+
     Protection mechanisms:
         - __init__ check: verifies GatewayContext is active
         - Method decoration: @requires_gateway on all mutation methods
@@ -78,7 +78,7 @@ class MutationExecutorMetaclass(type):
     def __call__(cls, *args, **kwargs) -> MutationExecutor:
         '''
         Intercept instantiation — verify Gateway context is active.
-        
+
         This is the FINAL line of defense:
         Even if someone bypasses @requires_gateway on methods,
         they cannot instantiate MutationExecutor outside Gateway context.
@@ -137,14 +137,14 @@ class MutationResult:
 class MutationExecutor(metaclass=MutationExecutorMetaclass):
     '''
     Executes all state mutations in ATOMFEDERATION-OS.
-    
+
     Guarantees:
         - All mutations flow through ExecutionGateway
         - DI ensures no direct instantiation bypassing gateway
         - Metaclass prevents instantiation outside Gateway context
         - @requires_gateway guards all public methods
         - Thread-safe under concurrent access
-    
+
     Bypass IMPOSSIBLE because:
         1. Metaclass blocks instantiation outside Gateway context
         2. @requires_gateway blocks method calls outside context
@@ -155,10 +155,10 @@ class MutationExecutor(metaclass=MutationExecutorMetaclass):
     def __init__(self, gateway: ExecutionGateway) -> None:
         '''
         Initialize with injected gateway.
-        
+
         Args:
             gateway: ExecutionGateway singleton instance (DI)
-        
+
         Raises:
             TypeError: if gateway is not ExecutionGateway instance
             SafetyViolationError: if not in Gateway context
@@ -180,13 +180,13 @@ class MutationExecutor(metaclass=MutationExecutorMetaclass):
     def execute(self, payload: MutationPayload) -> MutationResult:
         '''
         Execute single mutation.
-        
+
         Args:
             payload: Structured mutation request
-        
+
         Returns:
             MutationResult with success status and output
-        
+
         Raises:
             SafetyViolationError: if called outside mutation_context
             SystemShutdown: if bypass detected
@@ -225,12 +225,12 @@ class MutationExecutor(metaclass=MutationExecutorMetaclass):
     def execute_batch(self, payloads: list[MutationPayload]) -> list[MutationResult]:
         '''
         Execute batch of mutations atomically.
-        
+
         All succeed or all fail — no partial state.
-        
+
         Args:
             payloads: List of mutation requests
-        
+
         Returns:
             List of MutationResult in same order
         '''
@@ -248,7 +248,7 @@ class MutationExecutor(metaclass=MutationExecutorMetaclass):
     def _apply_mutation(self, payload: MutationPayload) -> dict[str, Any]:
         '''
         Apply mutation to system state.
-        
+
         In real implementation: would modify DriftProfiler, Swarm, Operator state.
         This is a stub for gateway enforcement demonstration.
         '''
@@ -267,7 +267,7 @@ class MutationExecutor(metaclass=MutationExecutorMetaclass):
 def _block_direct_mutation():
     '''
     Called at module import time to prevent direct access.
-    
+
     If this module is imported outside Gateway context (via some bypass),
     this raises an immediate error.
     '''

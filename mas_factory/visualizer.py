@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 # mas_factory/visualizer.py - ATOM-R-029: Topology Visualization
 import json
 from pathlib import Path
+
+import logging
+log = logging.getLogger(__name__)
+
 
 try:
     from .topology import Connection, NodeType, Role, SwitchAction, SwitchNode, Topology
@@ -75,7 +81,9 @@ class TopologyVisualizer:
         for role in self.topo.roles:
             color = self.NODE_COLORS.get("agent", "#4CAF50")
             weight_str = f"\\nweight={role.weight}" if role.weight else ""
-            lines.append(f'    {role.name} [label="{role.name}{weight_str}", fillcolor="{color}40", color="{color}"];')
+            lines.append(
+                f'    {role.name} [label="{role.name}{weight_str}", fillcolor="{color}40", color="{color}"];'
+            )
 
         for sw in self.topo.switch_nodes:
             sw_color = self.NODE_COLORS.get("switch", "#FF9800")
@@ -88,12 +96,18 @@ class TopologyVisualizer:
         lines.append("    /* Connections */")
 
         for conn in self.topo.connections:
-            adapter_label = f' [label="{conn.adapter.transform}"]' if conn.adapter else ""
+            adapter_label = (
+                f' [label="{conn.adapter.transform}"]' if conn.adapter else ""
+            )
             lines.append(f"    {conn.from_node} -> {conn.to_node}{adapter_label};")
 
         lines.append("")
-        lines.append(f'    input -> {self.topo.entry_point} [style=dashed, color="#1976D2"];')
-        lines.append(f'    {self.topo.exit_point} -> output [style=dashed, color="#C62828"];')
+        lines.append(
+            f'    input -> {self.topo.entry_point} [style=dashed, color="#1976D2"];'
+        )
+        lines.append(
+            f'    {self.topo.exit_point} -> output [style=dashed, color="#C62828"];'
+        )
 
         # Legend
         lines.extend(
@@ -176,7 +190,9 @@ class TopologyVisualizer:
             },
         }
 
-    def save_all(self, output_dir: str = "data/topology", session_id: str = None) -> dict[str, str]:
+    def save_all(
+        self, output_dir: str = "data/topology", session_id: str = None
+    ) -> dict[str, str]:
         """Save all visualizations to files"""
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
@@ -212,7 +228,9 @@ class TopologyVisualizer:
         return files
 
 
-def visualize_topology(topology: Topology, output_dir: str = "data/topology", session_id: str = None) -> dict[str, str]:
+def visualize_topology(
+    topology: Topology, output_dir: str = "data/topology", session_id: str = None
+) -> dict[str, str]:
     """Quick function to visualize a topology"""
     viz = TopologyVisualizer(topology)
     return viz.save_all(output_dir, session_id)
@@ -222,9 +240,9 @@ def print_topology_viz(topology: Topology):
     """Print all visualizations to console"""
     viz = TopologyVisualizer(topology)
 
-    print(viz.to_ascii())
-    print()
-    print("=" * 60)
-    print("MERMAID DIAGRAM:")
-    print("=" * 60)
-    print(viz.to_mermaid())
+    log.info(viz.to_ascii())
+    log.info("")
+    log.info("=" * 60)
+    log.info("MERMAID DIAGRAM:")
+    log.info("=" * 60)
+    log.info(viz.to_mermaid())

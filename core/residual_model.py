@@ -2,11 +2,17 @@
 core/residual_model.py - ATOM-STEP-4: Residual Correction Model
 """
 
+from __future__ import annotations
+
+import logging
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 import joblib
+
+log = logging.getLogger(__name__)
+
 
 # ── package imports (work when run as module) ──
 if __name__ not in ("__main__", "__mp_main__"):
@@ -61,34 +67,37 @@ class ResidualModel:
         except Exception:
             swiss_lon = kepler_lon
         delta = (swiss_lon - kepler_lon + 180) % 360 - 180
-        return ResidualCorrection(body_lower, jd, kepler_lon, swiss_lon, delta, delta * 60.0)
+        return ResidualCorrection(
+            body_lower, jd, kepler_lon, swiss_lon, delta, delta * 60.0
+        )
 
     def corrected_longitude(self, body: str, jd: float) -> float:
         return self.predict_correction(body, jd).swiss_lon_deg
 
     def print_comparison(self, jd: float, bodies=None):
         bodies = bodies or ["earth", "jupiter", "saturn"]
-        print(f"""\n{"BODY":<10} {"KEPLER":>8} {"SWISS":>8} {"DELTA°":>8} {"DELTA'":>10} {"MODE"}""")  # noqa: F541
-        print("-" * 66)
+        log.info(
+            f"""\n{"BODY":<10} {"KEPLER":>8} {"SWISS":>8} {"DELTA°":>8} {"DELTA'":>10} {"MODE"}"""  # noqa: F541
+        )
+        log.info("-" * 66)
         for body in bodies:
             rc = self.predict_correction(body, jd)
-            print(
-                f"{body:<10} {rc.kepler_lon_deg:>8.3f} {rc.swiss_lon_deg:>8.3f} "
-                f"{rc.correction_deg:>8.4f} {rc.correction_arcmin:>10.2f} {self.mode}"
+            log.info(
+                f"{body:<10} {rc.kepler_lon_deg:>8.3f} {rc.swiss_lon_deg:>8.3f} {rc.correction_deg:>8.4f} {rc.correction_arcmin:>10.2f} {self.mode}"
             )
 
 
 def main():
-    print("=" * 66)
-    print("ATOM-STEP-4: Residual Model - Kepler vs SwissEph")
-    print("=" * 66)
+    log.info("=" * 66)
+    log.info("ATOM-STEP-4: Residual Model - Kepler vs SwissEph")
+    log.info("=" * 66)
     model = ResidualModel(mode="physics")
     for jd, label in [(2451545.0, "J2000"), (2460000.0, "~2030")]:
-        print(f"\n--- JD {jd:.1f} ({label}) ---")
+        log.info(f"\n--- JD {jd:.1f} ({label}) ---")
         model.print_comparison(jd)
     ml = ResidualModel(mode="ml")
-    print(f"\nML Model trained: {ml.is_trained()}")
-    print("=" * 66)
+    log.info(f"\nML Model trained: {ml.is_trained()}")
+    log.info("=" * 66)
 
 
 if __name__ == "__main__":

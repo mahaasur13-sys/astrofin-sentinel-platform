@@ -2,7 +2,7 @@
 """ROMA Cost Predictor — Pre-execution cost estimation engine."""
 import sys
 
-sys.path.insert(0, "/home/workspace/roma-execution-bridge")
+sys.path.insert(0, '/home/workspace/roma-execution-bridge')
 
 from billing.pricing_engine import PricingEngine, PricingTier
 
@@ -12,20 +12,10 @@ class CostPredictor:
 
     def __init__(self):
         self.pricing = PricingEngine()
-        self.tier_map = {
-            "FREE": PricingTier.FREE,
-            "PRO": PricingTier.PRO,
-            "ENTERPRISE": PricingTier.ENTERPRISE,
-        }
+        self.tier_map = {"FREE": PricingTier.FREE, "PRO": PricingTier.PRO, "ENTERPRISE": PricingTier.ENTERPRISE}
 
-    def predict(
-        self,
-        task: str,
-        gpu_required: bool,
-        plugin_type: str = "default",
-        tenant_tier: str = "FREE",
-        custom_duration: int = None,
-    ) -> dict:
+    def predict(self, task: str, gpu_required: bool, plugin_type: str = "default",
+                tenant_tier: str = "FREE", custom_duration: int = None) -> dict:
         tier_enum = self.tier_map.get(tenant_tier, PricingTier.FREE)
 
         # Оцениваем длительность (в секундах)
@@ -73,20 +63,14 @@ class CostPredictor:
                 "multiplier": self.pricing.multiplier,
                 "total": round(total_cost, 4),
                 "plugin_type": plugin_type,
-                "gpu_required": gpu_required,
+                "gpu_required": gpu_required
             },
             "risk_flags": risk_flags,
-            "decision": self._decision(total_cost, tenant_tier, risk_flags),
+            "decision": self._decision(total_cost, tenant_tier, risk_flags)
         }
 
     def _estimate_runtime(self, task: str, plugin_type: str, gpu_required: bool) -> int:
-        benchmarks = {
-            "ml_training": 7200,
-            "inference": 1800,
-            "simulation": 3600,
-            "data_processing": 5400,
-            "default": 3600,
-        }
+        benchmarks = {"ml_training": 7200, "inference": 1800, "simulation": 3600, "data_processing": 5400, "default": 3600}
         base = benchmarks.get(plugin_type, 3600)
         if gpu_required:
             base = int(base * 1.1)

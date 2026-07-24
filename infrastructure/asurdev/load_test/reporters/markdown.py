@@ -3,18 +3,22 @@
 #ACOS #LOAD_TEST
 Markdown Reporter — generates human-readable report from orchestrator results
 """
-import json, sys
-from pathlib import Path
+import json
+import logging
 from datetime import datetime
+from pathlib import Path
+
+log = logging.getLogger(__name__)
+
 
 
 def format_result(r: dict) -> str:
     lines = [
         f"## {r['scenario']}",
-        f"",
+        "",
         f"**Tags:** {', '.join(r.get('tags', []))}",
         f"**Failure detected:** {'❌ YES' if r.get('failure_detected') else '✅ NO'}",
-        f"",
+        "",
     ]
     if r.get("metrics"):
         lines.append("**Metrics:**")
@@ -44,18 +48,18 @@ def generate_report(results_file: str):
     meta = data.get("meta", {})
     results = data.get("results", [])
     corrections = data.get("corrections", [])
-    post = data.get("post_fix_results", [])
+    data.get("post_fix_results", [])
 
     lines = [
-        f"# ACOS Load Test Report",
-        f"",
+        "# ACOS Load Test Report",
+        "",
         f"**Generated:** {datetime.fromtimestamp(meta.get('timestamp', 0))}",
         f"**Total scenarios:** {meta.get('total_scenarios', 0)}",
         f"**Failures detected:** {meta.get('total_failures', 0)}",
         f"**Corrections applied:** {meta.get('corrections_applied', 0)}",
-        f"",
-        f"## Tag Distribution",
-        f"",
+        "",
+        "## Tag Distribution",
+        "",
     ]
 
     for tag, count in sorted(meta.get("tag_stats", {}).items(), key=lambda x: -x[1]):
@@ -71,11 +75,11 @@ def generate_report(results_file: str):
             lines.append(f"- **{c['scenario']}**: {c['correction']}")
 
     report = "\n".join(lines)
-    print(report)
+    log.info(report)
 
     out = Path(results_file).parent / "report.md"
     out.write_text(report)
-    print(f"\nReport saved to: {out}")
+    log.info(f"\nReport saved to: {out}")
     return report
 
 
@@ -85,4 +89,4 @@ if __name__ == "__main__":
     if results_files:
         generate_report(results_files[-1])
     else:
-        print("No results found. Run orchestrator first.")
+        log.info("No results found. Run orchestrator first.")

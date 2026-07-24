@@ -8,6 +8,10 @@ from dataclasses import dataclass, field
 from .order_book import OrderBookSimulator
 from .slippage import AdaptiveSlippageModel
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class VWAPSlice:
@@ -174,7 +178,7 @@ class VWAPExecutor:
         qty: float,
         config: VWAPConfig | None = None,
         current_price: float = 0.0,
-        get_market_price_fn=None,
+        _get_market_price_fn=None,
     ) -> VWAPExecutionReport:
         """Execute a VWAP order.
 
@@ -231,14 +235,21 @@ class VWAPExecutor:
             participation = market_vol * cfg.participation_rate if market_vol > 0 else 0
             target_qty = min(target_qty, market_vol * cfg.max_participation_rate)
 
-            if participation > 0 and target_qty / participation > cfg.max_participation_rate:
+            if (
+                participation > 0
+                and target_qty / participation > cfg.max_participation_rate
+            ):
                 participation_violations += 1
 
-            participation_rate = (target_qty / market_vol * 100) if market_vol > 0 else 0
+            participation_rate = (
+                (target_qty / market_vol * 100) if market_vol > 0 else 0
+            )
             participation_sum += participation_rate
 
             # Market impact
-            impact = self.ob_sim.estimate_market_impact(side, target_qty, num_slices=1, base_price=slice_price)
+            impact = self.ob_sim.estimate_market_impact(
+                side, target_qty, num_slices=1, base_price=slice_price
+            )
 
             # Slippage
             slip = self.slippage.calculate(
@@ -305,7 +316,9 @@ class VWAPExecutor:
 
         filled = [s for s in report.slices if s.filled]
         report.avg_price = (
-            sum(s.exec_price * s.actual_qty for s in filled) / filled_qty_total if filled_qty_total > 0 else 0
+            sum(s.exec_price * s.actual_qty for s in filled) / filled_qty_total
+            if filled_qty_total > 0
+            else 0
         )
         report.vwap = report.avg_price
 
@@ -315,7 +328,9 @@ class VWAPExecutor:
         if vwap_denominator > 0:
             report.vwap = vwap_numerator / vwap_denominator
 
-        report.avg_slippage_bps = sum(s.slippage_bps for s in filled) / len(filled) if filled else 0
+        report.avg_slippage_bps = (
+            sum(s.slippage_bps for s in filled) / len(filled) if filled else 0
+        )
         report.total_slippage_cost = total_slippage_cost
         report.total_commission = total_commission
         report.total_cost = total_cost
@@ -326,7 +341,9 @@ class VWAPExecutor:
         report.participation_violations = participation_violations
 
         if report.price_start > 0:
-            report.price_impact_bps = abs(report.avg_price - report.price_start) / report.price_start * 10000
+            report.price_impact_bps = (
+                abs(report.avg_price - report.price_start) / report.price_start * 10000
+            )
 
         return report
 
@@ -335,19 +352,21 @@ class VWAPExecutor:
 
 
 if __name__ == "__main__":
-    print("=== VWAP Execution ===")
+    log.info("=== VWAP Execution ===")
     executor = VWAPExecutor()
     cfg = VWAPConfig(num_slices=5, slice_duration_seconds=10)
-    report = executor.execute("BTC/USDT", "buy", qty=1.0, current_price=50000, config=cfg)
-    print(f"  {report.summary()}")
+    report = executor.execute(
+        "BTC/USDT", "buy", qty=1.0, current_price=50000, config=cfg
+    )
+    log.info(f"  {report.summary()}")
     for s in report.slices:
         status = "FILLED" if s.filled else "ABORTED"
-        print(
+        log.info(
             f"    Slice {s.slice_num}: {status} | "
             f"qty={s.actual_qty:.4f} | "
             f"@${s.exec_price:.2f} | "
             f"mkt_vol={s.market_volume:.2f} | "
             f"participation={s.participation_rate:.1f}%"
         )
-    print(f"  VWAP benchmark: ${report.vwap:.2f}")
-    print(f"  Participation violations: {report.participation_violations}")
+    log.info(f"  VWAP benchmark: ${report.vwap:.2f}")
+    log.info(f"  Participation violations: {report.participation_violations}")

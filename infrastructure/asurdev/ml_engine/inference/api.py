@@ -19,12 +19,11 @@ import time
 import uuid
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Query, Response
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Query
 
 from ml_engine.inference.schemas import (
     ExplainResponse,
@@ -263,12 +262,13 @@ def _get_cache_ttl() -> int:
 
 def _input_hash(data: dict) -> str:
     """Deterministic hash of the input metrics dict."""
-    import hashlib, json
+    import hashlib
+    import json
     safe = {k: v for k, v in data.items() if k not in ("node_id",)}
     return hashlib.sha256(json.dumps(safe, sort_keys=True).encode()).hexdigest()[:16]
 
 
-def _cache_get(data: dict) -> Optional[float]:
+def _cache_get(data: dict) -> float | None:
     h = _input_hash(data)
     if h in _cache_store:
         score, ts = _cache_store[h]
@@ -400,7 +400,6 @@ def explain_prediction(prediction_id: str) -> ExplainResponse:
     risk_score = entry["risk_score"]
 
     try:
-        import shap
 
         shap_values = _shap_explainer(df_feat)
         # shap_values.values shape: (1, n_features)

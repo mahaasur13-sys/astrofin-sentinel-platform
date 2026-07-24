@@ -3,11 +3,11 @@
 Admission Controller — backpressure + resource gating
 Prevents oversaturation: GPU >85%, queue >40, low-priority throttling.
 """
-import os
 import logging
+import os
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
 from enum import Enum
+from typing import Any
 
 log = logging.getLogger("admission")
 
@@ -26,8 +26,8 @@ class AdmitDecision(str, Enum):
 class AdmitResult:
     decision:  AdmitDecision
     reason:    str
-    job_id:    Optional[str] = None
-    wait_time: Optional[int] = None  # seconds to wait if queued
+    job_id:    str | None = None
+    wait_time: int | None = None  # seconds to wait if queued
 
 
 class AdmissionController:
@@ -39,7 +39,7 @@ class AdmissionController:
     def __init__(self, state_store):
         self.state = state_store
 
-    def admit(self, job: Dict[str, Any]) -> AdmitResult:
+    def admit(self, job: dict[str, Any]) -> AdmitResult:
         """
         Returns (decision, reason, job_id_or_None).
         Decision is final — REJECT means no retry, QUEUED means retry after wait_time.
@@ -113,7 +113,7 @@ class AdmissionController:
         return AdmitResult(AdmitDecision.ADMIT, "accepted", job_id=job.get("id"))
 
     def _check_memory(self, job_mem_gb: int, job_type: str,
-                      cluster_util: Dict) -> bool:
+                      cluster_util: dict) -> bool:
         """Check if any eligible node has enough free memory."""
         nodes = self.state.get_healthy_nodes()
         for node in nodes:

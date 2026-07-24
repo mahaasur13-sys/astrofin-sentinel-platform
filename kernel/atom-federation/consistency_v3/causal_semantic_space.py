@@ -65,7 +65,6 @@ class CausalSemanticVector:
     ) -> CausalSemanticVector:
         s_state = _l2_norm(state)
         s_delta = _l2_norm(_dict_diff(state, prev_state or {}))
-        r_transitions = transitions  # rate computed externally
         t_wallclock_ns = wallclock_ns or int(time.time_ns())
         return cls(
             s_state=s_state,

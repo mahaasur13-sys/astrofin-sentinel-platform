@@ -3,10 +3,11 @@
 Load Prediction Model — XGBoost regressor.
 Predicts: queue_depth(t+10m), gpu_util(t+15m), memory_util(t+15m).
 """
+import logging
+from typing import Any
+
 import numpy as np
 import pandas as pd
-from typing import Optional, Dict, Any
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +28,10 @@ class LoadXGBoost:
         self.subsample = subsample
         self.colsample_bytree = colsample_bytree
         self.random_state = random_state
-        self._models: Dict[str, Any] = {}
-        self._feature_names: Optional[list] = None
+        self._models: dict[str, Any] = {}
+        self._feature_names: list | None = None
 
-    def fit(self, X: pd.DataFrame, y_queue: pd.Series, y_gpu: pd.Series, y_mem: Optional[pd.Series] = None) -> "LoadXGBoost":
+    def fit(self, X: pd.DataFrame, y_queue: pd.Series, y_gpu: pd.Series, y_mem: pd.Series | None = None) -> "LoadXGBoost":
         """Train separate regressors for queue_depth, gpu_util, memory_util."""
         try:
             import xgboost as xgb
@@ -76,7 +77,7 @@ class LoadXGBoost:
 
         return self
 
-    def predict(self, X: pd.DataFrame) -> Dict[str, np.ndarray]:
+    def predict(self, X: pd.DataFrame) -> dict[str, np.ndarray]:
         """Return predictions for all targets."""
         if not self._models:
             raise RuntimeError("No models trained — call fit() first")
@@ -91,7 +92,7 @@ class LoadXGBoost:
     def predict_memory(self, X: pd.DataFrame) -> np.ndarray:
         return self._models["memory_util"].predict(X)
 
-    def feature_importance(self) -> Dict[str, Dict[str, float]]:
+    def feature_importance(self) -> dict[str, dict[str, float]]:
         return {
             name: dict(zip(self._feature_names, m.feature_importances_))
             for name, m in self._models.items()

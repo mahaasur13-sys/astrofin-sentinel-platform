@@ -1,3 +1,0 @@
-=== Step 1: Merge DONE ===
-Merge commit: 
-Pytest: 572 passed, 69 skipped, 0 failed, coverage 42.41%

@@ -10,6 +10,10 @@ import json
 import random
 from dataclasses import dataclass
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class Decision:
@@ -59,11 +63,11 @@ class GovernanceFailureScenario:
 
 
 def run():
-    print("[GOVERNANCE FAILURE] Starting scenario...")
+    log.info("[GOVERNANCE FAILURE] Starting scenario...")
     s = GovernanceFailureScenario()
     r = s.simulate()
-    print(f"Failure detected: {r['failure_detected']}")
-    print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
+    log.info(f"Failure detected: {r['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
 
 

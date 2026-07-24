@@ -15,27 +15,24 @@ class TruthSource(str, Enum):
     K8s is the physical truth. Redis is the logical cache.
     Event Store is the historical truth.
     """
-
-    KUBERNETES = "k8s"  # Physical execution truth (always authoritative for running jobs)
-    REDIS = "redis"  # Logical state cache (queues, scheduling)
+    KUBERNETES = "k8s"          # Physical execution truth (always authoritative for running jobs)
+    REDIS = "redis"              # Logical state cache (queues, scheduling)
     EVENT_STORE = "event_store"  # Historical truth (append-only log)
     STATE_SNAPSHOT = "snapshot"  # Derived truth (from replay)
 
 
 class ConflictResolution(str, Enum):
     """Rules for resolving state conflicts between sources."""
-
-    K8S_WINS = "k8s_wins"  # K8s job state overrides all
+    K8S_WINS = "k8s_wins"           # K8s job state overrides all
     LAST_WRITE_WINS = "last_write"  # Most recent timestamp wins
-    SOURCE_PRIORITY = "source"  # Follow TruthSource hierarchy
-    MERGE = "merge"  # Merge states (union of truth)
-    BLOCK = "block"  # Reject conflicting update
+    SOURCE_PRIORITY = "source"       # Follow TruthSource hierarchy
+    MERGE = "merge"                  # Merge states (union of truth)
+    BLOCK = "block"                  # Reject conflicting update
 
 
 @dataclass
 class GlobalStateRecord:
     """Single record in the global state model."""
-
     job_id: str
     field: str
     value: Any
@@ -71,7 +68,7 @@ class GlobalStateModel:
         self.event_store = event_store
         self.state_store = state_store
         self.redis_client = redis_client
-        self._cache: dict[str, GlobalStateRecord] = {}
+        self._cache: Dict[str, GlobalStateRecord] = {}
 
     # -------------------------------------------------------------------------
     # Truth reconciliation
@@ -85,21 +82,25 @@ class GlobalStateModel:
         # 1. Check K8s (physical truth)
         k8s_val = self._get_k8s_field(job_id, field)
         if k8s_val is not None:
-            return GlobalStateRecord(job_id=job_id, field=field, value=k8s_val, source=TruthSource.KUBERNETES)
+            return GlobalStateRecord(
+                job_id=job_id, field=field, value=k8s_val,
+                source=TruthSource.KUBERNETES
+            )
 
         # 2. Check Redis (logical cache)
         redis_val = self._get_redis_field(job_id, field)
         if redis_val is not None:
-            return GlobalStateRecord(job_id=job_id, field=field, value=redis_val, source=TruthSource.REDIS)
+            return GlobalStateRecord(
+                job_id=job_id, field=field, value=redis_val,
+                source=TruthSource.REDIS
+            )
 
         # 3. Reconstruct from Event Store
         event_val = self._reconstruct_from_event_store(job_id, field)
         if event_val is not None:
             return GlobalStateRecord(
-                job_id=job_id,
-                field=field,
-                value=event_val,
-                source=TruthSource.EVENT_STORE,
+                job_id=job_id, field=field, value=event_val,
+                source=TruthSource.EVENT_STORE
             )
 
         return None
@@ -121,7 +122,7 @@ class GlobalStateModel:
             return record_a
         return record_b
 
-    def check_consistency(self, job_id: str) -> dict[str, bool]:
+    def check_consistency(self, job_id: str) -> Dict[str, bool]:
         """
         Verify consistency invariant for a job.
         Returns dict of field -> is_consistent
@@ -140,7 +141,7 @@ class GlobalStateModel:
             result["overall"] = True  # Not enough data
         else:
             # All records should have same value for shared fields
-            values_by_field: dict[str, set] = {}
+            values_by_field: Dict[str, set] = {}
             for rec in records:
                 if rec.field not in values_by_field:
                     values_by_field[rec.field] = set()
@@ -200,12 +201,12 @@ class GlobalStateModel:
     # Private helpers
     # -------------------------------------------------------------------------
 
-    def _get_k8s_field(self, job_id: str, field: str) -> Any | None:
+    def _get_k8s_field(self, job_id: str, field: str) -> Optional[Any]:
         """Query K8s for job field (via kubectl or K8s API)."""
         # Placeholder — integrate with kubernetes client
         return None
 
-    def _get_redis_field(self, job_id: str, field: str) -> Any | None:
+    def _get_redis_field(self, job_id: str, field: str) -> Optional[Any]:
         """Query Redis for job field."""
         if self.redis_client:
             try:
@@ -215,7 +216,7 @@ class GlobalStateModel:
                 return None
         return None
 
-    def _reconstruct_from_event_store(self, job_id: str, field: str) -> Any | None:
+    def _reconstruct_from_event_store(self, job_id: str, field: str) -> Optional[Any]:
         """Reconstruct field value by replaying event log."""
         if self.event_store:
             events = self.event_store.get_events_for_job(job_id)

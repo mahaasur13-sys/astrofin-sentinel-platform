@@ -11,10 +11,15 @@ Usage:
     python knowledge/daily_digest/atom_proposer.py --propose-from findings.json
 """
 
+from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+
+import logging
+log = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -30,7 +35,9 @@ class AtomProposal:
     complexity: str  # LOW, MEDIUM, HIGH
     expected_effect: str
     related_findings: list = field(default_factory=list)
-    proposed_at: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
+    proposed_at: str = field(
+        default_factory=lambda: datetime.now().strftime("%Y-%m-%d")
+    )
     status: str = "PROPOSED"
 
 
@@ -299,7 +306,9 @@ class AtomProposer:
             related_findings=[finding.title],
         )
 
-    def _create_crosscut_proposal(self, title: str, category: str, description: str, priority: str) -> AtomProposal:
+    def _create_crosscut_proposal(
+        self, title: str, category: str, description: str, priority: str
+    ) -> AtomProposal:
         """Create cross-cutting proposal from category analysis."""
         return AtomProposal(
             atom_id=f"ATOM-{self._get_next_id()}",
@@ -371,29 +380,33 @@ class AtomProposer:
     def print_proposals(self):
         """Print proposals to console."""
         if not self.proposals:
-            print("No proposals generated. Run propose_from_analysis() first.")
+            log.info("No proposals generated. Run propose_from_analysis() first.")
             return
 
-        print(f"\n{'=' * 70}")
-        print(f"  📋 ATOM PROPOSALS — {len(self.proposals)} Generated")
-        print(f"{'=' * 70}\n")
+        log.info(f"\n{'=' * 70}")
+        log.info(f"  📋 ATOM PROPOSALS — {len(self.proposals)} Generated")
+        log.info(f"{'=' * 70}\n")
 
         for p in sorted(
             self.proposals,
             key=lambda x: (["P0", "P1", "P2"].index(x.priority), x.atom_id),
         ):
-            print(f"  {p.atom_id} [{p.priority}] {p.title}")
-            print(f"       Complexity: {p.complexity}")
-            print(f"       Summary: {p.summary[:100]}...")
-            print()
+            log.info(f"  {p.atom_id} [{p.priority}] {p.title}")
+            log.info(f"       Complexity: {p.complexity}")
+            log.info(f"       Summary: {p.summary[:100]}...")
+            log.info("")
 
 
 def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="ATOM Proposer from Daily Digest")
-    parser.add_argument("--latest", action="store_true", help="Propose from latest digest")
-    parser.add_argument("--analysis", type=str, help="Path to analysis JSON from analytics")
+    parser.add_argument(
+        "--latest", action="store_true", help="Propose from latest digest"
+    )
+    parser.add_argument(
+        "--analysis", type=str, help="Path to analysis JSON from analytics"
+    )
     parser.add_argument("--save", type=str, help="Save proposals to file")
     parser.add_argument("--print", action="store_true", help="Print proposals")
 
@@ -411,16 +424,18 @@ def main():
             brief_dir = Path(__file__).parent.parent / "daily_brief"
             path = brief_dir / "brief_latest.md"
             if not path.exists():
-                print("No digest found. Run analytics first.")
+                log.info("No digest found. Run analytics first.")
                 return
             analyzer = DigestAnalyzer(str(path))
             analysis = analyzer.analyze()
-            analysis_data = analysis.__dict__ if hasattr(analysis, "__dict__") else analysis
+            analysis_data = (
+                analysis.__dict__ if hasattr(analysis, "__dict__") else analysis
+            )
 
         proposer = AtomProposer()
         proposer.propose_from_analysis(analysis_data)
     else:
-        print("Use --latest or --analysis to provide data.")
+        log.info("Use --latest or --analysis to provide data.")
         return
 
     if args.print or not args.save:
@@ -428,7 +443,7 @@ def main():
 
     if args.save:
         path = proposer.save_proposals(args.save)
-        print(f"\nSaved to: {path}")
+        log.info(f"\nSaved to: {path}")
 
 
 if __name__ == "__main__":

@@ -6,6 +6,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class TradingMode(Enum):
     BACKTEST = "BACKTEST"
@@ -28,10 +32,18 @@ class ModeLimits:
 
 
 MODE_LIMITS = {
-    TradingMode.BACKTEST: ModeLimits(1.0, 1.0, True, True, True, True, False, 10_000, False),
-    TradingMode.PAPER: ModeLimits(0.50, 1.0, True, True, False, False, False, 100, False),
-    TradingMode.LIVE_LIMITED: ModeLimits(0.20, 0.50, True, True, False, False, True, 10, True),
-    TradingMode.LIVE_FULL: ModeLimits(0.30, 0.80, True, True, True, True, True, 50, True),
+    TradingMode.BACKTEST: ModeLimits(
+        1.0, 1.0, True, True, True, True, False, 10_000, False
+    ),
+    TradingMode.PAPER: ModeLimits(
+        0.50, 1.0, True, True, False, False, False, 100, False
+    ),
+    TradingMode.LIVE_LIMITED: ModeLimits(
+        0.20, 0.50, True, True, False, False, True, 10, True
+    ),
+    TradingMode.LIVE_FULL: ModeLimits(
+        0.30, 0.80, True, True, True, True, True, 50, True
+    ),
 }
 
 
@@ -41,7 +53,9 @@ class ModeEnforcer:
         self.limits = MODE_LIMITS[mode]
         self._order_count_today = 0
 
-    def check_order(self, proposed_size_pct, is_market, is_limit, is_option, is_short, equity):
+    def check_order(
+        self, proposed_size_pct, is_market, is_limit, is_option, is_short, equity
+    ):
         limits = self.limits
         if proposed_size_pct > limits.max_position_pct:
             return (
@@ -87,13 +101,13 @@ if __name__ == "__main__":
     enforcer = ModeEnforcer(TradingMode.BACKTEST)
     ok, _ = enforcer.check_order(1.0, True, True, True, True, 100_000)
     assert ok
-    print("  Test 1 (BACKTEST full): PASSED")
+    log.info("  Test 1 (BACKTEST full): PASSED")
     enforcer2 = ModeEnforcer(TradingMode.PAPER)
     ok, _ = enforcer2.check_order(0.30, True, True, False, True, 100_000)
     assert not ok
-    print("  Test 2 (PAPER restrictions): PASSED")
+    log.info("  Test 2 (PAPER restrictions): PASSED")
     enforcer3 = ModeEnforcer(TradingMode.LIVE_LIMITED)
     ok, _ = enforcer3.check_order(0.25, True, False, False, False, 100_000)
     assert not ok
-    print("  Test 3 (LIVE_LIMITED cap): PASSED")
-    print("ModeEnforcer: all tests passed")
+    log.info("  Test 3 (LIVE_LIMITED cap): PASSED")
+    log.info("ModeEnforcer: all tests passed")

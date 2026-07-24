@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 
@@ -9,7 +11,9 @@ def test_quant_agent_no_sync_requests():
 
     code = pathlib.Path("agents/_impl/quant_agent.py").read_text()
     tree = ast.parse(code)
-    imports = [node.names[0].name for node in ast.walk(tree) if isinstance(node, ast.Import)]
+    imports = [
+        node.names[0].name for node in ast.walk(tree) if isinstance(node, ast.Import)
+    ]
     imports_from = [
         f"{node.module}.{alias.name}"
         for node in ast.walk(tree)

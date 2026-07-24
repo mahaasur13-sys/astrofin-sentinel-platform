@@ -180,7 +180,7 @@ class TestDAGFingerprintBridge:
 
     def test_stable_since_different_hash(self):
         bridge = DAGFingerprintBridge()
-        fp1 = bridge.compute([{"node_id": "A", "parent_ids": []}])
+        bridge.compute([{"node_id": "A", "parent_ids": []}])
         fp2 = IncrementalFingerprint().compute_fingerprint([
             {"node_id": "A", "parent_ids": []},
             {"node_id": "B", "parent_ids": ["A"]},

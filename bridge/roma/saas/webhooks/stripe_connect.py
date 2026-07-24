@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 """Stripe Connect integration — white-label revenue-share"""
 import json
+import logging
 import time
+
+log = logging.getLogger(__name__)
+
 
 CONFIG = {
     "mode": "stripe_connect_standard",
@@ -17,7 +21,6 @@ CONFIG = {
     ],
 }
 
-
 def calculate_application_fee(amount_cents: int, fee_percent: float = 15.0) -> dict:
     gross = amount_cents / 100
     application_fee = int(amount_cents * fee_percent / 100)
@@ -28,7 +31,6 @@ def calculate_application_fee(amount_cents: int, fee_percent: float = 15.0) -> d
         "partner_payout_cents": partner_payout,
         "fee_percent": fee_percent,
     }
-
 
 class AsyncWebhookQueue:
     def __init__(self, queue_file="/tmp/roma_webhook_queue.json"):
@@ -41,11 +43,11 @@ class AsyncWebhookQueue:
         try:
             with open(self._queue_file) as f:
                 self._queue = json.load(f)
-        except:
-            pass
+        except Exception:
+                pass
 
     def _save(self):
-        with open(self._queue_file, "w") as f:
+        with open(self._queue_file, 'w') as f:
             json.dump(self._queue, f)
 
     def enqueue(self, event_id: str, payload: dict):
@@ -65,7 +67,6 @@ class AsyncWebhookQueue:
         self._save()
         return processed
 
-
 if __name__ == "__main__":
-    print("Stripe Connect: Ready for Standard/Custom accounts")
-    print(f"Config: {CONFIG}")
+    log.info("Stripe Connect: Ready for Standard/Custom accounts")
+    log.info(f"Config: {CONFIG}")

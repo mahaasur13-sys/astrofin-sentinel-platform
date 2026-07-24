@@ -147,7 +147,8 @@ def format_error(
 
     _now = time.time()
     timestamp = (
-        time.strftime("%Y-%m-%dT%H:%M:%S.", time.gmtime(_now)) + f"{int((_now % 1) * 1000):03d}Z"
+        time.strftime("%Y-%m-%dT%H:%M:%S.", time.gmtime(_now))
+        + f"{int((_now % 1) * 1000):03d}Z"
     )  # ISO-8601 UTC with ms, RFC 3339
 
     return {

@@ -3,10 +3,8 @@
 Workload Types — parameterizable load profiles.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Callable, Optional
-import random
 
 
 @dataclass

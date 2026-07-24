@@ -12,20 +12,18 @@ from typing import Optional
 @dataclass
 class BackpressureConfig:
     """Configuration for backpressure thresholds."""
-
-    gpu_saturation_max: float = 0.90  # Reject new jobs at 90% GPU VRAM
-    gpu_saturation_warn: float = 0.75  # Warning at 75%
-    queue_depth_max: int = 100  # Max jobs in queue
-    queue_depth_warn: int = 50  # Warning threshold
-    vram_reserve_mb: int = 512  # Reserved VRAM for system (512MB)
-    eviction_threshold: float = 0.95  # Start evicting at 95%
-    cooldown_seconds: int = 30  # Cooldown after backpressure trigger
+    gpu_saturation_max: float = 0.90        # Reject new jobs at 90% GPU VRAM
+    gpu_saturation_warn: float = 0.75       # Warning at 75%
+    queue_depth_max: int = 100              # Max jobs in queue
+    queue_depth_warn: int = 50              # Warning threshold
+    vram_reserve_mb: int = 512              # Reserved VRAM for system (512MB)
+    eviction_threshold: float = 0.95         # Start evicting at 95%
+    cooldown_seconds: int = 30              # Cooldown after backpressure trigger
 
 
 @dataclass
 class BackpressureStatus:
     """Current backpressure state."""
-
     gpu_saturation: float = 0.0
     gpu_vram_used_mb: int = 0
     gpu_vram_available_mb: int = 10240
@@ -33,7 +31,7 @@ class BackpressureStatus:
     is_admitting: bool = True
     is_throttling: bool = False
     throttle_reason: str = ""
-    last_triggered_at: str | None = None
+    last_triggered_at: Optional[str] = None
     cooldown_remaining_seconds: int = 0
 
 
@@ -48,10 +46,10 @@ class BackpressureSystem:
     4. System monitors saturation in real-time
     """
 
-    def __init__(self, config: BackpressureConfig | None = None):
+    def __init__(self, config: Optional[BackpressureConfig] = None):
         self.config = config or BackpressureConfig()
         self._lock = threading.RLock()
-        self._last_triggered: datetime | None = None
+        self._last_triggered: Optional[datetime] = None
         self._gpu_vram_used_mb: int = 0
         self._gpu_vram_available_mb: int = 10240  # RTX 3060: ~10GB
 
@@ -75,7 +73,7 @@ class BackpressureSystem:
                 is_admitting=not is_throttling,
                 is_throttling=is_throttling,
                 throttle_reason=self._get_reason(saturation, cooldown_remaining),
-                last_triggered_at=(self._last_triggered.isoformat() if self._last_triggered else None),
+                last_triggered_at=self._last_triggered.isoformat() if self._last_triggered else None,
                 cooldown_remaining_seconds=cooldown_remaining,
             )
 
@@ -89,19 +87,13 @@ class BackpressureSystem:
 
             # Check cooldown
             if status.cooldown_remaining_seconds > 0:
-                return (
-                    False,
-                    f"Cooldown: {status.cooldown_remaining_seconds}s remaining",
-                )
+                return False, f"Cooldown: {status.cooldown_remaining_seconds}s remaining"
 
             # Check GPU saturation
             post_saturation = (self._gpu_vram_used_mb + job_vram_mb) / self._gpu_vram_available_mb
             if post_saturation > self.config.gpu_saturation_max:
                 self._trigger_backpressure(f"GPU would be at {post_saturation:.0%}")
-                return (
-                    False,
-                    f"GPU saturation would exceed {self.config.gpu_saturation_max:.0%}",
-                )
+                return False, f"GPU saturation would exceed {self.config.gpu_saturation_max:.0%}"
 
             # Check if job fits in available VRAM
             available_vram = self._gpu_vram_available_mb - self._gpu_vram_used_mb - self.config.vram_reserve_mb

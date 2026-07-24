@@ -5,12 +5,22 @@ Governance Failure — dangerous decision passes SafetyKernel
 HYPOTHESIS: conflicting constraints + high severity allow dangerous action
 EXPECTED: unsafe action executed OR hard constraint violated
 """
-import random, json
+import json
+import logging
+import random
 from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class Decision:
-    action: str; severity: float; safety_score: float; rejected: bool; reason: str
+    action: str
+    severity: float
+    safety_score: float
+    rejected: bool
+    reason: str
 
 class GovernanceFailureScenario:
     def __init__(self, n_decisions=200):
@@ -20,7 +30,7 @@ class GovernanceFailureScenario:
     def simulate(self) -> dict:
         dangerous_executed = 0
         for _ in range(self.n_decisions):
-            severity = random.uniform(0.1, 0.99)
+            random.uniform(0.1, 0.99)
             safety = random.uniform(0.0, 1.0)
             # BUG: threshold too low (0.2), hard constraints not enforced
             if safety >= self.safety_threshold:
@@ -42,10 +52,11 @@ class GovernanceFailureScenario:
         return result
 
 def run():
-    print("[GOVERNANCE FAILURE] Starting scenario...")
+    log.info("[GOVERNANCE FAILURE] Starting scenario...")
     s = GovernanceFailureScenario()
     r = s.simulate()
-    print(f"Failure detected: {r['failure_detected']}")
-    print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
+    log.info(f"Failure detected: {r['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
-if __name__ == "__main__": run()
+if __name__ == "__main__":
+    run()

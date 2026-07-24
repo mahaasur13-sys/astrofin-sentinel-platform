@@ -6,7 +6,6 @@ Cluster represented as directed constraint graph:
   E: capacity, affinity, anti-affinity, temporal, SLA constraints
 """
 from dataclasses import dataclass, field
-from typing import Optional
 from enum import Enum
 
 
@@ -24,7 +23,7 @@ class ConstraintType(Enum):
 class Constraint:
     ctype: ConstraintType
     source: str           # node_id or job_id
-    target: Optional[str] = None
+    target: str | None = None
     params: dict = field(default_factory=dict)
     violated: bool = False
 

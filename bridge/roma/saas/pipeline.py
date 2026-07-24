@@ -1,7 +1,11 @@
-"""ROMA SaaS Onboarding Pipeline — 5-min signup flow."""
 
-print("=== ROMA SaaS Onboarding Pipeline ===")
-print("Step 1: org.create('acme')")
-print("Step 2: api_key = org.provision_api_key()")
-print("Step 3: roma.run('task', api_key=api_key)")
-print("→ Dashboard at https://app.roma.sh/org/acme")
+import logging
+
+log = logging.getLogger(__name__)
+
+"""ROMA SaaS Onboarding Pipeline — 5-min signup flow."""
+log.info("=== ROMA SaaS Onboarding Pipeline ===")
+log.info("Step 1: org.create('acme')")
+log.info("Step 2: api_key = org.provision_api_key()")
+log.info("Step 3: roma.run('task', api_key=api_key)")
+log.info("→ Dashboard at https://app.roma.sh/org/acme")

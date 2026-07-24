@@ -3,33 +3,33 @@
 Window Engine — sliding aggregation core for feature pipeline.
 Builds time windows: 1m, 5m, 15m, 1h with typed aggregates.
 """
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Callable, Any
-from collections import deque
-from datetime import datetime, timedelta
 import math
+from collections import deque
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 
 # =============================================================================
 # AGGREGATION FUNCTIONS
 # =============================================================================
 
-def _mean(data: List[float]) -> float:
+def _mean(data: list[float]) -> float:
     return sum(data) / len(data) if data else 0.0
 
-def _std(data: List[float]) -> float:
+def _std(data: list[float]) -> float:
     if len(data) < 2:
         return 0.0
     m = _mean(data)
     variance = sum((x - m) ** 2 for x in data) / (len(data) - 1)
     return math.sqrt(variance)
 
-def _min(data: List[float]) -> float:
+def _min(data: list[float]) -> float:
     return min(data) if data else 0.0
 
-def _max(data: List[float]) -> float:
+def _max(data: list[float]) -> float:
     return max(data) if data else 0.0
 
-def _slope(data: List[float]) -> float:
+def _slope(data: list[float]) -> float:
     """Linear regression slope over data points."""
     if len(data) < 2:
         return 0.0
@@ -45,32 +45,32 @@ def _slope(data: List[float]) -> float:
     slope = (n * sum_ty - sum_t * sum_y) / denom
     return slope
 
-def _derivative(data: List[float]) -> float:
+def _derivative(data: list[float]) -> float:
     """Rate of change: (last - first) / count."""
     if len(data) < 2:
         return 0.0
     return (data[-1] - data[0]) / len(data)
 
-def _p95(data: List[float]) -> float:
+def _p95(data: list[float]) -> float:
     if not data:
         return 0.0
     s = sorted(data)
     idx = int(len(s) * 0.95)
     return s[min(idx, len(s) - 1)]
 
-def _latest(data: List[float]) -> float:
+def _latest(data: list[float]) -> float:
     return data[-1] if data else 0.0
 
-def _count(data: List[float]) -> float:
+def _count(data: list[float]) -> float:
     return float(len(data))
 
-def _last_age_min(timestamps: List[datetime]) -> float:
+def _last_age_min(timestamps: list[datetime]) -> float:
     """Age of last failure in minutes."""
     if not timestamps:
         return -1.0
     return (datetime.now() - timestamps[-1]).total_seconds() / 60.0
 
-def _consecutive(data: List[str]) -> float:
+def _consecutive(data: list[str]) -> float:
     """Count consecutive failures ending at current time."""
     count = 0
     for val in reversed(data):
@@ -80,7 +80,7 @@ def _consecutive(data: List[str]) -> float:
             break
     return float(count)
 
-AGG_FUNCTIONS: Dict[str, Callable] = {
+AGG_FUNCTIONS: dict[str, Callable] = {
     "mean":       _mean,
     "std":        _std,
     "min":        _min,
@@ -103,7 +103,7 @@ WINDOW_SIZES_SECONDS = [60, 300, 900, 3600]  # 1m, 5m, 15m, 1h
 class WindowConfig:
     name: str
     size_seconds: int
-    aggregates: List[str]  # which agg functions to apply
+    aggregates: list[str]  # which agg functions to apply
 
 DEFAULT_WINDOWS = [
     WindowConfig(name="1m",  size_seconds=60,   aggregates=["mean", "std", "min", "max", "latest"]),
@@ -125,12 +125,12 @@ class SlidingWindow:
     _buffer: deque = field(default_factory=lambda: deque(maxlen=3600))  # 1h max
     _timestamps: deque = field(default_factory=lambda: deque(maxlen=3600))
 
-    def push(self, value: float, timestamp: Optional[datetime] = None) -> None:
+    def push(self, value: float, timestamp: datetime | None = None) -> None:
         ts = timestamp or datetime.now()
         self._buffer.append(value)
         self._timestamps.append(ts)
 
-    def get_window(self, cutoff: datetime) -> List[float]:
+    def get_window(self, cutoff: datetime) -> list[float]:
         """Get all values within window ending at cutoff."""
         start = cutoff - timedelta(seconds=self.window_seconds)
         result = []
@@ -139,10 +139,10 @@ class SlidingWindow:
                 result.append(self._buffer[i])
         return result
 
-    def get_values(self) -> List[float]:
+    def get_values(self) -> list[float]:
         return list(self._buffer)
 
-    def get_timestamps(self) -> List[datetime]:
+    def get_timestamps(self) -> list[datetime]:
         return list(self._timestamps)
 
     def aggregate(self, agg: str) -> float:
@@ -165,10 +165,10 @@ class WindowEngine:
     computes aggregations on demand.
     """
 
-    def __init__(self, windows: Optional[List[WindowConfig]] = None):
-        self.windows_configs: List[WindowConfig] = windows or DEFAULT_WINDOWS
+    def __init__(self, windows: list[WindowConfig] | None = None):
+        self.windows_configs: list[WindowConfig] = windows or DEFAULT_WINDOWS
         # _storage: {(node_id, metric_name): SlidingWindow}
-        self._storage: Dict[tuple, SlidingWindow] = {}
+        self._storage: dict[tuple, SlidingWindow] = {}
         self._sources = [
             "gpu_util", "gpu_temp", "cpu_util", "mem_util",
             "queue_size", "ceph_util", "ceph_iops", "ceph_lat",
@@ -183,13 +183,13 @@ class WindowEngine:
             self._storage[key] = SlidingWindow(node_id, metric, window_seconds)
         return self._storage[key]
 
-    def push(self, node_id: str, metric: str, value: float, timestamp: Optional[datetime] = None) -> None:
+    def push(self, node_id: str, metric: str, value: float, timestamp: datetime | None = None) -> None:
         """Push a metric value for a node."""
         for wc in self.windows_configs:
             w = self._get_or_create_window(node_id, metric, wc.size_seconds)
             w.push(value, timestamp)
 
-    def get_window_data(self, node_id: str, metric: str, window_seconds: int) -> List[float]:
+    def get_window_data(self, node_id: str, metric: str, window_seconds: int) -> list[float]:
         key = (node_id, metric, window_seconds)
         if key not in self._storage:
             return []
@@ -201,7 +201,7 @@ class WindowEngine:
             return 0.0
         return self._storage[key].aggregate(agg)
 
-    def get_all_windows_for_node(self, node_id: str) -> Dict[str, Dict[str, float]]:
+    def get_all_windows_for_node(self, node_id: str) -> dict[str, dict[str, float]]:
         """Get all aggregated features for a node across all metrics/windows/aggregates."""
         result = {}
         for (nid, metric, ws), window in self._storage.items():

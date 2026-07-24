@@ -7,7 +7,13 @@ Fallback 2: Twelve Data (free tier: 800 req/day)
 import os
 from datetime import datetime, timezone
 
-import requests
+import logging as _log
+try:
+    import httpx as _http
+except ImportError:
+    import urllib.request as _urllib_request
+    _http = None
+
 import yfinance as yf
 
 # ── API Keys (from environment) ────────────────────────────────────────────────
@@ -139,7 +145,9 @@ class OHLCV:
 
 
 # ── Yahoo Finance v8 (direct REST API) ──────────────────────────────────────
-def _fetch_yahoo_v8(symbol: str, interval: str = "1d", range_: str = "60d", limit: int = 500) -> list[OHLCV]:
+def _fetch_yahoo_v8(
+    symbol: str, interval: str = "1d", range_: str = "60d", limit: int = 500
+) -> list[OHLCV]:
     """
     Yahoo Finance v8 API — works for symbols that yfinance lib marks as delisted.
     JJN (iPath Nickel) works here but not in yfinance.Ticker().
@@ -163,10 +171,12 @@ def _fetch_yahoo_v8(symbol: str, interval: str = "1d", range_: str = "60d", limi
     range_map.get(range_, "1y")
 
     try:
-        r = requests.get(
+        r = _http.get(
             f"https://query1.finance.yahoo.com/v8/finance/chart/{ySymbol}",
             params={"interval": yInterval, "range": range_},
-            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            },
             timeout=10,
         )
         data = r.json()
@@ -225,7 +235,9 @@ def _fetch_yahoo_v8(symbol: str, interval: str = "1d", range_: str = "60d", limi
 
 
 # ── Yahoo Finance (yfinance library) ─────────────────────────────────────────
-def _fetch_yfinance_lib(symbol: str, interval: str = "1d", period: str = "60d", limit: int = 500) -> list[OHLCV]:
+def _fetch_yfinance_lib(
+    symbol: str, interval: str = "1d", period: str = "60d", limit: int = 500
+) -> list[OHLCV]:
     """yfinance library fallback (works for most standard symbols)."""
     ySymbol = _to_yahoo_symbol(symbol)
     yInterval = _to_yahoo_interval(interval)
@@ -246,7 +258,9 @@ def _fetch_yfinance_lib(symbol: str, interval: str = "1d", period: str = "60d", 
 
 
 # ── Metals-API (free tier: 50 req/month) ────────────────────────────────────
-def _fetch_metals_api(symbol: str, interval: str = "1d", limit: int = 500) -> list[OHLCV]:
+def _fetch_metals_api(
+    symbol: str, interval: str = "1d", limit: int = 500
+) -> list[OHLCV]:
     if not METALS_API_KEY:
         raise ValueError("METALS_API_KEY not set")
     metal = METALS_API_SYMBOLS.get(symbol)
@@ -259,7 +273,7 @@ def _fetch_metals_api(symbol: str, interval: str = "1d", limit: int = 500) -> li
     try:
         url = f"https://metals-api.com/api/{api_interval}_historical"
         params = {"access_key": METALS_API_KEY, "symbols": metal, "base": "USD"}
-        r = requests.get(url, params=params, timeout=10)
+        r = _http.get(url, params=params, timeout=10)
         data = r.json()
 
         if data.get("success") is not False and "rates" in data:
@@ -286,7 +300,9 @@ def _fetch_metals_api(symbol: str, interval: str = "1d", limit: int = 500) -> li
 
 
 # ── Twelve Data (free tier: 800 req/day) ─────────────────────────────────────
-def _fetch_twelve_data(symbol: str, interval: str = "1d", limit: int = 500) -> list[OHLCV]:
+def _fetch_twelve_data(
+    symbol: str, interval: str = "1d", limit: int = 500
+) -> list[OHLCV]:
     if not TWELVE_DATA_KEY:
         raise ValueError("TWELVE_DATA_KEY not set")
 
@@ -311,7 +327,7 @@ def _fetch_twelve_data(symbol: str, interval: str = "1d", limit: int = 500) -> l
             "format": "JSON",
             "apikey": TWELVE_DATA_KEY,
         }
-        r = requests.get(url, params=params, timeout=10)
+        r = _http.get(url, params=params, timeout=10)
         data = r.json()
 
         if "values" in data and data["values"]:
@@ -319,7 +335,9 @@ def _fetch_twelve_data(symbol: str, interval: str = "1d", limit: int = 500) -> l
             for bar in reversed(data["values"]):
                 result.append(
                     OHLCV(
-                        timestamp=int(datetime.fromisoformat(bar["datetime"]).timestamp() * 1000),
+                        timestamp=int(
+                            datetime.fromisoformat(bar["datetime"]).timestamp() * 1000
+                        ),
                         open_=float(bar["open"]),
                         high=float(bar["high"]),
                         low=float(bar["low"]),
@@ -361,28 +379,36 @@ def fetch_ohlcv(
     # 1. Yahoo Finance v8 (handles JJN and other delisted symbols)
     try:
         return _fetch_yahoo_v8(symbol, interval, period, limit)
-    except Exception as yv8_err:  # noqa: BLE001 — provider chain tolerates third-party errors
-        print(f"[data_provider] Yahoo v8 failed for {symbol}: {yv8_err}")
+    except (
+        Exception
+    ) as yv8_err:  # noqa: BLE001 — provider chain tolerates third-party errors
+        log.info(f"[data_provider] Yahoo v8 failed for {symbol}: {yv8_err}")
 
     # 2. yfinance library fallback
     try:
         return _fetch_yfinance_lib(symbol, interval, period, limit)
-    except Exception as yf_err:  # noqa: BLE001 — provider chain tolerates third-party errors
-        print(f"[data_provider] yfinance lib failed for {symbol}: {yf_err}")
+    except (
+        Exception
+    ) as yf_err:  # noqa: BLE001 — provider chain tolerates third-party errors
+        log.info(f"[data_provider] yfinance lib failed for {symbol}: {yf_err}")
 
     # 3. Twelve Data
     if TWELVE_DATA_KEY:
         try:
             return _fetch_twelve_data(symbol, interval, limit)
-        except Exception as td_err:  # noqa: BLE001 — provider chain tolerates third-party errors
-            print(f"[data_provider] Twelve Data failed for {symbol}: {td_err}")
+        except (
+            Exception
+        ) as td_err:  # noqa: BLE001 — provider chain tolerates third-party errors
+            log.info(f"[data_provider] Twelve Data failed for {symbol}: {td_err}")
 
     # 4. metals-api
     if METALS_API_KEY and symbol in METALS_API_SYMBOLS:
         try:
             return _fetch_metals_api(symbol, interval, limit)
-        except Exception as ma_err:  # noqa: BLE001 — provider chain tolerates third-party errors
-            print(f"[data_provider] metals-api failed for {symbol}: {ma_err}")
+        except (
+            Exception
+        ) as ma_err:  # noqa: BLE001 — provider chain tolerates third-party errors
+            log.info(f"[data_provider] metals-api failed for {symbol}: {ma_err}")
 
     raise ValueError(f"All providers failed for {symbol}")
 
@@ -408,7 +434,7 @@ def fetch_current_price(symbol: str) -> float:
     # Fallback to v8 price endpoint
     ySymbol = _to_yahoo_symbol(symbol)
     try:
-        r = requests.get(
+        r = _http.get(
             f"https://query1.finance.yahoo.com/v8/finance/chart/{ySymbol}",
             params={"interval": "1d", "range": "5d"},
             headers={"User-Agent": "Mozilla/5.0"},
@@ -434,7 +460,9 @@ def fetch_multi_ohlcv(
     for sym in symbols:
         try:
             result[sym] = fetch_ohlcv(sym, interval, period)
-        except Exception as e:  # noqa: BLE001 — provider chain tolerates third-party errors
-            print(f"[data_provider] Failed {sym}: {e}")
+        except (
+            Exception
+        ) as e:  # noqa: BLE001 — provider chain tolerates third-party errors
+            log.info(f"[data_provider] Failed {sym}: {e}")
             result[sym] = []
     return result

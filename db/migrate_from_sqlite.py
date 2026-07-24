@@ -13,9 +13,12 @@ Prerequisites:
     3. All tables created via init_db_if_needed()
 """
 
+from __future__ import annotations
+
+
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -89,7 +92,7 @@ def migrate_sessions(sessions: list) -> dict:
                     "kpi_snapshot": {},
                     "metadata": {
                         "migrated_from": "sqlite",
-                        "migrated_at": datetime.now(timezone.utc).isoformat(),
+                        "migrated_at": datetime.utcnow().isoformat(),
                         "original_created_at": session.get("created_at"),
                     },
                 }
@@ -122,7 +125,9 @@ def main():
     from db.session import is_postgres_available
 
     if not is_postgres_available():
-        logger.error("PostgreSQL not available. Start it with: docker-compose up -d postgres")
+        logger.error(
+            "PostgreSQL not available. Start it with: docker-compose up -d postgres"
+        )
         sys.exit(1)
 
     logger.info("PostgreSQL: AVAILABLE")

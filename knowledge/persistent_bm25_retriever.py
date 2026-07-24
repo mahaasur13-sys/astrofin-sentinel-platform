@@ -28,8 +28,8 @@ import time
 from dataclasses import dataclass
 from typing import List, Optional
 
-from core.rag_client import RAGClient
 from knowledge.bm25_retriever import BM25Retriever, Chunk
+from core.rag_client import RAGClient
 from tools.metrics_server import RAG_BM25_REFRESH_TIMESTAMP, RAG_LATENCY_SECONDS
 
 logger = logging.getLogger(__name__)
@@ -47,13 +47,13 @@ class PersistentBM25Retriever:
 
     rag_client: RAGClient
     ttl_seconds: float = 300.0
-    domain: str | None = None
+    domain: Optional[str] = None
 
-    _index: BM25Retriever | None = None
+    _index: Optional[BM25Retriever] = None
     _indexed_at: float = 0.0  # epoch seconds; 0 = never indexed
     _chunk_count: int = 0
 
-    async def _fetch_chunks(self) -> list[Chunk]:
+    async def _fetch_chunks(self) -> List[Chunk]:
         """Pull all chunks for the configured domain via RAGClient.
 
         Using RAGClient.get_all_chunks (added in P2-03c) keeps the
@@ -77,7 +77,9 @@ class PersistentBM25Retriever:
     async def _ensure_index(self) -> BM25Retriever:
         """Build index if absent or stale (TTL expired)."""
         now = time.monotonic()
-        stale = self._index is None or (self.ttl_seconds > 0 and (now - self._indexed_at) > self.ttl_seconds)
+        stale = self._index is None or (
+            self.ttl_seconds > 0 and (now - self._indexed_at) > self.ttl_seconds
+        )
         if stale:
             await self.refresh()
         assert self._index is not None, "refresh() failed to populate index"
@@ -109,7 +111,7 @@ class PersistentBM25Retriever:
         )
         RAG_BM25_REFRESH_TIMESTAMP.set(time.time())
 
-    async def retrieve(self, query: str, top_k: int = 10) -> list[Chunk]:
+    async def retrieve(self, query: str, top_k: int = 10) -> List[Chunk]:
         """Return top-k chunks by BM25 score, refreshing the index if stale."""
         index = await self._ensure_index()
         return index.retrieve(query, top_k=top_k)

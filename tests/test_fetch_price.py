@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -11,7 +13,9 @@ async def test_fetch_price_uses_async_http():
         # Настраиваем асинхронный get, который возвращает синхронный ответ
         mock_get = AsyncMock()
         mock_get.return_value = Mock(
-            status_code=200, raise_for_status=Mock(), json=Mock(return_value={"price": "100.0"})
+            status_code=200,
+            raise_for_status=Mock(),
+            json=Mock(return_value={"price": "100.0"}),
         )
         mock_client.return_value.__aenter__.return_value.get = mock_get
 

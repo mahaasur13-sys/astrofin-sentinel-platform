@@ -3,10 +3,11 @@
 L10 Self-Healing — Failure Isolation Model
 Partial rollback + cascade prevention + severity mapping.
 """
-from enum import Enum, auto
-from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import Enum, auto
+from typing import Any
+
 
 class IncidentSeverity(Enum):
     NONE = 0
@@ -44,12 +45,12 @@ class Incident:
     severity: IncidentSeverity
     fail_mode: FailMode
     description: str
-    affected_layers: List[str]
-    trigger_metrics: Dict[str, float] = field(default_factory=dict)
-    root_cause: Optional[str] = None
+    affected_layers: list[str]
+    trigger_metrics: dict[str, float] = field(default_factory=dict)
+    root_cause: str | None = None
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    resolved_at: Optional[str] = None
-    rollback_actions: List[RollbackAction] = field(default_factory=list)
+    resolved_at: str | None = None
+    rollback_actions: list[RollbackAction] = field(default_factory=list)
 
     def is_contained(self) -> bool:
         return self.severity.value <= IncidentSeverity.MODERATE.value
@@ -67,7 +68,7 @@ class Incident:
         else:
             return "monitor_only"
 
-SEVERITY_RESPONSE: Dict[IncidentSeverity, Dict[str, Any]] = {
+SEVERITY_RESPONSE: dict[IncidentSeverity, dict[str, Any]] = {
     IncidentSeverity.WARNING: {"fail_mode": FailMode.SOFT, "rollback": False, "escalate": False, "notify": True},
     IncidentSeverity.MINOR: {"fail_mode": FailMode.SOFT, "rollback": False, "escalate": False, "notify": True},
     IncidentSeverity.MODERATE: {"fail_mode": FailMode.SOFT, "rollback": True, "escalate": False, "notify": True},
@@ -80,12 +81,12 @@ class FailureIsolator:
     def __init__(self, snapshot_store, trace_store):
         self.snapshot_store = snapshot_store
         self.trace_store = trace_store
-        self.active_incidents: Dict[str, Incident] = {}
-        self.incident_history: List[Incident] = []
-        self.rollback_queue: List[RollbackAction] = []
+        self.active_incidents: dict[str, Incident] = {}
+        self.incident_history: list[Incident] = []
+        self.rollback_queue: list[RollbackAction] = []
         self.cascade_prevention: bool = True
 
-    def classify_incident(self, trigger: FailureTrigger, metrics: Dict[str, float], run_id: str, desc: str) -> Incident:
+    def classify_incident(self, trigger: FailureTrigger, metrics: dict[str, float], run_id: str, desc: str) -> Incident:
         resp = SEVERITY_RESPONSE.get(trigger.severity, SEVERITY_RESPONSE[IncidentSeverity.WARNING])
         fail_mode = FailMode.HARD if resp["fail_mode"] == FailMode.HARD else FailMode.SOFT
 
@@ -102,7 +103,7 @@ class FailureIsolator:
         self.active_incidents[incident.incident_id] = incident
         return incident
 
-    def _plan_rollback(self, trigger: FailureTrigger) -> List[RollbackAction]:
+    def _plan_rollback(self, trigger: FailureTrigger) -> list[RollbackAction]:
         actions = []
         metric = trigger.metric
 
@@ -125,7 +126,7 @@ class FailureIsolator:
             self.active_incidents.pop(incident_id)
             self.incident_history.append(incident)
 
-    def cascade_check(self, incident: Incident, all_incidents: List[Incident]) -> List[str]:
+    def cascade_check(self, incident: Incident, all_incidents: list[Incident]) -> list[str]:
         """Prevent cascade failures by checking if new incident could trigger others."""
         warnings = []
         recent = [i for i in all_incidents if i.incident_id != incident.incident_id]
@@ -140,7 +141,7 @@ class FailureIsolator:
                     )
         return warnings
 
-    def incident_summary(self) -> Dict[str, Any]:
+    def incident_summary(self) -> dict[str, Any]:
         return {
             "active": len(self.active_incidents),
             "history": len(self.incident_history),

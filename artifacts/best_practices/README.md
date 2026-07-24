@@ -1,69 +1,94 @@
-# Best Practices — Extracted Artifacts
+# AstroFin Sentinel — Best Practices Catalog
 
-Curated reference implementations distilled from the
-`astrofin-sentinel-platform` master codebase. Each artifact below is
-either a *canonical pattern* (the single source of truth) or a
-*clean exemplar* (the cleanest of several competing implementations).
-
-**Audience:** any new module in the platform, or any consumer repo
-(`AsurDev`, `home-cluster-iac`, `roma-execution-bridge`, future
-sibling projects), should mirror these patterns rather than invent
-its own.
-
-**Selection criteria** (all five must hold):
-
-1. **Single source of truth** — no parallel copies elsewhere.
-2. **Has tests** or has a tested sibling (so the pattern is verified).
-3. **Solves a recurring cross-cutting concern** (auth, errors, config,
-   contracts, governance) — not a one-off feature.
-4. **Stable for ≥1 month** — not a recent experiment.
-5. **Documented in the in-repo ADR or PR description** — the design
-   rationale is recoverable.
+Извлечено в ходе аудита 2026-07-21. Каждый артефакт — эталонный образец паттерна, применимого в других частях проекта.
 
 ---
 
-## Layout
+## `patterns/` — Архитектурные паттерны
 
-| Directory | Concern | Artifact(s) | Why it is canonical |
-|-----------|---------|-------------|---------------------|
-| `error_handling/` | Standardised HTTP error envelope | `error_schema.py` + `test_error_handling_wsgi.py` | Sole `AppException` hierarchy; used by both FastAPI and WSGI middleware; `format_error`/`error_response`/`set_correlation_id` are imported platform-wide. |
-| `auth/` | Two-pattern auth (API key + RS256 JWT) | `api_key_auth.py`, `jwt_rs256.py`, `test_api_key.py` | Coexists on purpose (ADR-0009); both have dedicated tests; `secrets.compare_digest` (timing-safe) and RS256 with `PyJWKClient` are the platform's two accepted primitives. |
-| `contracts/` | Shared DTOs + cross-repo exception base | `data_contracts.py`, `shared_exceptions.py` | `acos-contracts` is the *one* import-linter-validated cross-repo contract layer; raising `ACOSContractsError` from any consumer keeps the boundary clean. |
-| `governance/` | Pre-/mid-/post-execution gate | `governance_gate.py`, `governance_kernel.py` | Three-state `Decision.APPROVED|REJECTED|ESCALATED` model is referenced by `roma-execution-bridge` and the planning DAG; kernel scoring drives the platform-level PASS/REVIEW/BLOCK status. |
-| `settings/` | Single env-var entrypoint | `centralised_settings.py` | `pydantic-settings` `BaseSettings` with `os.getenv` shim for legacy callers; every new module imports from here. |
+### `circuit_breaker.py` — Circuit Breaker (ADR-001)
+- **Что:** 3-phase Circuit Breaker (CLOSED → OPEN → HALF_OPEN) с per-provider изоляцией
+- **Паттерн:** Resilience (Martin Fowler)
+- **Особенности:**
+  - `CBConfig` dataclass с настройками по умолчанию
+  - `CBFailureReason` enum для категоризации ошибок
+  - Half-open state с `success_threshold` для безопасного восстановления
+  - In-flight request tracking во избежание thundering herd
+- **Где применять:** Все внешние HTTP-запросы, WebSocket-подключения, вызовы LLM API
 
----
-
-## How to use this directory
-
-* **Replicating a pattern in a new module** — copy the artifact into
-  the target repo, then re-point its imports to that repo's local
-  layout. Do **not** add `astrofin-sentinel-platform` as a dependency
-  just to import these.
-* **Validating consistency** — `import_linter` rules in
-  `pyproject.toml` enforce that consumers use `acos-contracts` rather
-  than redefining the same types.
-* **Updating a canonical pattern** — change the file here *and* the
-  live source in a single PR; CI runs the live tests, this directory
-  is documentation, not a fork.
+### `ephemeris_decorator.py` — Graceful Degradation Decorator
+- **Что:** `@require_ephemeris` — блокирует работу агента при отсутствии Swiss Ephemeris
+- **Паттерн:** Decorator + Graceful Degradation
+- **Особенности:**
+  - Type-safe: `ParamSpec` + `TypeVar` для сохранения сигнатуры
+  - `functools.wraps` для корректного `__name__` и `__doc__`
+  - `EphemerisUnavailableError` — typed exception
+  - `try/except ImportError` для опциональной зависимости
+- **Где применять:** Любой опциональный компонент (GPU, LLM, внешняя API)
 
 ---
 
-## What is *not* in this directory
+## `agents/` — Агентные паттерны
 
-* Generated code, vendored dependencies, `.egg-info`, build artefacts.
-* `audit_repo/` — archival snapshot, deliberately removed from the
-  index (PR #187).
-* `atom-core/`, `unified-platform/`, `atomos_pkg/`, `local-ai-stack/`
-  — overlay directories not tracked in master.
+### `types.py` — Unified Agent Types
+- **Что:** `AgentResponse`, `TradingSignal`, `Signal` — единый интерфейс для всех агентов
+- **Паттерн:** Data Transfer Object (DTO) + Composite
+- **Особенности:**
+  - `Signal.score` property — numeric mapping для weighted calculation
+  - `TradingSignal.from_agents()` — композитный сигнал из нескольких агентов
+  - `AgentResponse` включает `confidence`, `reasoning`, `metadata`
+  - `datetime.now().isoformat()` как default_factory
+- **Где применять:** Все агенты должны возвращать `AgentResponse`
+
+### `metrics.py` — Prometheus Metrics Factory
+- **Что:** `@track_agent_metrics` декоратор + factory для Counter/Histogram
+- **Паттерн:** Decorator + Factory + Prometheus naming convention
+- **Особенности:**
+  - Имена метрик: `sentinel_{agent_snake}_runs_total`, `sentinel_{agent_snake}_latency_seconds`
+  - Lazy registration (создаются при первом вызове)
+  - Labelled by `signal` для анализа по сигналам
+  - Документированы два паттерна использования (A и B)
+- **Где применять:** Каждый новый агент, любой измеримый метод
 
 ---
 
-## Provenance
+## `core/` — Core-утилиты и инфраструктура
 
-Phase 3 of the master consolidation, branch
-`chore/best-practices-2026-07-12`, executed 2026-07-12.
+### `cache.py` — Async Cache с Fallback
+- **Что:** `RedisCache` — асинхронный кэш с in-memory fallback
+- **Паттерн:** Repository + Fallback
+- **Особенности:**
+  - `redis.asyncio` для асинхронных операций
+  - In-memory dict при недоступности Redis
+  - Prometheus метрики: `CACHE_HITS`, `CACHE_MISSES`
+  - TTL для fallback-записей
+- **Где применять:** RAG retrieval, API-запросы, конфигурации
 
-Source files copied byte-for-byte; this directory contains no
-modifications. If a source file moves, update the copy in the same
-PR — they are kept in sync intentionally.
+### `reward.py` — Bayesian Reward Calibration
+- **Что:** `RewardCalibrator` — платформ-скейлинг + ECE tracking + drawdown penalty
+- **Паттерн:** Bayesian Calibration + EMA Smoothing
+- **Особенности:**
+  - `CalibrationMetrics` dataclass — ECE, reliability_diagram
+  - EMA smoothing: `alpha * current + (1-alpha) * previous`
+  - `FalseCorrelationDetector` — выявляет переобучение на шум
+  - `DrawdownTracker` — penalty за просадки
+- **Где применять:** Meta-RL, оценка моделей, A/B тестирование
+
+### `settings.py` — Secret-безопасные Settings
+- **Что:** Pydantic Settings с `SecretStr` и `repr()`-маскированием
+- **Паттерн:** Secure Configuration
+- **Особенности:**
+  - `SecretStr` для всех чувствительных полей
+  - `repr()` маскирует поля `*_key`, `*_secret`, `*_password`
+  - `validate_startup()` — проверка всех secrets при старте
+  - `env-aware`: development vs production validation
+- **Где применять:** Любой модуль с API-ключами
+
+### `logging_utils.py` — Structured Logging с Redaction
+- **Что:** Regex-based redaction API-ключей, JWT, email в логах
+- **Паттерн:** Secure Logging
+- **Особенности:**
+  - `_API_KEY_RE`, `_JWT_RE`, `_EMAIL_RE`, `_HEX_SECRET_RE` — компилированные regex
+  - `redact_secrets()` и `redact_structured()` для структурированных логов
+  - Интеграция с `structlog`
+- **Где применять:** Все модули, где пишутся логи с потенциально чувствительными данными

@@ -3,6 +3,9 @@ test_realtime_divergence_detector.py
 ====================================
 Tests for RealtimeDivergenceDetector.
 """
+import logging
+log = logging.getLogger(__name__)
+
 from consistency_v2.realtime_divergence_detector import (
     DivergenceType,
     RealtimeDivergenceDetector,
@@ -79,7 +82,7 @@ def test_realtime_divergence_detector_rate_divergence():
         detector.verify()
 
     report = detector.verify()
-    print(f"Rate divergence: {report.to_dict()}")
+    log.info(f"Rate divergence: {report.to_dict()}")
 
 
 def test_realtime_divergence_detector_coherence_trajectory():
@@ -102,7 +105,7 @@ def test_realtime_divergence_detector_coherence_trajectory():
     # Tick 2: exec jumps, replay stays
     exec_state["coherence"] = 0.9
     report = detector.verify()
-    print(f"Coherence: {report.to_dict()}")
+    log.info(f"Coherence: {report.to_dict()}")
 
 
 def test_realtime_divergence_detector_to_dict():
@@ -127,4 +130,4 @@ if __name__ == "__main__":
     test_realtime_divergence_detector_rate_divergence()
     test_realtime_divergence_detector_coherence_trajectory()
     test_realtime_divergence_detector_to_dict()
-    print("All RealtimeDivergenceDetector tests passed.")
+    log.info("All RealtimeDivergenceDetector tests passed.")

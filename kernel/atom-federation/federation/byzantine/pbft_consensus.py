@@ -17,6 +17,10 @@ from enum import Enum, auto
 from .message_signatures import FederationMessageSigning
 from .quorum import QuorumCalculator
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class PBFTPhase(Enum):
     IDLE = auto()
@@ -314,11 +318,11 @@ def _test_pbft_lite():
     pre_prep = engine.send_pre_prepare(digest)
     assert pre_prep is not None
     assert pre_prep.phase == PBFTPhase.PRE_PREPARE
-    print(f"✅ PRE_PREPARE sent: view={pre_prep.view}, digest={pre_prep.digest}")
+    log.info(f"✅ PRE_PREPARE sent: view={pre_prep.view}, digest={pre_prep.digest}")
 
     # Simulate other nodes receiving PRE_PREPARE and transitioning to PREPARE
     # Node_0 (leader) sends PRE_PREPARE → nodes 1,2,3 receive it via on_pre_prepare
-    print(f"  _current_digest={engine._current_digest!r}, _prepare_queue len before={len(engine._prepare_queue)}")
+    log.info(f"  _current_digest={engine._current_digest!r}, _prepare_queue len before={len(engine._prepare_queue)}")
 
     # Node_0 (leader) transitions to PREPARE after sending PRE_PREPARE
     # (leader also enters PREPARE state and sends its own PREPARE)
@@ -334,10 +338,10 @@ def _test_pbft_lite():
             digest=digest, round_num=pre_prep.round_num, signature=signed.signature,
         )
         accepted, commit = engine.on_prepare(prep_msg)
-        print(f"  node {node_id}: accepted={accepted}, commit_phase={commit.phase.name if commit else None}, queue_len={len(engine._prepare_queue)}, engine_phase={engine._phase.name}")
+        log.info(f"  node {node_id}: accepted={accepted}, commit_phase={commit.phase.name if commit else None}, queue_len={len(engine._prepare_queue)}, engine_phase={engine._phase.name}")
         if commit:
             assert commit.phase == PBFTPhase.COMMIT
-            print(f"✅ PREPARE from {node_id} → COMMIT triggered")
+            log.info(f"✅ PREPARE from {node_id} → COMMIT triggered")
 
     # COMMIT quorum: 2f+1=3
     for node_id in ["node_1", "node_2", "node_3"]:
@@ -350,17 +354,17 @@ def _test_pbft_lite():
         if outcome.reached:
             assert outcome.reached is True
             assert outcome.digest == digest
-            print(f"✅ COMMIT from {node_id} → consensus reached (latency={outcome.latency_ms:.2f}ms)")
+            log.info(f"✅ COMMIT from {node_id} → consensus reached (latency={outcome.latency_ms:.2f}ms)")
 
     assert engine.phase == PBFTPhase.FINISHED
-    print(f"✅ Final phase: {engine.phase.name}")
+    log.info(f"✅ Final phase: {engine.phase.name}")
 
     # ── view change ──────────────────────────────────────────────────
     engine.reset()
     engine._view = 1
     pre_prep2 = engine.send_pre_prepare("digest_xyz")
     assert pre_prep2.view == 1
-    print(f"✅ View reset works: view={pre_prep2.view}")
+    log.info(f"✅ View reset works: view={pre_prep2.view}")
 
     # ── quorum sizes ───────────────────────────────────────────────
     from federation.byzantine.quorum import QuorumCalculator, QuorumType
@@ -370,9 +374,9 @@ def _test_pbft_lite():
     f7 = QuorumCalculator.compute_f(7)
     assert f7 == 2
     assert QuorumCalculator.quorum_size(7, QuorumType.two_f_plus_1) == 5
-    print(f"✅ QuorumCalculator: n=4 → f={f4}, 2f+1={3}; n=7 → f={f7}, 2f+1={5}")
+    log.info(f"✅ QuorumCalculator: n=4 → f={f4}, 2f+1={3}; n=7 → f={f7}, 2f+1={5}")
 
-    print("\n✅ v9.8 PBFTLiteConsensusEngine — all checks passed")
+    log.info("\n✅ v9.8 PBFTLiteConsensusEngine — all checks passed")
 
 
 if __name__ == "__main__":

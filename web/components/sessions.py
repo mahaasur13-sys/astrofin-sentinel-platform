@@ -1,5 +1,6 @@
 """web/components/sessions.py — Sessions tab (ATOM-META-RL-004)"""
 
+from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 

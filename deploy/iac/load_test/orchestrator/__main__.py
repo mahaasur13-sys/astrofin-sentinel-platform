@@ -9,6 +9,10 @@ import sys
 import time
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 SCENARIOS = [
@@ -55,26 +59,26 @@ def compute_tag_stats(results: list) -> dict:
 
 
 def main():
-    print("=" * 60)
-    print("ACOS LOAD TEST ORCHESTRATOR")
-    print("=" * 60)
-    print()
+    log.info("=" * 60)
+    log.info("ACOS LOAD TEST ORCHESTRATOR")
+    log.info("=" * 60)
+    log.info("")
 
     results = []
     corrections = []
     total_failures = 0
 
     # Phase 1: Run all scenarios
-    print("[PHASE 1] Running all scenarios...")
-    print("-" * 40)
+    log.info("[PHASE 1] Running all scenarios...")
+    log.info("-" * 40)
     for name in SCENARIOS:
-        print(f"  Running: {name}")
+        log.info(f"  Running: {name}")
         r = run_scenario(name)
         r["run_order"] = len(results) + 1
         results.append(r)
         if r.get("failure_detected"):
             total_failures += 1
-            print("    FAILURE DETECTED")
+            log.info("    FAILURE DETECTED")
             if r.get("correction_applied"):
                 corrections.append(
                     {
@@ -83,16 +87,16 @@ def main():
                         "timestamp": time.time(),
                     }
                 )
-        print(f"    status={r.get('status')}")
-    print()
+        log.info(f"    status={r.get('status')}")
+    log.info("")
 
     # Phase 2: Apply corrections and re-run
-    print("[PHASE 2] Correction loop...")
-    print("-" * 40)
+    log.info("[PHASE 2] Correction loop...")
+    log.info("-" * 40)
     post_fix_results = []
 
     for correction in corrections:
-        print(
+        log.info(
             f"  Applying: {correction['scenario']} → {correction['correction'][:60]}..."
         )
         # Re-run the scenario after applying correction
@@ -100,32 +104,32 @@ def main():
         r["run_order"] = len(post_fix_results) + 1
         r["correction_source"] = correction["scenario"]
         post_fix_results.append(r)
-    print()
+    log.info("")
 
     # Phase 3: Final report
-    print("[PHASE 3] Final Report")
-    print("=" * 60)
+    log.info("[PHASE 3] Final Report")
+    log.info("=" * 60)
 
     tag_stats = compute_tag_stats(results)
-    print("\nTag Distribution (Zettelkasten):")
+    log.info("\nTag Distribution (Zettelkasten):")
     for tag, count in sorted(tag_stats.items(), key=lambda x: -x[1]):
-        print(f"  {tag}: {count}")
+        log.info(f"  {tag}: {count}")
 
-    print(f"\nTotal scenarios: {len(SCENARIOS)}")
-    print(f"Failures detected: {total_failures}")
-    print(f"Corrections applied: {len(corrections)}")
+    log.info(f"\nTotal scenarios: {len(SCENARIOS)}")
+    log.info(f"Failures detected: {total_failures}")
+    log.info(f"Corrections applied: {len(corrections)}")
 
     failures = [r for r in results if r.get("failure_detected")]
-    print("\nFailure Summary:")
+    log.info("\nFailure Summary:")
     for f in failures:
-        print(f"  - {f['scenario']}: metrics={json.dumps(f.get('metrics', {}))}")
+        log.info(f"  - {f['scenario']}: metrics={json.dumps(f.get('metrics', {}))}")
 
     improvements = sum(
         1
         for old, new in zip(failures, post_fix_results)
         if not new.get("failure_detected")
     )
-    print(f"\nCorrections that improved: {improvements}/{len(post_fix_results)}")
+    log.info(f"\nCorrections that improved: {improvements}/{len(post_fix_results)}")
 
     # Output structured results
     output = {
@@ -150,11 +154,11 @@ def main():
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w") as f:
         json.dump(output, f, indent=2, default=str)
-    print(f"\nResults saved to: {out_path}")
-    print()
-    print("=" * 60)
-    print("GOAL: reactive → preventive")
-    print("=" * 60)
+    log.info(f"\nResults saved to: {out_path}")
+    log.info("")
+    log.info("=" * 60)
+    log.info("GOAL: reactive → preventive")
+    log.info("=" * 60)
 
     return 0 if total_failures == 0 else 1
 

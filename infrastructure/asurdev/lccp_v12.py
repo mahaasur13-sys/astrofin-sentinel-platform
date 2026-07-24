@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """LCCP v1.2 - Event-Sourced Sovereign Control Plane"""
 from __future__ import annotations
+
+import logging
+import time
 from dataclasses import dataclass, field
 from typing import Literal
-import time
+
+log = logging.getLogger(__name__)
+
 
 SOVEREIGNTY = {
     "source_of_truth": "EVENT_STORE_ONLY",
@@ -25,8 +30,10 @@ class EventStore:
     def all(self): return tuple(self._events)
     def query(self, nid=None, et=None):
         r = self._events
-        if nid: r = [x for x in r if x.node_id == nid]
-        if et: r = [x for x in r if x.event_type == et]
+        if nid:
+            r = [x for x in r if x.node_id == nid]
+        if et:
+            r = [x for x in r if x.event_type == et]
         return tuple(r)
 
 class StateRebuilder:
@@ -55,7 +62,8 @@ class StateRebuilder:
             return {k: tuple(v) if isinstance(v,list) else
                     {kk: tuple(vv) for kk,vv in v.items()} if isinstance(v,dict) else v
                     for k,v in s.items()}
-        if h(s1) != h(s2): raise AssertionError('REPLAY INCONSISTENCY')
+        if h(s1) != h(s2):
+            raise AssertionError('REPLAY INCONSISTENCY')
         return "REPLAY CONSISTENT"
 
 @dataclass
@@ -70,11 +78,16 @@ class Node:
     def within(self): return self.local_only
 
 def health(n):
-    if not n.within(): return 'OUT_OF_SCOPE'
-    if n.status == 'FAILED': return 'NODE_FAILED'
-    if n.cpu > 0.90: return 'DEGRADED_CPU'
-    if n.mem > 0.90: return 'DEGRADED_MEMORY'
-    if n.disk > 0.90: return 'DEGRADED_STORAGE'
+    if not n.within():
+        return 'OUT_OF_SCOPE'
+    if n.status == 'FAILED':
+        return 'NODE_FAILED'
+    if n.cpu > 0.90:
+        return 'DEGRADED_CPU'
+    if n.mem > 0.90:
+        return 'DEGRADED_MEMORY'
+    if n.disk > 0.90:
+        return 'DEGRADED_STORAGE'
     return 'HEALTHY'
 
 def ctrl(issue):
@@ -109,12 +122,12 @@ def orch(nodes, store):
     return {"status":"ORCHESTRATION_COMPLETE","results":results}
 
 def main():
-    print("="*64)
-    print("LCCP v1.2 - Event-Sourced Sovereign Control Plane")
-    print("="*64)
+    log.info("="*64)
+    log.info("LCCP v1.2 - Event-Sourced Sovereign Control Plane")
+    log.info("="*64)
     for k,v in SOVEREIGNTY.items():
-        print("  " + k + ": " + str(v))
-    print()
+        log.info("  " + k + ": " + str(v))
+    log.info("")
     es = EventStore()
     nodes = [
         Node("rtx-node",0.85,0.75,0.60,["slurm","ceph"]),
@@ -122,29 +135,29 @@ def main():
         Node("failing-node",0.99,0.99,0.80,[],"FAILED",True),
         Node("rogue",0.50,0.50,0.50,[],False,"HEALTHY"),
     ]
-    print("[ORCHESTRATION]")
+    log.info("[ORCHESTRATION]")
     report = orch(nodes, es)
-    print("  Events: " + str(len(es._events)) + ", Status: " + report["status"])
+    log.info("  Events: " + str(len(es._events)) + ", Status: " + report["status"])
     for r in report['results']:
-        print("  " + r["node"] + ": " + r["issue"] + " -> " + r["action"] + " [" + r["status"] + "]")
-    print()
-    print("[STATE RECONSTRUCTION -- from events ONLY]")
+        log.info("  " + r["node"] + ": " + r["issue"] + " -> " + r["action"] + " [" + r["status"] + "]")
+    log.info("")
+    log.info("[STATE RECONSTRUCTION -- from events ONLY]")
     state = StateRebuilder.rebuild(es.all())
-    print("  Nodes: " + str(len(state["nodes"])))
-    print("  Actions: " + str(len(state["action_log"])))
-    print("  Quarantined: " + str(list(state["quarantined"])))
-    print()
-    print("[REPLAY DETERMINISM]")
-    print('  ' + StateRebuilder.verify(es.all()))
-    print()
-    print("[VERIFICATION]")
+    log.info("  Nodes: " + str(len(state["nodes"])))
+    log.info("  Actions: " + str(len(state["action_log"])))
+    log.info("  Quarantined: " + str(list(state["quarantined"])))
+    log.info("")
+    log.info("[REPLAY DETERMINISM]")
+    log.info('  ' + StateRebuilder.verify(es.all()))
+    log.info("")
+    log.info("[VERIFICATION]")
     evs = es.all()
-    print("  all_sovereign: " + str(all(e.sovereign for e in evs)))
-    print("  total_events: " + str(len(evs)))
-    print("  nodes_rebuilt: " + str(len(state["nodes"])))
-    print("="*64)
-    print("LCCP v1.2 -- EVENT-SOURCED SOVEREIGNTY ACTIVE")
-    print("="*64)
+    log.info("  all_sovereign: " + str(all(e.sovereign for e in evs)))
+    log.info("  total_events: " + str(len(evs)))
+    log.info("  nodes_rebuilt: " + str(len(state["nodes"])))
+    log.info("="*64)
+    log.info("LCCP v1.2 -- EVENT-SOURCED SOVEREIGNTY ACTIVE")
+    log.info("="*64)
 
 if __name__ == '__main__':
     main()

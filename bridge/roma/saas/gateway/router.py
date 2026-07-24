@@ -1,5 +1,4 @@
 """Gateway router — mounts tenant-aware API routes."""
-
 from fastapi import APIRouter, Request
 
 from saas.gateway.models import GatewayConfig, TenantGatewayConfig
@@ -28,8 +27,8 @@ async def gateway_config(request: Request):
     return {
         "tenant_id": tenant_id,
         "rate_limit": {
-            "requests_per_minute": (cfg.rate_limit.requests_per_minute if cfg.rate_limit else 60),
-            "strategy": (cfg.rate_limit.strategy.value if cfg.rate_limit else "in_memory"),
+            "requests_per_minute": cfg.rate_limit.requests_per_minute if cfg.rate_limit else 60,
+            "strategy": cfg.rate_limit.strategy.value if cfg.rate_limit else "in_memory",
         },
         "branding": {
             "enabled": cfg.branding.enabled if cfg.branding else False,
@@ -56,8 +55,8 @@ def mount_gateway_routes(app, gateway_config: GatewayConfig = None):
     if gateway_config:
         app.state.gateway_config = gateway_config
 
-        for _tenant_id, tenant_cfg in gateway_config.tenants.items():
-            rate_limit_dependency(
+        for tenant_id, tenant_cfg in gateway_config.tenants.items():
+            _rate_dep = rate_limit_dependency(
                 requests_per_minute=tenant_cfg.rate_limit.requests_per_minute,
                 burst_size=tenant_cfg.rate_limit.burst_size,
                 use_redis=tenant_cfg.rate_limit.use_redis,

@@ -127,7 +127,7 @@ class ProofKernel:
                 timestamp=time.time(),
                 input_state=self._snapshot_state(),
             ))
-        winner = all_signals[0]
+        all_signals[0]
         _, record = self.resolve.__wrapped__(self) if False else (None, None)
         # resolve() already-populated arbiter; reuse signals list
         _, record = self.resolve()

@@ -11,6 +11,8 @@ Pipeline:
     compute_reward_pipeline() → combined with full breakdown
 """
 
+from __future__ import annotations
+
 from core.reward.astro_reward import compute_astro_reward
 from core.reward.ema import RewardEMA, get_reward_ema
 from core.reward.reward_engine import (

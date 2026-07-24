@@ -3,11 +3,11 @@
 Execution Budget Controller (EBC) — prevents P99 latency tail risk.
 """
 from __future__ import annotations
+
+import asyncio
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
-import time
-import asyncio
 
 
 @dataclass
@@ -26,7 +26,7 @@ class StageResult:
     elapsed_ms: float
     budget_ms: float
     timed_out: bool = False
-    output: Optional[object] = None
+    output: object | None = None
 
 
 @dataclass
@@ -34,10 +34,10 @@ class BudgetCycle:
     cycle_id: str
     started_at: datetime
     stages: list[StageResult] = field(default_factory=list)
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
     total_elapsed_ms: float = 0.0
     fallback_triggered: bool = False
-    fallback_at_stage: Optional[str] = None
+    fallback_at_stage: str | None = None
 
 
 class ExecutionBudgetController:
@@ -59,7 +59,7 @@ class ExecutionBudgetController:
             policy_eval_ms=policy_eval_timeout_ms,
         )
         self._cycles: list[BudgetCycle] = []
-        self._current_cycle: Optional[BudgetCycle] = None
+        self._current_cycle: BudgetCycle | None = None
         self._mode: str = "normal"
         self._degradation_count: int = 0
 
@@ -75,7 +75,7 @@ class ExecutionBudgetController:
         timed_out = False
         output = None
         try:
-            remaining = budget_ms / 1000.0
+            budget_ms / 1000.0
             output = func(*args, **kwargs)
         except TimeoutError:
             timed_out = True

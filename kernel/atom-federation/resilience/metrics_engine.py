@@ -197,9 +197,9 @@ class StabilityMetricsEngine:
 
         # ── Subsystem scores ──────────────────────────────────────────────
         sbs_score = self._subsystem_score("sbs", cutoff, now)
-        quorum_score = self._subsystem_score("quorum", cutoff, now)
-        network_score = self._subsystem_score("network", cutoff, now)
-        routing_score = self._subsystem_score("routing", cutoff, now)
+        self._subsystem_score("quorum", cutoff, now)
+        self._subsystem_score("network", cutoff, now)
+        self._subsystem_score("routing", cutoff, now)
 
         # ── Quorum health ─────────────────────────────────────────────────
         total = max(self._node_count, 1)

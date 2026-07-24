@@ -77,7 +77,7 @@ async def main():
         f.write(f"| Config | Trades | WinRate | MaxDD | Return | PF |\n")
         f.write(f"|--------|--------|---------|-------|--------|----|\n")
         for r in results:
-            f.write(f"| {r['label']} | {r['trades']} | {r["win_rate"]*100:.1f}% | {r['max_drawdown_pct']:.1f}% | {r['total_return_pct']:.1f}% | {pf(r):.2f} |\n")
+            f.write(f"| {r['label']} | {r['trades']} | {r['win_rate']*100:.1f}% | {r['max_drawdown_pct']:.1f}% | {r['total_return_pct']:.1f}% | {pf(r):.2f} |\n")
         f.write(f"\n**Recommended:** `{best['label']}` (sideways_mult={best['sideways_mult']}, bear_mult={best['bear_mult']}, anomaly_threshold={best['anomaly_threshold']})\n")
     
     print(f"\nReport saved: {report_path}")

@@ -39,7 +39,7 @@ class EventSourcedEngine:
         """
         # IDEMPOTENCY: skip if already executed
         if self._recorder and self._recorder.has_trace(trace_id):
-            print(f"[IDEMPOTENT] Trace {trace_id} already exists, skipping execution")
+            log.info(f"[IDEMPOTENT] Trace {trace_id} already exists, skipping execution")
             return trace_id
 
         # PATCH 2: Validate DAG BEFORE any state changes

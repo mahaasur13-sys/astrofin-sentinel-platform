@@ -1,6 +1,10 @@
 """test_bcil.py v10.4 BCIL tests."""
 import sys
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, '/home/workspace/atom-federation-os')
 from alignment.bcil import BCIL, ByzantineConvergenceFunction, ByzantineFailureType, QuorumSpec
 
@@ -18,7 +22,7 @@ def test_bc_f1_byzantine_branch_dominated():
     report = bcil.analyze(branches, trust_scores, node_trust, voter_assignments, gcpl_convergence=0.3)
     assert report.failure_type == ByzantineFailureType.BYZANTINE_BRANCH_DOMINATED, repr(report.failure_type)
     assert not report.safe_state
-    print('  F1 byzantine_dominated: %s ok' % report.failure_type.name)
+    log.info('  F1 byzantine_dominated: %s ok' % report.failure_type.name)
 
 def test_bc_f2_quorum_bypass():
     quorum = QuorumSpec(n_nodes=4, f_byzantine=1)
@@ -30,7 +34,7 @@ def test_bc_f2_quorum_bypass():
     report = bcil.analyze(branches, trust_scores, node_trust, voter_assignments, gcpl_convergence=0.2)
     assert report.failure_type == ByzantineFailureType.QUORUM_BYPASS, repr(report.failure_type)
     assert not report.merge_allowed
-    print('  F2 quorum_bypass: %s ok' % report.failure_type.name)
+    log.info('  F2 quorum_bypass: %s ok' % report.failure_type.name)
 
 def test_bc_f3_trust_inflation():
     quorum = QuorumSpec(n_nodes=7, f_byzantine=2)
@@ -41,7 +45,7 @@ def test_bc_f3_trust_inflation():
     voter_assignments = {'M': ['n4', 'n5']}
     report = bcil.analyze(branches, trust_scores, node_trust, voter_assignments, gcpl_convergence=0.15)
     assert report.failure_type in (ByzantineFailureType.TRUST_INFLATION, ByzantineFailureType.QUORUM_BYPASS)
-    print('  F3 trust_inflation: %s ok' % report.failure_type.name)
+    log.info('  F3 trust_inflation: %s ok' % report.failure_type.name)
 
 def test_bc_f4_equivocation():
     quorum = QuorumSpec(n_nodes=4, f_byzantine=1)
@@ -54,7 +58,7 @@ def test_bc_f4_equivocation():
     node_trust = {'n1': 0.8, 'n2': 0.8, 'n3': 0.8}
     voter_assignments = {'X': ['n1', 'n2', 'n3'], 'Y': ['n1', 'n2', 'n3']}
     report = bcil.analyze(branches, trust_scores, node_trust, voter_assignments, gcpl_convergence=0.3)
-    print('  F4 equivocation: equiv=%s risk=%.3f ok' % (report.risk_assessment.equivocation_detected, report.risk_assessment.max_risk_score))
+    log.info('  F4 equivocation: equiv=%s risk=%.3f ok' % (report.risk_assessment.equivocation_detected, report.risk_assessment.max_risk_score))
 
 def test_bc_f5_convergence_to_malicious():
     quorum = QuorumSpec(n_nodes=4, f_byzantine=1)
@@ -66,7 +70,7 @@ def test_bc_f5_convergence_to_malicious():
     report = bcil.analyze(branches, trust_scores, node_trust, voter_assignments, gcpl_convergence=0.05)
     assert not report.safe_state
     assert report.c_b > report.base_convergence
-    print('  F5 malicious_convergence: C_B=%.3f > C=%.3f safe=%s ok' % (report.c_b, report.base_convergence, report.safe_state))
+    log.info('  F5 malicious_convergence: C_B=%.3f > C=%.3f safe=%s ok' % (report.c_b, report.base_convergence, report.safe_state))
 
 def test_bc_c_b_metric():
     cf = ByzantineConvergenceFunction(lambda_coefficient=0.5)
@@ -77,7 +81,7 @@ def test_bc_c_b_metric():
     assert abs(cb2 - expected) < 1e-9
     cb3 = cf.compute(gcpl_convergence=0.9, byzantine_risk=0.9)
     assert cb3 == 1.0
-    print('  C_B formula: C=0.3,R=0.0->%.1f | C=0.3,R=0.8->%.2f | C=0.9,R=0.9->%.1f ok' % (cb1, cb2, cb3))
+    log.info('  C_B formula: C=0.3,R=0.0->%.1f | C=0.3,R=0.8->%.2f | C=0.9,R=0.9->%.1f ok' % (cb1, cb2, cb3))
 
 def test_bc_safe_merge():
     quorum = QuorumSpec(n_nodes=7, f_byzantine=2)
@@ -90,7 +94,7 @@ def test_bc_safe_merge():
     assert report.merge_allowed
     assert report.safe_state
     assert report.honest_can_progress
-    print('  safe_merge: allowed=%s safe=%s ok' % (report.merge_allowed, report.safe_state))
+    log.info('  safe_merge: allowed=%s safe=%s ok' % (report.merge_allowed, report.safe_state))
 
 def test_bc_split_brain():
     quorum = QuorumSpec(n_nodes=7, f_byzantine=2)
@@ -105,7 +109,7 @@ def test_bc_split_brain():
     report = bcil.analyze(branches, trust_scores, node_trust, voter_assignments, gcpl_convergence=0.4)
     assert report.failure_type == ByzantineFailureType.SPLIT_BRAIN, repr(report.failure_type)
     assert not report.merge_allowed
-    print('  split_brain: %s ok' % report.failure_type.name)
+    log.info('  split_brain: %s ok' % report.failure_type.name)
 
 def run_tests():
     tests = [
@@ -124,12 +128,12 @@ def run_tests():
             if t():
                 passed += 1
         except AssertionError as e:
-            print('  FAIL %s: %s' % (t.__name__, e))
+            log.info('  FAIL %s: %s' % (t.__name__, e))
         except Exception as e:
-            print('  ERROR %s: %s %s' % (t.__name__, type(e).__name__, e))
-    print('='*60)
-    print('  BCIL v10.4: %d/%d passed' % (passed, len(tests)))
-    print('='*60)
+            log.info('  ERROR %s: %s %s' % (t.__name__, type(e).__name__, e))
+    log.info('='*60)
+    log.info('  BCIL v10.4: %d/%d passed' % (passed, len(tests)))
+    log.info('='*60)
     return passed == len(tests)
 
 if __name__ == '__main__':

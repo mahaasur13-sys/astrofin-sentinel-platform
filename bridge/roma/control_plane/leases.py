@@ -1,5 +1,4 @@
 """GPU Lease Manager — etcd-style distributed locking"""
-
 import logging
 import threading
 from typing import Optional
@@ -7,7 +6,6 @@ from typing import Optional
 from .core_models import GPULease
 
 log = logging.getLogger("leases")
-
 
 class GPULeaseManager:
     def __init__(self):
@@ -37,8 +35,7 @@ class GPULeaseManager:
         with self._lock:
             lease = self._leases.get(gpu_id)
             if lease and lease.job_id == job_id:
-                lease.renewed += 1
-                return True
+                lease.renewed += 1; return True
             return False
 
     def is_locked(self, gpu_id: str) -> bool:
@@ -46,7 +43,7 @@ class GPULeaseManager:
             lease = self._leases.get(gpu_id)
             return lease is not None and not lease.is_expired()
 
-    def get_holder(self, gpu_id: str) -> str | None:
+    def get_holder(self, gpu_id: str) -> Optional[str]:
         with self._lock:
             lease = self._leases.get(gpu_id)
             return lease.job_id if lease and not lease.is_expired() else None

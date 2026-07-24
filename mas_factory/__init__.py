@@ -1,5 +1,7 @@
 """mas_factory — ATOM-R-033: Production MAS Factory"""
 
+from __future__ import annotations
+
 from mas_factory.architect import MASFactoryArchitect, get_architect
 from mas_factory.engine import (
     MASFactoryConfig,

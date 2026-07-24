@@ -8,6 +8,8 @@ Checks for new top strategies in the pool every N minutes and
 exports them as GitAgent packages. Idempotent — skips already-exported.
 """
 
+from __future__ import annotations
+
 import argparse
 import logging
 import os

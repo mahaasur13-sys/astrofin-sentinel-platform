@@ -19,6 +19,10 @@ import pathlib
 import sys
 from dataclasses import dataclass, field
 
+import logging
+log = logging.getLogger(__name__)
+
+
 GATES = [
     ("G1",  "AdversarialDetector",         ("AdversarialDetector", "detect_adversarial")),
     ("G2",  "PolicyKernelV4",             ("PolicyKernelV4", "evaluate", "approve")),
@@ -57,12 +61,18 @@ def safe_rel(py: pathlib.Path, repo: pathlib.Path) -> str:
 
 @dataclass
 class GateInfo:
-    id: str; name: str; file: str | None; calls: int; ok: bool
+    id: str
+    name: str
+    file: str | None
+    calls: int
+    ok: bool
 
 
 @dataclass
 class EntryInfo:
-    name: str; file: str; line: int
+    name: str
+    file: str
+    line: int
     gates_covered: list = field(default_factory=list)
     gates_missing: list = field(default_factory=list)
     status: str = ""  # gateway / mutagen / deprecated_ok / bypass
@@ -79,7 +89,7 @@ def run(repo: pathlib.Path):
             if "/.git/" not in str(p):
                 py_files.append(p)
 
-    print(f"  [{len(py_files)} Python files scanned]")
+    log.info(f"  [{len(py_files)} Python files scanned]")
 
     # Gate presence
     gate_infos: list[GateInfo] = []
@@ -186,42 +196,42 @@ def run(repo: pathlib.Path):
     passes = not (has_mutagen or active_bypasses or exposed or missing_gates)
 
     # Print
-    print(f"\n{'Gate':<5} {'Name':<38} {'File':<35} {'Calls':<6} {'OK'}")
-    print("-" * 85)
+    log.info(f"\n{'Gate':<5} {'Name':<38} {'File':<35} {'Calls':<6} {'OK'}")
+    log.info("-" * 85)
     for gi in gate_infos:
-        print(f"  {gi.id:<4} {gi.name:<38} {(gi.file or 'N/A'):<35} {gi.calls:<6} {'✓' if gi.ok else '✗'}")
+        log.info(f"  {gi.id:<4} {gi.name:<38} {(gi.file or 'N/A'):<35} {gi.calls:<6} {'✓' if gi.ok else '✗'}")
 
-    print("\n── Entry Points ──")
+    log.info("\n── Entry Points ──")
     for ep in entries:
-        print(f"  {ep.file}:{ep.line} {ep.name}() [{ep.status}]")
+        log.info(f"  {ep.file}:{ep.line} {ep.name}() [{ep.status}]")
         if ep.gates_missing:
-            print(f"    missing: {ep.gates_missing}")
+            log.info(f"    missing: {ep.gates_missing}")
 
-    print("\n── Bypasses ──")
-    print("  " + ("(none)" if not all_bypasses else ""))
+    log.info("\n── Bypasses ──")
+    log.info("  " + ("(none)" if not all_bypasses else ""))
     for b in all_bypasses:
-        print(b)
+        log.info(b)
 
-    print("\n── Actuator Exposure ──")
-    print("  " + ("(none)" if not exposed else ""))
+    log.info("\n── Actuator Exposure ──")
+    log.info("  " + ("(none)" if not exposed else ""))
     for e in exposed:
-        print(e)
+        log.info(e)
 
-    print("\n" + "=" * 70)
+    log.info("\n" + "=" * 70)
     if passes:
-        print("  ✅ PASS — Execution algebra verified")
+        log.info("  ✅ PASS — Execution algebra verified")
     else:
-        print("  ❌ FAIL:")
+        log.info("  ❌ FAIL:")
         if has_mutagen:
-            print("       mutagen execute() present")
+            log.info("       mutagen execute() present")
         if active_bypasses:
-            print(f"       active bypass paths: {len(active_bypasses)}")
+            log.info(f"       active bypass paths: {len(active_bypasses)}")
         if exposed:
-            print(f"       actuator exposed: {len(exposed)}")
+            log.info(f"       actuator exposed: {len(exposed)}")
         if missing_gates:
-            print(f"       missing gates: {[gi.id for gi in missing_gates]}")
-    print(f"\n  Gates: {sum(gi.ok for gi in gate_infos)}/10  Entries: {len([e for e in entries if e.status=='gateway_legitimate'])} (legitimate)")
-    print("=" * 70)
+            log.info(f"       missing gates: {[gi.id for gi in missing_gates]}")
+    log.info(f"\n  Gates: {sum(gi.ok for gi in gate_infos)}/10  Entries: {len([e for e in entries if e.status=='gateway_legitimate'])} (legitimate)")
+    log.info("=" * 70)
     return 0 if passes else 1
 
 

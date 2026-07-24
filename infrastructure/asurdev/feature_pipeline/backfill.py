@@ -13,18 +13,17 @@ Usage:
     # Backfill + export immediately
     python backfill.py --days 7 --export-csv --output /data/ml
 """
+import argparse
 import os
 import sys
-import argparse
+from datetime import datetime, timedelta, timezone
+
 import structlog
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List
 
 logger = structlog.get_logger()
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from feature_pipeline import FeatureBuilder, FeatureExporter, build_features
-
 
 DSN = os.environ.get('CLUSTER_DSN', 'postgresql://cluster:password@localhost:5432/cluster_metrics')
 
@@ -32,8 +31,8 @@ DSN = os.environ.get('CLUSTER_DSN', 'postgresql://cluster:password@localhost:543
 def backfill_range(
     start: datetime,
     end: datetime,
-    export_dir: Optional[str] = None,
-    nodes: Optional[List[str]] = None
+    export_dir: str | None = None,
+    nodes: list[str] | None = None
 ):
     """
     Reconstruct features from TimescaleDB continuous aggregates.
@@ -77,7 +76,7 @@ def backfill_range(
             'stddev': stddev, 'p50': p50, 'p95': p95, 'p99': p99
         }
 
-    builder = FeatureBuilder()
+    FeatureBuilder()
     all_vectors = []
 
     for bucket, nodes_data in sorted(buckets.items()):

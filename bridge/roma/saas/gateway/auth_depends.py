@@ -1,18 +1,12 @@
 """FastAPI-native auth dependency — runs AFTER middleware chain completes."""
-
 from fastapi import Depends, HTTPException, Request
 
 
 class AuthContext:
     """Auth info populated by middleware and readable via Depends()."""
 
-    def __init__(
-        self,
-        tenant_id: str = None,
-        api_key: str = None,
-        auth_type: str = None,
-        jwt_payload: dict = None,
-    ):
+    def __init__(self, tenant_id: str = None, api_key: str = None,
+                 auth_type: str = None, jwt_payload: dict = None):
         self.tenant_id = tenant_id
         self.api_key = api_key
         self.auth_type = auth_type

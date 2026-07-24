@@ -37,14 +37,14 @@ class K8sCompiler:
             container = {
                 "name": step_name,
                 "image": node.get("image", "python:3.11-slim"),
-                "command": (node.get("command", "").split() if node.get("command") else ["echo", "no command"]),
+                "command": node.get("command", "").split() if node.get("command") else ["echo", "no command"],
             }
 
             # GPU handling
             if gpu_required or node.get("gpu", False):
                 container["resources"] = {
                     "limits": {"nvidia.com/gpu": "1"},
-                    "requests": {"nvidia.com/gpu": "1"},
+                    "requests": {"nvidia.com/gpu": "1"}
                 }
 
             # CPU/RAM handling
@@ -59,7 +59,7 @@ class K8sCompiler:
             step = {
                 "name": step_name,
                 "container": container,
-                "depends_on": deps if deps else None,
+                "depends_on": deps if deps else None
             }
             steps.append(step)
 
@@ -76,7 +76,7 @@ class K8sCompiler:
             containers.append(steps[0]["container"])
         else:
             # Multi-step DAG — use init containers + main
-            for _i, step in enumerate(steps[:-1]):
+            for i, step in enumerate(steps[:-1]):
                 ic = copy.deepcopy(step["container"])
                 ic["name"] = f"init-{step['name']}"
                 init_containers.append(ic)
@@ -95,15 +95,18 @@ class K8sCompiler:
             "metadata": {
                 "name": f"roma-{task_id[:8]}",
                 "namespace": "roma-system",
-                "labels": {"app": "roma-executor", "task_id": task_id},
+                "labels": {
+                    "app": "roma-executor",
+                    "task_id": task_id
+                }
             },
             "spec": {
                 "backoffLimit": 2,
                 "template": {
                     "metadata": {"labels": {"app": "roma-executor", "task_id": task_id}},
-                    "spec": pod_spec,
-                },
-            },
+                    "spec": pod_spec
+                }
+            }
         }
 
         if gpu_required:
@@ -119,7 +122,10 @@ class K8sCompiler:
         ray_job = {
             "apiVersion": "ray.io/v1alpha1",
             "kind": "RayJob",
-            "metadata": {"name": f"roma-{task_id[:8]}", "namespace": "roma-system"},
+            "metadata": {
+                "name": f"roma-{task_id[:8]}",
+                "namespace": "roma-system"
+            },
             "spec": {
                 "rayVersion": "2.9",
                 "Entrypoint": dag[0]["command"] if dag else "echo done",
@@ -128,21 +134,16 @@ class K8sCompiler:
                         "replicas": 1,
                         "template": {
                             "spec": {
-                                "containers": [
-                                    {
-                                        "name": "ray-head",
-                                        "image": "rayproject/ray:latest-gpu",
-                                        "resources": {
-                                            "limits": {"gpu": "1" if gpu_required else "0"},
-                                            "memory": "8Gi",
-                                        },
-                                    }
-                                ]
+                                "containers": [{
+                                    "name": "ray-head",
+                                    "image": "rayproject/ray:latest-gpu",
+                                    "resources": {"limits": {"gpu": "1" if gpu_required else "0"}, "memory": "8Gi"}
+                                }]
                             }
-                        },
+                        }
                     }
-                },
-            },
+                }
+            }
         }
         return ray_job
 

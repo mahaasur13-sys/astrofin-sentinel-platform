@@ -4,7 +4,13 @@ core/reward_engine.py — ATOM-STEP-6: Reward Engine for Online RL
 Computes trading rewards from market outcomes.
 """
 
+from __future__ import annotations
+
+import logging
 from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -68,7 +74,9 @@ class RewardEngine:
         risk_penalty = self.risk_penalty_scale * (position_pct**2) * abs(pnl_reward)
 
         # Uncertainty penalty — penalize acting under high uncertainty
-        uncertainty_penalty = self.uncertainty_penalty_scale * uncertainty * abs(pnl_reward)
+        uncertainty_penalty = (
+            self.uncertainty_penalty_scale * uncertainty * abs(pnl_reward)
+        )
 
         total_reward = pnl_reward + astro_bonus - risk_penalty - uncertainty_penalty
 
@@ -95,10 +103,13 @@ class RewardEngine:
     ) -> list[RewardSignal]:
         """Compute rewards for a batch of trades."""
         return [
-            self.compute_reward(o, a, u) for o, a, u in zip(outcomes, astro_alignments, uncertainties, strict=False)
+            self.compute_reward(o, a, u)
+            for o, a, u in zip(outcomes, astro_alignments, uncertainties, strict=False)
         ]
 
-    def discounted_reward(self, rewards: list[RewardSignal], gamma: float = 0.95) -> float:
+    def discounted_reward(
+        self, rewards: list[RewardSignal], gamma: float = 0.95
+    ) -> float:
         """Compute discounted cumulative reward."""
         total = 0.0
         for r in rewards:
@@ -150,13 +161,9 @@ if __name__ == "__main__":
     uncertainties = [0.2, 0.6]
     rewards = engine.batch_compute(outcomes, astro_alignments, uncertainties)
     for i, r in enumerate(rewards):
-        print(
-            f"Trade {i + 1}: reward={r.total_reward:.4f}  "
-            f"pnl={r.pnl_reward:.4f}  "
-            f"astro={r.astro_bonus:.4f}  "
-            f"risk={r.risk_penalty:.4f}  "
-            f"unc={r.uncertainty_penalty:.4f}"
+        log.info(
+            f"Trade {i + 1}: reward={r.total_reward:.4f}  pnl={r.pnl_reward:.4f}  astro={r.astro_bonus:.4f}  risk={r.risk_penalty:.4f}  unc={r.uncertainty_penalty:.4f}"
         )
     stats = engine.summary_stats(rewards)
-    print(f"\nSummary: {stats}")
-    print(f"Discounted (γ=0.95): {engine.discounted_reward(rewards):.4f}")
+    log.info(f"\nSummary: {stats}")
+    log.info(f"Discounted (γ=0.95): {engine.discounted_reward(rewards):.4f}")

@@ -6,6 +6,8 @@ Covers: orbital mechanics invariants, convergence, periodicity, no NaN across
         wide JD ranges, Swiss Ephemeris boundary conditions, edge cases.
 """
 
+from __future__ import annotations
+
 import math
 import sys
 from pathlib import Path
@@ -81,15 +83,29 @@ def mean_anomaly_360(draw) -> float:
     elements=st.builds(
         OrbitalElements,
         name=st.just("test_body"),
-        semi_major_axis=st.floats(min_value=0.1, max_value=50.0, allow_nan=False, allow_infinity=False),
+        semi_major_axis=st.floats(
+            min_value=0.1, max_value=50.0, allow_nan=False, allow_infinity=False
+        ),
         eccentricity=positive_eccentricity(),
-        inclination=st.floats(min_value=0.0, max_value=180.0, allow_nan=False, allow_infinity=False),
-        long_ascending_node=st.floats(min_value=0.0, max_value=360.0, allow_nan=False, allow_infinity=False),
-        arg_perihelion=st.floats(min_value=0.0, max_value=360.0, allow_nan=False, allow_infinity=False),
-        long_perihelion=st.floats(min_value=0.0, max_value=360.0, allow_nan=False, allow_infinity=False),
+        inclination=st.floats(
+            min_value=0.0, max_value=180.0, allow_nan=False, allow_infinity=False
+        ),
+        long_ascending_node=st.floats(
+            min_value=0.0, max_value=360.0, allow_nan=False, allow_infinity=False
+        ),
+        arg_perihelion=st.floats(
+            min_value=0.0, max_value=360.0, allow_nan=False, allow_infinity=False
+        ),
+        long_perihelion=st.floats(
+            min_value=0.0, max_value=360.0, allow_nan=False, allow_infinity=False
+        ),
         mean_longitude=mean_anomaly_360(),
-        mean_motion=st.floats(min_value=0.001, max_value=100.0, allow_nan=False, allow_infinity=False),
-        orbital_period=st.floats(min_value=1.0, max_value=100000.0, allow_nan=False, allow_infinity=False),
+        mean_motion=st.floats(
+            min_value=0.001, max_value=100.0, allow_nan=False, allow_infinity=False
+        ),
+        orbital_period=st.floats(
+            min_value=1.0, max_value=100000.0, allow_nan=False, allow_infinity=False
+        ),
         epoch_jd=jd_range(),
     )
 )
@@ -105,7 +121,9 @@ def test_radius_within_perihelion_aphelion(elements):
 
     assert not math.isnan(r), f"radius is NaN: a={a}, e={e}"
     assert not math.isinf(r), f"radius is Inf: a={a}, e={e}"
-    assert r_min - 1e-10 <= r <= r_max + 1e-10, f"radius {r} outside [{r_min:.6f}, {r_max:.6f}] for a={a}, e={e}"
+    assert (
+        r_min - 1e-10 <= r <= r_max + 1e-10
+    ), f"radius {r} outside [{r_min:.6f}, {r_max:.6f}] for a={a}, e={e}"
 
 
 # ─── Property 2: Longitude ∈ [0, 360) ─────────────────────────────────────────

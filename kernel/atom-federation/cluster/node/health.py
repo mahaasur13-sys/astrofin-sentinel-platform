@@ -6,6 +6,10 @@ import time
 from dataclasses import dataclass
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class NodeState(Enum):
     UNKNOWN = "unknown"
@@ -66,7 +70,7 @@ class ClusterHealthGraph:
         health = ClusterHealthGraph("node-a", ["node-b", "node-c"])
         health.mark_ok("node-b", lag_ms=12.4)
         health.mark_violation("node-c")
-        print(health.get_all())
+        log.info(health.get_all())
     """
 
     DEGRADED_LAG_MS = 100.0   # >100ms = lagging

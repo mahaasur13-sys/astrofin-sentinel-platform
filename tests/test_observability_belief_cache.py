@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from tools.metrics_server import CACHE_HITS, CACHE_MISSES
 
 
@@ -38,5 +40,9 @@ def test_belief_get_cache_increments_counters():
     assert state1 is not None
     assert state1.agent_name == "TestAgent"
     assert state2.agent_name == "TestAgent"
-    assert after_misses > before_misses, f"Cache miss should be incremented: {before_misses} -> {after_misses}"
-    assert after_hits > before_hits, f"Cache hit should be incremented: {before_hits} -> {after_hits}"
+    assert (
+        after_misses > before_misses
+    ), f"Cache miss should be incremented: {before_misses} -> {after_misses}"
+    assert (
+        after_hits > before_hits
+    ), f"Cache hit should be incremented: {before_hits} -> {after_hits}"

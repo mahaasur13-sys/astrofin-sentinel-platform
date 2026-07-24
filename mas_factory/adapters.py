@@ -1,5 +1,7 @@
 """mas_factory/adapters.py - Context adapters between agents"""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any
 
@@ -88,7 +90,11 @@ class AggregateConfidenceAdapter(ContextAdapter):
                 if isinstance(data[i], dict)
             )
             total_weight = sum(weights.values())
-            avg_conf = weighted_sum / total_weight if total_weight > 0 else sum(confs) / len(confs)
+            avg_conf = (
+                weighted_sum / total_weight
+                if total_weight > 0
+                else sum(confs) / len(confs)
+            )
         else:
             avg_conf = sum(confs) / len(confs) if confs else 50
 
@@ -108,7 +114,11 @@ class FilterByConfidenceAdapter(ContextAdapter):
 
     def adapt(self, data: Any, context: dict[str, Any]) -> Any:
         if isinstance(data, list):
-            return [d for d in data if isinstance(d, dict) and d.get("confidence", 0) >= self.threshold]
+            return [
+                d
+                for d in data
+                if isinstance(d, dict) and d.get("confidence", 0) >= self.threshold
+            ]
         return data
 
 

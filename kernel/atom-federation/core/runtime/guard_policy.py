@@ -58,10 +58,10 @@ class GuardViolation:
 class SystemShutdown(Exception):
     '''
     FATAL: System integrity compromised.
-    
+
     Raised when ExecutionGuardPolicy detects a violation that cannot
     be recovered. This is UNRECOVERABLE — system must abort.
-    
+
     NO warnings, NO graceful degradation, NO fallback.
     '''
     def __init__(self, message: str, violation: GuardViolation | None = None):
@@ -72,11 +72,11 @@ class SystemShutdown(Exception):
 class ExecutionGuardPolicy:
     '''
     Global singleton that enforces mutation policy at runtime.
-    
+
     Registration: All mutation points must register at startup via self_audit.
     Enforcement: Any violation → immediate SystemShutdown.
     Auditability: Every mutation logged with full trace.
-    
+
     Usage:
         policy = ExecutionGuardPolicy.instance()
         policy.assert_mutation_allowed(caller_module, caller_function)
@@ -133,7 +133,7 @@ class ExecutionGuardPolicy:
     def initialize(self, mutation_points: dict[str, MutationPoint] | None = None) -> None:
         '''
         Initialize guard policy with registered mutation points.
-        
+
         Called by self_audit at system startup AFTER module scan.
         '''
         with self._init_lock:
@@ -148,7 +148,7 @@ class ExecutionGuardPolicy:
                                  file_path: str, line_number: int) -> None:
         '''
         Register a mutation point during self_audit.
-        
+
         Key: module:function
         '''
         key = f'{module}:{function}'
@@ -165,19 +165,19 @@ class ExecutionGuardPolicy:
                                  operation: str = 'unknown') -> None:
         '''
         HARD ASSERT: Verify mutation is allowed.
-        
+
         Called by:
         - ExecutionGateway before any mutation operation
         - MutationExecutor.apply_mutation()
         - Any component with @requires_gateway
-        
+
         Raises:
             SystemShutdown: if mutation not allowed
         '''
         # Compute call stack
         stack = self._capture_stack()
         stack_str = self._format_stack(stack)
-        stack_hash = hashlib.sha256(stack_str.encode()).hexdigest()[:16]
+        hashlib.sha256(stack_str.encode()).hexdigest()[:16]
 
         # Check if in gateway context
         in_gateway = self._is_in_gateway_context(stack)
@@ -232,7 +232,7 @@ class ExecutionGuardPolicy:
     def assert_gateway_active(self, operation: str = 'unknown') -> None:
         '''
         Verify Gateway context is active.
-        
+
         Called at the START of every gateway operation.
         '''
         stack = self._capture_stack()
@@ -365,7 +365,7 @@ class ExecutionGuardPolicy:
 
         # Also print to stderr for visibility
         import sys as _sys
-        print(
+        log.info(
             f'\n[ExecutionGuardPolicy] VIOLATION ({violation.severity.name}):\n'
             f'  {violation.message}\n'
             f'  File: {violation.caller_file}:{violation.caller_line}\n'
@@ -377,7 +377,7 @@ class ExecutionGuardPolicy:
     def _trigger_shutdown(self, violation: GuardViolation) -> None:
         '''
         Trigger immediate system shutdown.
-        
+
         This is UNRECOVERABLE. No exceptions, no fallbacks.
         '''
         raise SystemShutdown(

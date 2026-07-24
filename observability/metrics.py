@@ -105,7 +105,9 @@ SIGNAL_CONSENSUS_QUALITY = (
 # ─── Helpers ───────────────────────────────────────────────────────────
 
 
-def record_agent_run(agent: str, signal: str, latency_s: float, confidence: int) -> None:
+def record_agent_run(
+    agent: str, signal: str, latency_s: float, confidence: int
+) -> None:
     """Idempotent: records a single agent run, including latency and confidence."""
     if not _HAS_PROM:
         logger.debug(
@@ -123,7 +125,9 @@ def record_agent_run(agent: str, signal: str, latency_s: float, confidence: int)
 
 def record_data_room_resolve(resolver: str, status: str, latency_s: float) -> None:
     if not _HAS_PROM:
-        logger.debug("metrics stub: resolver=%s status=%s lat=%.3fs", resolver, status, latency_s)
+        logger.debug(
+            "metrics stub: resolver=%s status=%s lat=%.3fs", resolver, status, latency_s
+        )
         return
     DATA_ROOM_RESOLVE_TOTAL.labels(resolver=resolver, status=status).inc()
     DATA_ROOM_LATENCY.labels(resolver=resolver).observe(latency_s)
@@ -144,7 +148,9 @@ def time_block(metric_name: str = "default") -> Any:
         elapsed = time.perf_counter() - start
         yield_holder["elapsed"] = elapsed
         if _HAS_PROM and AGENT_LATENCY_SECONDS is not None:
-            AGENT_LATENCY_SECONDS.labels(agent=metric_name, ttc="false").observe(elapsed)
+            AGENT_LATENCY_SECONDS.labels(agent=metric_name, ttc="false").observe(
+                elapsed
+            )
 
 
 def with_agent_timing(

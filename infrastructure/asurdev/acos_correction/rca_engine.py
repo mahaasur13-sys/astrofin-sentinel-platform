@@ -5,12 +5,15 @@ RCA Engine — ACOS Correction Prompt implementation.
 Performs Root Cause Analysis for each failure scenario,
 outputs structured FIX_APPLIED in YAML format.
 """
-import json
 import importlib.util
+import logging
 import os
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 from enum import Enum
+
+log = logging.getLogger(__name__)
+
+
 
 class Criticality(Enum):
     S1 = "S1"   # system down
@@ -44,13 +47,13 @@ class RCAResult:
 
 class RCAEngine:
     """Implements ACOS Correction Prompt logic."""
-    
+
     SCENARIO_MODULE_PREFIX = "load_test.scenarios"
-    
+
     def __init__(self, repo_root: str):
         self.repo_root = repo_root
         self.history: list[RCAResult] = []
-    
+
     def run_scenario(self, scenario_name: str) -> dict:
         """Run a single load test scenario."""
         module_path = os.path.join(
@@ -59,13 +62,13 @@ class RCAEngine:
         )
         if not os.path.exists(module_path):
             return {"error": f"Scenario {scenario_name} not found"}
-        
+
         spec = importlib.util.spec_from_file_location("test_module", module_path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        
+
         return module.run()
-    
+
     def analyze(self, scenario_name: str, scenario_result: dict) -> RCAResult:
         """Apply ACOS Correction Prompt to a scenario result."""
         scenario = scenario_result.get("scenario", scenario_name)
@@ -73,8 +76,8 @@ class RCAEngine:
         failure_detected = scenario_result.get("failure_detected", False)
         metrics = scenario_result.get("metrics", {})
         correction = scenario_result.get("correction_applied", "")
-        result_after = scenario_result.get("result_after_fix")
-        
+        scenario_result.get("result_after_fix")
+
         # Layer mapping
         layer_map = {
             "policy_oscillation": ("v7_policy", CauseType.FEEDBACK_LOOP),
@@ -85,20 +88,20 @@ class RCAEngine:
             "idempotency": ("v4_self_healing", CauseType.DETERMINISTIC_BUG),
             "governance_failure": ("v8_governance", CauseType.CONSTRAINT_VIOLATION),
         }
-        
+
         affected_layer, cause_type = layer_map.get(
             scenario, ("unknown", CauseType.STOCHASTIC)
         )
-        
+
         # Determine root cause
         root_cause = self._root_cause(scenario, metrics, cause_type)
-        
+
         # Build fix from correction field
         fix_applied = self._build_fix(scenario, correction)
-        
+
         # Impact assessment
         impact = self._impact(scenario, metrics)
-        
+
         # Validation
         validation = {
             "scenario_not_reproducible": True,  # correction applied
@@ -107,10 +110,10 @@ class RCAEngine:
             "policy_stable": True,
             "governance_not_bypassed": True,
         }
-        
+
         # Stability
         stability = "stable" if failure_detected else "requires_monitoring"
-        
+
         # Criticality
         if scenario in ["governance_failure", "ml_risk_ignored"]:
             criticality = Criticality.S1
@@ -118,7 +121,7 @@ class RCAEngine:
             criticality = Criticality.S2
         else:
             criticality = Criticality.S3
-        
+
         return RCAResult(
             scenario=scenario,
             tags=tags,
@@ -135,7 +138,7 @@ class RCAEngine:
             stability=stability,
             validation=validation,
         )
-    
+
     def _root_cause(self, scenario: str, metrics: dict, cause_type: CauseType) -> str:
         causes = {
             "policy_oscillation": (
@@ -168,7 +171,7 @@ class RCAEngine:
             ),
         }
         return causes.get(scenario, f"Unknown cause: {cause_type.value}")
-    
+
     def _build_fix(self, scenario: str, correction: str) -> list[dict]:
         fixes = {
             "policy_oscillation": [{
@@ -208,7 +211,7 @@ class RCAEngine:
             }],
         }
         return fixes.get(scenario, [{"file": "unknown", "change": correction, "impact": {}}])
-    
+
     def _impact(self, scenario: str, metrics: dict) -> dict:
         impacts = {
             "policy_oscillation": {"latency_delta": "0ms", "failure_rate_delta": "-40%", "policy_variance": "-60%"},
@@ -220,25 +223,25 @@ class RCAEngine:
             "governance_failure": {"latency_delta": "+1ms", "failure_rate_delta": "-99%", "policy_variance": "0%"},
         }
         return impacts.get(scenario, {"latency_delta": "0ms", "failure_rate_delta": "0%", "policy_variance": "0%"})
-    
+
     def run_full_correction_cycle(self, scenario_name: str) -> RCAResult:
         """Run ACOS correction loop: scenario → RCA → fix → validate."""
-        print(f"[RCA] Running scenario: {scenario_name}")
+        log.info(f"[RCA] Running scenario: {scenario_name}")
         result = self.run_scenario(scenario_name)
-        
+
         if result.get("error"):
-            print(f"[RCA] Error: {result['error']}")
+            log.info(f"[RCA] Error: {result['error']}")
             return None
-        
+
         rca = self.analyze(scenario_name, result)
         self.history.append(rca)
-        
-        print(f"[RCA] Root cause: {rca.root_cause}")
-        print(f"[RCA] Stability: {rca.stability}")
-        print(f"[RCA] Criticality: {rca.criticality.value}")
-        
+
+        log.info(f"[RCA] Root cause: {rca.root_cause}")
+        log.info(f"[RCA] Stability: {rca.stability}")
+        log.info(f"[RCA] Criticality: {rca.criticality.value}")
+
         return rca
-    
+
     def generate_report(self) -> str:
         """Generate YAML-formatted correction report."""
         lines = ["# ACOS Correction Report\n"]
@@ -246,22 +249,22 @@ class RCAEngine:
             lines.append(f"## {rca.scenario}")
             lines.append(f"TAGS: {' '.join(rca.tags)}")
             lines.append(f"CRITICALITY: {rca.criticality.value}")
-            lines.append(f"")
+            lines.append("")
             lines.append(f"ROOT_CAUSE: {rca.root_cause}")
             lines.append(f"AFFECTED_LAYER: {rca.affected_layer}")
             lines.append(f"CAUSE_TYPE: {rca.cause_type.value}")
-            lines.append(f"")
-            lines.append(f"FIX_APPLIED:")
+            lines.append("")
+            lines.append("FIX_APPLIED:")
             for fix in rca.fix_applied:
                 lines.append(f"  - file: {fix['file']}")
                 lines.append(f"    change: {fix['change']}")
-            lines.append(f"")
-            lines.append(f"IMPACT:")
+            lines.append("")
+            lines.append("IMPACT:")
             for k, v in rca.impact.items():
                 lines.append(f"  {k}: {v}")
-            lines.append(f"")
+            lines.append("")
             lines.append(f"STABILITY: {rca.stability}")
-            lines.append(f"")
+            lines.append("")
             lines.append("VALIDATION:")
             for k, v in rca.validation.items():
                 lines.append(f"  [{'x' if v else ' '}] {k}")
@@ -272,7 +275,7 @@ class RCAEngine:
 def main():
     import sys
     engine = RCAEngine(repo_root="/home/workspace/home-cluster-iac")
-    
+
     scenarios = [
         "policy_oscillation",
         "solver_latency",
@@ -282,21 +285,21 @@ def main():
         "idempotency",
         "governance_failure",
     ]
-    
+
     if len(sys.argv) > 1:
         scenarios = [sys.argv[1]]
-    
+
     for scenario in scenarios:
         engine.run_full_correction_cycle(scenario)
-    
+
     report = engine.generate_report()
-    print(report)
-    
+    log.info(report)
+
     os.makedirs("/home/workspace/home-cluster-iac/acos_correction/history", exist_ok=True)
     out_path = f"/home/workspace/home-cluster-iac/acos_correction/history/run_{len(engine.history)}.md"
     with open(out_path, "w") as f:
         f.write(report)
-    print(f"\nReport saved: {out_path}")
+    log.info(f"\nReport saved: {out_path}")
 
 
 if __name__ == "__main__":

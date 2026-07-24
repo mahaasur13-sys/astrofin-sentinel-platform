@@ -4,9 +4,8 @@ Labeling Functions — converts raw events to ML labels.
 Failure: node goes down within horizon
 Load: queue/GPU exceeds threshold within horizon
 """
-import numpy as np
+
 import pandas as pd
-from typing import Optional
 
 
 def label_failure(
@@ -42,7 +41,7 @@ def label_load_exceeded(
 
 def label_from_job_outcome(
     df: pd.DataFrame,
-    failure_states: Optional[list] = None,
+    failure_states: list | None = None,
 ) -> pd.Series:
     """
     Label from job outcome stored in job_events table.

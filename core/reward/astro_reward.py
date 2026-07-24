@@ -15,6 +15,8 @@ Signals:
 All clamped to [-1, 1].
 """
 
+from __future__ import annotations
+
 
 def compute_astro_reward(
     muhurta: str = "neutral",

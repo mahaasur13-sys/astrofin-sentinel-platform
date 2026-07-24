@@ -24,6 +24,10 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── Result types ────────────────────────────────────────────────────────────
 
 @dataclass
@@ -311,7 +315,7 @@ class StreamingInvariantEngine:
                 except Exception as e:
                     # Non-fatal — log and continue
                     import sys
-                    print(f"[StreamingInvariantEngine] tick error: {e}", file=sys.stderr)
+                    log.info(f"[StreamingInvariantEngine] tick error: {e}", file=sys.stderr)
                 time.sleep(self._interval)
 
         self._thread = threading.Thread(target=loop, daemon=True)

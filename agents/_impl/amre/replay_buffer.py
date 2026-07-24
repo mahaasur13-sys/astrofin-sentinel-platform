@@ -1,5 +1,7 @@
 """amre/replay_buffer.py — Replay Buffer for trajectory learning"""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any
 
@@ -31,8 +33,14 @@ class ReplayBuffer:
     def get_all_trajectories(self) -> list[Trajectory]:
         return [e.trajectory for e in self.buffer]
 
-    def get_similar(self, trajectory: Trajectory, threshold: float = 0.3) -> list[BufferEntry]:
-        return [e for e in self.buffer if is_similar_trajectory(trajectory, e.trajectory, threshold)]
+    def get_similar(
+        self, trajectory: Trajectory, threshold: float = 0.3
+    ) -> list[BufferEntry]:
+        return [
+            e
+            for e in self.buffer
+            if is_similar_trajectory(trajectory, e.trajectory, threshold)
+        ]
 
     def size(self) -> int:
         return len(self.buffer)
@@ -48,7 +56,9 @@ def get_default_buffer() -> ReplayBuffer:
     return _DEFAULT_BUFFER
 
 
-def _select_best_trajectory(trajectories: list[Trajectory], q_star_scores: list[float]) -> Trajectory:
+def _select_best_trajectory(
+    trajectories: list[Trajectory], q_star_scores: list[float]
+) -> Trajectory:
     if not trajectories:
         raise ValueError("No trajectories provided")
     scored = list(zip(trajectories, q_star_scores, strict=False))

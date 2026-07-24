@@ -4,11 +4,17 @@ Validate that all alert rules reference existing metrics.
 Known metrics list should be updated when new metrics are added.
 """
 
+from __future__ import annotations
+
+import logging
 import re
 import sys
 from pathlib import Path
 
 import yaml
+
+log = logging.getLogger(__name__)
+
 
 # --- Extend this list when implementing new domain metrics ---
 KNOWN_METRICS = {
@@ -43,7 +49,7 @@ def extract_metric_names(expr: str) -> list[str]:
 def main():
     alerts_path = Path(__file__).parent.parent / "deploy" / "monitoring" / "alerts.yml"
     if not alerts_path.exists():
-        print(f"ERROR: {alerts_path} not found")
+        log.info(f"ERROR: {alerts_path} not found")
         sys.exit(1)
 
     with open(alerts_path) as f:
@@ -76,15 +82,17 @@ def main():
                 }:
                     continue
                 if metric not in KNOWN_METRICS:
-                    errors.append(f"{alert_name}: metric '{metric}' not in known metrics list")
+                    errors.append(
+                        f"{alert_name}: metric '{metric}' not in known metrics list"
+                    )
 
     if errors:
-        print("ERROR: Alert rules reference unknown metrics:")
+        log.info("ERROR: Alert rules reference unknown metrics:")
         for e in errors:
-            print(f"  - {e}")
+            log.info(f"  - {e}")
         sys.exit(1)
     else:
-        print("OK: All alert metrics are known.")
+        log.info("OK: All alert metrics are known.")
         sys.exit(0)
 
 

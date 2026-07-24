@@ -3,9 +3,9 @@
 Feature Definitions — complete set of ML-ready features per node.
 Each feature is a callable that returns a float from raw metrics.
 """
-from typing import Callable, Dict, List
+from collections.abc import Callable
 
-FeatureFunc = Callable[[Dict], float]
+FeatureFunc = Callable[[dict], float]
 
 
 class Feature:
@@ -16,14 +16,14 @@ class Feature:
         self.unit = unit
         self.description = description
 
-    def __call__(self, ctx: Dict) -> float:
+    def __call__(self, ctx: dict) -> float:
         return self.fn(ctx)
 
 
 # =============================================================================
 # GPU FEATURES
 # =============================================================================
-GPU_FEATURES: List[Feature] = [
+GPU_FEATURES: list[Feature] = [
     Feature(
         name="gpu_mean_5m",
         fn=lambda c: c.get("gpu_util", {}).get("5m", {}).get("mean", 0.0),
@@ -59,7 +59,7 @@ GPU_FEATURES: List[Feature] = [
 # =============================================================================
 # CPU FEATURES
 # =============================================================================
-CPU_FEATURES: List[Feature] = [
+CPU_FEATURES: list[Feature] = [
     Feature(
         name="cpu_mean_5m",
         fn=lambda c: c.get("cpu_util", {}).get("5m", {}).get("mean", 0.0),
@@ -84,7 +84,7 @@ CPU_FEATURES: List[Feature] = [
 # =============================================================================
 # MEMORY FEATURES
 # =============================================================================
-MEM_FEATURES: List[Feature] = [
+MEM_FEATURES: list[Feature] = [
     Feature(
         name="mem_mean_5m",
         fn=lambda c: c.get("mem_util", {}).get("5m", {}).get("mean", 0.0),
@@ -102,7 +102,7 @@ MEM_FEATURES: List[Feature] = [
 # =============================================================================
 # QUEUE FEATURES
 # =============================================================================
-QUEUE_FEATURES: List[Feature] = [
+QUEUE_FEATURES: list[Feature] = [
     Feature(
         name="queue_depth",
         fn=lambda c: c.get("queue_depth", 0),
@@ -126,7 +126,7 @@ QUEUE_FEATURES: List[Feature] = [
 # =============================================================================
 # STORAGE FEATURES
 # =============================================================================
-STORAGE_FEATURES: List[Feature] = [
+STORAGE_FEATURES: list[Feature] = [
     Feature(
         name="ceph_iops_mean_5m",
         fn=lambda c: c.get("ceph_iops", {}).get("5m", {}).get("mean", 0.0),
@@ -144,7 +144,7 @@ STORAGE_FEATURES: List[Feature] = [
 # =============================================================================
 # NETWORK FEATURES
 # =============================================================================
-NETWORK_FEATURES: List[Feature] = [
+NETWORK_FEATURES: list[Feature] = [
     Feature(
         name="wg_handshake_age",
         fn=lambda c: c.get("wg_handshake_age", 0),
@@ -162,7 +162,7 @@ NETWORK_FEATURES: List[Feature] = [
 # =============================================================================
 # FAILURE FEATURES
 # =============================================================================
-FAILURE_FEATURES: List[Feature] = [
+FAILURE_FEATURES: list[Feature] = [
     Feature(
         name="failure_count_1h",
         fn=lambda c: c.get("failure_count_1h", 0),
@@ -192,7 +192,7 @@ FAILURE_FEATURES: List[Feature] = [
 # =============================================================================
 # COMPOSITE FEATURES
 # =============================================================================
-COMPOSITE_FEATURES: List[Feature] = [
+COMPOSITE_FEATURES: list[Feature] = [
     Feature(
         name="overload_score",
         fn=lambda c: (

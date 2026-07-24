@@ -1,5 +1,7 @@
 """data/market_adapter.py — ATOM-STEP-6: Market Data Adapter with live sources, cache, and metrics."""
 
+from __future__ import annotations
+
 import logging
 import os
 import random
@@ -8,14 +10,17 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 import requests
-from prometheus_client import Counter, Histogram
-
+from prometheus_client import Counter, Gauge, Histogram, REGISTRY
 
 logger = logging.getLogger(__name__)
 
 # ── Prometheus metrics ──────────────────────────────────────────────────────────
-MARKET_DATA_CACHE_HITS = Counter("astrofin_market_data_cache_hits", "Number of market data cache hits")
-MARKET_DATA_CACHE_MISSES = Counter("astrofin_market_data_cache_misses", "Number of market data cache misses")
+MARKET_DATA_CACHE_HITS = Counter(
+    "astrofin_market_data_cache_hits", "Number of market data cache hits"
+)
+MARKET_DATA_CACHE_MISSES = Counter(
+    "astrofin_market_data_cache_misses", "Number of market data cache misses"
+)
 MARKET_DATA_API_LATENCY = Histogram(
     "astrofin_market_data_api_latency_seconds",
     "Market data API request duration in seconds",
@@ -26,6 +31,8 @@ MARKET_DATA_API_LATENCY = Histogram(
 MARKET_DATA_SOURCE = os.getenv("MARKET_DATA_SOURCE", "synthetic").lower()
 BINANCE_API_BASE = os.getenv("BINANCE_API_BASE", "https://api.binance.com")
 COINGECKO_API_BASE = os.getenv("COINGECKO_API_BASE", "https://api.coingecko.com/api/v3")
+POLYGON_API_BASE = os.getenv("POLYGON_API_BASE", "https://api.polygon.io")
+UW_API_BASE = os.getenv("UW_API_BASE", "https://api.unusualwhales.com")
 CACHE_TTL_MAP = {"1m": 60, "5m": 120, "15m": 300, "1h": 900, "4h": 3600, "1d": 86400}
 
 
@@ -63,7 +70,9 @@ class MarketAdapter:
 
     # ── Public API ──────────────────────────────────────────────────────────────
 
-    def fetch_ohlcv(self, symbol: str, interval: str = "1h", limit: int = 100) -> list[OHLCV]:
+    def fetch_ohlcv(
+        self, symbol: str, interval: str = "1h", limit: int = 100
+    ) -> list[OHLCV]:
         """
         Fetch OHLCV candles for a symbol.
 
@@ -78,8 +87,8 @@ class MarketAdapter:
         cache_key = f"ohlcv:{symbol}:{interval}:{limit}"
 
         # Check cache first
-        if self._cache:
-            cached = self._cache.get(cache_key)
+        if self._redis:
+            cached = self._redis.get(cache_key)
             if cached:
                 MARKET_DATA_CACHE_HITS.inc()
                 logger.debug("Cache hit for %s", cache_key)
@@ -94,9 +103,9 @@ class MarketAdapter:
                 data = self._fetch_from_source(src, symbol, interval, limit)
                 if data:
                     # Cache the result
-                    if self._cache:
+                    if self._redis:
                         ttl = CACHE_TTL_MAP.get(interval, 3600)
-                        self._cache.setex(
+                        self._redis.setex(
                             cache_key,
                             ttl,
                             [
@@ -135,9 +144,15 @@ class MarketAdapter:
             return ["binance", "coingecko", "synthetic"]
         elif self.source == "coingecko":
             return ["coingecko", "synthetic"]
+        elif self.source == "polygon":
+            return ["polygon", "coingecko", "synthetic"]
+        elif self.source == "unusual_whales":
+            return ["unusual_whales", "polygon", "coingecko", "synthetic"]
         return [self.source, "synthetic"]
 
-    def _fetch_from_source(self, source: str, symbol: str, interval: str, limit: int) -> list[OHLCV]:
+    def _fetch_from_source(
+        self, source: str, symbol: str, interval: str, limit: int
+    ) -> list[OHLCV]:
         """Dispatch to correct fetcher."""
         if source == "synthetic":
             return self._generate_synthetic(symbol, interval, limit)
@@ -145,6 +160,10 @@ class MarketAdapter:
             return self._fetch_binance(symbol, interval, limit)
         elif source == "coingecko":
             return self._fetch_coingecko(symbol, interval, limit)
+        elif source == "polygon":
+            return self._fetch_polygon(symbol, interval, limit)
+        elif source == "unusual_whales":
+            return self._fetch_unusual_whales(symbol, interval, limit)
         return []
 
     def _fetch_binance(self, symbol: str, interval: str, limit: int) -> list[OHLCV]:
@@ -209,13 +228,91 @@ class MarketAdapter:
             logger.error("CoinGecko API error: %s", e)
             raise
 
-    def _generate_synthetic(self, symbol: str, interval: str, limit: int) -> list[OHLCV]:
+    def _fetch_polygon(self, symbol: str, interval: str, limit: int) -> list[OHLCV]:
+        """Fetch candles from Polygon.io (mock — uses seeded random).
+
+        In production this hits POLYGON_API_BASE/v2/aggs/ticker/{symbol}/range/...
+        Here we deterministically seed random from (symbol, interval) so the same
+        inputs yield the same candles — important for backtest reproducibility.
+        """
+        import hashlib
+
+        api_key = os.getenv("POLYGON_API_KEY", "")
+        if api_key:
+            url = (
+                f"{POLYGON_API_BASE}/v2/aggs/ticker/{symbol.upper()}/range/1/{interval}"
+            )
+            resp = self._session.get(
+                url, params={"apiKey": api_key, "limit": limit}, timeout=10
+            )
+            MARKET_DATA_API_LATENCY.observe(0)
+            resp.raise_for_status()
+            results = resp.json().get("results", [])
+            return [
+                OHLCV(
+                    timestamp=datetime.fromtimestamp(r["t"] / 1000),
+                    open=float(r["o"]),
+                    high=float(r["h"]),
+                    low=float(r["l"]),
+                    close=float(r["c"]),
+                    volume=float(r["v"]),
+                )
+                for r in results[-limit:]
+            ]
+        # Mock path: deterministic synthetic
+        seed = int(hashlib.sha256(f"{symbol}|{interval}".encode()).hexdigest(), 16) % (
+            2**32
+        )
+        rng = random.Random(seed)
+        return self._generate_synthetic_seeded(symbol, interval, limit, rng)
+
+    def _fetch_unusual_whales(
+        self, symbol: str, interval: str, limit: int
+    ) -> list[OHLCV]:
+        """Fetch candles from Unusual Whales (mock — options-flow-flavored synthetic).
+
+        UW API in production returns options-flow data; for OHLCV we model it as
+        higher volatility and inflated volume to mimic flow-driven markets.
+        """
+        # Re-seed off symbol+interval for determinism
+        import hashlib
+
+        seed = int(
+            hashlib.sha256(f"uw|{symbol}|{interval}".encode()).hexdigest(), 16
+        ) % (2**32)
+        rng = random.Random(seed)
+        base = self._generate_synthetic_seeded(symbol, interval, limit, rng)
+        # Inflate volume 10x, widen range ~2x to mimic options-flow spikes
+        out = []
+        for c in base:
+            spread = max(c.high - c.low, c.close * 0.001)
+            mid = (c.high + c.low) / 2
+            half = spread
+            out.append(
+                OHLCV(
+                    timestamp=c.timestamp,
+                    open=round(c.open, 6),
+                    high=round(mid + half, 6),
+                    low=round(mid - half, 6),
+                    close=round(c.close, 6),
+                    volume=round(c.volume * 10, 2),
+                )
+            )
+        return out
+
+    def _generate_synthetic(
+        self, symbol: str, interval: str, limit: int
+    ) -> list[OHLCV]:
         """Generate synthetic OHLCV data (original mock implementation)."""
         data = []
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         price = 100.0
         for i in range(limit):
-            ts = now - timedelta(hours=limit - i - 1) if interval == "1h" else now - timedelta(days=limit - i - 1)
+            ts = (
+                now - timedelta(hours=limit - i - 1)
+                if interval == "1h"
+                else now - timedelta(days=limit - i - 1)
+            )
             change = random.gauss(0, 0.02)
             o, c = price, price * (1 + change)
             h, l = (
@@ -230,6 +327,35 @@ class MarketAdapter:
                     low=round(l, 4),
                     close=round(c, 4),
                     volume=random.uniform(1000, 10000),
+                )
+            )
+            price = c
+        return data
+
+    def _generate_synthetic_seeded(
+        self, symbol: str, interval: str, limit: int, rng: random.Random
+    ) -> list[OHLCV]:
+        """Seeded synthetic OHLCV — reproducible for given (symbol, interval, limit)."""
+        data = []
+        now = datetime.now(timezone.utc)
+        price = 100.0
+        for i in range(limit):
+            if interval in ("1m", "5m", "15m", "1h"):
+                ts = now - timedelta(hours=limit - i - 1)
+            else:
+                ts = now - timedelta(days=limit - i - 1)
+            change = rng.gauss(0, 0.02)
+            o, c = price, price * (1 + change)
+            h = max(o, c) * (1 + abs(change) * 0.5)
+            l = min(o, c) * (1 - abs(change) * 0.5)
+            data.append(
+                OHLCV(
+                    timestamp=ts,
+                    open=round(o, 6),
+                    high=round(h, 6),
+                    low=round(l, 6),
+                    close=round(c, 6),
+                    volume=rng.uniform(1000, 10000),
                 )
             )
             price = c

@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: astrofin-sentinel
-  labels:
-    name: astrofin-sentinel
-    app.kubernetes.io/part-of: astrofin-sentinel-platform
-    app.kubernetes.io/managed-by: kubectl

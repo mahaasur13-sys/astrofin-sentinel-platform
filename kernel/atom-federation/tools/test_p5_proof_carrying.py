@@ -4,6 +4,10 @@ import pathlib
 import sys
 import tempfile
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 from core.proof.execution_request import ExecutionRequest
@@ -13,13 +17,13 @@ from orchestration.ExecutionGateway import ExecutionGateway
 
 def ok(cond, msg=""):
     if not cond:
-        print(f"  FAIL: {msg}")
+        log.info(f"  FAIL: {msg}")
         return False
-    print(f"  OK: {msg}")
+    log.info(f"  OK: {msg}")
     return True
 
 def test1():
-    print("\n[1] Valid signed request")
+    log.info("\n[1] Valid signed request")
     with tempfile.TemporaryDirectory() as td:
         pv = ProofVerifier(signing_key=b"k", state_dir=pathlib.Path(td))
         gw = ExecutionGateway(proof_verifier=pv)
@@ -28,7 +32,7 @@ def test1():
         return ok(r.passed, f"expected pass, got {r.block_gate}")
 
 def test2():
-    print("\n[2] Missing proof rejected")
+    log.info("\n[2] Missing proof rejected")
     with tempfile.TemporaryDirectory() as td:
         v = ProofVerifier(signing_key=b"k", state_dir=pathlib.Path(td))
         gw = ExecutionGateway(proof_verifier=v)
@@ -40,10 +44,10 @@ def test2():
             return ok(True, "rejected")
 
 def test3():
-    print("\n[3] Invalid signature rejected")
+    log.info("\n[3] Invalid signature rejected")
     with tempfile.TemporaryDirectory() as td:
         v = ProofVerifier(signing_key=b"k", state_dir=pathlib.Path(td))
-        gw = ExecutionGateway(proof_verifier=v)
+        ExecutionGateway(proof_verifier=v)
         req = v.sign(payload={"a": 1}, issuer_id="i")
         bad = ExecutionRequest(payload={"a": 1}, proof=b"WRONG", signature=b"WRONG",
                              issuer_id="i", nonce=req.nonce, timestamp=req.timestamp)
@@ -54,7 +58,7 @@ def test3():
             return ok(True, "rejected")
 
 def test4():
-    print("\n[4] Replay blocked")
+    log.info("\n[4] Replay blocked")
     with tempfile.TemporaryDirectory() as td:
         pv = ProofVerifier(signing_key=b"k", state_dir=pathlib.Path(td))
         req = pv.sign(payload={"a": 1}, issuer_id="test")
@@ -66,7 +70,7 @@ def test4():
             return ok(True, f"replay blocked: {e.code}")
 
 def test5():
-    print("\n[5] Tamper detected")
+    log.info("\n[5] Tamper detected")
     with tempfile.TemporaryDirectory() as td:
         v = ProofVerifier(signing_key=b"k", state_dir=pathlib.Path(td))
         req = v.sign(payload={"a": 1}, issuer_id="i")
@@ -79,7 +83,7 @@ def test5():
             return ok(True, f"rejected: {e.code}")
 
 def test6():
-    print("\n[6] Stale rejected")
+    log.info("\n[6] Stale rejected")
     with tempfile.TemporaryDirectory() as td:
         stale = ExecutionRequest(payload={"a": 1}, proof=b"\x00"*32, signature=b"\x00"*32,
                                issuer_id="i", nonce="n", timestamp=0, metadata=())
@@ -93,7 +97,7 @@ def test6():
             return ok(True, f"stale or invalid: {e.code}")
 
 def test7():
-    print("\n[7] Ledger proof binding")
+    log.info("\n[7] Ledger proof binding")
     with tempfile.TemporaryDirectory() as td:
         pv = ProofVerifier(signing_key=b"k", state_dir=pathlib.Path(td))
         req = pv.sign(payload={"x": 1}, issuer_id="ledger_test")
@@ -102,7 +106,7 @@ def test7():
         return ok(len(entries) >= 1, f"ledger entries: {len(entries)}")
 
 def test8():
-    print("\n[8] Gateway proof gate enforced")
+    log.info("\n[8] Gateway proof gate enforced")
     with tempfile.TemporaryDirectory() as td:
         p = ProofVerifier(signing_key=b"k", state_dir=pathlib.Path(td))
         gw = ExecutionGateway(proof_verifier=p)
@@ -111,7 +115,7 @@ def test8():
         return ok(r.passed, f"G1..G10 + proof: {r.block_gate}")
 
 def test9():
-    print("\n[9] Gateway replay blocked")
+    log.info("\n[9] Gateway replay blocked")
     with tempfile.TemporaryDirectory() as td:
         pv = ProofVerifier(signing_key=b"k", state_dir=pathlib.Path(td))
         gw = ExecutionGateway(proof_verifier=pv)
@@ -128,7 +132,7 @@ def test9():
             return ok(True, f"replay blocked: {e.code}")
 
 def test10():
-    print("\n[10] P4+P5 aligned: runtime_integrity + proof_valid + G1..G10")
+    log.info("\n[10] P4+P5 aligned: runtime_integrity + proof_valid + G1..G10")
     with tempfile.TemporaryDirectory() as td:
         pv = ProofVerifier(signing_key=b"k", state_dir=pathlib.Path(td))
         gw = ExecutionGateway(proof_verifier=pv)
@@ -136,7 +140,7 @@ def test10():
         r = gw.execute_proof_carried(req)
         if not r.passed:
             return ok(False, f"combined failed: {r.block_gate}")
-        print("  OK: P4 runtime_integrity + P5 proof_valid + G1..G10 passed")
+        log.info("  OK: P4 runtime_integrity + P5 proof_valid + G1..G10 passed")
         return True
 
 if __name__ == "__main__":
@@ -144,11 +148,12 @@ if __name__ == "__main__":
     p = f = 0
     for t in tests:
         try:
-            if t(): p += 1
+            if t():
+                p += 1
             else: f += 1
         except Exception as e:
-            print(f"  EXCEPTION: {type(e).__name__}: {e}")
+            log.info(f"  EXCEPTION: {type(e).__name__}: {e}")
             f += 1
-    print(f"\n{'='*60}")
-    print(f"RESULTS: {p} passed / {f} failed / {len(tests)} total")
+    log.info(f"\n{'='*60}")
+    log.info(f"RESULTS: {p} passed / {f} failed / {len(tests)} total")
     sys.exit(0 if f == 0 else 1)

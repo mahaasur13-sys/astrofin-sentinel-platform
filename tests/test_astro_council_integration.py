@@ -1,5 +1,7 @@
 """Integration tests for AstroCouncilAgent aggregation logic."""
 
+from __future__ import annotations
+
 import pytest
 from unittest.mock import AsyncMock
 from agents._impl.astro_council.agent import AstroCouncilAgent
@@ -11,8 +13,15 @@ def council():
     return AstroCouncilAgent()
 
 
-def mock_response(signal: SignalDirection, confidence: float, reasoning: str = "test") -> AgentResponse:
-    return AgentResponse(agent_name="TestAgent", signal=signal, confidence=confidence, reasoning=reasoning)
+def mock_response(
+    signal: SignalDirection, confidence: float, reasoning: str = "test"
+) -> AgentResponse:
+    return AgentResponse(
+        agent_name="TestAgent",
+        signal=signal,
+        confidence=confidence,
+        reasoning=reasoning,
+    )
 
 
 class TestAstroCouncilBasic:
@@ -35,7 +44,9 @@ class TestAstroCouncilBasic:
     @pytest.mark.asyncio
     async def test_all_neutral(self, council):
         for agent in council.agents.values():
-            agent.run = AsyncMock(return_value=mock_response(SignalDirection.NEUTRAL, 50))
+            agent.run = AsyncMock(
+                return_value=mock_response(SignalDirection.NEUTRAL, 50)
+            )
         resp = await council.aggregate({})
         assert resp.signal == SignalDirection.NEUTRAL
 
@@ -78,7 +89,11 @@ class TestAstroCouncilBasic:
     @pytest.mark.asyncio
     async def test_ephemeris_unavailable_neutral(self, council):
         agents = list(council.agents.values())
-        agents[0].run = AsyncMock(return_value=mock_response(SignalDirection.NEUTRAL, 10, "Ephemeris unavailable"))
+        agents[0].run = AsyncMock(
+            return_value=mock_response(
+                SignalDirection.NEUTRAL, 10, "Ephemeris unavailable"
+            )
+        )
         for a in agents[1:]:
             a.run = AsyncMock(return_value=mock_response(SignalDirection.LONG, 70))
         resp = await council.aggregate({})

@@ -4,13 +4,11 @@ Failure Orchestrator — Detectors
 Monitors cluster health: Slurm, Ceph, Ray, WireGuard, node reachability.
 Each detector returns (is_down: bool, reason: str, severity: str)
 """
-import subprocess
-import time
 import socket
-from typing import Tuple
+import subprocess
 
 
-def slurm_controller_down() -> Tuple[bool, str, str]:
+def slurm_controller_down() -> tuple[bool, str, str]:
     """Check if Slurm controller is responsive."""
     try:
         out = subprocess.check_output(
@@ -29,7 +27,7 @@ def slurm_controller_down() -> Tuple[bool, str, str]:
         return True, f"slurm_unknown_{e}", "warning"
 
 
-def slurm_worker_down(node: str = "rk3576") -> Tuple[bool, str, str]:
+def slurm_worker_down(node: str = "rk3576") -> tuple[bool, str, str]:
     """Check if a Slurm compute node is DOWN or DRAINED."""
     try:
         out = subprocess.check_output(
@@ -46,7 +44,7 @@ def slurm_worker_down(node: str = "rk3576") -> Tuple[bool, str, str]:
         return True, f"slurm_worker_check_failed_{e}", "warning"
 
 
-def ceph_health_degraded() -> Tuple[bool, str, str]:
+def ceph_health_degraded() -> tuple[bool, str, str]:
     """Check Ceph cluster health status."""
     try:
         out = subprocess.check_output(["ceph", "-s"], timeout=5).decode()
@@ -65,7 +63,7 @@ def ceph_health_degraded() -> Tuple[bool, str, str]:
         return True, f"ceph_check_failed_{e}", "critical"
 
 
-def ceph_osd_down(osd_id: str = "0") -> Tuple[bool, str, str]:
+def ceph_osd_down(osd_id: str = "0") -> tuple[bool, str, str]:
     """Check if a specific Ceph OSD is down."""
     try:
         out = subprocess.check_output(
@@ -80,7 +78,7 @@ def ceph_osd_down(osd_id: str = "0") -> Tuple[bool, str, str]:
         return False, "", "ok"
 
 
-def ray_head_down() -> Tuple[bool, str, str]:
+def ray_head_down() -> tuple[bool, str, str]:
     """Check if Ray head is responsive."""
     try:
         out = subprocess.check_output(["ray", "status"], timeout=5).decode()
@@ -97,7 +95,7 @@ def ray_head_down() -> Tuple[bool, str, str]:
         return True, f"ray_check_failed_{e}", "warning"
 
 
-def wireguard_peer_down(peer: str = "wg0") -> Tuple[bool, str, str]:
+def wireguard_peer_down(peer: str = "wg0") -> tuple[bool, str, str]:
     """Check if WireGuard interface or peer is down."""
     try:
         out = subprocess.check_output(["wg", "show", peer], timeout=5).decode()
@@ -112,7 +110,7 @@ def wireguard_peer_down(peer: str = "wg0") -> Tuple[bool, str, str]:
         return True, f"wg_check_failed_{e}", "warning"
 
 
-def node_unreachable(host: str, port: int = 22, timeout: int = 3) -> Tuple[bool, str, str]:
+def node_unreachable(host: str, port: int = 22, timeout: int = 3) -> tuple[bool, str, str]:
     """Check if a node is reachable via TCP (ssh port check)."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(timeout)
@@ -126,7 +124,7 @@ def node_unreachable(host: str, port: int = 22, timeout: int = 3) -> Tuple[bool,
         return True, f"node_{host}_unreachable_{e}", "warning"
 
 
-def gpu_available() -> Tuple[bool, str, str]:
+def gpu_available() -> tuple[bool, str, str]:
     """Check if GPU is accessible and not in failure state."""
     try:
         out = subprocess.check_output(

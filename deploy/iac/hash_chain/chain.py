@@ -11,6 +11,10 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class HashChain:
@@ -59,5 +63,5 @@ if __name__ == "__main__":
     chain = HashChain("test-001", dag_hash="abc123")
     chain.add_node_hash({"node": "a", "output": 42})
     chain.add_node_hash({"node": "b", "output": 99})
-    print(chain.to_dict())
-    print(f"Valid: {chain.verify_chain()[0]}")
+    log.info(chain.to_dict())
+    log.info(f"Valid: {chain.verify_chain()[0]}")

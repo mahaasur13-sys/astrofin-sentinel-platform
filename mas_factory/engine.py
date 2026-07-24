@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from mas_factory.registry import get_agent_runner  # F821 fix
 
 """mas_factory/engine.py — ATOM-R-033: Production Optimized MAS Factory Engine
@@ -59,12 +61,16 @@ class ProductionMASEngine:
         symbol = context.get("symbol", "BTCUSDT")
         timeframe = context.get("timeframe", "SWING")
         data = f"{intention}:{symbol}:{timeframe}"
-        return hashlib.md5(data.encode()).hexdigest()[:12]
+        return hashlib.sha256(data.encode()).hexdigest()[:12]
 
     @lru_cache(maxsize=32)
-    def _build_cached(self, cache_key: str, intention: str, symbol: str, timeframe: str) -> Topology | None:
+    def _build_cached(
+        self, cache_key: str, intention: str, symbol: str, timeframe: str
+    ) -> Topology | None:
         try:
-            return self._architect.build(intention=intention, symbol=symbol, timeframe=timeframe)
+            return self._architect.build(
+                intention=intention, symbol=symbol, timeframe=timeframe
+            )
         except Exception as e:
             logger.warning(f"Architect.build failed: {e}")
             return None
@@ -72,7 +78,9 @@ class ProductionMASEngine:
     def build_topology(self, context: dict[str, Any]) -> Topology | None:
         if not self.config.enable_caching:
             return self._architect.build(
-                intention=context.get("intention", context.get("query_type", "ANALYZE")),
+                intention=context.get(
+                    "intention", context.get("query_type", "ANALYZE")
+                ),
                 symbol=context.get("symbol", "BTCUSDT"),
                 timeframe=context.get("timeframe", "SWING"),
             )
@@ -121,7 +129,9 @@ class ProductionMASEngine:
 
             return {
                 "status": "success",
-                "topology_hash": topology.hash[:8] if hasattr(topology, "hash") else "unknown",
+                "topology_hash": (
+                    topology.hash[:8] if hasattr(topology, "hash") else "unknown"
+                ),
                 "result": result,
                 "metrics": {
                     "duration_ms": round(duration_ms, 2),
@@ -137,7 +147,9 @@ class ProductionMASEngine:
                 return await self._execute_fallback(context)
             return self._error_response(str(e), t0, 0, 1)
 
-    async def _execute_topology_async(self, topology: Topology, context: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_topology_async(
+        self, topology: Topology, context: dict[str, Any]
+    ) -> dict[str, Any]:
         results = {}
 
         errors = 0  # F821 fix
@@ -171,7 +183,9 @@ class ProductionMASEngine:
             "timestamp": datetime.now().isoformat(),
         }
 
-    async def _apply_meta_questioning(self, context: dict[str, Any], topology: Topology) -> dict[str, Any]:
+    async def _apply_meta_questioning(
+        self, context: dict[str, Any], topology: Topology
+    ) -> dict[str, Any]:
         try:
             from agents._impl.meta_questioning import MetaQuestioningEngine
 
@@ -203,7 +217,9 @@ class ProductionMASEngine:
             "metrics": {"duration_ms": 0, "cache_hit": False, "errors": 1},
         }
 
-    def _error_response(self, error: str, t0: float, nodes: int, errs: int) -> dict[str, Any]:
+    def _error_response(
+        self, error: str, t0: float, nodes: int, errs: int
+    ) -> dict[str, Any]:
         return {
             "status": "error",
             "error": error,

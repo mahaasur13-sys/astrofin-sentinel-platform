@@ -20,6 +20,8 @@ Env vars:
     GROUNDING_PENALTY_STEP    (default: "0.13")
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from typing import Any
@@ -97,10 +99,7 @@ def validate_with_grounding(
         confidence_adjustment = adjusted_confidence - raw_confidence  # e.g. -10
 
         logger.debug(
-            f"[Grounding] failed={failed_count} "
-            f"factor={grounding_factor:.3f} "
-            f"conf {raw_confidence} → {adjusted_confidence} "
-            f"(Δ={confidence_adjustment:+d})"
+            f"[Grounding] failed={failed_count} factor={grounding_factor:.3f} conf {raw_confidence} → {adjusted_confidence} (Δ={confidence_adjustment:+d})"
         )
     else:
         # Backward-compatible additive degrade (old behaviour)

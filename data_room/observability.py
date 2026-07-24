@@ -13,7 +13,7 @@ from typing import Any
 class MetricsStore:
     """Thread-safe singleton. Track resolver usage + quality."""
 
-    _instance: MetricsStore | None = None
+    _instance: "MetricsStore | None" = None
     _lock = threading.Lock()
 
     def __init__(self):
@@ -21,10 +21,12 @@ class MetricsStore:
         self.error_count: dict[str, int] = defaultdict(int)
         self.latency_sum: dict[str, float] = defaultdict(float)
         self.last_quality: dict[str, float] = {}
-        self.source_breakdown: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+        self.source_breakdown: dict[str, dict[str, int]] = defaultdict(
+            lambda: defaultdict(int)
+        )
 
     @classmethod
-    def instance(cls) -> MetricsStore:
+    def instance(cls) -> "MetricsStore":
         with cls._lock:
             if cls._instance is None:
                 cls._instance = cls()

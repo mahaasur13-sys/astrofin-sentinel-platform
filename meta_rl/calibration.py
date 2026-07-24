@@ -18,12 +18,11 @@ import json
 import logging
 import sqlite3
 import threading
-from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +173,9 @@ class CalibrationTracker:
                 (agent, signal, conf, ts, ctx_json),
             )
             new_id = int(cur.lastrowid)
-        logger.debug(f"[CALIBRATION] recorded prediction {new_id} for {agent} conf={conf:.2f}")
+        logger.debug(
+            f"[CALIBRATION] recorded prediction {new_id} for {agent} conf={conf:.2f}"
+        )
         return new_id
 
     def record_outcome(
@@ -190,7 +191,8 @@ class CalibrationTracker:
         ts = self._ts(observed_at)
         with self._cursor() as cur:
             cur.execute(
-                "INSERT INTO outcomes (prediction_id, actual_label, observed_at, pnl) " "VALUES (?, ?, ?, ?)",
+                "INSERT INTO outcomes (prediction_id, actual_label, observed_at, pnl) "
+                "VALUES (?, ?, ?, ?)",
                 (int(prediction_id), int(actual_label), ts, float(pnl)),
             )
             outcome_id = int(cur.lastrowid)
@@ -223,6 +225,7 @@ class CalibrationTracker:
                     "WHERE p.predicted_at >= ? AND p.predicted_at <= ?",
                     (start_iso, end_iso),
                 )
+                pairs = cur.fetchall()
                 cur.execute(
                     "SELECT COUNT(*) FROM predictions WHERE predicted_at >= ? AND predicted_at <= ?",
                     (start_iso, end_iso),
@@ -234,12 +237,12 @@ class CalibrationTracker:
                     "WHERE p.agent = ? AND p.predicted_at >= ? AND p.predicted_at <= ?",
                     (agent, start_iso, end_iso),
                 )
+                pairs = cur.fetchall()
                 cur.execute(
-                    "SELECT COUNT(*) FROM predictions " "WHERE agent = ? AND predicted_at >= ? AND predicted_at <= ?",
+                    "SELECT COUNT(*) FROM predictions "
+                    "WHERE agent = ? AND predicted_at >= ? AND predicted_at <= ?",
                     (agent, start_iso, end_iso),
                 )
-
-            pairs = cur.fetchall()
             n_predictions_row = cur.fetchone()
             n_predictions = int(n_predictions_row[0]) if n_predictions_row else 0
 
@@ -252,7 +255,9 @@ class CalibrationTracker:
         asof: datetime | None = None,
     ) -> list[ReliabilityBin]:
         """Return the 10-bin reliability diagram for the given window."""
-        return self.get_calibration(agent=agent, window_days=window_days, asof=asof).bins
+        return self.get_calibration(
+            agent=agent, window_days=window_days, asof=asof
+        ).bins
 
     # ── Internals ──────────────────────────────────────────────────────────
 
@@ -298,7 +303,10 @@ class CalibrationTracker:
     ) -> CalibrationReport:
         n_resolved = len(pairs)
         if n_resolved == 0:
-            empty_bins = [ReliabilityBin(BIN_EDGES[i], BIN_EDGES[i + 1], 0, 0.0, 0.0) for i in range(N_BINS)]
+            empty_bins = [
+                ReliabilityBin(BIN_EDGES[i], BIN_EDGES[i + 1], 0, 0.0, 0.0)
+                for i in range(N_BINS)
+            ]
             return CalibrationReport(
                 agent=agent,
                 n_predictions=n_predictions,
@@ -365,11 +373,50 @@ class CalibrationTracker:
         )
 
 
-# ── Singleton ─────────────────────────────────────────────────────────────────
+    # ── Sprint 6 convenience API ──────────────────────────────────────────
+
+    @property
+    def calibration_accuracy(self) -> float:
+        """Recent calibration accuracy (0–1), computed from resolved outcomes."""
+        report = self.get_calibration(window_days=180)
+        return report.ece if report.n_predictions > 0 else 0.0
+
+    def evaluate(self, predictions: list[dict], outcomes: list[int]) -> float:
+        """Batch-evaluate predictions against outcomes. Returns accuracy."""
+        if not predictions or not outcomes or len(predictions) != len(outcomes):
+            return 0.0
+        correct = 0
+        for pred, outcome in zip(predictions, outcomes):
+            if isinstance(pred, dict):
+                signal = pred.get("signal", "")
+                conf = pred.get("confidence", 0.5)
+            else:
+                signal = str(pred)
+                conf = 0.5
+            # Simple heuristic: if confidence > 0.5 and outcome == 1 → correct
+            predicted_positive = conf >= 0.5
+            if (predicted_positive and outcome == 1) or (not predicted_positive and outcome == 0):
+                correct += 1
+        return correct / len(predictions)
+
+    def detect_drift(self, window: int = 50) -> bool:
+        """Check if recent calibration error exceeds baseline by 50%."""
+        report_recent = self.get_calibration(window_days=window)
+        report_baseline = self.get_calibration(window_days=365)
+        if report_baseline.n_predictions < 10 or report_recent.n_predictions < 5:
+            return False
+        recent_ece = report_recent.ece_weighted
+        baseline_ece = report_baseline.ece_weighted
+        if baseline_ece == 0.0:
+            return recent_ece > 0.05
+        return recent_ece > baseline_ece * 1.5
+
+
+
+# --- Singleton ---
 
 _tracker: CalibrationTracker | None = None
 _tracker_lock = threading.Lock()
-
 
 def get_calibration_tracker() -> CalibrationTracker:
     """Return the process-wide CalibrationTracker singleton."""

@@ -7,18 +7,17 @@ Supports: slurm_exporter, ceph_exporter, wg_exporter, dcgm_exporter, node_export
 Usage:
     python prometheus_collector.py --config config.yaml
 """
-import os
 import re
 import time
-import structlog
-import psycopg2
-import yaml
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
 from dataclasses import dataclass, field
-from threading import Thread, Event
-from urllib.request import urlopen, Request
+from datetime import datetime, timezone
+from threading import Event, Thread
 from urllib.error import URLError
+from urllib.request import urlopen
+
+import psycopg2
+import structlog
+import yaml
 
 logger = structlog.get_logger()
 
@@ -31,15 +30,15 @@ class MetricPoint:
     metric: str
     node_id: str
     value: float
-    labels: Dict[str, str] = field(default_factory=dict)
+    labels: dict[str, str] = field(default_factory=dict)
 
 class TimescaleWriter:
     def __init__(self, dsn: str, batch_size: int = 500, flush_interval: float = 5.0):
         self.dsn = dsn
         self.batch_size = batch_size
         self.flush_interval = flush_interval
-        self.buffer: List[MetricPoint] = []
-        self.conn: Optional[psycopg2.extensions.connection] = None
+        self.buffer: list[MetricPoint] = []
+        self.conn: psycopg2.extensions.connection | None = None
         self._connect()
         self._last_flush = time.monotonic()
 
@@ -84,9 +83,9 @@ class PrometheusCollector:
         self.writer = writer
         self.scrape_interval = scrape_interval
         self._stop = Event()
-        self._threads: List[Thread] = []
+        self._threads: list[Thread] = []
 
-    def parse_metrics(self, text: str, source_node: str) -> List[MetricPoint]:
+    def parse_metrics(self, text: str, source_node: str) -> list[MetricPoint]:
         points = []
         for line in text.splitlines():
             line = line.strip()

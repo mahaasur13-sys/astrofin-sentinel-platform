@@ -1,19 +1,100 @@
+# ─── Python ────────────────────────────────────────────────
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
 .venv/
 venv/
-.env
-.env.local
+ENV/
+env/
 .coverage
+.coverage.*
+htmlcov/
 .pytest_cache/
-.mypy_cache/
 .ruff_cache/
-*.egg-info/
+.mypy_cache/
+.hypothesis/
+.tox/
+.nox/
+
+# ─── Логи и временные файлы ───────────────────────────────
+*.log
+*.tmp
+*.swp
+*.swo
 .DS_Store
-reports/*.json
-!reports/.gitkeep
-logs/
-tmp/
+Thumbs.db
+# ─── Конфиденциальные данные ──────────────────────────────
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+.gitleaks-baseline.json.bak
+# ─── Бэкапы и корзина ─────────────────────────────────────
+backup_*.tar.gz
+workspace_backup_*.tar.gz
+Trash/
+# ─── Документы и личные папки (не код) ────────────────────
+Documents/
+Downloads/
+Knowledge/
+AsurDev/
+_pr_logs/
+_sbs_old/
+graphify-out/
+# ─── IDE и редакторы ───────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.cursor/
+.aider*
+# ─── Coverage и отчёты ─────────────────────────────────────
+coverage.xml
+lcov.info
+reports/
+artifacts/coverage/
+# ─── Zo internal scratch ──────────────────────────────────
 .zo_scratch/
-.zo_scratch/
+# ─── Временные файлы и патчи ──────────────────────────────
+*.patch
+*.bak
+*.orig
+*.rej
+*.diff
+pr*_files*.txt
+pr*_files_*.txt
+finish-pr-*.sh
+quality-gate-*.patch
+ci-cleanup.patch
+to-pip.txt
+pr118_files.txt
+pr120_files_all.txt
+pr120_files_full.txt
+# ─── Артефакты сборки/визуализации ───────────────────────
+# ─── Локальные env-файлы (секреты) ────────────────────────
+.env.local
+.env.*.local
+# Consolidation tooling & backups (2026-07-24 Variant C reverse-merge)
+consolidation_backup/
+consolidate_merge.py
+fix_broken_imports.py
+/tmp/
+# Binary artifacts — untracked from HEAD 2026-07-24 (should move to Git LFS / external storage)
+*.db
+*.rdb
+*.joblib
+data/rag_index/
+hmm_dashboard.html
+*.bak2
+*.bak3

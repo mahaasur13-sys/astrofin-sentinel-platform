@@ -4,10 +4,16 @@ core/online_trainer.py — ATOM-STEP-6: Online RL Trainer
 Trains Kepler + market models online using REINFORCE-style policy gradient.
 """
 
+from __future__ import annotations
+
 import json
+import logging
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
+
+log = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -100,9 +106,13 @@ class OnlineTrainer:
                 }
 
         # Regime-based risk multiplier
-        regime_mult = {"LOW": 1.0, "NORMAL": 0.75, "HIGH": 0.5, "EXTREME": 0.25}.get(regime, 0.5)
+        regime_mult = {"LOW": 1.0, "NORMAL": 0.75, "HIGH": 0.5, "EXTREME": 0.25}.get(
+            regime, 0.5
+        )
 
-        position = max(0.0, base + astro_adj - self.params.risk_position_scale * uncertainty)
+        position = max(
+            0.0, base + astro_adj - self.params.risk_position_scale * uncertainty
+        )
         position *= regime_mult
 
         # Exploration noise
@@ -161,7 +171,9 @@ class OnlineTrainer:
 
         # Baseline = exponential moving average of past rewards
         if self.state.reward_history:
-            baseline = sum(self.state.reward_history[-100:]) / min(len(self.state.reward_history), 100)
+            baseline = sum(self.state.reward_history[-100:]) / min(
+                len(self.state.reward_history), 100
+            )
         else:
             baseline = 0.0
 
@@ -178,9 +190,17 @@ class OnlineTrainer:
             # Gradient of position w.r.t. base_position_pct ≈ 1.0
             d_base += advantage * 1.0 * (1.0 if exp.reward > baseline else -1.0)
             # Gradient w.r.t. astro_position_scale
-            d_astro += advantage * max(exp.astro_alignment, 0) * (1.0 if exp.reward > baseline else -1.0)
+            d_astro += (
+                advantage
+                * max(exp.astro_alignment, 0)
+                * (1.0 if exp.reward > baseline else -1.0)
+            )
             # Gradient w.r.t. risk_position_scale (penalized by uncertainty)
-            d_risk += advantage * (1.0 - exp.uncertainty) * (1.0 if exp.reward > baseline else -1.0)
+            d_risk += (
+                advantage
+                * (1.0 - exp.uncertainty)
+                * (1.0 if exp.reward > baseline else -1.0)
+            )
 
         # Normalize gradients
         n = len(recent)
@@ -190,9 +210,15 @@ class OnlineTrainer:
 
         # Apply gradient ascent (maximize reward)
         old_base = self.params.base_position_pct
-        self.params.base_position_pct = max(0.01, min(0.2, self.params.base_position_pct + lr * d_base))
-        self.params.astro_position_scale = max(0.0, min(0.1, self.params.astro_position_scale + lr * d_astro))
-        self.params.risk_position_scale = max(0.0, min(0.1, self.params.risk_position_scale + lr * d_risk))
+        self.params.base_position_pct = max(
+            0.01, min(0.2, self.params.base_position_pct + lr * d_base)
+        )
+        self.params.astro_position_scale = max(
+            0.0, min(0.1, self.params.astro_position_scale + lr * d_astro)
+        )
+        self.params.risk_position_scale = max(
+            0.0, min(0.1, self.params.risk_position_scale + lr * d_risk)
+        )
 
         # Track best
         if mean_reward > self.state.best_reward:
@@ -306,7 +332,7 @@ class OnlineTrainer:
             pnl = random.gauss(0.5, 2.0) * pos * 100
             reward = pnl + 0.1 * astro * abs(pos)
             self.record_experience(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.utcnow(),
                 state_hash=f"state_{i}",
                 action_position_pct=pos,
                 reward=reward,
@@ -334,22 +360,20 @@ if __name__ == "__main__":
 
     trainer = OnlineTrainer(learning_rate=0.005)
 
-    print("=" * 60)
-    print("ATOM-STEP-6: Online RL Trainer — Simulation")
-    print("=" * 60)
+    log.info("=" * 60)
+    log.info("ATOM-STEP-6: Online RL Trainer — Simulation")
+    log.info("=" * 60)
 
     for ep in range(1, 21):
         result = trainer.run_episode(n_trades=20)
         update = result["update"]
         if update["updated"]:
-            print(
-                f"  Ep {ep:2d}: reward={result['mean_reward']:+.4f}  "
-                f"base={trainer.params.base_position_pct:.4f}  "
-                f"best={trainer.state.best_reward:.4f}"
+            log.info(
+                f"  Ep {ep:2d}: reward={result['mean_reward']:+.4f}  base={trainer.params.base_position_pct:.4f}  best={trainer.state.best_reward:.4f}"
             )
 
-    print(f"\n  Best reward: {trainer.state.best_reward:.4f}")
-    print(f"  Final params: {trainer._snapshot()}")
-    print(f"  Experiences: {trainer.state.total_experiences}")
-    print("  Saved → models/online_policy.json")
+    log.info(f"\n  Best reward: {trainer.state.best_reward:.4f}")
+    log.info(f"  Final params: {trainer._snapshot()}")
+    log.info(f"  Experiences: {trainer.state.total_experiences}")
+    log.info("  Saved → models/online_policy.json")
     trainer.save("models/online_policy.json")

@@ -9,8 +9,8 @@ class ResourceSpec(BaseModel):
     cpu_cores: int = 1
     memory_gb: int = 2
     gpu_required: bool = False
-    vram_gb: float | None = None
-    gpu_model: str | None = None  # e.g. "RTX3060"
+    vram_gb: Optional[float] = None
+    gpu_model: Optional[str] = None  # e.g. "RTX3060"
 
 
 class TaskStep(BaseModel):
@@ -31,7 +31,6 @@ class SecurityConfig(BaseModel):
 
 class ROMAInput(BaseModel):
     """Full ROMA JSON structure expected from Planner."""
-
     task_id: str
     analysis: dict
     dag: list[TaskStep]
@@ -39,7 +38,7 @@ class ROMAInput(BaseModel):
     execution: dict
     security: SecurityConfig
     observability: dict
-    notes: str | None = None
+    notes: Optional[str] = None
 
 
 def parse_roma_json(raw: dict) -> ROMAInput:

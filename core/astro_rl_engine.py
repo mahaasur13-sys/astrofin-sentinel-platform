@@ -1,12 +1,17 @@
 """core/astro_rl_engine.py - ATOM-STEP-6: Astro RL Engine"""
 
+from __future__ import annotations
+
+import logging
+log = logging.getLogger(__name__)
+
 import sys as _sys
 
 _sys.path.insert(0, "")
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 
 @dataclass
@@ -28,7 +33,9 @@ class AstroState:
 
     def _compute_hash(self) -> str:
         data = f"{self.timestamp.isoformat()}:{self.jd:.4f}:{self.moon_longitude:.2f}:{self.jupiter_longitude:.2f}:{self.saturn_longitude:.2f}"
-        return hashlib.md5(data.encode()).hexdigest()[:8]
+        return hashlib.sha256(data.encode()).hexdigest()[
+            :8
+        ]  # nosec B324 — content hash for astro state, not security
 
 
 @dataclass
@@ -61,7 +68,7 @@ class AstroRLLoop:
             "choghadiya": astro_state.choghadiya,
         }
 
-    def compute_alignment(self, signal_direction):
+    def compute_alignment(self, _signal_direction):
         if self.current_state is None:
             return 0.0
         moon, jup, sat = (
@@ -72,7 +79,12 @@ class AstroRLLoop:
         raw = (
             (1.0 if 0 <= moon <= 180 else -1.0) * 0.4
             + (1.0 if not (90 <= jup <= 270) else -0.5) * 0.3
-            + (1.0 if (30 <= sat <= 60 or 150 <= sat <= 180 or 300 <= sat <= 330) else -0.5) * 0.3
+            + (
+                1.0
+                if (30 <= sat <= 60 or 150 <= sat <= 180 or 300 <= sat <= 330)
+                else -0.5
+            )
+            * 0.3
             + (-0.3 if "M" in self.current_state.retrograde_mask else 0.0)
         )
         return max(-1.0, min(1.0, raw))
@@ -98,7 +110,9 @@ class AstroRLLoop:
         decision["state_hash"] = self.current_state.state_hash
         return decision
 
-    def record_and_update(self, exit_price, entry_price, direction, position_pct, hold_hours):
+    def record_and_update(
+        self, exit_price, entry_price, direction, position_pct, hold_hours
+    ):
         if self.current_state is None or self.trainer is None:
             return {"updated": False, "reason": "no_state_or_trainer"}
         pnl = (exit_price - entry_price) / entry_price * 100.0
@@ -148,7 +162,9 @@ class AstroRLLoop:
     def status(self):
         return {
             "total_states": len(self._state_history),
-            "total_experiences": (self.trainer.state.total_experiences if self.trainer else 0),
+            "total_experiences": (
+                self.trainer.state.total_experiences if self.trainer else 0
+            ),
             "current_episode": self.trainer.state.episode if self.trainer else 0,
             "best_reward": self.trainer.state.best_reward if self.trainer else None,
         }
@@ -165,9 +181,9 @@ if __name__ == "__main__":
     re = RewardEngine(astro_weight=0.15)
     tr = OnlineTrainer(PolicyParams(), learning_rate=0.01)
     rl = AstroRLLoop(AstroRLConfig(), re, tr)
-    print("ATOM-STEP-6: Astro RL Engine")
-    print("=" * 60)
-    now = datetime.now(timezone.utc)
+    log.info("ATOM-STEP-6: Astro RL Engine")
+    log.info("=" * 60)
+    now = datetime.utcnow()
     for day in range(7):
         ts = now - timedelta(days=6 - day)
         jd = 2451545.0 + (ts - datetime(2000, 1, 1)).total_seconds() / 86425.0
@@ -192,12 +208,14 @@ if __name__ == "__main__":
             ][day % 8],
         )
         obs = rl.observe(state)
-        print(
+        log.info(
             f"  Day {day + 1}: moon={obs['moon_longitude']:.1f}  nak={obs['nakshatra']}  choghadiya={obs['choghadiya']}"
         )
         if day % 2 == 0:
             d = rl.decide(signal_strength=65.0, uncertainty=0.3, regime="NORMAL")
-            print(f"    Decision: pos={d['position_pct']:.4f}  astro={d['astro_alignment']:+.3f}")
+            log.info(
+                f"    Decision: pos={d['position_pct']:.4f}  astro={d['astro_alignment']:+.3f}"
+            )
             rl.record_and_update(
                 exit_price=102.0,
                 entry_price=100.0,
@@ -205,6 +223,6 @@ if __name__ == "__main__":
                 position_pct=d["position_pct"],
                 hold_hours=24.0,
             )
-    print(f"  Status: {rl.status()}")
+    log.info(f"  Status: {rl.status()}")
     rl.save_log()
-    print("  Saved: models/astro_rl_log.json")
+    log.info("  Saved: models/astro_rl_log.json")

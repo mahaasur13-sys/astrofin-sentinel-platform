@@ -16,12 +16,13 @@ secrets in the first place. Track coverage in `docs/slo.md` and
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
-from typing import Any
+from typing import Any, Mapping
 
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 # JWT: three base64url segments separated by dots.
-_JWT_RE = re.compile(r"\beyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\b")
+_JWT_RE = re.compile(
+    r"\beyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\b"
+)
 # Bearer / Token / Authorization header values.
 _BEARER_RE = re.compile(r"(?i)(Bearer|Token|Authorization)\s+[A-Za-z0-9._\-]{8,}")
 # 40+ char hex strings (typical API keys, hashes, secrets).

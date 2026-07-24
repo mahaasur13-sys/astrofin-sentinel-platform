@@ -14,9 +14,11 @@ from pydantic import BaseModel, ConfigDict, Field
 # МОДЕЛИ
 # ============================================
 
-
 class RomaTaskInput(BaseModel):
-    model_config = ConfigDict(extra="forbid", validate_default=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        validate_default=True
+    )
 
     task: str = Field(..., min_length=1)
     gpu_required: bool = Field(default=False)
@@ -37,9 +39,9 @@ class RomaStatusResponse(BaseModel):
     job_id: str
     status: str
     created_at: str
-    started_at: str | None = None
-    completed_at: str | None = None
-    error: str | None = None
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    error: Optional[str] = None
 
 
 # ============================================
@@ -62,7 +64,6 @@ queue_depth = 0
 # ============================================
 # ЭНДПОИНТЫ
 # ============================================
-
 
 @app.post("/submit", response_model=RomaTaskResponse, status_code=202)
 async def submit_task(payload: RomaTaskInput):
@@ -145,7 +146,6 @@ async def health():
 # ============================================
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=8899)
 
 
@@ -157,6 +157,7 @@ async def submit_atom_cluster(payload: dict):
 
     # Create ATOMCluster CR if not exists
     try:
+        from k8s.roma_controller import create_atomcluster
         create_atomcluster(cluster_name, cluster_spec)
     except Exception:
         pass  # Already exists
@@ -171,8 +172,8 @@ async def submit_atom_cluster(payload: dict):
         "atom_cluster": {
             "name": cluster_name,
             "managed": True,
-            "nodes": cluster_spec.get("nodes", 1),
-        },
+            "nodes": cluster_spec.get("nodes", 1)
+        }
     }
     jobs[job_id] = job
     return job
@@ -184,7 +185,7 @@ async def list_jobs():
         "rom_version": "1.0.0",
         "queue": len(jobs),
         "jobs": list(jobs.values())[-10:],
-        "execution_modes": ["k8s_job", "k8s_persistent", "atom_cluster", "batch"],
+        "execution_modes": ["k8s_job", "k8s_persistent", "atom_cluster", "batch"]
     }
 
 
@@ -194,5 +195,5 @@ async def list_jobs():
         "rom_version": "1.0.0",
         "queue": len(jobs),
         "jobs": list(jobs.values())[-10:],
-        "execution_modes": ["k8s_job", "k8s_persistent", "atom_cluster", "batch"],
+        "execution_modes": ["k8s_job", "k8s_persistent", "atom_cluster", "batch"]
     }

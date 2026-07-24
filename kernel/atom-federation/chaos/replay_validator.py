@@ -37,8 +37,8 @@ Usage
 
     # Compare original vs replayed
     report = rv.compare(trace, replayed)
-    print(report.divergence_score)   # 0.0 = identical
-    print(report.verdict)            # DETERMINISTIC / DIVERGENT / PARTIAL
+    log.info(report.divergence_score)   # 0.0 = identical
+    log.info(report.verdict)            # DETERMINISTIC / DIVERGENT / PARTIAL
 """
 
 from __future__ import annotations
@@ -53,6 +53,10 @@ from enum import Enum
 from typing import Any
 
 from chaos.stress_envelope import StabilityEnvelope, StabilityState
+
+import logging
+log = logging.getLogger(__name__)
+
 
 # ── Enums ─────────────────────────────────────────────────────────────────────
 

@@ -17,6 +17,10 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── Data Structures ───────────────────────────────────────────────────────────
 
 @dataclass
@@ -41,7 +45,7 @@ class ExecutionGraph:
 class ExecutionGraphBuilder:
     '''
     Builds execution graph from source code.
-    
+
     Discovers:
         - Entry points (ExecutionGateway.execute)
         - Gateway nodes (G1-G10 stages)
@@ -308,9 +312,9 @@ def main():
     # Write
     if args.output:
         Path(args.output).write_text(output)
-        print(f'Written to {args.output}')
+        log.info(f'Written to {args.output}')
     else:
-        print(output)
+        log.info(output)
 
 
 if __name__ == '__main__':

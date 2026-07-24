@@ -174,8 +174,8 @@ class ComputeBudgetController:
         if not alloc or not alloc.allow_pruning:
             return False
         elapsed = self._elapsed_ms()
-        remaining = self.total_budget_ms - elapsed
-        alloc_remaining = alloc.max_time_ms - self.subsystem_spend[subsystem]
+        self.total_budget_ms - elapsed
+        alloc.max_time_ms - self.subsystem_spend[subsystem]
         # Prune if we have spent > 80% of our allocation in < 50% of tick time
         spent_ratio = self.subsystem_spend[subsystem] / max(alloc.max_time_ms, 0.1)
         time_ratio = elapsed / max(self.total_budget_ms, 0.1)

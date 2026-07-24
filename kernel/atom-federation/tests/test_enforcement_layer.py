@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 # test_enforcement_layer.py — atom-federation-os v9.0+P0.1+P0.3+P1.4
 # Tests for Runtime Self-Audit, Guard Policy, and Enhanced ExecutionContext
 #
@@ -21,28 +22,28 @@ def reset_singletons():
     try:
         from orchestration.execution_gateway import ExecutionGateway
         ExecutionGateway.reset()
-    except:
+    except Exception:
         pass
 
     # Reset ExecutionGuardPolicy
     try:
         from core.runtime.guard_policy import ExecutionGuardPolicy
         ExecutionGuardPolicy.reset()
-    except:
+    except Exception:
         pass
 
     # Reset EnhancedExecutionContext
     try:
         from core.runtime.execution_context import EnhancedExecutionContext
         EnhancedExecutionContext.reset()
-    except:
+    except Exception:
         pass
 
     # Reset SelfAudit
     try:
         from core.runtime.self_audit import SelfAudit
         SelfAudit.reset()
-    except:
+    except Exception:
         pass
 
     yield
@@ -51,7 +52,7 @@ def reset_singletons():
     try:
         from orchestration.execution_gateway import ExecutionGateway
         ExecutionGateway.reset()
-    except:
+    except Exception:
         pass
 
 

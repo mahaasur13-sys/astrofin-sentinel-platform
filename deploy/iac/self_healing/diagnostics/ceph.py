@@ -19,6 +19,10 @@ import subprocess
 from dataclasses import dataclass
 from enum import Enum
 
+import logging
+log = logging.getLogger(__name__)
+
+
 TOTAL_TIMEOUT = 5  # seconds total budget (EBC)
 PER_CALL = 1  # seconds per SSH call
 
@@ -419,4 +423,4 @@ if __name__ == "__main__":
             pass
 
     result = diagnose_ceph(host, ml_preds)
-    print(json.dumps(result, indent=2))
+    log.info(json.dumps(result, indent=2))

@@ -13,6 +13,10 @@ import grpc
 
 from .proto import atom_pb2, atom_pb2_grpc
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class AtomServicer(atom_pb2_grpc.AtomNodeServicer):
     """
@@ -88,7 +92,7 @@ def create_server(
     Build and return a gRPC server bound to [::]:port.
     """
     server = grpc.server(
-        futures := __import__("concurrent.futures", fromlist=["futures"]).ThreadPoolExecutor(
+        _futures := __import__("concurrent.futures", fromlist=["futures"]).ThreadPoolExecutor(
             max_workers=10,
         ),
         options=[
@@ -118,5 +122,5 @@ def serve_forever(
     """
     server = create_server(runtime, node_id, port, inbound_queue)
     server.start()
-    print(f"[atom.server:{node_id}] listening on [::{port}]")
+    log.info(f"[atom.server:{node_id}] listening on [::{port}]")
     server.wait_for_termination()

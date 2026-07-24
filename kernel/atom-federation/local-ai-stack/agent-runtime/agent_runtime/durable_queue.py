@@ -34,6 +34,10 @@ from typing import Any
 import redis.asyncio as aioredis
 from agent_runtime.task_store import TaskStore
 
+import logging
+log = logging.getLogger(__name__)
+
+
 STREAM_KEY = "agent:tasks"
 
 
@@ -137,13 +141,13 @@ class DurableTaskQueue:
         sm = await self._get_state_machine()
         recovered = await sm.recover_stale_tasks(self._worker_id)
         if recovered:
-            print(f"[{self._worker_id}] Recovered {recovered} stale tasks from crashed workers")
+            log.info(f"[{self._worker_id}] Recovered {recovered} stale tasks from crashed workers")
 
-        print(f"[{self._worker_id}] DurableTaskQueue started")
+        log.info(f"[{self._worker_id}] DurableTaskQueue started")
 
     async def stop(self) -> None:
         """Initiate graceful shutdown: stop accepting, finish in-flight."""
-        print(f"[{self._worker_id}] Initiating graceful shutdown...")
+        log.info(f"[{self._worker_id}] Initiating graceful shutdown...")
         self._running = False
         self._shutdown_event.set()
 
@@ -164,7 +168,7 @@ class DurableTaskQueue:
         r = await self._get_redis()
 
         # XADD with MAXLEN to keep stream bounded
-        stream_id = await r.xadd(
+        await r.xadd(
             self._stream_key,
             {
                 "task_id": task_id,
@@ -193,7 +197,7 @@ class DurableTaskQueue:
         r = await self._get_redis()
         pending_ids: set[str] = set()  # track in-flight task IDs for graceful shutdown
 
-        print(f"[{self._worker_id}] Starting consume loop (concurrency={concurrency})")
+        log.info(f"[{self._worker_id}] Starting consume loop (concurrency={concurrency})")
 
         while self._running:
             # Step 1: Try to claim pending messages (from crashed workers)
@@ -238,20 +242,20 @@ class DurableTaskQueue:
                     pending_ids.add(stream_id)
 
                     try:
-                        result = await self._process_task(handler, task)
+                        await self._process_task(handler, task)
                     except Exception as e:
-                        print(f"[{self._worker_id}] Task {task_id} failed: {e}")
+                        log.info(f"[{self._worker_id}] Task {task_id} failed: {e}")
 
                     # Acknowledge (remove from PEL)
                     await r.xack(self._stream_key, self._consumer_group, stream_id)
                     pending_ids.discard(stream_id)
 
         # Graceful shutdown: wait for in-flight to complete
-        print(f"[{self._worker_id}] Waiting for {len(pending_ids)} in-flight tasks...")
+        log.info(f"[{self._worker_id}] Waiting for {len(pending_ids)} in-flight tasks...")
         while pending_ids:
             await asyncio.sleep(0.5)
 
-        print(f"[{self._worker_id}] Consume loop stopped")
+        log.info(f"[{self._worker_id}] Consume loop stopped")
 
     async def _reclaim_pending(self, r: aioredis.Redis) -> None:
         """

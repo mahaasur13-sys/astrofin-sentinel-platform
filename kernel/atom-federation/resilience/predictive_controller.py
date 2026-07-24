@@ -40,7 +40,7 @@ __all__ = ["PredictiveController", "PredictiveTickResult"]
 class PredictiveTickResult:
     """
     Extended tick result with predictive fields.
-    
+
     Adds to TickResult:
       - predicted_score: stability score forecast (horizon_s ahead)
       - predicted_change: expected delta from current score

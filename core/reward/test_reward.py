@@ -9,6 +9,8 @@ Tests:
 6. Regime modifier
 """
 
+from __future__ import annotations
+
 import sys
 
 sys.path.insert(0, "/home/workspace/AstroFinSentinelV5")
@@ -131,7 +133,9 @@ class TestAstroReward:
         """Astro reward always in [-1, 1]."""
         for regime in ["LOW", "NORMAL", "HIGH", "EXTREME"]:
             for muhurta in ["abhijit", "rauda", "amrita"]:
-                r = compute_astro_reward(muhurta=muhurta, regime=regime, aspects=["mars_square_saturn"] * 10)
+                r = compute_astro_reward(
+                    muhurta=muhurta, regime=regime, aspects=["mars_square_saturn"] * 10
+                )
                 assert -1.0 <= r <= 1.0, f"Out of range: {r}"
 
 

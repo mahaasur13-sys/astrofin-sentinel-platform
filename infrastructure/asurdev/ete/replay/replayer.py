@@ -3,24 +3,27 @@
 ETE — Execution Trace Engine: Replayer
 Guarantees deterministic replay of any decision trace.
 """
-import json
 import hashlib
-from typing import Dict, List, Any, Optional, Callable
-from dataclasses import dataclass, field
-from ete.store.trace_store import TraceStore, TraceNode, TraceType
+import json
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
+
+from ete.store.trace_store import TraceStore
+
 
 @dataclass
 class ReplayResult:
     trace_id: str
     is_identical: bool
-    divergence_points: List[Dict[str, Any]]
+    divergence_points: list[dict[str, Any]]
     replay_duration_ms: float
     steps_executed: int
 
 class DeterministicReplayer:
     def __init__(self, store: TraceStore):
         self.store = store
-        self.expected_hashes: Dict[str, str] = {}
+        self.expected_hashes: dict[str, str] = {}
 
     def register_trace(self, trace_id: str) -> str:
         trace = self.store.get_trace(trace_id)
@@ -40,7 +43,7 @@ class DeterministicReplayer:
         blob = json.dumps(key_fields, sort_keys=True)
         return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
-    def replay(self, trace_id: str, hooks: Optional[Dict[str, Callable]] = None) -> ReplayResult:
+    def replay(self, trace_id: str, hooks: dict[str, Callable] | None = None) -> ReplayResult:
         trace = self.store.get_trace(trace_id)
         if not trace:
             raise ValueError(f"Trace {trace_id} not found")
@@ -52,7 +55,7 @@ class DeterministicReplayer:
 
         for node_data in trace.nodes:
             layer = node_data["layer"]
-            node_type = node_data["node_type"]
+            node_data["node_type"]
             hook = (hooks or {}).get(layer)
 
             if hook:
@@ -83,14 +86,14 @@ class CorrelationEngine:
     def __init__(self, store: TraceStore):
         self.store = store
 
-    def link_causes(self, effect_trace_id: str, cause_trace_ids: List[str]) -> None:
+    def link_causes(self, effect_trace_id: str, cause_trace_ids: list[str]) -> None:
         effect_trace = self.store.get_trace(effect_trace_id)
         if not effect_trace:
             return
         for node in effect_trace.nodes:
             node["causal_links"] = cause_trace_ids
 
-    def query_by_layer(self, run_id: str, layer: str) -> List[Dict[str, Any]]:
+    def query_by_layer(self, run_id: str, layer: str) -> list[dict[str, Any]]:
         traces = self.store.get_traces_by_run(run_id)
         results = []
         for trace in traces:
@@ -99,7 +102,7 @@ class CorrelationEngine:
                     results.append(node)
         return results
 
-    def find_divergence(self, run_id: str, baseline_run_id: str, layer: str) -> List[Dict[str, Any]]:
+    def find_divergence(self, run_id: str, baseline_run_id: str, layer: str) -> list[dict[str, Any]]:
         baseline_nodes = {
             n["node_id"]: n for n in self.query_by_layer(baseline_run_id, layer)
         }

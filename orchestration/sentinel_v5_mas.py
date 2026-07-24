@@ -1,5 +1,6 @@
 """orchestration/sentinel_v5_mas.py - ATOM-R-025: MASFactory Integration"""
 
+from __future__ import annotations
 import asyncio
 import logging
 import uuid
@@ -91,7 +92,7 @@ async def run_sentinel_v5_mas(
     results = await executor.run()
 
     signals = []
-    for _role_id, result in results.items():
+    for role_id, result in results.items():
         if isinstance(result, dict) and "signal" in result:
             signals.append(result)
     state["all_signals"] = signals
@@ -163,7 +164,9 @@ if __name__ == "__main__":
     symbol = sys.argv[3] if len(sys.argv) > 3 else "BTCUSDT"
     timeframe = sys.argv[4] if len(sys.argv) > 4 else "SWING"
 
-    result = asyncio.run(run_sentinel_v5_mas(user_query=query, symbol=symbol, timeframe=timeframe))
+    result = asyncio.run(
+        run_sentinel_v5_mas(user_query=query, symbol=symbol, timeframe=timeframe)
+    )
 
     sig = result["final_recommendation"].get("signal", "?")
     conf = result["final_recommendation"].get("confidence", 0)

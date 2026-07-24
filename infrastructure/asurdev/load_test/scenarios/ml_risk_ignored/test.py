@@ -5,12 +5,23 @@ ML Risk Ignored — high failure_prob node selected for critical job
 HYPOTHESIS: ML risk_score computed but NOT applied in scheduling decisions
 EXPECTED: high-risk node (P>0.8) selected for critical job
 """
-import random, json
+import json
+import logging
+import random
 from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class Node:
-    node_id: str; base_score: float; failure_prob: float; risk_penalty: float; final_score: float; selected: bool
+    node_id: str
+    base_score: float
+    failure_prob: float
+    risk_penalty: float
+    final_score: float
+    selected: bool
 
 class MLRiskIgnoredScenario:
     def __init__(self, n_jobs=100):
@@ -55,10 +66,11 @@ class MLRiskIgnoredScenario:
         return chosen
 
 def run():
-    print("[ML RISK IGNORED] Starting scenario...")
+    log.info("[ML RISK IGNORED] Starting scenario...")
     s = MLRiskIgnoredScenario()
     r = s.simulate()
-    print(f"Failure detected: {r['failure_detected']}")
-    print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
+    log.info(f"Failure detected: {r['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
-if __name__ == "__main__": run()
+if __name__ == "__main__":
+    run()

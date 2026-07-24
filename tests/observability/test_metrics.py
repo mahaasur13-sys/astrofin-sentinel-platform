@@ -1,8 +1,12 @@
 """Smoke tests for observability/metrics.py."""
 
+from __future__ import annotations
+
 import asyncio
 import time
+
 import pytest
+
 from observability.metrics import (
     record_agent_run,
     record_data_room_resolve,
@@ -35,7 +39,9 @@ def test_time_block_records_even_on_exception():
 
 
 def test_with_agent_timing_decorator_passes_through():
-    @with_agent_timing("DecoratedAgent", signal_getter=lambda r: "LONG", confidence_getter=lambda r: 75)
+    @with_agent_timing(
+        "DecoratedAgent", signal_getter=lambda r: "LONG", confidence_getter=lambda r: 75
+    )
     async def fake_run(state):
         return {"signal": "LONG", "confidence": 75}
 

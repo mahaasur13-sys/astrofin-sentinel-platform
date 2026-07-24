@@ -1,7 +1,6 @@
 """
 saas/branding/cache.py
 """
-
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -18,7 +17,7 @@ class BrandingCache:
             "expires": datetime.utcnow() + timedelta(seconds=ttl_seconds),
         }
 
-    def get(self, tenant_id: str) -> TenantBranding | None:
+    def get(self, tenant_id: str) -> Optional[TenantBranding]:
         data = self._cache.get(tenant_id)
         if not data:
             return None

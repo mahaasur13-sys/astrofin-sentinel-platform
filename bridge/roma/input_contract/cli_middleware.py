@@ -2,9 +2,13 @@
 Input Contract Middleware — strict validation for CLI.
 """
 
+import logging
 import sys
 
 from input_contract import InputContractValidator, ROMAValidationError
+
+log = logging.getLogger(__name__)
+
 
 
 def cli_validate(user_task: str) -> str:
@@ -15,10 +19,10 @@ def cli_validate(user_task: str) -> str:
     try:
         return InputContractValidator.strict_validate_or_raise(user_task)
     except ROMAValidationError as e:
-        print("❌ ROMA Input Contract Error", file=sys.stderr)
-        print(f"   Code: {e.code}", file=sys.stderr)
-        print(f"   Severity: {e.severity}", file=sys.stderr)
-        print(f"   {e.message}", file=sys.stderr)
+        log.info("❌ ROMA Input Contract Error", file=sys.stderr)
+        log.info(f"   Code: {e.code}", file=sys.stderr)
+        log.info(f"   Severity: {e.severity}", file=sys.stderr)
+        log.info(f"   {e.message}", file=sys.stderr)
         sys.exit(1)
 
 

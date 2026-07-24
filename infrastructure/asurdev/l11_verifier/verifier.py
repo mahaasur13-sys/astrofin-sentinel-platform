@@ -6,23 +6,30 @@ F1 DAG invalid → REJECT, F2 constraint violation → ESCALATE,
 F3 nondeterminism → INVALIDATE, F4 runtime failure → ROLLBACK, F5 governance breach → HARD STOP
 """
 from __future__ import annotations
-import hashlib, json
+
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+log = logging.getLogger(__name__)
+
+
 try:
-    from dag_validator.validator import DAGValidator, ViolationType as VT
-    from hash_chain.chain import HashChain, compute_deterministic_hash
-    from determinism_controller.controller import DeterminismController, ExecutionContext
-    from execution_sandbox.sandbox import ExecutionSandbox, ViolationType as SVT
+    from dag_validator.validator import DAGValidator
+    from dag_validator.validator import ViolationType as VT  # noqa: F401
+    from determinism_controller.controller import DeterminismController, ExecutionContext  # noqa: F401
+    from execution_sandbox.sandbox import ExecutionSandbox
+    from execution_sandbox.sandbox import ViolationType as SVT  # noqa: F401
+    from hash_chain.chain import HashChain, compute_deterministic_hash  # noqa: F401
 except ImportError:
-    import sys, os
+    import os
+    import sys
     sys.path.insert(0, os.path.dirname(__file__))
-    from dag_validator.validator import DAGValidator, ViolationType as VT
-    from hash_chain.chain import HashChain, compute_deterministic_hash
-    from determinism_controller.controller import DeterminismController, ExecutionContext
-    from execution_sandbox.sandbox import ExecutionSandbox, ViolationType as SVT
+    from dag_validator.validator import DAGValidator
+    from determinism_controller.controller import ExecutionContext
+    from execution_sandbox.sandbox import ExecutionSandbox
+    from hash_chain.chain import HashChain
 
 class FailureType(Enum):
     F1_DAG_INVALID = "F1_DAG_INVALID"
@@ -133,7 +140,7 @@ class L11Verifier:
         )
 
     def verify_invariants(self) -> dict[str, bool]:
-        return {k: True for k in SYSTEM_INVARIANTS}
+        return dict.fromkeys(SYSTEM_INVARIANTS, True)
 
     def full_pipeline(self, dag: dict, node_results: list[dict], trace: dict, context: dict | None = None) -> dict[str, Any]:
         pre = self.pre_execution(dag, context)
@@ -156,5 +163,5 @@ if __name__ == "__main__":
     verifier = L11Verifier()
     dag = {"nodes": [{"id": "a"}, {"id": "b"}], "edges": [["a","b"]]}
     pre = verifier.pre_execution(dag, {"seed": 42})
-    print(f"Pre: passed={pre.passed}, valid={pre.dag_result.valid}")
-    print(f"Invariants: {verifier.verify_invariants()}")
+    log.info(f"Pre: passed={pre.passed}, valid={pre.dag_result.valid}")
+    log.info(f"Invariants: {verifier.verify_invariants()}")

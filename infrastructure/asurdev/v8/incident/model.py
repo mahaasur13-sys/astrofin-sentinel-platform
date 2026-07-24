@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
+import logging
 from enum import Enum
+
+log = logging.getLogger(__name__)
+
+
 """
 Incident Model — auto-classification + severity scoring.
 Severity = f(p99_delta, error_rate, alignment_drop).
 Auto-classification: S1 → L3 rollback / S2 → L2 / S3 → alert only.
 """
-from __future__ import annotations
+
+import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
-import hashlib
 
 
 class Severity(Enum):
@@ -28,9 +34,9 @@ class Incident:
     post_state: dict
     policy_hash: str
     severity: Severity
-    root_cause: Optional[str] = None
+    root_cause: str | None = None
     resolved: bool = False
-    resolution_time_ms: Optional[float] = None
+    resolution_time_ms: float | None = None
     actions_taken: list[str] = field(default_factory=list)
 
 
@@ -38,7 +44,7 @@ class IncidentManager:
     """
     Auto-classifies incidents by severity.
     Routes to appropriate response (rollback level or alert).
-    
+
     Severity scoring:
         severity = w_latency * p99_delta + w_failure * error_rate + w_drift * alignment_drop
     """
@@ -59,9 +65,9 @@ class IncidentManager:
         trigger_type: str,
         severity: float,
         details: dict,
-        pre_state: Optional[dict] = None,
-        post_state: Optional[dict] = None,
-        policy_hash: Optional[str] = None,
+        pre_state: dict | None = None,
+        post_state: dict | None = None,
+        policy_hash: str | None = None,
     ) -> Incident:
         """Factory: create + classify + route incident."""
         incident_id = hashlib.sha256(
@@ -119,7 +125,7 @@ class IncidentManager:
         if self.alerting_callback:
             self.alerting_callback(message)
         # Also log to incident channel
-        print(f"[INCIDENT] {message} | {incident.trigger_type} | nodes={incident.affected_nodes}")
+        log.info(f"[INCIDENT] {message} | {incident.trigger_type} | nodes={incident.affected_nodes}")
 
     def get_active(self) -> list[Incident]:
         return [i for i in self._incidents if not i.resolved]

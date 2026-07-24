@@ -201,7 +201,7 @@ class SystemObserver:
             nodes_exec = self._windowed("node_exec")
             nodes_recomp = self._windowed("node_recompute")
             shed_events = self._windowed("shed")
-            deg_changes = self._windowed("degradation_change")
+            self._windowed("degradation_change")
 
             # Oscillations in window
             cutoff = now - self._window

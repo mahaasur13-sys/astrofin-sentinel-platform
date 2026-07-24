@@ -1,5 +1,4 @@
 """Unified auth middleware — API Key + optional JWT."""
-
 import os
 from typing import Optional
 
@@ -15,7 +14,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self,
         app,
         api_key_header: str = "X-API-Key",
-        jwt_secret: str | None = None,
+        jwt_secret: Optional[str] = None,
         jwt_algorithm: str = "HS256",
         jwt_expire_minutes: int = 60,
         require_jwt: bool = False,
@@ -43,7 +42,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
             if tenant_id and tenant_id in self.tenant_config:
                 cfg = self.tenant_config[tenant_id]
-                auth_cfg = cfg.auth if hasattr(cfg, "auth") else None
+                auth_cfg = cfg.auth if hasattr(cfg, 'auth') else None
             else:
                 auth_cfg = None
 
@@ -78,7 +77,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             return JSONResponse({"detail": f"Auth error: {str(e)}"}, status_code=401)
 
-    def _get_api_key(self, request: Request) -> str | None:
+    def _get_api_key(self, request: Request) -> Optional[str]:
         for header_name in ["X-API-Key", "X-API-KEY", "Authorization"]:
             if header_name in request.headers:
                 val = request.headers[header_name]
@@ -88,18 +87,17 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     return val
         return None
 
-    def _get_jwt(self, request: Request) -> str | None:
+    def _get_jwt(self, request: Request) -> Optional[str]:
         auth = request.headers.get("authorization", "")
         if auth.startswith("Bearer "):
             return auth[7:]
         return None
 
-    async def _validate_api_key(self, key: str, tenant_id: str | None) -> bool:
+    async def _validate_api_key(self, key: str, tenant_id: Optional[str]) -> bool:
         if not key or len(key) < 16:
             return False
         if tenant_id:
             from saas.tenants.manager import TenantManager
-
             try:
                 manager = TenantManager()
                 tenant = manager.get_tenant(tenant_id)
@@ -110,7 +108,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 pass
         return True
 
-    def _decode_jwt(self, token: str) -> dict | None:
+    def _decode_jwt(self, token: str) -> Optional[dict]:
         if not self.jwt_secret:
             return None
         try:

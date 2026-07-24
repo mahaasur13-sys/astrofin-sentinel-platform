@@ -129,7 +129,6 @@ class GossipProtocol:
 
         peer.last_pull_ns = DeterministicClock.get_tick_ns()
         peer.vector_history.append(remote_vector)
-        old = peer.vector
         peer.vector = remote_vector
 
         if self._on_vector:

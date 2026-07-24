@@ -18,6 +18,8 @@ Success criteria (from session result):
 Schema version: v1
 """
 
+from __future__ import annotations
+
 import math
 import sqlite3
 from dataclasses import dataclass
@@ -181,7 +183,9 @@ class BeliefTracker:
             return self._cache[agent_name]
         CACHE_MISSES.inc()
         with self._conn() as conn:
-            row = conn.execute("SELECT * FROM agent_beliefs WHERE agent_name = ?", (agent_name,)).fetchone()
+            row = conn.execute(
+                "SELECT * FROM agent_beliefs WHERE agent_name = ?", (agent_name,)
+            ).fetchone()
         if not row:
             self._cache[agent_name] = None
             return None
@@ -197,7 +201,9 @@ class BeliefTracker:
     def get_all(self) -> dict[str, BeliefState]:
         """Return Beta state for all tracked agents."""
         with self._conn() as conn:
-            rows = conn.execute("SELECT * FROM agent_beliefs ORDER BY total_sessions DESC").fetchall()
+            rows = conn.execute(
+                "SELECT * FROM agent_beliefs ORDER BY total_sessions DESC"
+            ).fetchall()
         return {
             r["agent_name"]: BeliefState(
                 agent_name=r["agent_name"],
@@ -305,7 +311,9 @@ class BeliefTracker:
         self._cache.clear()  # полностью очищаем кеш
         with self._conn() as conn:
             if agent_name:
-                deleted = conn.execute("DELETE FROM agent_beliefs WHERE agent_name = ?", (agent_name,)).rowcount
+                deleted = conn.execute(
+                    "DELETE FROM agent_beliefs WHERE agent_name = ?", (agent_name,)
+                ).rowcount
                 conn.execute(
                     "DELETE FROM agent_belief_history WHERE agent_name = ?",
                     (agent_name,),
@@ -348,10 +356,16 @@ class BeliefTracker:
                 (agent_name,),
             ).fetchone()
             if current:
-                THOMPSON_PARAMS.labels(agent_name=agent_name, param="alpha").set(current["alpha"])
-                THOMPSON_PARAMS.labels(agent_name=agent_name, param="beta").set(current["beta"])
+                THOMPSON_PARAMS.labels(agent_name=agent_name, param="alpha").set(
+                    current["alpha"]
+                )
+                THOMPSON_PARAMS.labels(agent_name=agent_name, param="beta").set(
+                    current["beta"]
+                )
                 mean_val = current["alpha"] / (current["alpha"] + current["beta"])
-                THOMPSON_PARAMS.labels(agent_name=agent_name, param="mean").set(mean_val)
+                THOMPSON_PARAMS.labels(agent_name=agent_name, param="mean").set(
+                    mean_val
+                )
 
             conn.execute(
                 """
@@ -429,14 +443,18 @@ class BeliefTracker:
     def _pool_for(self, agent_name: str) -> str:
         return self._POOL_MAP.get(agent_name, "astro")
 
-    def _log_session_selections(self, session_id: str, called_agents: list[str], agent_results: dict[str, bool]):
+    def _log_session_selections(
+        self, session_id: str, called_agents: list[str], agent_results: dict[str, bool]
+    ):
         called_set = {a for a in called_agents if a != "SystemFallback"}
         all_pool_agents = set(self._POOL_MAP.keys())
         not_called = all_pool_agents - called_set
 
         rows: list[tuple] = []
         for name in called_set:
-            rows.append((session_id, name, self._pool_for(name), 1, agent_results.get(name)))
+            rows.append(
+                (session_id, name, self._pool_for(name), 1, agent_results.get(name))
+            )
         for name in not_called:
             rows.append((session_id, name, self._pool_for(name), 0, None))
 
@@ -454,7 +472,9 @@ class BeliefTracker:
             )
             conn.commit()
 
-    def get_selection_log(self, agent_name: str = None, session_id: str = None, limit: int = 100) -> list[dict]:
+    def get_selection_log(
+        self, agent_name: str = None, session_id: str = None, limit: int = 100
+    ) -> list[dict]:
         with self._conn() as conn:
             if agent_name:
                 rows = conn.execute(

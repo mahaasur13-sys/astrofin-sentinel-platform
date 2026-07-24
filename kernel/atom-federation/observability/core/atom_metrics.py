@@ -121,10 +121,8 @@ class InMemoryPrometheusEmitter:
             sorted_vals = sorted(vals)
             total = len(sorted_vals)
 
-            cumulative = 0
             for bound in buckets:
                 count = sum(1 for v in sorted_vals if v <= bound)
-                cumulative = count
                 lines.append(f"atom_{base_name}_bucket{labels_str},le={bound} {count}")
             lines.append(f"atom_{base_name}_bucket{labels_str},le=+Inf {total}")
             lines.append(f"atom_{base_name}_sum{labels_str} {sum(sorted_vals):.6f}")

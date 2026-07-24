@@ -1,5 +1,7 @@
 """meta_rl — AstroFin Meta-RL Strategy Discovery Engine (ATOM-META-RL-013)"""
 
+from __future__ import annotations
+
 from meta_rl.backtest_adapter import BacktestEngineAdapter
 from meta_rl.evolution import EvolutionEngine, EvolutionStats
 from meta_rl.git_agent_exporter import (
@@ -11,8 +13,8 @@ from meta_rl.git_agent_exporter import (
 from meta_rl.meta_agent import EvolutionConfig, MetaAgent
 from meta_rl.reward import RewardCalculator, RewardConfig
 from meta_rl.strategy_evaluator import StrategyEvaluator
-from meta_rl.strategy_pool import StrategyPool
-from meta_rl.types import EvaluationResult, ScoredStrategy
+from meta_rl.strategy_pool import ScoredStrategy, StrategyPool
+from meta_rl.types import EvaluationResult
 
 __all__ = [
     "EvaluationResult",

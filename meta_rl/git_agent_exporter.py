@@ -24,8 +24,8 @@ def _validate_agent_yaml(agent_yaml: dict[str, Any]) -> tuple[bool, str | None]:
     """
     try:
         from integrations.gitagent.validators.agent_validator import AgentYamlValidator
-    except Exception:  # noqa: BLE001
-        return True, None  # validator unavailable -> skip validation (best-effort)
+    except ImportError:  # validator unavailable -> skip validation (best-effort)
+        return True, None
     try:
         validator = AgentYamlValidator()
         if not validator.validate(agent_yaml):
@@ -76,9 +76,13 @@ def _regime_label(rf: str) -> str:
     return mapping.get(rf, rf)
 
 
-def export_strategy(strategy: Any, version_tag: str = None, output_dir: str = None) -> ExportResult:
+def export_strategy(
+    strategy: Any, version_tag: str = None, output_dir: str = None
+) -> ExportResult:
     if not GIT_EXPORT_ENABLED:
-        return ExportResult(slug="", path="", validated=False, errors=["GIT_EXPORT_ENABLED=False"])
+        return ExportResult(
+            slug="", path="", validated=False, errors=["GIT_EXPORT_ENABLED=False"]
+        )
     try:
         output_dir = output_dir or "integrations/gitagent/exported_strategies"
         short = _slug_for_strategy(strategy)
@@ -140,7 +144,7 @@ def export_strategy(strategy: Any, version_tag: str = None, output_dir: str = No
                         deduplicated=True,
                     )
             except Exception:
-                pass  # fall through to re-export
+                log.warning("Git agent export failed, falling through", exc_info=True)
         pkg.mkdir(parents=True, exist_ok=True)
         _write_yaml(agent_yaml, pkg / "agent.yaml")
         soul = f"""# SOUL.md — {slug}

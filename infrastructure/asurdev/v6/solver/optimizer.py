@@ -6,13 +6,11 @@ Layer 2: Hard Constraint Pruning
 Layer 3: ILP (exact solve on small subset)
 Layer 4: Policy Selector (epsilon-greedy / best-utility)
 """
-from dataclasses import dataclass, field
-from typing import Optional
 import random
-import math
+from dataclasses import dataclass, field
 
-from v6.objective.utility import UtilityFunction, ClusterSnapshot, ScheduleAction
 from v6.constraint_graph.graph import ConstraintGraph
+from v6.objective.utility import ScheduleAction, UtilityFunction
 
 
 @dataclass
@@ -88,7 +86,7 @@ class ILPOptimizer:
     """
     Layer 3: Exact ILP solver on pruned candidate subset.
     Maximizes U(S) for the local scheduling window.
-    
+
     Formulation:
       maximize sum(x[job,node] * utility[job,node])
       subject to:
@@ -166,7 +164,7 @@ class PolicySelector:
     def __init__(self, epsilon: float = 0.1):
         self.epsilon = epsilon
 
-    def select(self, candidates: list[tuple[str, float]]) -> Optional[str]:
+    def select(self, candidates: list[tuple[str, float]]) -> str | None:
         """
         Epsilon-greedy: with prob epsilon explore randomly,
         otherwise take best-utility candidate.
@@ -187,9 +185,9 @@ class HybridSolver:
       4. PolicySelector      — epsilon-greedy
     """
 
-    def __init__(self, config: Optional[SolverConfig] = None,
-                 graph: Optional[ConstraintGraph] = None,
-                 utility_fn: Optional[UtilityFunction] = None):
+    def __init__(self, config: SolverConfig | None = None,
+                 graph: ConstraintGraph | None = None,
+                 utility_fn: UtilityFunction | None = None):
         self.config = config or SolverConfig()
         self.graph = graph or ConstraintGraph()
         self.U = utility_fn or UtilityFunction()

@@ -4,9 +4,9 @@ Feature Schemas — typed definitions for ML-ready feature vectors.
 Provides Pydantic models and dataclasses for feature consistency.
 """
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 # =============================================================================
 # ENUMS
@@ -41,10 +41,10 @@ class FeatureVector:
     """A single feature vector at a point in time for a specific node."""
     node_id: str
     timestamp: datetime
-    features: Dict[str, float]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    features: dict[str, float]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "node_id": self.node_id,
             "timestamp": self.timestamp.isoformat(),
@@ -53,7 +53,7 @@ class FeatureVector:
         }
 
     @classmethod
-    def from_dict(cls, d: Dict) -> "FeatureVector":
+    def from_dict(cls, d: dict) -> "FeatureVector":
         ts = d["timestamp"]
         if isinstance(ts, str):
             ts = datetime.fromisoformat(ts)
@@ -70,11 +70,11 @@ class LabeledExample:
     node_id: str
     timestamp: datetime
     horizon_minutes: int  # how far ahead we're predicting
-    features: Dict[str, float]
+    features: dict[str, float]
     label: int  # 0=healthy, 1=degraded, 2=failed
-    job_id: Optional[str] = None
+    job_id: str | None = None
 
-    def to_ml_dict(self) -> Dict:
+    def to_ml_dict(self) -> dict:
         """Convert to flat dict for CSV export."""
         row = {
             "node_id": self.node_id,
@@ -112,7 +112,7 @@ class NodeProfile:
     avg_latency_ms: float
     queue_volatility: float   # std of queue size over 24h
 
-    def to_embedding_vector(self) -> List[float]:
+    def to_embedding_vector(self) -> list[float]:
         return [
             self.gpu_capacity,
             float(self.cpu_cores),
@@ -127,10 +127,10 @@ class NodeProfile:
 @dataclass
 class MLBatch:
     """A batch of labeled examples for training/validation."""
-    train: List[LabeledExample]
-    val: List[LabeledExample]
-    test: List[LabeledExample]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    train: list[LabeledExample]
+    val: list[LabeledExample]
+    test: list[LabeledExample]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_csv(self, path: str, split: str = "train") -> None:
         """Export a split to CSV."""
@@ -158,7 +158,7 @@ class MLBatch:
 # SCHEMA VALIDATION
 # =============================================================================
 
-FEATURE_SPECS: List[FeatureSpec] = [
+FEATURE_SPECS: list[FeatureSpec] = [
     # GPU
     FeatureSpec(name="gpu_mean_1m",  source="gpu_util", window_seconds=60,   aggregation="mean", unit="%", typical_range=(0, 100)),
     FeatureSpec(name="gpu_mean_5m",  source="gpu_util", window_seconds=300,  aggregation="mean", unit="%", typical_range=(0, 100)),
@@ -183,7 +183,7 @@ FEATURE_SPECS: List[FeatureSpec] = [
     FeatureSpec(name="queue_volatility_5m", source="queue_size", window_seconds=300, aggregation="volatility", unit="score", typical_range=(0, 10)),
 ]
 
-def validate_feature_vector(fv: FeatureVector) -> List[str]:
+def validate_feature_vector(fv: FeatureVector) -> list[str]:
     """Validate a feature vector. Returns list of warnings (not errors)."""
     warnings = []
     for spec in FEATURE_SPECS:

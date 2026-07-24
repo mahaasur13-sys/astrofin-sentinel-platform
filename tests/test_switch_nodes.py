@@ -1,12 +1,15 @@
-"""tests/test_switch_nodes.py - ATOM-R-028: SwitchNode Tests
-import pytest
+"""tests/test_switch_nodes.py - ATOM-R-028: SwitchNode Tests.
+
 All 4 mandatory tests + additional coverage.
 """
 
-import pytest
+from __future__ import annotations
+
 import sys
 
 sys.path.insert(0, "/home/workspace/AstroFinSentinelV5")
+
+import pytest
 
 from mas_factory.topology import (
     BiasSwitch,
@@ -181,7 +184,9 @@ def test_oos_fail_tightens_policy():
     # All weights should be halved
     for role in new_topo.roles:
         orig = next(r for r in topo.roles if r.name == role.name)
-        assert abs(role.weight - orig.weight * 0.5) < 0.001, f"Weight for {role.name} should be halved"
+        assert (
+            abs(role.weight - orig.weight * 0.5) < 0.001
+        ), f"Weight for {role.name} should be halved"
 
     print("  ✅ PASSED: OOSFailSwitch tightens policy (weights halved)")
     return True
@@ -242,7 +247,9 @@ def test_rollback_on_error():
     print(f"  Current topology hash: {updater.current_topology.hash}")
     print(f"  Expected (after valid change): {new_topo.hash}")
 
-    assert updater.current_topology.hash == new_topo.hash, "Should be at valid state after rollback"
+    assert (
+        updater.current_topology.hash == new_topo.hash
+    ), "Should be at valid state after rollback"
 
     print("  ✅ PASSED: Rollback maintains valid state")
     return True

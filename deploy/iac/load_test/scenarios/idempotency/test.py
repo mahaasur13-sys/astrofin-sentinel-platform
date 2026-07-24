@@ -10,6 +10,10 @@ import hashlib
 import json
 from dataclasses import dataclass
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class ExecutedAction:
@@ -78,11 +82,11 @@ class IdempotencyScenario:
 
 
 def run():
-    print("[IDEMPOTENCY] Starting scenario...")
+    log.info("[IDEMPOTENCY] Starting scenario...")
     s = IdempotencyScenario()
     r = s.simulate()
-    print(f"Failure detected: {r['failure_detected']}")
-    print(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
+    log.info(f"Failure detected: {r['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(r['metrics'], indent=2)}")
     return r
 
 

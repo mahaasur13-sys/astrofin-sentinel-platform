@@ -9,10 +9,16 @@ Receives PlanetPosition dicts from core.ephemeris and returns structured
 AspectReport objects.
 """
 
+from __future__ import annotations
+
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
 
 from core.ephemeris import PlanetPosition
+
+log = logging.getLogger(__name__)
+
 
 # ── Aspect types ──────────────────────────────────────────────────────────────
 
@@ -85,7 +91,10 @@ class AspectReport:
         return [a for a in self.aspects if a.aspect_type == aspect_type]
 
     def has(self, aspect_type: AspectType, p1: str, p2: str) -> bool:
-        return any(a.aspect_type == aspect_type and {a.planet1, a.planet2} == {p1, p2} for a in self.aspects)
+        return any(
+            a.aspect_type == aspect_type and {a.planet1, a.planet2} == {p1, p2}
+            for a in self.aspects
+        )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -337,7 +346,7 @@ class AspectsEngine:
         return {
             "total": len(aspects),
             "by_type": by_type,
-            "applying": sum(1 for a in aspects if a.applying),
+            "applying": sum(1 for a in aspects if a.applies),
             "orbs_sum": round(sum(a.orb for a in aspects), 2),
         }
 
@@ -361,7 +370,7 @@ def calculate_aspects(
     >>> pos = get_planetary_positions(datetime(2026, 3, 26))
     >>> report = calculate_aspects(pos)
     >>> for a in report.aspects:
-    ...     print(a.signature, a.orb, "°")
+    ...     log.info(a.signature, a.orb, "°")
     """
     engine = AspectsEngine(include_minor=include_minor)
     return engine.compute(positions, planets)

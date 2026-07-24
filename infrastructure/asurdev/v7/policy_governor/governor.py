@@ -7,9 +7,10 @@ P_t = (1 - α) * P_{t-1} + α * P_new
 Confidence-weighted updates + rate-limiting.
 """
 from __future__ import annotations
-from typing import Optional
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from datetime import datetime
+
 import numpy as np
 
 
@@ -70,9 +71,9 @@ class PolicyGovernor:
         self.max_update_rate = max_update_rate
         self.smoothing_factor = smoothing_factor
 
-        self._current: Optional[PolicySnapshot] = None
+        self._current: PolicySnapshot | None = None
         self._history: list[PolicySnapshot] = []
-        self._pending_update: Optional[PolicyUpdate] = None
+        self._pending_update: PolicyUpdate | None = None
 
     def initialize(
         self,
@@ -159,10 +160,10 @@ class PolicyGovernor:
         """Exponential moving average."""
         return (1 - self.alpha) * current + self.alpha * new
 
-    def get_current(self) -> Optional[PolicySnapshot]:
+    def get_current(self) -> PolicySnapshot | None:
         return self._current
 
-    def get_history(self, last_n: Optional[int] = None) -> list[PolicySnapshot]:
+    def get_history(self, last_n: int | None = None) -> list[PolicySnapshot]:
         """Return policy history, most recent first."""
         history = sorted(self._history, key=lambda p: p.timestamp, reverse=True)
         return history[:last_n] if last_n else history

@@ -21,6 +21,10 @@ import os
 import threading
 import time
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 class SafetyViolationError(Exception):
     '''Raised when ledger ordering invariant is violated.'''
@@ -30,26 +34,26 @@ class SafetyViolationError(Exception):
 class AtomicLedgerWriter:
     '''
     Single-writer WAL for MutationLedger — guarantees linearizability.
-    
+
     Guarantees:
         1. Strict FIFO ordering by tick (out-of-order = SafetyViolationError)
         2. No concurrent writes (thread-safe via threading.Lock)
         3. WAL semantics: entries appended to WAL file before commit
         4. Atomic commit to main ledger
         5. Append-only: no update or delete operations
-    
+
     Invariants:
         - tick must be >= last_tick (strictly increasing)
         - All entries visible only after WAL write + commit
         - WAL can be replayed on crash
-    
+
     Usage:
         writer = AtomicLedgerWriter.instance()
         writer.record({'operation': 'mutate', 'data': {...}}, tick=42)
-        
+
         # Verify
         result = writer.verify_linearizability()
-        print(result['is_linearizable'])  # True
+        log.info(result['is_linearizable'])  # True
     '''
 
     _instance: AtomicLedgerWriter | None = None
@@ -98,11 +102,11 @@ class AtomicLedgerWriter:
     def record(self, entry: dict, tick: int) -> None:
         '''
         Thread-safe append with WAL semantics.
-        
+
         Args:
             entry: Dict containing mutation data
             tick: Monotonically increasing tick (must be >= last tick)
-        
+
         Raises:
             SafetyViolationError: if tick < last_tick (out-of-order)
         '''
@@ -191,10 +195,10 @@ class AtomicLedgerWriter:
         '''
         Return all entries from from_tick onwards.
         Thread-safe read (makes copy).
-        
+
         Args:
             from_tick: Start from this tick (inclusive)
-        
+
         Returns:
             list[dict]: List of committed entries
         '''
@@ -204,10 +208,10 @@ class AtomicLedgerWriter:
     def get_entry_at(self, tick: int) -> dict | None:
         '''
         Get entry at specific tick.
-        
+
         Args:
             tick: Tick to look up
-        
+
         Returns:
             dict or None: Entry at tick, or None if not found
         '''
@@ -220,7 +224,7 @@ class AtomicLedgerWriter:
     def get_last_entry(self) -> dict | None:
         '''
         Get most recent entry.
-        
+
         Returns:
             dict or None: Last entry, or None if ledger empty
         '''
@@ -230,7 +234,7 @@ class AtomicLedgerWriter:
     def verify_linearizability(self) -> dict:
         '''
         Verify all entries are in strictly ascending tick order.
-        
+
         Returns:
             dict with:
                 - is_linearizable: bool
@@ -279,7 +283,7 @@ class AtomicLedgerWriter:
     def get_stats(self) -> dict:
         '''
         Get ledger statistics.
-        
+
         Returns:
             dict with ledger stats
         '''

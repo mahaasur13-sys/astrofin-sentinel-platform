@@ -30,6 +30,10 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ─────────────────────────────────────────────────────────────────
 # TrustEntry
 # ─────────────────────────────────────────────────────────────────
@@ -309,7 +313,7 @@ def _test_trust_vector():
     assert e1 != e3
     assert e1.is_stale(now=1500.0, ttl_seconds=300) is True
     assert e1.is_stale(now=1100.0, ttl_seconds=300) is False
-    print("✅ TrustEntry immutable + is_stale")
+    log.info("✅ TrustEntry immutable + is_stale")
 
     # ── TrustVector basic ops ───────────────────────────────────────
     tv = TrustVector()
@@ -319,14 +323,14 @@ def _test_trust_vector():
     assert len(tv) == 1
     e = tv.get("hash_A")
     assert e is not None and e.trust_score == 0.85 and e.ledger_version == 3
-    print("✅ TrustVector set_entry + get")
+    log.info("✅ TrustVector set_entry + get")
 
     # Clamp out-of-bounds trust_score
     tv.set_entry("hash_B", trust_score=1.5, timestamp=1000.0, ledger_version=1)
     assert tv.get("hash_B").trust_score == 1.0
     tv.set_entry("hash_C", trust_score=-0.5, timestamp=1000.0, ledger_version=1)
     assert tv.get("hash_C").trust_score == 0.0
-    print("✅ TrustVector trust_score clamping")
+    log.info("✅ TrustVector trust_score clamping")
 
     # ── snapshot + delta ────────────────────────────────────────────
     v1 = tv.snapshot()
@@ -335,7 +339,7 @@ def _test_trust_vector():
     delta = tv.delta(v1)
     assert set(delta.updated) == {"hash_A"}, f"got {delta.updated}"
     assert set(delta.added) == {"hash_D"}
-    print(f"✅ TrustVector delta: {delta.summary()}")
+    log.info(f"✅ TrustVector delta: {delta.summary()}")
 
     # ── remove_entry ────────────────────────────────────────────────
     # Save snapshot BEFORE removing so we can detect the removal
@@ -344,7 +348,7 @@ def _test_trust_vector():
     assert "hash_D" not in tv
     delta_removed = tv.delta(v_before_remove)
     assert "hash_D" in delta_removed.removed, f"hash_D should be in removed, got {delta_removed.removed}"
-    print("✅ TrustVector remove_entry + delta.removed")
+    log.info("✅ TrustVector remove_entry + delta.removed")
 
     # ── serialization ────────────────────────────────────────────────
     d = tv.to_dict()
@@ -353,13 +357,13 @@ def _test_trust_vector():
     assert set(tv_r.keys()) == set(tv.keys())
     for k in tv.keys():
         assert tv.get(k).trust_score == tv_r.get(k).trust_score
-    print("✅ TrustVector serialization roundtrip")
+    log.info("✅ TrustVector serialization roundtrip")
 
     # ── genesis empty vector ───────────────────────────────────────
     empty = TrustVector.empty()
     assert empty.is_empty()
     assert empty.ledger_version() == 0
-    print("✅ TrustVector.empty()")
+    log.info("✅ TrustVector.empty()")
 
     # ── is_converged_with ───────────────────────────────────────────
     a = TrustVector()
@@ -377,9 +381,9 @@ def _test_trust_vector():
     assert a.is_converged_with(c) is True, "identical vectors should converge"
     # h2 trust differs by 0.01 — allow tolerance → converge
     # if they differ more → diverge
-    print(f"✅ TrustVector.is_converged_with: same_version={a.is_converged_with(c)}")
+    log.info(f"✅ TrustVector.is_converged_with: same_version={a.is_converged_with(c)}")
 
-    print("\n✅ v9.5 TrustVector — all checks passed")
+    log.info("\n✅ v9.5 TrustVector — all checks passed")
 
 
 if __name__ == "__main__":

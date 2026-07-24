@@ -75,7 +75,9 @@ class AgentTestContract:
     @pytest.fixture
     def agent(self):
         """Fresh agent per-test (no shared state)."""
-        assert self.agent_class is not None, f"{self.__class__.__name__} must set `agent_class`"
+        assert (
+            self.agent_class is not None
+        ), f"{self.__class__.__name__} must set `agent_class`"
         return self.agent_class()
 
     @pytest.fixture
@@ -133,7 +135,9 @@ class AgentTestContract:
     @pytest.mark.asyncio
     async def test_data_source_unavailable_marks_degraded(self, agent, happy_state):
         """If a data source raises, the response is degraded with a machine reason."""
-        with patch.object(agent, self.data_method, side_effect=ConnectionError("data_room down")):
+        with patch.object(
+            agent, self.data_method, side_effect=ConnectionError("data_room down")
+        ):
             response = await agent.run(happy_state)
         # The contract: never raise. Either succeed or degrade cleanly.
         assert response is not None
@@ -148,7 +152,9 @@ class AgentTestContract:
         # Patch every plausible import path.
         with patch("agents._impl.ephemeris_decorator.HAS_SWISS_EPHEMERIS", False):
             with patch("agents._impl._template_agent.HAS_SWISS_EPHEMERIS", False):
-                with patch.object(agent.__class__, "HAS_SWISS_EPHEMERIS", False, create=True):
+                with patch.object(
+                    agent.__class__, "HAS_SWISS_EPHEMERIS", False, create=True
+                ):
                     response = await agent.run(happy_state)
         assert response.metadata.get("degraded") is True
         assert response.metadata.get("degradation_reason") == "EPHEMERIS_UNAVAILABLE"
@@ -180,7 +186,9 @@ class AgentTestContract:
         t0 = time.perf_counter()
         await agent.run(happy_state)
         dt = time.perf_counter() - t0
-        assert dt < HOT_LATENCY_BUDGET_S, f"agent took {dt:.3f}s, budget {HOT_LATENCY_BUDGET_S}s"
+        assert (
+            dt < HOT_LATENCY_BUDGET_S
+        ), f"agent took {dt:.3f}s, budget {HOT_LATENCY_BUDGET_S}s"
 
     # ─── 8. dict contract ─────────────────────────────────────────
     def test_agent_response_to_dict_round_trip(self, agent):

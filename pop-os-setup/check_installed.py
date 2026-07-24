@@ -9,6 +9,10 @@ usage:
 import sys, subprocess, re
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── ANSI colors ──────────────────────────────────────────────────────────────
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
@@ -79,21 +83,21 @@ if __name__ == "__main__":
     matched = sorted(stages_pkgs & installed)
     missing = sorted(stages_pkgs - installed)
 
-    print(f"{CYAN}{BOLD}▶ Сканирую stages...{RESET}")
-    print(f"  Найдено пакетов в stages: {BOLD}{len(stages_pkgs)}{RESET}")
-    print(
+    log.info(f"{CYAN}{BOLD}▶ Сканирую stages...{RESET}")
+    log.info(f"  Найдено пакетов в stages: {BOLD}{len(stages_pkgs)}{RESET}")
+    log.info(
         f"  Прочитано из: {BOLD}{'файла: ' + dpkg_path if dpkg_path else 'dpkg -l (live)'}{RESET}"
     )
-    print()
-    print(f"{BOLD}{'═'*60}{RESET}")
-    print(
+    log.info("")
+    log.info(f"{BOLD}{'═'*60}{RESET}")
+    log.info(
         f"  {CYAN}ПОКРЫТИЕ:{RESET}  {GREEN}{len(matched)}{RESET} установлено  ·  {RED}{len(missing)}{RESET} отсутствует"
     )
-    print(f"{BOLD}{'═'*60}{RESET}")
-    print()
+    log.info(f"{BOLD}{'═'*60}{RESET}")
+    log.info("")
 
     if missing:
-        print(f"{YELLOW}{BOLD}⚠ отсутствуют ({len(missing)}):{RESET}")
+        log.info(f"{YELLOW}{BOLD}⚠ отсутствуют ({len(missing)}):{RESET}")
         # Group by stage
         stage_map = {}
         for pkg in missing:
@@ -106,18 +110,18 @@ if __name__ == "__main__":
             stage_map.setdefault(sname, []).append(pkg)
 
         for sname, pkgs in sorted(stage_map.items()):
-            print(f"  {CYAN}{sname}{RESET}:")
+            log.info(f"  {CYAN}{sname}{RESET}:")
             for p in pkgs:
-                print(f"    - {p}")
-        print()
+                log.info(f"    - {p}")
+        log.info("")
         install_cmd = "sudo apt install -y " + " ".join(missing)
-        print(f"  {CYAN}→ Установить все:{RESET}")
-        print(f"     {install_cmd}")
+        log.info(f"  {CYAN}→ Установить все:{RESET}")
+        log.info(f"     {install_cmd}")
     else:
-        print(f"{GREEN}✓ Все пакеты из stages уже установлены{RESET}")
+        log.info(f"{GREEN}✓ Все пакеты из stages уже установлены{RESET}")
 
-    print()
-    print(f"{BOLD}─── Покрытие по stages ───{RESET}")
+    log.info("")
+    log.info(f"{BOLD}─── Покрытие по stages ───{RESET}")
     for stage in sorted(STAGES_DIR.glob("stage*.sh")):
         sname = stage.stem
         text = stage.read_text()
@@ -157,4 +161,4 @@ if __name__ == "__main__":
         else:
             color, sym = RED, "✖"
 
-        print(f"  {color}{sym}{RESET} {sname:<30} {pct:3d}%  ({matched_count}/{total})")
+        log.info(f"  {color}{sym}{RESET} {sname:<30} {pct:3d}%  ({matched_count}/{total})")

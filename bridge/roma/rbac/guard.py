@@ -1,5 +1,4 @@
 """ROMA RBAC Guard — Pre-execution permission enforcement."""
-
 from typing import Optional
 
 
@@ -7,7 +6,8 @@ class RBACGuard:
     def __init__(self, rbac_engine):
         self.rbac = rbac_engine
 
-    def check_pre_execution(self, key_validation: dict | None, action: str, context: dict) -> dict:
+    def check_pre_execution(self, key_validation: Optional[dict],
+                            action: str, context: dict) -> dict:
         if not key_validation:
             return {"allowed": False, "reason": "INVALID_KEY", "step": "auth"}
         org_id = key_validation["org_id"]

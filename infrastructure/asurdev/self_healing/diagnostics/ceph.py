@@ -14,12 +14,13 @@ Fixed issues:
   3.3 ML integration placeholder
 """
 
-import subprocess
 import json
-import re
-from dataclasses import dataclass, field
+import logging
+import subprocess
+from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+
+log = logging.getLogger(__name__)
 
 
 TOTAL_TIMEOUT = 5  # seconds total budget (EBC)
@@ -55,7 +56,7 @@ class CephStatus:
     quorum_lost: list        # MONs not in quorum
 
 
-def ceph_exec(host: Optional[str], args: list, timeout: int = PER_CALL) -> tuple[str, int]:
+def ceph_exec(host: str | None, args: list, timeout: int = PER_CALL) -> tuple[str, int]:
     """
     Run ceph command via SSH. Reuses connection via explicit host param.
     EBC: strict 1s timeout per call.
@@ -76,7 +77,7 @@ def ceph_exec(host: Optional[str], args: list, timeout: int = PER_CALL) -> tuple
 class CephExecutor:
     """Abstraction: reuse SSH host. EBC-compliant."""
 
-    def __init__(self, host: Optional[str] = None):
+    def __init__(self, host: str | None = None):
         self.host = host
         self._budget_ms = TOTAL_TIMEOUT * 1000
 
@@ -90,7 +91,7 @@ class CephExecutor:
         return out, rc
 
 
-def get_ceph_status_detail(host: Optional[str] = None) -> CephStatus:
+def get_ceph_status_detail(host: str | None = None) -> CephStatus:
     exec = CephExecutor(host)
 
     # 1. Basic health
@@ -341,7 +342,7 @@ def get_recovery_priority(status: CephStatus) -> list[dict]:
     return sorted(actions, key=lambda x: x["priority"])
 
 
-def diagnose_ceph(host: Optional[str] = None, ml_preds: Optional[dict] = None) -> dict:
+def diagnose_ceph(host: str | None = None, ml_preds: dict | None = None) -> dict:
     """
     Main entry point for Ceph diagnostics.
     FIX 3.3: ML integration.
@@ -396,4 +397,4 @@ if __name__ == "__main__":
             pass
 
     result = diagnose_ceph(host, ml_preds)
-    print(json.dumps(result, indent=2))
+    log.info(json.dumps(result, indent=2))

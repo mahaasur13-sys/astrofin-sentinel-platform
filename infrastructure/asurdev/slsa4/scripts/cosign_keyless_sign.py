@@ -6,7 +6,16 @@ CVG + LCCP SLSA-4 Production Pipeline
 Uses cosign with Fulcio OIDC (Google, GitHub, Microsoft)
 for keyless certificate issuance + Rekor transparency log.
 """
-import json, subprocess, hashlib, os, datetime, sys
+import datetime
+import hashlib
+import json
+import logging
+import os
+import subprocess
+import sys
+
+log = logging.getLogger(__name__)
+
 
 HOME = os.environ.get('HOME', '/root')
 COSIGN_BIN = os.environ.get('COSIGN_BIN', '/usr/local/bin/cosign')
@@ -18,7 +27,8 @@ SUPPORTED_OIDC_PROVIDERS = [
 ]
 
 def h(data):
-    if isinstance(data, str): data = data.encode()
+    if isinstance(data, str):
+        data = data.encode()
     return hashlib.sha256(data).hexdigest()
 
 def check_cosign():
@@ -26,7 +36,7 @@ def check_cosign():
     if r.returncode != 0:
         return None
     version = r.stdout.strip()
-    print(f"[COSIGN] {version}")
+    log.info(f"[COSIGN] {version}")
     return version
 
 def check_fulcio():
@@ -37,18 +47,18 @@ def check_fulcio():
     return 'fulcio' in r.stdout.lower()
 
 def cosign_keyless_sign_attestation(commit_hash: str, manifest_hash: str, subject_ref: str) -> dict:
-    print("=" * 70)
-    print("SIGSTORE KEYLESS SIGNING v5.0")
-    print("=" * 70)
-    print(f"Method: cosign attest (Fulcio + Rekor)")
-    print(f"Subject: {subject_ref}")
-    print(f"Commit: {commit_hash}")
-    print(f"Manifest: {manifest_hash}")
-    print()
-    print("OIDC Providers supported:")
+    log.info("=" * 70)
+    log.info("SIGSTORE KEYLESS SIGNING v5.0")
+    log.info("=" * 70)
+    log.info("Method: cosign attest (Fulcio + Rekor)")
+    log.info(f"Subject: {subject_ref}")
+    log.info(f"Commit: {commit_hash}")
+    log.info(f"Manifest: {manifest_hash}")
+    log.info("")
+    log.info("OIDC Providers supported:")
     for p in SUPPORTED_OIDC_PROVIDERS:
-        print(f"  ✓ {p}")
-    print()
+        log.info(f"  ✓ {p}")
+    log.info("")
 
     attestation_type = 'https://slsa.dev/provenance/v1'
     predicate = {
@@ -69,20 +79,20 @@ def cosign_keyless_sign_attestation(commit_hash: str, manifest_hash: str, subjec
         'predicate': predicate
     }
     attestation_hash = h(json.dumps(attestation, sort_keys=True, default=str))
-    print(f"Attestation hash: {attestation_hash[:16]}...")
-    print()
-    print("[KEYLESS] OIDC Flow:")
-    print("  1. cosign opens browser for OAuth2/OIDC authentication")
-    print("  2. Fulcio issues short-lived certificate bound to email/identity")
-    print("  3. Certificate signed by Google/Cyan ephemeral CA")
-    print("  4. Attestation signature recorded to Rekor transparency log")
-    print("  5. Rekor log provides publicly verifiable audit trail")
-    print()
-    print("Trusted Root Verification:")
-    print("  ✓ Fulcio CT log pre certs from 'Sigstore PKI'")
-    print("  ✓ Rekor public key embedded in cosign binary")
-    print("  ✓ Transparency log (Rekor) provides non-repudiation")
-    print()
+    log.info(f"Attestation hash: {attestation_hash[:16]}...")
+    log.info("")
+    log.info("[KEYLESS] OIDC Flow:")
+    log.info("  1. cosign opens browser for OAuth2/OIDC authentication")
+    log.info("  2. Fulcio issues short-lived certificate bound to email/identity")
+    log.info("  3. Certificate signed by Google/Cyan ephemeral CA")
+    log.info("  4. Attestation signature recorded to Rekor transparency log")
+    log.info("  5. Rekor log provides publicly verifiable audit trail")
+    log.info("")
+    log.info("Trusted Root Verification:")
+    log.info("  ✓ Fulcio CT log pre certs from 'Sigstore PKI'")
+    log.info("  ✓ Rekor public key embedded in cosign binary")
+    log.info("  ✓ Transparency log (Rekor) provides non-repudiation")
+    log.info("")
     return {
         'verified': True,
         'method': 'Sigstore_Fulcio_OIDC',
@@ -96,11 +106,11 @@ def cosign_keyless_sign_attestation(commit_hash: str, manifest_hash: str, subjec
     }
 
 def verify_from_rekor(signature: str, artifact_ref: str) -> dict:
-    print()
-    print("[REKOR] Verifying transparency log entry...")
-    print(f"  Signature: {signature}")
-    print(f"  Artifact: {artifact_ref}")
-    r = subprocess.run(
+    log.info("")
+    log.info("[REKOR] Verifying transparency log entry...")
+    log.info(f"  Signature: {signature}")
+    log.info(f"  Artifact: {artifact_ref}")
+    subprocess.run(
         [COSIGN_BIN, 'verify-attestation', '--help'],
         capture_output=True, text=True
     )
@@ -146,8 +156,8 @@ if __name__ == '__main__':
     commit = sys.argv[1] if len(sys.argv) > 1 else h(datetime.datetime.now(datetime.timezone.utc).isoformat())[:12]
     manifest = sys.argv[2] if len(sys.argv) > 2 else h('manifest')[:16]
     bundle = generate_attestation_bundle(commit, manifest)
-    print()
-    print("=" * 70)
-    print("ATTESTATION BUNDLE (SLSA-4)")
-    print("=" * 70)
-    print(json.dumps(bundle, indent=2, default=str))
+    log.info("")
+    log.info("=" * 70)
+    log.info("ATTESTATION BUNDLE (SLSA-4)")
+    log.info("=" * 70)
+    log.info(json.dumps(bundle, indent=2, default=str))

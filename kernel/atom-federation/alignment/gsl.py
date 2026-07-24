@@ -19,6 +19,10 @@ import math
 from dataclasses import dataclass, field
 from typing import Literal
 
+import logging
+log = logging.getLogger(__name__)
+
+
 THRESHOLD_SAFE = 0.70
 THRESHOLD_DEGRADED = 0.40
 MAX_DRIFT = 1.0
@@ -287,10 +291,10 @@ class GSL:
 # ─── Tests ─────────────────────────────────────────────────────────────────
 
 def _run_tests():
-    print("=== v10.9 GSL Tests ===")
+    log.info("=== v10.9 GSL Tests ===")
 
     def check(name: str, cond: bool, detail: str = "") -> bool:
-        print(f"  {'✅' if cond else '❌'} {name}" + (f": {detail}" if detail else ""))
+        log.info(f"  {'✅' if cond else '❌'} {name}" + (f": {detail}" if detail else ""))
         return cond
 
     ok = True
@@ -339,7 +343,7 @@ def _run_tests():
                       bc_branch_count=5),
         ObservedState(lag_ms=100.0, branch_observations={0: {}, 1: {}}),
     )
-    ok &= check("T4 F4 branch split detected", r4.f4_branch_split == True)
+    ok &= check("T4 F4 branch split detected", r4.f4_branch_split)
     ok &= check("T4 branch_separation action", "branch_separation" in r4.actions)
 
     # T5: BCIL veto blocks reconciliation
@@ -348,7 +352,7 @@ def _run_tests():
                       adlr_liveness=0.90, bcil_veto_active=True),
         ObservedState(lag_ms=0.0, observed_node_ids={"a", "b"}),
     )
-    ok &= check("T5 veto active", r5.vetoed == True)
+    ok &= check("T5 veto active", r5.vetoed)
     ok &= check("T5 no reconciliation on veto",
                 "request_reconciliation" not in r5.actions)
 
@@ -360,13 +364,13 @@ def _run_tests():
         ObservedState(lag_ms=2500.0, is_stale=True,
                       observed_node_ids={"a", "b"}),
     )
-    ok &= check("T6 F3 lag trap detected", r6.f3_lag_trap == True)
+    ok &= check("T6 F3 lag trap detected", r6.f3_lag_trap)
     ok &= check("T6 refresh_observation action", "refresh_observation" in r6.actions)
     ok &= check("T6 not FAILURE region", r6.region != "FAILURE")
 
-    print()
-    print(f"{'='*50}")
-    print(f"RESULT: {'ALL PASSED ✅' if ok else 'SOME TESTS FAILED ❌'}")
+    log.info("")
+    log.info(f"{'='*50}")
+    log.info(f"RESULT: {'ALL PASSED ✅' if ok else 'SOME TESTS FAILED ❌'}")
     return ok
 
 

@@ -403,7 +403,7 @@ class SemanticFidelityDetector:
         failed_rate = failed / total if total > 0 else 0.0
 
         # ── Component 3: Tool relevance ─────────────────────────────────────
-        relevant_tools = {n.tool for n in trace.nodes}
+        {n.tool for n in trace.nodes}
         relevant = sum(1 for n in trace.nodes if n.success)
         tool_extraneous = (total - relevant) / total if total > 0 else 0.0
 

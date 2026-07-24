@@ -27,7 +27,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from agents._impl.ephemeris_decorator import EphemerisUnavailableError
+from agents._impl.ephemeris_decorator import EphemerisUnavailableError, require_ephemeris
 from agents.metrics import track_agent_metrics
 from core.base_agent import (
     EPHEMERIS_UNAVAILABLE,
@@ -82,6 +82,7 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
             weight=0.0,
         )
 
+    @require_ephemeris
     async def analyze(self, state: dict[str, Any]) -> AgentResponse:
         signals = state.get("all_signals", []) or []
         symbol = state.get("symbol", "BTCUSDT")
@@ -105,7 +106,9 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
             )
 
         if len(valid) < 2:
-            return self._neutral_no_conflict(symbol=symbol, current_price=current_price, n_signals=len(signals))
+            return self._neutral_no_conflict(
+                symbol=symbol, current_price=current_price, n_signals=len(signals)
+            )
 
         valid.sort(key=lambda x: x["confidence"], reverse=True)
         top1, top2 = valid[0], valid[1]
@@ -123,9 +126,13 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
         # E[U] = p·gain − (1−p)·loss. VolatilityEngine gives us the
         # stop_distance_pct (≈ loss) and a 2R target distance (≈ gain).
         try:
-            vol = VolatilityEngine.from_regime(VolatilityRegime.NORMAL).analyze(symbol=symbol, price=current_price)
+            vol = VolatilityEngine.from_regime(VolatilityRegime.NORMAL).analyze(
+                symbol=symbol, price=current_price
+            )
         except Exception as e:  # noqa: BLE001 — fallback path
-            logger.warning("[COMPROMISE] VolatilityEngine failed, using defaults: %r", e)
+            logger.warning(
+                "[COMPROMISE] VolatilityEngine failed, using defaults: %r", e
+            )
             vol = None
 
         if vol is not None:
@@ -142,7 +149,9 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
             return p * gain_pct - (1.0 - p) * loss_pct
 
         eu_long = (
-            expected_utility({**_next_long(valid), "confidence": 100}) if any(v["value"] == 1 for v in valid) else -1e9
+            expected_utility({**_next_long(valid), "confidence": 100})
+            if any(v["value"] == 1 for v in valid)
+            else -1e9
         )
         eu_short = (
             expected_utility({**_next_short(valid), "confidence": 100})
@@ -169,7 +178,9 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
         # (mirrors SynthesisAgent's V-07 guard).
         if regime == VolatilityRegime.EXTREME:
             direction = SignalDirection.NEUTRAL
-            reasoning_prefix = "V-07 [EXTREME VOLATILITY] — compromise forced to NEUTRAL."
+            reasoning_prefix = (
+                "V-07 [EXTREME VOLATILITY] — compromise forced to NEUTRAL."
+            )
         else:
             direction = SignalDirection.NEUTRAL  # compromise = abstain
             reasoning_prefix = "Conflict detected; explicit compromise."
@@ -280,7 +291,9 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
             agent_name=self.name,
             signal=SignalDirection.NEUTRAL,
             confidence=MIN_CONFIDENCE,
-            reasoning=(f"No resolvable conflict among {n_signals} signal(s); " "CompromiseAgent abstains."),
+            reasoning=(
+                f"No resolvable conflict among {n_signals} signal(s); CompromiseAgent abstains."
+            ),
             sources=[],
             metadata=meta,
         )
@@ -314,3 +327,8 @@ async def run_compromise_agent(state: dict[str, Any]) -> dict:
 
 
 __all__ = ["CompromiseAgent", "run_compromise_agent"]
+
+
+def create() -> CompromiseAgent:
+    """Factory for 6-fn test contract."""
+    return CompromiseAgent()

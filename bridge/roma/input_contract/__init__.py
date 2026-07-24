@@ -9,7 +9,6 @@ from typing import Optional
 
 class ROMAValidationError(Exception):
     """Raised when input fails validation."""
-
     def __init__(self, code: str, message: str, severity: str = "critical"):
         self.code = code
         self.message = message
@@ -23,7 +22,7 @@ class ValidationResult:
     code: str
     message: str
     severity: str  # critical | high | medium | low
-    rejected_input: str | None = None
+    rejected_input: Optional[str] = None
 
     def to_api_response(self) -> dict:
         return {
@@ -31,8 +30,8 @@ class ValidationResult:
             "error": {
                 "code": self.code,
                 "message": self.message,
-                "severity": self.severity,
-            },
+                "severity": self.severity
+            }
         }
 
 
@@ -52,7 +51,7 @@ class InputContractValidator:
         code="USER_TASK_REQUIRED",
         message="Task input cannot be empty. Provide a valid task description.",
         severity="critical",
-        rejected_input=None,
+        rejected_input=None
     )
 
     REJECTED_TOO_SHORT = ValidationResult(
@@ -60,11 +59,11 @@ class InputContractValidator:
         code="USER_TASK_TOO_SHORT",
         message="Task description too short (minimum 3 characters).",
         severity="high",
-        rejected_input=None,
+        rejected_input=None
     )
 
     @classmethod
-    def validate(cls, user_task: str | None) -> ValidationResult:
+    def validate(cls, user_task: Optional[str]) -> ValidationResult:
         """
         Strict input validation. Returns ValidationResult.
         NEVER returns a synthetic/fallback task.
@@ -94,7 +93,7 @@ class InputContractValidator:
                 code="USER_TASK_DANGEROUS_PATTERN",
                 message=f"Dangerous pattern detected: {dangerous}. Task rejected.",
                 severity="high",
-                rejected_input=stripped[:50],
+                rejected_input=stripped[:50]
             )
 
         # VALID
@@ -103,11 +102,11 @@ class InputContractValidator:
             code="USER_TASK_VALID",
             message="Task accepted",
             severity="low",
-            rejected_input=None,
+            rejected_input=None
         )
 
     @classmethod
-    def _check_dangerous_patterns(cls, task: str) -> str | None:
+    def _check_dangerous_patterns(cls, task: str) -> Optional[str]:
         """Check for dangerous command patterns. Returns pattern name or None."""
         dangerous_patterns = [
             ("rm -rf /", "DESTRUCTIVE_COMMAND"),
@@ -121,12 +120,16 @@ class InputContractValidator:
         return None
 
     @classmethod
-    def strict_validate_or_raise(cls, user_task: str | None) -> str:
+    def strict_validate_or_raise(cls, user_task: Optional[str]) -> str:
         """
         Validates input. Raises ROMAValidationError if invalid.
         Returns stripped task string if valid.
         """
         result = cls.validate(user_task)
         if not result.valid:
-            raise ROMAValidationError(code=result.code, message=result.message, severity=result.severity)
+            raise ROMAValidationError(
+                code=result.code,
+                message=result.message,
+                severity=result.severity
+            )
         return user_task.strip()

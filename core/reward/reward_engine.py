@@ -8,6 +8,8 @@ Pipeline:
 Clamp: all outputs in [-1, 1]
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 from core.reward.astro_reward import compute_astro_reward

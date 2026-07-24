@@ -1,6 +1,9 @@
 """backtest/engine.py — G-01/G-03 Backtesting Engine (with real agent support + metrics)"""
 
+from __future__ import annotations
+
 import asyncio
+import logging
 import math
 import random
 import sqlite3
@@ -21,6 +24,9 @@ from agents._impl.synthesis_agent import SynthesisAgent
 from agents._impl.technical_agent import TechnicalAgent
 from core.thompson import ASTRO_POOL, MACRO_POOL, TECHNICAL_POOL, get_thompson_sampler
 from tools.metrics_server import BACKTEST_REAL_RUNS, BACKTEST_SYNTHETIC_RUNS
+
+log = logging.getLogger(__name__)
+
 
 BINANCE_BASE = "https://api.binance.com/api/v3"
 DEFAULT_SYMBOL = "BTCUSDT"
@@ -128,7 +134,9 @@ def _synthetic_ohlcv(
             )
         )
         price = close_p
-        current_dt = datetime.fromtimestamp(current_dt.timestamp() + interval_hours * 3600, tz=timezone.utc)
+        current_dt = datetime.fromtimestamp(
+            current_dt.timestamp() + interval_hours * 3600, tz=timezone.utc
+        )
     return result
 
 
@@ -148,8 +156,14 @@ def fetch_ohlcv(
         r = requests.get(f"{BINANCE_BASE}/klines", params=params, timeout=10)
         return [OHLCV.from_binance_kline(k) for k in r.json()]
     except Exception:
-        st = datetime.fromtimestamp(start_time / 1000, tz=timezone.utc) if start_time else datetime.now(timezone.utc)
-        et = datetime.fromtimestamp(end_time / 1000, tz=timezone.utc) if end_time else st
+        st = (
+            datetime.fromtimestamp(start_time / 1000, tz=timezone.utc)
+            if start_time
+            else datetime.now(timezone.utc)
+        )
+        et = (
+            datetime.fromtimestamp(end_time / 1000, tz=timezone.utc) if end_time else st
+        )
         return _synthetic_ohlcv(st, et, interval_hours=1, base_price=50000.0)
 
 
@@ -271,9 +285,9 @@ class BacktestEngine:
             datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc),
         )
         if len(candles) < 10:
-            print(f"[Backtest] Not enough data: {len(candles)}")
+            log.info(f"[Backtest] Not enough data: {len(candles)}")
             return None
-        print(f"[Backtest] Got {len(candles)} candles. Generating signals...")
+        log.info(f"[Backtest] Got {len(candles)} candles. Generating signals...")
         signals = []
 
         if use_real_agents:
@@ -282,7 +296,9 @@ class BacktestEngine:
                 tech_selected = sampler.select(TECHNICAL_POOL, k=2)
                 macro_selected = sampler.select(MACRO_POOL, k=2)
                 astro_selected = sampler.select(ASTRO_POOL, k=2)
-                selected_names = [name for name, _ in tech_selected + macro_selected + astro_selected]
+                selected_names = [
+                    name for name, _ in tech_selected + macro_selected + astro_selected
+                ]
                 agents = []
                 if "TechnicalAgent" in selected_names:
                     agents.append(TechnicalAgent())
@@ -361,14 +377,28 @@ class BacktestEngine:
                         "current_price": candles[-1].close if candles else 0,
                     }
                     synth_result = await synthesis_agent.run(state_for_synth)
-                    final_signal = synth_result.signal if hasattr(synth_result, "signal") else "NEUTRAL"
-                    final_confidence = synth_result.confidence if hasattr(synth_result, "confidence") else 50
+                    final_signal = (
+                        synth_result.signal
+                        if hasattr(synth_result, "signal")
+                        else "NEUTRAL"
+                    )
+                    final_confidence = (
+                        synth_result.confidence
+                        if hasattr(synth_result, "confidence")
+                        else 50
+                    )
                     final_reasoning = (
-                        synth_result.reasoning if hasattr(synth_result, "reasoning") else "Synthesis complete"
+                        synth_result.reasoning
+                        if hasattr(synth_result, "reasoning")
+                        else "Synthesis complete"
                     )
                     signals = [
                         {
-                            "time": (candles[-1].dt if candles else datetime.now(timezone.utc)),
+                            "time": (
+                                candles[-1].dt
+                                if candles
+                                else datetime.now(timezone.utc)
+                            ),
                             "price": candles[-1].close if candles else 0,
                             "signal": final_signal,
                             "confidence": final_confidence,
@@ -445,7 +475,11 @@ class BacktestEngine:
                     exit_r = "TP"
                     exit_p = e - tp * e
                 if exit_r:
-                    trades.append(self._make_trade(pos, signals[i + 1], exit_p, pnl * 100, exit_r, sid))
+                    trades.append(
+                        self._make_trade(
+                            pos, signals[i + 1], exit_p, pnl * 100, exit_r, sid
+                        )
+                    )
                     pos = None
                     continue
             if pos and s["signal"] in ("SHORT", "NEUTRAL") and pos["dir"] == "LONG":
@@ -484,7 +518,11 @@ class BacktestEngine:
             last = signals[-1]
             lp = last["price"]
             d = pos["dir"]
-            pnl = (lp - pos["entry"]) / pos["entry"] * 100 if d == "LONG" else (pos["entry"] - lp) / pos["entry"] * 100
+            pnl = (
+                (lp - pos["entry"]) / pos["entry"] * 100
+                if d == "LONG"
+                else (pos["entry"] - lp) / pos["entry"] * 100
+            )
             trades.append(self._make_trade(pos, last, lp, pnl, "EOD", sid))
         return trades
 
@@ -500,25 +538,34 @@ class BacktestEngine:
             eq *= 1 + t.pnl_pct / 100
             peak = max(peak, eq)
             mdd = max(mdd, (peak - eq) / peak * 100)
-        daily_returns = [(trades[i].pnl_pct - trades[i - 1].pnl_pct) / 100 for i in range(1, len(trades))]
+        daily_returns = [
+            (trades[i].pnl_pct - trades[i - 1].pnl_pct) / 100
+            for i in range(1, len(trades))
+        ]
         if daily_returns and sum(daily_returns) != 0:
             mean_r = sum(daily_returns) / len(daily_returns)
-            std_r = (sum((r - mean_r) ** 2 for r in daily_returns) / len(daily_returns)) ** 0.5
+            std_r = (
+                sum((r - mean_r) ** 2 for r in daily_returns) / len(daily_returns)
+            ) ** 0.5
             shr = round((mean_r / std_r) * (252**0.5), 4) if std_r > 0 else 0.0
         else:
             shr = 0.0
-        return {
-            "total_trades": total,
-            "winning_trades": wins,
-            "losing_trades": total - wins,
-            "win_rate": round(wins / total * 100, 2) if total else 0.0,
-            "avg_win_pct": round(sum(wl) / len(wl), 4) if wl else 0.0,
-            "avg_loss_pct": round(sum(ll) / len(ll), 4) if ll else 0.0,
-            "total_return_pct": round((eq - self.initial_capital) / self.initial_capital * 100, 2),
-            "max_drawdown_pct": round(mdd, 2),
-            "sharpe_ratio": shr,
-            "avg_confidence": (round(sum(t.confidence for t in trades) / total, 1) if total else 0),
-        }
+        return dict(
+            total_trades=total,
+            winning_trades=wins,
+            losing_trades=total - wins,
+            win_rate=round(wins / total * 100, 2) if total else 0.0,
+            avg_win_pct=round(sum(wl) / len(wl), 4) if wl else 0.0,
+            avg_loss_pct=round(sum(ll) / len(ll), 4) if ll else 0.0,
+            total_return_pct=round(
+                (eq - self.initial_capital) / self.initial_capital * 100, 2
+            ),
+            max_drawdown_pct=round(mdd, 2),
+            sharpe_ratio=shr,
+            avg_confidence=(
+                round(sum(t.confidence for t in trades) / total, 1) if total else 0
+            ),
+        )
 
     def _save(self, r):
         with sqlite3.connect(str(self.results_db)) as conn:
@@ -547,7 +594,9 @@ class BacktestEngine:
             conn.commit()
 
 
-async def run_backtest(symbol="BTCUSDT", start_date="2025-01-01", end_date="2025-03-25"):
+async def run_backtest(
+    symbol="BTCUSDT", start_date="2025-01-01", end_date="2025-03-25"
+):
     return await BacktestEngine(symbol=symbol).run(start_date, end_date)
 
 
@@ -559,4 +608,4 @@ if __name__ == "__main__":
     ed = sys.argv[3] if len(sys.argv) > 3 else "2025-03-25"
     result = asyncio.run(run_backtest(sym, sd, ed))
     if result:
-        print(result.summary())
+        log.info(result.summary())

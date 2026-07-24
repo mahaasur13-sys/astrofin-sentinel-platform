@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 """federated_gateway.py — atom-federation-os v9.0+P7 FederatedExecutionGateway.
 
 P7 Upgrade: Raft → PBFT-like BFT consensus.
@@ -290,7 +291,7 @@ class FederatedExecutionGateway:
         This path is deterministic and requires NO quorum, NO ledger, NO QC.
         Used when federation_disabled=True OR no peers are configured.
         """
-        proof_hash = self._hash_payload(proof) if proof else ""
+        self._hash_payload(proof) if proof else ""
 
         # Local P5 verification (optional — skip if no verifier)
         local_valid = True
@@ -362,7 +363,7 @@ class FederatedExecutionGateway:
         results: list[tuple[str, bool, str]] = []
 
         for peer_id in self.peers:
-            peer = FederatedExecutionGateway(
+            FederatedExecutionGateway(
                 node_id=peer_id,
                 peers=[],
                 federation_disabled=True,

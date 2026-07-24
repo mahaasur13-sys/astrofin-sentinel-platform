@@ -62,7 +62,8 @@ class QuorumConfig:
     def __repr__(self):
         return f'QuorumConfig(members={self.members!r}, ratio={self.required_ratio})'
     def __eq__(self, other):
-        if not isinstance(other, QuorumConfig): return NotImplemented
+        if not isinstance(other, QuorumConfig):
+            return NotImplemented
         return (self.members == other.members and
                 self.required_ratio == other.required_ratio and
                 self.last_reconfigured == other.last_reconfigured)
@@ -271,7 +272,7 @@ class SelfHealingControlPlane:
         if not self._grpc_factory:
             return False
         try:
-            stub = self._grpc_factory(peer)
+            self._grpc_factory(peer)
             return True
         except Exception:
             return False

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 META_RL_TRADING_ENABLED = False  # F821 fix (TODO: move to config)
 """meta_rl/trading_bridge.py — Live/Paper Trading Bridge for Meta-RL"""
 
@@ -29,13 +31,17 @@ class MetaRLTradingBridge:
         self.risk_engine = RiskEngineV2()
         self.sanity_checker = ExecutionSanityChecker()
 
-    def execute(self, strategy, market_data: dict, mode: str = "PAPER") -> TradingExecutionResult:
+    def execute(
+        self, strategy, market_data: dict, mode: str = "PAPER"
+    ) -> TradingExecutionResult:
         if not META_RL_TRADING_ENABLED:
             logger.warning("[META-RL-TRADING] Bridge disabled by feature flag")
             return TradingExecutionResult(status="DISABLED", reason="Bridge disabled")
         if mode == "LIVE" and not LIVE_TRADING_ENABLED:
             logger.warning("[META-RL-TRADING] LIVE trading not enabled")
-            return TradingExecutionResult(status="DISABLED", reason="LIVE trading not enabled")
+            return TradingExecutionResult(
+                status="DISABLED", reason="LIVE trading not enabled"
+            )
         if mode == "PAPER" and not PAPER_TRADING_ENABLED:
             logger.warning("[META-RL-TRADING] PAPER trading not enabled")
             return TradingExecutionResult(status="DISABLED", reason="PAPER not enabled")
@@ -50,7 +56,9 @@ class MetaRLTradingBridge:
             # 2) Pre-trade risk
             risk_pre = self.risk_engine.pre_trade_check(strategy, market_data)
             if not risk_pre.get("approved", True):
-                return TradingExecutionResult(status="REJECTED", reason=risk_pre.get("reason", "Risk rejected"))
+                return TradingExecutionResult(
+                    status="REJECTED", reason=risk_pre.get("reason", "Risk rejected")
+                )
             # 3) Build order request
             order_req = {
                 "symbol": market_data.get("symbol", "BTCUSDT"),
@@ -70,7 +78,9 @@ class MetaRLTradingBridge:
             logger.info(
                 f"[META-RL-TRADING] {mode} approved: {order_req['symbol']} signal={order_req['direction']} size={order_req['size_pct']:.2%}"
             )
-            return TradingExecutionResult(status="APPROVED", reason=f"{mode} approved", adjusted_signal=order_req)
+            return TradingExecutionResult(
+                status="APPROVED", reason=f"{mode} approved", adjusted_signal=order_req
+            )
         except Exception as e:
             logger.error(f"[META-RL-TRADING] Execution failed: {e}")
             return TradingExecutionResult(status="ERROR", reason=str(e))

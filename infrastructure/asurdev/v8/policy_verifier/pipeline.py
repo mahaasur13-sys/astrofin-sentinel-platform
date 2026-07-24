@@ -6,9 +6,9 @@ Step 2: Simulation sandbox (digital twin)
 Step 3: Regret bound check
 """
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Optional
+
 import hashlib
+from dataclasses import dataclass
 
 
 @dataclass
@@ -16,7 +16,7 @@ class VerificationResult:
     approved: bool
     risk_score: float
     regret_bound: float
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class PolicyVerifier:
@@ -29,7 +29,7 @@ class PolicyVerifier:
         self.digital_twin = digital_twin
         self.max_allowed_regret = max_allowed_regret
 
-    def verify(self, decision: dict) -> tuple[bool, Optional[str]]:
+    def verify(self, decision: dict) -> tuple[bool, str | None]:
         """
         Full verification pipeline.
         Returns (approved, reason).
@@ -50,7 +50,7 @@ class PolicyVerifier:
 
         return True, None
 
-    def _static_check(self, policy: dict) -> tuple[bool, Optional[str]]:
+    def _static_check(self, policy: dict) -> tuple[bool, str | None]:
         """Step 1 — static validation."""
         # Check: no cycles
         if self._has_cycles(policy):
@@ -90,7 +90,7 @@ class PolicyVerifier:
             "replication_guard", "deadlock_guard",
         }
 
-    def _simulate(self, decision: dict) -> Optional[dict]:
+    def _simulate(self, decision: dict) -> dict | None:
         """Step 2 — run in digital twin sandbox."""
         try:
             return self.digital_twin.simulate(

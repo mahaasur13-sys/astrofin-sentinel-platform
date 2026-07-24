@@ -13,6 +13,10 @@ import statistics
 import time
 from dataclasses import dataclass
 
+import logging
+log = logging.getLogger(__name__)
+
+
 
 @dataclass
 class JobResult:
@@ -161,7 +165,7 @@ class SolverLatencyScenario:
 
 
 def run_all():
-    print("[SOLVER LATENCY] Starting scenario...")
+    log.info("[SOLVER LATENCY] Starting scenario...")
     scenario = SolverLatencyScenario(
         beam_width=20,
         ilp_timeout_ms=200,
@@ -171,11 +175,11 @@ def run_all():
     )
     results = scenario.simulate(duration_sec=60)
 
-    print("\n=== SCENARIO RESULT ===")
-    print(f"Failure detected: {results['failure_detected']}")
-    print(f"Metrics: {json.dumps(results['metrics'], indent=2)}")
+    log.info("\n=== SCENARIO RESULT ===")
+    log.info(f"Failure detected: {results['failure_detected']}")
+    log.info(f"Metrics: {json.dumps(results['metrics'], indent=2)}")
     if results["correction_applied"]:
-        print(f"\nCorrection: {results['correction_applied']}")
+        log.info(f"\nCorrection: {results['correction_applied']}")
     return results
 
 

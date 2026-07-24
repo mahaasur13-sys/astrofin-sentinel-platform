@@ -14,6 +14,8 @@ Usage:
   summary = agent.get_summary()
 """
 
+from __future__ import annotations
+
 import sqlite3
 import statistics
 from dataclasses import asdict, dataclass
@@ -96,9 +98,6 @@ _DB_PATH = Path(__file__).parent / "metrics_history.db"
 
 
 def _db_path() -> Path:
-    global _DB_PATH
-    if False:  # always use defined path
-        _DB_PATH = Path(__file__).parent / "results.db"
     return _DB_PATH
 
 
@@ -146,7 +145,9 @@ class MetricsDB:
             c.executescript(_SCHEMA)
             # Add timeframe column if missing ( preexisting DB)
             try:
-                c.execute("ALTER TABLE backtest_runs ADD COLUMN timeframe TEXT NOT NULL DEFAULT 'SWING'")
+                c.execute(
+                    "ALTER TABLE backtest_runs ADD COLUMN timeframe TEXT NOT NULL DEFAULT 'SWING'"
+                )
                 c.commit()
             except Exception:
                 pass
@@ -223,7 +224,9 @@ class MetricsDB:
             first_wr = statistics.mean(r.win_rate for r in first_half)
             second_wr = statistics.mean(r.win_rate for r in second_half)
             delta = second_wr - first_wr
-            trending = "improving" if delta > 2 else "declining" if delta < -2 else "stable"
+            trending = (
+                "improving" if delta > 2 else "declining" if delta < -2 else "stable"
+            )
         else:
             trending = "stable"
 

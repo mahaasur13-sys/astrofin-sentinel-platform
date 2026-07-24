@@ -60,7 +60,7 @@ class StateWindowStore:
             )
         ''')
         self._conn.execute('''
-            CREATE INDEX IF NOT EXISTS idx_tick_desc 
+            CREATE INDEX IF NOT EXISTS idx_tick_desc
             ON state_window(tick DESC)
         ''')
 
@@ -107,9 +107,9 @@ class StateWindowStore:
     def get_window(self, from_tick: int, to_tick: int) -> list[TickRecord]:
         with self._lock:
             cursor = self._conn.execute(
-                '''SELECT tick, state, decision, outcome, recorded_at 
-                FROM state_window 
-                WHERE tick BETWEEN ? AND ? 
+                '''SELECT tick, state, decision, outcome, recorded_at
+                FROM state_window
+                WHERE tick BETWEEN ? AND ?
                 ORDER BY tick ASC''',
                 (from_tick, to_tick)
             )

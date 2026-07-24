@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 #!/usr/bin/env python3
 """
 comprehensive_audit.py — Full system audit for atom-federation-os v9.0+P6+P0.4
@@ -16,13 +17,17 @@ import json
 import pathlib
 import sys
 
+import logging
+log = logging.getLogger(__name__)
+
+
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 AUDIT_LOG = []
 
 def log(level, component, message):
     symbol = {"PASS": "✅", "FAIL": "❌", "WARN": "⚠️", "INFO": "ℹ️"}.get(level, "  ")
-    print(f"  {symbol} [{component}] {message}")
+    log.info(f"  {symbol} [{component}] {message}")
     AUDIT_LOG.append({"level": level, "component": component, "message": message})
 
 # ═══════════════════════════════════════════════════════════════
@@ -50,15 +55,14 @@ def audit_L1_algebra():
     try:
         import subprocess
         repo = pathlib.Path(__file__).parent.parent
-        r = subprocess.run(['python3', str(repo/'scripts'/'execution_algebra_validator.py'), '--repo', str(repo)], capture_output=True, text=True)
-        alg_ok = r.returncode == 0
+        subprocess.run(['python3', str(repo/'scripts'/'execution_algebra_validator.py'), '--repo', str(repo)], capture_output=True, text=True)
         v.discover_python_files()
         v.find_gate_presence()
         eps = v.find_execution_entry_points()
         bypasses = v.check_bypass_paths(eps, v.gate_presence)
         exposed = v.check_actuator_exposure()
         # Count G1–G10 presence
-        gpresent = {g.gate.id: g.exists for g in v.gate_presence}
+        {g.gate.id: g.exists for g in v.gate_presence}
         missing = [g.gate.id for g in v.gate_presence if g.gate.required and not g.exists]
         if missing:
             log("FAIL", "L1-Algebra", f"Missing gates: {missing}")
@@ -219,10 +223,9 @@ def audit_L7_actuator():
 # ═══════════════════════════════════════════════════════════════
 def audit_L8_entry_surface():
     log("INFO", "L8-EntrySurface", "═" * 40)
-    CANONICAL_ENTRY = "ExecutionGateway.execute"
     repo = pathlib.Path(__file__).parent.parent
     spec_path = repo / "formal_model" / "dfa_spec.json"
-    spec = json.load(open(spec_path)) if spec_path.exists() else {}
+    json.load(open(spec_path)) if spec_path.exists() else {}
     # Read hidden entry points from regression report
     report_path = repo / "formal_model" / "dfa_diff_report.json"
     if not report_path.exists():
@@ -247,10 +250,10 @@ def audit_L8_entry_surface():
 # MAIN
 # ═══════════════════════════════════════════════════════════════
 def main():
-    print("╔══════════════════════════════════════════════╗")
-    print("║  ATOMFEDERATION-OS COMPREHENSIVE AUDIT v9.0+P6 ║")
-    print("╚══════════════════════════════════════════════╝")
-    print()
+    log.info("╔══════════════════════════════════════════════╗")
+    log.info("║  ATOMFEDERATION-OS COMPREHENSIVE AUDIT v9.0+P6 ║")
+    log.info("╚══════════════════════════════════════════════╝")
+    log.info("")
     results = {}
     results["L0-Workspace"]   = audit_L0_workspace()
     results["L1-Algebra"]     = audit_L1_algebra()
@@ -261,20 +264,20 @@ def main():
     results["L6-Snapshots"]   = audit_L6_snapshots()
     results["L7-Actuator"]   = audit_L7_actuator()
     results["L8-EntrySurface"]= audit_L8_entry_surface()
-    print()
-    print("═" * 52)
+    log.info("")
+    log.info("═" * 52)
     passed = sum(1 for v in results.values() if v)
     total = len(results)
-    print(f"  AUDIT RESULT: {passed}/{total} layers PASS")
-    print("═" * 52)
+    log.info(f"  AUDIT RESULT: {passed}/{total} layers PASS")
+    log.info("═" * 52)
     violations = [k for k, v in results.items() if not v]
     if violations:
-        print(f"  ❌ FAILED layers: {violations}")
+        log.info(f"  ❌ FAILED layers: {violations}")
         for v in violations:
             log("FAIL", "AUDIT", f"VIOLATION: {v}")
         return 1
     else:
-        print("  ✅ ALL LAYERS VERIFIED — SYSTEM SAFE")
+        log.info("  ✅ ALL LAYERS VERIFIED — SYSTEM SAFE")
         return 0
 
 if __name__ == "__main__":

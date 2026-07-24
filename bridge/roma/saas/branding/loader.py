@@ -1,7 +1,6 @@
 """
 saas/branding/loader.py
 """
-
 import json
 from pathlib import Path
 
@@ -41,7 +40,6 @@ def load_by_tenant_id(tenant_id: str) -> TenantBranding:
 def load_by_api_key(api_key: str) -> TenantBranding:
     """Shortcut: API key → branding."""
     from auth.api_keys import APIKeyManager
-
     mgr = APIKeyManager()
     result = mgr.validate_key(api_key)
     if result:

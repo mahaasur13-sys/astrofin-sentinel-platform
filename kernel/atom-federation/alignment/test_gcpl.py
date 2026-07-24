@@ -1,5 +1,9 @@
 import time
 
+import logging
+log = logging.getLogger(__name__)
+
+
 """test_gcpl.py — v10.3 GCPL tests."""
 
 from alignment.gcpl import (
@@ -26,7 +30,7 @@ def test_edit_distance_identical():
     b = [type("E", (), {"event_id": i})() for i in ids]
     d = causal_edit_distance(a, b)
     assert d == 0.0, f"Identical → 0, got {d}"
-    print("  identical: d=0.0 ✅")
+    log.info("  identical: d=0.0 ✅")
 
 
 def test_edit_distance_disjoint():
@@ -35,7 +39,7 @@ def test_edit_distance_disjoint():
     b = [type("E", (), {"event_id": i})() for i in ["y1", "y2"]]
     d = causal_edit_distance(a, b)
     assert d == 1.0, f"Disjoint → 1.0, got {d}"
-    print("  disjoint: d=1.0 ✅")
+    log.info("  disjoint: d=1.0 ✅")
 
 
 def test_edit_distance_partial():
@@ -44,7 +48,7 @@ def test_edit_distance_partial():
     b = [type("E", (), {"event_id": i})() for i in ["e1", "x", "e2", "e3"]]
     d = causal_edit_distance(a, b)
     assert 0.0 < d < 1.0, f"Partial overlap: 0<d<1, got {d}"
-    print(f"  partial overlap: d={d:.3f} ✅")
+    log.info(f"  partial overlap: d={d:.3f} ✅")
 
 
 # ── Convergence function ─────────────────────────────────────
@@ -55,7 +59,7 @@ def test_mean_pairwise_convergence():
     # All empty → 0 distance → C = 1.0 (perfect convergence)
     c = ConvergenceFunction.mean_pairwise_distance([b1, b2, b3])
     assert c == 0.0, f"All empty → C=0, got {c}"
-    print("  mean_pairwise: C=0.0 (identical empty) ✅")
+    log.info("  mean_pairwise: C=0.0 (identical empty) ✅")
 
 
 def test_convergence_rate_decreasing():
@@ -63,7 +67,7 @@ def test_convergence_rate_decreasing():
     history = [0.8, 0.6, 0.4, 0.3, 0.2]
     rate = ConvergenceFunction.convergence_rate(history)
     assert rate < 0, f"Decreasing C → negative rate, got {rate}"
-    print(f"  convergence_rate decreasing: {rate:.3f} < 0 ✅")
+    log.info(f"  convergence_rate decreasing: {rate:.3f} < 0 ✅")
 
 
 def test_convergence_rate_increasing():
@@ -71,7 +75,7 @@ def test_convergence_rate_increasing():
     history = [0.2, 0.3, 0.4, 0.6, 0.8]
     rate = ConvergenceFunction.convergence_rate(history)
     assert rate > 0, f"Increasing C → positive rate, got {rate}"
-    print(f"  convergence_rate increasing: {rate:.3f} > 0 (ALERT) ✅")
+    log.info(f"  convergence_rate increasing: {rate:.3f} > 0 (ALERT) ✅")
 
 
 # ── GlobalConsistencyChecker ─────────────────────────────────
@@ -88,7 +92,7 @@ def test_checker_nominal():
         post_audit_total=5,
     )
     assert snap.status == GCPLCheckResult.OK, f"Nominal → OK, got {snap.status}"
-    print(f"  nominal 2 branches: {snap.status.value} ✅")
+    log.info(f"  nominal 2 branches: {snap.status.value} ✅")
 
 
 def test_checker_entropy_violation():
@@ -106,7 +110,7 @@ def test_checker_entropy_violation():
     )
     assert GlobalInvariant.BRANCH_ENTROPY_BOUNDED in snap.invariant_violations
     assert snap.status == GCPLCheckResult.NON_CONVERGENT
-    print("  33 branches → NON_CONVERGENT (BRANCH_ENTROPY) ✅")
+    log.info("  33 branches → NON_CONVERGENT (BRANCH_ENTROPY) ✅")
 
 
 def test_checker_irreconcilable_ratio():
@@ -125,7 +129,7 @@ def test_checker_irreconcilable_ratio():
         post_audit_total=5,
     )
     assert GlobalInvariant.IRRECONCILABLE_RATIO_BOUNDED in snap.invariant_violations
-    print("  irreconcilable_ratio=0.80 → NON_CONVERGENT ✅")
+    log.info("  irreconcilable_ratio=0.80 → NON_CONVERGENT ✅")
 
 
 # ── TerminationProver ──────────────────────────────────────────
@@ -138,7 +142,7 @@ def test_termination_converged():
     )
     assert res.converged is True
     assert res.deadlocked is False
-    print("  C→0: CONVERGED ✅")
+    log.info("  C→0: CONVERGED ✅")
 
 
 def test_termination_terminal_leaves():
@@ -150,7 +154,7 @@ def test_termination_terminal_leaves():
     )
     assert res.terminal_leaves is True
     assert res.deadlocked is False
-    print("  |B| stable + no osc: TERMINAL_LEAVES ✅")
+    log.info("  |B| stable + no osc: TERMINAL_LEAVES ✅")
 
 
 def test_termination_deadlock():
@@ -161,11 +165,11 @@ def test_termination_deadlock():
         oscillation_count=3,
     )
     assert res.deadlocked is True
-    print("  oscillating + |B| growing: DEADLOCKED ✅")
+    log.info("  oscillating + |B| growing: DEADLOCKED ✅")
 
 
 def run_tests():
-    print("\n=== v10.3 GCPL Tests ===")
+    log.info("\n=== v10.3 GCPL Tests ===")
     tests = [
         ("Metric space", [
             test_edit_distance_identical,
@@ -190,16 +194,16 @@ def run_tests():
     ]
     total = passed = 0
     for group, fns in tests:
-        print(f"\n[ {group} ]")
+        log.info(f"\n[ {group} ]")
         for fn in fns:
             total += 1
             try:
                 fn()
                 passed += 1
             except Exception as e:
-                print(f"  ❌ {fn.__name__}: {e}")
-    print(f"\n{'='*50}")
-    print(f"  RESULT: {passed}/{total} passed")
+                log.info(f"  ❌ {fn.__name__}: {e}")
+    log.info(f"\n{'='*50}")
+    log.info(f"  RESULT: {passed}/{total} passed")
     return passed == total
 
 

@@ -12,6 +12,10 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
+import logging
+log = logging.getLogger(__name__)
+
+
 BASE = Path("/home/workspace/home-cluster-iac")
 LAYER_ORDER = ["v8", "v7", "v6", "v5", "fp", "ts", "v4", "lt", "acos", "infra"]
 LAYER_NUM = {
@@ -320,5 +324,5 @@ def run():
 
 if __name__ == "__main__":
     r = run()
-    print(json.dumps(r, indent=2))
+    log.info(json.dumps(r, indent=2))
     sys.exit(0 if r["STATUS"] == "PASS" else 1 if r["STATUS"] == "BLOCK" else 2)

@@ -81,13 +81,13 @@ class SelfAuditResult:
 class SelfAudit:
     '''
     Runtime Self-Audit: Scans and verifies entire codebase at startup.
-    
+
     Guarantees:
         - All mutation points are known and registered
         - No bypass paths exist in the code
         - Execution graph is deterministic and reproducible
         - Any violation → SystemShutdown
-    
+
     Usage:
         result = SelfAudit.run()
         if not result.passed:
@@ -106,13 +106,13 @@ class SelfAudit:
     def run(cls, repo_root: Path | None = None) -> SelfAuditResult:
         '''
         Run full self-audit at system startup.
-        
+
         Returns SelfAuditResult with:
             - All discovered mutation points
             - Any bypass paths detected
             - Execution graph
             - pass/fail status
-        
+
         Raises:
             SystemShutdown: if bypass detected
         '''
@@ -232,7 +232,7 @@ class SelfAudit:
     def _audit_file(self, py_file: Path, repo_root: Path) -> dict:
         '''
         Audit single Python file.
-        
+
         Returns:
             {
                 'mutation_points': {key -> MutationPoint},
@@ -420,7 +420,7 @@ class SelfAudit:
 class RuntimeVerifier:
     '''
     Runtime verification that complements startup self-audit.
-    
+
     Called on every mutation to verify:
         1. Caller is registered mutation point
         2. Gateway context is active
@@ -432,12 +432,12 @@ class RuntimeVerifier:
                              operation: str) -> None:
         '''
         Verify a mutation call is allowed.
-        
+
         Called from:
         - MutationExecutor.apply_mutation()
         - ExecutionGateway before ACT stage
         - Any @requires_gateway decorated method
-        
+
         Raises:
             SystemShutdown: if verification fails
         '''
@@ -448,7 +448,7 @@ class RuntimeVerifier:
     def verify_gateway_entry() -> None:
         '''
         Verify gateway entry is from allowed entry point.
-        
+
         Called at the start of ExecutionGateway.execute()
         '''
         stack = traceback.extract_stack()
@@ -471,11 +471,11 @@ class RuntimeVerifier:
 def run_startup_audit(repo_root: Path | None = None) -> SelfAuditResult:
     '''
     Run self-audit at system startup.
-    
+
     Call this from:
         - ExecutionGateway.__init__()
         - Main entry point (main.py / __main__.py)
-    
+
     Returns SelfAuditResult (raises SystemShutdown on bypass).
     '''
     return SelfAudit.run(repo_root)
@@ -486,7 +486,7 @@ def run_startup_audit(repo_root: Path | None = None) -> SelfAuditResult:
 def verify_graph_against_snapshot(repo_root: Path | None = None) -> None:
     '''
     Verify runtime execution graph matches formal_model snapshot.
-    
+
     Raises:
         SystemShutdown: if graph doesn't match
     '''

@@ -29,6 +29,9 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 
 from federation.delta_gossip.dag_hash_modes import DAGHashMode
+import logging
+log = logging.getLogger(__name__)
+
 from orchestration.consistency.invariant_contract.cross_mode_validator import (
     CrossModeValidator,
     EquivalenceResult,
@@ -426,31 +429,31 @@ def _example_proof():
     # Identical digests — equivalent
     digests = ["d1", "d2", "d3", "d4"]
     proof = engine.prove_from_digests(digests, digests)
-    print(f"Same digests:           valid={proof.is_valid()}")
-    print(f"  proof_id={proof.proof_id}")
-    print(f"  consensus_hash={proof.equivalence_result.consensus_hash}")
-    print(f"  proof_hash={proof.proof_hash}")
+    log.info(f"Same digests:           valid={proof.is_valid()}")
+    log.info(f"  proof_id={proof.proof_id}")
+    log.info(f"  consensus_hash={proof.equivalence_result.consensus_hash}")
+    log.info(f"  proof_hash={proof.proof_hash}")
     assert proof.is_valid(), "identical digests must be equivalent"
 
     # Determinism: same digests → same proof_id
     proof2 = engine.prove_from_digests(digests, digests)
     assert proof.proof_id == proof2.proof_id, "same digests → same proof_id (FIX-5)"
-    print("  ✓ Deterministic: proof_id stable across calls")
+    log.info("  ✓ Deterministic: proof_id stable across calls")
 
     # Different digests — NOT equivalent
     proof_d = engine.prove_from_digests(digests, ["x1", "x2", "x3", "x4"])
-    print(f"\nDifferent digests:       valid={proof_d.is_valid()}")
-    print(f"  reason={proof_d.equivalence_result.divergence_reason}")
+    log.info(f"\nDifferent digests:       valid={proof_d.is_valid()}")
+    log.info(f"  reason={proof_d.equivalence_result.divergence_reason}")
 
     # Invariant checks
     inv = get_cross_origin_equivalence_invariant()
     r_ok = inv.evaluate({"proof": proof})
-    print(f"\nInvariant (same):        satisfied={r_ok.satisfied}")
+    log.info(f"\nInvariant (same):        satisfied={r_ok.satisfied}")
     r_fail = inv.evaluate({"proof": proof_d})
-    print(f"Invariant (diff):        satisfied={r_fail.satisfied}")
-    print(f"  severity={r_fail.severity.name}, action={r_fail.enforcement_action.name}")
+    log.info(f"Invariant (diff):        satisfied={r_fail.satisfied}")
+    log.info(f"  severity={r_fail.severity.name}, action={r_fail.enforcement_action.name}")
 
-    print("\n✅ All sanity checks passed")
+    log.info("\n✅ All sanity checks passed")
 
 
 if __name__ == "__main__":

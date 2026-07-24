@@ -4,14 +4,16 @@ ACOS SCL v6 — StateProjection (PATCH 3: enriched projections).
 Adds node_graph_resolution and execution_order to standard projection.
 """
 from __future__ import annotations
+
 from typing import Any
+
 from acos.state.reducer import StateReducer
 
 
 class StateProjection:
     """
     Read-side state projection.
-    
+
     PATCH 3: enrich_projection() adds node_graph_resolution and execution_order.
     """
 
@@ -26,20 +28,20 @@ class StateProjection:
     def get_enriched_trace(self, trace_id: str) -> dict[str, Any]:
         """
         PATCH 3: Returns state with node_graph_resolution and execution_order.
-        
+
         node_graph_resolution: topological order of nodes from DAG
         execution_order: actual execution sequence from events
         """
         # Get base state
         state = self._reducer.rebuild(trace_id)
-        
+
         # 1. node_graph_resolution — from DAG node order
         dag_nodes = state.get("dag", {}).get("nodes", [])
         node_graph_resolution = [
             n.get("id", n.get("name", str(n))) if isinstance(n, dict) else str(n)
             for n in dag_nodes
         ]
-        
+
         # 2. execution_order — from NODE_SCHEDULED/NODE_EXECUTED events
         events = self._log.get_trace(trace_id)
         execution_order = []
@@ -52,7 +54,7 @@ class StateProjection:
                     "event": et,
                     "timestamp": event.timestamp,
                 })
-        
+
         return {
             **state,
             "node_graph_resolution": node_graph_resolution,

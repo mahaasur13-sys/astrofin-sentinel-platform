@@ -148,7 +148,7 @@ class WalkForwardValidator:
         )
         report = validator.validate(strategy, market_data)
         if report.overall_overfit_flag:
-            print("⚠️ Strategy may be overfitting!")
+            log.info("⚠️ Strategy may be overfitting!")
     """
 
     def __init__(
@@ -193,12 +193,16 @@ class WalkForwardValidator:
         min_required = self.train_window + self.test_window + 10
 
         if total_len < min_required:
-            logger.warning(f"[WFA] Insufficient data: {total_len} bars (need {min_required}). Reducing splits.")
+            logger.warning(
+                f"[WFA] Insufficient data: {total_len} bars (need {min_required}). Reducing splits."
+            )
             effective_window = total_len // 3
             self.train_window = effective_window
             self.test_window = effective_window
             if total_len < 50:
-                logger.warning("[WFA] Too few bars for walk-forward — returning empty report")
+                logger.warning(
+                    "[WFA] Too few bars for walk-forward — returning empty report"
+                )
                 return WalkForwardReport(n_splits=0, splits=[])
 
         splits = []
@@ -292,11 +296,20 @@ class WalkForwardValidator:
         # Overfitting flags
         reasons = []
         if sm.sharpe_degradation < -self.overfit_threshold:
-            reasons.append(f"Sharpe degradation {sm.sharpe_degradation:.2f} exceeds -{self.overfit_threshold:.2f}")
-        if sm.oos_sharpe < self.sharpe_degradation_limit and sm.is_sharpe > sm.oos_sharpe * 2:
-            reasons.append(f"OOS Sharpe {sm.oos_sharpe:.2f} << IS Sharpe {sm.is_sharpe:.2f}")
+            reasons.append(
+                f"Sharpe degradation {sm.sharpe_degradation:.2f} exceeds -{self.overfit_threshold:.2f}"
+            )
+        if (
+            sm.oos_sharpe < self.sharpe_degradation_limit
+            and sm.is_sharpe > sm.oos_sharpe * 2
+        ):
+            reasons.append(
+                f"OOS Sharpe {sm.oos_sharpe:.2f} << IS Sharpe {sm.is_sharpe:.2f}"
+            )
         if sm.oos_win_rate < sm.is_win_rate - 0.2:
-            reasons.append(f"OOS win rate {sm.oos_win_rate:.0%} << IS {sm.is_win_rate:.0%}")
+            reasons.append(
+                f"OOS win rate {sm.oos_win_rate:.0%} << IS {sm.is_win_rate:.0%}"
+            )
         if sm.oos_trades < 3:
             reasons.append(f"Too few OOS trades ({sm.oos_trades})")
 
@@ -327,11 +340,17 @@ class WalkForwardValidator:
 
         recommendations = []
         if mean_deg < -0.3:
-            recommendations.append("HIGH_PRIORITY: Reduce crossover_rate — strategy is overfitting to train data")
+            recommendations.append(
+                "HIGH_PRIORITY: Reduce crossover_rate — strategy is overfitting to train data"
+            )
         if positive_oos < n * 0.5:
-            recommendations.append("Strategy fails on OOS — increase regularization or reduce population complexity")
+            recommendations.append(
+                "Strategy fails on OOS — increase regularization or reduce population complexity"
+            )
         if overfit_count > n * 0.5:
-            recommendations.append("Majority of splits overfit — consider simpler strategy chromosome (fewer genes)")
+            recommendations.append(
+                "Majority of splits overfit — consider simpler strategy chromosome (fewer genes)"
+            )
 
         report = WalkForwardReport(
             n_splits=n,

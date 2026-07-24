@@ -127,7 +127,13 @@ def test_blueprint_falls_back_to_secondary_on_error():
         freshness_sla_seconds = 30
 
         async def resolve(self, symbol, asof):
-            return PriceTick(symbol=symbol, price=100.0, asof=asof or "now", source_id=self.id, quality_score=0.9)
+            return PriceTick(
+                symbol=symbol,
+                price=100.0,
+                asof=asof or "now",
+                source_id=self.id,
+                quality_score=0.9,
+            )
 
     bp = Blueprint()
     bp.register("price", AlwaysFails(), chain=["always_succeeds"])

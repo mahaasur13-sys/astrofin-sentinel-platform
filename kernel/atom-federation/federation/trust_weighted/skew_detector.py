@@ -11,6 +11,7 @@ Integration:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from .node_weights import NodeWeightsSnapshot
 
 
 @dataclass
@@ -47,7 +48,6 @@ class TrustSkewDetector:
         self._last_snapshot_weights: dict[str, float] = {}
 
     def analyze(self, epoch: int, snapshot: NodeWeightsSnapshot) -> TrustSkewReport:
-        weights = snapshot.weights
         total_weight = snapshot.total_weight
         max_weight = snapshot.max_single_weight
         skew_ratio = max_weight / (total_weight + 1e-9)

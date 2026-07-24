@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-from enum import Enum
-import uuid
+
 import time
+import uuid
+from enum import Enum
+
 
 class ExecutionState(Enum):
-    PENDING = "PENDING"; RUNNING = "RUNNING"; SUCCESS = "SUCCESS"
-    FAILED = "FAILED"; KILLED = "KILLED"; ROLLED_BACK = "ROLLED_BACK"
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+    KILLED = "KILLED"
+    ROLLED_BACK = "ROLLED_BACK"
 
 class ExecutionEngine:
     """
@@ -59,7 +65,7 @@ class ExecutionEngine:
                 pass
 
         nodes_map = {n.get("node_id") or n.get("id"): n for n in dag.get("nodes", [])}
-        in_degree = {nid: 0 for nid in nodes_map}
+        in_degree = dict.fromkeys(nodes_map, 0)
         for e in dag.get("edges", []):
             in_degree[e.get("to")] = in_degree.get(e.get("to"), 0) + 1
         ready = [n for n, d in in_degree.items() if d == 0]

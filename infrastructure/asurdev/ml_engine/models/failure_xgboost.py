@@ -3,10 +3,11 @@
 Failure Prediction Model — XGBoost classifier.
 P(failure | node_features, horizon).
 """
+import logging
+from typing import Any
+
 import numpy as np
 import pandas as pd
-from typing import Optional, Dict, Any
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +30,8 @@ class FailureXGBoost:
         self.colsample_bytree = colsample_bytree
         self.scale_pos_weight = scale_pos_weight
         self.random_state = random_state
-        self._model: Optional[Any] = None
-        self._feature_names: Optional[list] = None
+        self._model: Any | None = None
+        self._feature_names: list | None = None
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "FailureXGBoost":
         """Train XGBoost failure classifier."""
@@ -69,14 +70,14 @@ class FailureXGBoost:
         proba = self.predict_proba(X)
         return (proba >= threshold).astype(int)
 
-    def feature_importance(self) -> Dict[str, float]:
+    def feature_importance(self) -> dict[str, float]:
         """Return feature importance scores."""
         if self._model is None:
             raise RuntimeError("Model not trained")
         importance = self._model.feature_importances_
         return dict(zip(self._feature_names, importance))
 
-    def get_params(self) -> Dict[str, Any]:
+    def get_params(self) -> dict[str, Any]:
         return {
             "max_depth": self.max_depth,
             "n_estimators": self.n_estimators,

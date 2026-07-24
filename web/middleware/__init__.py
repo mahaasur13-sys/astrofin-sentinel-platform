@@ -75,7 +75,11 @@ def install_flask(app: Flask) -> None:
             # Snapshot headers BEFORE we replace `response` with a new
             # jsonify() object — otherwise CORS / Set-Cookie / security
             # headers from the original view are lost on errors.
-            original_headers = [(k, v) for k, v in response.headers.items() if k.lower() not in _PASSTHROUGH_SKIP]
+            original_headers = [
+                (k, v)
+                for k, v in response.headers.items()
+                if k.lower() not in _PASSTHROUGH_SKIP
+            ]
 
             ct = response.headers.get("Content-Type", "")
             if "application/json" not in ct:
@@ -98,9 +102,15 @@ def install_flask(app: Flask) -> None:
                     "message": msg,
                     "trace_id": legacy.get("trace_id") or "unknown",
                     "correlation_id": cid,
-                    "timestamp": format_error(AppException(code=code, status=status, message=msg))["timestamp"],
+                    "timestamp": format_error(
+                        AppException(code=code, status=status, message=msg)
+                    )["timestamp"],
                     "status": status,
-                    "details": {k: v for k, v in legacy.items() if k not in {"error", "message", "trace_id", "status"}},
+                    "details": {
+                        k: v
+                        for k, v in legacy.items()
+                        if k not in {"error", "message", "trace_id", "status"}
+                    },
                 }
                 response = jsonify(envelope)
                 response.headers.extend(original_headers)

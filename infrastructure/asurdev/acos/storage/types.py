@@ -8,7 +8,7 @@ still works via `schema.py` re-export shim.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 

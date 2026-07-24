@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import logging
+log = logging.getLogger(__name__)
+
 import structlog
 
 from core.logging import setup_logging

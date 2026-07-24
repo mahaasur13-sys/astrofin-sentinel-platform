@@ -173,7 +173,9 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
         rsi = 100 - (100 / (1 + rs))
         return rsi
 
-    def _calculate_macd(self, data: list, fast: int = 12, slow: int = 26, signal: int = 9) -> dict:
+    def _calculate_macd(
+        self, data: list, fast: int = 12, slow: int = 26, signal: int = 9
+    ) -> dict:
         """Calculate MACD."""
         if len(data) < slow + signal:
             return {"macd": 0, "signal": 0, "histogram": 0}
@@ -200,7 +202,9 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
             "histogram": macd_line - signal_line,
         }
 
-    def _calculate_bollinger(self, data: list, period: int = 20, std_dev: int = 2) -> dict:
+    def _calculate_bollinger(
+        self, data: list, period: int = 20, std_dev: int = 2
+    ) -> dict:
         """Calculate Bollinger Bands."""
         if len(data) < period:
             return {"upper": 0, "middle": 0, "lower": 0}
@@ -242,3 +246,8 @@ async def run_market_analyst(state: dict) -> dict:
     agent = MarketAnalystAgent()
     result = await agent.run(state)
     return {"market_analyst_signal": result.to_dict()}
+
+
+def create() -> MarketAnalystAgent:
+    """Factory for 6-fn test contract."""
+    return MarketAnalystAgent()

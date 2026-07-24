@@ -109,7 +109,7 @@ class AuditLogger:
 class ExecutionGateway:
     '''
     Singleton gateway-guard для всех state mutations в системе.
-    
+
     Guarantees:
         1. Singleton — only one instance per process
         2. mutation_context() — only way to enable mutations
@@ -118,12 +118,12 @@ class ExecutionGateway:
         5. ExecutionGuardPolicy for global enforcement
         6. Thread-safe + async-aware
         7. Full audit trail
-    
+
     Usage:
         gateway = ExecutionGateway.instance()
         with gateway.mutation_context():
             executor.execute(payload)
-    
+
     Decorator:
         @ExecutionGateway.requires_gateway
         def mutate(self, ...):
@@ -227,13 +227,13 @@ class ExecutionGateway:
     def requires_gateway(cls, func: Callable) -> Callable:
         '''
         Static decorator — работает с singleton-экземпляром.
-        
+
         Guarantees:
             - Mutation allowed ONLY when mutation_context is active
             - Raises SafetyViolationError on any bypass attempt
             - Triggers ExecutionGuardPolicy check (P0.3)
             - Logs to audit trail
-        
+
         Bypass physically impossible:
             - Checks singleton state on EVERY call
             - Guard policy validates caller registration
@@ -296,14 +296,14 @@ class ExecutionGateway:
     def mutation_context(self, can_mutate: bool = True) -> None:
         '''
         Единственный разрешённый способ выполнить мутацию.
-        
+
         Thread-safe: весь контекст защищён RLock.
         Async-safe: работает с asyncio.
         Bypass невозможен без SafetyViolationError.
-        
+
         Args:
             can_mutate: False — read-only context (для drift detection, scan)
-        
+
         Raises:
             SafetyViolationError: if mutation attempted outside context
             SystemShutdown: if bypass detected

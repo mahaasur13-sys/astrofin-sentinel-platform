@@ -4,6 +4,9 @@ Nakshatras, Choghadiya, Muhurta calculations.
 Based on sidereal zodiac and lunar mansions.
 """
 
+from __future__ import annotations
+
+
 import math
 from datetime import datetime, timedelta
 

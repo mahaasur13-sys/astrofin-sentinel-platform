@@ -8,8 +8,12 @@ Run: python FINAL_INTEGRATION_TEST.py
 """
 
 import asyncio
+import logging
 import sys
 from datetime import datetime
+
+log = logging.getLogger(__name__)
+
 
 # ANSI colors
 GREEN = "\033[92m"
@@ -21,17 +25,17 @@ RESET = "\033[0m"
 
 
 def print_header(text):
-    print(f"\n{BLUE}{'=' * 60}{RESET}")
-    print(f"{BOLD}{BLUE}{text}{RESET}")
-    print(f"{BLUE}{'=' * 60}{RESET}\n")
+    log.info(f"\n{BLUE}{'=' * 60}{RESET}")
+    log.info(f"{BOLD}{BLUE}{text}{RESET}")
+    log.info(f"{BLUE}{'=' * 60}{RESET}\n")
 
 
 def print_test(name, passed, details=""):
     icon = f"{GREEN}✅" if passed else f"{RED}❌"
     status = f"{GREEN}PASSED" if passed else f"{RED}FAILED"
-    print(f"  {icon} {name}: {status}{RESET}")
+    log.info(f"  {icon} {name}: {status}{RESET}")
     if details:
-        print(f"      {details}")
+        log.info(f"      {details}")
     return passed
 
 
@@ -85,8 +89,10 @@ async def test_2_basic_signal():
     try:
         from orchestration.sentinel_v5 import run_sentinel_v5
 
-        print("  Running: run_sentinel_v5('Analyze BTC', 'BTCUSDT', 'SWING')...")
-        result = await run_sentinel_v5(user_query="Analyze BTC", symbol="BTCUSDT", timeframe="SWING", persist=False)
+        log.info("  Running: run_sentinel_v5('Analyze BTC', 'BTCUSDT', 'SWING')...")
+        result = await run_sentinel_v5(
+            user_query="Analyze BTC", symbol="BTCUSDT", timeframe="SWING", persist=False
+        )
 
         synth = result.get("final_recommendation", {})
         signal = synth.get("signal", "NONE")
@@ -121,9 +127,11 @@ async def test_3_mas_factory():
         from mas_factory.engine import ProductionMASEngine
 
         engine = ProductionMASEngine()
-        print("  Running: MASFactory with STANDARD topology...")
+        log.info("  Running: MASFactory with STANDARD topology...")
 
-        result = await engine.run_sync(user_query="Analyze ETH", symbol="ETHUSDT", timeframe="SWING")
+        result = await engine.run_sync(
+            user_query="Analyze ETH", symbol="ETHUSDT", timeframe="SWING"
+        )
 
         signal = result.get("signal", "NONE")
         result.get("confidence", 0)
@@ -240,8 +248,13 @@ async def test_6_uncertainty():
 
         result = estimate_uncertainty(signals)
 
-        has_result = "aleatoric" in result and "epistemic" in result and "total" in result
-        valid_values = all(0 <= v <= 1 for v in [result["aleatoric"], result["epistemic"], result["total"]])
+        has_result = (
+            "aleatoric" in result and "epistemic" in result and "total" in result
+        )
+        valid_values = all(
+            0 <= v <= 1
+            for v in [result["aleatoric"], result["epistemic"], result["total"]]
+        )
 
         print_test(
             "Uncertainty calculated",
@@ -272,12 +285,16 @@ async def test_7_oap_optimizer():
             "timestamp": datetime.now().isoformat(),
         }
 
-        result = optimizer.validate_and_adjust(amre_data, base_confidence=75, base_position=0.02)
+        result = optimizer.validate_and_adjust(
+            amre_data, base_confidence=75, base_position=0.02
+        )
 
         has_result = result.position_pct > 0
         valid_conf = 30 <= result.confidence <= 92
 
-        print_test("OAP position calculated", has_result, f"position={result.position_pct:.4f}")
+        print_test(
+            "OAP position calculated", has_result, f"position={result.position_pct:.4f}"
+        )
         print_test("Confidence in range", valid_conf, f"confidence={result.confidence}")
 
         return has_result and valid_conf
@@ -355,7 +372,9 @@ async def test_10_thompson_sampling():
         has_selection = len(selected) == 2
         valid_names = all(name in TECHNICAL_POOL.agents for name, _ in selected)
 
-        print_test("Selected 2 agents", has_selection, f"selected={[n for n, _ in selected]}")
+        print_test(
+            "Selected 2 agents", has_selection, f"selected={[n for n, _ in selected]}"
+        )
         print_test("Valid agent names", valid_names, "")
 
         return has_selection and valid_names
@@ -365,10 +384,10 @@ async def test_10_thompson_sampling():
 
 
 async def main():
-    print(f"\n{BOLD}{'=' * 60}{RESET}")
-    print(f"{BOLD}{BLUE}🚀 ATOM-R-034: FINAL INTEGRATION TEST{RESET}")
-    print(f"{BOLD}{'=' * 60}{RESET}")
-    print(f"\nStarted: {datetime.now().isoformat()}\n")
+    log.info(f"\n{BOLD}{'=' * 60}{RESET}")
+    log.info(f"{BOLD}{BLUE}🚀 ATOM-R-034: FINAL INTEGRATION TEST{RESET}")
+    log.info(f"{BOLD}{'=' * 60}{RESET}")
+    log.info(f"\nStarted: {datetime.now().isoformat()}\n")
 
     tests = [
         ("Module Imports", test_1_imports),
@@ -399,15 +418,17 @@ async def main():
 
     for i, (name, _) in enumerate(tests):
         icon = f"{GREEN}✅" if results[i] else f"{RED}❌"
-        print(f"  {icon} {i + 1}. {name}")
+        log.info(f"  {icon} {i + 1}. {name}")
 
-    print(f"\n{BOLD}Result: {passed}/{total} tests passed{RESET}")
+    log.info(f"\n{BOLD}Result: {passed}/{total} tests passed{RESET}")
 
     if passed == total:
-        print(f"\n{GREEN}{BOLD}🎉 ALL TESTS PASSED - SYSTEM READY FOR PRODUCTION!{RESET}")
+        log.info(
+            f"\n{GREEN}{BOLD}🎉 ALL TESTS PASSED - SYSTEM READY FOR PRODUCTION!{RESET}"
+        )
         return 0
     else:
-        print(f"\n{RED}{BOLD}⚠️  SOME TESTS FAILED - REVIEW REQUIRED{RESET}")
+        log.info(f"\n{RED}{BOLD}⚠️  SOME TESTS FAILED - REVIEW REQUIRED{RESET}")
         return 1
 
 

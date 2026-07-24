@@ -9,6 +9,10 @@ Usage (from host)
 -----------------
     from chaos.partitioner import NetworkPartitioner
 
+import logging
+log = logging.getLogger(__name__)
+
+
     np = NetworkPartitioner(bridge="docker0")
     np.block_ip("172.28.1.10", "172.28.1.11")  # A → B
     np.partition_nodes(["172.28.1.10"], ["172.28.1.11", "172.28.1.12"])
@@ -164,7 +168,7 @@ class NetworkPartitioner:
 
     def _add_rule(self, rule: list[str]) -> bool:
         if self.dry_run:
-            print(f"[DRY_RUN] {' '.join(rule)}")
+            log.info(f"[DRY_RUN] {' '.join(rule)}")
             return True
 
         result = subprocess.run(rule, capture_output=True)
@@ -238,8 +242,8 @@ class HostChaosAgent:
                 action = data.get("action", "")
                 src = data.get("src", "")
                 dst = data.get("dst", "")
-                protocol = data.get("protocol", "all")
-                port = data.get("port")
+                data.get("protocol", "all")
+                data.get("port")
 
                 ok = False
                 detail = ""
@@ -281,14 +285,14 @@ class HostChaosAgent:
                 self.wfile.write(json.dumps({"ok": ok, "detail": detail}).encode())
 
             def log_message(self, format, *args):
-                print(f"[CHAOS_AGENT] {args[0]}")
+                log.info(f"[CHAOS_AGENT] {args[0]}")
 
         class THTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
             partitioner = self.partitioner
             allow_reuse_address = True
 
         self._server = THTTPServer((self.listen.split(":")[0], int(self.listen.split(":")[1])), Handler)
-        print(f"[CHAOS_AGENT] listening on {self.listen}")
+        log.info(f"[CHAOS_AGENT] listening on {self.listen}")
         self._server.serve_forever()
 
     def stop(self):

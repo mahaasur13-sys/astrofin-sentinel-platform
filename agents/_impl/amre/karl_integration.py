@@ -3,6 +3,8 @@
 в SynthesisAgent и sentinel_v5.
 """
 
+from __future__ import annotations
+
 import hashlib
 from dataclasses import dataclass
 from typing import Any
@@ -171,7 +173,9 @@ def process_amre(
         {
             "id": f"traj_{i}",
             "depth": i,
-            "action": (signals[i].get("signal", "NEUTRAL") if i < len(signals) else "UNKNOWN"),
+            "action": (
+                signals[i].get("signal", "NEUTRAL") if i < len(signals) else "UNKNOWN"
+            ),
             "q_value": reward,
             "advantage": reward - 0.5,
             "uncertainty": uncertainty.get("total", 0.5),
@@ -183,8 +187,14 @@ def process_amre(
 
     ensemble_dicts = [
         {
-            "name": (signals[i].get("agent_name", f"agent_{i}") if i < len(signals) else f"agent_{i}"),
-            "signal": (signals[i].get("signal", "NEUTRAL") if i < len(signals) else "NEUTRAL"),
+            "name": (
+                signals[i].get("agent_name", f"agent_{i}")
+                if i < len(signals)
+                else f"agent_{i}"
+            ),
+            "signal": (
+                signals[i].get("signal", "NEUTRAL") if i < len(signals) else "NEUTRAL"
+            ),
             "confidence": signals[i].get("confidence", 50) if i < len(signals) else 50,
             "weight": signals[i].get("confidence", 50) / 100 if i < len(signals) else 0,
             "q_value": reward,
@@ -201,7 +211,11 @@ def process_amre(
 
     [
         _ES(
-            agent_name=(signals[i].get("agent_name", f"agent_{i}") if i < len(signals) else f"agent_{i}"),
+            agent_name=(
+                signals[i].get("agent_name", f"agent_{i}")
+                if i < len(signals)
+                else f"agent_{i}"
+            ),
             weight=signals[i].get("confidence", 50) / 100 if i < len(signals) else 0,
             q_value=reward,
         )
@@ -219,11 +233,12 @@ def process_amre(
         regime=state.get("regime", "NORMAL"),
         state_hash=(
             hashlib.md5(
-                f"{symbol}:{state.get('current_price', 0)}:{state.get('regime', 'NORMAL')}".encode()
+                f"{symbol}:{state.get('current_price', 0)}:{state.get('regime', 'NORMAL')}".encode(),
+                usedforsecurity=False,
             ).hexdigest()[:12]
             if "hashlib" in dir()
             else "0" * 12
-        ),
+        ),  # nosec B324 — content hash for cache key, not security
         top_trajectories=top_trajectories_dicts,
         selected_ensemble=ensemble_dicts,
         q_values=[reward],

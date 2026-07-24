@@ -10,6 +10,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import logging
+log = logging.getLogger(__name__)
+
+
 # ── PATH SETUP ─────────────────────────────────────────────
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
@@ -199,11 +203,11 @@ class ChaosHarness:
         with open(path, "w") as f:
             json.dump(record, f, indent=2)
 
-        print("\n🔥 Chaos Experiment Result")
-        print(f"Scenario: {self.scenario.name}")
-        print(f"Verdict: {verdict.value}")
-        print(f"Duration: {round(duration, 2)}s")
-        print(f"Saved to replay: {path}")
+        log.info("\n🔥 Chaos Experiment Result")
+        log.info(f"Scenario: {self.scenario.name}")
+        log.info(f"Verdict: {verdict.value}")
+        log.info(f"Duration: {round(duration, 2)}s")
+        log.info(f"Saved to replay: {path}")
 
         return ChaosResult(
             scenario_name=self.scenario.name,

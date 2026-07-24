@@ -25,7 +25,12 @@ class CalibrationTrackerTest(unittest.TestCase):
         import sqlite3
 
         with sqlite3.connect(self.db) as conn:
-            tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            tables = {
+                row[0]
+                for row in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                )
+            }
         self.assertIn("predictions", tables)
         self.assertIn("outcomes", tables)
 
@@ -65,10 +70,14 @@ class CalibrationTrackerTest(unittest.TestCase):
         old_iso = (datetime.now(timezone.utc) - timedelta(days=60)).isoformat()
         new_iso = datetime.now(timezone.utc).isoformat()
 
-        old_pid = self.tracker.record_prediction("a", "LONG", 90.0, predicted_at=old_iso)
+        old_pid = self.tracker.record_prediction(
+            "a", "LONG", 90.0, predicted_at=old_iso
+        )
         self.tracker.record_outcome(old_pid, 0, observed_at=old_iso)
 
-        new_pid = self.tracker.record_prediction("a", "LONG", 60.0, predicted_at=new_iso)
+        new_pid = self.tracker.record_prediction(
+            "a", "LONG", 60.0, predicted_at=new_iso
+        )
         self.tracker.record_outcome(new_pid, 1, observed_at=new_iso)
 
         report_30 = self.tracker.get_calibration(agent="a", window_days=30)

@@ -13,12 +13,16 @@ Routing:
 """
 
 import json
+import logging
 import subprocess
 from dataclasses import dataclass
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+
+log = logging.getLogger(__name__)
+
 
 PROMETHEUS_URL = "http://localhost:9090"
 
@@ -111,7 +115,7 @@ def get_prometheus_metric(query: str, default: float = 0.0) -> float:
             if results:
                 return float(results[0]["value"][1])
     except Exception:
-        pass
+        log.warning("Scheduler operation failed", exc_info=True)
     return default
 
 
@@ -313,7 +317,7 @@ def cli_route():
         gpu_required=(sys.argv[1] == "gpu" if len(sys.argv) > 1 else True),
     )
     result = route_job(job)
-    print(
+    log.info(
         f"target={result.target} partition={result.partition} score={result.score} reason={result.reason}"
     )
 

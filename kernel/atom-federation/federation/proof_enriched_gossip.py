@@ -33,6 +33,9 @@ import time
 from dataclasses import dataclass, field
 
 from federation.delta_gossip.dag_hash_modes import DAGHashMode
+import logging
+log = logging.getLogger(__name__)
+
 from orchestration.consistency.invariant_contract.cross_origin_proof import (
     ProofOrigin,
     SemanticProof,
@@ -360,18 +363,18 @@ def _test_v9_3_phase3():
     assert enriched.proof_metadata.proof_origin == ProofOrigin.REMOTE
     assert enriched.is_proof_valid() is True
     assert enriched.source_node_id == "node_2"
-    print("✅ Case 1: proof metadata attached to message")
+    log.info("✅ Case 1: proof metadata attached to message")
 
     # Case 2: cache proof result
     gpe.cache_proof_result("fedcba9876543210", True)
     assert gpe.verify_proof_from_message(enriched) is True
-    print("✅ Case 2: proof cache hit")
+    log.info("✅ Case 2: proof cache hit")
 
     # Case 3: unknown proof_hash → None (needs evaluation)
     meta_unknown = ProofMetadata(proof_hash="unknown_hash", proof_valid=None)
     msg_unknown = ProofEnrichedDeltaMessage.from_base_message(base_msg, meta_unknown)
     assert gpe.verify_proof_from_message(msg_unknown) is None
-    print("✅ Case 3: unknown proof_hash returns None (needs eval)")
+    log.info("✅ Case 3: unknown proof_hash returns None (needs eval)")
 
     # Case 4: filter by proof trust
     msg_valid = ProofEnrichedDeltaMessage.from_base_message(base_msg, ProofMetadata(proof_valid=True))
@@ -381,15 +384,15 @@ def _test_v9_3_phase3():
     filtered = filter_by_proof_trust([msg_valid, msg_invalid, msg_unchecked], require_valid_proof=True)
     assert len(filtered) == 2
     assert msg_invalid not in filtered
-    print("✅ Case 4: filter_by_proof_trust excludes proof_valid=False")
+    log.info("✅ Case 4: filter_by_proof_trust excludes proof_valid=False")
 
     # Case 5: rank messages by proof quality
     ranked = rank_messages_by_proof([msg_invalid, msg_valid, msg_unchecked])
     assert ranked[0].proof_metadata.proof_valid is True
     assert ranked[-1].proof_metadata.proof_valid is False
-    print("✅ Case 5: rank_messages_by_proof — valid first, invalid last")
+    log.info("✅ Case 5: rank_messages_by_proof — valid first, invalid last")
 
-    print("\n✅ v9.3 Phase 3: Proof-enriched gossip — all checks passed")
+    log.info("\n✅ v9.3 Phase 3: Proof-enriched gossip — all checks passed")
 
 
 if __name__ == "__main__":

@@ -19,16 +19,17 @@ Usage:
 
 import argparse
 import json
+import logging
 import os
 import sys
-from collections import defaultdict
+import urllib.error
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from urllib.parse import urlparse
 
-import urllib.request
-import urllib.error
+log = logging.getLogger(__name__)
+
 
 REPO = "mahaasur13-sys/astrofin-sentinel-platform"
 API = "https://api.github.com"
@@ -90,7 +91,7 @@ def collect(runs: List[dict], days: int) -> Dict[str, Any]:
                 committed_dt = datetime.fromisoformat(committed.replace("Z", "+00:00"))
                 lead_times.append((when - committed_dt).total_seconds() / 3600.0)
         except Exception:
-            pass
+            log.warning("Metrics collection failed", exc_info=True)
 
     total_runs = len(successful) + len(failed)
     cfr = (len(failed) / total_runs) if total_runs else 0.0
@@ -141,27 +142,27 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("AFS4") or os.environ.get("GH_TOKEN")
     if not token:
-        print("ERROR: set GITHUB_TOKEN (or AFS4) environment variable", file=sys.stderr)
+        log.info("ERROR: set GITHUB_TOKEN (or AFS4) environment variable", file=sys.stderr)
         return 2
 
     status, runs = gh_get(
         f"/repos/{REPO}/actions/runs?per_page={args.per_page}", token
     )
     if status != 200:
-        print(f"ERROR: GitHub API returned HTTP {status}", file=sys.stderr)
+        log.info(f"ERROR: GitHub API returned HTTP {status}", file=sys.stderr)
         if isinstance(runs, dict):
-            print(json.dumps(runs, indent=2)[:500], file=sys.stderr)
+            log.info(json.dumps(runs, indent=2)[:500], file=sys.stderr)
         return 1
 
     workflow_runs = runs.get("workflow_runs", [])
     metrics = collect(workflow_runs, args.days)
-    print(render_table(metrics))
+    log.info(render_table(metrics))
 
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         metrics["generated_at"] = datetime.now(timezone.utc).isoformat()
         args.out.write_text(json.dumps(metrics, indent=2))
-        print(f"JSON report written to: {args.out}")
+        log.info(f"JSON report written to: {args.out}")
     return 0
 
 

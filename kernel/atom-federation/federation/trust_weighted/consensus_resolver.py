@@ -23,6 +23,11 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from .node_weights import NodeWeightsSnapshot
+
+import logging
+log = logging.getLogger(__name__)
+
 
 # ─────────────────────────────────────────────────────────────────
 # ConsensusShiftType
@@ -371,7 +376,7 @@ def _test_consensus_resolver():
     assert abs(weights.node_weight("node_A") - 0.8) < 1e-6
     assert abs(weights.node_weight("node_B") - 0.6) < 1e-6
     assert abs(weights.node_weight("node_C") - 0.5) < 1e-6
-    print(f"✅ weights: A={weights.node_weight('node_A'):.2f}, B={weights.node_weight('node_B'):.2f}, C={weights.node_weight('node_C'):.2f}")
+    log.info(f"✅ weights: A={weights.node_weight('node_A'):.2f}, B={weights.node_weight('node_B'):.2f}, C={weights.node_weight('node_C'):.2f}")
 
     # Case 1: all nodes vote accept → consensus accepted
     candidates = [
@@ -389,7 +394,7 @@ def _test_consensus_resolver():
     result = resolver.resolve(candidates, weights)
     assert result.accepted is True, f"Expected accepted=True, got {result.accepted}"
     assert result.winner_candidate_id == "node_A"
-    print(f"✅ Case 1: high-trust accept wins (confidence={result.confidence:.3f})")
+    log.info(f"✅ Case 1: high-trust accept wins (confidence={result.confidence:.3f})")
 
     # Case 2: trust floor filters out low-trust node
     resolver2 = TrustWeightedConsensusResolver(node_id="node_1", quorum_fraction=0.5, trust_floor=0.7)
@@ -401,7 +406,7 @@ def _test_consensus_resolver():
     result2 = resolver2.resolve(candidates2, weights)
     assert result2.eligible_count == 1
     assert result2.winner_candidate_id == "node_A"
-    print("✅ Case 2: trust_floor=0.7 filters to 1 eligible (node_A)")
+    log.info("✅ Case 2: trust_floor=0.7 filters to 1 eligible (node_A)")
 
     # Case 3: OUTCOME_FLIP detected between epochs
     resolver3 = TrustWeightedConsensusResolver(node_id="node_1", quorum_fraction=0.3)
@@ -413,7 +418,7 @@ def _test_consensus_resolver():
     r2 = resolver3.resolve([c2], weights)
     assert r2.shift_detected is not None
     assert r2.shift_detected.shift_type == ConsensusShiftType.OUTCOME_FLIP
-    print(f"✅ Case 3: OUTCOME_FLIP detected: {r2.shift_detected.message}")
+    log.info(f"✅ Case 3: OUTCOME_FLIP detected: {r2.shift_detected.message}")
 
     # Case 4: effective_vote computation
     snap = registry.compute_weights(tv, ledger_version=1, epoch=0)
@@ -421,7 +426,7 @@ def _test_consensus_resolver():
     ev_reject = snap.effective_vote("node_A", -1.0)
     assert abs(ev_accept - 0.8) < 1e-6
     assert abs(ev_reject + 0.8) < 1e-6
-    print(f"✅ Case 4: effective_vote accept={ev_accept:.2f}, reject={ev_reject:.2f}")
+    log.info(f"✅ Case 4: effective_vote accept={ev_accept:.2f}, reject={ev_reject:.2f}")
 
     # Case 5: dominated system detection
     registry5 = NodeWeightRegistry()
@@ -433,9 +438,9 @@ def _test_consensus_resolver():
     snap5 = registry5.compute_weights(tv5, ledger_version=1, epoch=0)
     assert snap5.is_dominated(domination_threshold=0.5) is True
     assert abs(snap5.dom_weight_fraction - 0.99) < 1e-4
-    print(f"✅ Case 5: is_dominated=True (dom_fraction={snap5.dom_weight_fraction:.4f})")
+    log.info(f"✅ Case 5: is_dominated=True (dom_fraction={snap5.dom_weight_fraction:.4f})")
 
-    print("\n✅ v9.6 TrustWeightedConsensusResolver — all checks passed")
+    log.info("\n✅ v9.6 TrustWeightedConsensusResolver — all checks passed")
 
 
 if __name__ == "__main__":

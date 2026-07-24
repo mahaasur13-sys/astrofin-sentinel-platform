@@ -74,7 +74,9 @@ def _safe_int(name: str, default: int, min_val: int = 0) -> int:
         logger.warning("env %s=%r is not an int; using default %d", name, raw, default)
         return default
     if val < min_val:
-        logger.warning("env %s=%d below min %d; using default %d", name, val, min_val, default)
+        logger.warning(
+            "env %s=%d below min %d; using default %d", name, val, min_val, default
+        )
         return default
     return val
 
@@ -90,7 +92,9 @@ def _safe_float(name: str, default: float, min_val: float = 0.0) -> float:
         logger.warning("env %s=%r is not a float; using default %f", name, raw, default)
         return default
     if val < min_val:
-        logger.warning("env %s=%f below min %f; using default %f", name, val, min_val, default)
+        logger.warning(
+            "env %s=%f below min %f; using default %f", name, val, min_val, default
+        )
         return default
     return val
 
@@ -98,7 +102,7 @@ def _safe_float(name: str, default: float, min_val: float = 0.0) -> float:
 class RAGConfig(BaseModel):
     backend: Literal["pgvector", "faiss"] = "pgvector"  # RAG_BACKEND env var
     legacy_fallback: bool = True
-    pg_dsn: str | None = None
+    pg_dsn: Optional[str] = None
     faiss_dir: str = "knowledge/indexes"
     top_k: int = 5
     min_score: float = 0.5
@@ -112,17 +116,22 @@ class RAGConfig(BaseModel):
     hybrid_bm25_weight: float = 1.0
 
     @classmethod
-    def from_env(cls) -> RAGConfig:
+    def from_env(cls) -> "RAGConfig":
         """Build config from environment."""
         backend = os.getenv("RAG_BACKEND", "pgvector").lower()
         if backend not in ("pgvector", "faiss"):
-            raise ValueError(f"RAG_BACKEND must be 'pgvector' or 'faiss', got {backend!r}")
+            raise ValueError(
+                f"RAG_BACKEND must be 'pgvector' or 'faiss', got {backend!r}"
+            )
         if backend == "pgvector" and not os.getenv("AFS_PG_DSN"):
-            logger.warning("RAG_BACKEND=pgvector but no AFS_PG_DSN; auto-falling back to faiss")
+            logger.warning(
+                "RAG_BACKEND=pgvector but no AFS_PG_DSN; auto-falling back to faiss"
+            )
             backend = "faiss"
         return cls(
             backend=backend,
-            legacy_fallback=os.getenv("RAG_LEGACY_FALLBACK", "true").lower() in ("true", "1", "yes", "on"),
+            legacy_fallback=os.getenv("RAG_LEGACY_FALLBACK", "true").lower()
+            in ("true", "1", "yes", "on"),
             pg_dsn=os.getenv("AFS_PG_DSN"),
             faiss_dir=os.getenv("RAG_FAISS_DIR", "knowledge/indexes"),
             # Hybrid env knobs (P2-03b). Defensive parsing: bad ints/floats
@@ -146,7 +155,7 @@ class Document:
     domain: str = "general"
     source_type: str = "news"  # news | filing | report | ephemeris | social | macro
     metadata: dict = field(default_factory=dict)
-    doc_id: uuid.UUID | None = None  # server-assigned if None
+    doc_id: Optional[uuid.UUID] = None  # server-assigned if None
 
 
 @dataclass
@@ -156,7 +165,7 @@ class RetrievedChunk:
     title: str
     domain: str
     relevance_score: float
-    doc_id: uuid.UUID | None = None
+    doc_id: Optional[uuid.UUID] = None
     backend: str = ""  # which backend served this result
 
 
@@ -186,10 +195,10 @@ class RAGClient:
     singleton (preferred in app code).
     """
 
-    def __init__(self, config: RAGConfig | None = None):
+    def __init__(self, config: Optional[RAGConfig] = None):
         self.config = config or RAGConfig.from_env()
         self.embedding = EmbeddingClient()  # uses its own env
-        self._pg_pool: asyncpg.Pool | None = None
+        self._pg_pool: Optional[asyncpg.Pool] = None
         self._faiss_cache: dict[str, tuple[faiss.Index, list[dict]]] = {}
         self._check_config()
 
@@ -241,7 +250,9 @@ class RAGClient:
                 )
                 raise
 
-    async def get_all_chunks(self, domain: str | None = None) -> list[RetrievedChunk]:
+    async def get_all_chunks(
+        self, domain: Optional[str] = None
+    ) -> List["RetrievedChunk"]:
         """Return every chunk in `documents` (pgvector backend) as RetrievedChunk.
 
         Used by PersistentBM25Retriever (P2-03c) to build a lexical index over
@@ -370,7 +381,9 @@ class RAGClient:
                     }
                 )
             faiss.write_index(index, str(index_path))
-            meta_path.write_text(json.dumps(chunks, ensure_ascii=False, indent=2), encoding="utf-8")
+            meta_path.write_text(
+                json.dumps(chunks, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
         RAG_CHUNK_COUNT.set(len(docs))
         return StoreResult(inserted=len(docs), failed=0, backend="faiss")
 
@@ -379,9 +392,9 @@ class RAGClient:
     async def retrieve(
         self,
         query: str,
-        top_k: int | None = None,
-        domain: str | None = None,
-        min_score: float | None = None,
+        top_k: Optional[int] = None,
+        domain: Optional[str] = None,
+        min_score: Optional[float] = None,
     ) -> list[RetrievedChunk]:
         """Query active backend; on failure + legacy_fallback, retry FAISS.
 
@@ -451,7 +464,9 @@ class RAGClient:
         ).inc()
         RAG_CHUNKS_RETURNED.observe(len(results))
         if results:
-            RAG_RELEVANCE_AVG.set(sum(r.relevance_score for r in results) / len(results))
+            RAG_RELEVANCE_AVG.set(
+                sum(r.relevance_score for r in results) / len(results)
+            )
         logger.info(
             "rag_retrieve: backend=%s, domain=%s, top_k=%d, returned=%d, min_score=%f",
             backend_label,
@@ -466,7 +481,7 @@ class RAGClient:
         self,
         query: str,
         k: int,
-        domain: str | None,
+        domain: Optional[str],
         threshold: float,
     ) -> list[RetrievedChunk]:
         pool = await self._get_pg_pool()
@@ -506,7 +521,7 @@ class RAGClient:
         self,
         query: str,
         k: int,
-        domain: str | None,
+        domain: Optional[str],
         threshold: float,
     ) -> list[RetrievedChunk]:
         qvec = await self.embedding.embed_one(query)
@@ -514,7 +529,11 @@ class RAGClient:
         # L2-normalize so IndexFlatIP gives cosine similarity
         q = q / np.linalg.norm(q, axis=1, keepdims=True)
 
-        domains = [domain] if domain else [p.stem for p in Path(self.config.faiss_dir).glob("*.index")]
+        domains = (
+            [domain]
+            if domain
+            else [p.stem for p in Path(self.config.faiss_dir).glob("*.index")]
+        )
         all_results: list[RetrievedChunk] = []
         for d in domains:
             index, chunks = self._load_faiss_domain(d)
@@ -550,7 +569,9 @@ class RAGClient:
         self._update_rag_metrics(deduped)
         return deduped[:k]
 
-    def _load_faiss_domain(self, domain: str) -> tuple[faiss.Index | None, list[dict]]:
+    def _load_faiss_domain(
+        self, domain: str
+    ) -> tuple[Optional[faiss.Index], list[dict]]:
         if domain in self._faiss_cache:
             return self._faiss_cache[domain]
         faiss_dir = Path(self.config.faiss_dir)
@@ -611,7 +632,7 @@ _FAISS_WRITE_LOCK = asyncio.Lock()
 # ─── Singleton ──────────────────────────────────────────────────────────────
 
 
-_singleton: RAGClient | None = None
+_singleton: Optional[RAGClient] = None
 
 
 def get_rag_client() -> RAGClient:

@@ -43,12 +43,12 @@ __all__ = ["ConflictRecord", "DecisionLattice", "LatticeDecision"]
 class LatticePriority:
     """
     Total order over all decision situations.
-    
+
     PROOF OF TOTAL ORDER:
       For any two distinct priority levels p1, p2:
         p1.value != p2.value  (by construction, integers 0–1000)
       Therefore the comparison p1 > p2 is well-defined for all pairs.
-      
+
     PROOF OF SOUNDNESS:
       Each priority level maps to exactly one SystemState condition.
       No two conditions can simultaneously be true at the same priority
@@ -88,7 +88,7 @@ class ConflictRecord:
 class LatticeDecision:
     """
     Result of a lattice decision.
-    
+
     PROOF OF DETERMINISM:
       For any SystemState S, lattice.decide(S) always returns the same
       LatticeDecision (same primary_action, same lattice_path).
@@ -128,16 +128,16 @@ class LatticeDecision:
 class DecisionLattice:
     """
     Formal deterministic decision algebra for ATOMFederationOS v6.6.
-    
+
     Given a SystemState, produces a LatticeDecision with:
       - Determinism: same input → same output (idempotent)
       - Completeness: no undefined states (every S → decision)
       - Conflict-freedom: output actions never contradict each other
       - Priority soundness: higher-priority condition always wins
-    
+
     The lattice checks conditions in descending priority order.
     The first matching condition wins — no backtracking.
-    
+
     PROOF OF CORRECTNESS:
       1. Total order: priorities are unique integers → total order ✓
       2. Mutual exclusion: each branch checks mutually exclusive conditions ✓
@@ -154,7 +154,7 @@ class DecisionLattice:
     def decide(self, state: SystemState) -> LatticeDecision:
         """
         Main entry point: compute LatticeDecision for `state`.
-        
+
         Checks conditions in descending priority order.
         Returns first match — no backtracking (ensures O(1) determinism).
         """
@@ -365,7 +365,7 @@ class DecisionLattice:
     def _conflicts(self, a: PolicyAction, b: PolicyAction) -> bool:
         """
         Returns True if actions a and b are mutually exclusive.
-        
+
         Conflicting pairs (mutual exclusion):
           - EVICT_NODE ↔ RESTORE_NODE (same target)
           - ISOLATE_BYZANTINE ↔ RESTORE_NODE (same target)
@@ -392,7 +392,7 @@ class DecisionLattice:
     def verify_lattice(self) -> dict:
         """
         Sanity check: verify lattice properties hold.
-        
+
         Returns dict with:
           - is_total_order: priorities are unique integers
           - is_exhaustive: all PolicyActions appear in some branch
