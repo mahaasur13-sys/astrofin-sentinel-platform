@@ -69,7 +69,7 @@ jobs:
         run: pip install bandit==1.8.0
       - name: Bandit (medium severity)
         run: |
-          bandit -r agents core web meta_rl scripts \
+          bandit --ini .bandit -r agents core web meta_rl scripts \
             --severity-level medium --confidence-level medium \
             -f screen
       - name: Docker security validation
