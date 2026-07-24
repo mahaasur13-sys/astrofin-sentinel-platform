@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import ast
 import inspect
+import logging
 import sys
 
 from acos.events.event import Event
@@ -23,6 +24,8 @@ from acos.storage.memory_backend import MemoryTraceStorage
 from acos.storage.schema import TraceRecord
 from acos.validator.contract_validator import DAGValidator
 
+logger = logging.getLogger("acos.scl_v6")
+
 
 def test_inv1():
     log = EventLog()
@@ -36,7 +39,7 @@ def test_inv1():
     }
     actual = {e.event_type for e in all_events}
     ok = returned == "inv1" and expected.issubset(actual) and len(all_events) >= 8
-    log.info(f"  [{'OK' if ok else 'FAIL'}] INV1 — Events: {len(all_events)} (>=8), returned: {returned}")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] INV1 — Events: {len(all_events)} (>=8), returned: {returned}")
     return ok
 
 
@@ -48,9 +51,9 @@ def test_inv2():
             func = node.func
             if isinstance(func, ast.Attribute) and func.attr in ("rebuild", "get_trace", "append"):
                 if isinstance(func.value, ast.Name) and func.value.id == "self":
-                    log.info(f"  [FAIL] INV2 — Found self.{func.attr}() call")
+                    logger.info(f"  [FAIL] INV2 — Found self.{func.attr}() call")
                     return False
-    log.info("  [OK] INV2 — Engine write-side purity: no self.emit/rebuild/get_trace")
+    logger.info("  [OK] INV2 — Engine write-side purity: no self.emit/rebuild/get_trace")
     return True
 
 
@@ -62,9 +65,9 @@ def test_inv3():
             func = node.func
             if isinstance(func, ast.Attribute) and func.attr in ("emit", "append"):
                 if isinstance(func.value, ast.Name) and func.value.id == "self":
-                    log.info(f"  [FAIL] INV3 — Found self.{func.attr}() call in Reducer")
+                    logger.info(f"  [FAIL] INV3 — Found self.{func.attr}() call in Reducer")
                     return False
-    log.info("  [OK] INV3 — Reducer read-side purity: no self.emit/append")
+    logger.info("  [OK] INV3 — Reducer read-side purity: no self.emit/append")
     return True
 
 
@@ -73,7 +76,7 @@ def test_inv4():
     log.emit("inv4", EventType.DAG_CREATED, {})
     log.emit("inv4", EventType.NODE_SCHEDULED, {})
     ok = log.verify_chain("inv4")
-    log.info(f"  [{'OK' if ok else 'FAIL'}] INV4 — Hash chain: {ok}")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] INV4 — Hash chain: {ok}")
     return ok
 
 
@@ -86,7 +89,7 @@ def test_inv5():
     r1 = StateReducer(log).rebuild("inv5")
     r2 = StateReducer(log).rebuild("inv5")
     ok = r1["status"] == r2["status"] == "COMPLETED"
-    log.info(f"  [{'OK' if ok else 'FAIL'}] INV5 — Deterministic: {r1['status']}")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] INV5 — Deterministic: {r1['status']}")
     return ok
 
 
@@ -99,7 +102,7 @@ def test_inv6():
     r1 = StateReducer(log1).rebuild("inv6")
     r2 = StateReducer(log2).rebuild("inv6")
     ok = r1["status"] == r2["status"] == "COMPLETED"
-    log.info(f"  [{'OK' if ok else 'FAIL'}] INV6 — Cross-log: {r1['status']} == {r2['status']}")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] INV6 — Cross-log: {r1['status']} == {r2['status']}")
     return ok
 
 
@@ -110,7 +113,7 @@ def test_inv7():
     raw = RawEventProjection(log).get_trace_events("inv7")
     state = StateProjection(log).get_trace("inv7")
     ok = len(raw) == 2 and state["status"] == "CREATED"
-    log.info(f"  [{'OK' if ok else 'FAIL'}] INV7 — Projection split: raw={len(raw)}, state={state['status']}")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] INV7 — Projection split: raw={len(raw)}, state={state['status']}")
     return ok
 
 
@@ -119,14 +122,14 @@ def test_inv8():
     EventSourcedEngine(log).execute({"nodes": [{"id": "a"}, {"id": "b"}], "edges": []}, {}, "inv8")
     state = StateProjection(log).get_trace("inv8")
     ok = state["status"] == "COMPLETED" and state["scheduled_count"] == 2
-    log.info(f"  [{'OK' if ok else 'FAIL'}] INV8 — Write/read sep: {state['status']}, sched={state['scheduled_count']}")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] INV8 — Write/read sep: {state['status']}, sched={state['scheduled_count']}")
     return ok
 
 
 def test_inv9():
     tr = TraceRecord(trace_id="test-123", metadata={}, created_at=None)
     ok = tr.created_at is not None and tr.trace_id == "test-123"
-    log.info(f"  [{'OK' if ok else 'FAIL'}] INV9 — TraceRecord: created_at={tr.created_at}")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] INV9 — TraceRecord: created_at={tr.created_at}")
     return ok
 
 
@@ -137,7 +140,7 @@ def test_inv10():
         ok = False
     except Exception:
         ok = True
-    log.info(f"  [{'OK' if ok else 'FAIL'}] INV10 — Event immutability: {ok}")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] INV10 — Event immutability: {ok}")
     return ok
 
 
@@ -161,7 +164,7 @@ def test_patch1_dag_validator():
     ok_orphan = len(v_orphan) == 1 and "not found" in v_orphan[0].message
 
     ok = ok_valid and ok_dup and ok_orphan
-    log.info(f"  [{'OK' if ok else 'FAIL'}] PATCH1 — DAGValidator: valid={ok_valid}, dup={ok_dup}, orphan={ok_orphan}")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] PATCH1 — DAGValidator: valid={ok_valid}, dup={ok_dup}, orphan={ok_orphan}")
     return ok
 
 
@@ -187,7 +190,7 @@ def test_patch2_idempotent_engine():
 
     # Events should NOT increase on second call
     ok = (t1 == t2 == "idemo") and (events_after_first == events_after_second)
-    log.info(f"  [{'OK' if ok else 'FAIL'}] PATCH2 — Idempotent: trace_id={t1}, events unchanged: {events_after_first}=={events_after_second}")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] PATCH2 — Idempotent: trace_id={t1}, events unchanged: {events_after_first}=={events_after_second}")
     return ok
 
 
@@ -207,12 +210,12 @@ def test_patch3_enriched_projection():
     eo = enriched.get("execution_order", [])
 
     ok = (ngr == ["n1", "n2"]) and (len(eo) == 4) and (enriched["status"] == "COMPLETED")
-    log.info(f"  [{'OK' if ok else 'FAIL'}] PATCH3 — Enriched: ngr={ngr}, exec_order={len(eo)} events")
+    logger.info(f"  [{'OK' if ok else 'FAIL'}] PATCH3 — Enriched: ngr={ngr}, exec_order={len(eo)} events")
     return ok
 
 
 def main():
-    log.info("=== ACOS SCL v6 — ALL PATCHES VERIFICATION ===")
+    logger.info("=== ACOS SCL v6 — ALL PATCHES VERIFICATION ===")
     tests = [
         ("INV1: Action → event", test_inv1),
         ("INV2: Engine write-side purity", test_inv2),
@@ -233,16 +236,16 @@ def main():
         try:
             results.append((name, fn()))
         except Exception as ex:
-            log.info(f"  [ERROR] {name}: {ex}")
+            logger.info(f"  [ERROR] {name}: {ex}")
             results.append((name, False))
-    log.info("")
+    logger.info("")
     passed = sum(1 for _, r in results if r)
-    log.info(f"Result: {passed}/{len(results)} passed")
+    logger.info(f"Result: {passed}/{len(results)} passed")
     if passed == len(results):
-        log.info("STATUS: ALL_INVARIANTS_AND_PATCHES_HOLD")
-        log.info("ARCHITECTURE: ✅ ACOS v6 STRICTLY VERIFIED + ALL PATCHES")
+        logger.info("STATUS: ALL_INVARIANTS_AND_PATCHES_HOLD")
+        logger.info("ARCHITECTURE: ✅ ACOS v6 STRICTLY VERIFIED + ALL PATCHES")
         return 0
-    log.info(f"⚠️  {len(results) - passed} failed")
+    logger.info(f"⚠️  {len(results) - passed} failed")
     return 1
 
 
