@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import json
+import logging
 import os
+
+logger = logging.getLogger("asurdev.generate_provenance")
 
 repo = os.environ.get('GITHUB_REPOSITORY', 'mahaasur13-sys/AsurDev')
 sha = os.environ.get('GITHUB_SHA', 'abc123')
@@ -28,4 +31,4 @@ prov = {
 }
 os.makedirs('provenance', exist_ok=True)
 open('provenance/provenance.json', 'w').write(json.dumps(prov, indent=2))
-log.info("Provenance generated OK")
+logger.info("Provenance generated OK")

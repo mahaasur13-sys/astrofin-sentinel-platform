@@ -9,8 +9,11 @@ Post-execution: audit trail generation
 """
 from __future__ import annotations
 
+import logging
 import uuid
 from enum import Enum
+
+logger = logging.getLogger("gate.governance_gate")
 
 
 class Decision(Enum):
@@ -60,4 +63,4 @@ class GovernanceGate:
 if __name__ == "__main__":
     gate = GovernanceGate()
     d, r = gate.pre_check({"dag_id": "test", "metadata": {"constraints": {"max_risk": 0.25}}}, {"risk_score": 0.1})
-    log.info(f"Decision: {d.value}, Reason: {r}")
+    logger.info(f"Decision: {d.value}, Reason: {r}")
