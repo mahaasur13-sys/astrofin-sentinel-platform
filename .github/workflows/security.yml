@@ -63,3 +63,28 @@ jobs:
       - run: pip install pip-audit
       - name: Audit
         run: pip-audit --strict --requirement pyproject.toml || true
+
+  gitleaks:
+    name: Gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+
+  safety:
+    name: Safety (vulnerability DB)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install safety
+        run: pip install safety==3.7.0
+      - name: safety scan
+        continue-on-error: true
+        run: safety scan --file requirements.txt --output json --save-json /tmp/safety.json || true
