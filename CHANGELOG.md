@@ -42,3 +42,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 (none)
+
+## [v2026.07.25-audit-closed] — 2026-07-25
+
+### 🔒 Security (P0)
+- Fixed SQL injection in `core/history_db_pg.py` (parameterized query)
+- Hardcoded `POSTGRES_PASSWORD` → `${POSTGRES_PASSWORD:-env_var}`
+- Bandit un-masking: 3 HIGH → 0 (#268)
+
+### 📦 Dependencies (P1)
+- Unified deps: `requirements-dev.txt` → `pyproject.toml [dev]` (#270, #278)
+- 35 outdated packages updated (websockets 15→16, prometheus_client, aiohttp, etc.)
+
+### 🧹 Code Quality (P2)
+- God-object `web/callbacks.py` (1032 линий) → 5 domain modules (#276)
+- Ruff: F401 scoped to `__init__.py` via per-file-ignores (#274)
+- Ruff: `meta_rl/` + `trading/` removed from exclude (#275)
+- 7 root agent duplicates → `agents/_archived/` (#269)
+
+### ⚙️ CI/CD (P2)
+- 17 workflows → 9 consolidated (#280)
+- CI switched to `pyproject.toml [dev]` extra
+
+### 🧪 Testing
+- `test_api_auth` isolation fix — try/finally teardown + client close (#273)
+
+### 📚 Docs
+- `AUDIT_REPORT_2026-07-25.md` — полный аудит (368 строк)
+- `AUDIT_REPORT_STEP1_2026-07-25.md` — инвентаризация
+- `docs/audits/` — audit trail directory
+- `docs/CI_CONSOLIDATION_PLAN.md` — план 17→9
+
