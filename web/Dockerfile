@@ -13,7 +13,8 @@ FROM python:3.12-slim AS builder
 ENV PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-COPY --from=uv /usr/local/bin/uv /usr/local/bin/uv
+# The official uv image ships the binary at the filesystem root (/uv, /uvx).
+COPY --from=uv /uv /usr/local/bin/uv
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential gcc \
