@@ -19,7 +19,6 @@ DT = datetime(2026, 7, 19, 6, 15, tzinfo=TZ)
 
 
 class TestVedicTradeAnnotation:
-
     def test_default(self):
         a = VedicTradeAnnotation()
         assert a.nakshatra == ""
@@ -29,15 +28,16 @@ class TestVedicTradeAnnotation:
 
     def test_favorable(self):
         a = VedicTradeAnnotation(
-            nakshatra="Pushya", election_grade="excellent",
-            risk_multiplier=0.75, is_favorable_entry=True,
+            nakshatra="Pushya",
+            election_grade="excellent",
+            risk_multiplier=0.75,
+            is_favorable_entry=True,
         )
         assert a.is_favorable_entry
         assert a.risk_multiplier < 1.0
 
 
 class TestNakshatraPerformance:
-
     def test_empty(self):
         p = NakshatraPerformance(nakshatra="Ashwini", number=1)
         assert p.trade_count == 0
@@ -63,7 +63,6 @@ class TestNakshatraPerformance:
 
 
 class TestVedicPerformanceMatrix:
-
     def test_empty(self):
         m = VedicPerformanceMatrix()
         assert len(m.by_nakshatra) == 0
@@ -72,9 +71,16 @@ class TestVedicPerformanceMatrix:
     def test_add_trade(self):
         m = VedicPerformanceMatrix()
         trade = VedicBacktestTrade(
-            entry_time=DT, exit_time=DT, symbol="BTC",
-            side="LONG", entry_price=100, exit_price=105,
-            size=1, pnl_pct=5.0, pnl_abs=500, commission=1,
+            entry_time=DT,
+            exit_time=DT,
+            symbol="BTC",
+            side="LONG",
+            entry_price=100,
+            exit_price=105,
+            size=1,
+            pnl_pct=5.0,
+            pnl_abs=500,
+            commission=1,
             vedic=VedicTradeAnnotation(nakshatra="Pushya", nakshatra_number=8),
         )
         m.add_trade(trade)
@@ -85,9 +91,16 @@ class TestVedicPerformanceMatrix:
     def test_summary(self):
         m = VedicPerformanceMatrix()
         trade = VedicBacktestTrade(
-            entry_time=DT, exit_time=DT, symbol="BTC",
-            side="LONG", entry_price=100, exit_price=103,
-            size=1, pnl_pct=3.0, pnl_abs=300, commission=1,
+            entry_time=DT,
+            exit_time=DT,
+            symbol="BTC",
+            side="LONG",
+            entry_price=100,
+            exit_price=103,
+            size=1,
+            pnl_pct=3.0,
+            pnl_abs=300,
+            commission=1,
             vedic=VedicTradeAnnotation(nakshatra="Rohini", nakshatra_number=4),
         )
         m.add_trade(trade)
@@ -99,9 +112,16 @@ class TestVedicPerformanceMatrix:
         m = VedicPerformanceMatrix()
         for nakshatra, pnl in [("Pushya", 5.0), ("Mula", -8.0), ("Rohini", 2.0)]:
             trade = VedicBacktestTrade(
-                entry_time=DT, exit_time=DT, symbol="BTC",
-                side="LONG", entry_price=100, exit_price=100 + pnl,
-                size=1, pnl_pct=pnl, pnl_abs=pnl * 10, commission=1,
+                entry_time=DT,
+                exit_time=DT,
+                symbol="BTC",
+                side="LONG",
+                entry_price=100,
+                exit_price=100 + pnl,
+                size=1,
+                pnl_pct=pnl,
+                pnl_abs=pnl * 10,
+                commission=1,
                 vedic=VedicTradeAnnotation(nakshatra=nakshatra, nakshatra_number=1),
             )
             m.add_trade(trade)
@@ -111,9 +131,16 @@ class TestVedicPerformanceMatrix:
     def test_to_dict(self):
         m = VedicPerformanceMatrix()
         trade = VedicBacktestTrade(
-            entry_time=DT, exit_time=DT, symbol="ETH",
-            side="SHORT", entry_price=2000, exit_price=1900,
-            size=1, pnl_pct=5.0, pnl_abs=100, commission=1,
+            entry_time=DT,
+            exit_time=DT,
+            symbol="ETH",
+            side="SHORT",
+            entry_price=2000,
+            exit_price=1900,
+            size=1,
+            pnl_pct=5.0,
+            pnl_abs=100,
+            commission=1,
             vedic=VedicTradeAnnotation(nakshatra="Hasta", nakshatra_number=13),
         )
         m.add_trade(trade)
@@ -123,12 +150,19 @@ class TestVedicPerformanceMatrix:
 
 
 class TestAnnotateTrade:
-
     def test_annotates(self):
+        pytest.importorskip("swisseph")  # panchanga (core/panchanga.py) needs Swiss Ephemeris
         trade = BacktestTrade(
-            entry_time=DT, exit_time=DT, symbol="BTC",
-            side="LONG", entry_price=100, exit_price=105,
-            size=1, pnl_pct=5.0, pnl_abs=500, commission=1,
+            entry_time=DT,
+            exit_time=DT,
+            symbol="BTC",
+            side="LONG",
+            entry_price=100,
+            exit_price=105,
+            size=1,
+            pnl_pct=5.0,
+            pnl_abs=500,
+            commission=1,
         )
         vt = annotate_trade(trade, DT)
         assert isinstance(vt, VedicBacktestTrade)
@@ -137,16 +171,23 @@ class TestAnnotateTrade:
 
 
 class TestVedicFilter:
-
     def test_filter_min_muhurta(self):
+        pytest.importorskip("swisseph")  # panchanga (core/panchanga.py) needs Swiss Ephemeris
         # Create a trade at a time with known good muhurta
         good_dt = datetime(2026, 7, 19, 6, 15, tzinfo=TZ)
         bad_dt = datetime(2026, 7, 19, 10, 15, tzinfo=TZ)  # Kaal period
         trades = [
             BacktestTrade(
-                entry_time=good_dt, exit_time=good_dt, symbol="BTC",
-                side="LONG", entry_price=100, exit_price=105,
-                size=1, pnl_pct=5.0, pnl_abs=500, commission=1,
+                entry_time=good_dt,
+                exit_time=good_dt,
+                symbol="BTC",
+                side="LONG",
+                entry_price=100,
+                exit_price=105,
+                size=1,
+                pnl_pct=5.0,
+                pnl_abs=500,
+                commission=1,
             ),
         ]
         # With high min_muhurta threshold, some might be filtered
@@ -155,11 +196,19 @@ class TestVedicFilter:
         assert len(result) <= len(trades)
 
     def test_exclude_dangerous(self):
+        pytest.importorskip("swisseph")  # panchanga (core/panchanga.py) needs Swiss Ephemeris
         # This is a functional test — verifies no crash
         trade = BacktestTrade(
-            entry_time=DT, exit_time=DT, symbol="BTC",
-            side="LONG", entry_price=100, exit_price=105,
-            size=1, pnl_pct=5.0, pnl_abs=500, commission=1,
+            entry_time=DT,
+            exit_time=DT,
+            symbol="BTC",
+            side="LONG",
+            entry_price=100,
+            exit_price=105,
+            size=1,
+            pnl_pct=5.0,
+            pnl_abs=500,
+            commission=1,
         )
         result = vedic_filter([trade], exclude_dangerous=True)
         assert isinstance(result, list)

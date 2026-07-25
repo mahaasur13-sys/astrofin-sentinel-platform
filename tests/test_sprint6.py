@@ -32,6 +32,7 @@ from core.base_agent import AgentResponse, SignalDirection
 # Helpers
 # ═══════════════════════════════════════════════════════════════════════
 
+
 def make_response(
     agent_name: str,
     signal: SignalDirection = SignalDirection.NEUTRAL,
@@ -51,6 +52,7 @@ def make_response(
 
 class FakeRiskEngine:
     """Mock RiskEngine with adjustable position sizing."""
+
     def __init__(self, adjust_result: float = 0.5, reason: str = "ok"):
         self.adjust_result = adjust_result
         self.reason = reason
@@ -65,12 +67,16 @@ class FakeRiskEngine:
 # 1. CouncilOrchestrator
 # ═══════════════════════════════════════════════════════════════════════
 
+
 class TestCouncilOrchestrator:
     """CouncilOrchestrator: Agent → KARL → RiskEngine → Execution."""
 
     @pytest.mark.asyncio
     async def test_execute_trading_cycle_normal(self):
         """Full cycle: KARL → RiskEngine → EXECUTED result."""
+        pytest.importorskip(
+            "yfinance"
+        )  # execute_trading_cycle -> get_broker -> paper_broker -> data_provider needs yfinance
         from orchestration.council_orchestrator import CouncilOrchestrator
 
         risk = FakeRiskEngine(adjust_result=0.75, reason="normal regime")
@@ -136,9 +142,7 @@ class TestCouncilOrchestrator:
         responses = [make_response("QuantAgent", SignalDirection.LONG, confidence=90)]
         final = make_response("AstroCouncil", SignalDirection.LONG, confidence=85)
 
-        result = await orchestrator.execute_trading_cycle(
-            responses, final, is_backtest=True
-        )
+        result = await orchestrator.execute_trading_cycle(responses, final, is_backtest=True)
 
         assert result["action"] == "STOP"
         assert result["size"] == 0.0
@@ -165,6 +169,9 @@ class TestCouncilOrchestrator:
     @pytest.mark.asyncio
     async def test_execute_cycle_config_override(self):
         """Config overrides work (base_position_size from call site)."""
+        pytest.importorskip(
+            "yfinance"
+        )  # execute_trading_cycle -> get_broker -> paper_broker -> data_provider needs yfinance
         from orchestration.council_orchestrator import CouncilOrchestrator
 
         risk = FakeRiskEngine(adjust_result=2.0, reason="aggressive")
@@ -173,9 +180,7 @@ class TestCouncilOrchestrator:
         responses = [make_response("QuantAgent", SignalDirection.LONG, confidence=90)]
         final = make_response("AstroCouncil", SignalDirection.LONG, confidence=80)
 
-        result = await orchestrator.execute_trading_cycle(
-            responses, final, config={"base_position_size": 2.0}
-        )
+        result = await orchestrator.execute_trading_cycle(responses, final, config={"base_position_size": 2.0})
 
         assert result["size"] == 2.0
         assert risk.calls[0]["base_size"] == 2.0
@@ -199,6 +204,7 @@ class TestCouncilOrchestrator:
 # ═══════════════════════════════════════════════════════════════════════
 # 2. HMMRegimeAgent
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class TestHMMRegimeAgent:
     """HMMRegimeAgent: market regime detection via Hidden Markov Model."""
@@ -248,6 +254,7 @@ class TestHMMRegimeAgent:
 # 3. KARL — Conflict Resolution
 # ═══════════════════════════════════════════════════════════════════════
 
+
 class TestKARLConflictResolution:
     """KARL arbitration between QuantAgent and HMMRegimeAgent."""
 
@@ -283,6 +290,7 @@ class TestKARLConflictResolution:
 # ═══════════════════════════════════════════════════════════════════════
 # 4. RegimeDetector — Backtest HMM labeling
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class TestRegimeDetector:
     """RegimeDetector: full-history HMM fit + Viterbi labeling."""
@@ -320,10 +328,12 @@ class TestRegimeDetector:
         detector = RegimeDetector()
         np.random.seed(1)
         # 100 days calm + 20 days volatile spike
-        returns = np.concatenate([
-            np.random.randn(100) * 0.005,
-            np.random.randn(20) * 0.05,
-        ])
+        returns = np.concatenate(
+            [
+                np.random.randn(100) * 0.005,
+                np.random.randn(20) * 0.05,
+            ]
+        )
 
         detector.fit(returns[:100])
         anomalies = detector.detect_anomalies(returns, window=20, threshold=2.0)
@@ -352,12 +362,14 @@ class TestRegimeDetector:
 # 5. Meta-RL Calibration Tracker
 # ═══════════════════════════════════════════════════════════════════════
 
+
 class TestMetaRLCalibration:
     """Meta-RL calibration tracker + drift detection."""
 
     def test_calibration_tracker_import(self):
         """CalibrationTracker is importable."""
         from meta_rl.calibration import CalibrationTracker
+
         tracker = CalibrationTracker()
         assert hasattr(tracker, "calibration_accuracy")
         assert hasattr(tracker, "evaluate")
@@ -366,6 +378,7 @@ class TestMetaRLCalibration:
     def test_calibration_accuracy_initial_zero(self):
         """New tracker has 0 accuracy."""
         from meta_rl.calibration import CalibrationTracker
+
         tracker = CalibrationTracker()
         # calibration_accuracy might be a float or a dict
         acc = tracker.calibration_accuracy
@@ -374,6 +387,7 @@ class TestMetaRLCalibration:
     def test_calibration_drift_detection(self):
         """Drift detection returns boolean."""
         from meta_rl.calibration import CalibrationTracker
+
         tracker = CalibrationTracker()
         result = tracker.detect_drift()
         assert isinstance(result, bool)
@@ -383,19 +397,26 @@ class TestMetaRLCalibration:
 # 6. End-to-End: Agent → KARL → RiskEngine → Execution
 # ═══════════════════════════════════════════════════════════════════════
 
+
 class TestPhase7E2E:
     """Full Phase 7 pipeline: all agents → KARL → RiskEngine → Execution."""
 
     @pytest.mark.asyncio
     async def test_full_pipeline_buy_signal(self):
         """BUY signal passes through KARL → RiskEngine → EXECUTED."""
+        pytest.importorskip(
+            "yfinance"
+        )  # execute_trading_cycle -> get_broker -> paper_broker -> data_provider needs yfinance
         from orchestration.council_orchestrator import CouncilOrchestrator
 
         risk = FakeRiskEngine(adjust_result=0.5, reason="normal")
-        orchestrator = CouncilOrchestrator(risk, config={
-            "symbol": "BTCUSDT",
-            "base_position_size": 1.0,
-        })
+        orchestrator = CouncilOrchestrator(
+            risk,
+            config={
+                "symbol": "BTCUSDT",
+                "base_position_size": 1.0,
+            },
+        )
 
         # Simulated agent responses from all 7 pools
         responses = [
