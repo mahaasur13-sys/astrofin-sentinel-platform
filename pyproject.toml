@@ -171,8 +171,14 @@ select = ["E", "F", "W", "BLE001"]
 # E501 disabled: 162 pre-existing long lines in bridge/roma/saas/* and tests
 # originated before migration/v1-unification. Auto-fix is unsafe (touches SQL/strings).
 # TODO: fix long lines post-stabilization — see ROADMAP §CI Cleanup.
-ignore = ["E501", "F401", "BLE001", "E402", "E702", "E741", "E701", "C901", "F402", "F403", "F811", "E721"]  # F401: all remaining (54) are intentional __init__.py re-exports
-# F401 in __init__.py: intentional re-exports for public API surface
+ignore = ["E501", "BLE001", "E402", "E702", "E741", "E701", "C901", "F402", "F403", "F811", "E721"]
+# F401 (unused import) is no longer globally ignored — it now surfaces in normal
+# .py files. Intentional re-exports in __init__.py are scoped via per-file-ignores
+# below; a handful of backward-compat re-exports in modules carry inline `# noqa: F401`.
+
+[tool.ruff.lint.per-file-ignores]
+# __init__.py files intentionally re-export symbols for the public API surface.
+"**/__init__.py" = ["F401"]
 
 
 [tool.bandit]

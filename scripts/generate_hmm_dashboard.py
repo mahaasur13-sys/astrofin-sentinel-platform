@@ -23,7 +23,6 @@ from datetime import datetime
 
 import numpy as np
 import plotly.graph_objects as go
-import plotly.express as px
 from plotly.subplots import make_subplots
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

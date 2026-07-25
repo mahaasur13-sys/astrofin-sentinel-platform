@@ -10,7 +10,6 @@ Output: scripts/panchanga_calendar_july_2026.html
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -20,7 +19,6 @@ from core.panchanga import (
     get_choghadiya,
     get_night_choghadiya,
     get_muhurta_score,
-    _get_tz_offset_hours,
     _sunrise,
     _sunset,
 )

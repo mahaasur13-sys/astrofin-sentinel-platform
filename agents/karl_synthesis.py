@@ -29,14 +29,14 @@ from agents.base_agent import AgentResponse
 
 # ── P2-04: extracted conflict resolution + weight calibration ───────────────
 from agents._impl.amre.conflict_resolver import (
-    CONFLICT_THRESHOLD,
-    WEIGHT_REDUCTION,
-    detect_bull_bear_conflict,
+    CONFLICT_THRESHOLD,  # noqa: F401 — backward-compat re-export
+    WEIGHT_REDUCTION,  # noqa: F401 — backward-compat re-export
+    detect_bull_bear_conflict,  # noqa: F401 — backward-compat re-export
     resolve_bull_bear_conflict,
     resolve_conflict,  # noqa: F401 — backward-compat re-export
 )
 from agents._impl.amre.weights_calibrator import (
-    WARMUP_THRESHOLD,
+    WARMUP_THRESHOLD,  # noqa: F401 — backward-compat re-export
     apply_lag_smoothing,
     compute_state_hash,
     estimate_karl_reward,
