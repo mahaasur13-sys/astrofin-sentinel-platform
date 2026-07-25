@@ -42,6 +42,8 @@ REQUIRE_AUTH, API_KEY = _refresh_auth_state()
 
 def reload_auth_state() -> None:
     global REQUIRE_AUTH, API_KEY
+    from core.settings import get_settings
+    get_settings.cache_clear()
     REQUIRE_AUTH, API_KEY = _refresh_auth_state()
 
 
@@ -97,7 +99,10 @@ def _resolve_request(args, kwargs):
 
 def _check_key(request, path) -> tuple[int, str] | None:
     """Return an ``(status_code, message)`` error tuple if unauthorized, else None."""
-    if not API_KEY or API_KEY.strip() == "":
+    from core.settings import get_settings
+
+    api_key = get_settings().api_key.get_secret_value()
+    if not api_key or api_key.strip() == "":
         logger.critical("Server misconfiguration: API key required but not set")
         return (500, "API key not configured")
 
@@ -112,7 +117,7 @@ def _check_key(request, path) -> tuple[int, str] | None:
     if not key:
         logger.warning("auth.failed endpoint=%s missing key", path)
         return (401, "Missing API key")
-    if not secrets.compare_digest(key, API_KEY):
+    if not secrets.compare_digest(key, api_key):
         logger.warning("auth.failed endpoint=%s wrong key", path)
         return (403, "Invalid API key")
     logger.debug("auth.success endpoint=%s", path)
@@ -133,7 +138,8 @@ def require_api_key(func):
     @wraps(func)
     async def async_wrapper(*args, **kwargs):
         # Async routes are always FastAPI/Starlette here.
-        if not REQUIRE_AUTH:
+        from core.settings import get_settings
+        if not get_settings().require_auth:
             return await func(*args, **kwargs)
         request, path = _resolve_request(args, kwargs)
         if request is None:
@@ -147,7 +153,8 @@ def require_api_key(func):
     def sync_wrapper(*args, **kwargs):
         # Sync routes may be Flask *or* FastAPI, so the response type is chosen
         # from the resolved request object.
-        if not REQUIRE_AUTH:
+        from core.settings import get_settings
+        if not get_settings().require_auth:
             return func(*args, **kwargs)
         request, path = _resolve_request(args, kwargs)
         if request is None:

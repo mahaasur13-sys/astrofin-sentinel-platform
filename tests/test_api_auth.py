@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import os
 from unittest.mock import patch
 
@@ -11,27 +12,38 @@ from fastapi.testclient import TestClient
 
 class TestAPIAuth:
     @pytest.fixture(autouse=True, scope="class")
-    def _patch_auth(self):
-        """Patch core.auth globals directly — avoids Settings/os.environ race on CI."""
+    def _setup_auth_env(self):
+        """Isolate auth state: set env before importing app, restore after tests."""
         import core.auth
+        reload_auth_state = core.auth.reload_auth_state
+        verify_api_key = core.auth.verify_api_key
 
-        orig_require = core.auth.REQUIRE_AUTH
-        orig_key = core.auth.API_KEY
+        orig_api_key = os.environ.get("API_KEY")
+        orig_require_auth = os.environ.get("REQUIRE_AUTH")
 
-        with patch.object(core.auth, "REQUIRE_AUTH", True), patch.object(
-            core.auth, "API_KEY", "test-api-secret-key-123"
-        ):
+        os.environ["API_KEY"] = "test-api-secret-key-123"
+        os.environ["REQUIRE_AUTH"] = "true"
+        reload_auth_state()
+
+        try:
             yield
-
-        core.auth.REQUIRE_AUTH = orig_require
-        core.auth.API_KEY = orig_key
+        finally:
+            if orig_api_key is None:
+                os.environ.pop("API_KEY", None)
+            else:
+                os.environ["API_KEY"] = orig_api_key
+            if orig_require_auth is None:
+                os.environ.pop("REQUIRE_AUTH", None)
+            else:
+                os.environ["REQUIRE_AUTH"] = orig_require_auth
+            reload_auth_state()
 
     @pytest.fixture(autouse=True, scope="class")
-    def _client(self, _patch_auth):
+    def _client(self, _setup_auth_env):
         """Provide isolated TestClient after auth setup."""
-        from api.main import app
-
-        self.__class__.client = TestClient(app, raise_server_exceptions=False)
+        import api.main as api_main
+        importlib.reload(api_main)
+        self.__class__.client = TestClient(api_main.app, raise_server_exceptions=False)
         yield
         self.__class__.client.close()
 
@@ -41,7 +53,7 @@ class TestAPIAuth:
 
     def test_unauthenticated_returns_401_on_protected(self):
         response = self.client.get("/api/v1/dashboard")
-        assert response.status_code in (401, 403)
+        assert response.status_code == 401
 
     def test_valid_key_returns_200_on_protected(self):
         response = self.client.get(
