@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.WARNING, format="%(message)s")
 logger = logging.getLogger("calibrate")
 logger.setLevel(logging.INFO)
 
-from backtest.backtest_runner import BacktestRunner, BacktestStats, generate_random_ohlcv
+from backtest.backtest_runner import BacktestRunner, generate_random_ohlcv
 from backtest.regime_detector import RegimeDetector
 from orchestration.council_orchestrator import CouncilOrchestrator
 from trading.risk_v2 import RiskEngineV2
