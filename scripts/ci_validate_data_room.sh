@@ -1,1 +1,1 @@
-pytest -q --no-cov tests/test_data_room.py
+pytest -q -o "addopts=" tests/test_data_room.py
