@@ -11,7 +11,7 @@ Endpoints:
 
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -106,7 +106,7 @@ def health():
 
 @app.get("/api/v1/astro/aspects")
 @require_api_key
-def get_astro_aspects():
+def get_astro_aspects(request: Request):
     """Current astrological aspects from Swiss Ephemeris — source of truth."""
     from core.aspects import AspectsEngine
     from core.ephemeris import get_planetary_positions
@@ -131,7 +131,7 @@ def get_astro_aspects():
 
 @app.get("/api/v1/dashboard", response_model=DashboardResponse)
 @require_api_key
-def get_dashboard():
+def get_dashboard(request: Request):
     agents = [DashboardAgent(**a) for a in AGENT_DEFS]
 
     buy_count = sum(1 for a in agents if a.signal == "LONG")
@@ -223,7 +223,7 @@ def get_dashboard():
 
 @app.post("/api/v1/agent/run")
 @require_api_key
-def run_agent(req: AgentRequest):
+def run_agent(req: AgentRequest, request: Request):
     """Return decisions from agents with real ephemeris, aspects, and honest ensemble."""
     import importlib
     import time
@@ -354,7 +354,7 @@ def run_agent(req: AgentRequest):
 
 @app.get("/api/v1/astro/interpretation")
 @require_api_key
-def get_interpretation():
+def get_interpretation(request: Request):
     """Vedic + astro interpretation for traders: verdict, Muhurta, Choghadiya, Nakshatra."""
     from datetime import datetime, timezone
 
