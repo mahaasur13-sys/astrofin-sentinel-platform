@@ -8,6 +8,7 @@ from __future__ import annotations
 import contextvars
 import copy
 import logging
+import os
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -364,6 +365,9 @@ def get_rag() -> "RAGIndex | None":
     global _rag_instance
     if _rag_instance is not None:
         return _rag_instance
+    if os.getenv("RAG_ENABLED", "true").strip().lower() not in ("1", "true", "yes", "on"):
+        logger.debug("RAG disabled via RAG_ENABLED; get_rag() returning None")
+        return None
     try:
         from knowledge.rag_index import RAGIndex
         _rag_instance = RAGIndex()
