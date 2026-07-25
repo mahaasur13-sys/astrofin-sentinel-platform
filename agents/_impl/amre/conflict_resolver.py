@@ -43,6 +43,16 @@ def resolve_conflict(agent_a, agent_b):
             signal=SignalDirection.NEUTRAL,
             confidence=0,
             reasoning=("[KARL] HMM anomaly detected — signal tempered to NEUTRAL (0 confidence)"),
+            # Preserve signal provenance — never drop the original sources.
+            sources=[
+                getattr(agent_a, "agent_name", "agent_a"),
+                getattr(agent_b, "agent_name", "agent_b"),
+            ],
+            metadata={
+                "original_signal": str(getattr(agent_a, "signal", None)),
+                "original_confidence": getattr(agent_a, "confidence", None),
+                "anomaly_source": getattr(agent_b, "agent_name", "agent_b"),
+            },
         )
     return agent_a
 

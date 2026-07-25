@@ -116,7 +116,9 @@ class RiskEngineV2:
                 f"EXPOSURE CAP: {new_asset_exposure:.2%} > limit",
             )
         if new_total > state.total_equity:
-            scaled = state.total_equity - total_exposure + proposed_notional
+            # Remaining headroom only — do NOT re-add proposed_notional, otherwise
+            # the returned size would still exceed the 100% total-exposure cap.
+            scaled = state.total_equity - total_exposure
             return False, max(0.0, scaled), "TOTAL EXPOSURE > 100%"
         return True, proposed_notional, "OK"
 
