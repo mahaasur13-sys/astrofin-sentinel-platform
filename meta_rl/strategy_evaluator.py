@@ -72,12 +72,6 @@ class StrategyEvaluator:
             if len(ohlcv) < 10:
                 logger.warning("[META-RL] Not enough market data")
                 return EvaluationResult.fail()
-            log.info(
-                "DEBUG evaluator: calling backtest_adapter.run with",
-                len(ohlcv),
-                "bars and strategy",
-                strategy.generation,
-            )
             result = self.backtest_adapter.run(strategy, ohlcv, market_data)
             if self.risk_engine is not None:
                 result = self._apply_risk_engine(result, market_data)
