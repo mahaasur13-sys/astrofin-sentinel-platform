@@ -14,40 +14,48 @@ import logging
 logger = logging.getLogger(__name__)
 
 CONFLICT_THRESHOLD = 0.35  # 35% signal divergence triggers conflict
-WEIGHT_REDUCTION = 0.10    # Reduce each conflicting agent's weight by 10%
+WEIGHT_REDUCTION = 0.10  # Reduce each conflicting agent's weight by 10%
 
 
-def resolve_conflict(agent_a, agent_b) -> None:
-    """Resolve conflict between two agents by reducing both weights.
+def resolve_conflict(agent_a, agent_b):
+    """KARL arbitration between a primary signal agent and the HMM regime agent.
 
-    Original from agents/karl_synthesis.py:resolve_conflict().
-    Kept backward-compatible — both agents modified in-place.
+    Backward-compatible: still reduces both agents' weights in-place (relied on
+    by ``CouncilOrchestrator._apply_karl_arbitration`` and ``test_sprint6``).
+
+    Additionally returns an arbitrated ``AgentResponse``:
+      - if ``agent_b`` (HMM regime agent) flags an anomaly via
+        ``metadata["is_anomaly"]`` the decision is tempered to NEUTRAL / 0
+        confidence;
+      - otherwise the primary agent (``agent_a``) is passed through unchanged.
     """
-    agent_a.metadata["weight"] = max(
-        0.0, agent_a.metadata.get("weight", 0.10) - WEIGHT_REDUCTION
-    )
-    agent_b.metadata["weight"] = max(
-        0.0, agent_b.metadata.get("weight", 0.10) - WEIGHT_REDUCTION
-    )
+    from core.base_agent import AgentResponse, SignalDirection
+
+    for agent in (agent_a, agent_b):
+        meta = getattr(agent, "metadata", None)
+        if isinstance(meta, dict):
+            meta["weight"] = max(0.0, meta.get("weight", 0.10) - WEIGHT_REDUCTION)
+
+    meta_b = getattr(agent_b, "metadata", None) or {}
+    if meta_b.get("is_anomaly", False):
+        return AgentResponse(
+            agent_name="KARL",
+            signal=SignalDirection.NEUTRAL,
+            confidence=0,
+            reasoning=("[KARL] HMM anomaly detected — signal tempered to NEUTRAL (0 confidence)"),
+        )
+    return agent_a
 
 
-def detect_bull_bear_conflict(
-    signals: list, threshold: float = CONFLICT_THRESHOLD
-) -> tuple[bool, float]:
+def detect_bull_bear_conflict(signals: list, threshold: float = CONFLICT_THRESHOLD) -> tuple[bool, float]:
     """Detect if there's a significant Bull/Bear conflict among agent signals.
 
     Returns (has_conflict, divergence_score).
     """
     if not signals:
         return False, 0.0
-    long_count = sum(
-        1 for s in signals
-        if _sig_str(s) in ("LONG", "BUY", "STRONG_BUY")
-    )
-    short_count = sum(
-        1 for s in signals
-        if _sig_str(s) in ("SHORT", "SELL", "STRONG_SELL")
-    )
+    long_count = sum(1 for s in signals if _sig_str(s) in ("LONG", "BUY", "STRONG_BUY"))
+    short_count = sum(1 for s in signals if _sig_str(s) in ("SHORT", "SELL", "STRONG_SELL"))
     total = len(signals)
     if total == 0:
         return False, 0.0
@@ -59,9 +67,7 @@ def detect_bull_bear_conflict(
     return False, abs(long_pct - short_pct)
 
 
-def resolve_bull_bear_conflict(
-    signals: list, max_confidence_penalty: int = 20
-) -> dict:
+def resolve_bull_bear_conflict(signals: list, max_confidence_penalty: int = 20) -> dict:
     """Full conflict resolution: detect conflict → reduce weight → adjust confidence.
 
     Returns dict with keys:
@@ -79,21 +85,14 @@ def resolve_bull_bear_conflict(
             "resolved_signals": signals,
         }
     penalty = min(max_confidence_penalty, int(divergence * 100))
-    logger.info(
-        f"[ConflictResolver] Bull/Bear conflict: divergence={divergence:.2f}, "
-        f"penalty={penalty}"
-    )
+    logger.info(f"[ConflictResolver] Bull/Bear conflict: divergence={divergence:.2f}, penalty={penalty}")
     reduced = list(signals)
     for s in reduced:
         if hasattr(s, "metadata"):
-            s.metadata["weight"] = max(
-                0.0, s.metadata.get("weight", 0.10) - WEIGHT_REDUCTION
-            )
+            s.metadata["weight"] = max(0.0, s.metadata.get("weight", 0.10) - WEIGHT_REDUCTION)
         elif isinstance(s, dict):
             s["metadata"] = s.get("metadata", {})
-            s["metadata"]["weight"] = max(
-                0.0, s["metadata"].get("weight", 0.10) - WEIGHT_REDUCTION
-            )
+            s["metadata"]["weight"] = max(0.0, s["metadata"].get("weight", 0.10) - WEIGHT_REDUCTION)
     return {
         "has_conflict": True,
         "divergence": divergence,
