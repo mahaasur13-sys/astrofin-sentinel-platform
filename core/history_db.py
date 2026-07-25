@@ -202,44 +202,45 @@ class HistoryDB:
             args = (days_arg,)
 
         with self._conn() as conn:
-            meta_sql = """
+            # NOTE: `where` below is composed only of static SQL fragments defined
+            # in this method; every user value (days/symbol) is bound through the
+            # `args` tuple. The `# nosec B608` markers sit on the concatenation
+            # lines that bandit reports, documenting the verified false positive.
+            meta_base = """
                 SELECT
                     COUNT(*)                          AS total,
                     AVG(final_confidence)              AS avg_conf,
                     MIN(final_confidence)              AS min_conf,
                     MAX(final_confidence)              AS max_conf
                 FROM sessions
-            """ + where
-            meta = conn.execute(meta_sql, args).fetchone()  # nosec B608
+            """
+            meta_sql = meta_base + where  # nosec B608 — static text + bound args
+            meta = conn.execute(meta_sql, args).fetchone()
 
-            dist_sql = (
-                """
+            dist_head = """
                 SELECT final_signal, COUNT(*) AS cnt
                 FROM sessions
             """
-                + where
-                + """
+            dist_tail = """
                 GROUP BY final_signal
                 ORDER BY cnt DESC
             """
-            )
-            dist_rows = conn.execute(dist_sql, args).fetchall()  # nosec B608
+            dist_sql = dist_head + where + dist_tail  # nosec B608 — static text + bound args
+            dist_rows = conn.execute(dist_sql, args).fetchall()
 
-            daily_sql = (
-                """
+            daily_head = """
                 SELECT
                     DATE(created_at)                    AS day,
                     COUNT(*)                            AS sessions,
                     AVG(final_confidence)               AS avg_conf
                 FROM sessions
             """
-                + where
-                + """
+            daily_tail = """
                 GROUP BY DATE(created_at)
                 ORDER BY day ASC
             """
-            )
-            conn.execute(daily_sql, args).fetchall()  # nosec B608
+            daily_sql = daily_head + where + daily_tail  # nosec B608 — static text + bound args
+            conn.execute(daily_sql, args).fetchall()
 
             # Recent trend: LONG vs SHORT ratio per day (last 7 days)
             trend_sql = """

@@ -172,14 +172,21 @@ class PostgresHistoryDB(HistoryDB):
 
         with self._conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                meta_sql = f"""SELECT COUNT(*) AS total, AVG(final_confidence) AS avg_conf,
-                    MIN(final_confidence) AS min_conf, MAX(final_confidence) AS max_conf
-                    FROM sessions {where}"""
+                # `where` is composed only of static SQL fragments; user values
+                # (days/symbol) are bound via `args`. nosec markers sit on the
+                # concatenation lines bandit reports (verified false positive).
+                meta_head = (
+                    "SELECT COUNT(*) AS total, AVG(final_confidence) AS avg_conf, "
+                    "MIN(final_confidence) AS min_conf, MAX(final_confidence) AS max_conf "
+                    "FROM sessions "
+                )
+                meta_sql = meta_head + where  # nosec B608 — static text + bound args
                 cur.execute(meta_sql, args)
                 meta = cur.fetchone()
 
-                dist_sql = f"""SELECT final_signal, COUNT(*) AS cnt FROM sessions {where}
-                    GROUP BY final_signal ORDER BY cnt DESC"""
+                dist_head = "SELECT final_signal, COUNT(*) AS cnt FROM sessions "
+                dist_tail = " GROUP BY final_signal ORDER BY cnt DESC"
+                dist_sql = dist_head + where + dist_tail  # nosec B608 — static text + bound args
                 cur.execute(dist_sql, args)
                 dist_rows = cur.fetchall()
 
@@ -199,13 +206,17 @@ class PostgresHistoryDB(HistoryDB):
         }
 
     def clear(self, older_than_days: int = None) -> int:
+        # Parameterize the retention window instead of interpolating it into SQL:
+        # `%s * INTERVAL '1 day'` binds the day count safely (fixes bandit B608).
         if older_than_days is None:
             sql = "DELETE FROM sessions"
+            params: tuple = ()
         else:
-            sql = f"DELETE FROM sessions WHERE created_at < NOW() - INTERVAL '{older_than_days} days'"
+            sql = "DELETE FROM sessions WHERE created_at < NOW() - (%s * INTERVAL '1 day')"
+            params = (int(older_than_days),)
         with self._conn() as conn:
             with conn.cursor() as cur:
-                cur.execute(sql)
+                cur.execute(sql, params)
                 deleted = cur.rowcount
             conn.commit()
         return deleted

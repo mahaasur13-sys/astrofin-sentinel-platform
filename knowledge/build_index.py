@@ -61,8 +61,12 @@ def load_chunks(chunks_dir: Path) -> list[dict]:
                 body = section.strip()
             if not body or len(body) < 20:
                 continue
+            # Non-security content hash: stable chunk identifier derived from
+            # file name + section title. usedforsecurity=False documents intent
+            # and satisfies bandit B324 (weak-hash) without a blanket skip.
             chunk_id = hashlib.md5(
-                f"{md_file.name}#{current_title}".encode()
+                f"{md_file.name}#{current_title}".encode(),
+                usedforsecurity=False,
             ).hexdigest()[:12]
             chunks.append(
                 {
