@@ -301,7 +301,7 @@ class MetaRLPersistence:
                 index = ld(idx.read_text())
                 return index.get("versions", [])
         except Exception:
-            log.warning("Meta-RL persistence failed", exc_info=True)
+            logger.warning("Meta-RL persistence failed", exc_info=True)
         return []
 
     def compare_versions(self, va: str, vb: str) -> dict[str, Any]:

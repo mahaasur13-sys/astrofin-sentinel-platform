@@ -388,10 +388,8 @@ class CalibrationTracker:
         correct = 0
         for pred, outcome in zip(predictions, outcomes):
             if isinstance(pred, dict):
-                signal = pred.get("signal", "")
                 conf = pred.get("confidence", 0.5)
             else:
-                signal = str(pred)
                 conf = 0.5
             # Simple heuristic: if confidence > 0.5 and outcome == 1 → correct
             predicted_positive = conf >= 0.5
