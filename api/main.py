@@ -21,6 +21,7 @@ from core.base_agent import BaseAgent
 
 app = FastAPI(title="AstroFin Sentinel API", version="0.4.0")
 from api.routes.sessions import router as sessions_router
+
 app.include_router(sessions_router, prefix="/api/v1")
 
 
@@ -33,19 +34,26 @@ app.add_middleware(
 
 
 AGENT_DEFS = [
-    {"id": "1",  "name": "FundamentalAgent",  "weight": 0.20, "domain": "fundamental", "signal": "idle", "confidence": 0.0},
-    {"id": "2",  "name": "QuantAgent",        "weight": 0.20, "domain": "quant",       "signal": "idle", "confidence": 0.0},
-    {"id": "3",  "name": "MacroAgent",        "weight": 0.15, "domain": "macro",       "signal": "idle", "confidence": 0.0},
-    {"id": "4",  "name": "OptionsFlowAgent",  "weight": 0.15, "domain": "options",     "signal": "idle", "confidence": 0.0},
-    {"id": "5",  "name": "SentimentAgent",    "weight": 0.10, "domain": "sentiment",   "signal": "idle", "confidence": 0.0},
-    {"id": "6",  "name": "TechnicalAgent",    "weight": 0.10, "domain": "technical",   "signal": "idle", "confidence": 0.0},
-    {"id": "7",  "name": "BullResearcher",    "weight": 0.05, "domain": "research",    "signal": "idle", "confidence": 0.0},
-    {"id": "8",  "name": "BearResearcher",    "weight": 0.05, "domain": "research",    "signal": "idle", "confidence": 0.0},
-    {"id": "9",  "name": "BradleyAgent",      "weight": 0.03, "domain": "astro",       "signal": "idle", "confidence": 0.0},
-    {"id": "10", "name": "ElectoralAgent",    "weight": 0.03, "domain": "astro",       "signal": "idle", "confidence": 0.0},
-    {"id": "11", "name": "GannAgent",         "weight": 0.03, "domain": "astro",       "signal": "idle", "confidence": 0.0},
-    {"id": "12", "name": "CycleAgent",        "weight": 0.05, "domain": "astro",       "signal": "idle", "confidence": 0.0},
-    {"id": "13", "name": "TimeWindowAgent",   "weight": 0.02, "domain": "astro",       "signal": "idle", "confidence": 0.0},
+    {
+        "id": "1",
+        "name": "FundamentalAgent",
+        "weight": 0.20,
+        "domain": "fundamental",
+        "signal": "idle",
+        "confidence": 0.0,
+    },
+    {"id": "2", "name": "QuantAgent", "weight": 0.20, "domain": "quant", "signal": "idle", "confidence": 0.0},
+    {"id": "3", "name": "MacroAgent", "weight": 0.15, "domain": "macro", "signal": "idle", "confidence": 0.0},
+    {"id": "4", "name": "OptionsFlowAgent", "weight": 0.15, "domain": "options", "signal": "idle", "confidence": 0.0},
+    {"id": "5", "name": "SentimentAgent", "weight": 0.10, "domain": "sentiment", "signal": "idle", "confidence": 0.0},
+    {"id": "6", "name": "TechnicalAgent", "weight": 0.10, "domain": "technical", "signal": "idle", "confidence": 0.0},
+    {"id": "7", "name": "BullResearcher", "weight": 0.05, "domain": "research", "signal": "idle", "confidence": 0.0},
+    {"id": "8", "name": "BearResearcher", "weight": 0.05, "domain": "research", "signal": "idle", "confidence": 0.0},
+    {"id": "9", "name": "BradleyAgent", "weight": 0.03, "domain": "astro", "signal": "idle", "confidence": 0.0},
+    {"id": "10", "name": "ElectoralAgent", "weight": 0.03, "domain": "astro", "signal": "idle", "confidence": 0.0},
+    {"id": "11", "name": "GannAgent", "weight": 0.03, "domain": "astro", "signal": "idle", "confidence": 0.0},
+    {"id": "12", "name": "CycleAgent", "weight": 0.05, "domain": "astro", "signal": "idle", "confidence": 0.0},
+    {"id": "13", "name": "TimeWindowAgent", "weight": 0.02, "domain": "astro", "signal": "idle", "confidence": 0.0},
 ]
 
 
@@ -118,13 +126,16 @@ def get_astro_aspects(request: Request):
 
     return {
         "timestamp": now.isoformat(),
-        "aspects": [{
-            "planet1": a.planet1,
-            "planet2": a.planet2,
-            "type": a.aspect_type.value if hasattr(a.aspect_type, 'value') else str(a.aspect_type),
-            "orb": round(a.orb, 2),
-            "signature": a.signature,
-        } for a in report.aspects],
+        "aspects": [
+            {
+                "planet1": a.planet1,
+                "planet2": a.planet2,
+                "type": a.aspect_type.value if hasattr(a.aspect_type, "value") else str(a.aspect_type),
+                "orb": round(a.orb, 2),
+                "signature": a.signature,
+            }
+            for a in report.aspects
+        ],
         "source": "swiss_ephemeris",
     }
 
@@ -138,13 +149,17 @@ def get_dashboard(request: Request):
     sell_count = sum(1 for a in agents if a.signal == "SHORT")
     hold_count = 13 - buy_count - sell_count
 
-    net_signal = "HOLD" if buy_count + sell_count == 0 else ("BUY" if buy_count > sell_count else "SELL" if sell_count > buy_count else "HOLD")
-
+    net_signal = (
+        "HOLD"
+        if buy_count + sell_count == 0
+        else ("BUY" if buy_count > sell_count else "SELL" if sell_count > buy_count else "HOLD")
+    )
 
     # Launch real Gann/Bradley/Elliot agents for dashboard
     import asyncio
     import importlib.util
     import random
+
     agent_results = {}
     try:
         random.seed(42)
@@ -153,24 +168,28 @@ def get_dashboard(request: Request):
             import asyncio
 
             import httpx
+
             async def _fetch_cg():
                 async with httpx.AsyncClient(timeout=10) as cg:
-                    r = await cg.get("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart",
-                        params={"vs_currency": "usd", "days": 90})
+                    r = await cg.get(
+                        "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart",
+                        params={"vs_currency": "usd", "days": 90},
+                    )
                     if r.status_code == 200:
                         data = r.json()
                         raw = data.get("prices", [])
                         if len(raw) >= 90:
                             return raw[-1][1], raw[-90:]
                     return None, None
+
             loop = asyncio.get_event_loop()
             price_val, price_raw = loop.run_until_complete(_fetch_cg())
             if price_val is not None and price_raw is not None:
                 real_price = price_val
-                prices = [[int(p[0]), p[1]*0.99, p[1]*1.01, p[1]*0.99, p[1], 5000] for p in price_raw]
+                prices = [[int(p[0]), p[1] * 0.99, p[1] * 1.01, p[1] * 0.99, p[1], 5000] for p in price_raw]
         except Exception:
             pass
-        if 'prices' not in dir() or not prices:
+        if "prices" not in dir() or not prices:
             real_price = 64290.0
             base_price = real_price * 0.90
             prices = []
@@ -180,7 +199,7 @@ def get_dashboard(request: Request):
                 vol = random.gauss(0, 600)
                 close = b + drift + vol
                 ts = 1784390400000 + _ * 86400000
-                prices.append([ts, close*0.99, close*1.01, close*0.99, close, 5000])
+                prices.append([ts, close * 0.99, close * 1.01, close * 0.99, close, 5000])
                 b = close
             prices[-1][4] = real_price
         for agent_key, fname, clsname in [
@@ -228,20 +247,34 @@ def run_agent(req: AgentRequest, request: Request):
     import importlib
     import time
     from datetime import datetime, timezone
+
     start = time.time()
 
     # ── 1. Real ephemeris & aspects ──
     try:
         from core.aspects import AspectsEngine
         from core.ephemeris import get_planetary_positions
+
         dt = datetime.now(timezone.utc)
         positions = get_planetary_positions(dt)
         engine = AspectsEngine()
         report = engine.compute(positions)
-        aspects = [{"planet1": a.planet1, "planet2": a.planet2,
-                     "type": str(a.aspect_type.name).lower() if hasattr(a.aspect_type, "name") else str(a.aspect_type).lower(),
-                     "orb": round(a.orb, 2), "score": round(a.score, 2)}
-                    for a in report.aspects] if hasattr(report, 'aspects') else []
+        aspects = (
+            [
+                {
+                    "planet1": a.planet1,
+                    "planet2": a.planet2,
+                    "type": str(a.aspect_type.name).lower()
+                    if hasattr(a.aspect_type, "name")
+                    else str(a.aspect_type).lower(),
+                    "orb": round(a.orb, 2),
+                    "score": round(a.score, 2),
+                }
+                for a in report.aspects
+            ]
+            if hasattr(report, "aspects")
+            else []
+        )
         muhurta_score = 100  # placeholder — real panchanga call
     except Exception:
         aspects = []
@@ -251,6 +284,7 @@ def run_agent(req: AgentRequest, request: Request):
     try:
         import json
         import urllib.request
+
         url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
         req_url = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req_url, timeout=5) as resp:
@@ -258,40 +292,52 @@ def run_agent(req: AgentRequest, request: Request):
             real_price = data.get("bitcoin", {}).get("usd", 64210)
     except Exception:
         real_price = 64210
-    price = float(req.price) if hasattr(req, 'price') and req.price else real_price
+    price = float(req.price) if hasattr(req, "price") and req.price else real_price
 
     # ── 3. Run agents (with fallback) ──
     AGENT_SPECS = [
-        ("1","FundamentalAgent", "fundamental"), ("2","QuantAgent","quant"),
-        ("3","MacroAgent","macro"), ("4","OptionsFlowAgent","options"),
-        ("5","SentimentAgent","sentiment"), ("6","TechnicalAgent","technical"),
-        ("7","BullResearcher","research"), ("8","BearResearcher","research"),
-        ("9","ElectoralAgent","astro"), ("10","BradleyAgent","astro"),
-        ("11","TimeWindowAgent","astro"), ("12","GannAgent","astro"),
-        ("13","CycleAgent","astro"),
+        ("1", "FundamentalAgent", "fundamental"),
+        ("2", "QuantAgent", "quant"),
+        ("3", "MacroAgent", "macro"),
+        ("4", "OptionsFlowAgent", "options"),
+        ("5", "SentimentAgent", "sentiment"),
+        ("6", "TechnicalAgent", "technical"),
+        ("7", "BullResearcher", "research"),
+        ("8", "BearResearcher", "research"),
+        ("9", "ElectoralAgent", "astro"),
+        ("10", "BradleyAgent", "astro"),
+        ("11", "TimeWindowAgent", "astro"),
+        ("12", "GannAgent", "astro"),
+        ("13", "CycleAgent", "astro"),
     ]
     agent_decisions = []
     for aid, name, domain in AGENT_SPECS:
         try:
             # Try real agent
-            spec = importlib.util.spec_from_file_location(
-                name.lower(), f"agents/_impl/{name.lower()}.py")
+            spec = importlib.util.spec_from_file_location(name.lower(), f"agents/_impl/{name.lower()}.py")
             if spec and spec.loader:
                 mod = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(mod)
                 agent_cls = getattr(mod, name, None)
                 if agent_cls:
                     state = {"symbol": "BTCUSDT", "current_price": price}
-                    result = agent_cls().analyze(state) if not hasattr(agent_cls().analyze, '__await__') else None
+                    result = agent_cls().analyze(state) if not hasattr(agent_cls().analyze, "__await__") else None
                     if result is None:
                         raise RuntimeError("async agent not supported in sync endpoint")
-                    signal = getattr(getattr(result, 'signal', None), 'value', str(getattr(result, 'signal', 'NEUTRAL')))
-                    confidence = getattr(result, 'confidence', 50)
-                    reasoning = getattr(result, 'reasoning', '')[:200]
-                    agent_decisions.append({
-                        "id": aid, "name": name, "signal": str(signal).upper(),
-                        "confidence": int(confidence), "reasoning": reasoning
-                    })
+                    signal = getattr(
+                        getattr(result, "signal", None), "value", str(getattr(result, "signal", "NEUTRAL"))
+                    )
+                    confidence = getattr(result, "confidence", 50)
+                    reasoning = getattr(result, "reasoning", "")[:200]
+                    agent_decisions.append(
+                        {
+                            "id": aid,
+                            "name": name,
+                            "signal": str(signal).upper(),
+                            "confidence": int(confidence),
+                            "reasoning": reasoning,
+                        }
+                    )
                     continue
             raise RuntimeError("import failed")
         except Exception:
@@ -299,10 +345,9 @@ def run_agent(req: AgentRequest, request: Request):
             confidence = 50
             signal = "NEUTRAL"
             reasoning = f"No real data — agent {name} unavailable"
-            agent_decisions.append({
-                "id": aid, "name": name, "signal": signal,
-                "confidence": confidence, "reasoning": reasoning
-            })
+            agent_decisions.append(
+                {"id": aid, "name": name, "signal": signal, "confidence": confidence, "reasoning": reasoning}
+            )
 
     # ── 4. Honest ensemble (no bias) ──
     buy_count = sum(1 for a in agent_decisions if a["signal"] == "LONG")
@@ -318,8 +363,7 @@ def run_agent(req: AgentRequest, request: Request):
 
     if buy_count + sell_count > 0:
         ensemble_conf = round(
-            sum(a["confidence"] for a in agent_decisions if a["signal"] in ("LONG","SHORT"))
-            / (buy_count + sell_count)
+            sum(a["confidence"] for a in agent_decisions if a["signal"] in ("LONG", "SHORT")) / (buy_count + sell_count)
         )
     else:
         ensemble_conf = 50
@@ -334,13 +378,17 @@ def run_agent(req: AgentRequest, request: Request):
                 "sell_count": sell_count,
                 "neutral_count": neutral_count,
                 "recommendation": f"Цена: ${price:,.0f} | "
-                    + ("Открыть LONG с SL −3%" if ensemble_action == "BUY"
-                       else "Открыть SHORT с SL +3%" if ensemble_action == "SELL"
-                       else "Ждать пробоя диапазона"),
+                + (
+                    "Открыть LONG с SL −3%"
+                    if ensemble_action == "BUY"
+                    else "Открыть SHORT с SL +3%"
+                    if ensemble_action == "SELL"
+                    else "Ждать пробоя диапазона"
+                ),
                 "risk_factors": [
                     f"Muhurta score: {muhurta_score}/100",
                     f"Aspects found: {len(aspects)}",
-                    "Price source: CoinGecko live"
+                    "Price source: CoinGecko live",
                 ],
                 "astro_factors": [
                     f"Aspects: {len(aspects)} planetary angles computed",
@@ -388,11 +436,17 @@ def get_interpretation(request: Request):
             label = "neutral"
             icon = "➖"
         score = round(score, 2)
-        aspect_records.append({
-            "planet1": a.planet1, "planet2": a.planet2,
-            "type": a_type, "orb": round(orb, 2),
-            "icon": icon, "label": label, "score": score,
-        })
+        aspect_records.append(
+            {
+                "planet1": a.planet1,
+                "planet2": a.planet2,
+                "type": a_type,
+                "orb": round(orb, 2),
+                "icon": icon,
+                "label": label,
+                "score": score,
+            }
+        )
 
     fav_scores = [a["score"] for a in aspect_records if "favourable" in a["label"]]
     unfav_scores = [a["score"] for a in aspect_records if "unfavourable" in a["label"]]
@@ -401,6 +455,7 @@ def get_interpretation(request: Request):
     # Simple Muhurta from Nakshatra
     try:
         from core.panchanga import calculate_panchanga, get_choghadiya
+
         panchanga = calculate_panchanga(dt)
         n = panchanga.get("nakshatra", {}) if isinstance(panchanga, dict) else {}
         n_name = n.get("name", "Uttara Phalguni") if isinstance(n, dict) else "Uttara Phalguni"
@@ -409,7 +464,9 @@ def get_interpretation(request: Request):
         n_mult = 0.8 if n_good else 0.5
         muhurta_score = 90 if n_good else 50
         slots = get_choghadiya(dt) if callable(get_choghadiya) else []
-        current = slots[0] if slots else {"name": "Amrit", "icon": "DIAMOND", "quality": "auspicious", "recommended": True}
+        current = (
+            slots[0] if slots else {"name": "Amrit", "icon": "DIAMOND", "quality": "auspicious", "recommended": True}
+        )
     except Exception:
         n_name = "Uttara Phalguni"
         n_grade = "good"
@@ -428,9 +485,14 @@ def get_interpretation(request: Request):
         verdict, v_icon, v_text = "avoid", "🔴", "Неблагоприятно — лучше воздержаться от входа"
 
     return {
-        "verdict": verdict, "verdict_icon": v_icon, "verdict_text": v_text,
-        "composite_score": composite, "muhurta_score": muhurta_score,
-        "nakshatra": n_name, "nakshatra_grade": n_grade, "nakshatra_multiplier": n_mult,
+        "verdict": verdict,
+        "verdict_icon": v_icon,
+        "verdict_text": v_text,
+        "composite_score": composite,
+        "muhurta_score": muhurta_score,
+        "nakshatra": n_name,
+        "nakshatra_grade": n_grade,
+        "nakshatra_multiplier": n_mult,
         "choghadiya_current": {
             "name": current.get("name", "Amrit") if isinstance(current, dict) else "Amrit",
             "icon": current.get("icon", "DIAMOND") if isinstance(current, dict) else "DIAMOND",
@@ -438,16 +500,37 @@ def get_interpretation(request: Request):
             "recommended": current.get("recommended", True) if isinstance(current, dict) else True,
         },
         "choghadiya_slots": [
-            {"period": i, "name": s.get("name", "?"), "start": s.get("start", "--"), "end": s.get("end", "--"),
-             "icon": s.get("icon", "QUESTION"), "quality": s.get("quality", "--")}
-            for i, s in enumerate(slots[:8]) if isinstance(s, dict)
+            {
+                "period": i,
+                "name": s.get("name", "?"),
+                "start": s.get("start", "--"),
+                "end": s.get("end", "--"),
+                "icon": s.get("icon", "QUESTION"),
+                "quality": s.get("quality", "--"),
+            }
+            for i, s in enumerate(slots[:8])
+            if isinstance(s, dict)
         ],
         "top_favourable": [
-            {"planet1": a["planet1"], "planet2": a["planet2"], "type": a["type"], "icon": a["icon"], "orb": a["orb"], "score": a["score"]}
+            {
+                "planet1": a["planet1"],
+                "planet2": a["planet2"],
+                "type": a["type"],
+                "icon": a["icon"],
+                "orb": a["orb"],
+                "score": a["score"],
+            }
             for a in sorted([a for a in aspect_records if "favourable" in a["label"]], key=lambda x: -x["score"])[:5]
         ],
         "top_unfavourable": [
-            {"planet1": a["planet1"], "planet2": a["planet2"], "type": a["type"], "icon": a["icon"], "orb": a["orb"], "score": a["score"]}
+            {
+                "planet1": a["planet1"],
+                "planet2": a["planet2"],
+                "type": a["type"],
+                "icon": a["icon"],
+                "orb": a["orb"],
+                "score": a["score"],
+            }
             for a in sorted([a for a in aspect_records if "unfavourable" in a["label"]], key=lambda x: x["score"])[:5]
         ],
     }
@@ -464,6 +547,7 @@ async def ws_agent(websocket: WebSocket, agent_id: str):
             await websocket.send_text(f"echo: {data}")
     except WebSocketDisconnect:
         pass
+
 
 from fastapi.responses import Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
