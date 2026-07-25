@@ -1,11 +1,22 @@
-"""Session tab callbacks — extracted from web/callbacks.py."""
-from dash import html, ALL, ctx, Input, Output, State
+"""Sessions tab callbacks — extracted from web/callbacks.py (Wave 2 P1-3).
+
+Consolidated from the former web/sessions_callbacks.py (the canonical runtime
+version) so all callback registration lives under the web/callbacks package.
+"""
+
+from __future__ import annotations
+
+import logging
+
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
+from dash import ALL, Input, Output, State, ctx, html
+
+logger = logging.getLogger(__name__)
 
 
-def register_session_callbacks(app, get_engine_ref):
-    """Register session-related callbacks on the app."""
+def register_session_callbacks(app):
+    """Register all Sessions tab callbacks on the app."""
 
     @app.callback(
         Output("sessions-table-container", "children"),
@@ -17,28 +28,42 @@ def register_session_callbacks(app, get_engine_ref):
         p = get_persistence()
         sessions = p.list_sessions()
         sessions = sessions[-30:][::-1]
+
         if not sessions:
             return html.Div("No sessions found", className="text-muted p-3 text-center")
+
         rows = []
         for sid in sessions:
             meta = p.load_session_metadata(sid) or {}
             best = meta.get("best_reward", 0.0)
             n_strat = meta.get("n_strategies", "?")
+            badge = (
+                "bg-success"
+                if best > 0.7
+                else "bg-warning text-dark" if best > 0.4 else "bg-secondary"
+            )
             rows.append(
                 html.Tr(
                     [
                         html.Td(
                             dbc.Checkbox(
-                                id={"type": "session-check", "index": sid}, value=False
+                                id={"type": "session-check", "index": sid},
+                                value=False,
                             )
                         ),
-                        html.Td(html.Code(sid[:22], className="text-info small")),
+                        html.Td(html.Code(sid[:24], className="text-info small")),
                         html.Td(f"{best:+.4f}"),
                         html.Td(str(n_strat)),
-                        html.Td(html.Span("🟢" if best > 0.7 else "⚪")),
+                        html.Td(
+                            html.Span(
+                                className=f"badge {badge}",
+                                children="🟢" if best > 0.7 else "⚪",
+                            )
+                        ),
                     ]
                 )
             )
+
         return dbc.Table(
             [
                 html.Thead(
@@ -74,7 +99,8 @@ def register_session_callbacks(app, get_engine_ref):
             ctx.triggered_id["index"] for c, i in zip(checks, ids, strict=False) if c
         ]
         if len(checked) < 2:
-            return {}
+            return go.Figure().to_dict()
+
         from meta_rl.persistence import get_persistence
 
         p = get_persistence()
@@ -84,7 +110,7 @@ def register_session_callbacks(app, get_engine_ref):
             if recs:
                 records_by_session[sid] = recs
         if not records_by_session:
-            return {}
+            return go.Figure().to_dict()
         return build_comparison_chart(records_by_session)
 
     @app.callback(
@@ -100,7 +126,10 @@ def register_session_callbacks(app, get_engine_ref):
             ctx.triggered_id["index"] for c, i in zip(checks, ids, strict=False) if c
         ]
         if len(checked) < 2:
-            return html.Div("Select 2+ sessions to compare", className="text-muted p-3")
+            return html.Div(
+                "Select 2+ sessions above to compare", className="text-muted p-3"
+            )
+
         from meta_rl.persistence import get_persistence
 
         p = get_persistence()
@@ -139,3 +168,5 @@ def register_session_callbacks(app, get_engine_ref):
         meta = p.load_session_metadata(session_id) or {}
         gen_stats = meta.get("generation_stats", [])
         return build_convergence_chart(gen_stats)
+
+    logger.debug("[DASH] Sessions callbacks registered")
