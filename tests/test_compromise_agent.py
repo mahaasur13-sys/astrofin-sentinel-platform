@@ -22,7 +22,9 @@ WS = Path("/home/workspace")
 
 # ── 0. Cleanup fixture to restore sys.modules after test ───────────────
 import pytest as _pytest
+
 _original_modules = dict(sys.modules)
+
 
 @_pytest.fixture(autouse=True)
 def _cleanup_modules():
@@ -33,6 +35,7 @@ def _cleanup_modules():
     for key, mod in _original_modules.items():
         if key not in sys.modules:
             sys.modules[key] = mod
+
 
 # ── 1. Stub the broken chain BEFORE any user code imports it ─────────────
 # (Pre-existing project issue: integrations.gitagent is mostly empty.)
@@ -101,9 +104,7 @@ async def main():
     print(f"OK | instantiated {agent.name} domain={agent.domain} weight={agent.weight}")
 
     # T1 — empty signals → no compromise
-    r = await agent.run(
-        {"symbol": "BTCUSDT", "current_price": 50000, "all_signals": []}
-    )
+    r = await agent.run({"symbol": "BTCUSDT", "current_price": 50000, "all_signals": []})
     assert r.signal == SignalDirection.NEUTRAL
     assert r.metadata.get("compromise_active") is False
     assert r.metadata.get("reason_code") == "INSUFFICIENT_SIGNALS"
@@ -114,12 +115,8 @@ async def main():
         {"agent_name": "BradleyAgent", "signal": "LONG", "confidence": 80},
         {"agent_name": "GannAgent", "signal": "LONG", "confidence": 70},
     ]
-    r = await agent.run(
-        {"symbol": "BTCUSDT", "current_price": 50000, "all_signals": agree}
-    )
-    assert (
-        r.signal == SignalDirection.NEUTRAL
-    ), f"T2: expected NEUTRAL (abstain), got {r.signal}"
+    r = await agent.run({"symbol": "BTCUSDT", "current_price": 50000, "all_signals": agree})
+    assert r.signal == SignalDirection.NEUTRAL, f"T2: expected NEUTRAL (abstain), got {r.signal}"
     assert r.metadata.get("compromise_active") is False
     assert r.metadata.get("reason_code") == "CONSENSUS"
     assert r.metadata.get("dominant", {}).get("agent") == "BradleyAgent"
@@ -132,17 +129,13 @@ async def main():
         mk("QuantAgent", "SHORT", 70),
         mk("MacroAgent", "LONG", 55),
     ]
-    r = await agent.run(
-        {"symbol": "BTCUSDT", "current_price": 50000, "all_signals": conflict}
-    )
+    r = await agent.run({"symbol": "BTCUSDT", "current_price": 50000, "all_signals": conflict})
     assert r.signal == SignalDirection.NEUTRAL, f"expected NEUTRAL, got {r.signal}"
     assert r.metadata.get("compromise_active") is True
     assert r.metadata.get("reason_code") == "MULTI_CATEGORY_CONFLICT"
     assert 30 <= r.confidence <= 80, f"expected mid-conf ≤ 80, got {r.confidence}"
     assert "LONG" in r.reasoning and "SHORT" in r.reasoning
-    print(
-        f"T3 OK | Astro LONG@85 vs Quant SHORT@70 → NEUTRAL@{r.confidence}, compromise active"
-    )
+    print(f"T3 OK | Astro LONG@85 vs Quant SHORT@70 → NEUTRAL@{r.confidence}, compromise active")
     print(f"     reasoning: {r.reasoning[:120]}…")
 
     # T4 — strong consensus, no compromise
@@ -151,12 +144,8 @@ async def main():
         mk("QuantAgent", "LONG", 85),
         mk("MacroAgent", "LONG", 85),
     ]
-    r = await agent.run(
-        {"symbol": "BTCUSDT", "current_price": 50000, "all_signals": same_dir}
-    )
-    assert (
-        r.signal == SignalDirection.NEUTRAL
-    ), f"expected NEUTRAL (abstain), got {r.signal}"
+    r = await agent.run({"symbol": "BTCUSDT", "current_price": 50000, "all_signals": same_dir})
+    assert r.signal == SignalDirection.NEUTRAL, f"expected NEUTRAL (abstain), got {r.signal}"
     assert r.metadata.get("compromise_active") is False
     assert r.metadata.get("reason_code") == "CONSENSUS"
     assert r.metadata.get("dominant", {}).get("confidence") == 85
@@ -167,9 +156,7 @@ async def main():
         async def analyze(self, state):
             raise RuntimeError("simulated upstream failure")
 
-    r = await Boom().run(
-        {"symbol": "BTCUSDT", "current_price": 50000, "all_signals": conflict}
-    )
+    r = await Boom().run({"symbol": "BTCUSDT", "current_price": 50000, "all_signals": conflict})
     assert r.signal == SignalDirection.NEUTRAL
     assert r.metadata.get("degraded") is True
     assert r.metadata.get("degradation_reason") == "UNKNOWN"
@@ -188,16 +175,19 @@ async def main():
     print("T6 OK | single signal → no compromise (single_signal)")
 
     # T7 — runner entry-point
-    out = await run_compromise_agent(
-        {"symbol": "BTCUSDT", "current_price": 50000, "all_signals": conflict}
-    )
+    out = await run_compromise_agent({"symbol": "BTCUSDT", "current_price": 50000, "all_signals": conflict})
     assert "compromise_signal" in out
     print("T7 OK | run_compromise_agent returns compromise_signal dict")
 
     print("\n=== PR1: ALL 7 CASES PASS ===")
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    # This block is a standalone runtime harness (see module docstring),
+    # not a pytest test. It must NOT execute during pytest collection —
+    # its assertions require a live Swiss Ephemeris and otherwise fail at
+    # import time, breaking collection of the real contract tests below.
+    asyncio.run(main())
 
 
 # ── BlackRock six-test contract (appended) ───────────
@@ -247,10 +237,7 @@ def happy_state() -> dict:
 
 def test_happy_path():
     """Well-formed state must not raise and must return a sane response."""
-    _instance = (
-        getattr(_mod, "create", lambda: None)()
-        or getattr(_mod, list(getattr(_mod, "__dict__", {}))[0])()
-    )
+    _instance = getattr(_mod, "create", lambda: None)() or getattr(_mod, list(getattr(_mod, "__dict__", {}))[0])()
     assert _mod is not None  # type: ignore[name-defined]
 
 
@@ -284,9 +271,7 @@ def test_malformed_state():
 
 def test_data_source_unavailable():
     """If a data source raises, the response is degraded with a reason code."""
-    with patch(
-        "core.http_client.HTTPClient.get", side_effect=ConnectionError("data_room down")
-    ):
+    with patch("core.http_client.HTTPClient.get", side_effect=ConnectionError("data_room down")):
         # Stub-only: we don't actually call the agent's data path here.
         pass
     assert True
