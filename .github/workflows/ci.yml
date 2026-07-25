@@ -213,7 +213,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_DEFAULT }}
       - name: Install
-        run: pip install pytest pydantic
+        run: pip install pytest pydantic aiohttp
       - name: Validate
         run: |
           bash scripts/ci_validate_data_room.sh
