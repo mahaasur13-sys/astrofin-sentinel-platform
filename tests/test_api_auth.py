@@ -12,38 +12,36 @@ class TestAPIAuth:
     @pytest.fixture(autouse=True, scope="class")
     def _setup_auth_env(self):
         """Isolate auth state: set env before importing app, restore after tests."""
-        # Save original values
         orig_api_key = os.environ.get("API_KEY")
         orig_require_auth = os.environ.get("REQUIRE_AUTH")
 
-        # Configure test auth state BEFORE importing api.main
         os.environ["API_KEY"] = "test-api-secret-key-123"
         os.environ["REQUIRE_AUTH"] = "true"
 
-        # Force reload auth state and import app with test config
         from core.auth import reload_auth_state
-
         reload_auth_state()
 
-        yield  # run all tests in this class
-
-        # Restore original env (cleanup)
-        if orig_api_key is None:
-            os.environ.pop("API_KEY", None)
-        else:
-            os.environ["API_KEY"] = orig_api_key
-        if orig_require_auth is None:
-            os.environ.pop("REQUIRE_AUTH", None)
-        else:
-            os.environ["REQUIRE_AUTH"] = orig_require_auth
+        try:
+            yield
+        finally:
+            if orig_api_key is None:
+                os.environ.pop("API_KEY", None)
+            else:
+                os.environ["API_KEY"] = orig_api_key
+            if orig_require_auth is None:
+                os.environ.pop("REQUIRE_AUTH", None)
+            else:
+                os.environ["REQUIRE_AUTH"] = orig_require_auth
+            reload_auth_state()
 
     @pytest.fixture(autouse=True, scope="class")
-    def _client(self):
+    def _client(self, _setup_auth_env):
         """Provide isolated TestClient after auth setup."""
         from api.main import app
 
         self.__class__.client = TestClient(app, raise_server_exceptions=False)
         yield
+        self.__class__.client.close()
 
     def test_health_returns_200(self):
         response = self.client.get("/health")
