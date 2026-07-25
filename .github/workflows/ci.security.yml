@@ -41,6 +41,7 @@ jobs:
       - name: detect-secrets (with baseline, exclude tests/ and docs/)
         run: |
           set +e
+          pip install ".[dev]" --dry-run --report /tmp/pip-report.json 2>/dev/null || true
           detect-secrets scan \
             --baseline .secrets.baseline \
             --exclude-files 'tests/' --exclude-files 'docs/' \
@@ -92,6 +93,7 @@ jobs:
         # If nothing changed, the step is a no-op.
         run: |
           set +e
+          pip install ".[dev]" --dry-run --report /tmp/pip-report.json 2>/dev/null || true
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             base="origin/${{ github.base_ref }}"
             git fetch --depth=1 origin "${{ github.base_ref }}" >/dev/null 2>&1 || true
@@ -122,6 +124,7 @@ jobs:
       - name: Ruff format check (PR-scoped, KI-125)
         run: |
           set +e
+          pip install ".[dev]" --dry-run --report /tmp/pip-report.json 2>/dev/null || true
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             base="origin/${{ github.base_ref }}"
             git fetch --depth=1 origin "${{ github.base_ref }}" >/dev/null 2>&1 || true
@@ -187,12 +190,13 @@ jobs:
           python-version: '3.12'
       - name: Install pip-audit
         run: pip install pip-audit==2.7.3
-      - name: pip-audit (requirements + requirements-dev)
+      - name: pip-audit (requirements + pyproject)
         run: |
           set +e
+          pip install ".[dev]" --dry-run --report /tmp/pip-report.json 2>/dev/null || true
           # pip-audit v2.x returns a JSON object: {"dependencies": {pkg: [findings]}}
           # (not the legacy v1.x list format). Normalize and report vulnerabilities.
-          pip-audit -r requirements.txt -r requirements-dev.txt -f json \
+          pip-audit -r requirements.txt --project . -f json \
             > /tmp/pip-audit.json 2>/tmp/pip-audit.err
           rc=$?
           cat /tmp/pip-audit.err
@@ -240,16 +244,17 @@ jobs:
       - name: Install safety
         if: env.skip_safety == '0'
         run: pip install safety==3.7.0
-      - name: safety scan (requirements.txt + requirements-dev.txt)
+      - name: safety scan (requirements + pyproject[dev])
         if: env.skip_safety == '0'
         continue-on-error: true
         env:
           SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
         run: |
           set +e
+          pip install ".[dev]" --dry-run --report /tmp/pip-report.json 2>/dev/null || true
           safety scan \
             --file requirements.txt \
-            --file requirements-dev.txt \
+            --file /tmp/safety-deps.txt \
             --output json \
             --save-json /tmp/safety.json \
             --save-html /tmp/safety.html \
