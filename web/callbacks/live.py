@@ -157,7 +157,7 @@ def render_live_status() -> html.Div:
                 ),
                 dbc.Badge(f"BTC: ${price:,.2f}", color="light", className="me-2"),
                 dbc.Badge(
-                    f"HALTH: {hc.get('status', 'OK')}",
+                    f"HEALTH: {hc.get('status', 'OK')}",
                     color="success" if hc.get("status") == "OK" else "danger",
                 ),
             ],

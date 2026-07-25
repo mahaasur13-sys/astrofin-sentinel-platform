@@ -239,7 +239,8 @@ def register_evolution_callbacks(app, get_engine_ref):
                     ),
                 ]
             )
-            get_engine_ref._engine = None
+            if hasattr(get_engine_ref, "_engine"):
+                get_engine_ref._engine = None
             return (
                 status,
                 True,

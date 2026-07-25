@@ -72,7 +72,8 @@ def _build_equity_and_dd(ec):
         )
         # Drawdown
         peak = np.maximum.accumulate(arr)
-        dd_pct = (peak - arr) / peak * 100
+        peak_safe = np.where(peak == 0, 1.0, peak)
+        dd_pct = (peak - arr) / peak_safe * 100
         dd_fig.add_trace(
             go.Scatter(
                 y=-dd_pct,
@@ -123,7 +124,8 @@ def _build_signal_chart(ec):
     if arr.ndim == 2 and arr.shape[1] > 1:
         arr = arr[:, 1]
     arr = arr.flatten()
-    rets = np.diff(arr) / arr[:-1]
+    denom = np.where(arr[:-1] == 0, 1.0, arr[:-1])
+    rets = np.diff(arr) / denom
     # Quantize signals: > 0.005 → LONG(+1), < -0.005 → SHORT(-1), else NEUTRAL(0)
     signals = np.where(rets > 0.005, 1, np.where(rets < -0.005, -1, 0))
     colors = np.where(
@@ -309,6 +311,7 @@ def register_strategy_callbacks(app):
 
         s_id = strategy_data.get("id", "unknown")
         safe = f"strategy_{s_id[:8]}_{datetime.now().strftime('%H%M%S')}.json"
+        safe = safe.replace("..", "_").replace("/", "_").replace("\\", "_")
         out_dir = os.path.join(
             os.path.dirname(os.path.dirname(__file__)), "data", "exports"
         )
@@ -341,6 +344,7 @@ def register_strategy_callbacks(app):
 
         s_id = strategy_data.get("id", "unknown")
         safe = f"strategy_{s_id[:8]}_{datetime.now().strftime('%H%M%S')}.py"
+        safe = safe.replace("..", "_").replace("/", "_").replace("\\", "_")
         out_dir = os.path.join(
             os.path.dirname(os.path.dirname(__file__)), "data", "exports"
         )
@@ -476,19 +480,19 @@ def register_strategy_callbacks(app):
         )
 
         # KPIs
-        r = eval_dict.get("sharpe", 0)
-        sharpe_str = f"{r:.2f}" if r else "\u2014"
+        r = eval_dict.get("sharpe")
+        sharpe_str = f"{r:.2f}" if r is not None else "\\u2014"
         pnl = eval_dict.get("risk_adjusted_pnl")
         pnl_str = f"{pnl:+.3f}" if pnl is not None else "\u2014"
         tr = eval_dict.get("trades", 0)
-        wr = eval_dict.get("win_rate", 0)
-        wr_str = f"{wr:.0%}" if wr else "\u2014"
-        dd = eval_dict.get("max_drawdown", 0)
-        dd_str = f"{dd:.1%}" if dd else "\u2014"
-        reward_val = record.get("reward", 0)
+        wr = eval_dict.get("win_rate")
+        wr_str = f"{wr:.0%}" if wr is not None else "\\u2014"
+        dd = eval_dict.get("max_drawdown")
+        dd_str = f"{dd:.1%}" if dd is not None else "\\u2014"
+        reward_val = record.get("reward")
         reward_str = f"{reward_val:+.4f}" if reward_val else "\u2014"
-        karl_q = ev.get("sharpe", 0)  # reuse sharpe as KARL proxy
-        karl_str = f"{karl_q:+.3f}"
+        karl_q = ev.get("sharpe")  # reuse sharpe as KARL proxy
+        karl_str = f"{karl_q:+.3f}" if karl_q is not None else "\\u2014"
 
         # Strategy ID bar
         id_display = html.Div(
