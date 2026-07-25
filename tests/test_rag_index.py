@@ -1,15 +1,24 @@
 """Unit tests for knowledge/rag_index.py — FAISS retrieval."""
 
+import pytest
+
+# The RAG index builds embeddings via sentence-transformers; without it the
+# index can never populate, so these tests are meaningless. Skip (not fail)
+# when the optional dependency is unavailable.
+pytest.importorskip("sentence_transformers")
+
 
 class TestRAGIndexInit:
     def test_index_initializes_with_documents(self):
         import knowledge.rag_index as rag
+
         rag.init_index()
         assert len(rag._DOCS) >= 3
         assert rag._INDEX is not None
 
     def test_retrieve_context_returns_string(self):
         import knowledge.rag_index as rag
+
         rag.init_index()
         result = rag.retrieve_context("Apple revenue")
         assert isinstance(result, str)
@@ -17,12 +26,14 @@ class TestRAGIndexInit:
 
     def test_retrieve_context_on_empty_query(self):
         import knowledge.rag_index as rag
+
         rag.init_index()
         result = rag.retrieve_context("")
         assert isinstance(result, str)
 
     def test_retrieve_context_limits_chunks(self):
         import knowledge.rag_index as rag
+
         rag.init_index()
         result = rag.retrieve_context("financial report", top_k=2)
         chunks = result.split("\n\n")
@@ -30,6 +41,7 @@ class TestRAGIndexInit:
 
     def test_retrieve_context_returns_relevant_docs(self):
         import knowledge.rag_index as rag
+
         rag.init_index()
         result = rag.retrieve_context("net income revenue profit")
         assert isinstance(result, str)
