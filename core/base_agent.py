@@ -3,11 +3,13 @@ AstroFin Sentinel v5 — Base Agent
 RAG-first agent implementation with knowledge retrieval.
 ADR-001 Sprint 3: Message-based interface (on_message, publish_event, contextvars)
 """
+
 from __future__ import annotations
 
 import contextvars
 import copy
 import logging
+import os
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -26,8 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 # ─── Context propagation (ADR-001 Риск #2, P3-07) ────────────────────
-_current_envelope: contextvars.ContextVar["TaskEnvelope | None"] = (
-    contextvars.ContextVar("_current_envelope", default=None)
+_current_envelope: contextvars.ContextVar["TaskEnvelope | None"] = contextvars.ContextVar(
+    "_current_envelope", default=None
 )
 
 
@@ -39,14 +41,16 @@ RAG_UNAVAILABLE: str = "RAG_UNAVAILABLE"
 TIMEOUT: str = "TIMEOUT"
 UNKNOWN: str = "UNKNOWN"
 
-VALID_DEGRADATION_REASONS: frozenset[str] = frozenset({
-    EPHEMERIS_UNAVAILABLE,
-    DATA_ROOM_TIMEOUT,
-    DATA_ROOM_ERROR,
-    RAG_UNAVAILABLE,
-    TIMEOUT,
-    UNKNOWN,
-})
+VALID_DEGRADATION_REASONS: frozenset[str] = frozenset(
+    {
+        EPHEMERIS_UNAVAILABLE,
+        DATA_ROOM_TIMEOUT,
+        DATA_ROOM_ERROR,
+        RAG_UNAVAILABLE,
+        TIMEOUT,
+        UNKNOWN,
+    }
+)
 
 
 class SignalDirection(str, Enum):
@@ -74,9 +78,7 @@ class AgentResponse:
             raise ValueError(f"confidence must be 0-100, got {self.confidence}")
 
     def to_dict(self) -> dict:
-        signal_value = (
-            self.signal.value if hasattr(self.signal, "value") else self.signal
-        )
+        signal_value = self.signal.value if hasattr(self.signal, "value") else self.signal
         return {
             "agent_name": self.agent_name,
             "signal": signal_value,
@@ -155,6 +157,7 @@ class BaseAgent(ABC, Generic[T]):
             return self._retriever
         try:
             from knowledge.hybrid_retriever import HybridRetriever
+
             self._retriever = HybridRetriever.create()
         except Exception as exc:
             logger.warning(
@@ -167,9 +170,7 @@ class BaseAgent(ABC, Generic[T]):
     async def retrieve(self, query: str, domain: str = None, top_k: int = 5) -> list[dict]:
         try:
             retriever = await self._get_retriever()
-            chunks = await retriever.retrieve(
-                query=query, domain=domain or self.domain, top_k=top_k
-            )
+            chunks = await retriever.retrieve(query=query, domain=domain or self.domain, top_k=top_k)
             return chunks or []
         except Exception as exc:
             logger.warning(
@@ -183,9 +184,7 @@ class BaseAgent(ABC, Generic[T]):
             return "• RAG: нет релевантных источников"
         lines = ["• RAG источники:"]
         for i, chunk in enumerate(chunks, 1):
-            lines.append(
-                f"  [{i}] {chunk['source']} (релевантность: {chunk['relevance_score']:.0%})"
-            )
+            lines.append(f"  [{i}] {chunk['source']} (релевантность: {chunk['relevance_score']:.0%})")
             lines.append(f"      → {chunk['title']}")
             preview = chunk["content"][:100].replace("\n", " ")
             lines.append(f"      → {preview}...")
@@ -204,9 +203,7 @@ class BaseAgent(ABC, Generic[T]):
         """
         pass
 
-    async def _build_prompt(
-        self, user_task: str, extra_context: str = "", use_rag: bool = True
-    ) -> str:
+    async def _build_prompt(self, user_task: str, extra_context: str = "", use_rag: bool = True) -> str:
         parts = [f"# Instructions for {self.name}\n\n{self.instructions_md}"]
         if use_rag:
             try:
@@ -221,7 +218,6 @@ class BaseAgent(ABC, Generic[T]):
             parts.append(f"\n# Current Context\n\n{extra_context}")
         return "\n\n".join(parts)
 
-
     def _get_rag_context(self, query: str) -> str:
         if not getattr(self, "use_rag", False):
             return ""
@@ -229,23 +225,28 @@ class BaseAgent(ABC, Generic[T]):
         if not rag:
             return ""
         try:
-            from core.settings import settings; chunks = rag.retrieve(query, top_k=settings.RAG_TOP_K)
+            from core.settings import settings
+
+            chunks = rag.retrieve(query, top_k=settings.RAG_TOP_K)
             if not chunks:
                 return ""
             ctx = "--- RELEVANT KNOWLEDGE BASE CONTEXT ---"
             for j, c in enumerate(chunks):
                 src = c.metadata.get("source", "unknown")
-                ctx += f"[{j+1}] (Source: {src}) {c.text}"
+                ctx += f"[{j + 1}] (Source: {src}) {c.text}"
             ctx += "--- END CONTEXT ---"
             logger.info("rag_context_enriched", agent=self.name, chunks_used=len(chunks))
             return ctx
         except Exception as e:
             logger.error("rag_retrieval_failed", agent=self.name, error=str(e))
             return ""
+
     def generate(self, prompt: str, session_id: str | None = None) -> str:
         from core.llm_router import route
+
         try:
             from knowledge.rag_index import retrieve_context
+
             context = retrieve_context(prompt)
         except Exception:
             context = ""
@@ -304,7 +305,9 @@ class BaseAgent(ABC, Generic[T]):
                 trace_id=envelope.trace_id,
                 traceparent=envelope.traceparent,
                 status=TaskStatus.COMPLETED,
-                result=agent_response if isinstance(agent_response, dict) else (agent_response.to_dict() if hasattr(agent_response, "to_dict") else {}),
+                result=agent_response
+                if isinstance(agent_response, dict)
+                else (agent_response.to_dict() if hasattr(agent_response, "to_dict") else {}),
                 schema_version=envelope.schema_version,
                 execution_time_ms=(time.time() - envelope.created_at_epoch) * 1000,
             )
@@ -350,22 +353,26 @@ class BaseAgent(ABC, Generic[T]):
 class _DegradedRetriever:
     """No-op retriever when RAG stack is unavailable."""
 
-    async def retrieve(
-        self, query: str, domain: str | None = None, top_k: int = 5
-    ) -> list[dict]:
+    async def retrieve(self, query: str, domain: str | None = None, top_k: int = 5) -> list[dict]:
         return []
+
 
 # ── Phase 5.3: RAG Singleton + Agent Integration ──────────────────────
 
 _rag_instance: "RAGIndex | None" = None
+
 
 def get_rag() -> "RAGIndex | None":
     """Ленивый потокобезопасный Singleton для Production RAGIndex."""
     global _rag_instance
     if _rag_instance is not None:
         return _rag_instance
+    if os.getenv("RAG_ENABLED", "true").strip().lower() not in ("1", "true", "yes", "on"):
+        logger.debug("RAG disabled via RAG_ENABLED; get_rag() returning None")
+        return None
     try:
         from knowledge.rag_index import RAGIndex
+
         _rag_instance = RAGIndex()
         logger.info("RAGIndex singleton initialized", chunks=len(_rag_instance.chunks))
     except Exception as exc:
