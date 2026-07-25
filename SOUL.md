@@ -29,15 +29,15 @@
 | R-11 | Coverage нового агента = 100% unit + 1 integration |
 | R-12 | Subtree/submodule — запрещены; всё inlined в master |
 
-## Текущее состояние (2026-07-22 — GA-ready ✅ v1.0.0-ga)
+## Текущее состояние (2026-07-25 — Audit Closed ✅ v2026.07.25-audit-closed)
 
-- **Branch:** `main` @ `911b408` (Sprint 8.1 Paper Trading integration)
-- **P0 Security:** 0 HIGH bandit (SQLi, RCE eval, weak hashes → sha256)
-- **P1 Code Quality:** 97% print→structlog, 12 critical except:pass→log.warning
-- **P2 Consolidation:** God-files split (2→6), dead code (539 files), requirements (7→3)
-- **P3 Hygiene:** duplicate repos archived, stale branches deleted
-- **Sprint 8.1:** Paper Trading — PaperBroker + factory + orchestrator wire-up
-- **Tests:** 664 passed
+- **Branch:** `master` @ `c1b7e8d1` (audit closed, 9 CI workflows, 0 open PRs)
+- **Audit:** 10/10 findings closed, 13 PRs merged (#268–#280), 3 waves
+- **P0 Security:** 0 HIGH bandit, SQL injection fixed, hardcoded password → env var
+- **P1 Code Quality:** callbacks.py 1032→5 modules, F401 per-file-ignores, ruff unlift
+- **P2 Consolidation:** CI 17→9 workflows, deps unified in pyproject.toml [dev], uv.lock synced
+- **P3 Hygiene:** 7 agent duplicates archived, 35 outdated packages updated
+- **Next:** Sprint A — Production DB (TimescaleDB hypertables, WAL-G) + Observability (SLO/SLI, Grafana)
 
 ## Правила для AI-агентов (обязательные)
 

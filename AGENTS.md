@@ -1,9 +1,9 @@
 # AstroFin Sentinel V5 — Project Memory
 
-**Status:** ✅ General Availability (GA) — v1.0.0-ga, P0/P1/P2 consolidated (2026-07-22)
+**Status:** ✅ Audit Closed — v2026.07.25-audit-closed (10/10 findings). Sprint A: Production DB + Observability (2026-07-28 – 08-08). 9 CI workflows, 0 open PRs.
 **Architecture:** RAG-First + LangGraph + Multi-Agent + Hybrid Signal
 **Pattern:** Internal Board of Directors (Совет Директоров)
-**Working dir:** `~/Projects/astrofin-sentinel-platform` (Felix) / `/home/workspace/Projects/astrofin-sentinel-platform` (Zo)
+**Working dir:** `~/Projects/astrofin-sentinel-platform` (Felix) / `/home/workspace` (Zo) — flat structure, no nested subdir
 **Inlined submodules:** AsurDev, atom-federation-core, atom-federation-os, ATOM-Consensus, Hermes Agent, home-cluster-iac — больше нет `.gitmodules`.
 
 > Изменения против версии 2026-03-26: перенесены 8 артефактов B1/4.x (см. PR #201), введён `data_room/`, `monitoring/health_endpoints.py`, `core/settings.py`, `web/middleware/`, `artifacts/best_practices/`, переименован `meta_rl/quant/metrics.py` → `meta_rl/quant/risk.py`, удалён `audit_repo/`, добавлены R-04..R-12 правила архитектурного линтера.
