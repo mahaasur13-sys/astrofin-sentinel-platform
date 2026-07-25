@@ -122,9 +122,19 @@ class PostgresHistoryDB(HistoryDB):
                         finished_at     = EXCLUDED.finished_at
                     """,
                     (
-                        session_id, symbol, timeframe, query_type, price,
-                        flows_run, agent_count, signal, confidence,
-                        reasoning, final_output, started_at, finished_at,
+                        session_id,
+                        symbol,
+                        timeframe,
+                        query_type,
+                        price,
+                        flows_run,
+                        agent_count,
+                        signal,
+                        confidence,
+                        reasoning,
+                        final_output,
+                        started_at,
+                        finished_at,
                     ),
                 )
             conn.commit()
@@ -133,16 +143,13 @@ class PostgresHistoryDB(HistoryDB):
     def get(self, session_id: str) -> dict | None:
         with self._conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    "SELECT * FROM sessions WHERE session_id = %s", (session_id,)
-                )
+                cur.execute("SELECT * FROM sessions WHERE session_id = %s", (session_id,))
                 row = cur.fetchone()
         if not row:
             return None
         return self._row_to_full_output(dict(row))
 
-    def list(self, symbol: str = None, signal: str = None,
-             limit: int = 20, offset: int = 0) -> list[dict]:
+    def list(self, symbol: str = None, signal: str = None, limit: int = 20, offset: int = 0) -> list[dict]:
         sql = ["SELECT * FROM sessions WHERE 1=1"]
         args = []
 

@@ -14,6 +14,7 @@ from pathlib import Path
 from core.checkpoint import get_project_root
 
 import logging
+
 log = logging.getLogger(__name__)
 
 # ─── Database Path ─────────────────────────────────────────────────────────────
@@ -74,9 +75,7 @@ class HistoryDB:
         self._init_db()
 
     def _conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(
-            str(self.db_path), timeout=10, isolation_level="IMMEDIATE"
-        )
+        conn = sqlite3.connect(str(self.db_path), timeout=10, isolation_level="IMMEDIATE")
         conn.row_factory = sqlite3.Row
         return conn
 
@@ -147,9 +146,7 @@ class HistoryDB:
     def get(self, session_id: str) -> dict | None:
         """Retrieve a session by session_id. Returns None if not found."""
         with self._conn() as conn:
-            row = conn.execute(
-                "SELECT * FROM sessions WHERE session_id = ?", (session_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM sessions WHERE session_id = ?", (session_id,)).fetchone()
 
         if not row:
             return None
@@ -257,20 +254,14 @@ class HistoryDB:
                 trend_sql += " AND symbol = ?"
                 trend_args = (symbol,)
 
-            trend_rows = conn.execute(
-                trend_sql + " GROUP BY DATE(created_at) ORDER BY day DESC", trend_args
-            ).fetchall()
+            trend_rows = conn.execute(trend_sql + " GROUP BY DATE(created_at) ORDER BY day DESC", trend_args).fetchall()
 
         dist = {r["final_signal"]: r["cnt"] for r in dist_rows}
         total = meta["total"] or 0
 
         long_cnt = dist.get("LONG", 0)
         short_cnt = dist.get("SHORT", 0)
-        win_rate = (
-            round(long_cnt / (long_cnt + short_cnt), 4)
-            if (long_cnt + short_cnt) > 0
-            else None
-        )
+        win_rate = round(long_cnt / (long_cnt + short_cnt), 4) if (long_cnt + short_cnt) > 0 else None
 
         return {
             "total_sessions": total,
@@ -334,6 +325,7 @@ def get_db() -> HistoryDB:
         return _db
 
     import os
+
     dsn = os.environ.get("DATABASE_URL", "")
     if dsn and any(kw in dsn.lower() for kw in ("postgres", "postgresql", "psycopg")):
         try:

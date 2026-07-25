@@ -145,9 +145,7 @@ class MetricsDB:
             c.executescript(_SCHEMA)
             # Add timeframe column if missing ( preexisting DB)
             try:
-                c.execute(
-                    "ALTER TABLE backtest_runs ADD COLUMN timeframe TEXT NOT NULL DEFAULT 'SWING'"
-                )
+                c.execute("ALTER TABLE backtest_runs ADD COLUMN timeframe TEXT NOT NULL DEFAULT 'SWING'")
                 c.commit()
             except Exception:
                 pass
@@ -228,9 +226,7 @@ class MetricsDB:
             first_wr = statistics.mean(r.win_rate for r in first_half)
             second_wr = statistics.mean(r.win_rate for r in second_half)
             delta = second_wr - first_wr
-            trending = (
-                "improving" if delta > 2 else "declining" if delta < -2 else "stable"
-            )
+            trending = "improving" if delta > 2 else "declining" if delta < -2 else "stable"
         else:
             trending = "stable"
 
