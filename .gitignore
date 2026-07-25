@@ -98,3 +98,6 @@ data/rag_index/
 hmm_dashboard.html
 *.bak2
 *.bak3
+
+# Nested duplicate — git root IS the project
+astrofin-sentinel-platform/
