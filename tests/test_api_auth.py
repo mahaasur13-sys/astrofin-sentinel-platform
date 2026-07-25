@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import os
 
 import pytest
@@ -18,8 +19,13 @@ class TestAPIAuth:
         os.environ["API_KEY"] = "test-api-secret-key-123"
         os.environ["REQUIRE_AUTH"] = "true"
 
-        from core.auth import reload_auth_state
+        import core.auth
+        reload_auth_state = core.auth.reload_auth_state
         reload_auth_state()
+
+        # Ensure api.main sees fresh auth state (CI fix: Pydantic caches Settings)
+        import api.main as api_main
+        importlib.reload(api_main)
 
         try:
             yield
@@ -37,9 +43,8 @@ class TestAPIAuth:
     @pytest.fixture(autouse=True, scope="class")
     def _client(self, _setup_auth_env):
         """Provide isolated TestClient after auth setup."""
-        from api.main import app
-
-        self.__class__.client = TestClient(app, raise_server_exceptions=False)
+        import api.main as api_main
+        self.__class__.client = TestClient(api_main.app, raise_server_exceptions=False)
         yield
         self.__class__.client.close()
 
