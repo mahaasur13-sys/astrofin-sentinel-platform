@@ -186,7 +186,8 @@ class BacktestRunner:
         n = len(rows)
 
         lookback = 60
-        self.stats.equity_curve = [self.initial_capital]
+        # One equity point per input bar; empty input yields an empty curve.
+        self.stats.equity_curve = [self.initial_capital] if n else []
 
         for i in range(1, n):
             current_price = rows[i]["close"]
