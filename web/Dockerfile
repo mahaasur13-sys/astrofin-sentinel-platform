@@ -4,17 +4,29 @@
 # Multi-stage build, slim runtime.
 # =============================================================================
 
+ARG UV_VERSION=0.6.14
+
+# uv provides the single source of truth for dependencies (pyproject.toml + uv.lock).
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+
 FROM python:3.12-slim AS builder
 ENV PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
+
+COPY --from=uv /usr/local/bin/uv /usr/local/bin/uv
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential gcc \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
-COPY requirements-web.txt ./
-RUN pip install --upgrade pip && pip install -r requirements-web.txt
+# Export the "web" extra (Dash/Flask/gunicorn + base runtime) from the locked
+# resolution and install it. Replaces the former requirements-web.txt.
+COPY pyproject.toml uv.lock ./
+RUN uv export --frozen --no-hashes --no-dev --extra web --no-emit-project \
+        -o /tmp/requirements-web.txt \
+    && pip install --upgrade pip \
+    && pip install -r /tmp/requirements-web.txt
 
 # -------- runtime --------
 FROM python:3.12-slim AS runtime
