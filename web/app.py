@@ -213,12 +213,12 @@ def update_clock(_):
 
 
 # ── Register callbacks ──────────────────────────────────────────────────────────
-from web.callbacks import register_callbacks
-from web.components.agents_live import agents_live_tab
-from web.sessions_callbacks import register_sessions_callbacks
+# Single entry point aggregating every domain registrar from the web.callbacks
+# package (routing, evolution, live, strategy, sessions). Sessions are now
+# registered here too, so the former web/sessions_callbacks.py call is dropped.
+from web.callbacks import register_all_callbacks
 
-register_callbacks(app, _engine_ref)
-register_sessions_callbacks(app)
+register_all_callbacks(app, _engine_ref)
 
 _log.info(f"[DASH] AstroFinSentinelV5 ready → http://0.0.0.0:{PORT}")
 _log.info(
