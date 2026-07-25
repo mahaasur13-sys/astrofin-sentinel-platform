@@ -4,4 +4,4 @@
 # Example configs and docs
 deploy/iac/docs/deployment-day1-day7.md
 deploy/iac/terraform/modules/kubernetes/main.tf
-src/bridges/roma/billing/stripe_client.py
+bridge/roma/billing/stripe_client.py
