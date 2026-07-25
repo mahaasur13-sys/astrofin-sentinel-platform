@@ -14,6 +14,7 @@ from pathlib import Path
 from core.checkpoint import get_project_root
 
 import logging
+
 log = logging.getLogger(__name__)
 
 # ─── Database Path ─────────────────────────────────────────────────────────────
@@ -74,9 +75,7 @@ class HistoryDB:
         self._init_db()
 
     def _conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(
-            str(self.db_path), timeout=10, isolation_level="IMMEDIATE"
-        )
+        conn = sqlite3.connect(str(self.db_path), timeout=10, isolation_level="IMMEDIATE")
         conn.row_factory = sqlite3.Row
         return conn
 
@@ -147,9 +146,7 @@ class HistoryDB:
     def get(self, session_id: str) -> dict | None:
         """Retrieve a session by session_id. Returns None if not found."""
         with self._conn() as conn:
-            row = conn.execute(
-                "SELECT * FROM sessions WHERE session_id = ?", (session_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM sessions WHERE session_id = ?", (session_id,)).fetchone()
 
         if not row:
             return None
@@ -202,44 +199,45 @@ class HistoryDB:
             args = (days_arg,)
 
         with self._conn() as conn:
-            meta_sql = """
+            # NOTE: `where` below is composed only of static SQL fragments defined
+            # in this method; every user value (days/symbol) is bound through the
+            # `args` tuple. The `# nosec B608` markers sit on the concatenation
+            # lines that bandit reports, documenting the verified false positive.
+            meta_base = """
                 SELECT
                     COUNT(*)                          AS total,
                     AVG(final_confidence)              AS avg_conf,
                     MIN(final_confidence)              AS min_conf,
                     MAX(final_confidence)              AS max_conf
                 FROM sessions
-            """ + where
-            meta = conn.execute(meta_sql, args).fetchone()  # nosec B608
+            """
+            meta_sql = meta_base + where  # nosec B608 — static text + bound args
+            meta = conn.execute(meta_sql, args).fetchone()
 
-            dist_sql = (
-                """
+            dist_head = """
                 SELECT final_signal, COUNT(*) AS cnt
                 FROM sessions
             """
-                + where
-                + """
+            dist_tail = """
                 GROUP BY final_signal
                 ORDER BY cnt DESC
             """
-            )
-            dist_rows = conn.execute(dist_sql, args).fetchall()  # nosec B608
+            dist_sql = dist_head + where + dist_tail  # nosec B608 — static text + bound args
+            dist_rows = conn.execute(dist_sql, args).fetchall()
 
-            daily_sql = (
-                """
+            daily_head = """
                 SELECT
                     DATE(created_at)                    AS day,
                     COUNT(*)                            AS sessions,
                     AVG(final_confidence)               AS avg_conf
                 FROM sessions
             """
-                + where
-                + """
+            daily_tail = """
                 GROUP BY DATE(created_at)
                 ORDER BY day ASC
             """
-            )
-            conn.execute(daily_sql, args).fetchall()  # nosec B608
+            daily_sql = daily_head + where + daily_tail  # nosec B608 — static text + bound args
+            conn.execute(daily_sql, args).fetchall()
 
             # Recent trend: LONG vs SHORT ratio per day (last 7 days)
             trend_sql = """
@@ -256,20 +254,14 @@ class HistoryDB:
                 trend_sql += " AND symbol = ?"
                 trend_args = (symbol,)
 
-            trend_rows = conn.execute(
-                trend_sql + " GROUP BY DATE(created_at) ORDER BY day DESC", trend_args
-            ).fetchall()
+            trend_rows = conn.execute(trend_sql + " GROUP BY DATE(created_at) ORDER BY day DESC", trend_args).fetchall()
 
         dist = {r["final_signal"]: r["cnt"] for r in dist_rows}
         total = meta["total"] or 0
 
         long_cnt = dist.get("LONG", 0)
         short_cnt = dist.get("SHORT", 0)
-        win_rate = (
-            round(long_cnt / (long_cnt + short_cnt), 4)
-            if (long_cnt + short_cnt) > 0
-            else None
-        )
+        win_rate = round(long_cnt / (long_cnt + short_cnt), 4) if (long_cnt + short_cnt) > 0 else None
 
         return {
             "total_sessions": total,
@@ -333,6 +325,7 @@ def get_db() -> HistoryDB:
         return _db
 
     import os
+
     dsn = os.environ.get("DATABASE_URL", "")
     if dsn and any(kw in dsn.lower() for kw in ("postgres", "postgresql", "psycopg")):
         try:

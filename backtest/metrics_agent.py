@@ -145,9 +145,7 @@ class MetricsDB:
             c.executescript(_SCHEMA)
             # Add timeframe column if missing ( preexisting DB)
             try:
-                c.execute(
-                    "ALTER TABLE backtest_runs ADD COLUMN timeframe TEXT NOT NULL DEFAULT 'SWING'"
-                )
+                c.execute("ALTER TABLE backtest_runs ADD COLUMN timeframe TEXT NOT NULL DEFAULT 'SWING'")
                 c.commit()
             except Exception:
                 pass
@@ -174,7 +172,9 @@ class MetricsDB:
 
     def list(self, symbol: str = None, limit: int = 50) -> list[BacktestRun]:
         cols = list(BacktestRun.__dataclass_fields__.keys())
-        sql = f"SELECT {','.join(cols)} FROM backtest_runs"
+        # nosec B608: column names come from the dataclass definition (code-controlled,
+        # never user input); the only user value (symbol/limit) is bound via `?` below.
+        sql = f"SELECT {','.join(cols)} FROM backtest_runs"  # nosec B608
         args: list = []
         if symbol:
             sql += " WHERE symbol = ?"
@@ -193,7 +193,9 @@ class MetricsDB:
             args.append(symbol)
 
         with self._conn() as c:
-            rows = c.execute(f"SELECT * FROM backtest_runs {where}", args).fetchall()
+            # nosec B608: `where` is built from static string fragments only; all
+            # user values (symbol/days) are bound through `args` placeholders.
+            rows = c.execute(f"SELECT * FROM backtest_runs {where}", args).fetchall()  # nosec B608
             if not rows:
                 return None
             names = rows[0].keys()
@@ -224,9 +226,7 @@ class MetricsDB:
             first_wr = statistics.mean(r.win_rate for r in first_half)
             second_wr = statistics.mean(r.win_rate for r in second_half)
             delta = second_wr - first_wr
-            trending = (
-                "improving" if delta > 2 else "declining" if delta < -2 else "stable"
-            )
+            trending = "improving" if delta > 2 else "declining" if delta < -2 else "stable"
         else:
             trending = "stable"
 

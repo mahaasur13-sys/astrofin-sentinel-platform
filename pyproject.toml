@@ -163,4 +163,7 @@ ignore = ["E501", "F401", "BLE001", "E402", "E702", "E741", "E701", "C901", "F40
 
 [tool.bandit]
 exclude_dirs = ["audit_repo", "tests", "bench", "graphify-out", "pop-os-setup", "acos-contracts", "scripts", "kernel"]
-skips = ["B324", "B307", "B602", "B310", "B104", "B306", "B102", "B108", "B608", "B301", "B701"]
+# Step 3 / Wave 1 (2026-07-25): un-masked B324 (weak hash) and B608 (SQL string
+# construction). Real findings fixed in code; verified false positives carry a
+# per-line `# nosec B608` with justification. Remaining skips are pending waves.
+skips = ["B307", "B602", "B310", "B104", "B306", "B102", "B108", "B301", "B701"]
