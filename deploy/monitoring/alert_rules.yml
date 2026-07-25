@@ -168,3 +168,140 @@ groups:
         annotations:
           summary: "Test alert from AstroFin Sentinel Platform"
           description: "Verifies Alertmanager → Slack/PagerDuty routing."
+      # ------------------------------------------------------------------
+      # Pod restart storm (> 3 restarts / 5m)
+      # ------------------------------------------------------------------
+      - alert: PodRestartStorm
+        expr: |
+          rate(kube_pod_container_status_restarts_total{
+            namespace="astrofin-sentinel",
+            container!~"istio-proxy|linkerd-proxy"
+          }[5m]) * 300 > 3
+        for: 5m
+        labels:
+          severity: critical
+          team: sre
+          category: infra
+        annotations:
+          summary: "Pod {{ $labels.pod }} restarting rapidly"
+          description: |
+            Container {{ $labels.container }} has restarted more than
+            3 times in 5 minutes. Check OOMKill, liveness probe, or panic.
+          runbook: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#podrestartstorm
+
+      # ------------------------------------------------------------------
+      # CPU throttled > 25% of periods
+      # ------------------------------------------------------------------
+      - alert: PodCPUThrottled
+        expr: |
+          (
+            rate(container_cpu_cfs_throttled_seconds_total{
+              namespace="astrofin-sentinel"
+            }[5m])
+            /
+            rate(container_cpu_cfs_periods_total{
+              namespace="astrofin-sentinel"
+            }[5m])
+          ) > 0.25
+        for: 10m
+        labels:
+          severity: warning
+          team: sre
+          category: infra
+        annotations:
+          summary: "Pod {{ $labels.pod }} испытывает CPU throttling"
+          description: |
+            Более 25% CPU-периодов подвержены throttling.
+            Рекомендуется увеличить CPU limit или оптимизировать код.
+          runbook: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#podcputhrottled
+
+      # ------------------------------------------------------------------
+      # Memory usage > 85% of limit
+      # ------------------------------------------------------------------
+      - alert: PodMemoryPressure
+        expr: |
+          container_memory_working_set_bytes{namespace="astrofin-sentinel"}
+            /
+          container_spec_memory_limit_bytes{namespace="astrofin-sentinel"}
+            > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          team: sre
+          category: infra
+        annotations:
+          summary: "Pod {{ $labels.pod }} использует > 85% memory limit"
+          description: |
+            memory_working_set = {{ $value | humanizePercentage }} of limit.
+            Возможен OOMKill при росте нагрузки.
+          runbook: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#podmemorypressure
+
+      # ------------------------------------------------------------------
+      # Deployment replicas mismatch
+      # ------------------------------------------------------------------
+      - alert: DeploymentReplicasMismatch
+        expr: |
+          kube_deployment_spec_replicas{namespace="astrofin-sentinel"}
+            !=
+          kube_deployment_status_replicas_available{namespace="astrofin-sentinel"}
+        for: 5m
+        labels:
+          severity: warning
+          team: sre
+          category: infra
+        annotations:
+          summary: "Deployment {{ $labels.deployment }} replicas mismatch"
+          description: |
+            spec={{ $labels.deployment }} replicas ≠ available replicas.
+            Возможна проблема с rolling update.
+          runbook: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#deploymentreplicasmismatch
+
+      # ------------------------------------------------------------------
+      # Disk pressure on PostgreSQL volume
+      # ------------------------------------------------------------------
+      - alert: PostgresDiskPressure
+        expr: |
+          kubelet_volume_stats_available_bytes{
+            namespace="astrofin-sentinel",
+            persistentvolumeclaim=~"postgres-.*"
+          }
+            /
+          kubelet_volume_stats_capacity_bytes{
+            namespace="astrofin-sentinel",
+            persistentvolumeclaim=~"postgres-.*"
+          }
+            < 0.15
+        for: 10m
+        labels:
+          severity: critical
+          team: sre
+          category: infra
+        annotations:
+          summary: "PostgreSQL PVC < 15% свободного места"
+          description: |
+            available_bytes / capacity = {{ $value | humanizePercentage }}.
+            WAL archiving might fail. Run `wal-g backup-push` and expand volume.
+          runbook: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#postgresdiskpressure
+
+      # ------------------------------------------------------------------
+      # WAL-G backup stale (no successful backup in 28h)
+      # ------------------------------------------------------------------
+      - alert: WALGBackupStale
+        expr: |
+          time() - (
+            max by (instance) (walg_backup_last_success_timestamp)
+            or
+            vector(1700000000)
+          ) > 100800
+        for: 2m
+        labels:
+          severity: critical
+          team: sre
+          category: backup
+        annotations:
+          summary: "WAL-G backup старше 28 часов"
+          description: |
+            Последний успешный WAL-G backup сделан более 28h назад.
+            RPO нарушен. Проверьте `wal-g backup-list` и cron.
+          runbook: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#walgbackupstale
+

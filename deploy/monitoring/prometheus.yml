@@ -13,10 +13,9 @@ rule_files:
   - /etc/prometheus/recording_rules.yml
   - /etc/prometheus/alert_rules.yml
 
-# `alerts.yml` and `prometheus-alerts.yml` are kept for backwards
-# compatibility with existing Alertmanager routing; new alerts go
-# into `alert_rules.yml` (groups: astrofin_slo, astrofin_service_health,
-# astrofin_meta).
+# `alert_rules.yml` is the single source of truth (15 alerts:
+# SLO budget burn, service health, K8s infra, WAL-G backup).
+# `prometheus-alerts.yml` removed 2026-07-25 (consolidated into alert_rules.yml).
 
 scrape_configs:
   # Web dashboard

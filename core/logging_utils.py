@@ -21,7 +21,7 @@ from typing import Any, Mapping
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 # JWT: three base64url segments separated by dots.
 _JWT_RE = re.compile(
-    r"\beyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\b"
+    r"\beyJ[A-Za-z0-9_\-]{4,}\.[A-Za-z0-9_\-]{4,}\.[A-Za-z0-9_\-]{4,}\b"
 )
 # Bearer / Token / Authorization header values.
 _BEARER_RE = re.compile(r"(?i)(Bearer|Token|Authorization)\s+[A-Za-z0-9._\-]{8,}")
@@ -43,8 +43,9 @@ _PREFIXED_KEY_RE = re.compile(
 _REDACTED = "[REDACTED]"
 
 
-def _scrub_string(value: str) -> str:
-    """Apply all scrubbing patterns to a single string."""
+def _scrub_string(value: object) -> object:
+    if not isinstance(value, str):
+        return value
     value = _EMAIL_RE.sub(_REDACTED, value)
     value = _JWT_RE.sub(_REDACTED, value)
     value = _BEARER_RE.sub(lambda m: f"{m.group(1)} {_REDACTED}", value)
@@ -77,6 +78,8 @@ def scrub_pii(logger, method_name: str, event_dict: dict) -> dict:
     processors (including any key renames). Returns the modified
     dict so the next processor in the chain sees redacted values.
     """
+    if not isinstance(event_dict, dict):
+        return event_dict
     if not event_dict:
         return event_dict
     for key, value in list(event_dict.items()):

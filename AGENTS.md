@@ -1,6 +1,6 @@
 # AstroFin Sentinel V5 — Project Memory
 
-**Status:** ✅ Audit Closed — v2026.07.25-audit-closed (10/10 findings). Sprint A: Production DB + Observability (2026-07-28 – 08-08). 9 CI workflows, 0 open PRs.
+**Status:** ✅ Sprint A complete — 6/6 tasks. Observability stack: 15 Prometheus alerts, 5 Grafana dashboards, WAL-G backup configured, PII scrubber 19/19. 9 CI workflows, 0 open PRs.
 **Architecture:** RAG-First + LangGraph + Multi-Agent + Hybrid Signal
 **Pattern:** Internal Board of Directors (Совет Директоров)
 **Working dir:** `~/Projects/astrofin-sentinel-platform` (Felix) / `/home/workspace` (Zo) — flat structure, no nested subdir

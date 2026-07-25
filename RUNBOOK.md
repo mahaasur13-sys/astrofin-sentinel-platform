@@ -36,15 +36,41 @@ kubectl -n astrofin rollout restart deploy/ml-inference
 kubectl -n astrofin rollout status  deploy/ml-inference
 ```
 
-### Restore the analytics DB from backup
+### Backup & Disaster Recovery (WAL-G)
 
-PITR via WAL-G is not yet configured (issue #131). Until then:
+**Architecture:** WAL-G sidecar continuously archives WAL segments and takes daily full base backups. Backups stored in `WALG_S3_PREFIX` (S3-compatible) or `WALG_FILE_PREFIX` (local filesystem).
 
-1. `systemctl stop astrofin-web`
-2. `cp data/history.db data/history.db.broken-$(date +%s)`
-3. Restore from the latest S3 snapshot: `aws s3 cp s3://astrofin-backups/history/latest.db data/history.db`
-4. Re-apply migrations forward only: `python -m migrations.migrate up`
-5. `systemctl start astrofin-web && curl -fsS http://127.0.0.1:8050/healthz`
+Config: `deploy/wal-g/wal-g.env`. Scripts: `deploy/wal-g/backup.sh`, `deploy/wal-g/restore.sh`.
+
+#### Take a manual full backup
+```bash
+docker compose exec wal-g-backup wal-g backup-push /var/lib/postgresql/data
+docker compose exec wal-g-backup wal-g backup-list  # verify
+```
+
+#### Restore to the latest backup
+1. `systemctl stop astrofin-web` or `docker compose stop web`
+2. `docker compose stop postgres`
+3. `docker compose run --rm -e WALG_S3_PREFIX="${WALG_S3_PREFIX}" -v astrofin_pgdata:/var/lib/postgresql/data wal-g-backup wal-g backup-fetch /var/lib/postgresql/data LATEST`
+4. `docker compose up -d postgres && sleep 5 && docker compose exec postgres pg_isready -U astrofin`
+5. `python -m migrations.migrate up`
+6. `systemctl start astrofin-web && curl -fsS http://127.0.0.1:8050/healthz`
+
+#### Point-in-time recovery (PITR)
+```bash
+docker compose run --rm -e WALG_S3_PREFIX="${WALG_S3_PREFIX}" -e PITR="2026-07-25T12:00:00Z" -v astrofin_pgdata:/var/lib/postgresql/data wal-g-backup wal-g backup-fetch /var/lib/postgresql/data LATEST
+```
+
+#### Verify backup integrity
+```bash
+docker compose exec wal-g-backup wal-g backup-list --detail
+docker compose logs wal-g-backup --tail 20
+```
+
+#### Schedule
+- **Full backup:** every 24h at 02:00 UTC (`deploy/wal-g/backup-cron.sh`)
+- **WAL archival:** continuous via `archive_command` in `postgresql.conf`
+- **Retention:** 7 daily + 4 weekly + 6 monthly (see `wal-g.env`)
 
 ### Rotate secrets (JWT keys, API tokens)
 

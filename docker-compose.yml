@@ -262,6 +262,40 @@ services:
     networks:
       - astrofin
 
+
+  # -----------------------------------------------------------------------
+  # WAL-G Backup (TimescaleDB continuous archiving)
+  # -----------------------------------------------------------------------
+  wal-g-backup:
+    image: ghcr.io/wal-g/wal-g:latest
+    container_name: astrofin-wal-g
+    profiles: ["backup"]
+    environment:
+      <<: *common-env
+      WALG_FILE_PREFIX: ${WALG_BACKUP_PATH:-/backups}
+      WALG_COMPRESSION_METHOD: brotli
+      WALG_DELTA_MAX_STEPS: 5
+      PGDATA: /var/lib/postgresql/data
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-astrofin}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-astrofin}
+      PGPORT: "5432"
+      WALG_LOG_LEVEL: DEVEL
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:ro
+      - walg_backups:/backups
+    networks:
+      - astrofin
+    entrypoint: |
+      /bin/sh -c '
+        while true; do
+          echo "[WAL-G] pushing WAL at $$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          wal-g wal-push /var/lib/postgresql/data/pg_wal/* 2>&1 || true
+          sleep 60
+        done
+      '
+    restart: unless-stopped
+
 # =============================================================================
 # ACOS Governance/Execution/Trace — placeholder
 # -----------------------------------------------------------------------------
@@ -282,6 +316,7 @@ volumes:
   redis_data:
   prometheus_data:
   feature-data:
+  walg_backups:
 
 networks:
   astrofin:

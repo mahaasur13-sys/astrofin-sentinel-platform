@@ -83,7 +83,7 @@
 
 ## Burn-Rate алерты
 
-Prometheus alerts в `deploy/monitoring/prometheus-alerts.yml` секция `astrofin_slo`:
+Prometheus alerts в `deploy/monitoring/alert_rules.yml` секция `astrofin_slo`:
 
 | Alert | Burn rate | Время съедания бюджета | Severity |
 |---|---|---|---|
