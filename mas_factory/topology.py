@@ -10,8 +10,8 @@ from enum import Enum
 from typing import Any
 
 import logging
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 
 class NodeType(Enum):
@@ -96,8 +96,7 @@ def _safe_evaluate_topology(condition: str, ns: dict[str, Any]) -> bool:
                     _apply_op()
                 op_stack.pop()
         elif t in precedence:
-            while (op_stack and op_stack[-1] != "("
-                   and precedence.get(op_stack[-1], 0) >= precedence[t]):
+            while op_stack and op_stack[-1] != "(" and precedence.get(op_stack[-1], 0) >= precedence[t]:
                 _apply_op()
             op_stack.append(t)
         else:
@@ -129,11 +128,7 @@ class ConditionEvaluator:
         if not condition:
             return True
         try:
-            ns = {
-                k: v
-                for k, v in context.items()
-                if k in cls.SAFE_NAMES or k.startswith("_")
-            }
+            ns = {k: v for k, v in context.items() if k in cls.SAFE_NAMES or k.startswith("_")}
             ns["true"] = True
             ns["false"] = False
             return _safe_evaluate_topology(condition, ns)
@@ -161,16 +156,8 @@ class SwitchNode:
         if self.strategy == SwitchStrategy.THOMPSON:
             import random
 
-            scores = {
-                a: random.random() * (self.weights or {}).get(a, 1.0)
-                for a in self.candidates
-            }
-            return [
-                a
-                for a, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)[
-                    : self.k
-                ]
-            ]
+            scores = {a: random.random() * (self.weights or {}).get(a, 1.0) for a in self.candidates}
+            return [a for a, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)[: self.k]]
         return self.candidates[: self.k]
 
 
@@ -354,9 +341,7 @@ class TopologyUpdater:
     def apply_change(self, change: TopologyChange) -> Topology:
         try:
             new_topo = self._apply_change_internal(change)
-            log.info(
-                f"    [DEBUG] new_topo id={id(new_topo)}, roles={[r.name for r in new_topo.roles]}"
-            )
+            log.info(f"    [DEBUG] new_topo id={id(new_topo)}, roles={[r.name for r in new_topo.roles]}")
             self.versions.append(
                 TopologyVersion(
                     version=self._bump_version(),
