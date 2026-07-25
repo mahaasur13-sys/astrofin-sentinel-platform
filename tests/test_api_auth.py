@@ -1,34 +1,58 @@
 """Tests for API authentication (Phase 6.1)."""
+
 from __future__ import annotations
 
 import os
-from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 
-os.environ["API_KEY"] = "test-api-secret-key-123"
-os.environ["REQUIRE_AUTH"] = "true"
-
-from core.auth import reload_auth_state
-reload_auth_state()
-from api.main import app
-
-client = TestClient(app, raise_server_exceptions=False)
-
 
 class TestAPIAuth:
+    @pytest.fixture(autouse=True, scope="class")
+    def _setup_auth_env(self):
+        """Isolate auth state: set env before importing app, restore after tests."""
+        # Save original values
+        orig_api_key = os.environ.get("API_KEY")
+        orig_require_auth = os.environ.get("REQUIRE_AUTH")
+
+        # Configure test auth state BEFORE importing api.main
+        os.environ["API_KEY"] = "test-api-secret-key-123"
+        os.environ["REQUIRE_AUTH"] = "true"
+
+        # Force reload auth state and import app with test config
+        from core.auth import reload_auth_state
+
+        reload_auth_state()
+
+        yield  # run all tests in this class
+
+        # Restore original env (cleanup)
+        if orig_api_key is None:
+            os.environ.pop("API_KEY", None)
+        else:
+            os.environ["API_KEY"] = orig_api_key
+        if orig_require_auth is None:
+            os.environ.pop("REQUIRE_AUTH", None)
+        else:
+            os.environ["REQUIRE_AUTH"] = orig_require_auth
+
+    @pytest.fixture(autouse=True, scope="class")
+    def _client(self):
+        """Provide isolated TestClient after auth setup."""
+        from api.main import app
+
+        self.__class__.client = TestClient(app, raise_server_exceptions=False)
+        yield
+
     def test_health_returns_200(self):
-        response = client.get("/health")
+        response = self.client.get("/health")
         assert response.status_code == 200
 
     def test_unauthenticated_returns_401_on_protected(self):
-        response = client.get("/api/v1/dashboard")
+        response = self.client.get("/api/v1/dashboard")
         assert response.status_code in (401, 403)
 
     def test_valid_key_returns_200_on_protected(self):
-        response = client.get(
-            "/api/v1/dashboard",
-            headers={"Authorization": "Bearer test-api-secret-key-123"}
-        )
+        response = self.client.get("/api/v1/dashboard", headers={"Authorization": "Bearer test-api-secret-key-123"})
         assert response.status_code == 200
