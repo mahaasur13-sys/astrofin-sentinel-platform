@@ -114,9 +114,11 @@ def calibration_sweep(
         ]
     results = []
     for params in param_grid:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"  Testing: {params['label']}")
-        print(f"    sideways_mult={params['sideways_mult']}, bear_mult={params['bear_mult']}, anomaly_threshold={params['anomaly_threshold']}")
+        print(
+            f"    sideways_mult={params['sideways_mult']}, bear_mult={params['bear_mult']}, anomaly_threshold={params['anomaly_threshold']}"
+        )
 
         # Import and configure backtest runner with custom params
         from backtest.backtest_runner import BacktestRunner, generate_random_ohlcv
@@ -145,17 +147,17 @@ def _profit_factor(stats: dict) -> float:
 
 def print_report(comparison: dict, regimes: dict, fps: dict) -> None:
     """Pretty-print the analysis report."""
-    print(f"\n{'='*70}")
-    print(f"  ASTROFIN SENTINEL — BACKTEST CALIBRATION REPORT")
-    print(f"{'='*70}")
+    print(f"\n{'=' * 70}")
+    print("  ASTROFIN SENTINEL — BACKTEST CALIBRATION REPORT")
+    print(f"{'=' * 70}")
 
     # Side-by-side comparison
-    print(f"\n{'─'*70}")
-    print(f"  BASELINE vs HMM-KARL COMPARISON")
-    print(f"{'─'*70}")
+    print(f"\n{'─' * 70}")
+    print("  BASELINE vs HMM-KARL COMPARISON")
+    print(f"{'─' * 70}")
     header = f"  {'Metric':<22} {'Baseline':>12} {'HMM-KARL':>12} {'Delta':>12}"
     print(header)
-    print(f"  {'-'*58}")
+    print(f"  {'-' * 58}")
     for i, metric in enumerate(comparison["metric"]):
         b = comparison["baseline"][i]
         h = comparison["hmm_karl"][i]
@@ -166,43 +168,43 @@ def print_report(comparison: dict, regimes: dict, fps: dict) -> None:
             print(f"  {metric:<22} {str(b):>12} {str(h):>12} {str(d):>12}")
 
     # Regime breakdown
-    print(f"\n{'─'*70}")
-    print(f"  TRADES BY HMM REGIME")
-    print(f"{'─'*70}")
+    print(f"\n{'─' * 70}")
+    print("  TRADES BY HMM REGIME")
+    print(f"{'─' * 70}")
     print(f"  {'Regime':<15} {'Trades':>10} {'Win Rate':>10}")
-    print(f"  {'-'*35}")
+    print(f"  {'-' * 35}")
     for regime, data in regimes.items():
         wr = f"{data['win_rate']:.2%}" if data["win_rate"] is not None else "N/A"
         print(f"  {regime:<15} {data['trades']:>10} {wr:>10}")
 
     # False positive analysis
-    print(f"\n{'─'*70}")
-    print(f"  SAFETY GATE — FALSE POSITIVE ANALYSIS")
-    print(f"{'─'*70}")
+    print(f"\n{'─' * 70}")
+    print("  SAFETY GATE — FALSE POSITIVE ANALYSIS")
+    print(f"{'─' * 70}")
     print(f"  Total STOPs: {fps['total_stops']}")
     print(f"  Bull trades after STOP: {fps['bull_trades_after_stop']}")
     print(f"  Bull win rate: {fps['bull_win_rate']}")
     print(f"  Assessment: {fps['risk_assessment']}")
 
     # Calibration recommendation
-    print(f"\n{'─'*70}")
-    print(f"  RECOMMENDED CALIBRATION")
-    print(f"{'─'*70}")
+    print(f"\n{'─' * 70}")
+    print("  RECOMMENDED CALIBRATION")
+    print(f"{'─' * 70}")
 
     dd = float(str(comparison["delta"][0]).replace("pp", ""))
     profit = float(str(comparison["delta"][1]).replace("pp", ""))
 
     if dd < -10 and profit > 2:
         print(f"  ✅ HMM-KARL strongly reduces drawdown ({dd:+.1f}pp) without killing profit ({profit:+.1f}pp)")
-        print(f"  → Current thresholds are well-calibrated.")
+        print("  → Current thresholds are well-calibrated.")
     elif dd < -10 and profit < -5:
         print(f"  ⚠️ Drawdown improved ({dd:+.1f}pp) but profit dropped {profit:+.1f}pp")
-        print(f"  → Relax thresholds: sideways_mult → 0.7, bear_mult → 0.5, anomaly_threshold → -18.0")
+        print("  → Relax thresholds: sideways_mult → 0.7, bear_mult → 0.5, anomaly_threshold → -18.0")
     elif dd > 5:
         print(f"  ⚠️ Drawdown increased ({dd:+.1f}pp) — HMM-KARL is too aggressive")
-        print(f"  → Tighten: sideways_mult → 0.3, bear_mult → 0.15, anomaly_threshold → -12.0")
+        print("  → Tighten: sideways_mult → 0.3, bear_mult → 0.15, anomaly_threshold → -12.0")
     else:
-        print(f"  → Run longer history (5000+ bars) for more reliable calibration.")
+        print("  → Run longer history (5000+ bars) for more reliable calibration.")
 
 
 if __name__ == "__main__":
@@ -252,11 +254,13 @@ if __name__ == "__main__":
     print_report(comparison, regimes, fps)
 
     # Calibration sweep
-    print(f"\n{'─'*70}")
-    print(f"  PARAMETER SWEEP — testing 3 configurations...")
-    print(f"{'─'*70}")
+    print(f"\n{'─' * 70}")
+    print("  PARAMETER SWEEP — testing 3 configurations...")
+    print(f"{'─' * 70}")
     sweep = calibration_sweep()
     print(f"\n  {'Label':<12} {'Trades':>10} {'Win Rate':>10} {'Max DD':>10} {'Return':>10}")
-    print(f"  {'-'*52}")
+    print(f"  {'-' * 52}")
     for r in sweep:
-        print(f"  {r['label']:<12} {r['trades']:>10} {r['win_rate']:>10} {r['max_drawdown_pct']:>9.1f}% {r['total_return_pct']:>9.1f}%")
+        print(
+            f"  {r['label']:<12} {r['trades']:>10} {r['win_rate']:>10} {r['max_drawdown_pct']:>9.1f}% {r['total_return_pct']:>9.1f}%"
+        )

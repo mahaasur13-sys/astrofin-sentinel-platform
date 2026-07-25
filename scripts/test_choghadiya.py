@@ -1,6 +1,8 @@
 """Test Choghadiya for 2026-07-18 (Saturday) in Samara and compare with Drik Panchang."""
+
 import sys
-sys.path.insert(0, '/home/workspace')
+
+sys.path.insert(0, "/home/workspace")
 from datetime import datetime, timezone, timedelta
 from core.panchanga import get_choghadiya, get_night_choghadiya
 
@@ -11,7 +13,7 @@ lat, lon = 53.20, 50.10
 dt = datetime(2026, 7, 18, 12, 0, 0, tzinfo=tz)
 print(f"Location: Samara ({lat}°N, {lon}°E)")
 print(f"Date: {dt.strftime('%A, %Y-%m-%d')}")
-print(f"Timezone: UTC+4")
+print("Timezone: UTC+4")
 print()
 
 day = get_choghadiya(dt, lat, lon)

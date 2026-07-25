@@ -4,9 +4,11 @@ ACOS EventSourcedEngine — PATCH 2: Idempotent execution (FIXED).
 If trace already exists, returns cached result WITHOUT re-execution.
 After execution, records trace to recorder for idempotency.
 """
+
 from __future__ import annotations
 
 import logging
+
 log = logging.getLogger(__name__)
 
 import time
@@ -53,10 +55,11 @@ class EventSourcedEngine:
         self._log.emit(trace_id, "DAG_CREATED", {"dag": dag, "context": context, "started_at": t0})
 
         # Phase 2: Validation
-        self._log.emit(trace_id, "DAG_VALIDATED", {
-            "node_count": len(dag.get("nodes", [])),
-            "edge_count": len(dag.get("edges", []))
-        })
+        self._log.emit(
+            trace_id,
+            "DAG_VALIDATED",
+            {"node_count": len(dag.get("nodes", [])), "edge_count": len(dag.get("edges", []))},
+        )
 
         # Phase 3: Governance
         self._log.emit(trace_id, "GOVERNANCE_APPROVED", {"reason": "passed", "decided_at": time.time()})
@@ -72,12 +75,14 @@ class EventSourcedEngine:
 
         # PATCH 2 FIX: Record trace to recorder AFTER successful execution
         if self._recorder:
-            self._recorder.record_trace({
-                "trace_id": trace_id,
-                "decision": "APPROVED",
-                "dag": dag,
-                "created_at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(t0)),
-            })
+            self._recorder.record_trace(
+                {
+                    "trace_id": trace_id,
+                    "decision": "APPROVED",
+                    "dag": dag,
+                    "created_at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(t0)),
+                }
+            )
 
         return trace_id
 
