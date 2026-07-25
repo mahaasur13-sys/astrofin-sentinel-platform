@@ -34,6 +34,24 @@ class BacktestStats:
     def total_return_pct(self) -> float:
         return ((self.final_equity / 10000.0) - 1.0) * 100
 
+    @property
+    def sharpe_ratio(self) -> float:
+        """Annualization-free Sharpe of the realized equity curve.
+
+        Returns 0.0 when there is insufficient variation to compute a
+        meaningful ratio (fewer than two points or zero volatility).
+        """
+        if len(self.equity_curve) < 2:
+            return 0.0
+        eq = np.asarray(self.equity_curve, dtype=float)
+        prev = eq[:-1]
+        with np.errstate(divide="ignore", invalid="ignore"):
+            rets = np.diff(eq) / prev
+        rets = rets[np.isfinite(rets)]
+        if rets.size == 0 or rets.std() == 0.0:
+            return 0.0
+        return float(rets.mean() / rets.std() * np.sqrt(rets.size))
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "trades": self.trades,
@@ -44,8 +62,16 @@ class BacktestStats:
             "win_rate": round(self.win_rate, 3) if self.win_rate is not None else None,
             "max_drawdown_pct": round(self.max_drawdown * 100, 2),
             "total_return_pct": round(self.total_return_pct, 2),
+            "sharpe_ratio": round(self.sharpe_ratio, 4),
             "final_equity": round(self.final_equity, 2),
         }
+
+    def __getitem__(self, key: str) -> Any:
+        """Allow dict-style read access to the summary metrics."""
+        return self.to_dict()[key]
+
+    def __contains__(self, key: object) -> bool:
+        return key in self.to_dict()
 
 
 class BacktestRunner:
@@ -140,25 +166,40 @@ class BacktestRunner:
             self.position = notional / current_price if signal_name == "LONG" else -notional / current_price
             self.entry_price = current_price
 
-    async def run(self, ohlcv: list, symbol: str = "BTCUSDT", regime_detector=None) -> BacktestStats:
+    async def run(self, ohlcv, symbol: str = "BTCUSDT", regime_detector=None) -> BacktestStats:
         """Run backtest over historical OHLCV data.
 
         Args:
-            ohlcv: list of dicts with 'close', 'volume' keys
-            symbol: trading pair symbol
+            ohlcv: pandas DataFrame or list of dicts with 'close'/'volume' keys.
+            symbol: trading pair symbol.
+            regime_detector: optional RegimeDetector for regime annotation.
 
         Returns:
-            BacktestStats with equity curve and summary metrics.
+            BacktestStats with the realized Sharpe ratio and an equity curve
+            holding one point per input bar. The object also supports
+            dict-style read access (e.g. ``stats["sharpe_ratio"]``) mirroring
+            :meth:`BacktestStats.to_dict`.
         """
+        # Normalize a pandas DataFrame to a list of row dicts so that integer
+        # indexing and slicing behave positionally (df[i] would select a column).
+        rows = ohlcv.to_dict("records") if hasattr(ohlcv, "to_dict") else ohlcv
+        n = len(rows)
+
         lookback = 60
-        self.stats.equity_curve = [self.initial_capital]
+        # One equity point per input bar; empty input yields an empty curve.
+        self.stats.equity_curve = [self.initial_capital] if n else []
 
-        for i in range(lookback, len(ohlcv)):
-            _window = ohlcv[max(0, i - lookback) : i + 1]
-            current_price = ohlcv[i]["close"]
+        for i in range(1, n):
+            current_price = rows[i]["close"]
 
-            # Regime tracking: extract from HMM response metadata below
-            _regime = 1  # default sideways, updated from HMM metadata after response
+            # Warmup: accumulate history before trading so the equity curve has
+            # exactly one point per bar while no positions are taken yet.
+            if i < lookback:
+                self.stats.equity_curve.append(self.capital + (self.position * current_price))
+                continue
+
+            _window = rows[max(0, i - lookback) : i + 1]
+
             # Regime annotation (via RegimeDetector or fallback heuristics)
             if regime_detector is not None:
                 regime_label, probs, is_anomaly = regime_detector.annotate(i)
@@ -219,8 +260,8 @@ class BacktestRunner:
                 self.stats.max_drawdown = dd
 
         # Close any open position at last price
-        if self.position != 0.0 and len(ohlcv) > 0:
-            last_price = ohlcv[-1]["close"]
+        if self.position != 0.0 and n > 0:
+            last_price = rows[-1]["close"]
             pnl = self.position * (last_price - self.entry_price)
             self.capital += pnl
             self.stats.trades += 1
