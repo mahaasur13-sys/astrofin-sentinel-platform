@@ -38,13 +38,15 @@ def mock_karl_dependencies():
         validate_with_grounding=MagicMock(
             return_value={"passed": True, "confidence_adjustment": 0}
         ),
-        compute_trajectory_reward=MagicMock(return_value=0.6),
         create_backtest_runner=MagicMock(),
         SelfQuestioningEngine=MagicMock(),
         should_trigger_self_questioning=MagicMock(return_value=(False, "not_enabled")),
         check_delisted_fallback=MagicMock(return_value=None),
         market_state_hash=MagicMock(return_value="abc123"),
         MarketState=MagicMock(),
+    ), patch.multiple(
+        "agents._impl.amre.reward",
+        compute_trajectory_reward=MagicMock(return_value=0.6),
         RewardState=MagicMock(),
         update_reward_ema=MagicMock(return_value=0.6),
     ):
