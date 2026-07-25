@@ -102,11 +102,7 @@ class KARLSynthesisAgent:
 
         self.decision_counter = 0
         self.self_questioner = SelfQuestioningEngine() if enable_self_question else None
-        self.backtest = (
-            create_backtest_runner(horizon=backtest_horizon)
-            if enable_backtest
-            else None
-        )
+        self.backtest = create_backtest_runner(horizon=backtest_horizon) if enable_backtest else None
         self.oap = get_oap_optimizer()
         self.calibrator = get_calibrator()
         self.dd_tracker = get_dd_tracker()
@@ -170,23 +166,18 @@ class KARLSynthesisAgent:
                 if sq_result.confidence_adjustment != 0:
                     confidence = max(30, min(92, confidence + sq_result.confidence_adjustment))
                     synth_dict["reasoning"] = (
-                        f"[SelfQ] {sq_result.question} → {sq_result.answer}. "
-                        f"{synth_dict.get('reasoning', '')}"
+                        f"[SelfQ] {sq_result.question} → {sq_result.answer}. {synth_dict.get('reasoning', '')}"
                     )
             elif self.decision_counter % 5 == 0:
                 logger.info(f"[SelfQ Skip] reason={sq_reason}")
 
         # ── Step 4: Uncertainty + Grounding ──────────────────────────────
         uncertainty = estimate_uncertainty(all_signals)
-        grounding = validate_with_grounding(
-            state, all_signals, current_confidence=confidence
-        )
+        grounding = validate_with_grounding(state, all_signals, current_confidence=confidence)
         grounding_factor = grounding.get("grounding_factor", 1.0)
         if grounding_factor < 1.0:
             confidence = max(30, round(confidence * grounding_factor))
-            logger.info(
-                f"[Grounding] factor={grounding_factor:.3f} → conf {confidence} (degraded)"
-            )
+            logger.info(f"[Grounding] factor={grounding_factor:.3f} → conf {confidence} (degraded)")
 
         # ── Step 5: Lag Windowing (P2-04 → weights_calibrator) ───────────
         position_pct = synth_dict.get("metadata", {}).get("position_size", 0.02)
@@ -197,9 +188,7 @@ class KARLSynthesisAgent:
         # Risk control
         risk_adjusted = False
         if lag_meta.get("window_mature", False):
-            new_pos = apply_position_lag_risk(
-                position_pct, lag_meta.get("position_lag", 0.0)
-            )
+            new_pos = apply_position_lag_risk(position_pct, lag_meta.get("position_lag", 0.0))
             if new_pos != position_pct:
                 position_pct = new_pos
                 risk_adjusted = True
@@ -347,9 +336,7 @@ class KARLSynthesisAgent:
 
         if self.backtest and self.enable_backtest:
             try:
-                self.backtest.add_sample(
-                    state=ms, decision=record, reward=reward, signals=all_signals
-                )
+                self.backtest.add_sample(state=ms, decision=record, reward=reward, signals=all_signals)
             except Exception:
                 pass
 
@@ -404,30 +391,31 @@ class KARLSynthesisAgent:
 
     # ── P2-04 backward-compatible wrappers (delegate to standalone functions) ──
 
-    def _estimate_reward(
-        self, state: dict, signals: list, confidence: int, signal: str
-    ) -> float:
+    def _estimate_reward(self, state: dict, signals: list, confidence: int, signal: str) -> float:
         """Thin wrapper → weights_calibrator.estimate_karl_reward()."""
         from agents._impl.amre.weights_calibrator import estimate_karl_reward
 
         return estimate_karl_reward(
-            state, signals, confidence, signal,
-            self.reward_state, MarketState,
+            state,
+            signals,
+            confidence,
+            signal,
+            self.reward_state,
+            MarketState,
         )
 
-    def _apply_lag_smoothing(
-        self, confidence: int, position_pct: float
-    ) -> tuple[int, float, dict]:
+    def _apply_lag_smoothing(self, confidence: int, position_pct: float) -> tuple[int, float, dict]:
         """Thin wrapper → weights_calibrator.apply_lag_smoothing()."""
         from agents._impl.amre.weights_calibrator import apply_lag_smoothing
 
         return apply_lag_smoothing(
-            self.lag_window, confidence, position_pct, self.lag_enabled,
+            self.lag_window,
+            confidence,
+            position_pct,
+            self.lag_enabled,
         )
 
-    def run_backtest_on_historical(
-        self, bars: list, symbol: str = "BTCUSDT"
-    ) -> dict[str, Any]:
+    def run_backtest_on_historical(self, bars: list, symbol: str = "BTCUSDT") -> dict[str, Any]:
         """Run continuous backtest on historical bars."""
         if not self.backtest:
             return {"error": "backtest not enabled"}

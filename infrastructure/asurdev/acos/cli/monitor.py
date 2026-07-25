@@ -3,9 +3,11 @@
 ACOS Monitor CLI — unified monitoring interface switcher.
 Usage: acos monitor [status|switch|list|logs|alerts]
 """
+
 from __future__ import annotations
 
 import logging
+
 log = logging.getLogger(__name__)
 
 import json
@@ -20,20 +22,23 @@ CONFIG_FILE = CONFIG_DIR / "monitoring.json"
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
 BACKENDS = {
-    "grafana":  {"port": 3000, "url": "http://localhost:3000", "label": "Grafana Web UI"},
-    "beszel":   {"port": 8090, "url": "http://localhost:8090", "label": "Beszel Web UI"},
-    "perses":   {"port": 8080, "url": "http://localhost:8080", "label": "Perses Web UI"},
+    "grafana": {"port": 3000, "url": "http://localhost:3000", "label": "Grafana Web UI"},
+    "beszel": {"port": 8090, "url": "http://localhost:8090", "label": "Beszel Web UI"},
+    "perses": {"port": 8080, "url": "http://localhost:8080", "label": "Perses Web UI"},
     "grafatui": {"port": None, "url": "terminal", "label": "Grafatui Terminal"},
 }
 DEFAULT_BACKEND = "grafana"
+
 
 def load_config() -> dict:
     if CONFIG_FILE.exists():
         return json.loads(CONFIG_FILE.read_text())
     return {"active_backend": DEFAULT_BACKEND, "victoria_url": "http://localhost:8428"}
 
+
 def save_config(cfg: dict) -> None:
     CONFIG_FILE.write_text(json.dumps(cfg, indent=2))
+
 
 def check_port(host: str, port: int, timeout: float = 2.0) -> bool:
     try:
@@ -42,14 +47,15 @@ def check_port(host: str, port: int, timeout: float = 2.0) -> bool:
     except OSError:
         return False
 
+
 def get_tunnel_status() -> dict:
     try:
-        result = subprocess.run(["ip", "addr", "show", "wg0"],
-            capture_output=True, text=True, timeout=5)
+        result = subprocess.run(["ip", "addr", "show", "wg0"], capture_output=True, text=True, timeout=5)
         up = result.returncode == 0 and "inet " in result.stdout
         return {"interface": "wg0", "up": up}
     except Exception:
         return {"interface": "wg0", "up": False}
+
 
 def cmd_status() -> int:
     cfg = load_config()
@@ -63,6 +69,7 @@ def cmd_status() -> int:
     # VictoriaMetrics
     try:
         import urllib.request
+
         req = urllib.request.urlopen(f"{victoria_url}/health", timeout=3)
         vm_up = req.status == 200
     except Exception:
@@ -83,6 +90,7 @@ def cmd_status() -> int:
     log.info("")
     return 0
 
+
 def cmd_switch(backend: str) -> int:
     if backend not in BACKENDS:
         log.info(f"ERROR: Unknown backend '{backend}'. Available: {', '.join(BACKENDS.keys())}")
@@ -97,13 +105,14 @@ def cmd_switch(backend: str) -> int:
         sys.path.insert(0, "/opt/acos")
         from acos.events.event_log import EventLog
         from acos.events.types import EventType
-        log = EventLog()
-        log.emit("acos-monitor", EventType.DAG_CREATED,
-            {"action": "MONITOR_SWITCH", "from": old, "to": backend})
+
+        event_log = EventLog()
+        event_log.emit("acos-monitor", EventType.DAG_CREATED, {"action": "MONITOR_SWITCH", "from": old, "to": backend})
         log.info("  ✅ Event logged to EventLog")
     except Exception:
         log.info("  ⚠️  EventLog unavailable")
     return 0
+
 
 HELP = """ACOS Monitor CLI
 
@@ -120,6 +129,7 @@ Examples:
   acos monitor list
 """
 
+
 def main() -> int:
     if len(sys.argv) < 2 or sys.argv[1] in ("help", "--help"):
         log.info(HELP)
@@ -128,7 +138,8 @@ def main() -> int:
     if cmd == "status":
         return cmd_status()
     elif cmd == "switch":
-        if len(sys.argv) < 3: log.info("Usage: acos monitor switch <backend>")
+        if len(sys.argv) < 3:
+            log.info("Usage: acos monitor switch <backend>")
         return 1
         return cmd_switch(sys.argv[2])
     elif cmd == "list":
@@ -141,6 +152,7 @@ def main() -> int:
         log.info(f"Unknown: {cmd}")
         log.info(HELP)
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

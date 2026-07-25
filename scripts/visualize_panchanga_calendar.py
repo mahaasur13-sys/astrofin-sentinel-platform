@@ -30,10 +30,6 @@ UTC3 = timezone(timedelta(hours=3))
 
 def generate_july_calendar(lat: float, lon: float, label: str) -> str:
     tds = []
-    yesterday_night = []
-    today_day = []
-    today_night = []
-    muhurta_scores = []
 
     for day in range(1, 32):
         dt_samara = datetime(2026, 7, day, 12, 0, 0, tzinfo=UTC3)
@@ -47,35 +43,46 @@ def generate_july_calendar(lat: float, lon: float, label: str) -> str:
         sunrise = _sunrise(dt_samara, lat, lon)
         sunset = _sunset(dt_samara, lat, lon)
 
-        tds.append({
-            "date": dt_key,
-            "sunrise": sunrise.strftime("%H:%M"),
-            "sunset": sunset.strftime("%H:%M"),
-            "day_periods": [{
-                "period": p["period"],
-                "name": p["name"],
-                "start": p["start"],
-                "end": p["end"],
-                "quality": p["quality"],
-                "icon": p.get("icon", ""),
-                "recommended": p.get("recommended", False),
-            } for p in day_chog],
-            "night_periods": [{
-                "period": p["period"],
-                "name": p["name"],
-                "start": p["start"],
-                "end": p["end"],
-                "quality": p["quality"],
-                "icon": p.get("icon", ""),
-                "recommended": p.get("recommended", False),
-            } for p in night_chog],
-            "muhurta_scores": [{
-                "period": p["period"],
-                "name": p["name"],
-                "score": get_muhurta_score(p["name"], None, None, None).get("score", 50),
-            } for p in all_chog],
-            "best_periods": [p for p in all_chog if p.get("recommended")],
-        })
+        tds.append(
+            {
+                "date": dt_key,
+                "sunrise": sunrise.strftime("%H:%M"),
+                "sunset": sunset.strftime("%H:%M"),
+                "day_periods": [
+                    {
+                        "period": p["period"],
+                        "name": p["name"],
+                        "start": p["start"],
+                        "end": p["end"],
+                        "quality": p["quality"],
+                        "icon": p.get("icon", ""),
+                        "recommended": p.get("recommended", False),
+                    }
+                    for p in day_chog
+                ],
+                "night_periods": [
+                    {
+                        "period": p["period"],
+                        "name": p["name"],
+                        "start": p["start"],
+                        "end": p["end"],
+                        "quality": p["quality"],
+                        "icon": p.get("icon", ""),
+                        "recommended": p.get("recommended", False),
+                    }
+                    for p in night_chog
+                ],
+                "muhurta_scores": [
+                    {
+                        "period": p["period"],
+                        "name": p["name"],
+                        "score": get_muhurta_score(p["name"], None, None, None).get("score", 50),
+                    }
+                    for p in all_chog
+                ],
+                "best_periods": [p for p in all_chog if p.get("recommended")],
+            }
+        )
 
     # Build HTML
     quality_colors = {
@@ -85,9 +92,15 @@ def generate_july_calendar(lat: float, lon: float, label: str) -> str:
         "waste": "#f3e5f5",
     }
     quality_emoji = {
-        "Amrit": "🍯", "Shubh": "✨", "Labh": "💰",
-        "Chara": "🔄", "Roga": "🤒", "Kaal": "⛔",
-        "Udveg": "😰", "Vyaghata": "⚠️", "Mando": "🐌",
+        "Amrit": "🍯",
+        "Shubh": "✨",
+        "Labh": "💰",
+        "Chara": "🔄",
+        "Roga": "🤒",
+        "Kaal": "⛔",
+        "Udveg": "😰",
+        "Vyaghata": "⚠️",
+        "Mando": "🐌",
     }
 
     periods_html = ""
@@ -155,8 +168,7 @@ def generate_july_calendar(lat: float, lon: float, label: str) -> str:
 
 def main():
     p = argparse.ArgumentParser(description="Generate Panchanga calendar")
-    p.add_argument("--location", nargs=3, metavar=("LAT", "LON", "LABEL"),
-                   default=[25.20, 55.27, "Dubai"])
+    p.add_argument("--location", nargs=3, metavar=("LAT", "LON", "LABEL"), default=[25.20, 55.27, "Dubai"])
     args = p.parse_args()
     lat, lon = float(args.location[0]), float(args.location[1])
     label = args.location[2]

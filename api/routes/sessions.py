@@ -24,43 +24,27 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 @router.get("/", response_model=SessionListResponse)
 async def get_sessions_list(skip: int = 0, limit: int = 50):
     """Returns paginated list of sessions for SessionTable component.
-    
+
     Args:
         skip: Number of records to skip (offset)
         limit: Maximum number of records to return (max 100)
-    
+
     Returns:
         SessionListResponse with items and total count
     """
     limit = min(limit, 100)  # cap at 100 to prevent abuse
-    
+
     with get_db_manager().session() as db:
         total = db.query(Session).count()
-        sessions = (
-            db.query(Session)
-            .order_by(Session.created_at.desc())
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
-        
+        sessions = db.query(Session).order_by(Session.created_at.desc()).offset(skip).limit(limit).all()
+
         items = []
         for s in sessions:
             # Get average confidence from KARL decisions for this session
-            decisions = (
-                db.query(KARLDecisionRecord)
-                .filter(KARLDecisionRecord.session_id == str(s.session_id))
-                .all()
-            )
-            confidences = [
-                float(d.confidence_final)
-                for d in decisions
-                if d.confidence_final is not None
-            ]
-            avg_confidence = (
-                sum(confidences) / len(confidences) if confidences else 0.0
-            )
-            
+            decisions = db.query(KARLDecisionRecord).filter(KARLDecisionRecord.session_id == str(s.session_id)).all()
+            confidences = [float(d.confidence_final) for d in decisions if d.confidence_final is not None]
+            avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
+
             items.append(
                 SessionListItem(
                     id=str(s.session_id),
@@ -71,7 +55,7 @@ async def get_sessions_list(skip: int = 0, limit: int = 50):
                     final_pnl=None,  # TODO: compute from broker execution data
                 )
             )
-        
+
         return SessionListResponse(items=items, total=total)
 
 
@@ -86,11 +70,7 @@ async def get_session_details(session_id: str):
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
 
-        decisions = (
-            db.query(KARLDecisionRecord)
-            .filter(KARLDecisionRecord.session_id == str(session.session_id))
-            .all()
-        )
+        decisions = db.query(KARLDecisionRecord).filter(KARLDecisionRecord.session_id == str(session.session_id)).all()
 
         agent_decisions = []
         for d in decisions:
