@@ -135,7 +135,7 @@ def test_summary_trending_declining(tmp_db):
 
 
 def test_summary_returns_none_when_empty():
-    tmp_db2 = MetricsDB(db_path=Path(tempfile.mktemp(suffix=".db")))
+    tmp_db2 = MetricsDB(db_path=Path(tempfile.NamedTemporaryFile(suffix=".db", delete=False).name))
     summary = tmp_db2.summary(symbol="NONEXISTENT", days=90)
     assert summary is None
     tmp_db2.db_path.unlink(missing_ok=True)
