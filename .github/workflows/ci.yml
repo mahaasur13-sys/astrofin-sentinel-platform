@@ -212,6 +212,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_DEFAULT }}
+      - name: Install
+        run: pip install pytest pydantic
       - name: Validate
         run: |
           bash scripts/ci_validate_data_room.sh

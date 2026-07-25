@@ -102,8 +102,9 @@ jobs:
           # which left the runtime env without pytest-cov and produced
           # `unrecognized arguments: --cov=...` even though the flags were also
           # passed explicitly. Install dev extras and let addopts own the flags.
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v3
+      - name: Setup uv and run coverage
+        run: |
+          pip install uv
           uv sync --frozen --extra dev
           echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
           echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
