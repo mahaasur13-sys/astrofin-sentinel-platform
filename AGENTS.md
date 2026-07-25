@@ -1,6 +1,6 @@
 # AstroFin Sentinel V5 — Project Memory
 
-**Status:** ✅ Sprint A complete — 6/6 tasks. Observability stack: 15 Prometheus alerts, 5 Grafana dashboards, WAL-G backup configured, PII scrubber 19/19. 9 CI workflows, 0 open PRs.
+**Status:** 🔴 Sprint B planned — 6 CI infrastructure tasks. Blocked by OAuth token workflow scope. Ready fixes: data-room, quality-gate, bandit, flake8 removal, meta-rl nightly, arch-linter cleanup. PII scrubber 19/19, WAL-G backup configured, 15 alerts, 6 dashboards/43 panels.
 **Architecture:** RAG-First + LangGraph + Multi-Agent + Hybrid Signal
 **Pattern:** Internal Board of Directors (Совет Директоров)
 **Working dir:** `~/Projects/astrofin-sentinel-platform` (Felix) / `/home/workspace` (Zo) — flat structure, no nested subdir
