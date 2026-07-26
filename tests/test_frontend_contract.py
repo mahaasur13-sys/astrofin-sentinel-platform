@@ -1,5 +1,9 @@
 """tests/test_frontend_contract.py — F3: Frontend API Contract Validation"""
 import json, pytest
+import os, core.auth
+os.environ.pop("API_KEY", None)
+core.auth.REQUIRE_AUTH = False
+
 from fastapi.testclient import TestClient
 from api.main import app
 
