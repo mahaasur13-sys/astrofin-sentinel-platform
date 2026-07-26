@@ -17,7 +17,12 @@ import time
 from pathlib import Path
 
 import numpy as np
-import ollama
+try:
+    import ollama
+    _ollama_available = True
+except ImportError:
+    ollama = None
+    _ollama_available = False
 from openai import OpenAI
 from sentence_transformers import SentenceTransformer
 
