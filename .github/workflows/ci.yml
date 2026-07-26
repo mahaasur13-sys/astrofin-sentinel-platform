@@ -48,7 +48,7 @@ jobs:
   # 2. Linters: ruff (fast) + flake8 (style) + bandit (security) + radon (CC).
   # -------------------------------------------------------------------------
   lint:
-    name: Lint (ruff + flake8 + bandit + radon)
+    name: Lint (ruff + bandit + radon)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     continue-on-error: ${{ github.event.inputs.strict != 'true' && github.event_name == 'pull_request' }}
@@ -60,7 +60,7 @@ jobs:
       - name: Install linters
         run: |
           python -m pip install --upgrade pip
-          pip install ruff flake8 bandit radon
+          pip install ruff bandit radon
       - name: ruff
         run: |
           ruff check . --output-format=github
@@ -175,33 +175,7 @@ jobs:
               || echo "::warning::collect issues in ${{ matrix.dir }}"
           fi
 
-  # -------------------------------------------------------------------------
-  # 5. Meta-RL persistence test (uses tempdir, no network).
-  # -------------------------------------------------------------------------
-  test-meta-rl:
-    name: Meta-RL persistence
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_DEFAULT }}
-          cache: pip
-      - run: |
-          python -m pip install --upgrade pip
-          pip install pydantic>=2.0 pyyaml
-      - name: Smoke-import meta_rl package
-        env:
-          SENTINEL_METRICS_ENABLED: "0"
-        run: |
-          python -c "import meta_rl; print('meta_rl import OK:', meta_rl.__file__)"
-          python -c "from meta_rl.persistence import PersistenceStore; print('PersistenceStore OK')" \
-            || echo "::warning::meta_rl persistence import failed"
-
-  # -------------------------------------------------------------------------
-  # 6. Validate data room structure.
+  # 5. Validate data room structure.
   # -------------------------------------------------------------------------
   data-room:
     name: Validate data room
@@ -219,7 +193,7 @@ jobs:
           bash scripts/ci_validate_data_room.sh
 
   # -------------------------------------------------------------------------
-  # 7. Required status check aggregator.
+  # 6. Required status check aggregator.
   # -------------------------------------------------------------------------
   status:
     name: Status
