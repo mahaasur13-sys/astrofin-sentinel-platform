@@ -64,11 +64,6 @@ jobs:
       - name: ruff
         run: |
           ruff check . --output-format=github
-      - name: flake8 (syntax/compile errors only)
-        run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics \
-            --exclude=.venv,venv,__pycache__,.git,.pytest_cache,.ruff_cache,.mypy_cache
-      - name: bandit (security)
         run: |
           bandit -r . -ll -ii \
             -x .venv,venv,__pycache__,.git,.pytest_cache,tests,build,dist \
