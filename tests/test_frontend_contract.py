@@ -15,7 +15,7 @@ RESTRICTED_FIELDS = {'api_key', 'password', 'secret', 'private_key', 'token', 'c
 REQUIRED_AGENT_KEYS = {'agent_id', 'analyze_at', 'signal', 'confidence', 'reasoning'}
 
 def test_dashboard_fields():
-    resp = client.get('/api/v1/dashboard', headers=HEADERS)
+    resp = client.get("/api/v1/dashboard", headers={"X-API-Key": "dev-api-key-change-me"})
     assert resp.status_code == 200, f'Expected 200, got {resp.status_code}'
     data = resp.json()
     assert 'agents' in data, 'dashboard must have agents'
