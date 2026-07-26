@@ -13,8 +13,8 @@ from core.external.circuit_breaker import CircuitBreaker
 _coingecko_cb = CircuitBreaker("coingecko", fail_max=5, timeout_seconds=60.0)
 
 # Redis cache fallback path (file-based when Redis unavailable)
-_CACHE_DIR = Path(os.getenv("ASTROFIN_CACHE_DIR", "/tmp/astrofin-cache"))
-_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+_CACHE_DIR = Path(os.getenv("ASTROFIN_CACHE_DIR", os.path.expanduser("~/.cache/astrofin")))  # nosec B108 — XDG cache, not /tmp
+_CACHE_DIR.mkdir(parents=True, exist_ok=True)  # nosec B108
 
 
 def _file_cache_key(prefix: str, key: str) -> Path:

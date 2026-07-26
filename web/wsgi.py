@@ -163,5 +163,5 @@ def live_enable():
 if __name__ == "__main__":
     # Dev-only path. Production uses gunicorn (see deploy/docker).
     server.run(
-        host="0.0.0.0", port=8000, debug=False
-    )  # nosec B104 — dev WSGI, internal network only
+        host="0.0.0.0", port=8000, debug=False  # nosec B104
+    )  # nosec B104, internal network only
