@@ -200,6 +200,8 @@ services:
       POSTGRES_DB: astrofin
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/0010_astrofin_hypertables.sql:/docker-entrypoint-initdb.d/99-hypertable.sql
+      - ./deploy/postgres/verify-hypertable.sql:/docker-entrypoint-initdb.d/99-verify.sql
       - ./deploy/monitoring/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
@@ -282,7 +284,9 @@ services:
       PGPORT: "5432"
       WALG_LOG_LEVEL: DEVEL
     volumes:
-      - postgres_data:/var/lib/postgresql/data:ro
+      - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/0010_astrofin_hypertables.sql:/docker-entrypoint-initdb.d/99-hypertable.sql
+      - ./deploy/postgres/verify-hypertable.sql:/docker-entrypoint-initdb.d/99-verify.sql:ro
       - walg_backups:/backups
     networks:
       - astrofin
