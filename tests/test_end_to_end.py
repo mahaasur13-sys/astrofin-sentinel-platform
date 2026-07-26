@@ -16,9 +16,9 @@ API_KEY = "test-key-for-frontend-contract"
 @pytest.fixture(autouse=True)
 def _mock_external_apis():
     """Block all real HTTP calls during end-to-end test."""
-    with patch("core.external.coingecko_client.httpx.AsyncClient.get") as mock_cg, \
+    with patch("core.external.coingecko_client.get_price") as mock_cg, \
          patch("core.ephemeris.swe.calc_ut", return_value=(0, 360.0)) as mock_eph, \
-         patch("core.llm_router.send_to_openrouter", return_value="NEUTRAL — test environment") as mock_llm:
+         patch("core.llm_router.cloud_llm", return_value="NEUTRAL — test environment") as mock_llm:
         mock_cg.return_value.status_code = 200
         mock_cg.return_value.json.return_value = {"bitcoin": {"usd": 64290.0}}
         yield

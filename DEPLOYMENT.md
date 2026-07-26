@@ -8,6 +8,42 @@
 
 ## 0. Pre-flight checklist
 
+## Quickstart — 5 minutes to production
+
+```bash
+# 1. Clone
+git clone https://github.com/mahaasur13-sys/astrofin-sentinel-platform.git
+cd astrofin-sentinel-platform
+
+# 2. Environment
+cp .env.example .env
+# Edit: POSTGRES_PASSWORD, API_KEYS, ALERTMANAGER_*
+
+# 3. Dependencies
+uv sync --extra dev
+
+# 4. Database
+docker-compose up -d postgres redis
+alembic upgrade head
+
+# 5. App
+uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+# 6. Verify
+curl http://localhost:8000/health
+curl http://localhost:8000/readyz
+
+# 7. Observability (optional)
+docker-compose -f docker-compose.yml -f docker-compose.logging.yml up -d
+# Grafana: http://localhost:3000 (admin/admin)
+```
+
+Full deployment guide below (Docker Compose, Kubernetes, monitoring, WAL-G backup).
+
+---
+
+
+
 - [ ] DNS records for `app.<your-domain>`, `api.<your-domain>`, `dash.<your-domain>` pointing to the load balancer.
 - [ ] TLS certificates (Let's Encrypt or your CA) in `deploy/tls/`.
 - [ ] S3-compatible bucket for backups (e.g. `s3://astrofin-backups-<env>/`).
@@ -248,7 +284,76 @@ For anything not covered here → Slack `#oncall-astrofin` (P5-08) or `docs/post
 
 ---
 
-## 11. References
+## 9. TimescaleDB Setup
+
+### 9.1 Hypertable (Migration 0008)
+
+Migration 0008 creates  hypertable:
+
+
+
+Verify: 
+
+### 9.2 Compression Policy (Migration 0009)
+
+Chunks >7 days compressed (~90% space savings):
+
+
+
+### 9.3 asyncpg Pool
+
+
+
+Health: 
+
+---
+
+## 10. WAL-G Backup & Restore
+
+Scripts: , , , 
+
+Full restore drill: see 
+
+Quick restore: 
+
+---
+
+## 11. Loki + Promtail
+
+
+
+Query: {"status":"success","data":{"resultType":"streams","result":[],"stats":{"summary":{"bytesProcessedPerSecond":0,"linesProcessedPerSecond":0,"totalBytesProcessed":0,"totalLinesProcessed":0,"execTime":0.009983,"queueTime":0.000059,"subqueries":0,"totalEntriesReturned":0,"splits":2,"shards":2,"totalPostFilterLines":0,"totalStructuredMetadataBytesProcessed":0},"querier":{"store":{"totalChunksRef":0,"totalChunksDownloaded":0,"chunksDownloadTime":0,"queryReferencedStructuredMetadata":false,"queryUsedV2Engine":false,"chunk":{"headChunkBytes":0,"headChunkLines":0,"decompressedBytes":0,"decompressedLines":0,"compressedBytes":0,"totalDuplicates":0,"postFilterLines":0,"headChunkStructuredMetadataBytes":0,"decompressedStructuredMetadataBytes":0},"chunkRefsFetchTime":0,"congestionControlLatency":0,"pipelineWrapperFilteredLines":0,"dataobj":{"prePredicateDecompressedRows":0,"prePredicateDecompressedBytes":0,"prePredicateDecompressedStructuredMetadataBytes":0,"postPredicateRows":0,"postPredicateDecompressedBytes":0,"postPredicateStructuredMetadataBytes":0,"postFilterRows":0,"pagesScanned":0,"pagesDownloaded":0,"pagesDownloadedBytes":0,"pageBatches":0,"totalRowsAvailable":0,"totalPageDownloadTime":0}}},"ingester":{"totalReached":2,"totalChunksMatched":0,"totalBatches":2,"totalLinesSent":0,"store":{"totalChunksRef":0,"totalChunksDownloaded":0,"chunksDownloadTime":0,"queryReferencedStructuredMetadata":false,"queryUsedV2Engine":false,"chunk":{"headChunkBytes":0,"headChunkLines":0,"decompressedBytes":0,"decompressedLines":0,"compressedBytes":0,"totalDuplicates":0,"postFilterLines":0,"headChunkStructuredMetadataBytes":0,"decompressedStructuredMetadataBytes":0},"chunkRefsFetchTime":251439,"congestionControlLatency":0,"pipelineWrapperFilteredLines":0,"dataobj":{"prePredicateDecompressedRows":0,"prePredicateDecompressedBytes":0,"prePredicateDecompressedStructuredMetadataBytes":0,"postPredicateRows":0,"postPredicateDecompressedBytes":0,"postPredicateStructuredMetadataBytes":0,"postFilterRows":0,"pagesScanned":0,"pagesDownloaded":0,"pagesDownloadedBytes":0,"pageBatches":0,"totalRowsAvailable":0,"totalPageDownloadTime":0}}},"cache":{"chunk":{"entriesFound":0,"entriesRequested":0,"entriesStored":0,"bytesReceived":0,"bytesSent":0,"requests":0,"downloadTime":0,"queryLengthServed":0},"index":{"entriesFound":0,"entriesRequested":0,"entriesStored":0,"bytesReceived":0,"bytesSent":0,"requests":0,"downloadTime":0,"queryLengthServed":0},"result":{"entriesFound":0,"entriesRequested":0,"entriesStored":0,"bytesReceived":0,"bytesSent":0,"requests":0,"downloadTime":0,"queryLengthServed":0},"statsResult":{"entriesFound":0,"entriesRequested":1,"entriesStored":1,"bytesReceived":0,"bytesSent":0,"requests":2,"downloadTime":6370,"queryLengthServed":0},"volumeResult":{"entriesFound":0,"entriesRequested":0,"entriesStored":0,"bytesReceived":0,"bytesSent":0,"requests":0,"downloadTime":0,"queryLengthServed":0},"seriesResult":{"entriesFound":0,"entriesRequested":0,"entriesStored":0,"bytesReceived":0,"bytesSent":0,"requests":0,"downloadTime":0,"queryLengthServed":0},"labelResult":{"entriesFound":0,"entriesRequested":0,"entriesStored":0,"bytesReceived":0,"bytesSent":0,"requests":0,"downloadTime":0,"queryLengthServed":0},"instantMetricResult":{"entriesFound":0,"entriesRequested":0,"entriesStored":0,"bytesReceived":0,"bytesSent":0,"requests":0,"downloadTime":0,"queryLengthServed":0}},"index":{"totalChunks":0,"postFilterChunks":0,"shardsDuration":0,"usedBloomFilters":false}}}}
+
+---
+
+## 12. Meta-RL Checkpoint & Fallback
+
+
+
+If checkpoint stale >24h → fallback to static weights in .
+
+Manual update: 
+
+---
+
+## 13. PII Scrubber
+
+ — enabled by default. Patterns: JWT, phone, email, wallet.
+
+Disable: .
+
+---
+
+## 14. Grafana Provisioning
+
+Dashboards auto-loaded from :
+- AstroFin Overview, Agent Performance, Redis, PostgreSQL, SLO Burn-Down, Meta-RL Training
+
+No manual import needed.
+
+---
+
+## 15. References
 
 - [`RUNBOOK.md`](./RUNBOOK.md) — operator runbook, top-15 alerts.
 - [`SLO.md`](./SLO.md) — SLO/SLI definitions and error-budget policy.
@@ -258,3 +363,82 @@ For anything not covered here → Slack `#oncall-astrofin` (P5-08) or `docs/post
 - [`CHANGELOG.md`](./CHANGELOG.md) — release history.
 - [`MIGRATION_GUIDE.md`](./MIGRATION_GUIDE.md) — moving from older snapshots.
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — system architecture.
+### 1.1 Docker Buildx fix (required)
+
+If  fails with:
+
+
+
+
+
+### 1.2 TimescaleDB (migrations 0008 + 0009)
+
+After :
+
+
+
+Verify:
+
+
+### 1.3 asyncpg Connection Pool
+
+Env vars in :
+
+
+
+**Monitoring:**
+
+
+
+For the full connection pool runbook, see: .
+
+### 1.4 WAL-G Continuous Backup
+
+**Infrastructure:**
+- Sidecar container: , , , 
+- S3 target:  (e.g. )
+- Cron: nightly  + continuous WAL archiving via 
+
+**Disaster recovery drill:** 
+
+**Troubleshooting:**
+
+
+
+### 1.5 PII Scrubber
+
+Module:  — 19 patterns (JWT, phone, email, wallet, SSN).
+Runs automatically on all log/session output.
+
+
+
+### 1.6 Grafana Provisioning (Auto-Load)
+
+Dashboards are provisioned as code in :
+- 6 dashboards, 43 panels
+- Datasources: Prometheus + Loki (auto-discover)
+- Alertmanager UI: 
+
+After deploy, verify in Grafana:
+- Datasources → Prometheus + Loki → Test → green
+- Dashboards → all 6 appear without manual import
+
+### 1.7 Loki + Promtail (Log Aggregation)
+
+Ingester not ready: waiting for 15s after being ready
+{"status":"success","data":["filename","job","service_name"]}
+
+Query logs in Grafana Explore:
+
+
+### 1.8 Meta-RL Checkpoint (Startup/Warmup)
+
+
+
+**Warmup (before load test / production):**
+
+
+
+---
+
+
