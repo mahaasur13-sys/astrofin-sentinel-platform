@@ -21,10 +21,18 @@ def get_http_client() -> httpx.AsyncClient:
 
 
 async def close_http_client():
-    """Close the shared client (e.g., on shutdown)."""
+    """Close the shared client (e.g., on shutdown).
+
+    Resilient to event-loop closure (CI/pytest scenario):
+    when the loop is already closed, aclose() raises RuntimeError.
+    """
     global _client
     if _client is not None:
-        await _client.aclose()
+        try:
+            await _client.aclose()
+        except RuntimeError:
+            _client = None
+            return
         _client = None
         logger.info("Closed shared httpx AsyncClient")
 
