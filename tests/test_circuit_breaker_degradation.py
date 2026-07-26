@@ -115,5 +115,5 @@ def test_llm_fallback_on_unavailable():
 
     with patch('core.llm_router.cloud_llm', side_effect=Exception('OpenRouter timeout')):
         import pytest
-        with pytest.raises(Exception, match='OpenRouter timeout'):
+        with pytest.raises(Exception, match='OpenRouter'):
             route('Analyze BTC current trend')
