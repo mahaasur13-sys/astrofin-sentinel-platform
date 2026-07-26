@@ -1,7 +1,8 @@
 groups:
   # =======================================================================
-  # AstroFin Sentinel — SLO Recording Rules
-  # Source of truth: docs/slo.md (v1.0) and SLO.md (top-level index)
+  # AstroFin Sentinel — SLO Recording Rules (Calibrated v1.0.0-beta)
+  # Calibration: docs/slo-calibration-2026-08-04.md (G-09)
+  # Source of truth: docs/slo.md (v1.0, updated 99.0% beta target)
   # These rules are evaluated by Prometheus and consumed by:
   #   - alert_rules.yml   (for SLOBudgetBurn / HighErrorRate / HighLatency)
   #   - Grafana dashboards
@@ -14,7 +15,8 @@ groups:
 
       # ------------------------------------------------------------------
       # SLO-1: API availability
-      # SLO:  ≥ 99.5% (top-level) / 99.9% (docs/slo.md detailed)
+      # SLO: ≥ 99.0% (beta, calibrated from 99.5%/99.9% mismatch)
+      # Error budget: 7.2h/month → 14.4 min/day → 1.44 min/burn‑rate‑2
       # ------------------------------------------------------------------
       - record: astrofin:slo:availability:ratio_5m
         expr: |
@@ -33,37 +35,64 @@ groups:
           1 - (
             (1 - astrofin:slo:availability:ratio_30d)
             /
-            (1 - 0.995)
+            (1 - 0.99)
           )
 
       # ------------------------------------------------------------------
-      # SLO-2: Submission latency p95 (< 500ms target)
+      # SLO-2a: Dashboard latency p95 (< 200ms target)
       # ------------------------------------------------------------------
-      - record: astrofin:slo:latency_p95:5m
+      - record: astrofin:dashboard:latency_p95:5m
         expr: |
           histogram_quantile(
             0.95,
-            sum by (le) (rate(http_request_duration_seconds_bucket{path="/api/v1/submit"}[5m]))
+            sum by (le) (rate(http_request_duration_seconds_bucket{path="/api/v1/dashboard"}[5m]))
           )
 
-      - record: astrofin:slo:latency_p95:1h
+      - record: astrofin:dashboard:latency_p95:1h
         expr: |
           histogram_quantile(
             0.95,
-            sum by (le) (rate(http_request_duration_seconds_bucket{path="/api/v1/submit"}[1h]))
+            sum by (le) (rate(http_request_duration_seconds_bucket{path="/api/v1/dashboard"}[1h]))
           )
 
       # ------------------------------------------------------------------
-      # SLO-3: Success rate (2xx share of all responses)
+      # SLO-2b: Agent inference latency p95 (< 800ms target)
       # ------------------------------------------------------------------
-      - record: astrofin:slo:success_rate:5m
+      - record: astrofin:agent:latency_p95:5m
         expr: |
-          sum(rate(http_requests_total{job=~"astrofin-.*",code=~"2xx"}[5m]))
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_request_duration_seconds_bucket{path="/api/v1/agent/run"}[5m]))
+          )
+
+      - record: astrofin:agent:latency_p95:1h
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_request_duration_seconds_bucket{path="/api/v1/agent/run"}[1h]))
+          )
+
+      # ------------------------------------------------------------------
+      # SLO-2c: Health probe latency p95 (< 50ms target)
+      # ------------------------------------------------------------------
+      - record: astrofin:health:latency_p95:5m
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_request_duration_seconds_bucket{path="/health"}[5m]))
+          )
+
+      # ------------------------------------------------------------------
+      # SLO-3: Error rate (< 0.1% target)
+      # ------------------------------------------------------------------
+      - record: astrofin:slo:error_rate:5m
+        expr: |
+          sum(rate(http_requests_total{job=~"astrofin-.*",code=~"5.."}[5m]))
           /
-          sum(rate(http_requests_total{job=~"astrofin-.*"}[5m]))
+          clamp_min(sum(rate(http_requests_total{job=~"astrofin-.*"}[5m])), 1e-9)
 
       # ------------------------------------------------------------------
-      # SLO-3: Blackbox healthcheck uptime (per docs/slo.md SLO-3)
+      # SLO-4: Blackbox healthcheck uptime (≥ 99.9% target)
       # ------------------------------------------------------------------
       - record: astrofin:slo:healthcheck_uptime:ratio_30d
         expr: |
