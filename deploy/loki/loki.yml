@@ -1,0 +1,44 @@
+# =============================================================================
+# Loki — Log aggregation for AstroFin Sentinel V5
+# =============================================================================
+# Usage: docker compose -f docker-compose.logging.yml up -d loki
+# Grafana datasource: deploy/grafana/provisioning/datasources/loki.yml
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /tmp/loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /tmp/loki/tsdb-index
+    cache_location: /tmp/loki/tsdb-cache
+  filesystem:
+    directory: /tmp/loki/chunks
+
+limits_config:
+  retention_period: 30d
+  allow_structured_metadata: false
+
+compactor:
+  working_directory: /tmp/loki/compactor
+  compaction_interval: 10m
