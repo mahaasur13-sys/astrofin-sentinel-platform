@@ -64,6 +64,8 @@ jobs:
       - name: ruff
         run: |
           ruff check . --output-format=github
+      - name: bandit (security)
+        run: |
         run: |
           bandit -r . -ll -ii \
             -x .venv,venv,__pycache__,.git,.pytest_cache,tests,build,dist \
