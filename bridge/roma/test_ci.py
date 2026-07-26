@@ -108,7 +108,7 @@ else:
         try:
             fn()
         except Exception:
-            _pytest.skip(f'ROMA module unavailable')
+            _pytest.skip('ROMA module unavailable')
 
     def test_auth_keys(): _skip_or_run('auth_keys', t_auth_keys)
     def test_rbac(): _skip_or_run('rbac', t_rbac)
