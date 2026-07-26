@@ -113,7 +113,7 @@ def test_llm_fallback_on_unavailable():
     from unittest.mock import patch
     from core.llm_router import route
 
-    with patch('core.llm_router.cloud_llm', side_effect=Exception('OpenRouter timeout')):
+    with patch('core.llm_router.classify_complexity', return_value='cloud'),      patch('core.llm_router.cloud_llm', side_effect=Exception('OpenRouter timeout')):
         import pytest
         with pytest.raises(Exception, match='OpenRouter'):
             route('Analyze BTC current trend')
