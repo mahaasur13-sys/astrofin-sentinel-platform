@@ -100,3 +100,4 @@ hmm_dashboard.html
 *.bak3
 
 # Nested duplicate — git root IS the project
+.gitleaks-baseline.json
