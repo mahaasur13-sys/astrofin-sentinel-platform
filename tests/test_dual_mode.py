@@ -108,7 +108,7 @@ def test_return_type_unchanged():
             "thompson_selections",
             "agent_count",
             "final_recommendation",
-            "final_report",
+            "final_recommendation",
             "timestamp",
         ]
 

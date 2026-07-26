@@ -40,7 +40,7 @@ def run(cmd, capture=True):
 
 def is_protected_file(filepath):
     """Проверяет, относится ли файл к защищённым."""
-    return os.path.basename(filepath) in PROTECTED_FILES
+    return filepath in PROTECTED_FILES or os.path.basename(filepath) in PROTECTED_FILES
 
 
 def check_protected_files_in_diff():

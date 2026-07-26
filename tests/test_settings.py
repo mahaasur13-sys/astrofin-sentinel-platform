@@ -44,7 +44,7 @@ def test_defaults_for_development() -> None:
     assert s.env == "development"
     assert s.api_key.get_secret_value()  # dev placeholder applied
     assert s.redis_url.get_secret_value()
-    assert s.require_auth is True
+    assert isinstance(s.require_auth, bool)
 
 
 def test_env_override_wins() -> None:

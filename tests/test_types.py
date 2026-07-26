@@ -44,8 +44,8 @@ def happy_state() -> dict:
 
 def test_happy_path():
     """Well-formed state must not raise and must return a sane response."""
-    pass  # types module has no class to instantiate
-    assert _mod is not None  # type: ignore[name-defined]
+    _mod = __import__("agents._impl.types")
+    assert _mod is not None
 
 
 # ── 2. empty state ──────────────────────────────────────────────────────
@@ -53,9 +53,9 @@ def test_happy_path():
 
 def test_empty_state():
     """Empty state must not crash — agent must degrade gracefully."""
+    _mod = __import__("agents._impl.types")
     state: dict = {}
-    # Pure module (types.py) has no run(); we just assert it imports.
-    assert _mod is not None  # type: ignore[name-defined]
+    assert _mod is not None
     assert isinstance(state, dict)
 
 
