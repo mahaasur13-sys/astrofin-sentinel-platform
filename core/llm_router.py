@@ -55,10 +55,10 @@ def _get_cloud_client():
 def _get_embedder():
     global _embedder
     if _embedder is None:
-        if _st_available:
-        _embedder = SentenceTransformer("all-MiniLM-L6-v2")
-    else:
-        _embedder = None
+        if _st_available and SentenceTransformer is not None:
+            _embedder = SentenceTransformer("all-MiniLM-L6-v2")
+        else:
+            _embedder = None
     return _embedder
 
 # ── Session cache (TTL 5 min) ──────────────────────────────────────────
