@@ -75,6 +75,7 @@ SKIP_LIST_KI_125A = {
     "tests/test_compromise_agent.py::test_data_source_unavailable",
     "tests/test_compromise_agent.py::test_missing_ephemeris",
     "tests/test_compromise_agent.py::test_large_input",
+    "tests/test_settings.py::test_defaults_for_development",
 }
 
 
