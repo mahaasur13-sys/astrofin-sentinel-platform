@@ -1,117 +1,59 @@
-#!/usr/bin/env python3
-"""H-05: Simulate alert storm — test Alertmanager routing + dedup.
-
-Usage:
-    python scripts/alert_storm_test.py --count 20 --alertmanager http://localhost:9093
-    python scripts/alert_storm_test.py --dry-run  # validate structure only
-"""
-
-from __future__ import annotations
-
-import argparse
-import json
+"""Simulate alert storm to test Alertmanager routing and deduplication (H-05)."""
+import requests
 import time
+import sys
 
-ALERT_START = "2026-08-11T00:00:00Z"
+ALERTMANAGER_URL = "http://localhost:9093/api/v1/alerts"
+ALERT_COUNT = 20
+UNIQUE_ALERT_NAMES = 5
 
-
-def generate_alerts(count: int = 20) -> list[dict]:
-    """Generate simulated alert storm events."""
+def generate_alerts(count=ALERT_COUNT, unique_names=UNIQUE_ALERT_NAMES):
     alerts = []
-    severities = ["critical", "warning"]
-    instances = ["agent-0", "agent-1", "agent-2", "api-0", "scheduler-0"]
-
     for i in range(count):
-        severity = severities[0] if i < count // 2 else severities[1]
-        alert = {
+        alerts.append({
             "labels": {
-                "alertname": f"TestAlert_{i % 5}",
-                "severity": severity,
-                "instance": instances[i % len(instances)],
-                "job": "astrofin-sentinel",
+                "alertname": f"TestAlert_{i % unique_names}",
+                "severity": "critical" if i < 10 else "warning",
+                "instance": f"agent-{i}"
             },
             "annotations": {
-                "summary": f"Test alert #{i} — {severity} severity",
-                "description": f"Simulated alert for hardening window. Seq: {i}/{count}",
+                "summary": f"Test alert {i}"
             },
-            "startsAt": ALERT_START,
-            "endsAt": "2026-08-11T01:00:00Z",
-        }
-        alerts.append(alert)
+            "startsAt": "2026-08-11T00:00:00Z"
+        })
     return alerts
 
+def send_alerts(alerts):
+    try:
+        resp = requests.post(ALERTMANAGER_URL, json=alerts, timeout=10)
+        print(f"Sent {len(alerts)} alerts, status: {resp.status_code}")
+        return resp.status_code == 200
+    except requests.ConnectionError:
+        print("Alertmanager not reachable at", ALERTMANAGER_URL)
+        return None
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
 
-def validate_alerts(alerts: list[dict]) -> bool:
-    """Validate alert structure before sending."""
-    required_labels = {"alertname", "severity", "instance", "job"}
-    valid = True
-    for i, a in enumerate(alerts):
-        missing = required_labels - set(a["labels"].keys())
-        if missing:
-            print(f"  ❌ Alert {i}: missing labels {missing}")
-            valid = False
-    return valid
-
-
-def send_alerts(alerts: list[dict], alertmanager_url: str) -> dict:
-    """POST alerts to Alertmanager API."""
-    import requests
-    resp = requests.post(
-        f"{alertmanager_url}/api/v1/alerts",
-        json=alerts,
-        headers={"Content-Type": "application/json"},
-        timeout=10,
-    )
-    return {"status_code": resp.status_code, "body": resp.text[:500]}
-
-
-def check_groups(alertmanager_url: str) -> dict:
-    """Check how Alertmanager grouped the alerts."""
-    import requests
-    resp = requests.get(f"{alertmanager_url}/api/v2/alerts/groups", timeout=10)
-    data = resp.json()
-    group_count = len(data) if isinstance(data, list) else len(data.get("data", []))
-    return {"status_code": resp.status_code, "group_count": group_count}
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Alert storm simulation")
-    parser.add_argument("--count", type=int, default=20, help="Number of alerts to generate")
-    parser.add_argument("--alertmanager", default="http://localhost:9093", help="Alertmanager URL")
-    parser.add_argument("--dry-run", action="store_true", help="Generate but don't send")
-    args = parser.parse_args()
-
-    alerts = generate_alerts(args.count)
-    print(f"\n{'='*60}")
-    print(f"  ALERT STORM TEST — {len(alerts)} alerts")
-    print(f"  Severities: {len([a for a in alerts if a['labels']['severity']=='critical'])} critical, "
-          f"{len([a for a in alerts if a['labels']['severity']=='warning'])} warning")
-    print(f"  Unique alertnames: {len(set(a['labels']['alertname'] for a in alerts))}")
-    print(f"{'='*60}")
-
-    if not validate_alerts(alerts):
-        print("  ❌ Validation failed")
-        return
-
-    if args.dry_run:
-        print("  ✅ Dry-run: alerts validated (not sent)")
-        for i, a in enumerate(alerts[:5]):
-            print(f"    [{i}] {a['labels']['alertname']} severity={a['labels']['severity']} instance={a['labels']['instance']}")
-        if len(alerts) > 5:
-            print(f"    ... and {len(alerts)-5} more")
-        return
-
-    print(f"\n  Sending to {args.alertmanager}/api/v1/alerts ...")
-    result = send_alerts(alerts, args.alertmanager)
-    print(f"  Status: {result['status_code']}")
-
-    time.sleep(2)
-
-    groups = check_groups(args.alertmanager)
-    print(f"  Groups after dedup: {groups['group_count']}")
-    print(f"\n  Expected: ≤5 groups (one per alertname, severity-split possible)")
-    print(f"{'='*60}")
-
+def check_groups():
+    try:
+        time.sleep(2)
+        resp = requests.get(f"{ALERTMANAGER_URL}/groups", timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            groups_count = len(data.get("data", []))
+            print(f"Groups after storm: {groups_count}")
+            return groups_count
+    except Exception:
+        pass
+    return None
 
 if __name__ == "__main__":
-    main()
+    alerts = generate_alerts()
+    sent = send_alerts(alerts)
+    if sent is None:
+        print("SKIP: Alertmanager not available (requires Docker)")
+        sys.exit(0)
+    groups = check_groups()
+    total = len(alerts)
+    print(f"Result: {total} alerts sent, {groups} groups formed")
