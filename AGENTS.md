@@ -1,6 +1,6 @@
 # AstroFin Sentinel V5 — Project Memory
 
-**Status:** ✅ Sprint C closed — 674→0 WARN, 8/8 CI infrastructure tasks. 9 CI workflows, 0 hard failures. PII scrubber 19/19, WAL-G backup configured, 15 alerts, 6 dashboards/43 panels.
+**Status:** ✅ Sprint F closed — v1.0.0-beta released, 6 sprints (A-F), Meta-RL inference + backtesting + frontend contract. 9 CI workflows, 0 hard failures. PII scrubber 19/19, WAL-G backup configured, 15 alerts, 6 dashboards/43 panels.
 **Architecture:** RAG-First + LangGraph + Multi-Agent + Hybrid Signal
 **Pattern:** Internal Board of Directors (Совет Директоров)
 **Working dir:** `~/Projects/astrofin-sentinel-platform` (Felix) / `/home/workspace` (Zo) — flat structure, no nested subdir
