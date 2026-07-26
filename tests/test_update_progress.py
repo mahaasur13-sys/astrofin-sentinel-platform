@@ -26,8 +26,6 @@ def test_update_progress_script_exists():
 
 @pytest.mark.unit
 def test_generates_progress_file(tmp_path):
-    if not SCRIPT.exists():
-        pytest.skip("Script not found")
     # NOTE: this test MUST run against an isolated copy of the script in a
     # throwaway directory. A previous version did `os.chdir(ROOT)`, `git init`
     # and `rm -rf .git` in the REAL repository root, which destroyed the
