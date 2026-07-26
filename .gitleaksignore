@@ -5,3 +5,4 @@
 deploy/iac/docs/deployment-day1-day7.md
 deploy/iac/terraform/modules/kubernetes/main.tf
 bridge/roma/billing/stripe_client.py
+.gitleaks-baseline.json
