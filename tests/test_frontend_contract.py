@@ -2,7 +2,7 @@
 import json, pytest
 import os, core.auth
 os.environ.pop("API_KEY", None)
-core.auth.REQUIRE_AUTH = False
+os.environ["REQUIRE_AUTH"] = "false"
 
 from fastapi.testclient import TestClient
 from api.main import app
