@@ -1,5 +1,5 @@
 """Simulate alert storm to test Alertmanager routing and deduplication (H-05)."""
-import requests
+import httpx
 import time
 import sys
 
@@ -25,10 +25,10 @@ def generate_alerts(count=ALERT_COUNT, unique_names=UNIQUE_ALERT_NAMES):
 
 def send_alerts(alerts):
     try:
-        resp = requests.post(ALERTMANAGER_URL, json=alerts, timeout=10)
+        resp = httpx.post(ALERTMANAGER_URL, json=alerts, timeout=10)
         print(f"Sent {len(alerts)} alerts, status: {resp.status_code}")
         return resp.status_code == 200
-    except requests.ConnectionError:
+    except httpx.ConnectError:
         print("Alertmanager not reachable at", ALERTMANAGER_URL)
         return None
     except Exception as e:
@@ -38,7 +38,7 @@ def send_alerts(alerts):
 def check_groups():
     try:
         time.sleep(2)
-        resp = requests.get(f"{ALERTMANAGER_URL}/groups", timeout=10)
+        resp = httpx.get(f"{ALERTMANAGER_URL}/groups", timeout=10)
         if resp.status_code == 200:
             data = resp.json()
             groups_count = len(data.get("data", []))
