@@ -24,7 +24,12 @@ except ImportError:
     ollama = None
     _ollama_available = False
 from openai import OpenAI
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+    _st_available = True
+except ImportError:
+    SentenceTransformer = None  # type: ignore
+    _st_available = False
 
 # ── Lazy clients ───────────────────────────────────────────────────────
 _cloud_client = None
@@ -50,7 +55,10 @@ def _get_cloud_client():
 def _get_embedder():
     global _embedder
     if _embedder is None:
+        if _st_available:
         _embedder = SentenceTransformer("all-MiniLM-L6-v2")
+    else:
+        _embedder = None
     return _embedder
 
 # ── Session cache (TTL 5 min) ──────────────────────────────────────────
