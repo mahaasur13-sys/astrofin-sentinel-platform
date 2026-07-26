@@ -285,8 +285,6 @@ services:
       WALG_LOG_LEVEL: DEVEL
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./deploy/postgres/0010_astrofin_hypertables.sql:/docker-entrypoint-initdb.d/99-hypertable.sql
-      - ./deploy/postgres/verify-hypertable.sql:/docker-entrypoint-initdb.d/99-verify.sql:ro
       - walg_backups:/backups
     networks:
       - astrofin
