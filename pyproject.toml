@@ -48,6 +48,8 @@ dependencies = [
   # Networking / async (used by data_provider + tests)
   "aiohttp>=3.9.0,<4.0",
   "httpx>=0.26.0,<1.0",
+  "slowapi>=0.1.9,<1.0",
+  "tenacity>=8.0.0,<10.0",
 
   # Optional LLM (used by git_agent_exporter)
   "openai>=1.0.0,<3.0",
