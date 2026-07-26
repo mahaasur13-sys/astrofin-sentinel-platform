@@ -148,7 +148,7 @@ class CircuitBreaker:
                 result = _inner()
                 self.success()
                 return result
-            except (RetryError, Exception) as e:
+            except (RetryError, Exception):
                 self.failure()
                 if self.fallback:
                     return self.fallback(*args, **kwargs)
