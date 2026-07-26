@@ -10,6 +10,16 @@ import pytest
 # list is the single source of truth for "what is currently parked" — when
 # a test is fixed, remove its node id from this set.
 # See: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/issues/149
+# ═══════════════════════════════════════════════════════════════
+# KI-125a Skip List — DO NOT REMOVE ENTRIES WITHOUT:
+#   1. Feature branch: fix/ki125a-batch-<X>
+#   2. Local verify: pytest --count=10
+#   3. PR with CI green on BOTH Python 3.11 and 3.12
+#   4. Approval from code owner
+# Last mass-removal attempt (PR #281) caused 12 CI failures.
+# See: docs/audit/ki125a-triage-2026-07-26.md
+# ═══════════════════════════════════════════════════════════════
+
 SKIP_LIST_KI_125A = {
     # --- architecture (3) — missing acos_contracts module ---
     "tests/architecture/test_architecture_linter.py::test_linter_cli_exit_code_with_violations",
