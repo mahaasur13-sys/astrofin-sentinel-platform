@@ -21,6 +21,14 @@ import pytest
 # ═══════════════════════════════════════════════════════════════
 
 SKIP_LIST_KI_125A = {
+    # KI-125a Skip List — DO NOT REMOVE ENTRIES WITHOUT:
+    # 1. Feature branch: fix/ki125a-batch-<X>
+    # 2. Local verify: pytest tests/ --count=10 -q
+    # 3. PR with CI green
+    # 4. Approval from code owner
+    # Last mass-removal attempt (PR #281) caused 12 CI failures.
+    # Another attempt (PR #282, http_client) failed due to event loop race.
+
     # --- architecture (3) — missing acos_contracts module ---
     "tests/architecture/test_architecture_linter.py::test_linter_cli_exit_code_with_violations",
     "tests/architecture/test_architecture_linter.py::test_linter_flags_ephemeris_without_decorator",
