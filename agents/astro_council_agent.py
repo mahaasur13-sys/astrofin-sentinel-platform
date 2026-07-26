@@ -99,7 +99,7 @@ class AstroCouncilAgent(BaseAgent):
         3. TradingSignal.from_agents для финального взвешивания
         """
         try:
-            dt = context.get("datetime") or datetime.utcnow()
+            dt = context.get("datetime") or datetime.now(datetime.UTC)
             symbol = context.get("symbol", "BTC")
             price = context.get("price") or context.get("current_price") or 100.0
 

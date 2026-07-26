@@ -222,7 +222,7 @@ class GannAgent(BaseAgent[AgentResponse]):
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.utcnow()
+        now = datetime.now(datetime.UTC)
         jd = _julian_day(now)
 
         # Check if any major planet is at a Gann degree (0°, 90°, 180°, 270°)

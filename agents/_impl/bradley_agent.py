@@ -144,7 +144,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
                 daily_returns[day] = daily_returns.get(day, []) + [-1]
 
         # Find current period's historical performance
-        now = datetime.utcnow()
+        now = datetime.now(datetime.UTC)
         current_day = now.timetuple().tm_yday
 
         # Check past 30 days of current period
@@ -182,7 +182,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.utcnow()
+        now = datetime.now(datetime.UTC)
         jd = _julian_day(now)
 
         # Get major planets
