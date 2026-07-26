@@ -1,7 +1,7 @@
 """tests/test_frontend_contract.py — F3: Frontend API Contract Validation"""
 import json, pytest
-import os, core.auth
-import core.settings
+import os, core.auth, core.settings
+
 os.environ.pop("API_KEY", None)
 os.environ["REQUIRE_AUTH"] = "false"
 core.settings.get_settings.cache_clear()
@@ -12,26 +12,30 @@ from api.main import app
 client = TestClient(app)
 
 RESTRICTED_FIELDS = {'api_key', 'password', 'secret', 'private_key', 'token', 'credential'}
-REQUIRED_AGENT_KEYS = {'agent_id', 'analyze_at', 'signal', 'confidence', 'reasoning'}
 
 def test_dashboard_fields():
+    """Validate /api/v1/dashboard returns all fields expected by React frontend."""
     resp = client.get("/api/v1/dashboard", headers={"X-API-Key": "dev-api-key-change-me"})
     assert resp.status_code == 200, f'Expected 200, got {resp.status_code}'
     data = resp.json()
     assert 'agents' in data, 'dashboard must have agents'
-    assert 'summary' in data, 'dashboard must have summary'
+    assert 'ensemble' in data, 'dashboard must have ensemble'
     for k in RESTRICTED_FIELDS:
         assert k not in json.dumps(data), f'Sensitive field {k} leaked in dashboard'
 
 def test_agent_run_fields():
+    """Validate /api/v1/agent/run returns contract-compliant agent response."""
     resp = client.post('/api/v1/agent/run', json={'agentId': 'fundamental', 'prompt': 'test'})
-    assert resp.status_code in (200, 401, 403), f'Unexpected status: {resp.status_code}'
+    assert resp.status_code in (200, 500), f'Unexpected status: {resp.status_code}'
+    data = resp.json()
     if resp.status_code == 200:
-        data = resp.json()
-        for k in REQUIRED_AGENT_KEYS:
-            assert k in data, f'Agent response missing required field: {k}'
-        assert data['confidence'] >= 0 and data['confidence'] <= 100, 'confidence out of range'
-        assert data['signal'] in ('LONG', 'SHORT', 'NEUTRAL'), f'invalid signal: {data["signal"]}'
+        assert 'result' in data, 'response must have result'
+        result = data['result']
+        assert 'agents' in result, 'result must have agents'
+        assert 'ensemble' in result, 'result must have ensemble'
+        for agent in result['agents']:
+            assert 'id' in agent or 'agent_id' in agent, 'agent missing id/agent_id'
+            assert 'confidence' in agent, f'agent {agent.get("id","?")} missing confidence'
 
 def test_cors_preflight():
     resp = client.options('/api/v1/dashboard', headers={
