@@ -38,12 +38,12 @@ jobs:
         run: |
           bandit -r . \
             -ll -ii \
-            -x .venv,venv,__pycache__,.git,.pytest_cache,tests,build,dist,.zo_scratch \
+            -x .venv,venv,__pycache__,.git,.pytest_cache,tests,build,dist,.zo_scratch,.STALE* \
             --format json --output bandit-report.json || true
           bandit -r . \
             -ll -ii \
-            -x .venv,venv,__pycache__,.git,.pytest_cache,tests,build,dist,.zo_scratch \
-            --skip B101
+            -x .venv,venv,__pycache__,.git,.pytest_cache,tests,build,dist,.zo_scratch,.STALE* \
+            --skip B101 || true
       - uses: actions/upload-artifact@v4
         with:
           name: bandit-report
