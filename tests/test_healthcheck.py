@@ -31,8 +31,6 @@ def test_healthcheck_exists():
 
 @pytest.mark.unit
 def test_healthcheck_outputs_json():
-    if not HEALTHCHECK.exists():
-        pytest.skip("healthcheck.py not found")
     stdout, _, returncode = run_healthcheck()
     data = json.loads(stdout)
     assert "status" in data
@@ -41,8 +39,6 @@ def test_healthcheck_outputs_json():
 
 @pytest.mark.unit
 def test_healthcheck_exit_code_ok_when_all_good():
-    if not HEALTHCHECK.exists():
-        pytest.skip("healthcheck.py not found")
     _, _, returncode = run_healthcheck()
     # В идеальных условиях должен вернуть 0, но в тестовой среде может быть 1.
     # Мы просто проверяем, что не 2 (критическая ошибка).
@@ -51,8 +47,6 @@ def test_healthcheck_exit_code_ok_when_all_good():
 
 @pytest.mark.unit
 def test_healthcheck_venv_check():
-    if not HEALTHCHECK.exists():
-        pytest.skip("healthcheck.py not found")
     stdout, _, _ = run_healthcheck()
     data = json.loads(stdout)
     checks = data.get("checks", {})
@@ -62,8 +56,6 @@ def test_healthcheck_venv_check():
 
 @pytest.mark.unit
 def test_healthcheck_db_check():
-    if not HEALTHCHECK.exists():
-        pytest.skip("healthcheck.py not found")
     stdout, _, _ = run_healthcheck()
     data = json.loads(stdout)
     checks = data.get("checks", {})
@@ -72,8 +64,6 @@ def test_healthcheck_db_check():
 
 @pytest.mark.unit
 def test_healthcheck_ollama_check():
-    if not HEALTHCHECK.exists():
-        pytest.skip("healthcheck.py not found")
     stdout, _, _ = run_healthcheck()
     data = json.loads(stdout)
     checks = data.get("checks", {})
