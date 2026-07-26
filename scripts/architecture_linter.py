@@ -264,7 +264,8 @@ def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: 
         return
 
     # --- CHANGE 2: skip core/ and scripts/ for R2 ---
-    if str(src).startswith(("core/", "scripts/")):
+    rel = str(_rel(src))
+    if rel.startswith(("core/", "scripts/")):
         return
 
     # AST-based detection: walk function bodies for real ephemeris calls.

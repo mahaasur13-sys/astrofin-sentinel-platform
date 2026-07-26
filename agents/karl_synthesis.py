@@ -25,7 +25,7 @@ from agents._impl.amre.reward import RewardState
 from agents._impl.amre.risk_control import apply_position_lag_risk
 from agents._impl.amre.trajectory import MarketState, market_state_hash
 from agents._impl.synthesis_agent import SynthesisAgent
-from agents.base_agent import AgentResponse
+from agents.base_agent import AgentResponse, BaseAgent
 
 # ── P2-04: extracted conflict resolution + weight calibration ───────────────
 from agents._impl.amre.conflict_resolver import (
@@ -75,7 +75,7 @@ except Exception:
 # ─── KARL Synthesis Agent ────────────────────────────────────────────────────
 
 
-class KARLSynthesisAgent:
+class KARLSynthesisAgent(BaseAgent[AgentResponse]):
     """SynthesisAgent + Full AMRE/KARL Control Loop.
 
     Adds to SynthesisAgent:
