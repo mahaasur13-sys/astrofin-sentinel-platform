@@ -101,7 +101,7 @@ if threading.current_thread() is threading.main_thread():
 
 
 # ── Health endpoints (replace /health so it returns 503 during drain) ────────
-@server.route("/health")
+@server.route("/health")  # noqa: R4 — legacy WSGI route, migration to FastAPI tracked in issue #xxx
 def public_health():
     if _is_draining():
         return jsonify({"status": "draining"}), 503
