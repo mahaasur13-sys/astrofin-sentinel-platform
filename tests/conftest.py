@@ -33,15 +33,6 @@ SKIP_LIST_KI_125A = {
     "tests/architecture/test_architecture_linter.py::test_linter_cli_exit_code_with_violations",
     "tests/architecture/test_architecture_linter.py::test_linter_flags_ephemeris_without_decorator",
     "tests/architecture/test_architecture_linter.py::test_linter_flags_orphan_agent",
-    # --- calibration_tracker (8) — interface drift ---
-    "tests/test_calibration_tracker.py::CalibrationTrackerTest::test_confidence_clipped_to_unit_interval",
-    "tests/test_calibration_tracker.py::CalibrationTrackerTest::test_confidence_under_1_treated_as_fraction",
-    "tests/test_calibration_tracker.py::CalibrationTrackerTest::test_ece_perfect_calibration",
-    "tests/test_calibration_tracker.py::CalibrationTrackerTest::test_empty_report",
-    "tests/test_calibration_tracker.py::CalibrationTrackerTest::test_record_and_resolve_round_trip",
-    "tests/test_calibration_tracker.py::CalibrationTrackerTest::test_reliability_bins_shape",
-    "tests/test_calibration_tracker.py::CalibrationTrackerTest::test_to_dict_serializable",
-    "tests/test_calibration_tracker.py::CalibrationTrackerTest::test_window_filter",
     # --- dual_mode / ephemeris / logging / meta_rl (4) — drift ---
     "tests/test_ephemeris_decorator.py::test_happy_path",
     "tests/test_logging.py::test_orchestrator_sets_correlation_id",
