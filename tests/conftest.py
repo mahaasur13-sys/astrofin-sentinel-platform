@@ -11,6 +11,7 @@ import pytest
 # a test is fixed, remove its node id from this set.
 # See: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/issues/149
 # ═══════════════════════════════════════════════════════════════
+}
 # KI-125a Skip List — DO NOT REMOVE ENTRIES WITHOUT:
 #   1. Feature branch: fix/ki125a-batch-<X>
 #   2. Local verify: pytest --count=10
@@ -28,18 +29,6 @@ SKIP_LIST_KI_125A = {
     # 4. Approval from code owner
     # Last mass-removal attempt (PR #281) caused 12 CI failures.
     # Another attempt (PR #282, http_client) failed due to event loop race.
-    # --- dual_mode / ephemeris / logging / meta_rl (4) — drift ---
-    "tests/test_ephemeris_decorator.py::test_happy_path",
-    "tests/test_logging.py::test_orchestrator_sets_correlation_id",
-    "tests/test_meta_rl.py::TestEvolutionEngine::test_reward_improves_after_evolution",
-    # --- http_client (1) — fixture lifecycle drift surfaced by skip list ---
-    "tests/test_http_client.py::test_keep_alive_reuse_leaks_connection",
-    # --- strategy_pool (1) --- floats, numpy precision drift in CI runner --- environment flake ---, refs #149 ---
-    "tests/unit/test_strategy_pool_and_persistence.py::TestStrategyPoolUnit::test_diversity_filter_threshold_one_filters_only_identical",
-    # --- macro_agent / metrics (3) — _StubMethod type errors ---
-    "tests/test_macro_agent.py::TestMacroAgentAggregate::test_analyze_no_data",
-    "tests/test_metrics_cli.py::test_with_metrics_flag_registers_metrics",
-    "tests/test_metrics_endpoint.py::test_metrics_are_registered",
 }
 def pytest_collection_modifyitems(config, items):
     """Skip pre-existing failing tests tracked by KI-125a (issue #149)."""
