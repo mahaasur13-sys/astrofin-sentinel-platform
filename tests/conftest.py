@@ -46,16 +46,7 @@ SKIP_LIST_KI_125A = {
     "tests/test_macro_agent.py::TestMacroAgentAggregate::test_analyze_no_data",
     "tests/test_metrics_cli.py::test_with_metrics_flag_registers_metrics",
     "tests/test_metrics_endpoint.py::test_metrics_are_registered",
-        # --- rag_agent_integration (3) — drift ---
-    "tests/test_rag_agent_integration.py::test_build_prompt_includes_rag_results",
-    "tests/test_rag_agent_integration.py::test_build_prompt_no_rag_when_disabled",
-    "tests/test_rag_agent_integration.py::test_build_prompt_works_with_degraded_retriever",
-    # --- rag_metrics (4) — _StubMethod type errors ---
-    "tests/test_rag_metrics.py::test_bm25_refresh_records_latency_histogram",
-    "tests/test_rag_metrics.py::test_bm25_refresh_sets_timestamp_gauge",
-    "tests/test_rag_metrics.py::test_rag_client_retrieve_increments_queries_total_ok",
-    "tests/test_rag_metrics.py::test_rag_client_retrieve_on_error_bumps_errors_and_queries",
-    # --- ralph_safety / types (3) — drift ---
+                                            # --- ralph_safety / types (3) — drift ---
     # --- pre-existing failures (6) — surfaced during ADR-0010 Flask cleanup (2026-07-27) ---
     "tests/test_backtest_mode_comparison.py::test_comparison_script_ci_mode_succeeds",
     "tests/test_dual_mode.py::test_legacy_mode_produces_same_result",
