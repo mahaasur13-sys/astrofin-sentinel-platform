@@ -29,10 +29,6 @@ SKIP_LIST_KI_125A = {
     # Last mass-removal attempt (PR #281) caused 12 CI failures.
     # Another attempt (PR #282, http_client) failed due to event loop race.
 
-    # --- architecture (3) — missing acos_contracts module ---
-    "tests/architecture/test_architecture_linter.py::test_linter_cli_exit_code_with_violations",
-    "tests/architecture/test_architecture_linter.py::test_linter_flags_ephemeris_without_decorator",
-    "tests/architecture/test_architecture_linter.py::test_linter_flags_orphan_agent",
     # --- dual_mode / ephemeris / logging / meta_rl (4) — drift ---
     "tests/test_ephemeris_decorator.py::test_happy_path",
     "tests/test_logging.py::test_orchestrator_sets_correlation_id",
@@ -40,13 +36,10 @@ SKIP_LIST_KI_125A = {
     # --- http_client (1) — fixture lifecycle drift surfaced by skip list ---
     # --- strategy_pool (1) --- floats, numpy precision drift in CI runner --- environment flake ---, refs #149 ---
     "tests/unit/test_strategy_pool_and_persistence.py::TestStrategyPoolUnit::test_diversity_filter_threshold_one_filters_only_identical",
-    # --- imports (1) — missing hypothesis dep ---
-    "tests/test_imports.py::test_hypothesis_importable",
     # --- macro_agent / metrics (3) — _StubMethod type errors ---
     "tests/test_macro_agent.py::TestMacroAgentAggregate::test_analyze_no_data",
     "tests/test_metrics_cli.py::test_with_metrics_flag_registers_metrics",
     "tests/test_metrics_endpoint.py::test_metrics_are_registered",
-                                            # --- ralph_safety / types (3) — drift ---
     # --- pre-existing failures (6) — surfaced during ADR-0010 Flask cleanup (2026-07-27) ---
     "tests/test_backtest_mode_comparison.py::test_comparison_script_ci_mode_succeeds",
     "tests/test_dual_mode.py::test_legacy_mode_produces_same_result",
