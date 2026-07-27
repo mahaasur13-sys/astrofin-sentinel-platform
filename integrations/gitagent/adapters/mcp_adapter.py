@@ -106,7 +106,7 @@ class MCPAdapter:
         executable = shutil.which("smithery")
         if executable:
             return [executable]
-        return ["npx", "--yes", "smithery@latest"]
+        return ["npx", "--yes", "@smithery/cli"]
 
     def _run_cli(self, arguments: list[str], timeout: int = 60) -> subprocess.CompletedProcess[str]:
         command = self._cli_prefix() + ["--json", *arguments]
@@ -260,13 +260,6 @@ class MCPAdapter:
         """Search Smithery using the CLI and public registry API."""
         results: list[dict[str, Any]] = []
         try:
-            completed = self._run_cli(["mcp", "search", query], timeout=30)
-            if completed.returncode == 0:
-                results.extend(self._extract_servers(self._json_from_output(completed.stdout)))
-        except (FileNotFoundError, subprocess.SubprocessError):
-            pass
-
-        try:
             with httpx.Client(timeout=15.0) as client:
                 response = client.get(
                     f"{self.api_base}/servers",
@@ -277,6 +270,14 @@ class MCPAdapter:
                 results.extend(self._extract_servers(response.json()))
         except (httpx.HTTPError, ValueError):
             pass
+
+        if not results:
+            try:
+                completed = self._run_cli(["mcp", "search", query], timeout=30)
+                if completed.returncode == 0:
+                    results.extend(self._extract_servers(self._json_from_output(completed.stdout)))
+            except (FileNotFoundError, subprocess.SubprocessError):
+                pass
 
         if not results:
             results = self._get_fallback_servers(query)
@@ -352,7 +353,38 @@ class MCPAdapter:
         result.update(status="installed", response=payload)
         return result
 
+    def _server_details(self, server_name: str) -> dict[str, Any]:
+        from urllib.parse import quote
+
+        try:
+            with httpx.Client(timeout=15.0) as client:
+                response = client.get(
+                    f"{self.api_base}/servers/{quote(server_name, safe='/')}",
+                    headers=self._api_headers(),
+                )
+            if response.is_success:
+                value = response.json()
+                if isinstance(value, dict):
+                    return value
+        except (httpx.HTTPError, ValueError):
+            pass
+        return {}
+
     def _tools_from_api(self, connection_id: str) -> list[dict[str, Any]]:
+        server_info = self.installed_servers.get(connection_id, {})
+        qualified_name = str(server_info.get("name") or connection_id)
+        try:
+            with httpx.Client(timeout=15.0) as client:
+                response = client.get(
+                    f"{self.api_base}/servers/{qualified_name.lstrip('@')}"
+                )
+                if response.is_success:
+                    tools = self._extract_tools(response.json())
+                    if tools:
+                        return tools
+        except (httpx.HTTPError, ValueError):
+            pass
+
         namespace = os.environ.get("SMITHERY_NAMESPACE")
         if not namespace or not os.environ.get("SMITHERY_API_KEY"):
             return []
@@ -374,6 +406,10 @@ class MCPAdapter:
         for connection_id, server_info in self.installed_servers.items():
             local_tools = server_info.get("tools", [])
             server_tools = [item for item in local_tools if isinstance(item, dict)]
+            if not server_tools:
+                server_name = str(server_info.get("name", ""))
+                details = self._server_details(server_name) if server_name else {}
+                server_tools = self._extract_tools(details)
             if not server_tools:
                 try:
                     completed = self._run_cli(
