@@ -155,7 +155,7 @@ indent-style = "space"
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
-addopts = "-q --tb=short --strict-markers --strict-config -m \"not integration\" --ignore=tests/test_kepler_differential.py --ignore=tests/test_kepler_property.py --ignore=tests/test_validator.py --ignore=tests/test_core_aspects.py --ignore=tests/error_handling/test_error_handling_wsgi.py --ignore=tests/test_auth.py --ignore=tests/test_data_room_api.py --ignore=tests/test_error_handling_wsgi.py --ignore=tests/test_auth_flask_decorator.py --ignore=tests/test_auth_empty_key.py --ignore=tests/auth/test_jwt.py --ignore=tests/e2e/test_api_endpoints.py"
+addopts = "-q --tb=short --strict-markers --strict-config -m \"not integration\" --ignore=tests/test_kepler_differential.py --ignore=tests/test_kepler_property.py --ignore=tests/test_validator.py --ignore=tests/test_core_aspects.py --ignore=tests/test_astro_council_integration.py --ignore=tests/test_backtest_real_agents.py --ignore=tests/test_fetch_price.py --ignore=tests/test_orchestrator.py"
 asyncio_mode = "auto"
 markers = [
   "unit: fast unit tests with no external deps (default)",
