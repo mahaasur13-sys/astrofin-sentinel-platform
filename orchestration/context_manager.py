@@ -56,4 +56,16 @@ def _select_for_flow(
         )
     else:
         selected = sampler.select(pool, k=k, oap_adjustments=adj)
+    try:
+        from tools.metrics_server import AGENT_SELECTION_COUNTS
+        for name, _ in selected:
+            AGENT_SELECTION_COUNTS.labels(agent=name).inc()
+    except (ImportError, ValueError):
+        pass
+    try:
+        from tools.metrics_server import AGENT_SELECTION_COUNTS
+        for name, _ in selected:
+            AGENT_SELECTION_COUNTS.labels(agent=name).inc()
+    except (ImportError, ValueError):
+        pass
     return [name for name, _ in selected]

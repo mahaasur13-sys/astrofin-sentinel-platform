@@ -356,14 +356,14 @@ class BeliefTracker:
                 (agent_name,),
             ).fetchone()
             if current:
-                THOMPSON_PARAMS.labels(agent_name=agent_name, param="alpha").set(
+                THOMPSON_PARAMS.labels(pool=agent_name).set(
                     current["alpha"]
                 )
-                THOMPSON_PARAMS.labels(agent_name=agent_name, param="beta").set(
+                THOMPSON_PARAMS.labels(pool=agent_name).set(
                     current["beta"]
                 )
                 mean_val = current["alpha"] / (current["alpha"] + current["beta"])
-                THOMPSON_PARAMS.labels(agent_name=agent_name, param="mean").set(
+                THOMPSON_PARAMS.labels(pool=agent_name).set(
                     mean_val
                 )
 

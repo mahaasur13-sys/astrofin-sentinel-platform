@@ -13,8 +13,10 @@ Original 659-line monolithic file has been split into:
     └── formatting.py  : breakdown + source collection
 
 All existing imports continue to work:
-  from agents._impl.synthesis_agent import SynthesisAgent, run_synthesis_agent, create
+  from agents._impl.synthesis.agent import SynthesisAgent, run_synthesis_agent, create
+from agents._impl.synthesis.weights import AGENT_WEIGHTS, CATEGORY_WEIGHTS
 """
 from agents._impl.synthesis.agent import SynthesisAgent, run_synthesis_agent, create
+from agents._impl.synthesis.weights import AGENT_WEIGHTS, CATEGORY_WEIGHTS
 
-__all__ = ["SynthesisAgent", "run_synthesis_agent", "create"]
+__all__ = ["SynthesisAgent", "run_synthesis_agent", "create", "AGENT_WEIGHTS", "CATEGORY_WEIGHTS"]

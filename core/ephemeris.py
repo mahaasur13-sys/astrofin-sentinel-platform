@@ -24,6 +24,11 @@ log = logging.getLogger(__name__)
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+try:
+    from tools.metrics_server import CACHE_HITS, CACHE_MISSES
+except ImportError:
+    CACHE_HITS = type("_Stub", (), {"inc": lambda: None})()
+    CACHE_MISSES = type("_Stub", (), {"inc": lambda: None})()
 from typing import Any, Protocol, runtime_checkable
 
 
@@ -318,6 +323,11 @@ def calculate_natal_chart(
     ayanamsha: int = 1,  # Raseshwara
 ) -> NatalChart:
     """Calculate complete natal chart (god-node API)."""
+    cache_key = (birth_time.isoformat(), latitude, longitude, use_sidereal, ayanamsha)
+    if cache_key in _natal_cache:
+        CACHE_HITS.inc()
+        return _natal_cache[cache_key]
+    CACHE_MISSES.inc()
     jd = _julian_day(birth_time)
     flags = 1
     if use_sidereal and HAS_SWISS_EPHEMERIS and swe is not None:
@@ -330,13 +340,15 @@ def calculate_natal_chart(
         name: _default_provider.calculate_planet(name, jd, flags) for name in PLANETS
     }
     houses = _default_provider.calculate_houses(jd, latitude, longitude)
-    return NatalChart(
+    chart = NatalChart(
         planets=planets,
         houses=houses,
         timestamp=birth_time,
         latitude=latitude,
         longitude=longitude,
     )
+    _natal_cache[cache_key] = chart
+    return chart
 
 
 def get_current_positions(

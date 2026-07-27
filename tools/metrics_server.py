@@ -51,8 +51,7 @@ RAG_ERRORS_TOTAL = Counter(
 
 BROKER_ERRORS = Counter(
     "astrofin_broker_errors_total",
-    "Broker execution errors by broker and error type",
-    ["broker", "error_type"],
+    "Broker execution errors (total)",
 )
 RAG_LATENCY_SECONDS = Histogram(
 

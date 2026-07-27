@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-# --- KI-125a: 40 pre-existing test failures (10 Flask-legacy removed per ADR-0010 Option B) ---
+# --- KI-125a: 32 pre-existing test failures (10 Flask-legacy + 8 observability removed) ---
 # These tests fail on master independently of PR #148. They are temporarily
 # skipped here so that the quality-gate job can report green CI. The skip
 # list is the single source of truth for "what is currently parked" — when
@@ -55,16 +55,7 @@ SKIP_LIST_KI_125A = {
     "tests/test_macro_agent.py::TestMacroAgentAggregate::test_analyze_no_data",
     "tests/test_metrics_cli.py::test_with_metrics_flag_registers_metrics",
     "tests/test_metrics_endpoint.py::test_metrics_are_registered",
-    # --- observability (7) — _StubMethod type errors ---
-    "tests/test_observability_agents.py::test_agent_selection_increments_counter",
-    "tests/test_observability_agents.py::test_thompson_params_gauge_updated",
-    "tests/test_observability_belief_cache.py::test_belief_get_cache_increments_counters",
-    "tests/test_observability_broker.py::test_broker_error_increments_counter",
-    "tests/test_observability_cache.py::test_ephemeris_cache_increments_counters",
-    "tests/test_observability_faiss_cache.py::test_faiss_load_cache_increments_counters",
-    "tests/test_observability_ollama.py::test_ollama_available_sets_status_to_one",
-    "tests/test_observability_rag_quality.py::test_rag_query_cache_hits_increment",
-    # --- rag_agent_integration (3) — drift ---
+        # --- rag_agent_integration (3) — drift ---
     "tests/test_rag_agent_integration.py::test_build_prompt_includes_rag_results",
     "tests/test_rag_agent_integration.py::test_build_prompt_no_rag_when_disabled",
     "tests/test_rag_agent_integration.py::test_build_prompt_works_with_degraded_retriever",
@@ -80,7 +71,6 @@ SKIP_LIST_KI_125A = {
     "tests/test_dual_mode.py::test_masfactory_fallback_on_error",
     "tests/test_dual_mode.py::test_return_type_unchanged",
     "tests/test_dual_mode.py::test_backward_compatibility_signatures",
-    "tests/test_observability_agents.py::test_signal_distribution_increments",
 }
 
 
