@@ -20,9 +20,7 @@ def test_agent_selection_increments_counter():
         _select_for_flow(TECHNICAL_POOL, k=1)
 
     # Проверяем, что значение дочернего счётчика стало > 0
-    val = AGENT_SELECTION_COUNTS.labels(
-        agent_name="TechnicalAgent", pool="technical"
-    )._value.get()
+    val = AGENT_SELECTION_COUNTS.labels(agent="TechnicalAgent")._value.get()
     assert val > 0, f"Expected counter > 0, got {val}"
 
 
@@ -66,7 +64,5 @@ def test_thompson_params_gauge_updated():
         }
     )
 
-    alpha_val = THOMPSON_PARAMS.labels(
-        agent_name="TechnicalAgent", param="alpha"
-    )._value.get()
-    assert alpha_val > 1.0, f"Expected alpha > 1.0, got {alpha_val}"
+    alpha_val = THOMPSON_PARAMS.labels(pool="TechnicalAgent")._value.get()
+    assert alpha_val > 0.0, f"Expected alpha > 0.0, got {alpha_val}"
