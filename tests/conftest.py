@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-# --- KI-125a: 40 pre-existing test failures (10 Flask-legacy removed per ADR-0010 Option B) ---
+# --- KI-125a: 32 pre-existing test failures (10 Flask-legacy + 8 observability removed) ---
 # These tests fail on master independently of PR #148. They are temporarily
 # skipped here so that the quality-gate job can report green CI. The skip
 # list is the single source of truth for "what is currently parked" — when
