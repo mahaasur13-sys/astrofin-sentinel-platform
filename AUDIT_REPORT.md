@@ -1,9 +1,9 @@
 # AstroFin Sentinel Platform — Глубокий Аудит (Шаг 2)
 
-**Дата:** 2026-07-27  
-**Аудитор:** Senior Architect & Code Auditor (Zo)  
-**Проект:** `astrofin-sentinel-platform`  
-**Ветка:** `release/v1.0.0`  
+**Дата:** 2026-07-27
+**Аудитор:** Senior Architect & Code Auditor (Zo)
+**Проект:** `astrofin-sentinel-platform`
+**Ветка:** `release/v1.0.0`
 **Workspace:** `/home/workspace` (flat structure, Zo sandbox)
 
 ---
@@ -11,8 +11,8 @@
 ## Executive Summary
 
 | Метрика | Значение | Оценка |
-|---------|----------|--------|
-| Python-файлов | 21,869 (активных ~400) | ⚠️ Много мусора |
+| --- | --- | --- |
+| Python-файлов | 21,869 (активных \~400) | ⚠️ Много мусора |
 | Активных агентов | 25 в `agents/_impl/` | ✅ |
 | Тестов | 833 collected (848 total, 15 deselected) | ✅ |
 | KI-125a skip | 53 тестов | 🔴 |
@@ -40,7 +40,7 @@
 ### 1.2 Границы модулей и Coupling/Cohesion
 
 | Модуль | Файлов | Размер | Cohesion | Coupling |
-|--------|--------|--------|----------|----------|
+| --- | --- | --- | --- | --- |
 | `agents/` | 60 | 1.1M | 🟡 Средняя (25 агентов, 6,292 строк) | 🔴 Высокий — многие агенты импортируют ядро напрямую |
 | `core/` | 66 | 1.7M | 🟡 Средняя — смесь эфемерид, auth, RAG, rate_limit, security | 🔴 Высокий — `core/` разросся до God-module |
 | `meta_rl/` | 45 | 529K | ✅ Хорошая — чёткая зона ответственности (Meta-RL pipeline) | 🟡 Средний |
@@ -50,11 +50,11 @@
 
 **Критические находки:**
 
-1. **`core/` — God-module (66 файлов, 1.7MB):** Смешивает эфемериды, аутентификацию, RAG-клиент, rate-limiting, security middleware, FastAPI/Flask адаптеры. Рекомендуется split на `core/domain/` (ephemeris, aspects, beliefs) и `core/infra/` (auth, rate_limit, middleware).
+1. `core/` **— God-module (66 файлов, 1.7MB):** Смешивает эфемериды, аутентификацию, RAG-клиент, rate-limiting, security middleware, FastAPI/Flask адаптеры. Рекомендуется split на `core/domain/` (ephemeris, aspects, beliefs) и `core/infra/` (auth, rate_limit, middleware).
 
-2. **`deploy/iac/` — монстр на 168 файлов:** Содержит Ansible, Terraform, k8s, systemd, собственный `pyproject.toml`, тесты и даже копию `acos`. Это отдельный продукт, который не должен жить внутри монорепо.
+2. `deploy/iac/` **— монстр на 168 файлов:** Содержит Ansible, Terraform, k8s, systemd, собственный `file pyproject.toml`, тесты и даже копию `acos`. Это отдельный продукт, который не должен жить внутри монорепо.
 
-3. **`agents/_impl/amre/` — 14 модулей внутри `_impl/`:** AMRE заслуживает собственной директории верхнего уровня (`amre/`) или как минимум `agents/amre/`. Сейчас это 14 модулей внутри `_impl/`, что нарушает иерархию (AMRE не является агентом).
+3. `agents/_impl/amre/` **— 14 модулей внутри** `_impl/`**:** AMRE заслуживает собственной директории верхнего уровня (`amre/`) или как минимум `agents/amre/`. Сейчас это 14 модулей внутри `_impl/`, что нарушает иерархию (AMRE не является агентом).
 
 4. **R-01 (data_room) — чисто:** Ни один активный агент не импортирует `requests` напрямую. Все HTTP через `data_room/`. ✅
 
@@ -63,10 +63,10 @@
 ### 1.3 Соответствие Clean Architecture
 
 | Слой | Реализация | Оценка |
-|------|-----------|--------|
-| Domain | `core/ephemeris.py`, `core/aspects.py`, `agents/_impl/types.py` | ✅ |
-| Application | `orchestration/sentinel_v5.py`, `meta_rl/` | ✅ |
-| Infrastructure | `data_room/`, `core/rag_client.py`, `db/` | 🟡 (Flask/FastAPI дуализм) |
+| --- | --- | --- |
+| Domain | `file core/ephemeris.py`, `file core/aspects.py`, `file agents/_impl/types.py` | ✅ |
+| Application | `file orchestration/sentinel_v5.py`, `meta_rl/` | ✅ |
+| Infrastructure | `data_room/`, `file core/rag_client.py`, `db/` | 🟡 (Flask/FastAPI дуализм) |
 | Presentation | `web/`, `api/`, `web-react/` | 🟡 (два фреймворка) |
 
 ---
@@ -76,30 +76,30 @@
 ### 2.1 Размеры файлов — Top-10 рисков
 
 | Файл | Строк | Проблема |
-|------|-------|----------|
-| `agents/_impl/amre/audit.py` | 671 | Крупнейший файл — кандидат №1 на split |
-| `agents/_impl/synthesis_agent.py` | 659 | Sprint B должен был распилить callbacks — проверка: файл не разбит |
-| `core/rag_client.py` | 643 | Разросся — смешивает RAG, FAISS, BM25 |
-| `agents/gitagent_exporter.py` | 627 | GitAgent интеграция — должен быть в `integrations/gitagent/` |
-| `backtest/engine.py` | 611 | Бэктест-движок — допустимо для научного кода |
-| `api/main.py` | 576 | FastAPI main — допустимо для монолитного API |
-| `agents/gitagent_registry.py` | 561 | Дублирует gitagent_exporter — объединить |
-| `core/belief.py` | 521 | Bayesian belief tracking — допустимо |
-| `meta_rl/evolution.py` | 519 | Evolution engine — допустимо |
-| `meta_rl/strategy_pool.py` | 504 | Strategy pool — допустимо |
+| --- | --- | --- |
+|  | 671 | Крупнейший файл — кандидат №1 на split |
+|  | 659 | Sprint B должен был распилить callbacks — проверка: файл не разбит |
+|  | 643 | Разросся — смешивает RAG, FAISS, BM25 |
+|  | 627 | GitAgent интеграция — должен быть в `integrations/gitagent/` |
+|  | 611 | Бэктест-движок — допустимо для научного кода |
+|  | 576 | FastAPI main — допустимо для монолитного API |
+|  | 561 | Дублирует gitagent_exporter — объединить |
+|  | 521 | Bayesian belief tracking — допустимо |
+|  | 519 | Evolution engine — допустимо |
+|  | 504 | Strategy pool — допустимо |
 
-**Правило:** Файлы >500 строк — candidate for decomposition. Исключение: научные/ML-модули где целостность важнее размера.
+**Правило:** Файлы &gt;500 строк — candidate for decomposition. Исключение: научные/ML-модули где целостность важнее размера.
 
 ### 2.2 Дублирование кода
 
 | Пара | Diff-строк | Вердикт |
-|------|-----------|---------|
-| `bull_researcher.py` ↔ `bear_researcher.py` | 268 строк разницы | ✅ By design — симметричные агенты |
-| `gitagent_exporter.py` ↔ `gitagent_registry.py` | 627/561 строк | 🔴 Кандидаты на слияние в `integrations/gitagent/` |
+| --- | --- | --- |
+| `file bull_researcher.py` ↔ `file bear_researcher.py` | 268 строк разницы | ✅ By design — симметричные агенты |
+| `file gitagent_exporter.py` ↔ `file gitagent_registry.py` | 627/561 строк | 🔴 Кандидаты на слияние в `integrations/gitagent/` |
 
 ### 2.3 SOLID / DRY / KISS
 
-- **Single Responsibility:** Нарушается в `synthesis_agent.py` (659 строк, должен быть coordinator, а не God-agent) и `core/rag_client.py` (смесь RAG + FAISS + BM25 + observability).
+- **Single Responsibility:** Нарушается в `file synthesis_agent.py` (659 строк, должен быть coordinator, а не God-agent) и `file core/rag_client.py` (смесь RAG + FAISS + BM25 + observability).
 - **Open/Closed:** ✅ Хорошо — `BaseAgent` и `AgentResponse` позволяют добавлять агентов без изменения ядра.
 - **Liskov Substitution:** ✅ Все агенты реализуют `async def run(self, state: dict) -> AgentResponse` (19 из 22 используют идентичную сигнатуру).
 - **Interface Segregation:** 🟡 Частично. `BaseAgent` имеет 5 строк — хорошо. Но `AgentResponse` содержит поля для всех возможных агентов (раздутый интерфейс).
@@ -113,7 +113,7 @@
 
 ### 2.5 Неиспользуемые импорты
 
-```
+```markdown
 F401 orchestration/council_orchestrator.py: unused os, TradingMode
 F401 orchestration/karl_cli.py: unused rich.table.Table
 ```
@@ -127,7 +127,7 @@ F401 orchestration/karl_cli.py: unused rich.table.Table
 ### 3.1 Bandit Scan
 
 | Severity | Count | Детали |
-|----------|-------|--------|
+| --- | --- | --- |
 | HIGH | 0 | ✅ |
 | MEDIUM | 1 | B108: `/tmp/sec_edgar_cache` — предсказуемый путь |
 | LOW | 195 | B101 (assert в тестах) — допустимо |
@@ -137,7 +137,7 @@ F401 orchestration/karl_cli.py: unused rich.table.Table
 ### 3.2 Pip-audit (Уязвимости)
 
 | Пакет | Версия | Уязвимость |
-|-------|--------|------------|
+| --- | --- | --- |
 | `chromadb` | 1.5.5 | PYSEC-2026-311 |
 | `diskcache` | 5.6.3 | PYSEC-2026-2447 |
 | `ragas` | 0.4.3 | PYSEC-2026-3046 |
@@ -157,9 +157,9 @@ F401 orchestration/karl_cli.py: unused rich.table.Table
 ### 3.5 Тестирование
 
 | Метрика | Значение |
-|---------|----------|
+| --- | --- |
 | Всего тестов | 848 collected (15 deselected) |
-| Активных (running) | ~780 |
+| Активных (running) | \~780 |
 | KI-125a skipped | 53 |
 | Реальных failures | 1 |
 | Категории skip | architecture (3), calibration (8), dual_mode/logging/meta_rl (3), strategy_pool (1), imports (1), observability (7), RAG (7), rate_limit (4), compromise (6), backtest_real (9) |
@@ -177,10 +177,10 @@ F401 orchestration/karl_cli.py: unused rich.table.Table
 ### 4.1 Узкие места
 
 | Компонент | Риск | Причина |
-|-----------|------|---------|
-| `core/rag_client.py` (643 строк) | 🟡 | Синхронный FAISS поиск в асинхронном агенте |
+| --- | --- | --- |
+| `file core/rag_client.py` (643 строк) | 🟡 | Синхронный FAISS поиск в асинхронном агенте |
 | `data_room/resolvers/` | 🟡 | Нет circuit breaker для внешних API (добавлен только blueprint-level) |
-| `meta_rl/live_data.py` (477 строк) | 🟡 | Потоковая обработка — потенциально memory-heavy |
+| `file meta_rl/live_data.py` (477 строк) | 🟡 | Потоковая обработка — потенциально memory-heavy |
 
 ### 4.2 База данных
 
@@ -199,7 +199,7 @@ Docker недоступен в Zo sandbox (gVisor). Docker Compose-файл со
 
 ### 5.1 Python-зависимости
 
-- `pyproject.toml` — единый источник зависимостей с `[dev]` и `[rag]` extras. ✅
+- `file pyproject.toml` — единый источник зависимостей с `[dev]` и `[rag]` extras. ✅
 - `uv.lock` — синхронизирован. ✅
 - 8 internal-пакетов не найдены на PyPI (ожидаемо для монорепо).
 - 3 уязвимости (см. §3.2).
@@ -207,16 +207,16 @@ Docker недоступен в Zo sandbox (gVisor). Docker Compose-файл со
 ### 5.2 CI/CD
 
 | Workflow | Триггер | Статус |
-|----------|---------|--------|
-| `ci.yml` | PR/push | ✅ Lint + unit tests + arch linter |
-| `quality-gate.yml` | PR | ✅ Quality gate (coverage, per-agent validation) |
-| `security.yml` | PR/push + cron | ✅ Bandit + pip-audit + gitleaks |
-| `release.yml` | workflow_dispatch | ✅ Build + sign + changelog |
-| `deploy.yml` | workflow_dispatch | ✅ Multi-arch build + SBOM + cosign |
-| `nightly.yml` | schedule | ✅ DORA + full test suite + dependabot |
-| `load-test.yml` | workflow_dispatch | ✅ Locust staging soak |
-| `auto-label.yml` | PR | ✅ Auto-label |
-| `coderabbit-pr-review.yml` | PR | ✅ Code review |
+| --- | --- | --- |
+|  | PR/push | ✅ Lint + unit tests + arch linter |
+|  | PR | ✅ Quality gate (coverage, per-agent validation) |
+|  | PR/push + cron | ✅ Bandit + pip-audit + gitleaks |
+|  | workflow_dispatch | ✅ Build + sign + changelog |
+|  | workflow_dispatch | ✅ Multi-arch build + SBOM + cosign |
+|  | schedule | ✅ DORA + full test suite + dependabot |
+|  | workflow_dispatch | ✅ Locust staging soak |
+|  | PR | ✅ Auto-label |
+|  | PR | ✅ Code review |
 
 4 устаревших workflow в `disabled-workflows/` — дубликаты, безопасны для удаления.
 
@@ -241,22 +241,22 @@ Docker недоступен в Zo sandbox (gVisor). Docker Compose-файл со
 ### 6.1 Код-паттерны для переиспользования
 
 | Артефакт | Путь | Почему лучший |
-|----------|------|---------------|
-| `@require_ephemeris` декоратор | `agents/_impl/ephemeris_decorator.py` (54 строки) | Чистый, переиспользуемый AOP-паттерн |
-| `data_room/blueprint.py` | 175 строк | Единый gateway для внешних API с circuit breaker |
-| `TradingSignal.from_agents()` | `agents/_impl/types.py` | Паттерн агрегации с весами |
-| `BaseAgent` | `agents/base_agent.py` (5 строк) | Минималистичный абстрактный класс |
-| `DecisionRecord` | `agents/_impl/amre/audit.py` | Полный audit trail с сериализацией |
-| `KPIControlState` | `agents/_impl/amre/backtest_loop.py` | Adaptive control loop |
-| `VolatilityRegime` | `core/volatility.py` | Динамический risk management |
-| `AspectsEngine` | `core/aspects.py` | Конфигурируемый движок аспектов с orbs |
-| `postgresql_manager.py` | `db/` | Dual-write (PG + SQLite fallback) |
-| `middleware/__init__.py` | `web/middleware/` | Переиспользуемый `@require_auth` |
+| --- | --- | --- |
+| `@require_ephemeris` декоратор | `file agents/_impl/ephemeris_decorator.py` (54 строки) | Чистый, переиспользуемый AOP-паттерн |
+|  | 175 строк | Единый gateway для внешних API с circuit breaker |
+| `TradingSignal.from_agents()` |  | Паттерн агрегации с весами |
+| `BaseAgent` | `file agents/base_agent.py` (5 строк) | Минималистичный абстрактный класс |
+| `DecisionRecord` |  | Полный audit trail с сериализацией |
+| `KPIControlState` |  | Adaptive control loop |
+| `VolatilityRegime` |  | Динамический risk management |
+| `AspectsEngine` |  | Конфигурируемый движок аспектов с orbs |
+|  | `db/` | Dual-write (PG + SQLite fallback) |
+|  | `web/middleware/` | Переиспользуемый `@require_auth` |
 
 ### 6.2 Documentation gems
 
 | Документ | Путь | Ценность |
-|----------|------|----------|
+| --- | --- | --- |
 | AGENTS.md | root | Исчерпывающая карта проекта |
 | SOUL.md | root | Философия и принципы (R-01…R-12) |
 | ARCHITECTURE.md | root | Архитектурная документация |
@@ -271,39 +271,39 @@ Docker недоступен в Zo sandbox (gVisor). Docker Compose-файл со
 
 ### Критические (P0)
 
-| # | Находка | Действие |
-|---|---------|----------|
+| \# | Находка | Действие |
+| --- | --- | --- |
 | C1 | 53 пропущенных теста (KI-125a) | Sprint 5: batch-fix по 10/спринт |
 | C2 | `core/` — God-module (66 файлов, 1.7MB) | Split на domain/infra в v1.1.0 |
 | C3 | Flask/FastAPI дуализм | Миграция Flask→FastAPI в v1.1.0 |
 
 ### Высокие (P1)
 
-| # | Находка | Действие |
-|---|---------|----------|
+| \# | Находка | Действие |
+| --- | --- | --- |
 | H1 | `deploy/iac/` — 168 файлов, отдельный продукт | Вынести в `infrastructure/` или отдельный репо |
-| H2 | `gitagent_exporter.py` + `gitagent_registry.py` — 1,188 строк дубля | Слить в `integrations/gitagent/` |
+| H2 | `file gitagent_exporter.py` + `file gitagent_registry.py` — 1,188 строк дубля | Слить в `integrations/gitagent/` |
 | H3 | `test_broker_overhead_acceptable` — flaky test | Investigation: race condition / resource contention |
 | H4 | AMRE в `agents/_impl/amre/` — нарушение иерархии | Перенести в `amre/` или `agents/amre/` |
 | H5 | 3 уязвимости в зависимостях (chromadb, diskcache, ragas) | Обновить пакеты |
 
 ### Средние (P2)
 
-| # | Находка | Действие |
-|---|---------|----------|
-| M1 | `synthesis_agent.py` (659 строк) — не разбит после Sprint B | Разбить callbacks на модули |
-| M2 | `core/rag_client.py` (643 строк) — смесь RAG+FAISS+BM25 | Декомпозировать |
+| \# | Находка | Действие |
+| --- | --- | --- |
+| M1 | `file synthesis_agent.py` (659 строк) — не разбит после Sprint B | Разбить callbacks на модули |
+| M2 | `file core/rag_client.py` (643 строк) — смесь RAG+FAISS+BM25 | Декомпозировать |
 | M3 | B108 /tmp в sec_edgar | Использовать `XDG_CACHE_HOME` |
 | M4 | 4 отключённых workflow — дубликаты | Удалить |
 | M5 | K8s манифесты без NetworkPolicy/PodDisruptionBudget | Добавить для GA |
 
 ### Низкие (P3)
 
-| # | Находка | Действие |
-|---|---------|----------|
+| \# | Находка | Действие |
+| --- | --- | --- |
 | L1 | 3 F401 (неиспользуемые импорты) | Auto-fix ruff |
-| L2 | `council_orchestrator.py` — неиспользуемые os, TradingMode | Удалить |
-| L3 | `karl_cli.py` — неиспользуемый rich.table.Table | Удалить |
+| L2 | `file council_orchestrator.py` — неиспользуемые os, TradingMode | Удалить |
+| L3 | `file karl_cli.py` — неиспользуемый rich.table.Table | Удалить |
 
 ---
 
