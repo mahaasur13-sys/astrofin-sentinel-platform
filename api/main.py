@@ -296,7 +296,7 @@ def run_agent(req: AgentRequest, request: Request):
 
         url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
         req_url = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req_url, timeout=5) as resp:  # nosec B310
+        with urllib.request.urlopen(req_url, timeout=5) as resp:  # nosec B310  # nosec B310
             data = json.loads(resp.read())
             real_price = data.get("bitcoin", {}).get("usd", 64210)
     except Exception:
