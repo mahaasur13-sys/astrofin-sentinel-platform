@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 try:
     from rich.console import Console
     from rich.panel import Panel
-    from rich.table import Table
+    # from rich.table import Table  # noqa: F401 — keep for future use
     from rich.text import Text
 
     RICH = True

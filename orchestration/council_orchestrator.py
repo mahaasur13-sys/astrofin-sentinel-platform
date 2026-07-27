@@ -16,8 +16,6 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-import os
-from trading.mode import TradingMode
 from trading.factory import get_broker
 from trading.broker.base import OrderSide, OrderType
 

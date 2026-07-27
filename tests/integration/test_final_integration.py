@@ -8,8 +8,12 @@ Run: python FINAL_INTEGRATION_TEST.py
 """
 
 import asyncio
+import logging
 import sys
 from datetime import datetime
+
+log = logging.getLogger(__name__)
+
 
 # ANSI colors
 GREEN = "\033[92m"
@@ -21,17 +25,17 @@ RESET = "\033[0m"
 
 
 def print_header(text):
-    print(f"\n{BLUE}{'=' * 60}{RESET}")
-    print(f"{BOLD}{BLUE}{text}{RESET}")
-    print(f"{BLUE}{'=' * 60}{RESET}\n")
+    log.info(f"\n{BLUE}{'=' * 60}{RESET}")
+    log.info(f"{BOLD}{BLUE}{text}{RESET}")
+    log.info(f"{BLUE}{'=' * 60}{RESET}\n")
 
 
 def print_test(name, passed, details=""):
     icon = f"{GREEN}✅" if passed else f"{RED}❌"
     status = f"{GREEN}PASSED" if passed else f"{RED}FAILED"
-    print(f"  {icon} {name}: {status}{RESET}")
+    log.info(f"  {icon} {name}: {status}{RESET}")
     if details:
-        print(f"      {details}")
+        log.info(f"      {details}")
     return passed
 
 
@@ -85,7 +89,7 @@ async def test_2_basic_signal():
     try:
         from orchestration.sentinel_v5 import run_sentinel_v5
 
-        print("  Running: run_sentinel_v5('Analyze BTC', 'BTCUSDT', 'SWING')...")
+        log.info("  Running: run_sentinel_v5('Analyze BTC', 'BTCUSDT', 'SWING')...")
         result = await run_sentinel_v5(
             user_query="Analyze BTC", symbol="BTCUSDT", timeframe="SWING", persist=False
         )
@@ -123,7 +127,7 @@ async def test_3_mas_factory():
         from mas_factory.engine import ProductionMASEngine
 
         engine = ProductionMASEngine()
-        print("  Running: MASFactory with STANDARD topology...")
+        log.info("  Running: MASFactory with STANDARD topology...")
 
         result = await engine.run_sync(
             user_query="Analyze ETH", symbol="ETHUSDT", timeframe="SWING"
@@ -380,10 +384,10 @@ async def test_10_thompson_sampling():
 
 
 async def main():
-    print(f"\n{BOLD}{'=' * 60}{RESET}")
-    print(f"{BOLD}{BLUE}🚀 ATOM-R-034: FINAL INTEGRATION TEST{RESET}")
-    print(f"{BOLD}{'=' * 60}{RESET}")
-    print(f"\nStarted: {datetime.now().isoformat()}\n")
+    log.info(f"\n{BOLD}{'=' * 60}{RESET}")
+    log.info(f"{BOLD}{BLUE}🚀 ATOM-R-034: FINAL INTEGRATION TEST{RESET}")
+    log.info(f"{BOLD}{'=' * 60}{RESET}")
+    log.info(f"\nStarted: {datetime.now().isoformat()}\n")
 
     tests = [
         ("Module Imports", test_1_imports),
@@ -414,17 +418,17 @@ async def main():
 
     for i, (name, _) in enumerate(tests):
         icon = f"{GREEN}✅" if results[i] else f"{RED}❌"
-        print(f"  {icon} {i + 1}. {name}")
+        log.info(f"  {icon} {i + 1}. {name}")
 
-    print(f"\n{BOLD}Result: {passed}/{total} tests passed{RESET}")
+    log.info(f"\n{BOLD}Result: {passed}/{total} tests passed{RESET}")
 
     if passed == total:
-        print(
+        log.info(
             f"\n{GREEN}{BOLD}🎉 ALL TESTS PASSED - SYSTEM READY FOR PRODUCTION!{RESET}"
         )
         return 0
     else:
-        print(f"\n{RED}{BOLD}⚠️  SOME TESTS FAILED - REVIEW REQUIRED{RESET}")
+        log.info(f"\n{RED}{BOLD}⚠️  SOME TESTS FAILED - REVIEW REQUIRED{RESET}")
         return 1
 
 

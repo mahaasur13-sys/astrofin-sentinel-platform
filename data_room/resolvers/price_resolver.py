@@ -11,7 +11,6 @@ registry (data_room/blueprint.py:RESOLVERS).
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Any
 

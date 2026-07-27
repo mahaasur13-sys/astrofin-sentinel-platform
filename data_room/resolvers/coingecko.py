@@ -7,7 +7,6 @@ Free tier: 30 req/min. Rate-limit aware with exponential backoff.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
 
 import asyncio
 import logging
