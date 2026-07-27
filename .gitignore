@@ -102,3 +102,5 @@ hmm_dashboard.html
 # Nested duplicate — git root IS the project
 .gitleaks-baseline.json
 astrofin-sentinel-platform/
+data/meta_rl/gen_*.png
+data/meta_rl/sessions/gen_*.json
