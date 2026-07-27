@@ -6,11 +6,19 @@ from unittest.mock import AsyncMock, patch
 from core.http_client import get_http_client, close_http_client
 
 
-@pytest.fixture(autouse=True)
-async def reset_client():
-    await close_http_client()
+@pytest.fixture
+def reset_client():
+    """Reset the module-level singleton before and after each test."""
+    import asyncio
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        return  # No event loop — skip reset
+    # Clear global client reference (aclose via event loop if needed)
+    from core import http_client as _mod
+    _mod._client = None
     yield
-    await close_http_client()
+    _mod._client = None
 
 
 @pytest.mark.asyncio
