@@ -163,3 +163,36 @@ curl http://127.0.0.1:8000/health
 | Дата | Изменение |
 |------|-----------|
 | 2026-07-27 | Initial release. Documented 0.0.0.0 as KI-2026-07-27-01. Added start script. |
+
+---
+
+## Grafana (Мониторинг)
+
+**URL:** http://127.0.0.1:3000  
+**Логин:** `admin`  
+**Пароль:** `admin` (**сменить после первого входа!**)  
+**Статус:** Local only (127.0.0.1) ✅ Запущен  
+**Binary:** `/opt/stack/grafana/bin/grafana-server`  
+**Log:** `/dev/shm/grafana.log`
+
+### Запуск
+
+```bash
+cd /opt/stack/grafana
+nohup ./bin/grafana-server --config=conf/defaults.ini --homepath=/opt/stack/grafana web \
+  > /dev/shm/grafana.log 2>&1 &
+```
+
+### Проверка
+
+```bash
+curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/
+# → 302 (redirect to /login)
+```
+
+### SSH-туннель
+
+```bash
+ssh -L 3000:localhost:3000 user@ваш-сервер
+```
+
