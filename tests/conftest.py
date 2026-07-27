@@ -11,7 +11,6 @@ import pytest
 # a test is fixed, remove its node id from this set.
 # See: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/issues/149
 # ═══════════════════════════════════════════════════════════════
-}
 # KI-125a Skip List — DO NOT REMOVE ENTRIES WITHOUT:
 #   1. Feature branch: fix/ki125a-batch-<X>
 #   2. Local verify: pytest --count=10
