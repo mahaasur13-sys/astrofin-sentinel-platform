@@ -52,7 +52,7 @@ python -m integrations.gitagent.adapters.cli import-agent ./exported_agents/tech
 
 `MCPAdapter` uses the Smithery CLI when available and the public Smithery registry API for discovery. Search is read-only and works without credentials. Connecting a hosted server or calling its tools may require Smithery authentication, a namespace, OAuth, or server-specific configuration.
 
-Smithery's current CLI flow is:
+Install the current CLI with `npm install -g @smithery/cli` or let the adapter use `npx --yes @smithery/cli` when no global binary is present. Smithery's current CLI flow is:
 
 ```text
 smithery mcp search <term>
@@ -81,12 +81,11 @@ These are discovery targets, not hard-coded data dependencies. Verify uptime, pe
 
 | Qualified name | Category | AstroFin use |
 |---|---|---|
-| `financial-data/financial-data` | Financial | Market data, fundamentals, filings, macro indicators, and event calendars |
 | `cfocoder/financial-modeling-prep-mcp-server` | Financial | Quotes, statements, ratios, technical indicators, news, SEC filings, earnings, and calendars |
-| `crypto` | Crypto | Real-time and historical cryptocurrency market data |
-| `truss44/mcp-crypto-price` | Crypto | Crypto prices and market analysis |
-| `google/news` | News | Current and recent news for SentimentAgent |
-| `kwp-lab/rss-reader-mcp` | News | RSS ingestion and article extraction |
+| `nexgendata-apify/finance-mcp-server` | Financial/Crypto | Yahoo Finance, CoinGecko, FinViz, quotes, crypto prices, FX, and portfolio calculations |
+| `crypto` | Crypto | Real-time and historical cryptocurrency market data; nine market-data tools |
+| `mihail-makeev/alphai-news` | News | Financial news, ticker analysis, relevance scores, and insider transactions |
+| `google/news` | News | Current and recent news for SentimentAgent; no API key required |
 | `googlecalendar` | Calendar | Availability and event management for scheduled workflows |
 | `github` | Development | Repository, issue, pull-request, and workflow operations |
 
@@ -127,6 +126,7 @@ The full repository test command also applies the repository-wide coverage gate 
 - [x] CLI commands: `mcp-search`, `mcp-install`, `mcp-list`, `mcp-list-tools`, and `mcp-call`.
 - [x] Dashboard evaluation with hybrid recommendation.
 - [x] 10-agent export/import round-trip.
+- [x] Live registry discovery verified for financial, crypto, news, and calendar queries.
 
 ## References
 

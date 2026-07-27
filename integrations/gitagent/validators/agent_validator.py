@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -7,7 +8,6 @@ from typing import Any
 
 import yaml
 
-import logging
 log = logging.getLogger(__name__)
 
 
