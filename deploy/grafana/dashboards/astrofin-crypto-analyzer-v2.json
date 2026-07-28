@@ -1,0 +1,693 @@
+{
+  "dashboard": {
+    "uid": "astrofin-crypto-analyzer",
+    "title": "AstroFin Sentinel — Crypto Analyzer",
+    "description": "Multi-crypto: Candlestick + Volume + TA + Astro + Sentiment + Logs",
+    "tags": [
+      "astrofin",
+      "crypto",
+      "multi-agent"
+    ],
+    "timezone": "utc",
+    "editable": true,
+    "schemaVersion": 39,
+    "version": 1,
+    "style": "dark",
+    "refresh": "10s",
+    "time": {
+      "from": "now-7d",
+      "to": "now"
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "symbol",
+          "type": "custom",
+          "current": {
+            "text": "BTCUSDT",
+            "value": "BTCUSDT"
+          },
+          "options": [
+            {
+              "text": "BTC/USDT",
+              "value": "BTCUSDT",
+              "selected": true
+            },
+            {
+              "text": "ETH/USDT",
+              "value": "ETHUSDT",
+              "selected": false
+            },
+            {
+              "text": "SOL/USDT",
+              "value": "SOLUSDT",
+              "selected": false
+            },
+            {
+              "text": "ATOM/USDT",
+              "value": "ATOMUSDT",
+              "selected": false
+            },
+            {
+              "text": "AVAX/USDT",
+              "value": "AVAXUSDT",
+              "selected": false
+            }
+          ],
+          "query": "BTCUSDT, ETHUSDT, SOLUSDT, ATOMUSDT, AVAXUSDT",
+          "multi": false,
+          "includeAll": false
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "📈 ${symbol} — Цена",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "alias": "$symbol",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": 200,
+            "max": 500
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineWidth": 2,
+              "showPoints": "never"
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "options": {
+          "tooltip": {
+            "mode": "single"
+          },
+          "legend": {
+            "showLegend": true,
+            "placement": "bottom",
+            "displayMode": "list"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "📊 ${symbol} — Объём",
+        "type": "barchart",
+        "gridPos": {
+          "x": 12,
+          "y": 0,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "alias": "Volume",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": 50,
+            "max": 300
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "orientation": "vertical",
+          "showValue": "never"
+        }
+      },
+      {
+        "id": 3,
+        "title": "📉 MACD (12, 26, 9)",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 0,
+          "y": 8,
+          "w": 8,
+          "h": 8
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "macd",
+            "alias": "MACD line",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": -50,
+            "max": 50
+          },
+          {
+            "refId": "signal",
+            "alias": "Signal",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": -30,
+            "max": 30
+          },
+          {
+            "refId": "hist",
+            "alias": "Histogram",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": -30,
+            "max": 30
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "lineWidth": 1,
+              "showPoints": "never"
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "legend": {
+            "showLegend": true,
+            "placement": "bottom"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "📊 RSI (14)",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 8,
+          "y": 8,
+          "w": 8,
+          "h": 8
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "alias": "RSI",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": 20,
+            "max": 80
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineWidth": 2,
+              "showPoints": "never"
+            },
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": null,
+                  "color": "red"
+                },
+                {
+                  "value": 30,
+                  "color": "yellow"
+                },
+                {
+                  "value": 70,
+                  "color": "green"
+                },
+                {
+                  "value": 80,
+                  "color": "red"
+                }
+              ]
+            }
+          }
+        },
+        "options": {
+          "legend": {
+            "showLegend": false
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "📏 Bollinger Bands (20, 2σ)",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 16,
+          "y": 8,
+          "w": 8,
+          "h": 8
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "upper",
+            "alias": "Upper 2σ",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": 400,
+            "max": 600
+          },
+          {
+            "refId": "sma",
+            "alias": "SMA 20",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": 250,
+            "max": 450
+          },
+          {
+            "refId": "lower",
+            "alias": "Lower 2σ",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": 150,
+            "max": 300
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 5,
+              "lineWidth": 1,
+              "showPoints": "never"
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "legend": {
+            "showLegend": true,
+            "placement": "bottom"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "🎯 Astro: Gann Angles & Price Squares",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 0,
+          "y": 16,
+          "w": 8,
+          "h": 8
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "1x1",
+            "alias": "Gann 1×1",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": 200,
+            "max": 500
+          },
+          {
+            "refId": "1x2",
+            "alias": "Gann 1×2",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": 180,
+            "max": 450
+          },
+          {
+            "refId": "2x1",
+            "alias": "Gann 2×1",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": 220,
+            "max": 550
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineWidth": 1,
+              "fillOpacity": 0,
+              "showPoints": "never"
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "legend": {
+            "showLegend": true,
+            "placement": "bottom"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "🔮 Astro: Bradley Seasonality Model",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 8,
+          "y": 16,
+          "w": 8,
+          "h": 8
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "alias": "Bradley Index",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "span": 168,
+            "min": -100,
+            "max": 100
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "drawStyle": "bars",
+              "fillOpacity": 50,
+              "lineWidth": 0
+            },
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": -100,
+                  "color": "red"
+                },
+                {
+                  "value": -20,
+                  "color": "orange"
+                },
+                {
+                  "value": 20,
+                  "color": "yellow"
+                },
+                {
+                  "value": 50,
+                  "color": "green"
+                }
+              ]
+            }
+          }
+        },
+        "options": {
+          "legend": {
+            "showLegend": false
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "🧠 AstroFin: Agent Sentiment Score",
+        "type": "gauge",
+        "gridPos": {
+          "x": 16,
+          "y": 16,
+          "w": 8,
+          "h": 8
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "scenarioId": "random_walk",
+            "seriesCount": 1,
+            "min": -100,
+            "max": 100
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": -100,
+                  "color": "red"
+                },
+                {
+                  "value": -30,
+                  "color": "orange"
+                },
+                {
+                  "value": 30,
+                  "color": "yellow"
+                },
+                {
+                  "value": 70,
+                  "color": "green"
+                },
+                {
+                  "value": 90,
+                  "color": "dark-green"
+                }
+              ]
+            },
+            "min": -100,
+            "max": 100
+          }
+        },
+        "options": {
+          "orientation": "horizontal",
+          "showThresholdLabels": true,
+          "showThresholdMarkers": true
+        }
+      },
+      {
+        "id": 9,
+        "title": "📋 AstroFin Agent Council — Decision Log (Loki)",
+        "type": "logs",
+        "gridPos": {
+          "x": 0,
+          "y": 24,
+          "w": 12,
+          "h": 6
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "{filename=~\"/dev/shm/astrofin-.*\"}|~ \"(?i)SIGNAL|DECISION|NEUTRAL|LONG|SHORT|confidence|agent|ensemble\"",
+            "maxLines": 200
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "wrapLogMessage": true,
+          "enableLogDetails": true
+        }
+      },
+      {
+        "id": 10,
+        "title": "🚨 AstroFin Error Logs (Loki)",
+        "type": "logs",
+        "gridPos": {
+          "x": 12,
+          "y": 24,
+          "w": 12,
+          "h": 6
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "{filename=~\"/dev/shm/astrofin-.*\"}|~ \"(?i)ERROR|CRITICAL|FATAL|FAILED|exception|Exception|Traceback\"",
+            "maxLines": 200
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "wrapLogMessage": true,
+          "enableLogDetails": true
+        }
+      },
+      {
+        "id": 11,
+        "title": "🌙 Astro Council — Signal Distribution",
+        "type": "piechart",
+        "gridPos": {
+          "x": 0,
+          "y": 30,
+          "w": 8,
+          "h": 6
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "scenarioId": "csv_metric_values",
+            "stringInput": "Fundamental,20\nQuant,20\nMacro,15\nOptionsFlow,15\nSentiment,10\nTechnical,10\nAstroCouncil,10"
+          }
+        ],
+        "options": {
+          "displayLabels": [
+            "percent",
+            "name"
+          ],
+          "legend": {
+            "showLegend": true,
+            "placement": "right"
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "⏳ Cycle Agent — Market Phase Detection",
+        "type": "stat",
+        "gridPos": {
+          "x": 8,
+          "y": 30,
+          "w": 8,
+          "h": 6
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "alias": "Cycle Phase",
+            "scenarioId": "csv_metric_values",
+            "stringInput": "Accumulation,-50\nMarkup,100\nDistribution,200\nMarkdown,-200\nReaccumulation,300"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red"
+                },
+                {
+                  "color": "orange"
+                },
+                {
+                  "color": "green"
+                }
+              ]
+            }
+          }
+        },
+        "options": {
+          "colorMode": "background",
+          "textMode": "value_and_name",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 13,
+        "title": "🎲 Muhurta (Electional) — Best Entry Window",
+        "type": "stat",
+        "gridPos": {
+          "x": 16,
+          "y": 30,
+          "w": 8,
+          "h": 6
+        },
+        "datasource": {
+          "type": "grafana-testdata-datasource",
+          "uid": "testdata"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "scenarioId": "csv_metric_values",
+            "stringInput": "Today,Nakshatra: Rohini (auspicious)\nNext,Choghadiya: Amrit 14:30 UTC"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "textMode": "auto",
+          "graphMode": "none"
+        }
+      }
+    ]
+  },
+  "folderUid": "astrofin",
+  "overwrite": true
+}
