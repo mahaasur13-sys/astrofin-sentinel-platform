@@ -1,0 +1,301 @@
+{
+  "title": "AstroFin Crypto \u2014 SOL/ATOM/BTC Price + TA + Astro",
+  "uid": "astrofin-crypto-v1",
+  "tags": [
+    "crypto",
+    "astrofin",
+    "ta",
+    "astro"
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "BTC/USDT Price",
+      "type": "stat",
+      "targets": [
+        {
+          "rawSql": "SELECT close FROM market_data WHERE symbol='BTCUSDT' AND timeframe='1h' ORDER BY bucket_ts DESC LIMIT 1",
+          "format": "table",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "SOL/USDT Price",
+      "type": "stat",
+      "targets": [
+        {
+          "rawSql": "SELECT close FROM market_data WHERE symbol='SOLUSDT' AND timeframe='1h' ORDER BY bucket_ts DESC LIMIT 1",
+          "format": "table",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "ATOM/USDT Price",
+      "type": "stat",
+      "targets": [
+        {
+          "rawSql": "SELECT close FROM market_data WHERE symbol='ATOMUSDT' AND timeframe='1h' ORDER BY bucket_ts DESC LIMIT 1",
+          "format": "table",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "BTC/USDT \u2014 1h OHLCV (30 days)",
+      "type": "candlestick",
+      "targets": [
+        {
+          "rawSql": "SELECT bucket_ts as time, open, high, low, close, volume FROM market_data WHERE symbol='BTCUSDT' AND timeframe='1h' AND bucket_ts >= now() - interval '30 days' ORDER BY bucket_ts",
+          "format": "table",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 5,
+      "title": "BTC/USDT \u2014 Volume (1h)",
+      "type": "bargauge",
+      "targets": [
+        {
+          "rawSql": "SELECT bucket_ts as time, volume FROM market_data WHERE symbol='BTCUSDT' AND timeframe='1h' AND bucket_ts >= now() - interval '7 days' ORDER BY bucket_ts",
+          "format": "table",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "id": 6,
+      "title": "Availability (SLO 99.9%)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "astrofin:slo:availability:ratio_30d",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 6,
+        "h": 3
+      }
+    },
+    {
+      "id": 7,
+      "title": "Error Budget Remaining",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "astrofin:slo:availability:error_budget_remaining_30d",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 11,
+        "w": 6,
+        "h": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Agent Confidence (avg)",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "avg(agent_confidence)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 11,
+        "w": 6,
+        "h": 3
+      }
+    },
+    {
+      "id": 9,
+      "title": "SOL/USDT \u2014 1d Close (90 days)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "rawSql": "SELECT bucket_ts as time, close FROM market_data WHERE symbol='SOLUSDT' AND timeframe='1d' AND bucket_ts >= now() - interval '90 days' ORDER BY bucket_ts",
+          "format": "table",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 6,
+        "h": 6
+      }
+    },
+    {
+      "id": 10,
+      "title": "ATOM/USDT \u2014 1d Close (90 days)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "rawSql": "SELECT bucket_ts as time, close FROM market_data WHERE symbol='ATOMUSDT' AND timeframe='1d' AND bucket_ts >= now() - interval '90 days' ORDER BY bucket_ts",
+          "format": "table",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 14,
+        "w": 6,
+        "h": 6
+      }
+    },
+    {
+      "id": 11,
+      "title": "BTC/USDT \u2014 1d Close + Log Scale",
+      "type": "timeseries",
+      "targets": [
+        {
+          "rawSql": "SELECT bucket_ts as time, close FROM market_data WHERE symbol='BTCUSDT' AND timeframe='1d' AND bucket_ts >= now() - interval '90 days' ORDER BY bucket_ts",
+          "format": "table",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 6,
+        "h": 6
+      }
+    },
+    {
+      "id": 12,
+      "title": "Current Astro Aspects (Swiss Ephemeris)",
+      "type": "text",
+      "options": {
+        "mode": "markdown",
+        "content": "# Astro events are live-only from GET /api/v1/astro/aspects\n\nThis panel requires Grafana Infinity datasource or a Prometheus push gateway."
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 12,
+        "h": 3
+      }
+    },
+    {
+      "id": 13,
+      "title": "Circuit Breaker \u2014 CoinGecko",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "CIRCUIT_STATE{service=\"coingecko\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 20,
+        "w": 6,
+        "h": 3
+      }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  }
+}
