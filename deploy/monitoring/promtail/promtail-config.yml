@@ -1,0 +1,110 @@
+# =============================================================================
+# Promtail Configuration — AstroFin Sentinel Platform (v1.0.0)
+# =============================================================================
+# Uses: grafana/promtail:3.0.0 | Loki: localhost:3100
+# Logs source: /dev/shm/ (structured JSON via structlog + text fallback)
+# Run: docker compose -f deploy/docker-compose.monitoring.yml up -d
+# =============================================================================
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: info
+
+positions:
+  filename: /tmp/promtail-positions.yaml
+  sync_period: 10s
+
+# ── Loki clients ───────────────────────────────────────────────────────────
+# Set LOKI_URL, LOKI_USER, LOKI_PASSWORD in .env or CI.
+# For local Loki: LOKI_URL=http://loki:3100/loki/api/v1/push (no auth)
+clients:
+  - url: ${LOKI_URL:-http://loki:3100/loki/api/v1/push}
+    external_labels:
+      app: astrofin-sentinel
+      env: ${ASTROFIN_ENV:-production}
+      host: ${HOSTNAME:-localhost}
+    basic_auth:
+      username: ${LOKI_USER:-}
+      password: ${LOKI_PASSWORD:-}
+
+# ── Limits ─────────────────────────────────────────────────────────────────
+limits_config:
+  readline_rate_drop: true
+  max_streams_per_user: 0
+  max_line_size: 256kb
+  max_line_size_truncate: true
+
+# ── Scrape Configs ─────────────────────────────────────────────────────────
+scrape_configs:
+
+  # ── Core application: astrofin-api, dashboard, web (structlog JSON) ──
+  - job_name: astrofin-app
+    pipeline_stages:
+      - docker: {}
+      - json:
+          expressions:
+            level: level
+            logger: logger
+            module: module
+            event: event
+            timestamp: timestamp
+            session_id: session_id
+            signal: signal
+      - labels:
+          level:
+          logger:
+          module:
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          service: app
+          component: core
+          __path__: /var/log/astrofin/app/*.log
+
+  # ── Web frontend: React dev logs ──
+  - job_name: astrofin-web
+    pipeline_stages:
+      - docker: {}
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          service: web
+          component: frontend
+          __path__: /var/log/astrofin/web/*.log
+
+  # ── System: supervisord, grafana, ollama ──
+  - job_name: astrofin-system
+    pipeline_stages:
+      - docker: {}
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          service: system
+          component: infra
+          __path__: /var/log/astrofin/system/*.log
+
+  # ── Catch-all: all log files in /dev/shm (direct mount) ──
+  - job_name: astrofin-shm
+    pipeline_stages:
+      - docker: {}
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          service: shm
+          component: all
+          __path__: /dev/shm/*.log
+
+  # ── Promtail self-monitoring ──
+  - job_name: promtail
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          service: promtail
+          component: monitoring
+          __path__: /var/log/promtail/*.log
