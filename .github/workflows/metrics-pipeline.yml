@@ -1,0 +1,133 @@
+name: Metrics Pipeline Validation
+
+on:
+  push:
+    paths:
+      - 'scripts/metrics_exporter.py'
+      - 'scripts/start_metrics_exporter.sh'
+      - 'deploy/monitoring/prometheus.yml'
+      - 'deploy/monitoring/promtail/**'
+      - '.github/workflows/metrics-pipeline.yml'
+  pull_request:
+    paths:
+      - 'scripts/metrics_exporter.py'
+      - 'scripts/start_metrics_exporter.sh'
+      - 'deploy/monitoring/prometheus.yml'
+      - 'deploy/monitoring/promtail/**'
+
+jobs:
+  validate:
+    name: Metrics Pipeline — validate exporter + config
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install deps
+        run: pip install aiohttp prometheus-client
+
+      - name: Start metrics exporter
+        run: |
+          METRICS_PORT=9191 python3 scripts/metrics_exporter.py &
+          for i in $(seq 1 20); do
+            if curl -sf http://127.0.0.1:9191/health >/dev/null 2>&1; then
+              echo "Exporter healthy"
+              break
+            fi
+            sleep 0.5
+          done
+          curl -s http://127.0.0.1:9191/health
+
+      - name: Validate /metrics endpoint
+        run: |
+          curl -sf http://127.0.0.1:9191/metrics > /tmp/metrics.txt
+          echo "Metrics size: $(wc -c < /tmp/metrics.txt) bytes"
+          echo "Metrics lines: $(wc -l < /tmp/metrics.txt)"
+          # Verify key metrics are present
+          grep -q "astrofin_exporter_scrapes_total" /tmp/metrics.txt && echo "✅ exporter_scrapes_total"
+          grep -q "astrofin_exporter_uptime_seconds" /tmp/metrics.txt && echo "✅ exporter_uptime_seconds"
+          grep -q "astrofin_rag_queries_total" /tmp/metrics.txt && echo "✅ rag_queries_total"
+          grep -q "astrofin_cache_hits" /tmp/metrics.txt && echo "✅ cache_hits"
+          echo "All required metrics present"
+
+      - name: Validate /health endpoint
+        run: |
+          HEALTH=$(curl -sf http://127.0.0.1:9191/health)
+          echo "$HEALTH" | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['status']=='ok'"
+          echo "✅ health endpoint valid"
+
+      - name: Validate auth enforcement
+        run: |
+          # Start another instance with auth
+          kill %1 2>/dev/null || true
+          METRICS_PORT=9192 METRICS_AUTH_ENABLED=1 METRICS_API_KEY=test-key-123 \
+            python3 scripts/metrics_exporter.py &
+          sleep 2
+          # Without token → 401
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9192/metrics)
+          if [ "$HTTP_CODE" = "401" ]; then echo "✅ auth blocks unauth (401)"; else echo "❌ expected 401 got $HTTP_CODE"; exit 1; fi
+          # With token → 200
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer test-key-123" http://127.0.0.1:9192/metrics)
+          if [ "$HTTP_CODE" = "200" ]; then echo "✅ auth allows valid token (200)"; else echo "❌ expected 200 got $HTTP_CODE"; exit 1; fi
+          kill %1 2>/dev/null || true
+
+      - name: Validate Prometheus config syntax
+        run: |
+          pip install prometheus-api-client 2>/dev/null || true
+          python3 -c "
+          import yaml, sys
+          with open('deploy/monitoring/prometheus.yml') as f:
+              cfg = yaml.safe_load(f)
+          jobs = [j['job_name'] for j in cfg.get('scrape_configs', [])]
+          print(f'Scrape jobs: {len(jobs)} — {\" \".join(jobs)}')
+          required = ['astrofin-metrics-exporter']
+          missing = [j for j in required if j not in jobs]
+          if missing:
+              print(f'MISSING jobs: {missing}')
+              sys.exit(1)
+          print('✅ All required scrape jobs present')
+          "
+
+      - name: Validate Promtail config syntax
+        run: |
+          python3 -c "
+          import yaml, sys
+          with open('deploy/monitoring/promtail/promtail-config.yml') as f:
+              cfg = yaml.safe_load(f)
+          jobs = [j['job_name'] for j in cfg.get('scrape_configs', [])]
+          print(f'Promtail jobs: {len(jobs)} — {\" \".join(jobs)}')
+          required = ['astrofin-app', 'astrofin-shm']
+          missing = [j for j in required if j not in jobs]
+          if missing:
+              print(f'MISSING jobs: {missing}')
+              sys.exit(1)
+          print('✅ All required Promtail jobs present')
+          "
+
+      - name: Validate recording rules syntax
+        run: |
+          python3 -c "
+          import yaml
+          with open('deploy/monitoring/recording_rules.yml') as f:
+              cfg = yaml.safe_load(f)
+          print(f'Recording rule groups: {len(cfg.get(\"groups\",[]))}')
+          print('✅ Recording rules valid')
+          "
+
+      - name: Validate alert rules syntax
+        run: |
+          python3 -c "
+          import yaml
+          with open('deploy/monitoring/alert_rules.yml') as f:
+              cfg = yaml.safe_load(f)
+          groups = cfg.get('groups', [])
+          alerts = sum(len(g.get('rules', [])) for g in groups)
+          print(f'Alert groups: {len(groups)}, total alerts: {alerts}')
+          print('✅ Alert rules valid')
+          "

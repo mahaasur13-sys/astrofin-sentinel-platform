@@ -76,3 +76,14 @@ scrape_configs:
     static_configs:
       - targets: ['host.docker.internal:8000']
         labels: {service: gpu-worker, role: worker}
+
+  # ── Metrics Exporter (standalone, non-Docker) ─────────────────────────
+  - job_name: 'astrofin-metrics-exporter'
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    static_configs:
+      - targets: ['localhost:9191']
+        labels:
+          service: metrics-exporter
+          role: observability

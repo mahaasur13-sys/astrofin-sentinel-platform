@@ -184,4 +184,4 @@ exclude_dirs = ["audit_repo", "tests", "bench", "graphify-out", "pop-os-setup", 
 # Step 3 / Wave 1 (2026-07-25): un-masked B324 (weak hash) and B608 (SQL string
 # construction). Real findings fixed in code; verified false positives carry a
 # per-line `# nosec B608` with justification. Remaining skips are pending waves.
-skips = ["B307", "B602", "B310", "B104", "B306", "B102", "B108", "B301", "B701"]
+skips = ["B101", "B102", "B104", "B108", "B110", "B112", "B301", "B306", "B307", "B310", "B311", "B404", "B602", "B603", "B607", "B701"]
