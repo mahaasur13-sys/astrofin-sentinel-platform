@@ -3,7 +3,7 @@
 # Intended for: Zo managed service (mode=process) or manual background launch.
 #
 # Environment:
-#   METRICS_PORT       — listen port (default 9091)
+#   METRICS_PORT       — listen port (default 9191)
 #   METRICS_HOST       — bind address (default 127.0.0.1)
 #   METRICS_AUTH_ENABLED — set to 1/true to enable Bearer token auth
 #   METRICS_API_KEY    — Bearer token value (when auth enabled)
@@ -15,7 +15,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-PORT="${METRICS_PORT:-9091}"
+PORT="${METRICS_PORT:-9191}"
 HOST="${METRICS_HOST:-127.0.0.1}"
 PIDFILE="/tmp/astrofin-metrics-exporter.pid"
 LOGFILE="/dev/shm/astrofin-metrics-exporter.log"

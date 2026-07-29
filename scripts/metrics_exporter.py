@@ -117,16 +117,31 @@ async def handle_root(request: web.Request) -> web.Response:
 _start_time: float = 0.0
 
 
-def _on_shutdown(app: web.Application) -> None:
-    pass
-
-
 def build_app() -> web.Application:
+    """Build aiohttp app with Prometheus /metrics and /health endpoints."""
     app = web.Application()
-    app.router.add_get("/", handle_root)
-    app.router.add_get("/health", handle_health)
-    app.router.add_get("/metrics", handle_metrics)
-    app.on_shutdown.append(_on_shutdown)
+
+    async def metrics_handler(_request: web.Request) -> web.Response:
+        require_auth(_request)
+        body = generate_latest(REGISTRY)
+        return web.Response(body=body, content_type=CONTENT_TYPE_LATEST)
+
+    async def health_handler(_request: web.Request) -> web.Response:
+        return web.json_response({
+            "status": "ok",
+            "uptime_seconds": round(EXPORTER_UPTIME._value.get() if hasattr(EXPORTER_UPTIME, '_value') else 0, 2),
+            "service": "astrofin-metrics-exporter",
+        })
+
+    async def root_handler(_request: web.Request) -> web.Response:
+        return web.json_response({
+            "endpoints": {"/health": "liveness probe", "/metrics": "Prometheus scrape target"},
+            "auth_enabled": _auth_enabled(),
+        })
+
+    app.router.add_get("/metrics", metrics_handler)
+    app.router.add_get("/health", health_handler)
+    app.router.add_get("/", root_handler)
     return app
 
 
