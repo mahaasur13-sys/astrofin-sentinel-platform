@@ -55,7 +55,7 @@ jobs:
           pip install build
           python -m build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist-${{ steps.version.outputs.version }}
           path: dist/
@@ -91,7 +91,7 @@ jobs:
           } > changelog-$VER.md
           echo "Generated changelog:"
           cat changelog-$VER.md | head -30
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: changelog
           path: changelog-*.md

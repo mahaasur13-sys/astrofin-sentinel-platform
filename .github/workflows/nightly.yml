@@ -48,7 +48,7 @@ jobs:
             echo "::warning::DORA report incomplete"
       - name: Upload DORA report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dora-report
           path: docs/operations/dora_latest.json
@@ -104,7 +104,7 @@ jobs:
           pytest -q --tb=no -p no:cacheprovider \
             --co --cov=. --cov-report=xml --cov-config=/dev/null \
             -m "not slow" 2>&1 | tail -10 || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-xml
