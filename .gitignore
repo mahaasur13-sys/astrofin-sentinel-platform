@@ -104,3 +104,4 @@ hmm_dashboard.html
 astrofin-sentinel-platform/
 data/meta_rl/gen_*.png
 data/meta_rl/sessions/gen_*.json
+deploy/monitoring/prometheus-standalone.yml

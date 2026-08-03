@@ -1,0 +1,15 @@
+{
+  "contactPoints": [
+    {
+      "orgId": 1,
+      "name": "email-alerts",
+      "type": "email",
+      "uid": "astrofin-email",
+      "settings": {
+        "addresses": "mahaasur13@gmail.com",
+        "singleEmail": false
+      },
+      "disableResolveMessage": false
+    }
+  ]
+}

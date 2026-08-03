@@ -1,0 +1,412 @@
+{
+  "apiVersion": 1,
+  "groups": [
+    {
+      "orgId": 1,
+      "name": "astrofin_critical",
+      "folder": "AstroFin",
+      "interval": "30s",
+      "rules": [
+        {
+          "uid": "astrofin-exporter-down",
+          "title": "AstroFin Metrics Exporter Down",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 300, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "absent(astrofin_up{component=\"metrics_exporter\"}) == 1 or astrofin_up{component=\"metrics_exporter\"} == 0",
+                "intervalMs": 30000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "Alerting",
+          "execErrState": "Alerting",
+          "for": "2m",
+          "annotations": {
+            "summary": "AstroFin metrics exporter не отвечает — метрики отсутствуют",
+            "description": "Метрика astrofin_up{component=\"metrics_exporter\"} отсутствует или равна 0. Metrics server (порт 9091) вероятно упал или не скрейпится Prometheus.",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#exporter-down"
+          },
+          "labels": {
+            "severity": "critical",
+            "team": "astrofin",
+            "component": "metrics_exporter"
+          }
+        },
+        {
+          "uid": "agent-metrics-absent",
+          "title": "Agent Metrics Absent",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 300, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "absent(sentinel_agent_confidence_avg) == 1",
+                "intervalMs": 30000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "Alerting",
+          "execErrState": "Alerting",
+          "for": "2m",
+          "annotations": {
+            "summary": "Метрики агентов AstroFin отсутствуют",
+            "description": "Метрика sentinel_agent_confidence_avg не найдена в Prometheus. Все агенты (Fundamental, Quant, Macro, Sentiment и др.) не эмитят метрики или metrics_exporter упал.",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#agent-metrics-absent"
+          },
+          "labels": {
+            "severity": "critical",
+            "team": "astrofin",
+            "component": "agent"
+          }
+        },
+        {
+          "uid": "data-room-metrics-absent",
+          "title": "Data Room Metrics Absent",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 300, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "absent(astrofin_data_room_quality) == 1",
+                "intervalMs": 30000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "Alerting",
+          "execErrState": "Alerting",
+          "for": "2m",
+          "annotations": {
+            "summary": "Метрики Data Room отсутствуют",
+            "description": "Метрика astrofin_data_room_quality не найдена. Data Room (единый источник данных для всех агентов) не эмитит метрики.",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#data-room-down"
+          },
+          "labels": {
+            "severity": "critical",
+            "team": "astrofin",
+            "component": "data_room"
+          }
+        },
+        {
+          "uid": "meta-rl-metrics-absent",
+          "title": "Meta-RL Metrics Absent",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 300, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "absent(astrofin_evolution_runs) == 1",
+                "intervalMs": 30000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "Alerting",
+          "execErrState": "Alerting",
+          "for": "5m",
+          "annotations": {
+            "summary": "Метрики Meta-RL отсутствуют",
+            "description": "Метрика astrofin_evolution_runs не найдена. Meta-RL компонент (эволюция стратегий, KARL) не эмитит метрики или использует отдельный REGISTRY.",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#meta-rl-down"
+          },
+          "labels": {
+            "severity": "critical",
+            "team": "astrofin",
+            "component": "meta_rl"
+          }
+        },
+        {
+          "uid": "agents-stalled",
+          "title": "Agents Stalled — Zero Activity",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 900, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "rate(sentinel_agent_runs_total[10m]) == 0",
+                "intervalMs": 60000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "Alerting",
+          "execErrState": "Error",
+          "for": "5m",
+          "annotations": {
+            "summary": "Агенты не выполняются — нулевая активность за 10 минут",
+            "description": "rate(sentinel_agent_runs_total[10m]) == 0. Оркестратор не запускает агентов. Возможные причины: оркестратор упал, все агенты в degraded-режиме, или очередь пуста.",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#agents-stalled"
+          },
+          "labels": {
+            "severity": "critical",
+            "team": "astrofin",
+            "component": "orchestrator"
+          }
+        }
+      ]
+    },
+    {
+      "orgId": 1,
+      "name": "astrofin_warning",
+      "folder": "AstroFin",
+      "interval": "1m",
+      "rules": [
+        {
+          "uid": "high-agent-error-rate",
+          "title": "High Agent Error Rate",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 600, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "rate(sentinel_agent_errors_total[5m]) / rate(sentinel_agent_runs_total[5m]) > 0.1",
+                "intervalMs": 60000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "NoData",
+          "execErrState": "Error",
+          "for": "5m",
+          "annotations": {
+            "summary": "Ошибки агентов превышают 10% от общего числа запусков",
+            "description": "{{ $labels.agent }} имеет error rate {{ $values.A.Value | humanizePercentage }} за последние 5 минут.",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#high-error-rate"
+          },
+          "labels": {
+            "severity": "warning",
+            "team": "astrofin",
+            "component": "agent"
+          }
+        },
+        {
+          "uid": "data-room-quality-degraded",
+          "title": "Data Room Quality Degraded",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 600, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "astrofin_data_room_quality < 0.7",
+                "intervalMs": 60000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "NoData",
+          "execErrState": "Error",
+          "for": "5m",
+          "annotations": {
+            "summary": "Качество данных Data Room ниже 70%",
+            "description": "astrofin_data_room_quality = {{ $values.A.Value }}. Один или несколько резолверов (CoinGecko, Binance, SEC EDGAR) возвращают некачественные или устаревшие данные.",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#data-room-quality"
+          },
+          "labels": {
+            "severity": "warning",
+            "team": "astrofin",
+            "component": "data_room"
+          }
+        },
+        {
+          "uid": "circuit-breaker-open",
+          "title": "Circuit Breaker Open",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 300, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "astrofin_circuit_breaker_state{state=\"open\"} == 1",
+                "intervalMs": 60000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "NoData",
+          "execErrState": "Error",
+          "for": "2m",
+          "annotations": {
+            "summary": "Circuit breaker открыт для {{ $labels.resolver }}",
+            "description": "Резолвер {{ $labels.resolver }} недоступен — circuit breaker в состоянии open. Запросы к этому источнику данных временно заблокированы. Система работает в degraded-режиме.",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#circuit-breaker"
+          },
+          "labels": {
+            "severity": "warning",
+            "team": "astrofin",
+            "component": "data_room"
+          }
+        },
+        {
+          "uid": "high-confidence-variance",
+          "title": "High Confidence Variance Across Agents",
+          "condition": "B",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 600, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "stddev_over_time(sentinel_agent_confidence_avg[10m])",
+                "intervalMs": 60000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            },
+            {
+              "refId": "B",
+              "relativeTimeRange": { "from": 600, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "stddev_over_time(sentinel_agent_confidence_avg[10m]) > 0.3",
+                "intervalMs": 60000,
+                "maxDataPoints": 43200,
+                "refId": "B"
+              }
+            }
+          ],
+          "noDataState": "NoData",
+          "execErrState": "Error",
+          "for": "10m",
+          "annotations": {
+            "summary": "Высокая дисперсия confidence между агентами — возможен конфликт сигналов",
+            "description": "Стандартное отклонение sentinel_agent_confidence_avg = {{ $values.A.Value }} за 10 минут. Агенты дают сильно противоречивые сигналы. Проверьте conflict resolution (KARL synthesis).",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#high-confidence-variance"
+          },
+          "labels": {
+            "severity": "warning",
+            "team": "astrofin",
+            "component": "orchestrator"
+          }
+        },
+        {
+          "uid": "meta-rl-oos-fail-rate-high",
+          "title": "Meta-RL Out-of-Sample Fail Rate High",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 3600, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "rate(astrofin_oos_failures_total[1h]) / rate(astrofin_evolution_runs[1h]) > 0.4",
+                "intervalMs": 300000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "NoData",
+          "execErrState": "Error",
+          "for": "30m",
+          "annotations": {
+            "summary": "Out-of-sample fail rate Meta-RL превышает 40%",
+            "description": "OOS fail rate = {{ $values.A.Value | humanizePercentage }}. Модели переобучены или market regime сменился. KPI Control Loop должен был активировать tighten_grounding().",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#meta-rl-oos-fail"
+          },
+          "labels": {
+            "severity": "warning",
+            "team": "astrofin",
+            "component": "meta_rl"
+          }
+        }
+      ]
+    },
+    {
+      "orgId": 1,
+      "name": "astrofin_infrastructure",
+      "folder": "AstroFin",
+      "interval": "5m",
+      "rules": [
+        {
+          "uid": "grafana-cloud-ingestion-down",
+          "title": "Grafana Cloud Metrics Ingestion Stopped",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 900, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "absent(up{job=\"astrofin-metrics-exporter\"}) == 1",
+                "intervalMs": 300000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "Alerting",
+          "execErrState": "Alerting",
+          "for": "10m",
+          "annotations": {
+            "summary": "Grafana Cloud не получает метрики от AstroFin exporter",
+            "description": "Метрика up{job=\"astrofin-metrics-exporter\"} отсутствует. Экспортёр (metrics_exporter.py на порту 9191) либо не запущен, либо Grafana Agent/Alloy не скрейпит его, либо remote_write не работает.",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#cloud-ingestion-down"
+          },
+          "labels": {
+            "severity": "critical",
+            "team": "astrofin",
+            "component": "infrastructure"
+          }
+        },
+        {
+          "uid": "prometheus-remote-write-failing",
+          "title": "Prometheus Remote Write Failing",
+          "condition": "A",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 600, "to": 0 },
+              "datasourceUid": "grafanacloud-mahaasur13-prom",
+              "model": {
+                "expr": "rate(prometheus_remote_storage_failed_samples_total[5m]) > 0",
+                "intervalMs": 300000,
+                "maxDataPoints": 43200,
+                "refId": "A"
+              }
+            }
+          ],
+          "noDataState": "NoData",
+          "execErrState": "Error",
+          "for": "5m",
+          "annotations": {
+            "summary": "Prometheus remote write в Grafana Cloud теряет сэмплы",
+            "description": "{{ $values.A.Value }} failed samples/sec за последние 5 минут. Проверьте сетевую связность до grafana.net, аутентификацию (GRAFANA_CLOUD_KEY) и лимиты Free tier (10K series).",
+            "runbook_url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#remote-write-failing"
+          },
+          "labels": {
+            "severity": "critical",
+            "team": "astrofin",
+            "component": "infrastructure"
+          }
+        }
+      ]
+    }
+  ]
+}

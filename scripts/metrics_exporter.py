@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import signal
 import sys
 import time
 from pathlib import Path
@@ -28,8 +27,8 @@ if str(_project_root) not in sys.path:
 
 import uvicorn
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse, PlainTextResponse
-from prometheus_client import REGISTRY, CONTENT_TYPE_LATEST, generate_latest, Counter, Gauge
+from fastapi.responses import JSONResponse
+from prometheus_client import REGISTRY, CONTENT_TYPE_LATEST, generate_latest, Counter
 
 from tools.metrics_server import (  # noqa: F401 — side-effect import
     CACHE_HITS,

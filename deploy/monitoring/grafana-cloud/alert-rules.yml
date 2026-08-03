@@ -1,0 +1,229 @@
+# Grafana Cloud Alert Rules — AstroFin Sentinel V5
+
+groups:
+  # ═══════════════════════════════════════════════════════════════════
+  # CRITICAL — 30s evaluation — watchdog (absent/up/down)
+  # ═══════════════════════════════════════════════════════════════════
+  - name: astrofin_critical
+    interval: 30s
+    rules:
+      # ── Exporter absent (самая базовая проверка) ──
+      - alert: AstroFinExporterAbsent
+        expr: absent(astrofin_exporter_scrapes_total) == 1 or absent(up{job="astrofin-metrics"}) == 1
+        for: 2m
+        labels:
+          severity: critical
+          team: astrofin
+          component: exporter
+          tier: "1"
+        annotations:
+          summary: "AstroFin exporter не найден — метрики не поступают"
+          description: >
+            Метрика astrofin_exporter_scrapes_total или up{job="astrofin-metrics"}
+            отсутствует в Prometheus минимум 2 минуты.
+            Экспортёр :9191 либо не запущен, либо Prometheus не может его заскрейпить.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+      # ── Agent metrics absent ──
+      - alert: AgentMetricsAbsent
+        expr: absent(astrofin_agent_duration_seconds) == 1
+        for: 3m
+        labels:
+          severity: critical
+          team: astrofin
+          component: agent_pool
+          tier: "1"
+        annotations:
+          summary: "Метрики агентов AstroFin пропали — пул агентов не работает"
+          description: >
+            Histogram astrofin_agent_duration_seconds отсутствует >3 минут.
+            Metrics server :9091 упал или агенты остановились.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+      # ── Data Room absent ──
+      - alert: DataRoomMetricsAbsent
+        expr: absent(astrofin_cache_hits) == 1
+        for: 3m
+        labels:
+          severity: critical
+          team: astrofin
+          component: data_room
+          tier: "1"
+        annotations:
+          summary: "Метрики Data Room отсутствуют"
+          description: >
+            Counter astrofin_cache_hits пропал.
+            Data Room или metrics_server не работает.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+      # ── Meta-RL absent ──
+      - alert: MetaRLMetricsAbsent
+        expr: absent(astrofin_evolution_runs) == 1
+        for: 5m
+        labels:
+          severity: critical
+          team: astrofin
+          component: meta_rl
+          tier: "1"
+        annotations:
+          summary: "Метрики Meta-RL отсутствуют"
+          description: >
+            Counter astrofin_evolution_runs пропал >5 минут.
+            Meta-RL компонент неактивен.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+      # ── Agents stalled (живы но не работают) ──
+      - alert: AgentsStalled
+        expr: rate(astrofin_exporter_scrapes_total[5m]) == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: astrofin
+          component: agent_pool
+          tier: "1"
+        annotations:
+          summary: "Агенты AstroFin остановились — 0 скрейпов за 5 минут"
+          description: >
+            astrofin_exporter_scrapes_total не инкрементируется.
+            Экспортёр жив, но не получает новых данных = агенты не работают.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+      # ── PostgreSQL down (внешний postgres_exporter) ──
+      - alert: PostgreSQLAbsent
+        expr: absent(pg_up) == 1
+        for: 2m
+        labels:
+          severity: critical
+          team: astrofin
+          component: database
+          tier: "1"
+        annotations:
+          summary: "PostgreSQL exporter не найден — БД может быть недоступна"
+          description: >
+            Метрика pg_up от postgres_exporter отсутствует.
+            PostgreSQL — критическая зависимость AstroFin.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+  # ═══════════════════════════════════════════════════════════════════
+  # WARNING — 1m evaluation — performance / degradation
+  # ═══════════════════════════════════════════════════════════════════
+  - name: astrofin_warning
+    interval: 1m
+    rules:
+      # ── High agent latency ──
+      - alert: HighAgentLatency
+        expr: |
+          histogram_quantile(0.95, rate(astrofin_agent_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+          team: astrofin
+          component: agent_pool
+        annotations:
+          summary: "P95 латентность агентов >30s"
+          description: >
+            P95 agent duration = {{ $value }}s за последние 5 минут.
+            Проверить сетевые вызовы, LLM-роутер, API-зависимости.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+      # ── Cache hit rate low ──
+      - alert: CacheHitRateLow
+        expr: |
+          (
+            rate(astrofin_cache_hits[5m])
+            /
+            (rate(astrofin_cache_hits[5m]) + rate(astrofin_cache_misses[5m]))
+          ) < 0.3
+        for: 10m
+        labels:
+          severity: warning
+          team: astrofin
+          component: data_room
+        annotations:
+          summary: "Cache hit rate <30% — RAG/Data Room перегружен"
+          description: >
+            Текущий cache hit rate = {{ $value | humanizePercentage }}.
+            Проверить freshness TTL и размер кэша.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+      # ── High RAG error rate ──
+      - alert: HighRAGErrorRate
+        expr: |
+          rate(astrofin_rag_errors_total[5m]) / rate(astrofin_rag_queries_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          team: astrofin
+          component: rag
+        annotations:
+          summary: "RAG error rate >5%"
+          description: >
+            RAG errors: {{ $value | humanizePercentage }} за 5 минут.
+            Проверить FAISS индекс, sentence-transformer модель, memory.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+      # ── High broker errors ──
+      - alert: HighBrokerErrors
+        expr: rate(astrofin_broker_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: astrofin
+          component: execution
+        annotations:
+          summary: "Ошибки брокера: {{ $value }}/s"
+          description: >
+            astrofin_broker_errors_total растёт.
+            Проверить подключение к бирже, API-ключи, лимиты.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+      # ── Low RAG relevance ──
+      - alert: LowRAGRelevance
+        expr: astrofin_rag_relevance_avg < 0.5
+        for: 10m
+        labels:
+          severity: warning
+          team: astrofin
+          component: rag
+        annotations:
+          summary: "RAG relevance <0.5 — качество retrieval упало"
+          description: >
+            Средний relevance score: {{ $value }}.
+            Возможно, индекс устарел или модель деградировала.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+  # ═══════════════════════════════════════════════════════════════════
+  # INFRASTRUCTURE — 5m evaluation
+  # ═══════════════════════════════════════════════════════════════════
+  - name: astrofin_infrastructure
+    interval: 5m
+    rules:
+      # ── PostgreSQL down ──
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: astrofin
+          component: database
+          tier: "1"
+        annotations:
+          summary: "PostgreSQL не отвечает (pg_up=0)"
+          description: >
+            postgres_exporter сообщает pg_up=0 >2 минут.
+            Проверить Docker-контейнер и pg_isready.
+          runbook_url: "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md"
+
+      # ── Prometheus scrape errors ──
+      - alert: PrometheusScrapeErrors
+        expr: rate(prometheus_target_scrapes_sample_out_of_order_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: info
+          team: astrofin
+          component: prometheus
+        annotations:
+          summary: "Prometheus обнаружил out-of-order samples"
+          description: >
+            Проблемы с таймстампами метрик.
+            Проверить clock sync на exporter-хосте.

@@ -12,6 +12,10 @@ import os
 from aiohttp import web
 from prometheus_client import REGISTRY, generate_latest, Counter, Gauge, Histogram
 
+# ── Health / liveness ──────────────────────────────────────────────────
+ASTROFIN_UP = Gauge("astrofin_up", "AstroFin metrics server health (1=healthy)", ["component"])
+ASTROFIN_UP.labels(component="metrics_server").set(1)
+
 # Metrics required by rag_retriever and other modules
 CACHE_HITS = Counter("astrofin_cache_hits", "Cache hits")
 CACHE_MISSES = Counter("astrofin_cache_misses", "Cache misses")
