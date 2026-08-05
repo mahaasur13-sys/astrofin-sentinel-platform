@@ -132,6 +132,19 @@ class SwissEphemerisProvider:
         self._swe = swe
         self._available = HAS_SWISS_EPHEMERIS and swe is not None
         self._fallback = SimpleEphemerisProvider()
+        self._chiron_available = False
+        if self._available and self._swe is not None:
+            from pathlib import Path
+            for path_candidate in ("/usr/local/share/ephe", "/usr/share/ephe", str(Path.home() / ".sweph/ephe")):
+                if Path(path_candidate).is_dir():
+                    self._swe.set_ephe_path(path_candidate)
+                    log.debug("Swiss Ephemeris path set to %s", path_candidate)
+                    break
+            try:
+                self._swe.calc(self._swe.julday(2026, 1, 1, 0), swe.CHIRON, 1)
+                self._chiron_available = True
+            except Exception:
+                log.debug("Chiron ephemeris file unavailable — excluded from calculations")
 
     def is_available(self) -> bool:
         return self._available
@@ -141,6 +154,11 @@ class SwissEphemerisProvider:
 
     def calculate_planet(self, name: str, jd: float, flags: int = 1) -> PlanetPosition:
         planet_id = PLANETS.get(name.lower(), 0)
+        if name.lower() == "chiron" and not self._chiron_available:
+            lon, speed = _simple_position(name, jd)
+            return PlanetPosition(
+                planet=name, longitude=lon, speed=speed, retrograde=speed < 0
+            )
         if self._available and self._swe is not None:
             try:
                 result = self._swe.calc(jd, planet_id, flags)
@@ -154,7 +172,8 @@ class SwissEphemerisProvider:
                     retrograde=speed < 0,
                 )
             except Exception:
-                log.warning("Ephemeris calculation failed", exc_info=True)
+                if name.lower() != "chiron":
+                    log.warning("Ephemeris calculation failed", exc_info=True)
         lon, speed = _simple_position(name, jd)
         return PlanetPosition(
             planet=name, longitude=lon, speed=speed, retrograde=speed < 0
@@ -179,21 +198,29 @@ class SwissEphemerisProvider:
     def get_planetary_positions(
         self,
         dt: datetime,
-        latitude: float = 53.2,
-        longitude: float = 50.1,
+        latitude: float = 0.0,
+        longitude: float = 0.0,
         sidereal: bool = False,
     ) -> dict[str, PlanetPosition]:
+        jd = self.julian_day(dt)
         flags = 1
-        if sidereal and self._available and self._swe is not None:
-            import swisseph as _swe; flags |= _swe.FLG_SIDEREAL
+        if self._available and self._swe is not None:
             try:
-                self._swe.set_sid_mode(1)
+                flags |= 256  # FLG_SPEED — always enable speed data for retrograde detection
             except Exception:
-                log.warning("Ephemeris calculation failed", exc_info=True)
-        return {
-            name: self.calculate_planet(name, self.julian_day(dt), flags)
-            for name in PLANETS
-        }
+                pass
+        if sidereal and self._available and self._swe is not None:
+            try:
+                flags |= self._swe.SIDM_LAHIRI if self._swe else 0
+            except Exception:
+                pass
+        result = {}
+        for name in PLANETS:
+            try:
+                result[name] = self.calculate_planet(name, jd)
+            except Exception:
+                log.debug("Skipping planet due to calculation error", planet=name)
+        return result
 
 
 class SimpleEphemerisProvider:
