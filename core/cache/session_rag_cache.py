@@ -4,6 +4,8 @@ AstroFin — Session RAG Cache
 Кэширует результаты FAISS-retrieval в рамках одной DAG-сессии,
 чтобы повторные запросы к RAG не дублировались внутри одного анализа.
 
+Prometheus-метрики: dag_rag_cache_hits_total, dag_rag_cache_misses_total.
+
 Использование:
     from core.cache.session_rag_cache import get_session_rag_cache
     cache = get_session_rag_cache(session_id="abc123")
@@ -16,6 +18,23 @@ import hashlib
 import logging
 import threading
 from typing import Optional
+
+try:
+    from prometheus_client import Counter
+
+    _RAG_CACHE_HIT_TOTAL = Counter(
+        "dag_rag_cache_hits_total",
+        "Total session RAG cache hits",
+        ["session_id"],
+    )
+    _RAG_CACHE_MISS_TOTAL = Counter(
+        "dag_rag_cache_misses_total",
+        "Total session RAG cache misses",
+        ["session_id"],
+    )
+    _PROMETHEUS_AVAILABLE = True
+except ImportError:
+    _PROMETHEUS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +51,8 @@ class SessionRAGCache:
         self.ttl_s = ttl_s
         self._cache: dict[str, tuple[float, str]] = {}
         self._lock = threading.Lock()
+        self._hits = 0
+        self._misses = 0
 
     def _key(self, query: str, top_k: int = 3) -> str:
         """Хэш запроса для быстрого exact match."""
@@ -45,11 +66,20 @@ class SessionRAGCache:
         with self._lock:
             entry = self._cache.get(key)
             if entry is None:
+                self._misses += 1
+                if _PROMETHEUS_AVAILABLE:
+                    _RAG_CACHE_MISS_TOTAL.labels(session_id=self.session_id[:32]).inc()
                 return None
             ts, result = entry
             if time.time() - ts > self.ttl_s:
                 del self._cache[key]
+                self._misses += 1
+                if _PROMETHEUS_AVAILABLE:
+                    _RAG_CACHE_MISS_TOTAL.labels(session_id=self.session_id[:32]).inc()
                 return None
+            self._hits += 1
+            if _PROMETHEUS_AVAILABLE:
+                _RAG_CACHE_HIT_TOTAL.labels(session_id=self.session_id[:32]).inc()
             logger.debug("[SessionRAG] Hit for query hash=%s", key[:8])
             return result
 
@@ -78,6 +108,9 @@ class SessionRAGCache:
                 "session_id": self.session_id,
                 "entries": len(self._cache),
                 "ttl_s": self.ttl_s,
+                "hits": self._hits,
+                "misses": self._misses,
+                "hit_rate": round(self._hits / max(self._hits + self._misses, 1), 3),
             }
 
 

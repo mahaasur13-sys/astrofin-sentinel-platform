@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """AstroFin Prompt Cache — кэширование LLM-промптов и ответов.
 
-P0 (Sprint G): LRU-кэш с TTL, эмбеддинг-сравнение для семантического кэширования.
+P1 (Sprint G): LRU-кэш с TTL, эмбеддинг-сравнение для семантического кэширования.
+Prometheus-метрики: dag_prompt_cache_hits_total, dag_prompt_cache_misses_total.
 
 Levels:
   1. Exact match cache (хэш промпта + модель) — O(1), мгновенный hit.
@@ -9,7 +10,7 @@ Levels:
      Только для "дорогих" моделей (OpenRouter).
 
 Usage:
-    from core.prompt_cache import PromptCache, get_prompt_cache
+    from core.cache.prompt_cache import PromptCache, get_prompt_cache
 
     cache = get_prompt_cache()
 
@@ -35,6 +36,33 @@ from collections import OrderedDict
 from typing import Any
 
 import numpy as np
+
+try:
+    from prometheus_client import Counter
+
+    _PROMPT_CACHE_HITS = Counter(
+        "dag_prompt_cache_hits_total",
+        "Total prompt cache hits (exact + semantic)",
+        ["cache_type"],
+    )
+    _PROMPT_CACHE_MISSES = Counter(
+        "dag_prompt_cache_misses_total",
+        "Total prompt cache misses (exact + semantic)",
+        ["cache_type"],
+    )
+    _METRICS_ENABLED = True
+except ImportError:
+    _METRICS_ENABLED = False
+
+def _record_cache_hit(cache_type: str) -> None:
+    """Record a cache hit metric (safe no-op if prometheus_client unavailable)."""
+    if _METRICS_ENABLED:
+        _PROMPT_CACHE_HITS.labels(cache_type=cache_type).inc()
+
+def _record_cache_miss(cache_type: str) -> None:
+    """Record a cache miss metric (safe no-op if prometheus_client unavailable)."""
+    if _METRICS_ENABLED:
+        _PROMPT_CACHE_MISSES.labels(cache_type=cache_type).inc()
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +104,7 @@ class PromptCache:
         entry = self._exact_cache.get(key)
         if entry is None:
             self._misses += 1
+            _record_cache_miss("exact")
             return None
 
         timestamp, response = entry
@@ -83,9 +112,11 @@ class PromptCache:
         if time.time() - timestamp > effective_ttl:
             del self._exact_cache[key]
             self._misses += 1
+            _record_cache_miss("exact")
             return None
 
         self._hits += 1
+        _record_cache_hit("exact")
         logger.debug(f"[PromptCache] exact hit (model={model or 'default'})")
         return response
 
@@ -106,11 +137,13 @@ class PromptCache:
         """Semantic similarity lookup через sentence-transformers."""
         if not self.enabled or not self._semantic_embeddings:
             self._misses += 1
+            _record_cache_miss("semantic")
             return None
 
         emb = self._embed(prompt)
         if emb is None:
             self._misses += 1
+            _record_cache_miss("semantic")
             return None
 
         best_key: str | None = None
@@ -124,10 +157,12 @@ class PromptCache:
 
         if best_key and best_score >= threshold:
             self._hits += 1
+            _record_cache_hit("semantic")
             logger.debug(f"[PromptCache] semantic hit: score={best_score:.4f}, threshold={threshold}")
             return self._semantic_responses[best_key]
 
         self._misses += 1
+        _record_cache_miss("semantic")
         return None
 
     def set_semantic(self, prompt: str, response: str) -> None:

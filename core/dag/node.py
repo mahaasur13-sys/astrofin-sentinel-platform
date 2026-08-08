@@ -1,4 +1,4 @@
-"""DAG node — base class with retry policy."""
+"""DAG node — base class with retry policy and observability."""
 
 from __future__ import annotations
 
@@ -9,6 +9,11 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 from core.dag.context import DAGContext, NodeResult
+from core.dag.observability import (
+    observe_node,
+    record_node_duration,
+    record_node_error,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +27,7 @@ class DAGNode(ABC):
     - Принимает DAGContext и возвращает NodeResult
     - Опционально: max_retries, backoff_base_s, fallback_node_id
     - Опционально: timeout_ms
+    - Автоматически инструментирован OTEL + Prometheus через observability
 
     Дочерние классы реализуют только run().
     """
@@ -46,71 +52,86 @@ class DAGNode(ABC):
 
     async def execute(self, ctx: DAGContext) -> NodeResult:
         """
-        Выполнить узел с retry-логикой. Вызывается DAGPipeline'ом.
+        Выполнить узел с retry-логикой и observability (OTEL span + Prometheus).
+        Вызывается DAGPipeline'ом.
         Пользовательские узлы не переопределяют этот метод — только run().
         """
         last_error: Optional[str] = None
         t0 = time.time()
+        pipeline = ctx.state.get("_pipeline_name", "unknown")
+        level = ctx.state.get("_node_levels", {}).get(self.node_id, -1)
 
-        for attempt in range(self.max_retries):
-            try:
-                output = await asyncio.wait_for(
-                    self.run(ctx),
-                    timeout=self.timeout_ms / 1000,
-                )
-                duration_ms = (time.time() - t0) * 1000
-                nr = NodeResult(
-                    node_id=self.node_id,
-                    output=output,
-                    duration_ms=duration_ms,
-                    retry_count=attempt,
-                )
-                logger.debug(
-                    "DAG node %s completed in %.0fms (attempt %d/%d)",
-                    self.node_id,
-                    duration_ms,
-                    attempt + 1,
-                    self.max_retries,
-                )
-                return nr
-            except asyncio.TimeoutError:
-                last_error = f"timeout after {self.timeout_ms}ms"
-            except Exception as exc:
-                last_error = f"{type(exc).__name__}: {exc}"
+        async with observe_node(self.node_id, pipeline, level) as obs:
+            # Propagate trace_id into context for downstream nodes
+            ctx_trace_id = obs.get("trace_id", "")
+            if ctx_trace_id:
+                ctx.state["_trace_id"] = ctx_trace_id
 
-            if attempt < self.max_retries - 1:
-                backoff = self.backoff_base_s * (2**attempt)
-                logger.warning(
-                    "DAG node %s attempt %d/%d failed: %s — retrying in %.1fs",
-                    self.node_id,
-                    attempt + 1,
-                    self.max_retries,
-                    last_error,
-                    backoff,
-                )
-                await asyncio.sleep(backoff)
+            for attempt in range(self.max_retries):
+                try:
+                    output = await asyncio.wait_for(
+                        self.run(ctx),
+                        timeout=self.timeout_ms / 1000,
+                    )
+                    duration_ms = (time.time() - t0) * 1000
+                    record_node_duration(pipeline, self.node_id, level, duration_ms / 1000)
 
-        duration_ms = (time.time() - t0) * 1000
-        nr = NodeResult(
-            node_id=self.node_id,
-            output=None,
-            duration_ms=duration_ms,
-            error=last_error or "max retries exceeded",
-            retry_count=self.max_retries,
-        )
+                    nr = NodeResult(
+                        node_id=self.node_id,
+                        output=output,
+                        duration_ms=duration_ms,
+                        retry_count=attempt,
+                    )
+                    logger.debug(
+                        "DAG node %s completed in %.0fms (attempt %d/%d)",
+                        self.node_id,
+                        duration_ms,
+                        attempt + 1,
+                        self.max_retries,
+                    )
+                    return nr
+                except asyncio.TimeoutError:
+                    last_error = f"timeout after {self.timeout_ms}ms"
+                except Exception as exc:
+                    last_error = f"{type(exc).__name__}: {exc}"
 
-        logger.error(
-            "DAG node %s FAILED after %d attempts: %s",
-            self.node_id,
-            self.max_retries,
-            last_error,
-        )
+                if attempt < self.max_retries - 1:
+                    backoff = self.backoff_base_s * (2**attempt)
+                    logger.warning(
+                        "DAG node %s attempt %d/%d failed: %s — retrying in %.1fs",
+                        self.node_id,
+                        attempt + 1,
+                        self.max_retries,
+                        last_error,
+                        backoff,
+                    )
+                    await asyncio.sleep(backoff)
 
-        if self.fallback_node_id:
-            logger.warning(
-                "DAG node %s activating fallback → %s",
-                self.node_id,
-                self.fallback_node_id,
+            duration_ms = (time.time() - t0) * 1000
+            error_type = (last_error or "max retries exceeded").split(":")[0]
+            record_node_duration(pipeline, self.node_id, level, duration_ms / 1000)
+            record_node_error(pipeline, self.node_id, error_type)
+
+            nr = NodeResult(
+                node_id=self.node_id,
+                output=None,
+                duration_ms=duration_ms,
+                error=last_error or "max retries exceeded",
+                retry_count=self.max_retries,
             )
 
-        return nr
+            logger.error(
+                "DAG node %s FAILED after %d attempts: %s",
+                self.node_id,
+                self.max_retries,
+                last_error,
+            )
+
+            if self.fallback_node_id:
+                logger.warning(
+                    "DAG node %s activating fallback → %s",
+                    self.node_id,
+                    self.fallback_node_id,
+                )
+
+            return nr

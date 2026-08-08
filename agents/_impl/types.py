@@ -41,3 +41,58 @@ class TradingSignal:
     symbol: str = ""
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_agents(
+        cls,
+        symbol: str,
+        responses: list[Any],
+        entry_price: float = 0.0,
+        weights: dict[str, float] | None = None,
+    ) -> "TradingSignal":
+        weights = weights or {}
+        scores = {"LONG": 1.0, "SHORT": -1.0, "NEUTRAL": 0.0, "BUY": 1.0, "SELL": -1.0}
+        weighted_score = 0.0
+        total_weight = 0.0
+        confidences: list[float] = []
+        for response in responses:
+            name = getattr(response, "agent_name", "")
+            raw_signal = getattr(response, "signal", "NEUTRAL")
+            signal = getattr(raw_signal, "value", raw_signal)
+            direction = str(signal).upper()
+            weight = float(weights.get(name, 0.0))
+            if weight <= 0:
+                continue
+            weighted_score += scores.get(direction, 0.0) * weight
+            total_weight += weight
+            confidences.append(float(getattr(response, "confidence", 0.0)))
+
+        normalized = weighted_score / total_weight if total_weight else 0.0
+        if normalized >= 0.25:
+            signal = "LONG"
+        elif normalized <= -0.25:
+            signal = "SHORT"
+        else:
+            signal = "NEUTRAL"
+        agreement = abs(normalized)
+        confidence = (sum(confidences) / len(confidences) if confidences else 30.0) * max(agreement, 0.5)
+        return cls(
+            signal=signal,
+            confidence=round(max(0.0, min(100.0, confidence)), 2),
+            symbol=symbol,
+            metadata={"entry_price": entry_price, "weighted_score": weighted_score, "total_weight": total_weight},
+        )
+
+    @property
+    def summary(self) -> str:
+        return f"{self.signal} signal for {self.symbol} ({self.confidence:.0f}% confidence)"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "signal": self.signal,
+            "confidence": self.confidence,
+            "symbol": self.symbol,
+            "timestamp": self.timestamp,
+            "metadata": self.metadata,
+            "summary": self.summary,
+        }

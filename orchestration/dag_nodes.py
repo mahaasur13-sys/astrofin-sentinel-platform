@@ -163,9 +163,11 @@ class BaseFlowNode(DAGNode):
             rg = rag.output if isinstance(rag.output, dict) else {}
             state["rag_context"] = rg.get("context", "")
 
+        symbols = r.get("symbols", [ctx.state.get("symbol", "BTCUSDT")])
         state.update({
-            "symbols": r.get("symbols", ["BTCUSDT"]),
-            "timeframe": r.get("timeframe", "SWING"),
+            "symbols": symbols,
+            "symbol": symbols[0] if symbols else ctx.state.get("symbol", "BTCUSDT"),
+            "timeframe": ctx.state.get("timeframe", r.get("timeframe", "SWING")),
             "query_type": r.get("query_type", "full_analysis"),
             "confidence_threshold": r.get("confidence_threshold", 0.5),
             "user_query": ctx.state.get("user_query", ""),
@@ -262,6 +264,12 @@ class SynthesisNode(DAGNode):
                     all_signals.extend(r.output["signals"])
                 elif "raw" in r.output:
                     all_signals.append(r.output["raw"])
+                else:
+                    all_signals.extend(
+                        value
+                        for key, value in r.output.items()
+                        if key.endswith("_signal") and isinstance(value, dict)
+                    )
 
         router = ctx.get("RouterNode")
         router_out = router.output if (router and router.ok and isinstance(router.output, dict)) else {}
@@ -278,21 +286,23 @@ class SynthesisNode(DAGNode):
             }
 
         try:
-            from agents.synthesis_agent import SynthesisAgent
+            from agents._impl.synthesis_agent import SynthesisAgent
             agent = SynthesisAgent()
             result = await agent.run(
                 state={
+                    "all_signals": all_signals,
                     "signals": all_signals,
                     "timeframe": timeframe,
                     "current_price": self._get_price(ctx),
                     "user_query": ctx.state.get("user_query", ""),
                 }
             )
+            result_dict = result.to_dict() if hasattr(result, "to_dict") else {}
             return {
-                "direction": str(getattr(result, "direction", "NEUTRAL")),
-                "confidence": getattr(result, "confidence", 50),
-                "risk_pct": getattr(result, "risk_pct", 1.0),
-                "reasoning": getattr(result, "reasoning", ""),
+                "direction": result_dict.get("signal", "NEUTRAL"),
+                "confidence": result_dict.get("confidence", 50),
+                "risk_pct": result_dict.get("metadata", {}).get("risk_pct", 1.0),
+                "reasoning": result_dict.get("reasoning", ""),
                 "signals_count": len(all_signals),
                 "timeframe": timeframe,
             }
@@ -378,6 +388,12 @@ class PersistNode(DAGNode):
     timeout_ms: float = 10_000
     max_retries: int = 1
 
+    def _get_price_for_persist(self, ctx: DAGContext) -> float:
+        price = ctx.get("PriceNode")
+        if price and price.ok and isinstance(price.output, dict):
+            return price.output.get("price", 0.0)
+        return ctx.state.get("fallback_price", 50000.0)
+
     async def run(self, ctx: DAGContext) -> dict:
         karl = ctx.get("KARLPostProcessNode")
         synthesis = ctx.get("SynthesisNode")
@@ -388,20 +404,37 @@ class PersistNode(DAGNode):
         elif synthesis and synthesis.ok and isinstance(synthesis.output, dict):
             final_data = synthesis.output
 
-        session_id = ""
+        import uuid
+
+        symbol = ctx.state.get("symbol", "BTCUSDT")
+        timeframe = ctx.state.get("timeframe", final_data.get("timeframe", "SWING"))
+        session_id = final_data.get("session_id") or str(uuid.uuid4())[:8]
+        persistable = {
+            **final_data,
+            "session_id": session_id,
+            "symbol": symbol,
+            "timeframe": timeframe,
+            "query_type": "full_analysis",
+            "current_price": self._get_price_for_persist(ctx),
+            "final_recommendation": {
+                "signal": final_data.get("direction", "NEUTRAL"),
+                "confidence": final_data.get("confidence", 0),
+                "reasoning": final_data.get("reasoning", ""),
+            },
+        }
         try:
             from core.history_db import save_session
-            session_id = save_session(final_data)
+            save_session(persistable)
             logger.info("[PersistNode] Saved session %s", session_id)
         except Exception as exc:
             logger.warning("[PersistNode] Save failed: %s", exc)
 
         return {
             "session_id": session_id,
-            "direction": final_data.get("direction", "NEUTRAL"),
-            "confidence": final_data.get("confidence", 0),
-            "risk_pct": final_data.get("risk_pct", 0.0),
-            "karl_applied": final_data.get("karl_applied", False),
+            "direction": persistable.get("direction", "NEUTRAL"),
+            "confidence": persistable.get("confidence", 0),
+            "risk_pct": persistable.get("risk_pct", 0.0),
+            "karl_applied": persistable.get("karl_applied", False),
         }
 
 
@@ -435,3 +468,19 @@ class AlertNode(DAGNode):
         except Exception as exc:
             logger.warning("[AlertNode] Telegram alert failed: %s", exc)
             return {"sent": False, "error": str(exc)}
+
+# ── Node Class Map for Topology Registry ────────────────────────────────
+
+NODE_CLASS_MAP = {
+    "RouterNode": RouterNode,
+    "PriceNode": PriceNode,
+    "RAGNode": RAGNode,
+    "TechnicalFlowNode": TechnicalFlowNode,
+    "MacroFlowNode": MacroFlowNode,
+    "AstroFlowNode": AstroFlowNode,
+    "ElectoralFlowNode": ElectoralFlowNode,
+    "SynthesisNode": SynthesisNode,
+    "KARLPostProcessNode": KARLPostProcessNode,
+    "PersistNode": PersistNode,
+    "AlertNode": AlertNode,
+}

@@ -1,14 +1,19 @@
-"""DAG pipeline — topological execution engine."""
+"""DAG pipeline — topological execution engine with observability."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from dataclasses import dataclass
 from typing import Any, Optional
 
 from core.dag.context import DAGContext, NodeResult
 from core.dag.node import DAGNode
+from core.dag.observability import (
+    observe_pipeline,
+    record_pipeline_run,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +31,7 @@ class DAGPipeline:
 
     Узлы группируются в уровни (level = max(dep.level) + 1), затем
     каждый уровень исполняется через asyncio.gather.
+    Автоматически инструментирован OTEL + Prometheus.
     """
 
     def __init__(self, name: str = "default"):
@@ -97,7 +103,7 @@ class DAGPipeline:
 
     async def run(self, **initial_state: Any) -> DAGContext:
         """
-        Выполнить весь DAG-пайплайн.
+        Выполнить весь DAG-пайплайн с OTEL-трассировкой и Prometheus-метриками.
 
         Args:
             **initial_state: начальные значения для ctx.state
@@ -109,73 +115,92 @@ class DAGPipeline:
         levels = self._nodes_by_level()
         max_level = max(levels.keys())
 
-        ctx = DAGContext(state=dict(initial_state))
-        self._run_count += 1
+        node_level_map = {meta.node.node_id: meta.level for meta in self._nodes.values()}
+        run_t0 = time.time()
 
-        logger.info(
-            "DAG '%s' starting run #%d (%d nodes, %d levels)",
+        async with observe_pipeline(
             self.name,
-            self._run_count,
-            len(self._nodes),
-            max_level + 1,
-        )
+            node_count=len(self._nodes),
+            max_level=max_level,
+            run_number=self._run_count + 1,
+        ) as obs:
+            trace_id = obs.get("trace_id", "")
 
-        for level in range(max_level + 1):
-            level_nodes = levels.get(level, [])
-            if not level_nodes:
-                continue
+            ctx = DAGContext(state={
+                **dict(initial_state),
+                "_pipeline_name": self.name,
+                "_trace_id": trace_id,
+                "_node_levels": node_level_map,
+            })
+            self._run_count += 1
 
-            logger.debug(
-                "DAG '%s' level %d: %d nodes",
+            logger.info(
+                "DAG '%s' starting run #%d (%d nodes, %d levels, trace=%s)",
                 self.name,
-                level,
-                len(level_nodes),
+                self._run_count,
+                len(self._nodes),
+                max_level + 1,
+                trace_id,
             )
 
-            tasks = []
-            for meta in level_nodes:
-                if meta.node.fallback_node_id and meta.depends_on:
-                    dep_failed = any(
-                        ctx.get(dep_id) and not ctx.get(dep_id).ok  # type: ignore[union-attr]
-                        for dep_id in meta.depends_on
-                    )
-                    if dep_failed:
-                        fallback_id = meta.node.fallback_node_id
-                        if fallback_id in self._nodes:
-                            logger.info(
-                                "Node '%s': dependents failed, delegating to fallback '%s'",
-                                meta.node.node_id,
-                                fallback_id,
-                            )
-                            tasks.append(
-                                self._nodes[fallback_id].node.execute(ctx)
-                            )
-                            continue
+            for level_idx in range(max_level + 1):
+                level_nodes = levels.get(level_idx, [])
+                if not level_nodes:
+                    continue
 
-                tasks.append(meta.node.execute(ctx))
+                logger.debug(
+                    "DAG '%s' level %d: %d nodes",
+                    self.name,
+                    level_idx,
+                    len(level_nodes),
+                )
 
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+                tasks = []
+                for meta in level_nodes:
+                    if meta.node.fallback_node_id and meta.depends_on:
+                        dep_failed = any(
+                            ctx.get(dep_id) and not ctx.get(dep_id).ok
+                            for dep_id in meta.depends_on
+                        )
+                        if dep_failed:
+                            fallback_id = meta.node.fallback_node_id
+                            if fallback_id in self._nodes:
+                                logger.info(
+                                    "Node '%s': dependents failed, delegating to fallback '%s'",
+                                    meta.node.node_id,
+                                    fallback_id,
+                                )
+                                tasks.append(
+                                    self._nodes[fallback_id].node.execute(ctx)
+                                )
+                                continue
 
-            for meta, result in zip(level_nodes, results):
-                if isinstance(result, NodeResult):
-                    ctx.set(meta.node.node_id, result)
-                elif isinstance(result, BaseException):
-                    nr = NodeResult(
-                        node_id=meta.node.node_id,
-                        output=None,
-                        duration_ms=0,
-                        error=f"{type(result).__name__}: {result}",
-                    )
-                    ctx.set(meta.node.node_id, nr)
-                    logger.error(
-                        "DAG node '%s' unhandled exception: %s",
-                        meta.node.node_id,
-                        result,
-                    )
+                    tasks.append(meta.node.execute(ctx))
+
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+
+                for meta, result in zip(level_nodes, results):
+                    if isinstance(result, NodeResult):
+                        ctx.set(meta.node.node_id, result)
+                    elif isinstance(result, BaseException):
+                        nr = NodeResult(
+                            node_id=meta.node.node_id,
+                            output=None,
+                            duration_ms=0,
+                            error=f"{type(result).__name__}: {result}",
+                        )
+                        ctx.set(meta.node.node_id, nr)
+                        logger.error(
+                            "DAG node '%s' unhandled exception: %s",
+                            meta.node.node_id,
+                            result,
+                        )
 
         elapsed = ctx.elapsed_ms
         ok_count = sum(1 for r in ctx.results.values() if r.ok)
         fail_count = len(ctx.results) - ok_count
+        status = "success" if fail_count == 0 else "partial_failure"
+        record_pipeline_run(self.name, status, elapsed / 1000)
 
         logger.info(
             "DAG '%s' run #%d completed in %.0fms: %d/%d nodes OK",

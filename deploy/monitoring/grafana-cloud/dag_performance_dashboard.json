@@ -1,0 +1,774 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "DAG Pipeline Performance: overview, per-node latency, errors, cache hit rates, and bottleneck analysis for AstroFin Sentinel v5 DAG orchestrator (Sprint G, 2026-08-08).",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "uid": "astrofin-dag-performance",
+  "title": "AstroFin DAG — Performance Dashboard",
+  "tags": ["astrofin", "dag", "performance", "sprint-g"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "weekStart": "",
+  "links": [
+    {
+      "title": "DAG Architecture Doc",
+      "url": "https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/docs/dag_architecture.md",
+      "type": "link",
+      "icon": "external link",
+      "targetBlank": true
+    }
+  ],
+  "liveNow": false,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "templating": {
+    "list": [
+      {
+        "name": "pipeline",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "query": "label_values(dag_run_total, pipeline)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": { "text": "All", "value": "$__all" },
+        "label": "Pipeline"
+      },
+      {
+        "name": "node",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+        "query": "label_values(dag_node_duration_seconds_count, node)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": { "text": "All", "value": "$__all" },
+        "label": "Node"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Section 1 — Overview",
+      "type": "row"
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 1 },
+      "id": 101,
+      "title": "Total Runs",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum(increase(dag_run_total{pipeline=~\"$pipeline\"}[$__range]))",
+          "legendFormat": "Runs",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "orange", "value": 5 },
+            { "color": "green", "value": 50 }
+          ]},
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 1 },
+      "id": 102,
+      "title": "Success Rate",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum(rate(dag_run_ok{pipeline=~\"$pipeline\"}[$__range])) / sum(rate(dag_run_total{pipeline=~\"$pipeline\"}[$__range])) * 100",
+          "legendFormat": "Success %",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "orange", "value": 80 },
+            { "color": "green", "value": 95 }
+          ]},
+          "unit": "percent",
+          "decimals": 1
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 1 },
+      "id": 103,
+      "title": "Avg Elapsed (s)",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "avg(rate(dag_elapsed_seconds_sum{pipeline=~\"$pipeline\"}[$__range]) / rate(dag_elapsed_seconds_count{pipeline=~\"$pipeline\"}[$__range]))",
+          "legendFormat": "Avg seconds",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 15 },
+            { "color": "red", "value": 30 }
+          ]},
+          "unit": "s",
+          "decimals": 1
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 1 },
+      "id": 104,
+      "title": "Nodes per Run (avg)",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "avg(dag_nodes_per_run{pipeline=~\"$pipeline\"})",
+          "legendFormat": "Nodes",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }
+          ]},
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 9 },
+      "id": 105,
+      "title": "Run Rate & Elapsed Time",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "rate(dag_run_total{pipeline=~\"$pipeline\"}[5m])",
+          "legendFormat": "runs/s ({{pipeline}})",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(dag_elapsed_seconds_sum{pipeline=~\"$pipeline\"}[5m]) / rate(dag_elapsed_seconds_count{pipeline=~\"$pipeline\"}[5m])",
+          "legendFormat": "avg elapsed s ({{pipeline}})",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineInterpolation": "smooth", "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": "/elapsed/" }, "properties": [{ "id": "unit", "value": "s" }] }
+        ]
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 19 },
+      "id": 200,
+      "title": "Section 2 — Per-Node Latency",
+      "type": "row"
+    },
+    {
+      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 20 },
+      "id": 201,
+      "title": "Node Duration (avg, by node)",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "avg by(node) (rate(dag_node_duration_seconds_sum{node=~\"$node\",pipeline=~\"$pipeline\"}[$__range]) / rate(dag_node_duration_seconds_count{node=~\"$node\",pipeline=~\"$pipeline\"}[$__range]))",
+          "legendFormat": "{{node}}",
+          "refId": "A"
+        }
+      ],
+      "options": { "orientation": "horizontal", "displayMode": "gradient", "showUnfilled": true },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 2,
+          "color": { "mode": "palette-classic" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 5 },
+            { "color": "red", "value": 15 }
+          ]}
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 20 },
+      "id": 202,
+      "title": "Node Duration Timeline (top 5 nodes)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "topk(5, avg by(node) (rate(dag_node_duration_seconds_sum{node=~\"$node\",pipeline=~\"$pipeline\"}[5m]) / rate(dag_node_duration_seconds_count{node=~\"$node\",pipeline=~\"$pipeline\"}[5m])))",
+          "legendFormat": "{{node}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineInterpolation": "smooth", "fillOpacity": 5 },
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 },
+      "id": 203,
+      "title": "Per-Node Duration Heatmap",
+      "type": "heatmap",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum by(le, node) (increase(dag_node_duration_seconds_bucket{node=~\"$node\",pipeline=~\"$pipeline\"}[$__range]))",
+          "legendFormat": "{{le}}",
+          "format": "heatmap",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "calculate": false,
+        "yAxis": { "axisPlacement": "left", "unit": "s" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "scaleDistribution": { "type": "log" } }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 40 },
+      "id": 300,
+      "title": "Section 3 — Errors & Retries",
+      "type": "row"
+    },
+    {
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 41 },
+      "id": 301,
+      "title": "Error Rate by Node",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum by(node) (rate(dag_node_errors_total{node=~\"$node\",pipeline=~\"$pipeline\"}[$__range]))",
+          "legendFormat": "{{node}}",
+          "refId": "A"
+        }
+      ],
+      "options": { "orientation": "horizontal", "displayMode": "gradient", "showUnfilled": true },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 1 },
+            { "color": "red", "value": 5 }
+          ]}
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 41 },
+      "id": 302,
+      "title": "Total Errors (timeline)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum by(node) (rate(dag_node_errors_total{node=~\"$node\",pipeline=~\"$pipeline\"}[5m]))",
+          "legendFormat": "{{node}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineInterpolation": "stepAfter", "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 41 },
+      "id": 303,
+      "title": "Avg Retries per Node",
+      "type": "table",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "avg by(node) (dag_node_retries_total{node=~\"$node\",pipeline=~\"$pipeline\"})",
+          "legendFormat": "{{node}}",
+          "refId": "A"
+        }
+      ],
+      "options": { "showHeader": true },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "center" },
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 1 },
+            { "color": "red", "value": 3 }
+          ]}
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Value" }, "properties": [{ "id": "displayName", "value": "Avg Retries" }] }
+        ]
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 49 },
+      "id": 304,
+      "title": "Fallback Activations",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum by(node) (rate(dag_node_fallback_total{pipeline=~\"$pipeline\"}[5m]))",
+          "legendFormat": "{{node}} → {{fallback_node}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineInterpolation": "stepAfter", "fillOpacity": 15 },
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 57 },
+      "id": 400,
+      "title": "Section 4 — Cache Performance",
+      "type": "row"
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 58 },
+      "id": 401,
+      "title": "Prompt Cache Hit Rate",
+      "type": "gauge",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum(rate(dag_cache_hits_total{kind=\"prompt\"}[$__range])) / (sum(rate(dag_cache_hits_total{kind=\"prompt\"}[$__range])) + sum(rate(dag_cache_misses_total{kind=\"prompt\"}[$__range]))) * 100",
+          "legendFormat": "Hit Rate",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "orange", "value": 30 },
+            { "color": "green", "value": 60 }
+          ]},
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 58 },
+      "id": 402,
+      "title": "Prompt Cache Entries",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "dag_cache_entries{kind=\"prompt\"}",
+          "legendFormat": "Entries",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "orange", "value": null },
+            { "color": "green", "value": 100 },
+            { "color": "orange", "value": 400 }
+          ]},
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 58 },
+      "id": 403,
+      "title": "Session RAG Cache Entries",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "avg(dag_cache_entries{kind=\"rag_session\"})",
+          "legendFormat": "Avg entries/session",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "orange", "value": null },
+            { "color": "green", "value": 3 },
+            { "color": "blue", "value": 10 }
+          ]},
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 58 },
+      "id": 404,
+      "title": "Cache Hit Rate Timeline",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum(rate(dag_cache_hits_total{kind=\"prompt\"}[5m])) / (sum(rate(dag_cache_hits_total{kind=\"prompt\"}[5m])) + sum(rate(dag_cache_misses_total{kind=\"prompt\"}[5m]))) * 100",
+          "legendFormat": "Prompt cache hit %",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "custom": { "lineInterpolation": "smooth", "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" },
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 66 },
+      "id": 405,
+      "title": "Cache Hits vs Misses (prompt)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum(rate(dag_cache_hits_total{kind=\"prompt\"}[5m]))",
+          "legendFormat": "Hits",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(dag_cache_misses_total{kind=\"prompt\"}[5m]))",
+          "legendFormat": "Misses",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineInterpolation": "smooth", "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 66 },
+      "id": 406,
+      "title": "Session RAG Cache Activity",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum(rate(dag_cache_hits_total{kind=\"rag_session\"}[5m]))",
+          "legendFormat": "Hits",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(dag_cache_misses_total{kind=\"rag_session\"}[5m]))",
+          "legendFormat": "Misses",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineInterpolation": "smooth", "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 74 },
+      "id": 500,
+      "title": "Section 5 — Bottlenecks",
+      "type": "row"
+    },
+    {
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 75 },
+      "id": 501,
+      "title": "Slowest Node per Run",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "topk(1, avg by(node) (rate(dag_node_duration_seconds_sum{pipeline=~\"$pipeline\"}[$__range]) / rate(dag_node_duration_seconds_count{pipeline=~\"$pipeline\"}[$__range])))",
+          "legendFormat": "{{node}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": true, "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "name",
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 3 },
+            { "color": "red", "value": 10 }
+          ]},
+          "unit": "s",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 75 },
+      "id": 502,
+      "title": "Bottleneck Severity",
+      "type": "gauge",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "max by(node) (rate(dag_node_duration_seconds_sum{pipeline=~\"$pipeline\"}[$__range]) / rate(dag_node_duration_seconds_count{pipeline=~\"$pipeline\"}[$__range])) / avg(rate(dag_elapsed_seconds_sum{pipeline=~\"$pipeline\"}[$__range]) / rate(dag_elapsed_seconds_count{pipeline=~\"$pipeline\"}[$__range])) * 100",
+          "legendFormat": "% of total",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 30 },
+            { "color": "red", "value": 50 }
+          ]},
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 75 },
+      "id": 503,
+      "title": "Node Duration vs Total (stacked)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "avg by(node) (rate(dag_node_duration_seconds_sum{pipeline=~\"$pipeline\"}[5m]) / rate(dag_node_duration_seconds_count{pipeline=~\"$pipeline\"}[5m]))",
+          "legendFormat": "{{node}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineInterpolation": "smooth", "stacking": { "mode": "normal", "group": "A" }, "fillOpacity": 20 },
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 83 },
+      "id": 504,
+      "title": "Bottleneck Trend (slowest node over time)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "topk(3, avg by(node) (rate(dag_node_duration_seconds_sum{pipeline=~\"$pipeline\"}[5m]) / rate(dag_node_duration_seconds_count{pipeline=~\"$pipeline\"}[5m])))",
+          "legendFormat": "{{node}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineInterpolation": "smooth", "fillOpacity": 5 },
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 83 },
+      "id": 505,
+      "title": "Parallelism Efficiency",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "targets": [
+        {
+          "expr": "sum(rate(dag_node_duration_seconds_sum{pipeline=~\"$pipeline\"}[5m]) / rate(dag_node_duration_seconds_count{pipeline=~\"$pipeline\"}[5m])) / (rate(dag_elapsed_seconds_sum{pipeline=~\"$pipeline\"}[5m]) / rate(dag_elapsed_seconds_count{pipeline=~\"$pipeline\"}[5m]))",
+          "legendFormat": "Parallelism ratio",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineInterpolation": "smooth", "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "orange", "value": 1.5 },
+            { "color": "green", "value": 3 }
+          ]}
+        }
+      }
+    }
+  ],
+  "__requires": [
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "10.0" },
+    { "type": "datasource", "id": "prometheus", "name": "Prometheus", "version": "1.0" }
+  ]
+}
