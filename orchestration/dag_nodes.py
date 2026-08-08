@@ -391,7 +391,7 @@ class PersistNode(DAGNode):
         session_id = ""
         try:
             from core.history_db import save_session
-            session_id = save_session("dag_run", final_data)
+            session_id = save_session(final_data)
             logger.info("[PersistNode] Saved session %s", session_id)
         except Exception as exc:
             logger.warning("[PersistNode] Save failed: %s", exc)
