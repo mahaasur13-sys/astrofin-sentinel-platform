@@ -97,11 +97,25 @@ class RAGNode(DAGNode):
     async def run(self, ctx: DAGContext) -> dict:
         query = ctx.state.get("user_query", "Analyze BTC")
         top_k = ctx.state.get("rag_top_k", 3)
+        run_id = ctx.run_id
 
         try:
+            # 1. Проверить session RAG cache
+            from core.cache.session_rag_cache import get_session_rag_cache
+            rag_cache = get_session_rag_cache(run_id)
+            cached = rag_cache.get(query, top_k=top_k)
+            if cached:
+                logger.info("[RAGNode] Session cache HIT for run=%s", run_id[:8])
+                return {"context": cached, "top_k": top_k, "cached": True}
+
+            # 2. FAISS retrieval
             from knowledge.rag_index import retrieve_context
             context = retrieve_context(query, top_k=top_k)
-            return {"context": context, "top_k": top_k}
+
+            # 3. Сохранить в session cache
+            rag_cache.set(query, context, top_k=top_k)
+
+            return {"context": context, "top_k": top_k, "cached": False}
         except Exception as exc:
             logger.warning("[RAGNode] RAG retrieval failed: %s", exc)
             return {"context": "", "top_k": top_k, "fallback": True}
