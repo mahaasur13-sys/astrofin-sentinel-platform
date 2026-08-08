@@ -49,16 +49,40 @@ class RouterNode(DAGNode):
 
 
 class PriceNode(DAGNode):
-    """Загрузка цены через data_room resolver (CoinGecko)."""
+    """Загрузка цены через data_room resolver (CoinGecko) с Circuit Breaker."""
 
     timeout_ms: float = 15_000
     max_retries: int = 2
     backoff_base_s: float = 2.0
 
     async def run(self, ctx: DAGContext) -> dict:
+        from core.circuit_breaker import (
+            CircuitBreakerRegistry, CircuitBreakerOpenError,
+            CircuitBreakerHalfOpenLimitError, CBConfig,
+        )
+
         router = self._get_router_output(ctx)
         symbol = (router.get("symbols") or ["BTCUSDT"])[0]
         fallback = ctx.state.get("fallback_price", 50000.0)
+
+        cb_registry = ctx.state.get("_cb_registry")
+        if cb_registry is None:
+            cb_registry = CircuitBreakerRegistry(CBConfig(
+                failure_threshold=5, window_seconds=120,
+                recovery_cooldown=60, half_open_max=2,
+            ))
+            ctx.state["_cb_registry"] = cb_registry
+
+        cb = cb_registry.get("coingecko")
+
+        try:
+            await cb.acquire()
+        except (CircuitBreakerOpenError, CircuitBreakerHalfOpenLimitError) as exc:
+            logger.warning(
+                "[PriceNode] Circuit breaker %s: %s — using fallback %s",
+                cb._name, exc, fallback,
+            )
+            return {"price": fallback, "symbol": symbol, "fallback": True, "cb_state": "open"}
 
         try:
             from data_room.resolvers.coingecko import CoinGeckoResolver
@@ -67,11 +91,13 @@ class PriceNode(DAGNode):
             try:
                 tick = await resolver.resolve(symbol)
                 if tick.price > 0:
+                    cb.success()
                     logger.debug("[PriceNode] %s = %s via %s", symbol, tick.price, tick.source_id)
                     return {"price": tick.price, "symbol": symbol}
             finally:
                 await resolver.close()
         except Exception as exc:
+            cb.failure()
             logger.warning("[PriceNode] CoinGecko failed: %s", exc)
 
         logger.warning("[PriceNode] Using fallback price %s for %s", fallback, symbol)

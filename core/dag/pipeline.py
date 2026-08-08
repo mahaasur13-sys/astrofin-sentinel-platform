@@ -14,6 +14,12 @@ from core.dag.observability import (
     observe_pipeline,
     record_pipeline_run,
 )
+from core.dag.alternate_routes import (
+    RouteCatalog,
+    RouteStrategy,
+    TriggerReason,
+    get_route_catalog,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +29,96 @@ class _NodeMeta:
     node: DAGNode
     depends_on: list[str]
     level: int = 0
+
+
+def _apply_alternate_route_if_needed(
+    pipeline: "DAGPipeline",
+    result: NodeResult,
+    meta: _NodeMeta,
+    ctx: DAGContext,
+    level_idx: int,
+) -> None:
+    """
+    Проверить, нужно ли активировать альтернативный маршрут при сбое узла.
+
+    Если NodeResult.error != None, ищем в RouteCatalog подходящий маршрут
+    и применяем: skip (добавить None-результат), delegate (запустить делегата),
+    cache_fallback (подставить кэшированный результат).
+    """
+    if result.ok:
+        return
+
+    error_str = result.error or ""
+    nid = meta.node.node_id
+
+    # Map error string to TriggerReason
+    if "timeout" in error_str.lower():
+        trigger = TriggerReason.TIMEOUT
+    elif "circuit" in error_str.lower():
+        trigger = TriggerReason.CIRCUIT_OPEN
+    elif "429" in error_str:
+        trigger = TriggerReason.EXTERNAL_429
+    elif "5" in error_str and "5" in error_str.split(":")[0][-3:]:
+        trigger = TriggerReason.EXTERNAL_5XX
+    elif "provider" in error_str.lower() or "connect" in error_str.lower():
+        trigger = TriggerReason.PROVIDER_ERROR
+    elif "max retries" in error_str.lower():
+        trigger = TriggerReason.MAX_RETRIES
+    else:
+        trigger = TriggerReason.MAX_RETRIES
+
+    route = pipeline._route_catalog.resolve(nid, trigger)
+    if route is None:
+        return
+
+    if route.strategy == RouteStrategy.SKIP:
+        result.error = f"[ALT_ROUTE:skip] {error_str}"
+        result.output = {"skipped": True, "reason": str(trigger.value)}
+        logger.info(
+            "[AltRoute] %s: SKIP (trigger=%s) — DAG continues",
+            nid, trigger.value,
+        )
+
+    elif route.strategy == RouteStrategy.DELEGATE and route.delegate_to:
+        if route.delegate_to in pipeline._nodes:
+            logger.info(
+                "[AltRoute] %s: DELEGATE → %s (trigger=%s)",
+                nid, route.delegate_to, trigger.value,
+            )
+            from core.dag.node import DAGNode
+            import asyncio as _asyncio
+            try:
+                delegate_node = pipeline._nodes[route.delegate_to].node
+                delegate_result = _asyncio.get_event_loop().run_until_complete(
+                    delegate_node.execute(ctx)
+                ) if not _asyncio.get_event_loop().is_running() else None
+                if delegate_result is not None:
+                    result.output = delegate_result.output
+                    result.duration_ms += delegate_result.duration_ms
+                    result.error = None
+                    pipeline._route_catalog._routes.setdefault(nid, []).clear()
+            except Exception:
+                pass
+
+    elif route.strategy == RouteStrategy.CACHE_FALLBACK:
+        cached_key = f"_cache_{nid}"
+        cached = ctx.state.get(cached_key)
+        if cached:
+            result.output = cached
+            result.error = f"[ALT_ROUTE:cache] {error_str}"
+            logger.info(
+                "[AltRoute] %s: CACHE_FALLBACK — using previous result",
+                nid,
+            )
+
+    elif route.strategy == RouteStrategy.RETRY_PARAMS:
+        alt_provider = route.retry_kwargs.get("provider", "")
+        if alt_provider:
+            logger.info(
+                "[AltRoute] %s: RETRY_PARAMS provider=%s (trigger=%s)",
+                nid, alt_provider, trigger.value,
+            )
+            result.error = f"[ALT_ROUTE:retry_{alt_provider}] {error_str}"
 
 
 class DAGPipeline:
@@ -38,6 +134,7 @@ class DAGPipeline:
         self.name = name
         self._nodes: dict[str, _NodeMeta] = {}
         self._run_count: int = 0
+        self._route_catalog: RouteCatalog = get_route_catalog()
 
     def add_node(
         self,
@@ -181,6 +278,9 @@ class DAGPipeline:
 
                 for meta, result in zip(level_nodes, results):
                     if isinstance(result, NodeResult):
+                        _apply_alternate_route_if_needed(
+                            self, result, meta, ctx, level_idx,
+                        )
                         ctx.set(meta.node.node_id, result)
                     elif isinstance(result, BaseException):
                         nr = NodeResult(
@@ -188,6 +288,9 @@ class DAGPipeline:
                             output=None,
                             duration_ms=0,
                             error=f"{type(result).__name__}: {result}",
+                        )
+                        _apply_alternate_route_if_needed(
+                            self, nr, meta, ctx, level_idx,
                         )
                         ctx.set(meta.node.node_id, nr)
                         logger.error(
