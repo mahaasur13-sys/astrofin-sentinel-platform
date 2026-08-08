@@ -158,7 +158,7 @@ def _ollama_fallback(prompt: str) -> str:
     return local_llm(prompt)
 
 
-def route(prompt: str, session_id: str = None) -> str:
+def route(prompt: str, session_id: str = None, use_prompt_cache: bool = True) -> str:
     """
     Route a prompt to the best backend based on complexity.
 
@@ -169,7 +169,19 @@ def route(prompt: str, session_id: str = None) -> str:
     backend = "unknown"
     model = "unknown"
 
-    # Check session cache
+    # 1. Check prompt cache (exact + semantic match before any LLM call)
+    if use_prompt_cache:
+        try:
+            from core.cache.prompt_cache import get_prompt_cache
+            pcache = get_prompt_cache()
+            cached = pcache.get_exact(prompt) or pcache.get_semantic(prompt)
+            if cached:
+                log_request(prompt, "cache", "cached", cached)
+                return cached
+        except Exception:
+            pass
+
+    # 2. Check session cache
     if session_id and session_id in _session_last_model:
         if now - _session_last_call[session_id] < TTL:
             backend = _session_last_model[session_id]
@@ -197,4 +209,18 @@ def route(prompt: str, session_id: str = None) -> str:
         model = "openrouter-auto"
 
     log_request(prompt, backend, model, response)
+    _store_in_prompt_cache(prompt, response, use_prompt_cache)
     return response
+
+
+def _store_in_prompt_cache(prompt: str, response: str, enabled: bool) -> None:
+    """Store LLM response in prompt cache for future deduplication."""
+    if not enabled or not response:
+        return
+    try:
+        from core.cache.prompt_cache import get_prompt_cache
+        pcache = get_prompt_cache()
+        pcache.set_exact(prompt, response)
+        pcache.set_semantic(prompt, response)
+    except Exception:
+        pass
