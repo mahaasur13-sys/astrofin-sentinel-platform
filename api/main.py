@@ -370,6 +370,8 @@ def run_agent(req: AgentRequest, request: Request):
                         pass
                     result = asyncio.run(agent_cls().analyze(state))
                     if result is None:
+                        raise RuntimeError("async agent not supported")
+                        raise RuntimeError("no result")
                     signal = getattr(
                         getattr(result, "signal", None), "value", str(getattr(result, "signal", "NEUTRAL"))
                     )

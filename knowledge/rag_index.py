@@ -27,6 +27,7 @@ import pickle
 import re
 from pathlib import Path
 from typing import Any, Optional
+from tools.metrics_server import RAG_QUERIES_TOTAL
 
 import numpy as np
 
@@ -260,9 +261,11 @@ def retrieve_context(query: str, top_k: int = 3) -> str:
             min(top_k, len(_DOCS)),
         )
         chunks = [_DOCS[i] for i in indices[0] if 0 <= i < len(_DOCS)]
+        RAG_QUERIES_TOTAL.labels(status="ok", backend="faiss", domain="all").inc()
         return "\n\n".join(chunks) if chunks else ""
     except Exception as exc:
         logger.warning("RAG retrieve failed: %s", exc)
+        RAG_QUERIES_TOTAL.labels(status="error", backend="faiss", domain="all").inc()
         return ""
 
 # --- Singleton factory (for metrics exporter) ---
