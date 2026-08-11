@@ -7,9 +7,13 @@ Endpoints:
     POST /api/v1/agent/run        — run an agent with LLM routing
     WS   /ws/agent/{agent_id}     — WebSocket real-time agent streaming
     GET  /health                  — health check
+import re
 """
 
 from datetime import datetime, timezone
+import re
+import logging
+import inspect, asyncio
 import os
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
@@ -28,6 +32,16 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="AstroFin Sentinel API", version="0.5.0")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ── Prometheus metrics endpoint (scraped by astrofin-prometheus) ─────────
+from fastapi.responses import Response
+from prometheus_client import REGISTRY, generate_latest
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics endpoint — scraped on localhost:8000."""
+    return Response(content=generate_latest(REGISTRY), media_type="text/plain; charset=utf-8")
+
 from api.routes.sessions import router as sessions_router
 
 app.include_router(sessions_router, prefix="/api/v1")
@@ -249,10 +263,26 @@ def get_dashboard(request: Request):
     )
 
 
+def _find_agent_file(name: str) -> str | None:
+    import os, glob
+    target = re.sub(r'(?<=[a-z])([A-Z])', r'_', name).lower()
+    pattern = f'agents/_impl/{target}.py'
+    if os.path.exists(pattern):
+        return pattern
+    # Heuristic: try variants with extra underscores
+    base = target.replace('_', '')
+    for f in glob.glob(f'agents/_impl/{base[:3]}*.py'):
+        tail = os.path.splitext(os.path.basename(f))[0]
+        if tail.replace('_', '') == base:
+            return f
+    return None
+
 @app.post("/api/v1/agent/run")
 @require_api_key
+
 def run_agent(req: AgentRequest, request: Request):
     """Return decisions from agents with real ephemeris, aspects, and honest ensemble."""
+    logger = logging.getLogger("api.main")
     import importlib
     import time
     from datetime import datetime, timezone
@@ -322,17 +352,24 @@ def run_agent(req: AgentRequest, request: Request):
     agent_decisions = []
     for aid, name, domain in AGENT_SPECS:
         try:
-            # Try real agent
-            spec = importlib.util.spec_from_file_location(name.lower(), f"agents/_impl/{name.lower()}.py")
+            fname = "agents/_impl/ml_predictor_agent.py" if name == "MLPredictorAgent" else f"agents/_impl/{re.sub(r"(?<=[a-z])([A-Z])", r"_\1", name).lower()}.py"
+            spec = importlib.util.spec_from_file_location(name.lower(), fname)
             if spec and spec.loader:
                 mod = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(mod)
-                agent_cls = getattr(mod, name, None)
+                agent_cls = getattr(mod, name, None) or getattr(mod, name + "Agent", None)
                 if agent_cls:
                     state = {"symbol": "BTCUSDT", "current_price": price}
-                    result = agent_cls().analyze(state) if not hasattr(agent_cls().analyze, "__await__") else None
+                    # RAG context injection (P1 — RAG-First architecture)
+                    try:
+                        from knowledge.rag_index import retrieve_context
+                        rag_ctx = retrieve_context(req.prompt, top_k=3)
+                        if rag_ctx:
+                            state["rag_context"] = rag_ctx
+                    except Exception:
+                        pass
+                    result = asyncio.run(agent_cls().analyze(state))
                     if result is None:
-                        raise RuntimeError("async agent not supported in sync endpoint")
                     signal = getattr(
                         getattr(result, "signal", None), "value", str(getattr(result, "signal", "NEUTRAL"))
                     )
@@ -349,7 +386,8 @@ def run_agent(req: AgentRequest, request: Request):
                     )
                     continue
             raise RuntimeError("import failed")
-        except Exception:
+        except Exception as exc:
+            import traceback; print(f"agent_import_failed agent={name} error={exc} traceback={traceback.format_exc()}")
             # Fallback: neutral based on domain
             confidence = 50
             signal = "NEUTRAL"
