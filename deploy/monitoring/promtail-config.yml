@@ -1,0 +1,61 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/promtail-positions.yaml
+
+clients:
+  # Local Loki
+  - url: http://localhost:3100/loki/api/v1/push
+  # Grafana Cloud Loki
+  - url: https://logs-prod-012.grafana.net/loki/api/v1/push
+    basic_auth:
+      username: "1508904"
+      password_file: /tmp/gc_loki_pass
+
+scrape_configs:
+  - job_name: astrofin-exporter
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: astrofin-metrics-exporter
+          service: metrics-exporter
+          __path__: /dev/shm/astrofin-metrics-exporter*.log
+
+  - job_name: astrofin-evolution
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: evolution-worker
+          service: evolution
+          __path__: /dev/shm/evolution-worker*.log
+
+  - job_name: astrofin-trading
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: trading-engine
+          service: trading
+          __path__: /dev/shm/trading-engine*.log
+
+  - job_name: astrofin-prometheus
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: astrofin-prometheus
+          service: prometheus
+          __path__: /dev/shm/astrofin-prometheus*.log
+
+  - job_name: astrofin-api
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: astrofin-api
+          service: api
+          __path__: /dev/shm/astrofin-api*.log

@@ -264,3 +264,18 @@ def retrieve_context(query: str, top_k: int = 3) -> str:
     except Exception as exc:
         logger.warning("RAG retrieve failed: %s", exc)
         return ""
+
+# --- Singleton factory (for metrics exporter) ---
+_rag_instance: 'RAGIndex | None' = None
+
+def get_index() -> 'RAGIndex | None':
+    """Lazy singleton — FAISS load only, no sentence-transformers."""
+    global _rag_instance
+    if _rag_instance is not None:
+        return _rag_instance
+    try:
+        _rag_instance = RAGIndex()
+        _rag_instance._load_index()
+        return _rag_instance
+    except Exception:
+        return None

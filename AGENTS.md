@@ -1,18 +1,51 @@
 # AstroFin Sentinel V5 — Project Memory
 
-**Status:** ✅ Sprint F closed — v1.0.0-beta released, 6 sprints (A-F), Meta-RL inference + backtesting + frontend contract. 9 CI workflows, 0 hard failures. PII scrubber 19/19, WAL-G backup configured, 15 alerts, 6 dashboards/43 panels.
+**Status:** ✅ All 4 sprints closed (A/B/C/D). Production-ready. 11 CI workflows, 2 Cloud datasources green, Promtail dual-push, prod service live (svc_EWSR_Q4G6ts), signal logging → TimescaleDB.
 **Architecture:** RAG-First + LangGraph + Multi-Agent + Hybrid Signal
 **Pattern:** Internal Board of Directors (Совет Директоров)
 **Working dir:** `~/Projects/astrofin-sentinel-platform` (Felix) / `/home/workspace` (Zo) — flat structure, no nested subdir
 **Inlined submodules:** AsurDev, atom-federation-core, atom-federation-os, ATOM-Consensus, Hermes Agent, home-cluster-iac — больше нет `.gitmodules`.
 
-> Изменения против версии 2026-03-26: перенесены 8 артефактов B1/4.x (см. PR #201), введён `data_room/`, `monitoring/health_endpoints.py`, `core/settings.py`, `web/middleware/`, `artifacts/best_practices/`, переименован `meta_rl/quant/metrics.py` → `meta_rl/quant/risk.py`, удалён `audit_repo/`, добавлены R-04..R-12 правила архитектурного линтера.
+> Изменения против версии 2026-03-26: перенесены 8 артефактов B1/4.x (см. PR #201), введён `data_room/`, `file monitoring/health_endpoints.py`, `file core/settings.py`, `web/middleware/`, `artifacts/best_practices/`, переименован `file meta_rl/quant/metrics.py` → `file meta_rl/quant/risk.py`, удалён `audit_repo/`, добавлены R-04..R-12 правила архитектурного линтера.
 
 ---
 
 ## 2026 Hybrid Signal Architecture
 
-```
+```markdown
+## Sprint C — CI/CD Hardening & Monitoring (active 🟢)
+
+| Milestone | Artifact | Status |
+|-----------|----------|:------:|
+| C1 | CI pipeline: 11 workflows verified, lint/test continue-on-error by design | ✅ |
+| C2 | Loki → Grafana Cloud logs flowing (dual-push: local + Cloud via Promtail) | ✅ |
+| C3 | Grafana Cloud datasources health-check (Prom + Loki both green) | ✅ |
+| C4 | Remote-write verified (metrics flowing to Cloud Prometheus) | ✅ |
+| C5 | Alert integration: Telegram contact point + notification policy | ✅ |
+| C6 | SLO Burn-Down dashboard final (10 panels, recording rules active) | ✅ |
+| C7 | Sprint C status report + AGENTS.md update | ✅ |
+
+### C2 Details — Promtail Cloud Push
+
+**Config:** `/__substrate/logging/promtail-config.yaml`
+- Client 0: `http://localhost:3100/loki/api/v1/push` (local Loki)
+- Client 1: `https://logs-prod-012.grafana.net/loki/api/v1/push` (Grafana Cloud, basic auth)
+- Labels: `cluster=astrofin-sentinel, env=production, source=zo-sandbox`
+- Scrapes: `/dev/shm/*.log` (zo_services) + `/var/log/*log` (varlogs)
+
+### C3 Details — Cloud Datasources
+
+- `GrafanaCloud-Loki` (efunxvhq1r2tcf): ✅ health-check green
+- `GrafanaCloud-Prom` (efunejq53ury8a): ✅ health-check green
+- `grafanacloud-mahaasur13-prom` (grafanacloud-prom): ✅ managed by Grafana, green
+
+### C5 Details — Telegram Integration
+
+- Contact point: `telegram-alerts` created via local Grafana UI
+- Token: 6331821814:... (Bot: @IDIA_TELEPORT_Bot)
+- Chat ID: 1022845958 (user: Aulokik)
+- Notification policy: `telegram-alerts` as default receiver
+
 ╔══════════════════════════════════════════════════════════════════════════╗
 ║            ASTROFIN SENTINEL v5 — HYBRID SIGNAL ARCHITECTURE         ║
 ╠══════════════════════════════════════════════════════════════════════════╣
@@ -40,31 +73,31 @@
 ## Agent Board — Final Weights
 
 | Агент | Вес | Ответственность | Реализация |
-|-------|-----|----------------|------------|
-| **FundamentalAgent** | **20%** | Фундаментальный анализ (P/E, MVRV, revenue growth, valuation) | `agents/_impl/fundamental_agent.py` |
-| **QuantAgent** | **20%** | ML-модели, бэктестирование, предсказание волатильности | `agents/_impl/quant_agent.py` |
-| **MacroAgent** | **15%** | Макроэкономика (VIX, DXY, Fed rates, геополитика) | `agents/_impl/macro_agent.py` |
-| **OptionsFlowAgent** | **15%** | Анализ опционного потока, unusual activity, gamma exposure | `agents/_impl/options_flow_agent.py` |
-| **SentimentAgent** | **10%** | Анализ новостей, Reddit, X, StockTwits | `agents/_impl/sentiment_agent.py` |
-| **TechnicalAgent** | **10%** | Технический анализ (RSI, MACD, Bollinger) — как фильтр | `agents/technical_agent.py` |
-| **BullResearcher** | **5%** | Бычий нарратив + сильные астрологические факторы | `agents/_impl/bull_researcher.py` |
-| **BearResearcher** | **5%** | Медвежий нарратив + рисковые факторы | `agents/_impl/bear_researcher.py` |
-| **ElectoralAgent** | **3%** | Muhurta timing — сканирование окон входа по Choghadiya/Nakshatra | `agents/electoral_agent.py` |
-| **BradleyAgent** | **3%** | Модель Брэдли — сезонность S&P 500 + планетарные аспекты | `agents/_impl/bradley_agent.py` |
-| **TimeWindowAgent** | **2%** | Мульти-таймфрейм окна (4H/1D/1W) + астро тайминг | `agents/_impl/time_window_agent.py` |
-| **GannAgent** | **3%** | Углы Ганна (1×1, 1×2), квадрат цены и времени, временные кластеры | `agents/_impl/gann_agent.py` |
-| **CycleAgent** | **5%** | Доминантные циклы (20/40/80 дней), фазы, поворотные точки + астроциклы | `agents/_impl/cycle_agent.py` |
-| **ИТОГО** | **100%** | | |
+| --- | --- | --- | --- |
+| **FundamentalAgent** | **20%** | Фундаментальный анализ (P/E, MVRV, revenue growth, valuation) |  |
+| **QuantAgent** | **20%** | ML-модели, бэктестирование, предсказание волатильности |  |
+| **MacroAgent** | **15%** | Макроэкономика (VIX, DXY, Fed rates, геополитика) |  |
+| **OptionsFlowAgent** | **15%** | Анализ опционного потока, unusual activity, gamma exposure |  |
+| **SentimentAgent** | **10%** | Анализ новостей, Reddit, X, StockTwits |  |
+| **TechnicalAgent** | **10%** | Технический анализ (RSI, MACD, Bollinger) — как фильтр |  |
+| **BullResearcher** | **5%** | Бычий нарратив + сильные астрологические факторы |  |
+| **BearResearcher** | **5%** | Медвежий нарратив + рисковые факторы |  |
+| **ElectoralAgent** | **3%** | Muhurta timing — сканирование окон входа по Choghadiya/Nakshatra |  |
+| **BradleyAgent** | **3%** | Модель Брэдли — сезонность S&P 500 + планетарные аспекты |  |
+| **TimeWindowAgent** | **2%** | Мульти-таймфрейм окна (4H/1D/1W) + астро тайминг |  |
+| **GannAgent** | **3%** | Углы Ганна (1×1, 1×2), квадрат цены и времени, временные кластеры |  |
+| **CycleAgent** | **5%** | Доминантные циклы (20/40/80 дней), фазы, поворотные точки + астроциклы |  |
+| **ИТОГО** | **100%** |  |  |
 
-> **Примечание 1:** 7 корневых `agents/*.py` дублей архивированы в `agents/_archived/`. Активные реализации — только в `agents/_impl/`.
+> **Примечание 1:** 7 корневых `file agents/*.py` дублей архивированы в `agents/_archived/`. Активные реализации — только в `agents/_impl/`.
 
-> **Примечание 2:** `AstroCouncil` — координатор, а не голосующий агент. Собирает данные от Astro-суб-агентов (BradleyAgent, ElectoralAgent, TimeWindowAgent, GannAgent, CycleAgent) и объединяет их через `TradingSignal.from_agents()`. Astro-блок суммарно получает ~16% (3+3+2+3+5).
+> **Примечание 2:** `AstroCouncil` — координатор, а не голосующий агент. Собирает данные от Astro-суб-агентов (BradleyAgent, ElectoralAgent, TimeWindowAgent, GannAgent, CycleAgent) и объединяет их через `TradingSignal.from_agents()`. Astro-блок суммарно получает \~16% (3+3+2+3+5).
 
 ---
 
 ## Astro-Sub-Agents Detail (AstroCouncil sub-ecosystem)
 
-```
+```markdown
 agents/_impl/astro_council/
 └── agent.py        ← AstroCouncilAgent (координатор астро-блока)
                        Вызывает Swiss Ephemeris, затем параллельно
@@ -72,14 +105,14 @@ agents/_impl/astro_council/
                        результат через TradingSignal.from_agents()
 ```
 
-**AstroCouncil** (`agents/_impl/astro_council/agent.py`, 228 строк) отличается от `agents/astro_council_agent.py` тем, что:
+**AstroCouncil** (`file agents/_impl/astro_council/agent.py`, 228 строк) отличается от `file agents/astro_council_agent.py` тем, что:
 
-| | `agents/astro_council_agent.py` | `agents/_impl/astro_council/agent.py` |
-|---|---|---|
+|  |  |  |
+| --- | --- | --- |
 | **Роль** | Stub-обёртка, регистрирует суб-агентов через `_register_sub_agents()` | Полная реализация — `AstroCouncilAgent` с `run()` и `_call_ephemeris()` |
 | **Импорты суб-агентов** | Из `agents.*` (дубли) | Из `agents._impl.*` (активные) |
 | **Astro-расчёт** | Делегирует | Напрямую вызывает `core.ephemeris` |
-| **`run_astro_council()`** | Нет | Есть — convenience runner для оркестратора |
+| `run_astro_council()` | Нет | Есть — convenience runner для оркестратора |
 
 AstroCouncil использует веса:
 
@@ -100,7 +133,7 @@ HYBRID_WEIGHTS = {
 **Никогда не игнорировать ни один источник.**
 
 | Конфликт | Правило |
-|----------|---------|
+| --- | --- |
 | Astro ↔ Fundamental+Quant | Astro вес −30%, Fundamental +18%, Quant +12% |
 
 Если астрология противоречит фундаменталу и quant — снижаем вес астрологии.
@@ -112,22 +145,22 @@ HYBRID_WEIGHTS = {
 Каждый агент использует `@require_ephemeris` декоратор и включает 15–30% астрологический бонус:
 
 | Агент | Astro Weight |
-|-------|-------------|
-| FundamentalAgent | ~30% (Jupiter, Venus) |
-| MacroAgent | ~20% (Saturn, Jupiter) |
-| QuantAgent | ~20% (ephemeris-based) |
-| OptionsFlowAgent | ~20% (Mercury, Venus, Jupiter) |
-| SentimentAgent | ~20% (Moon, Venus) |
-| TechnicalAgent | ~15% (Mars, Moon) |
-| BradleyAgent | ~50% (планетарные аспекты) |
-| GannAgent | ~40% (астро временные даты) |
-| CycleAgent | ~40% (астроциклы Jupiter/Saturn) |
+| --- | --- |
+| FundamentalAgent | \~30% (Jupiter, Venus) |
+| MacroAgent | \~20% (Saturn, Jupiter) |
+| QuantAgent | \~20% (ephemeris-based) |
+| OptionsFlowAgent | \~20% (Mercury, Venus, Jupiter) |
+| SentimentAgent | \~20% (Moon, Venus) |
+| TechnicalAgent | \~15% (Mars, Moon) |
+| BradleyAgent | \~50% (планетарные аспекты) |
+| GannAgent | \~40% (астро временные даты) |
+| CycleAgent | \~40% (астроциклы Jupiter/Saturn) |
 
 ---
 
 ## Agent Implementation Files
 
-```
+```markdown
 agents/
 ├── base_agent.py              ← BaseAgent (AgentResponse, SignalDirection)
 ├── synthesis_agent.py          ← SynthesisAgent (100% coordinator)
@@ -176,7 +209,7 @@ agents/
 
 ## Core Modules
 
-```
+```markdown
 core/
 ├── ephemeris.py          ← Swiss Ephemeris wrapper (PlanetPosition, NatalChart)
 ├── aspects.py           ← Aspects engine (conjunction, sextile, square, trine, opposition)
@@ -185,9 +218,9 @@ core/
 └── checkpoint.py        ← State checkpointing
 ```
 
-### `core/aspects.py` (2026-03-26)
+### `file core/aspects.py` (2026-03-26)
 
-Calculates angular relationships between planets. Works with `core/ephemeris.py` output.
+Calculates angular relationships between planets. Works with `file core/ephemeris.py` output.
 
 ```python
 from core.ephemeris import get_planetary_positions
@@ -208,7 +241,7 @@ report = engine.compute(positions)
 ## Data Sources
 
 | Source | Purpose | API |
-|--------|---------|-----|
+| --- | --- | --- |
 | CoinGecko | Crypto metadata, prices | Free |
 | Binance | OHLCV data | Free |
 | Swiss Ephemeris | Planetary positions | License (sweph) |
@@ -221,7 +254,7 @@ report = engine.compute(positions)
 
 ## AMRE Modules (ATOM-KARL Framework)
 
-```
+```markdown
 agents/_impl/amre/
 ├── audit.py          ← ATOM-KARL-009: DecisionRecord + AuditLog
 ├── backtest_loop.py  ← ATOM-KARL-010: ContinuousBacktest
@@ -241,7 +274,8 @@ agents/_impl/amre/
 
 ### ATOM-KARL-009: Decision Audit Trail
 
-**Full `DecisionRecord` schema:**
+**Full** `DecisionRecord` **schema:**
+
 ```python
 DecisionRecord {
     decision_id, timestamp, session_id
@@ -259,6 +293,7 @@ DecisionRecord {
 ```
 
 **AuditLog features:**
+
 - `record()` — добавить DecisionRecord
 - `find_by_state_hash()` — воспроизвести конкретное решение
 - `analyze_drift()` — анализ OAP drift (деградирует ли система)
@@ -267,6 +302,7 @@ DecisionRecord {
 ### ATOM-KARL-010: Backtest-as-a-Service
 
 **ContinuousBacktest loop:**
+
 ```python
 for t in historical_data:
     state = build_state(t)
@@ -276,10 +312,11 @@ for t in historical_data:
 ```
 
 **Features:**
+
 - Walk-forward validation
 - Rolling window continuous backtest
 - OOS evaluation на каждом шаге
-- Q* evolution tracking
+- Q\* evolution tracking
 - KPI Control Loop:
   - `if kpi["uncertainty"] > 0.6: increase_ttc_depth()`
   - `if kpi["entropy"] < 0.3: boost_exploration()`
@@ -301,7 +338,7 @@ KPIControlState {
 
 ## Session History (R-08)
 
-Every `run_sentinel_v5()` call is automatically persisted to `core/history.db` (SQLite).
+Every `run_sentinel_v5()` call is automatically persisted to `file core/history.db` (SQLite).
 
 ```python
 from core.history_db import save_session, get_session, list_sessions, session_stats
@@ -314,8 +351,8 @@ from core.history_db import save_session, get_session, list_sessions, session_st
 Every call computes dynamic `risk_pct` based on market volatility regime.
 
 | Regime | ATR% | risk_pct | Kelly mult | Conf drop |
-|--------|------|----------|-----------|-----------|
-| LOW | <1.5% | 3.0% | 1.0× | 0 |
+| --- | --- | --- | --- | --- |
+| LOW | &lt;1.5% | 3.0% | 1.0× | 0 |
 | NORMAL | 1.5–3% | 2.0% | 0.75× | 0 |
 | HIGH | 3–5% | 1.0% | 0.50× | −10 |
 | EXTREME | ≥5% | 0.5% | 0.20× | −25 + AVOID |
@@ -324,7 +361,7 @@ Every call computes dynamic `risk_pct` based on market volatility regime.
 
 ## Backtest & Metrics
 
-Module: `backtest/metrics_agent.py`
+Module: `file backtest/metrics_agent.py`
 
 ```python
 from backtest.metrics_agent import MetricsAgent, BacktestRun
@@ -335,7 +372,7 @@ runs = agent.list()
 summary = agent.summary()
 ```
 
-Tests: `backtest/test_metrics_agent.py` — 10/10 passing ✅
+Tests: `file backtest/test_metrics_agent.py` — 10/10 passing ✅
 
 ---
 
@@ -369,7 +406,7 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 )
 ```
 
-`tools/data_provider.py` удалён как dead code.
+`file tools/data_provider.py` удалён как dead code.
 
 ### Web Middleware
 
@@ -377,35 +414,112 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 
 ---
 
+## Sprint D — Production Launch & Backtesting (closed ✅)
+
+| Milestone | Artifact | Status |
+| --- | --- | --- |
+| D1 | Prod strategy service (svc_EWSR_Q4G6ts) — 60s cycle, signals → TimescaleDB | ✅ |
+| D2 | Multi-TF WFA accelerator (B2) | ⏸️ PARKED — blocked by Binance API |
+| D3 | RAG traffic generation (10 queries/cycle), counter in Cloud | ✅ |
+| D4 | `file trading_engine/run.py` integrates both strategies (--strategy sprint_b|live) | ✅ |
+| D5 | AGENTS.md & SOUL.md synced | ✅ |
+
+### D1: Production Service
+
+- Service: `svc_EWSR_Q4G6ts` (astrofin-prod-strategy)
+- Entrypoint: `trading_engine/run.py --live --strategy sprint_b --interval 60 --db-save`
+- Writes: `trading_signals` hypertable in TimescaleDB
+- Risk: dynamic (ATR-based volatility regime)
+- Weights: XAUUSD 70%, WFA 30% (placeholder)
+
 ## TODO
 
+## Sprint B — Production Readiness (closed ✅, B2 parked ⏸️)
+
+| Milestone | Artifact | Status |
+| --- | --- | --- |
+| B1 | XAUUSD 4H strategy → production signal pipeline | ✅ |
+| B2 | Multi-TF WFA Gate accelerator (30% weight) | ⏸️ PARKED — blocked by Binance API access |
+| B3 | Dynamic risk sizing from meta_rl/quant/risk.py | ✅ |
+| B4 | SLO recording rules → Prometheus | ✅ |
+| B5 | WAL-G binary compiled + SLO diagnostics doc | ✅ |
+
+### B1: Production Strategy Module
+
+**Module:** `file trading_engine/signals/production_strategy.py`
+
+- 70% XAUUSD 4H Improved (Sharpe 1.97)
+- 30% Multi-TF WFA Gate placeholder
+- Dynamic risk: ATR-based volatility regime detection
+- Structured logging with `trading_engine.sprint_b` logger
+
+**Runner:** `file trading_engine/run_sprint_b.py`
+
+```bash
+# Single signal
+python3 trading_engine/run_sprint_b.py
+
+# Live loop (300s interval)
+python3 trading_engine/run_sprint_b.py --live --interval 300
+
+# Custom weights
+python3 trading_engine/run_sprint_b.py --xau-weight 70 --wfa-weight 30
+```
+
 - [x] Implement all agents with proper weights
+
 - [x] Update SynthesisAgent with 2026 hybrid weights
+
 - [x] Add FundamentalAgent, MacroAgent, QuantAgent, OptionsFlowAgent
+
 - [x] Add SentimentAgent, TechnicalAgent, Bull/Bear Researchers
+
 - [x] Add conflict resolution (Astro vs Fundamental+Quant)
+
 - [x] **R-07: Dynamic risk_pct based on volatility regime**
+
 - [x] **R-08: Persistent session history (SQLite)**
+
 - [x] **R-09: AgentResponse — unified interface**
+
 - [x] **core/aspects.py — AspectsEngine (2026-03-26)**
+
 - [x] **Deduplicate agents — archive 7 root duplicates (2026-03-26)**
+
 - [x] **Add weights for ElectoralAgent, BradleyAgent, TimeWindowAgent, GannAgent, CycleAgent (2026-03-26)**
+
 - [x] **ATOM-KARL-009: Decision Audit Trail**
+
 - [x] **ATOM-KARL-010: Backtest-as-a-Service + KPI Control Loop**
+
 - [x] **ATOM-012: Enhanced KARL — reward calibration, delisted fallback, grounding integration**
+
 - [x] **ATOM-013: Full KARL integration in sentinel_v5.py (KARLSynthesisAgent)**
+
 - [x] **ATOM-015: KARL CLI integration, dashboard, JSONL persistence, HTML reports, continuous backtest command**
+
 - [x] **Phase B1 + 4.x consolidation (PR #200/#201, 2026-07-13):** inlined 6 submodules, restored 10 untracked artifacts (core/muhurtha.py, orchestration/langgraph_schema.py, monitoring/health_endpoints.py, tools/data_provider.py→data_room/, scripts/check_aspects.py, tests/integration/test_final_integration.py, docs/audit/ADD-B1-F13-FINDINGS.md, docs/audit/AUDIT_STEP1_REPORT.md)
+
 - [x] **Step 4.6: Arch linter 0 hard violations** (R3 3→0, R2 20→0)
+
 - [x] **Step 4.4: RAG proxy indirection (data_room.blueprint)**
+
 - [x] **Step 4.5: AMRE pre-commit hook installed**
+
 - [x] **Step 4.7:** `@require_auth` on 4 production API routes ✅ (P0/SEC-01)
+
 - [x] **Step 4.8a:** R3.5, R7, R10, R12 — 4 новых правила ✅ (PR #246)
+
 - [x] Connect real data APIs: SEC EDGAR via data_room resolver ✅ (Polygon, Unusual Whales — paid, pending)
+
 - [x] Add Telegram bot for alerts ✅
+
 - [x] **Step 4.8b:** Production RAG index — 102 docs → 1981 чанков, FAISS+BM25+RRF ✅
+
 - [x] Add visualizations — Dash/Plotly 8-panel dashboard (ensemble weights, signal/confidence scatter, regime timeline, heatmap, KPI gauge, P&L equity curve)
+
 - [x] **ATOM-017: Full agent pools (MACRO + ASTRO + TECHNICAL)** — 8 agents running
+
 - [x] **Step 4.8c:** PostgreSQL + TimescaleDB + pgvector — DatabaseManager, Dual-Write ✅
 
 ---
@@ -416,23 +530,24 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 2. **Active Modules**: Only use agent implementations from `agents/_impl/`. Do not import from `agents/_archived/`.
 3. **Pre-Flight Healthcheck**: Before making changes or running the system, execute `python tools/healthcheck.py` and ensure it passes (exit code 0). If critical checks fail, notify the user and halt.
 4. **Port Conflict Resolution**: Before starting the dashboard, check port 8050 (`ss -tlnp | grep 8050`). Kill any stale process occupying it.
-5. **Dependency Management**: New third-party packages must be added to `requirements.txt` and recorded in `progress.md`.
+5. **Dependency Management**: New third-party packages must be added to `file requirements.txt` and recorded in `file progress.md`.
 6. **PostgreSQL Fallback**: If PostgreSQL is unavailable, the system may fallback to SQLite. The healthcheck will attempt `docker-compose up -d postgres redis` if Docker is present.
 
 ### CodeRabbit Review Contract
 
-7. **CodeRabbit Review Contract**: PRs trigger CodeRabbit via `.coderabbit.yaml` (Russian, assertive). CodeRabbit checks **architectural reasoning** (R1–R9 alignment, KNOWN_ISSUES.md P1 blockers); pre-commit handles **syntactic** checks (Ruff, Bandit, detect-secrets, architecture_linter.py). Never duplicate pre-commit logic in CodeRabbit instructions. See `docs/CODE_REVIEW.md`.
+7. **CodeRabbit Review Contract**: PRs trigger CodeRabbit via `file .coderabbit.yaml` (Russian, assertive). CodeRabbit checks **architectural reasoning** (R1–R9 alignment, KNOWN_ISSUES.md P1 blockers); pre-commit handles **syntactic** checks (Ruff, Bandit, detect-secrets, architecture_linter.py). Never duplicate pre-commit logic in CodeRabbit instructions. See `file docs/CODE_REVIEW.md`.
 8. **Architecture linter is the source of truth**: For new agents, run `python scripts/validate_agent.py agents/_impl/new_agent.py` before requesting a PR review. All 9 checks must pass.
-9. **Quarterly review cycle**: The `.coderabbit.yaml` rule set is reviewed quarterly (next: 2026-09-02) to align with ADR review cadence in `docs/ARCHITECTURE.md`.
+9. **Quarterly review cycle**: The `file .coderabbit.yaml` rule set is reviewed quarterly (next: 2026-09-02) to align with ADR review cadence in `file docs/ARCHITECTURE.md`.
 
 ---
 
 ## CI Checks
+
 ## P1 — LLM Router Integration (2026-07-18)
 
-**Модуль:** `core/llm_router.py`
+**Модуль:** `file core/llm_router.py`
 
-Все LLM-запросы агентов теперь идут через `core/llm_router.py`, а не через прямые вызовы `openai.ChatCompletion`.
+Все LLM-запросы агентов теперь идут через `file core/llm_router.py`, а не через прямые вызовы `openai.ChatCompletion`.
 
 ### Правила работы с роутером
 
@@ -440,11 +555,11 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 2. **RAG-first:** Перед вызовом LLM агент получает контекст из `knowledge/rag_index.retrieve_context(prompt)`
 3. **Классификация:** Простые запросы → Ollama (локально), сложные → OpenRouter (облако)
 4. **Кэш сессий:** TTL 5 минут, исключает повторную классификацию
-5. **Логирование:** JSONL в `logs/llm_requests.jsonl`
+5. **Логирование:** JSONL в `file logs/llm_requests.jsonl`
 
 ### RAG Index (2026-07-18)
 
-**Модуль:** `knowledge/rag_index.py`
+**Модуль:** `file knowledge/rag_index.py`
 
 - FAISS индекс с sentence-transformers эмбеддингами
 - Тестовые документы по финансовой отчётности
@@ -453,7 +568,7 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 
 ### API & Frontend (P2 — 2026-07-18)
 
-- **Бэкенд:** FastAPI в `api/main.py` (порт 8000)
+- **Бэкенд:** FastAPI в `file api/main.py` (порт 8000)
 - **Фронтенд:** React + Redux Toolkit в `web-react/` (порт 5173)
 - **Маршрутизация:** `api/v1/agent/run` принимает `{agentId, prompt}`, вызывает `BaseAgent.generate()`
 - **CORS:** разрешён для `localhost:5173`
@@ -472,11 +587,11 @@ cd web-react && npm run dev
 
 **Модуль:** `telegram_bot/`
 
-- `bot.py` — `AstroFinBot` с командами `/start`, `/status`, `/analyze <symbol>`
-- `alerts.py` — `AlertDispatcher` для рассылки торговых сигналов
+- `file bot.py` — `AstroFinBot` с командами `/start`, `/status`, `/analyze <symbol>`
+- `file alerts.py` — `AlertDispatcher` для рассылки торговых сигналов
 - Запуск: `python -m telegram_bot.bot` (требуется `TELEGRAM_BOT_TOKEN` в `.env`)
 - Библиотека: `python-telegram-bot[job-queue]`
 
 ### SEC EDGAR
 
-**Resolver:** `data_room/resolvers/sec_edgar.py` — production-grade HTTP-клиент к SEC EDGAR API.
+**Resolver:** `file data_room/resolvers/sec_edgar.py` — production-grade HTTP-клиент к SEC EDGAR API.
