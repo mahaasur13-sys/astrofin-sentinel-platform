@@ -56,20 +56,10 @@ P2-04 refactored: reward/lag → weights_calibrator.py, conflicts → conflict_r
 
 
 # ATOM-019: PostgreSQL integration
-try:
-    from db import (
-        AgentSignalRepository,
-        AstroPositionRepository,
-        DecisionRecordRepository,
-        is_postgres_available,
-    )
-
-    PG_AVAILABLE = is_postgres_available()
-except Exception:
-    PG_AVAILABLE = False
-    DecisionRecordRepository = None
-    AgentSignalRepository = None
-    AstroPositionRepository = None
+PG_AVAILABLE = False
+DecisionRecordRepository = None
+AgentSignalRepository = None
+AstroPositionRepository = None
 
 
 # ─── KARL Synthesis Agent ────────────────────────────────────────────────────
@@ -279,7 +269,7 @@ class KARLSynthesisAgent(BaseAgent[AgentResponse]):
             confidence_adjustments.append(f"conflict:-{conflict['confidence_penalty']}")
 
         record = build_decision_record(
-            decision_id=f"KARL_{self.decision_counter:04d}_{symbol}",
+            decision_id=f"KARL_{self.decision_counter:04d}_{symbol}_{state.get('session_id', uuid.uuid4().hex[:8])}",
             session_id=state.get("session_id", "unknown"),
             symbol=symbol,
             price=price,

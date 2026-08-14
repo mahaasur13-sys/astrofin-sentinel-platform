@@ -76,7 +76,7 @@
           }
         },
         {
-          "uid": "rag-metrics-absent",
+          "uid": "rag-chunk-absent",
           "title": "RAG Metrics Absent",
           "condition": "A",
           "data": [
@@ -186,7 +186,7 @@
           }
         },
         {
-          "uid": "rag-error-rate-elevated",
+          "uid": "rag-chunk-count-zero",
           "title": "RAG Chunk Count Zero",
           "condition": "A",
           "data": [

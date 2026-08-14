@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS agent_weights_history (
     trades_count     INTEGER NOT NULL DEFAULT 0,
     pnl_total        REAL    NOT NULL DEFAULT 0.0,
     max_drawdown     REAL    NOT NULL DEFAULT 0.0,
-    metadata         JSONB   NOT NULL DEFAULT ''{}''
+    metadata         JSONB   NOT NULL DEFAULT '{}'
 );
 
 CREATE INDEX IF NOT EXISTS idx_agent_weights_ts
@@ -82,6 +82,8 @@ class PostgresHistoryDB(HistoryDB):
     def _init_db(self):
         with self._conn() as conn:
             with conn.cursor() as cur:
+                cur.execute("CREATE SCHEMA IF NOT EXISTS astrofin")
+                cur.execute("SET search_path TO astrofin, public")
                 cur.execute(_INIT_PG_SQL)
             conn.commit()
 

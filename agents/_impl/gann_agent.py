@@ -215,14 +215,14 @@ class GannAgent(BaseAgent[AgentResponse]):
 
     async def _check_astro_time_dates(self, state: dict) -> dict:
         """Check for Gann-style astro time dates."""
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         from core.ephemeris import HAS_SWISS_EPHEMERIS, _julian_day, calculate_planet
 
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(timezone.utc)
         jd = _julian_day(now)
 
         # Check if any major planet is at a Gann degree (0°, 90°, 180°, 270°)

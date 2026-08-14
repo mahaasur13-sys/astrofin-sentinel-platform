@@ -567,8 +567,8 @@ class AuditLog:
                 f'| PCR=[{pcr}]'
             )
 
-        context = '
-'.join(lines)
+        context = '\\n'.join(lines)
+
         logger.info(f'build_context_plan: {symbol}/{regime} -> {len(top)}/{len(matching)} records, top_q*={top[0].q_star:.4f}')
         return context
 

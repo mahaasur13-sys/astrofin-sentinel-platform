@@ -8,6 +8,7 @@ from __future__ import annotations
 
 
 import enum
+import uuid
 
 from sqlalchemy import (
     Boolean,
@@ -78,7 +79,7 @@ class AgentPool(enum.Enum):
 
 class Session(Base):
     __tablename__ = "sessions"
-    session_id = Column(UUID(as_uuid=True), primary_key=True)
+    session_id = Column(String(255), primary_key=True)
     symbol = Column(String(20), nullable=False)
     timeframe = Column(String(20), nullable=False)
     query_type = Column(String(20), nullable=False)
@@ -102,9 +103,9 @@ class Session(Base):
 
 class AgentSignal(Base):
     __tablename__ = "agent_signals"
-    signal_id = Column(UUID(as_uuid=True), primary_key=True)
+    signal_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="CASCADE")
+        String(255), ForeignKey("sessions.session_id", ondelete="CASCADE")
     )
     agent_name = Column(String(100), nullable=False)
     agent_pool = Column(String(20))
@@ -123,7 +124,7 @@ class AstroPosition(Base):
     __tablename__ = "astro_positions"
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="CASCADE")
+        String(255), ForeignKey("sessions.session_id", ondelete="CASCADE")
     )
     planet = Column(String(20), nullable=False)
     longitude = Column(Numeric(10, 6))

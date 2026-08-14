@@ -59,6 +59,7 @@ class DatabaseManager:
             def _set_search_path(dbapi_conn, _connection_record):
                 cur = dbapi_conn.cursor()
                 cur.execute("SET timezone TO 'UTC'")
+                cur.execute("SET search_path TO astrofin, public")
                 cur.close()
 
             self.pg_session_factory = sessionmaker(bind=self.pg_engine, autoflush=False)

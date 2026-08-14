@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from agents._impl.ephemeris_decorator import (
@@ -99,7 +99,7 @@ class AstroCouncilAgent(BaseAgent):
         3. TradingSignal.from_agents для финального взвешивания
         """
         try:
-            dt = context.get("datetime") or datetime.now(datetime.UTC)
+            dt = context.get("datetime") or datetime.now(timezone.utc)
             symbol = context.get("symbol", "BTC")
             price = context.get("price") or context.get("current_price") or 100.0
 
@@ -117,9 +117,10 @@ class AstroCouncilAgent(BaseAgent):
                 weights=self._weights,
             )
 
+            signal_value = getattr(final_signal.signal, "value", final_signal.signal)
             return AgentResponse(
                 agent_name="AstroCouncil",
-                signal=final_signal.signal.value,
+                signal=signal_value,
                 confidence=final_signal.confidence,
                 reasoning=final_signal.summary,
                 sources=[],

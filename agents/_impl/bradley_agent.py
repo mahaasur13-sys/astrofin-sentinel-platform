@@ -131,7 +131,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
         if len(data) < 90:
             return {"score": 0.5, "summary": "insufficient data for seasonality"}
 
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         # Map closes to day of year
         daily_returns = {}
@@ -144,7 +144,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
                 daily_returns[day] = daily_returns.get(day, []) + [-1]
 
         # Find current period's historical performance
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(timezone.utc)
         current_day = now.timetuple().tm_yday
 
         # Check past 30 days of current period
@@ -175,14 +175,14 @@ class BradleyAgent(BaseAgent[AgentResponse]):
         """
         Check major planetary aspects for Bradley-style forecasts.
         """
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         from core.ephemeris import HAS_SWISS_EPHEMERIS, _julian_day, calculate_planet
 
         if not HAS_SWISS_EPHEMERIS:
             return {"score": 0.5, "summary": "ephemeris unavailable"}
 
-        now = datetime.now(datetime.UTC)
+        now = datetime.now(timezone.utc)
         jd = _julian_day(now)
 
         # Get major planets

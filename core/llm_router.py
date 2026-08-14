@@ -15,6 +15,7 @@ import json
 import os
 import time
 from pathlib import Path
+import logging
 
 import numpy as np
 try:
@@ -158,18 +159,19 @@ def _ollama_fallback(prompt: str) -> str:
     return local_llm(prompt)
 
 
+logger = logging.getLogger(__name__)
 def route(prompt: str, session_id: str = None, use_prompt_cache: bool = True) -> str:
     """
     Route a prompt to the best backend based on complexity.
 
     Uses session-aware caching with 5-minute TTL.
+    Uses vector-based prompt cache (cosine similarity) to skip redundant LLM calls.
     Logs every request to logs/llm_requests.jsonl.
     """
     now = time.time()
     backend = "unknown"
     model = "unknown"
 
-    # 1. Check prompt cache (exact + semantic match before any LLM call)
     if use_prompt_cache:
         try:
             from core.cache.prompt_cache import get_prompt_cache
@@ -181,7 +183,7 @@ def route(prompt: str, session_id: str = None, use_prompt_cache: bool = True) ->
         except Exception:
             pass
 
-    # 2. Check session cache
+    # Check session cache
     if session_id and session_id in _session_last_model:
         if now - _session_last_call[session_id] < TTL:
             backend = _session_last_model[session_id]
@@ -208,13 +210,13 @@ def route(prompt: str, session_id: str = None, use_prompt_cache: bool = True) ->
         response = cloud_llm(prompt)
         model = "openrouter-auto"
 
-    log_request(prompt, backend, model, response)
     _store_in_prompt_cache(prompt, response, use_prompt_cache)
+    log_request(prompt, backend, model, response)
     return response
 
 
 def _store_in_prompt_cache(prompt: str, response: str, enabled: bool) -> None:
-    """Store LLM response in prompt cache for future deduplication."""
+    """Store LLM response in the exact and semantic prompt caches."""
     if not enabled or not response:
         return
     try:

@@ -40,6 +40,9 @@ RAG_QUERIES_TOTAL = Counter(
     "RAG queries, partitioned by status, backend, and domain",
     ["status", "backend", "domain"],
 )
+# Seed counter so Prometheus sees the metric (absent() → 0)
+RAG_QUERIES_TOTAL.labels(status="ok", backend="pgvector", domain="all").inc(0)
+RAG_QUERIES_TOTAL.labels(status="error", backend="pgvector", domain="all").inc(0)
 # RAG_ERRORS_TOTAL: counts failures across retrieve/store/refresh paths.
 RAG_ERRORS_TOTAL = Counter(
 

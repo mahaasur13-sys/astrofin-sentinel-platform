@@ -126,7 +126,7 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             if self._session is None:
                 self._session = aiohttp.ClientSession()
             async with self._session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                if resp.status_code == 200:
+                if resp.status == 200:
                     data = await resp.json()
                     return {
                         "name": data.get("name", ""),
@@ -156,7 +156,7 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             if self._session is None:
                 self._session = aiohttp.ClientSession()
             async with self._session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                if resp.status_code == 200:
+                if resp.status == 200:
                     data = await resp.json()
                     prices = data.get("prices", [])
                     if len(prices) > 1:
@@ -178,6 +178,10 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             logger.warning(
                 f"[FundamentalAgent] Failed to fetch onchain data for {symbol}: {e}"
             )
+        finally:
+            if self._session is not None:
+                await self._session.close()
+                self._session = None
         return {"mvrv_ratio": 1.0, "ath_distance_pct": 50.0, "volatility_30d": 10.0}
 
     def _analyze_valuation(

@@ -141,7 +141,8 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
         import httpx
 
         try:
-            url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}-USDT&interval={interval}&limit={limit}"
+            inst_id = symbol if "-" in symbol else symbol[:-4] + "-USDT"
+            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval}&limit={limit}"
             async with httpx.AsyncClient() as client:
                 resp = await client.get(url, timeout=10)
                 resp.raise_for_status()
@@ -149,7 +150,7 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
                 # OKX возвращает [timestamp, open, high, low, close, volume]
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
-            logger.warning(f"Failed to fetch OHLCV data for {symbol}-USDT")
+            logger.warning(f"Failed to fetch OHLCV data for {symbol}")
             return []
 
     def _calculate_rsi(self, data: list, period: int = 14) -> float:

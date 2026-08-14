@@ -18,6 +18,44 @@ logger = logging.getLogger(__name__)
 
 _SCHEMA_SQL = Path(__file__).parent.parent / "schema" / "001_initial.sql"
 
+_RUNTIME_TABLES_SQL = (
+    """
+    CREATE TABLE IF NOT EXISTS karl_decision_records (
+        decision_id TEXT PRIMARY KEY, session_id TEXT, symbol TEXT,
+        price NUMERIC(20, 8), timeframe TEXT, regime TEXT, state_hash TEXT,
+        top_trajectories_json TEXT, selected_ensemble_json TEXT, q_values_json TEXT,
+        q_star NUMERIC(8, 6), advantage NUMERIC(8, 6),
+        uncertainty_aleatoric NUMERIC(6, 4), uncertainty_epistemic NUMERIC(6, 4),
+        uncertainty_total NUMERIC(6, 4), confidence_raw INTEGER, confidence_final INTEGER,
+        confidence_adjustments_json TEXT, final_action TEXT, position_pct NUMERIC(6, 4),
+        kpi_snapshot_json TEXT, metadata_json TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_karl_runtime_session ON karl_decision_records(session_id)",
+    "CREATE INDEX IF NOT EXISTS idx_karl_runtime_symbol ON karl_decision_records(symbol)",
+    """
+    CREATE TABLE IF NOT EXISTS agent_signals (
+        signal_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), session_id TEXT,
+        agent_name TEXT NOT NULL, agent_pool TEXT, signal TEXT, confidence INTEGER,
+        reasoning TEXT, metadata_json TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_agent_runtime_session ON agent_signals(session_id)",
+)
+
+def ensure_runtime_tables(engine) -> bool:
+    try:
+        with engine.begin() as conn:
+            conn.exec_driver_sql("CREATE SCHEMA IF NOT EXISTS astrofin")
+            conn.exec_driver_sql("SET search_path TO astrofin, public")
+            for statement in _RUNTIME_TABLES_SQL:
+                conn.exec_driver_sql(statement)
+        return True
+    except Exception as e:
+        logger.error("[DB-INIT] Runtime table initialization failed: %s", e)
+        return False
+
 
 def apply_raw_sql_schema(engine) -> bool:
     """
@@ -77,7 +115,7 @@ def init_schema_if_needed() -> bool:
             logger.info(
                 f"[DB-INIT] PostgreSQL tables already exist ({len(existing)} tables)"
             )
-            return True
+            return ensure_runtime_tables(engine)
 
         # Try SQLAlchemy create_all first
         try:
@@ -85,7 +123,7 @@ def init_schema_if_needed() -> bool:
 
             Base.metadata.create_all(engine)
             logger.info("[DB-INIT] Created tables via SQLAlchemy Base.create_all()")
-            return True
+            return ensure_runtime_tables(engine)
         except Exception as e:
             logger.warning(f"[DB-INIT] Base.create_all failed: {e}")
 
