@@ -123,6 +123,7 @@ class BaseAgent(ABC, Generic[T]):
         self.instructions_md = ""
         self._broker: "MessageBroker | None" = None
         self._outbox: "Outbox | None" = None
+        self._tool_policy = None  # set by agent subclass or load from TOOL_POLICIES
         self._retriever = _DegradedRetriever()
         self.use_rag = use_rag
 
@@ -132,6 +133,25 @@ class BaseAgent(ABC, Generic[T]):
                     self.instructions_md = f.read()
             except FileNotFoundError:
                 self.instructions_md = f"# {name}\n\nInstructions not found."
+
+    # ── Tool Policy Enforcement (GitHub Agentic Workflows v0.86.1) ──
+
+    def _check_tool_policy(self, tool_name: str) -> bool:
+        """Check if this agent is allowed to use the given tool.
+
+        Returns True if allowed, False if blocked.
+        If no policy is set, allows all (backward compatible).
+        """
+        if self._tool_policy is None:
+            try:
+                from agents._impl.tool_policy import can_use_tool
+            except ImportError:
+                return True
+        return can_use_tool(self.name, tool_name)
+
+    def set_tool_policy(self, policy) -> None:
+        """Set the tool policy for this agent instance."""
+        self._tool_policy = policy
 
     # ── Degraded Response ────────────────────────────────────────────
 

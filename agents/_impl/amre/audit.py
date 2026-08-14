@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
@@ -134,7 +134,7 @@ class DecisionRecord:
     # Meta-RL → KARL: risk-adjusted PnL (ATOM-META-RL-005)
     risk_adjusted_pnl: float = 0.0
     # Wisdom Graph: PCR artifact tags for context plan building
-    pcr_tags: list[str]
+    pcr_tags: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         """Конвертация в dict для сериализации"""
