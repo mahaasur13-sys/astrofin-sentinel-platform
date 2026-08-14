@@ -133,6 +133,8 @@ class DecisionRecord:
     metadata: dict[str, Any]
     # Meta-RL → KARL: risk-adjusted PnL (ATOM-META-RL-005)
     risk_adjusted_pnl: float = 0.0
+    # Wisdom Graph: PCR artifact tags for context plan building
+    pcr_tags: list[str]
 
     def to_dict(self) -> dict:
         """Конвертация в dict для сериализации"""
@@ -536,6 +538,39 @@ class AuditLog:
                 len([r for r in q4 if r.confidence_final >= 70]) / len(q4), 3
             ),
         }
+
+    def build_context_plan(self, symbol: str, regime: str, top_k: int = 5) -> str:
+        """Build context plan from best DecisionRecords for symbol/regime.
+
+        Wisdom Graph pattern: turns agent experience into PCR artifacts,
+        assembles a context plan to guide KARL synthesis.
+        """
+        import logging
+        logger = logging.getLogger('astrofin.audit')
+
+        matching = [
+            r for r in self.records
+            if r.symbol == symbol and r.regime == regime
+        ]
+        if not matching:
+            return ''
+
+        matching.sort(key=lambda r: r.q_star, reverse=True)
+        top = matching[:top_k]
+
+        lines = [f'### Context Plan: {symbol} ({regime}) — Top {len(top)} PCR Artifacts']
+        for i, r in enumerate(top, 1):
+            pcr = ', '.join(r.pcr_tags) if r.pcr_tags else '—'
+            lines.append(
+                f'{i}. Q*={r.q_star:.4f} | Action={r.final_action} '
+                f'| Conf={r.confidence_final} | PnL(adj)={r.risk_adjusted_pnl:.2f} '
+                f'| PCR=[{pcr}]'
+            )
+
+        context = '
+'.join(lines)
+        logger.info(f'build_context_plan: {symbol}/{regime} -> {len(top)}/{len(matching)} records, top_q*={top[0].q_star:.4f}')
+        return context
 
     def export_json(self) -> str:
         """Экспорт всех записей в JSON для внешнего анализа"""
