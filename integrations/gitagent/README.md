@@ -52,7 +52,7 @@ python -m integrations.gitagent.adapters.cli import-agent ./exported_agents/tech
 
 `MCPAdapter` uses the Smithery CLI when available and the public Smithery registry API for discovery. Search is read-only and works without credentials. Connecting a hosted server or calling its tools may require Smithery authentication, a namespace, OAuth, or server-specific configuration.
 
-Install the current CLI with `npm install -g @smithery/cli` or let the adapter use `npx --yes @smithery/cli` when no global binary is present. Smithery's current CLI flow is:
+Install the current CLI with `npm install -g smithery@latest` or let the adapter use `npx --yes smithery@latest` when no global binary is present. Smithery's current CLI flow is:
 
 ```text
 smithery mcp search <term>
