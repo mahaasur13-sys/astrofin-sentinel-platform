@@ -1,6 +1,8 @@
 # CodeRabbit configuration for AstroFin Sentinel Platform
 # https://docs.coderabbit.ai/guides/configure-coderabbit
 
+language: ru-RU
+
 reviews:
   # Auto-review on all branches, not just default
   auto_review:
@@ -10,6 +12,65 @@ reviews:
   request_changes_workflow: true
   high_level_summary: true
   poem: false
+  collapse_walkthrough: false
+  sequence_diagrams: true
+  changed_files_summary: true
+  path_filters:
+    - "!docs/**"
+    - "!*.md"
+    - "!data/**"
+    - "!backtest/data_cache/**"
+
+path_instructions:
+  - path: "decision_os/core/**"
+    instructions: |
+      КРИТИЧНО: DecisionOS PluginManager. Проверяй:
+      1. Lifecycle: install→enable→disable→unload→update — все состояния.
+      2. HookSystem: корректность register/fire/unregister.
+      3. Sandbox: whitelist permissions, SPEND_KEY жёстко заблокирован.
+      4. ThoughtTracer: корректность trace/entries_json.
+
+  - path: "decision_os/plugins/dashbeam_transfer/**"
+    instructions: |
+      КРИТИЧНО: DashBeam Transfer Plugin. Проверяй:
+      1. Spend keys Monero НИКОГДА не попадают в код/логи.
+      2. DashBeamTicket: срок действия, одноразовость.
+      3. DashBeamSession: P2P handshake, шифрование TLS 1.3.
+      4. DashBeamRelayConfig: Enterprise-only доступ.
+      5. Все permissions в manifest.json соответствуют tier_required.
+
+  - path: "decision_os/plugins/builtin/**"
+    instructions: |
+      Встроенные плагины DecisionOS. Проверяй:
+      1. policy-engine: корректность before/after хуков.
+      2. decision-gate: пропуск/блокировка действий.
+      3. crypto-payments: безопасность ключей.
+      4. crypto-wallets: SPEND KEYS NEVER SHARED — критично.
+      5. support-chat: WebSocket + тикеты.
+      6. Каждый manifest.json соответствует реализации.
+
+  - path: "decision_os/api/**"
+    instructions: |
+      DecisionOS FastAPI. Проверяй: CORS, error handling, rate limiting,
+      bearer auth на мутирующих эндпоинтах.
+
+  - path: "decision_os/tests/**"
+    instructions: |
+      Тесты DecisionOS. Проверяй:
+      1. 58/58 должны проходить (18 unit + 40 integration).
+      2. Граничные случаи: unload, re-install, spend_key блокировка.
+      3. Тесты DashBeam: ticket lifecycle, session, relay config.
+
+  - path: "agents/_impl/**"
+    instructions: |
+      Агенты AstroFin. Проверяй: @require_ephemeris декоратор,
+      AgentResponse интерфейс, корректность весов.
+
+  - path: "roma-execution-bridge/plugins/**"
+    instructions: |
+      ROMA Execution Bridge плагины. Проверяй:
+      PluginManager (async, singleton), Sandbox (4 политики),
+      DashBeam (Iroh, relay, MoneroSharingValidator).
 
 chat:
   auto_reply: true
