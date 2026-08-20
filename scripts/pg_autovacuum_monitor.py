@@ -3,8 +3,8 @@
 Writes Prometheus textfile: /tmp/pg_autovacuum_metrics.prom
 Run via cron every 60s.
 """
-import os, time, logging
-from datetime import datetime, timezone
+import os
+import logging
 
 DB_URL = os.environ.get("DATABASE_URL", "postgresql://astrofin:astrofin@localhost:5432/astrofin?sslmode=disable")
 OUTFILE = os.environ.get("PG_AUTOVACUUM_METRICS_FILE", "/tmp/pg_autovacuum_metrics.prom")
@@ -82,7 +82,7 @@ def collect():
         # Write stale marker
         try:
             with open(OUTFILE + ".tmp", 'w') as f:
-                f.write(f"pg_autovacuum_tsdb_catalog_health 0\n")
+                f.write("pg_autovacuum_tsdb_catalog_health 0\n")
             os.rename(OUTFILE + ".tmp", OUTFILE)
         except:
             pass

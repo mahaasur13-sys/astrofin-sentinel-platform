@@ -48,7 +48,6 @@ class DAGRunSummary:
 
 
 def summarize_run(ctx: DAGContext, name: str = "") -> DAGRunSummary:
-    from core.dag.context import NodeResult  # break cycle
 
     ok = sum(1 for r in ctx.results.values() if r.ok)
     return DAGRunSummary(

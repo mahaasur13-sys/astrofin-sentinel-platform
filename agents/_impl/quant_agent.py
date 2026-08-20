@@ -145,9 +145,9 @@ class QuantAgent(BaseAgent[AgentResponse]):
                 "1W": "1w",
                 "SWING": "1d",
             }
-            interval = interval_map.get(timeframe, "1d")
+            bar = interval_map.get(timeframe, "1d")
             inst_id = symbol if "-" in symbol else symbol[:-4] + "-USDT"
-            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar=1D&limit=100"
+            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={bar}&limit=100"
             resp = await get_http_client().get(url)
             data = resp.json()
             return [[float(x[4]), float(x[5]), float(x[2]), float(x[3])] for x in data]

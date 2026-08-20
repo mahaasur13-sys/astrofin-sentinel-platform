@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from .plugin_manager import PluginManager

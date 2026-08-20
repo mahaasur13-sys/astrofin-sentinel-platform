@@ -1,11 +1,9 @@
 """DecisionOS V2.0 — Plugin Architecture Core."""
 from __future__ import annotations
 
-import functools
 import importlib
 import json
 import logging
-import os
 import sys
 import threading
 from dataclasses import dataclass, field
@@ -383,7 +381,7 @@ class PluginManager:
         self.disable(plugin_id)
         self.unload(plugin_id)
         return self.load(plugin_id)
-    
+
     def _get_instance(self, plugin_id: str) -> PluginInstance:
         entry = self.registry.get(plugin_id)
         if entry is None:

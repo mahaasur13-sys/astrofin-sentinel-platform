@@ -85,7 +85,6 @@ def _apply_alternate_route_if_needed(
                 "[AltRoute] %s: DELEGATE → %s (trigger=%s)",
                 nid, route.delegate_to, trigger.value,
             )
-            from core.dag.node import DAGNode
             import asyncio as _asyncio
             try:
                 delegate_node = pipeline._nodes[route.delegate_to].node
