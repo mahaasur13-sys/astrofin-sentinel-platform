@@ -1,0 +1,11 @@
+{
+  "id": "settings",
+  "name": "Settings",
+  "version": "1.0.0",
+  "description": "Страница настроек — управление плагинами, ключами, тарифами",
+  "author": "DecisionOS Team",
+  "permissions": ["ui:settings:render"],
+  "hooks": [],
+  "tier_required": ["Start"],
+  "entry_point": "main.py"
+}

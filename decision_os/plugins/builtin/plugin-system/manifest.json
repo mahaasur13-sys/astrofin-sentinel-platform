@@ -1,0 +1,11 @@
+{
+  "id": "plugin-system",
+  "name": "Plugin System",
+  "version": "1.0.0",
+  "description": "Сама плагинная система как плагин — загрузка, менеджмент, marketplace",
+  "author": "DecisionOS Team",
+  "permissions": ["system:plugin:*"],
+  "hooks": ["before_plugin_install", "after_plugin_install", "before_plugin_enable", "after_plugin_enable"],
+  "tier_required": ["Start"],
+  "entry_point": "main.py"
+}

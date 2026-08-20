@@ -1,0 +1,18 @@
+{
+  "id": "dashbeam-transfer",
+  "name": "DashBeam P2P Transfer",
+  "version": "1.0.0",
+  "description": "Безопасная P2P-передача файлов через Iroh + QUIC",
+  "author": "DecisionOS Team",
+  "permissions": [
+    "support:file:send_p2p",
+    "audit:export:p2p",
+    "dashbeam:ticket:create",
+    "dashbeam:file:send",
+    "dashbeam:relay:configure",
+    "dashbeam:wallet:share_view_only"
+  ],
+  "hooks": ["before_message_send", "after_ticket_create"],
+  "tier_required": ["Pro", "Enterprise"],
+  "entry_point": "main.py"
+}

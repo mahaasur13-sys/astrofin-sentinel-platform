@@ -1,0 +1,15 @@
+{
+  "id": "policy-engine",
+  "name": "Policy Engine",
+  "version": "1.0.0",
+  "description": "Центральный Policy Engine — проверка разрешений всех действий",
+  "author": "DecisionOS Team",
+  "permissions": [
+    "system:plugin:install",
+    "system:plugin:enable",
+    "system:plugin:unload"
+  ],
+  "hooks": ["before_policy_check", "after_policy_check"],
+  "tier_required": ["Start"],
+  "entry_point": "main.py"
+}
