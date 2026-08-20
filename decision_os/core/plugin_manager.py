@@ -418,6 +418,10 @@ class PluginManager:
         """Alias for hook_system (test compatibility)."""
         return self.hook_system
 
+    def get_plugin(self, plugin_id: str) -> PluginInstance:
+        """Get a plugin by ID. Raises KeyError if not found."""
+        return self._get_instance(plugin_id)
+
     def list_plugins(self) -> list:
         """Return list of enabled plugin ids."""
         return [eid for eid, entry in self.registry._plugins.items() if entry.state == PluginState.ENABLED]
