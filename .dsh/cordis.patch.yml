@@ -1,0 +1,123 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# ROMA + Zo Integration — cordis.patch.yml (host-level hardening)
+# DSH_HOME: /home/workspace/.dsh
+# Version:  2026-08-21-audit
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# This file is the HOST composition patch, applied AFTER the profile's
+# cordis.patch.yml. It enforces security boundaries:
+#   - sandbox = workspace-write (FORBIDS danger-full-access)
+#   - approval = ask (never auto-approve dangerous operations)
+#   - MCP bridges to ROMA + Zo
+#   - Session persistence (JSONL)
+#   - OTEL telemetry
+#   - File observation policy
+#
+# Architecture principle:
+#   DeepSeek Harness = BRAIN (planning, agents, tools)
+#   ROMA Bridge = HANDS + WALLET + WAREHOUSE (GPU/CPU, billing, isolation)
+#   Zo Bridge = HOST (diagnostics, services)
+#
+# NEVER: dsh calls ROMA directly → always mcp__roma__*
+# NEVER: dsh manages containers → always ROMA
+# NEVER: ROMA does agent logic → always dsh
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── MCP Bridge: ROMA Execution Bridge ─────────────────────────────────────
+# ЕДИНСТВЕННЫЙ способ отправлять задачи в ROMA.
+# Все GPU/CPU/биллинг-операции — только через этот MCP-мост.
+# Инструменты: mcp__roma__submit_job, mcp__roma__get_job_status, ...
+- insert:
+    - id: mcp-roma-bridge
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: roma
+        transport: stdio
+        command: python3
+        args:
+          - '/home/workspace/.dsh/mcp-servers/roma_bridge.py'
+        env:
+          ROMA_API_KEY: !!js process.env.ROMA_API_KEY || ''
+          ROMA_BASE_URL: 'http://localhost:8900'
+        failOnStartupError: false
+        toolCallTimeoutMs: 30000
+        reconnect:
+          enabled: true
+          initialDelayMs: 2000
+          maxDelayMs: 15000
+          maxAttempts: 5
+
+    # ── MCP Bridge: Zo Host Diagnostics ──────────────────────────────────
+    - id: mcp-zo-bridge
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: zo
+        transport: stdio
+        command: python3
+        args:
+          - '/home/workspace/.dsh/mcp-servers/zo_bridge.py'
+        failOnStartupError: false
+        toolCallTimeoutMs: 10000
+        reconnect:
+          enabled: true
+          initialDelayMs: 2000
+          maxDelayMs: 15000
+          maxAttempts: 3
+
+# ── Sandbox: FORCE workspace-write ────────────────────────────────────────
+# Override the base default — NEVER allow danger-full-access.
+# Danger-full-access = RCE risk, bypasses Landlock/bwrap.
+
+- id: sandbox-policy
+  config:
+    mode: workspace-write
+    workspaceRoot: '/home/workspace'
+
+# ── Approval Policy: FORCE ask ───────────────────────────────────────────
+# Never auto-approve. Every dangerous call requires human confirmation.
+
+- id: approval
+  config:
+    policy: ask
+
+# ── Permission Presets: REMOVE danger-full-access ─────────────────────────
+# Users can choose read-only or workspace-write only.
+
+- id: permission
+  config:
+    presets:
+      read-only:
+        sandbox: read-only
+        approval: ask
+      workspace-write:
+        sandbox: workspace-write
+        approval: ask
+
+# ── Session Persistence: JSONL ────────────────────────────────────────────
+
+- id: session-persistence-jsonl
+  config:
+    root: '/home/workspace/.dsh/sessions'
+
+# ── Code Mode: DISABLED (security) ────────────────────────────────────────
+# Code mode runs in worker-thread and bypasses OS sandboxing.
+# Container-backend is not available in this deployment.
+# DISABLED until container isolation is implemented.
+
+- id: code-runtime
+  disabled: true
+  name: '@deepseek-ai/dsh-code-runtime-worker'
+  config:
+    mode: container-backend
+
+# ── Agent Presets — custom ROMA profiles ──────────────────────────────────
+
+- id: agent-presets
+  config:
+    default: roma-standard
+
+# ── Tools mode: native only (no code mode) ────────────────────────────────
+
+- id: tools
+  config:
+    mode: native

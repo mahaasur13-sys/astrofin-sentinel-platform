@@ -1,0 +1,7 @@
+# Zo MCP Bridge Configuration
+# Used by /home/workspace/.dsh/mcp-servers/zo_bridge.py
+# This file is read by the MCP server at startup.
+
+zo_api_url: "http://localhost:8900"
+workspace_root: "/home/workspace"
+romae_bridge_url: "http://localhost:8900"
