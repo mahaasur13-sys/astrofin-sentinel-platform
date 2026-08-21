@@ -159,6 +159,35 @@ class TestMCPAdapter:
         adapter.mcp_install("example/server")
         assert "secret" not in json.dumps(seen["arguments"])
 
+    def test_install_passes_safe_config_and_namespace(self, tmp_path, monkeypatch):
+        adapter = MCPAdapter(storage_path=tmp_path)
+        monkeypatch.setenv("SMITHERY_NAMESPACE", "astrofin")
+        seen = {}
+
+        def fake_run(arguments, timeout=60):
+            seen["arguments"] = arguments
+            return subprocess.CompletedProcess(arguments, 0, "{}", "")
+
+        monkeypatch.setattr(adapter, "_run_cli", fake_run)
+        adapter.mcp_install("example/server", {"region": "us-east"})
+        assert "--namespace" in seen["arguments"]
+        assert "astrofin" in seen["arguments"]
+        assert "--config" in seen["arguments"]
+        assert '{"region":"us-east"}' in seen["arguments"]
+
+    def test_install_does_not_pass_sensitive_config_to_cli(self, tmp_path, monkeypatch):
+        adapter = MCPAdapter(storage_path=tmp_path)
+        seen = {}
+
+        def fake_run(arguments, timeout=60):
+            seen["arguments"] = arguments
+            return subprocess.CompletedProcess(arguments, 0, "{}", "")
+
+        monkeypatch.setattr(adapter, "_run_cli", fake_run)
+        adapter.mcp_install("example/server", {"apiKey": "secret"})
+        assert "--config" not in seen["arguments"]
+        assert "secret" not in json.dumps(seen["arguments"])
+
     def test_mcp_list_tools_empty(self, tmp_path):
         assert MCPAdapter(storage_path=tmp_path).mcp_list_tools() == []
 
@@ -173,6 +202,22 @@ class TestMCPAdapter:
         installed = adapter.mcp_install("astrofin/market-data")
         adapter.installed_servers[installed["connection_id"]]["tools"] = tools
         assert [x["name"] for x in adapter.mcp_list_tools()] == ["get_quote", "get_news", "get_calendar"]
+
+    def test_smithery_tool_commands_use_flat_and_namespace(self, tmp_path, monkeypatch):
+        adapter = MCPAdapter(storage_path=tmp_path)
+        adapter.installed_servers["example"] = {"name": "example/server"}
+        monkeypatch.setenv("SMITHERY_NAMESPACE", "astrofin")
+        seen = []
+
+        def fake_run(arguments, timeout=60):
+            seen.append(arguments)
+            return subprocess.CompletedProcess(
+                arguments, 0, json.dumps({"tools": [{"name": "read", "description": "read"}]}), ""
+            )
+
+        monkeypatch.setattr(adapter, "_run_cli", fake_run)
+        adapter.mcp_list_tools("example")
+        assert seen[0] == ["tool", "list", "example", "--flat", "--limit", "1000", "--namespace", "astrofin"]
 
     def test_recommended_servers(self):
         servers = MCPAdapter().get_recommended_servers()
