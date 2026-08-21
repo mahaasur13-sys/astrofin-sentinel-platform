@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Callable, Optional
+from typing import Optional
 
 from prometheus_client import Counter
 

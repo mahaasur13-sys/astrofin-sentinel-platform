@@ -421,7 +421,7 @@ from data_room.resolvers import (  # resolvers/<provider>/*.py
 | D1 | Prod strategy service (svc_EWSR_Q4G6ts) — 60s cycle, signals → TimescaleDB | ✅ |
 | D2 | Multi-TF WFA accelerator (B2) | ⏸️ PARKED — blocked by Binance API |
 | D3 | RAG traffic generation (10 queries/cycle), counter in Cloud | ✅ |
-| D4 | `file trading_engine/run.py` integrates both strategies (--strategy sprint_b|live) | ✅ |
+| D4 | `file trading_engine/run.py` integrates both strategies (--strategy sprint_b | live) |
 | D5 | AGENTS.md & SOUL.md synced | ✅ |
 
 ### D1: Production Service
@@ -466,61 +466,61 @@ python3 trading_engine/run_sprint_b.py --live --interval 300
 python3 trading_engine/run_sprint_b.py --xau-weight 70 --wfa-weight 30
 ```
 
-- [x] Implement all agents with proper weights
+- [x]  Implement all agents with proper weights
 
-- [x] Update SynthesisAgent with 2026 hybrid weights
+- [x]  Update SynthesisAgent with 2026 hybrid weights
 
-- [x] Add FundamentalAgent, MacroAgent, QuantAgent, OptionsFlowAgent
+- [x]  Add FundamentalAgent, MacroAgent, QuantAgent, OptionsFlowAgent
 
-- [x] Add SentimentAgent, TechnicalAgent, Bull/Bear Researchers
+- [x]  Add SentimentAgent, TechnicalAgent, Bull/Bear Researchers
 
-- [x] Add conflict resolution (Astro vs Fundamental+Quant)
+- [x]  Add conflict resolution (Astro vs Fundamental+Quant)
 
-- [x] **R-07: Dynamic risk_pct based on volatility regime**
+- [x]  **R-07: Dynamic risk_pct based on volatility regime**
 
-- [x] **R-08: Persistent session history (SQLite)**
+- [x]  **R-08: Persistent session history (SQLite)**
 
-- [x] **R-09: AgentResponse — unified interface**
+- [x]  **R-09: AgentResponse — unified interface**
 
-- [x] **core/aspects.py — AspectsEngine (2026-03-26)**
+- [x]  **core/aspects.py — AspectsEngine (2026-03-26)**
 
-- [x] **Deduplicate agents — archive 7 root duplicates (2026-03-26)**
+- [x]  **Deduplicate agents — archive 7 root duplicates (2026-03-26)**
 
-- [x] **Add weights for ElectoralAgent, BradleyAgent, TimeWindowAgent, GannAgent, CycleAgent (2026-03-26)**
+- [x]  **Add weights for ElectoralAgent, BradleyAgent, TimeWindowAgent, GannAgent, CycleAgent (2026-03-26)**
 
-- [x] **ATOM-KARL-009: Decision Audit Trail**
+- [x]  **ATOM-KARL-009: Decision Audit Trail**
 
-- [x] **ATOM-KARL-010: Backtest-as-a-Service + KPI Control Loop**
+- [x]  **ATOM-KARL-010: Backtest-as-a-Service + KPI Control Loop**
 
-- [x] **ATOM-012: Enhanced KARL — reward calibration, delisted fallback, grounding integration**
+- [x]  **ATOM-012: Enhanced KARL — reward calibration, delisted fallback, grounding integration**
 
-- [x] **ATOM-013: Full KARL integration in sentinel_v5.py (KARLSynthesisAgent)**
+- [x]  **ATOM-013: Full KARL integration in sentinel_v5.py (KARLSynthesisAgent)**
 
-- [x] **ATOM-015: KARL CLI integration, dashboard, JSONL persistence, HTML reports, continuous backtest command**
+- [x]  **ATOM-015: KARL CLI integration, dashboard, JSONL persistence, HTML reports, continuous backtest command**
 
-- [x] **Phase B1 + 4.x consolidation (PR #200/#201, 2026-07-13):** inlined 6 submodules, restored 10 untracked artifacts (core/muhurtha.py, orchestration/langgraph_schema.py, monitoring/health_endpoints.py, tools/data_provider.py→data_room/, scripts/check_aspects.py, tests/integration/test_final_integration.py, docs/audit/ADD-B1-F13-FINDINGS.md, docs/audit/AUDIT_STEP1_REPORT.md)
+- [x]  **Phase B1 + 4.x consolidation (PR #200/#201, 2026-07-13):** inlined 6 submodules, restored 10 untracked artifacts (core/muhurtha.py, orchestration/langgraph_schema.py, monitoring/health_endpoints.py, tools/data_provider.py→data_room/, scripts/check_aspects.py, tests/integration/test_final_integration.py, docs/audit/ADD-B1-F13-FINDINGS.md, docs/audit/AUDIT_STEP1_REPORT.md)
 
-- [x] **Step 4.6: Arch linter 0 hard violations** (R3 3→0, R2 20→0)
+- [x]  **Step 4.6: Arch linter 0 hard violations** (R3 3→0, R2 20→0)
 
-- [x] **Step 4.4: RAG proxy indirection (data_room.blueprint)**
+- [x]  **Step 4.4: RAG proxy indirection (data_room.blueprint)**
 
-- [x] **Step 4.5: AMRE pre-commit hook installed**
+- [x]  **Step 4.5: AMRE pre-commit hook installed**
 
-- [x] **Step 4.7:** `@require_auth` on 4 production API routes ✅ (P0/SEC-01)
+- [x]  **Step 4.7:** `@require_auth` on 4 production API routes ✅ (P0/SEC-01)
 
-- [x] **Step 4.8a:** R3.5, R7, R10, R12 — 4 новых правила ✅ (PR #246)
+- [x]  **Step 4.8a:** R3.5, R7, R10, R12 — 4 новых правила ✅ (PR #246)
 
-- [x] Connect real data APIs: SEC EDGAR via data_room resolver ✅ (Polygon, Unusual Whales — paid, pending)
+- [x]  Connect real data APIs: SEC EDGAR via data_room resolver ✅ (Polygon, Unusual Whales — paid, pending)
 
-- [x] Add Telegram bot for alerts ✅
+- [x]  Add Telegram bot for alerts ✅
 
-- [x] **Step 4.8b:** Production RAG index — 102 docs → 1981 чанков, FAISS+BM25+RRF ✅
+- [x]  **Step 4.8b:** Production RAG index — 102 docs → 1981 чанков, FAISS+BM25+RRF ✅
 
-- [x] Add visualizations — Dash/Plotly 8-panel dashboard (ensemble weights, signal/confidence scatter, regime timeline, heatmap, KPI gauge, P&L equity curve)
+- [x]  Add visualizations — Dash/Plotly 8-panel dashboard (ensemble weights, signal/confidence scatter, regime timeline, heatmap, KPI gauge, P&L equity curve)
 
-- [x] **ATOM-017: Full agent pools (MACRO + ASTRO + TECHNICAL)** — 8 agents running
+- [x]  **ATOM-017: Full agent pools (MACRO + ASTRO + TECHNICAL)** — 8 agents running
 
-- [x] **Step 4.8c:** PostgreSQL + TimescaleDB + pgvector — DatabaseManager, Dual-Write ✅
+- [x]  **Step 4.8c:** PostgreSQL + TimescaleDB + pgvector — DatabaseManager, Dual-Write ✅
 
 ---
 

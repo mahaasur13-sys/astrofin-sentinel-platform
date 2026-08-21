@@ -62,7 +62,7 @@ def _health_probe():
         except Exception:
             OLLAMA_STATUS.set(0.0)
         try:
-            import faiss; import json
+            import faiss
             DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "rag_index"); idx = None; idx_path = os.path.join(DATA_DIR, "faiss.index"); idx = faiss.read_index(idx_path) if os.path.exists(idx_path) else None
             if idx is not None:
                 RAG_CHUNK_COUNT.set(float(idx.ntotal))

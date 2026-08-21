@@ -1,6 +1,5 @@
 """Integration tests — actual API coverage for core + DashBeam entities."""
 
-import json
 import sys
 from pathlib import Path
 
@@ -10,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from core.plugin_manager import (
     PluginManager, PluginManifest, PluginState, PluginInstance, Sandbox,
-    PluginRegistry, PluginEntry, HookSystem, ThoughtTracer, TraceLevel,
+    PluginRegistry, HookSystem, ThoughtTracer, TraceLevel,
 )
 from plugins.dashbeam_transfer.main import (
     DashBeamTicket, DashBeamSession, PairedDevice, DashBeamRelayConfig,

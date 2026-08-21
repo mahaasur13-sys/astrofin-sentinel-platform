@@ -4,7 +4,7 @@ import asyncio
 
 import pytest
 
-from core.cache import RedisCache
+from core.redis_cache import RedisCache
 
 
 @pytest.fixture

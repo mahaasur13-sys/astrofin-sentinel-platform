@@ -107,7 +107,7 @@ class BacktestEngineAdapter:
         closes = [self._get_close(b) for b in ohlcv]
         highs = [self._get_high(b) for b in ohlcv]
         lows = [self._get_low(b) for b in ohlcv]
-        
+
         def sma(values, period):
             if len(values) < period:
                 return [sum(values)/len(values)] * len(values)
@@ -119,7 +119,7 @@ class BacktestEngineAdapter:
                     window = values[i-period+1:i+1]
                 result.append(sum(window) / len(window))
             return result
-        
+
         sma20 = sma(closes, sma_period)
         atrs = []
         for i in range(len(ohlcv)):
@@ -130,13 +130,13 @@ class BacktestEngineAdapter:
         signals = []
         for idx, bar in enumerate(ohlcv):
             close = closes[idx]
-            
+
             # Compute real indicators for this bar
             _sma_c = sma20[idx]
             _mom = (close - _sma_c) / _sma_c if _sma_c > 0 else 0  # normalized momentum
             _mr  = (_sma_c - close) / close if close > 0 else 0       # mean reversion
             _sig = 50.0 + 50.0 * max(-1.0, min(1.0, _mom * 2.0))  # signal_strength 0-100 from momentum
-            
+
             bar_dict = {
                 "close": close,
                 "open": self._get_open(bar),
