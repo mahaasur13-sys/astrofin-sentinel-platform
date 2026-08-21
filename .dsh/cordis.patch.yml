@@ -38,8 +38,8 @@
           - '/home/workspace/.dsh/mcp-servers/roma_bridge.py'
         env:
           ROMA_API_KEY: !!js process.env.ROMA_API_KEY || ''
-          ROMA_BASE_URL: 'http://localhost:8900'
-        failOnStartupError: false
+          ROMA_API_URL: 'http://localhost:8900'
+        failOnStartupError: true
         toolCallTimeoutMs: 30000
         reconnect:
           enabled: true
@@ -56,7 +56,7 @@
         command: python3
         args:
           - '/home/workspace/.dsh/mcp-servers/zo_bridge.py'
-        failOnStartupError: false
+        failOnStartupError: true
         toolCallTimeoutMs: 10000
         reconnect:
           enabled: true
@@ -97,7 +97,7 @@
 
 - id: session-persistence-jsonl
   config:
-    root: '/home/workspace/.dsh/sessions'
+    root: '/home/.z/dsh-sessions'
 
 # ── Code Mode: DISABLED (security) ────────────────────────────────────────
 # Code mode runs in worker-thread and bypasses OS sandboxing.

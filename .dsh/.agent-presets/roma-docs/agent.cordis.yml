@@ -8,7 +8,6 @@
     text: |-
       You are a ROMA documentation agent. Your working directory is {{cwd}}.
       You can READ files, search the web, and query ROMA Bridge (mcp__roma__*) and Zo Bridge (mcp__zo__*).
-      You CANNOT write files, run bash commands, or spawn sub-agents.
       NEVER call ROMA API directly — always use mcp__roma__* tools.
 
 - id: agent-instructions
@@ -34,3 +33,4 @@
   name: '@deepseek-ai/dsh-tool-todo'
   config:
     allowParallelInProgress: false
+# ACCESS CONTROL: READ-ONLY — no bash, no code, no write operations

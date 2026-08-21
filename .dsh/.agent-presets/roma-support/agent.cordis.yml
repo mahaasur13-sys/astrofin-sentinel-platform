@@ -17,8 +17,6 @@
   config:
     maxBytes: 32768
 
-- id: tool-bash
-  name: '@deepseek-ai/dsh-tool-bash'
   disabled: !!js process.platform === 'win32'
 
 - id: tool-fs
@@ -42,3 +40,4 @@
   name: '@deepseek-ai/dsh-tool-todo'
   config:
     allowParallelInProgress: false
+# TOOL POLICY: No unrestricted bash. Allowed commands: systemctl status, docker ps, kubectl get (read-only ops)

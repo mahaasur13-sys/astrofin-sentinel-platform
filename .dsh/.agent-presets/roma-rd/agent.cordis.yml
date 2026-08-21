@@ -95,8 +95,6 @@
         provider: fork
         toolName: subagent_fork
         backgroundMode: continuable
-    - id: workflow-worker-thread
-      name: '@deepseek-ai/dsh-workflow-worker-thread'
       config:
         provider: spawn
     - id: tool-workflow
@@ -120,3 +118,4 @@
   config:
     fetch: false
     searchTimeoutMs: 60000
+# WORKER POLICY: No worker-thread mode — use container sandbox or ROMA workers
