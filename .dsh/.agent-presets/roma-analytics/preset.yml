@@ -1,0 +1,3 @@
+name: ROMA Analytics
+description: Аналитика кодовой базы: read-only fs + веб-поиск + ROMA billing read. Без мутаций.
+order: 4

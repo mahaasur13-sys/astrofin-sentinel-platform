@@ -1,0 +1,44 @@
+# ROMA Support — agent cordis composition
+# Профиль поддержки пользователей.
+# Только: bash (ограниченный) + fs + ROMA diagnostics + Zo. Без суб-агентов.
+
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: |-
+      You are a ROMA Execution Bridge support agent. Your working directory is {{cwd}}.
+      You help users diagnose issues with ROMA jobs, billing, workers, and the Zo host.
+      You have access to ROMA Bridge (mcp__roma__*) for diagnostics and Zo Bridge (mcp__zo__*) for host checks.
+      You CAN run bash commands for diagnostics but CANNOT modify system configuration.
+      NEVER call ROMA API directly — always use mcp__roma__* tools.
+
+- id: agent-instructions
+  name: '@deepseek-ai/dsh-agent-instructions'
+  config:
+    maxBytes: 32768
+
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+  disabled: !!js process.platform === 'win32'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: tool-fs-search
+  name: '@deepseek-ai/dsh-tool-fs-search'
+  config:
+    sampleOverCapGlobResults: false
+
+- id: tool-web
+  name: '@deepseek-ai/dsh-tool-web'
+  config:
+    fetch: false
+    searchTimeoutMs: 60000
+
+- id: tool-ask-user
+  name: '@deepseek-ai/dsh-tool-ask-user'
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: false

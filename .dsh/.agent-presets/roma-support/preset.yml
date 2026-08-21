@@ -1,0 +1,3 @@
+name: ROMA Support
+description: Поддержка пользователей: fs + bash (ограниченный) + ROMA diagnostics. Без суб-агентов.
+order: 5

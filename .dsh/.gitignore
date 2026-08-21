@@ -1,0 +1,13 @@
+# Secrets — never commit
+dsh.env
+*.env
+
+# Session data — ephemeral
+sessions/
+storages/
+
+# Python cache
+__pycache__/
+*.pyc
+node_modules/
+profiles/
