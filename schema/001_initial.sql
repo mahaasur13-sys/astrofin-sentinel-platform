@@ -59,6 +59,22 @@ SELECT create_hypertable('agent_signals', 'created_at', migrate_data => true, ch
 CREATE INDEX idx_agent_signals_session ON agent_signals (session_id);
 CREATE INDEX idx_agent_signals_agent ON agent_signals (agent_name);
 
+-- Astro Positions (Vedic planetary positions at decision time)
+CREATE TABLE astro_positions (
+    id BIGSERIAL PRIMARY KEY,
+    session_id VARCHAR(255) REFERENCES sessions(session_id) ON DELETE CASCADE,
+    planet VARCHAR(20) NOT NULL,
+    longitude NUMERIC(10,6),
+    latitude NUMERIC(10,6),
+    speed NUMERIC(10,6),
+    nakshatra VARCHAR(50),
+    rashi VARCHAR(20),
+    metadata_json TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_astro_positions_session ON astro_positions (session_id);
+
 -- Agent Beliefs (Thompson Sampling)
 CREATE TABLE agent_beliefs (
     agent_name VARCHAR(100) PRIMARY KEY,
