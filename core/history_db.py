@@ -324,9 +324,9 @@ def get_db() -> HistoryDB:
     if _db is not None:
         return _db
 
-    import os
+    from core.settings import get_settings
 
-    dsn = os.environ.get("DATABASE_URL", "")
+    dsn = get_settings().database_url.get_secret_value().strip()
     if dsn and any(kw in dsn.lower() for kw in ("postgres", "postgresql", "psycopg")):
         try:
             from core.history_db_pg import PostgresHistoryDB  # noqa: F401

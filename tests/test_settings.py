@@ -57,6 +57,25 @@ def test_env_override_wins() -> None:
     assert s.api_key.get_secret_value() == "secret-from-env"
 
 
+def test_dotenv_database_url_wins_over_dev_default(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A real .env DATABASE_URL (compose user=postgres) must not be shadowed
+    by the astrofin dev default seeded via setdefault."""
+    env_file = tmp_path / ".env"
+    env_file.write_text("DATABASE_URL=postgresql://postgres:x@localhost:5432/astrofin\n")
+
+    import dotenv
+    from core.settings import get_settings
+
+    # Point core.settings.load_dotenv at our temp .env (real parser, temp file).
+    monkeypatch.setattr("core.settings.load_dotenv", lambda: dotenv.load_dotenv(env_file))
+    get_settings.cache_clear()
+
+    get_settings()
+
+    dsn = os.environ.get("DATABASE_URL", "")
+    assert dsn.startswith("postgresql://postgres:")
+
+
 def test_log_level_uppercased() -> None:
     os.environ["ENV"] = "test"
     os.environ["LOG_LEVEL"] = "debug"
