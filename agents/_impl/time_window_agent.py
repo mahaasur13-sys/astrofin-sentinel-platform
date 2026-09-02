@@ -7,6 +7,8 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
+from core.http_client import okx_get_json
+
 from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
     require_ephemeris,
@@ -127,9 +129,7 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
         try:
             url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}-USDT&interval={interval}&limit={limit}"
             async with httpx.AsyncClient() as client:
-                resp = await client.get(url, timeout=10)
-                resp.raise_for_status()
-                data = resp.json()
+                data = await okx_get_json(client, url)
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
             logger.warning(

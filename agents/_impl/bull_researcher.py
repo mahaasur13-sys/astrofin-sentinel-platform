@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import logging
 
+from core.http_client import okx_get_json
+
 from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
     require_ephemeris,
@@ -136,9 +138,7 @@ class BullResearcherAgent(BaseAgent[AgentResponse]):
         try:
             url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}-USDT&interval={interval}&limit={limit}"
             async with httpx.AsyncClient() as client:
-                resp = await client.get(url, timeout=10)
-                resp.raise_for_status()
-                data = resp.json()
+                data = await okx_get_json(client, url)
                 # OKX возвращает [timestamp, open, high, low, close, volume]
                 return [
                     [
