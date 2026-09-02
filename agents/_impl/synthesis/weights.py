@@ -4,6 +4,7 @@ Synthesis weights — single source of truth for agent/category weights.
 Constants extracted from synthesis_agent.py (v1.0.0).
 Loaded from agents/weights.yaml with fallback to hardcoded defaults.
 """
+
 from __future__ import annotations
 
 import logging
@@ -33,6 +34,7 @@ AGENT_WEIGHTS: dict[str, float] = {
     "BullResearcher": 0.05,
     "BearResearcher": 0.05,
     "ElectoralAgent": 0.03,
+    "ElliotAgent": 0.03,
     "BradleyAgent": 0.03,
     "CycleAgent": 0.05,
     "TimeWindowAgent": 0.02,
