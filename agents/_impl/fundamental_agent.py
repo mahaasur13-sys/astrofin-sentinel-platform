@@ -80,7 +80,6 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             domain="fundamental",
             weight=0.12,
         )
-        self._session: aiohttp.ClientSession | None = None
 
     @require_ephemeris
     async def analyze(self, state: dict) -> AgentResponse:
@@ -180,29 +179,27 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
         if key:
             headers["x-cg-demo-api-key"] = key
 
-        if self._session is None:
-            self._session = aiohttp.ClientSession()
-
         try:
-            async with self._session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                if resp.status == 200:
-                    payload = await resp.json()
-                    prices = payload.get("prices", [])
-                    if len(prices) > 1:
-                        data = _compute_from_prices(prices)
-                        _cache_set(data)
-                        return data
-                elif resp.status == 429:
-                    retry_after = resp.headers.get("Retry-After")
-                    try:
-                        wait = int(retry_after) if retry_after else 30
-                    except (TypeError, ValueError):
-                        wait = 30
-                    logger.warning(
-                        "[FundamentalAgent] CoinGecko 429, backoff %ss",
-                        min(wait, 60),
-                    )
-                    await asyncio.sleep(min(wait, 60))
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    if resp.status == 200:
+                        payload = await resp.json()
+                        prices = payload.get("prices", [])
+                        if len(prices) > 1:
+                            data = _compute_from_prices(prices)
+                            _cache_set(data)
+                            return data
+                    elif resp.status == 429:
+                        retry_after = resp.headers.get("Retry-After")
+                        try:
+                            wait = int(retry_after) if retry_after else 30
+                        except (TypeError, ValueError):
+                            wait = 30
+                        logger.warning(
+                            "[FundamentalAgent] CoinGecko 429, backoff %ss",
+                            min(wait, 60),
+                        )
+                        await asyncio.sleep(min(wait, 60))
         except Exception as exc:
             logger.warning("[FundamentalAgent] CoinGecko fetch failed: %s", exc)
 
