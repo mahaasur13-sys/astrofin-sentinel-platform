@@ -10,7 +10,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from core.http_client import okx_get_json
+from core.http_client import normalize_okx_inst_id, okx_get_json
 
 from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
@@ -142,7 +142,7 @@ class TechnicalAgent(BaseAgent[AgentResponse]):
         import httpx
 
         try:
-            inst_id = symbol if "-" in symbol else symbol.replace("USDT", "") + "-USDT"
+            inst_id = normalize_okx_inst_id(symbol)
             url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval.upper()}&limit={limit}"
             async with httpx.AsyncClient() as client:
                 data = await okx_get_json(client, url)
