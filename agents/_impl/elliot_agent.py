@@ -61,6 +61,7 @@ class ElliotAgent(BaseAgent[AgentResponse]):
                 confidence=20,
                 reasoning="No market data for Elliott Wave analysis",
                 sources=[],
+                metadata={"no_data": True},
             )
 
         closes = [d[4] for d in price_data]

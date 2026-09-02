@@ -65,6 +65,7 @@ class BullResearcherAgent(BaseAgent[AgentResponse]):
                 confidence=30,
                 reasoning="No market data available for bull case analysis",
                 sources=[],
+                metadata={"no_data": True},
             )
 
         # Analyze price action for bullish patterns

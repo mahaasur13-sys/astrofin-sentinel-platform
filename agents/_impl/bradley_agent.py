@@ -60,6 +60,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
                 confidence=20,
                 reasoning="No market data for Bradley Model analysis",
                 sources=[],
+                metadata={"no_data": True},
             )
 
         # Bradley seasonality

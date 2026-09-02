@@ -63,6 +63,7 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
                 confidence=30,
                 reasoning="No market data available",
                 sources=[],
+                metadata={"no_data": True},
             )
 
         # Calculate indicators
