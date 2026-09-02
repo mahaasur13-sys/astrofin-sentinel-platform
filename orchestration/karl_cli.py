@@ -128,10 +128,19 @@ async def visualize_current_topology(session_id=None):
 import click
 
 
-@click.group()
-def cli():
+@click.group(invoke_without_command=True)
+@click.option(
+    "--once",
+    is_flag=True,
+    help="Run a single analysis pass (same as `analyze` with defaults)",
+)
+@click.pass_context
+def cli(ctx, once):
     """AstroFin Sentinel V5 — KARL CLI"""
-    pass
+    if once:
+        ctx.invoke(analyze, query="Analyze BTC", symbol="BTCUSDT", timeframe="SWING")
+    elif ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
 
 
 @cli.command()
