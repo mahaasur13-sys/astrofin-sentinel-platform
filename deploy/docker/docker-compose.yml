@@ -8,7 +8,7 @@ services:
     container_name: astrofinsentinel_app
     ports:
       - "8000:8000"
-      - "9091:9091"
+      - "9191:9191"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/astrofin
       - REDIS_URL=redis://redis:6379/0

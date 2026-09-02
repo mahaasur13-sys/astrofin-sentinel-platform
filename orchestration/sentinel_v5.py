@@ -372,7 +372,7 @@ def _start_metrics_server() -> None:
     """Serve Prometheus /metrics in-process (shares the REGISTRY)."""
     import prometheus_client
 
-    port = int(os.getenv("METRICS_PORT", "9091"))
+    port = int(os.getenv("METRICS_PORT", "9191"))
     host = os.getenv("METRICS_HOST", "0.0.0.0")
     try:
         prometheus_client.start_http_server(port, addr=host)
