@@ -37,6 +37,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
+from dotenv import load_dotenv
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -296,11 +297,16 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Return the process-wide cached :class:`Settings` instance.
 
-    Reads from environment, then ``.env`` if present. Applies dev defaults
-    if running in ``development`` mode and no real values are set.
+    Loads ``.env`` into ``os.environ`` first, then reads the environment
+    (env vars win over ``.env``), and seeds dev defaults only for keys that
+    are still missing.
     """
+    # Load .env first so real values (e.g. DATABASE_URL with compose
+    # user=postgres) are not shadowed by the dev defaults seeded below.
+    load_dotenv()
+
     raw_env = os.getenv("ENV", "development").lower()
-    # For dev: seed defaults that pydantic would otherwise reject
+    # For dev: seed defaults only for keys still missing
     if raw_env in {"development", "test"}:
         for k, v in _DEFAULTS_DEV.items():
             os.environ.setdefault(k, v)
