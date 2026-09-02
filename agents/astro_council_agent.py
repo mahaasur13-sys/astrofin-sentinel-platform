@@ -175,7 +175,7 @@ class AstroCouncilAgent(BaseAgent):
         else:
             final_signal = SignalDirection.NEUTRAL
 
-        raw_confidence = max(votes.values()) * min(100.0, total_weight * 100.0)
+        raw_confidence = votes[final_signal] * min(100.0, total_weight * 100.0)
         confidence = max(10.0, min(95.0, raw_confidence))
 
         reasoning = " | ".join(reasons[:3])
