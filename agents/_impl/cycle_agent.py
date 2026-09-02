@@ -126,7 +126,8 @@ class CycleAgent(BaseAgent[AgentResponse]):
         import httpx
 
         try:
-            url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}-USDT&interval={interval}&limit={limit}"
+            inst_id = symbol if "-" in symbol else symbol.replace("USDT", "") + "-USDT"
+            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval.upper()}&limit={limit}"
             async with httpx.AsyncClient() as client:
                 data = await okx_get_json(client, url)
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
