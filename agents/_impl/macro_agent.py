@@ -194,7 +194,7 @@ class MacroAgent(BaseAgent[AgentResponse]):
             if rag is None:
                 return None, 0, "RAG unavailable for geopolitical analysis"
 
-            results = await rag.search(query, top_k=3)
+            results = rag.retrieve(query, top_k=3)
             if not results:
                 return None, 0, "No geopolitical signals found in knowledge base"
 
@@ -226,8 +226,8 @@ class MacroAgent(BaseAgent[AgentResponse]):
             pos_count = 0
             for doc in results:
                 text = (
-                    doc.page_content.lower()
-                    if hasattr(doc, "page_content")
+                    doc.get("content", "").lower()
+                    if isinstance(doc, dict)
                     else str(doc).lower()
                 )
                 neg_count += sum(text.count(kw) for kw in negative_keywords)

@@ -259,6 +259,7 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
             saturn_score = 0.70
 
         # Mars in challenging aspect
+        mars_score = 0.5
         if mars.retrograde:
             mars_score = 0.65
 
