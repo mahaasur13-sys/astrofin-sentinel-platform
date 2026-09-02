@@ -107,6 +107,7 @@ class OptionsFlowAgent(BaseAgent[AgentResponse]):
                 "gex": gex_analysis,
                 "activity": activity_analysis,
                 "squeeze": squeeze_analysis,
+                "no_data": True,
             },
         )
 

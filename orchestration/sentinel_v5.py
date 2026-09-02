@@ -368,6 +368,18 @@ async def run_karl_sentinel_v5(
     return final_output
 
 
+def _start_metrics_server() -> None:
+    """Serve Prometheus /metrics in-process (shares the REGISTRY)."""
+    import prometheus_client
+
+    port = int(os.getenv("METRICS_PORT", "9091"))
+    host = os.getenv("METRICS_HOST", "0.0.0.0")
+    try:
+        prometheus_client.start_http_server(port, addr=host)
+        logger.info("[metrics] Prometheus /metrics on %s:%s", host, port)
+    except Exception as e:  # noqa: BLE001 — observability must never crash the daemon
+        logger.warning("[metrics] server failed to start: %s", e)
+
 def main():
     import argparse
 
@@ -379,22 +391,39 @@ def main():
     )
     parser.add_argument("--karl", action="store_true", default=True)
     parser.add_argument("--query", default="", help="User query")
+    parser.add_argument(
+        "--once", action="store_true", help="Run a single pass and exit (no daemon loop)"
+    )
     args = parser.parse_args()
 
-    if args.karl:
-        result = asyncio.run(
-            run_karl_sentinel_v5(
+    sync_interval = int(os.getenv("KARL_SYNC_INTERVAL", "10"))
+
+    async def _run_once() -> dict:
+        if args.karl:
+            return await run_karl_sentinel_v5(
                 user_query=args.query, symbol=args.symbol, timeframe=args.timeframe
             )
-        )
-    else:
-        result = asyncio.run(
-            run_sentinel_v5(
-                user_query=args.query, symbol=args.symbol, timeframe=args.timeframe
-            )
+        return await run_sentinel_v5(
+            user_query=args.query, symbol=args.symbol, timeframe=args.timeframe
         )
 
-    logger.info("\nFinal recommendation: %s", result.get("final_recommendation"))
+    async def _daemon() -> None:
+        while True:
+            try:
+                result = await _run_once()
+                logger.info(
+                    "\nFinal recommendation: %s", result.get("final_recommendation")
+                )
+            except Exception as exc:  # noqa: BLE001 — keep the daemon alive on any error
+                logger.exception("orchestration_run_failed", extra={"error": str(exc)})
+            await asyncio.sleep(sync_interval)
+
+    if args.once:
+        result = asyncio.run(_run_once())
+        logger.info("\nFinal recommendation: %s", result.get("final_recommendation"))
+    else:
+        _start_metrics_server()
+        asyncio.run(_daemon())
 
 
 if __name__ == "__main__":

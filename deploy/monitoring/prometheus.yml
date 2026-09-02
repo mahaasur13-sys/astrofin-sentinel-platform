@@ -87,3 +87,13 @@ scrape_configs:
         labels:
           service: metrics-exporter
           role: observability
+
+  - job_name: 'astrofin-okx'
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    static_configs:
+      - targets: ['app:9091']
+        labels:
+          service: sentinel-orchestrator
+          role: okx-market-data

@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import logging
 
+from core.http_client import okx_get_json
+
 from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
     require_ephemeris,
@@ -62,6 +64,7 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
                 confidence=30,
                 reasoning="No market data available for bear case analysis",
                 sources=[],
+                metadata={"no_data": True},
             )
 
         patterns = self._detect_bearish_patterns(price_data)
@@ -127,11 +130,10 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
         import httpx
 
         try:
-            url = f"https://www.okx.com/api/v5/market/candles?symbol={symbol}-USDT&interval={interval}&limit={limit}"
+            inst_id = symbol if "-" in symbol else symbol.replace("USDT", "") + "-USDT"
+            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval.upper()}&limit={limit}"
             async with httpx.AsyncClient() as client:
-                resp = await client.get(url, timeout=10)
-                resp.raise_for_status()
-                data = resp.json()
+                data = await okx_get_json(client, url)
                 return [
                     [
                         float(x[1]),  # open
@@ -257,6 +259,7 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
             saturn_score = 0.70
 
         # Mars in challenging aspect
+        mars_score = 0.5
         if mars.retrograde:
             mars_score = 0.65
 

@@ -279,7 +279,7 @@ class KARLSynthesisAgent(BaseAgent[AgentResponse]):
             confidence_adjustments.append(f"conflict:-{conflict['confidence_penalty']}")
 
         record = build_decision_record(
-            decision_id=f"KARL_{self.decision_counter:04d}_{symbol}",
+            decision_id=f"KARL_{self.decision_counter:04d}_{symbol}_{uuid.uuid4().hex[:6]}",
             session_id=state.get("session_id", "unknown"),
             symbol=symbol,
             price=price,

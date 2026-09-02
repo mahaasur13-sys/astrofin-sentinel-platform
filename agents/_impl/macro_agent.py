@@ -117,6 +117,7 @@ class MacroAgent(BaseAgent[AgentResponse]):
                 signal=SignalDirection.NEUTRAL,
                 confidence=30,
                 reasoning="No macro data available (VIX, DXY, or geopolitical context missing)",
+                metadata={"no_data": True},
             )
 
         signal, confidence = self._weighted_aggregate(scores)

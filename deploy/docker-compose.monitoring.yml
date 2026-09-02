@@ -163,9 +163,26 @@ services:
       timeout: 5s
       retries: 3
 
+  # ── Prometheus → Grafana Cloud (remote_write) ──────────────────
+  prometheus-cloud:
+    image: prom/prometheus:v2.55.0
+    container_name: astrofin-prometheus-cloud
+    network_mode: host
+    restart: unless-stopped
+    command:
+      - '--web.listen-address=0.0.0.0:9095'
+      - '--config.file=/etc/prometheus/prometheus-cloud.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=2h'
+    volumes:
+      - ./monitoring/prometheus-cloud.yml:/etc/prometheus/prometheus-cloud.yml:ro
+      - prometheus-cloud-data:/prometheus
+
+
 volumes:
   prometheus-data:
   grafana-data:
   loki-data:
   loki-wal:
   promtail-positions:
+  prometheus-cloud-data:

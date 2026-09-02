@@ -137,7 +137,7 @@ pydantic==2.13.4
     #   fastapi
     #   openai
     #   pydantic-settings
-pydantic-core==2.47.0
+pydantic-core==2.46.4
     # via pydantic
 pydantic-settings==2.14.2
     # via astrofin-sentinel-v5
@@ -227,3 +227,23 @@ websockets==16.1.1
     # via uvicorn
 yarl==1.24.5
     # via aiohttp
+
+# via knowledge/rag_retriever.py (FAISS RAG)
+faiss-cpu==1.9.0.post1
+
+# ── Дополнено для запуска sentinel_v5 (отсутствовали в зависимостях) ──
+structlog
+opentelemetry-api
+opentelemetry-sdk
+hmmlearn
+langgraph
+rank-bm25
+sentence-transformers
+tenacity
+slowapi
+flask
+flask-cors
+flask-limiter
+cryptography
+pyjwt
+ollama

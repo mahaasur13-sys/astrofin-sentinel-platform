@@ -6,6 +6,7 @@ FAISS-backed semantic search with Ollama embeddings.
 
 from __future__ import annotations
 import json
+import os
 import urllib.request
 from pathlib import Path
 import logging
@@ -36,9 +37,10 @@ DIM = 768
 
 def _embed(text: str) -> np.ndarray:
     """Get nomic-embed-text embedding via Ollama API, updating health status."""
+    embed_url = os.getenv("OLLAMA_EMBED_URL", "http://localhost:11434/api/embeddings")
     payload = json.dumps({"model": "nomic-embed-text", "prompt": text}).encode()
     req = urllib.request.Request(
-        "http://localhost:11434/api/embeddings",
+        embed_url,
         data=payload,
         headers={"Content-Type": "application/json"},
     )
@@ -195,6 +197,17 @@ class RAGRetriever:
                 status="error", backend=backend_label, domain=domain_label
             ).inc()
             raise
+
+    async def search(self, query: str, top_k: int = 5, domain: str | None = None) -> list[dict]:
+        """Async alias for :meth:`retrieve`.
+
+        Agents (e.g. MacroAgent geopolitical analysis) call ``await rag.search(...)``.
+        Delegates to the synchronous ``retrieve`` without blocking the event loop
+        for the FAISS search itself.
+        """
+        import asyncio
+
+        return await asyncio.to_thread(self.retrieve, query, domain=domain, top_k=top_k)
 
 
 # ─── Agent Tool ───────────────────────────────────────────────────────────────

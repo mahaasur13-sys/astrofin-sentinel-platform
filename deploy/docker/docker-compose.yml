@@ -8,11 +8,15 @@ services:
     container_name: astrofinsentinel_app
     ports:
       - "8000:8000"
+      - "9091:9091"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/astrofin
       - REDIS_URL=redis://redis:6379/0
       - LOG_LEVEL=INFO
       - KARL_SYNC_INTERVAL=10
+      - OLLAMA_EMBED_URL=http://172.19.0.1:11435/api/embeddings
+      - COINGECKO_API_KEY=${COINGECKO_API_KEY}
+      - COINGECKO_DEMO_API_KEY=${COINGECKO_DEMO_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
