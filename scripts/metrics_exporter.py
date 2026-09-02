@@ -28,7 +28,7 @@ if str(_project_root) not in sys.path:
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
-from prometheus_client import REGISTRY, CONTENT_TYPE_LATEST, generate_latest, Counter
+from prometheus_client import REGISTRY, CONTENT_TYPE_LATEST, generate_latest, Counter, Gauge
 
 from tools.metrics_server import (  # noqa: F401 — side-effect import
     CACHE_HITS,
@@ -48,8 +48,10 @@ from tools.metrics_server import (  # noqa: F401 — side-effect import
 
 EXPORTER_SCRAPES = Counter("astrofin_exporter_scrapes_total", "Total Prometheus scrape requests")
 EXPORTER_ERRORS = Counter("astrofin_exporter_errors_total", "Metrics generation errors")
+EXPORTER_UPTIME = Gauge("astrofin_exporter_uptime_seconds", "Exporter process uptime in seconds since start")
 
 _start_time = time.time()
+EXPORTER_UPTIME.set_function(lambda: time.time() - _start_time)
 
 app = FastAPI(title="AstroFin Metrics Exporter", docs_url=None, redoc_url=None)
 
