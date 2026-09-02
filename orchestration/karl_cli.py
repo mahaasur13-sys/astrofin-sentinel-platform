@@ -27,7 +27,7 @@ console = Console() if RICH else None
 
 def cprint(msg, style=None):
     if RICH:
-        console.log.info(msg, style=style or "")
+        console.log(msg, style=style or "")
     else:
         log.info(msg)
 
@@ -70,7 +70,7 @@ def print_decision_rich(record, amre, synth):
     main.append(f"  CONF={confidence:3}  ", style="bold white")
     main.append(f"  ID={decision_id}", style="dim")
     try:
-        console.log.info(
+        console.log(
             Panel(
                 main,
                 title="[bold]KARL DECISION[/bold]",
