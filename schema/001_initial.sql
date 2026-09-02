@@ -232,20 +232,17 @@ CREATE INDEX idx_rag_domain ON rag_embeddings (domain);
 CREATE INDEX idx_rag_chunk ON rag_embeddings (chunk_id);
 CREATE INDEX idx_rag_embedding ON rag_embeddings USING hnsw (embedding vector_cosine_ops);
 
--- Immutable Audit Log
+-- Immutable Audit Log (aligned 1:1 with db.models.AuditLogRecord)
 CREATE TABLE audit_log (
-    id BIGSERIAL PRIMARY KEY,
-    table_name VARCHAR(50) NOT NULL,
-    record_id UUID,
+    id SERIAL PRIMARY KEY,
+    session_id VARCHAR(255),
+    decision_id VARCHAR(255),
     action VARCHAR(20) NOT NULL,
-    old_data JSONB,
-    new_data JSONB,
+    details_json TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 SELECT create_hypertable('audit_log', 'created_at', migrate_data => true, chunk_interval => '1 month');
-CREATE INDEX idx_audit_table ON audit_log (table_name);
-CREATE INDEX idx_audit_record ON audit_log (record_id);
 
 -- Retention Policies (TimescaleDB)
 SELECT add_retention_policy('sessions', INTERVAL '90 days');
