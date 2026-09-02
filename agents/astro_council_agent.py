@@ -118,7 +118,7 @@ class AstroCouncilAgent(BaseAgent):
                     "ephemeris": {k: v for k, v in eph.items() if k != "error"},
                     "total_agents": len(responses),
                     "weights": self._weights,
-                    "final_signal": final_signal,
+                    "final_signal": final_signal.to_dict(),
                 },
             )
         except EphemerisUnavailableError as e:
