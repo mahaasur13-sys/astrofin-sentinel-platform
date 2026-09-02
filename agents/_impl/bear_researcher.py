@@ -64,6 +64,7 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
                 confidence=30,
                 reasoning="No market data available for bear case analysis",
                 sources=[],
+                metadata={"no_data": True},
             )
 
         patterns = self._detect_bearish_patterns(price_data)

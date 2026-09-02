@@ -62,6 +62,7 @@ class QuantAgent(BaseAgent[AgentResponse]):
                 confidence=30,
                 reasoning="Insufficient data for quant analysis",
                 sources=[],
+                metadata={"no_data": True},
             )
 
         # Run quant models

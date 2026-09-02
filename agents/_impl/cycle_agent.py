@@ -62,6 +62,7 @@ class CycleAgent(BaseAgent[AgentResponse]):
                 confidence=25,
                 reasoning="No market data for cycle analysis",
                 sources=[],
+                metadata={"no_data": True},
             )
 
         # Detect dominant cycle

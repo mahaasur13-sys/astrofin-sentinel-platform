@@ -61,6 +61,7 @@ class RiskAgent(BaseAgent[AgentResponse]):
                 confidence=25,
                 reasoning="No market data for risk calculation",
                 sources=[],
+                metadata={"no_data": True},
             )
 
         # Calculate ATR for stop-loss
