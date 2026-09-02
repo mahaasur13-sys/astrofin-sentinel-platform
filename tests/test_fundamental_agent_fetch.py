@@ -38,11 +38,30 @@ async def test_repeat_fetch_within_ttl_hits_client_once():
 
     session = MagicMock()
     session.get = MagicMock(return_value=resp)
-    agent._session = session
+    session.__aenter__ = AsyncMock(return_value=session)
+    session.__aexit__ = AsyncMock(return_value=False)
 
-    data1 = await agent._fetch_fundamental_data("BTCUSDT")
-    data2 = await agent._fetch_fundamental_data("BTCUSDT")
+    with patch("agents._impl.fundamental_agent.aiohttp.ClientSession", return_value=session):
+        data1 = await agent._fetch_fundamental_data("BTCUSDT")
+        data2 = await agent._fetch_fundamental_data("BTCUSDT")
 
     assert data1 == data2
     assert data1.get("mvrv_ratio") is not None
     assert session.get.call_count == 1  # second call served from TTL cache
+    session.__aexit__.assert_awaited_once()  # session closed on success path
+
+
+@pytest.mark.asyncio
+async def test_session_closed_on_fetch_error():
+    agent = FundamentalAgent()
+
+    session = MagicMock()
+    session.get = MagicMock(side_effect=Exception("network down"))
+    session.__aenter__ = AsyncMock(return_value=session)
+    session.__aexit__ = AsyncMock(return_value=False)
+
+    with patch("agents._impl.fundamental_agent.aiohttp.ClientSession", return_value=session):
+        data = await agent._fetch_fundamental_data("BTCUSDT")
+
+    assert data == {"no_data": True}
+    session.__aexit__.assert_awaited_once()  # session closed on except path
