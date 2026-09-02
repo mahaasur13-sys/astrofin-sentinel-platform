@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from agents._impl.ephemeris_decorator import (
@@ -19,10 +19,9 @@ from agents._impl.ephemeris_decorator import (
     require_ephemeris,
 )
 from agents._impl.synthesis.weights import AGENT_WEIGHTS, CATEGORY_WEIGHTS
-from agents._impl.types import TradingSignal
 from agents.base_agent import AgentResponse, BaseAgent
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -32,14 +31,11 @@ logger = logging.getLogger(__name__)
 # TradingSignal.from_agents looks up weights by agent_name.
 # CATEGORY_WEIGHTS keys are categories; AGENT_WEIGHTS keys are full class names.
 _AGENT_CATEGORY_MAP = {
-    "Fundamental": "fundamental",
-    "Macro": "macro",
-    "Quant": "quant",
-    "OptionsFlow": "options",
-    "Sentiment": "sentiment",
-    "Technical": "technical",
-    "BullResearcher": "sentiment",
-    "BearResearcher": "sentiment",
+    "GannAgent": "astro",
+    "BradleyAgent": "astro",
+    "ElliotAgent": "astro",
+    "CycleAgent": "astro",
+    "TimeWindowAgent": "astro",
 }
 
 
@@ -99,9 +95,7 @@ class AstroCouncilAgent(BaseAgent):
         3. TradingSignal.from_agents для финального взвешивания
         """
         try:
-            dt = context.get("datetime") or datetime.now(datetime.UTC)
-            symbol = context.get("symbol", "BTC")
-            price = context.get("price") or context.get("current_price") or 100.0
+            dt = context.get("datetime") or datetime.now(timezone.utc)
 
             # 1. Критичный вызов Swiss Ephemeris
             eph = self._call_ephemeris(dt)
@@ -109,19 +103,14 @@ class AstroCouncilAgent(BaseAgent):
             # 2. Параллельный запуск всех суб-агентов
             responses = await self._run_sub_agents(context)
 
-            # 3. Гибридное взвешивание
-            final_signal = TradingSignal.from_agents(
-                symbol=symbol,
-                responses=responses,
-                entry_price=price,
-                weights=self._weights,
-            )
+            # 3. Взвешенное голосование большинством
+            final_signal = self._weighted_vote(responses)
 
             return AgentResponse(
                 agent_name="AstroCouncil",
-                signal=final_signal.signal.value,
+                signal=final_signal.signal,
                 confidence=final_signal.confidence,
-                reasoning=final_signal.summary,
+                reasoning=final_signal.reasoning,
                 sources=[],
                 metadata={
                     "astro_yoga": eph.get("yoga", "unknown"),
@@ -129,7 +118,7 @@ class AstroCouncilAgent(BaseAgent):
                     "ephemeris": {k: v for k, v in eph.items() if k != "error"},
                     "total_agents": len(responses),
                     "weights": self._weights,
-                    "final_signal": final_signal.to_dict(),
+                    "final_signal": final_signal,
                 },
             )
         except EphemerisUnavailableError as e:
@@ -137,6 +126,69 @@ class AstroCouncilAgent(BaseAgent):
         except Exception as e:  # noqa: BLE001 — last-resort guard
             logger.exception("agent_run_unhandled", extra={"agent": self.name})
             return self._degraded(UNKNOWN, repr(e))
+
+    def _weighted_vote(self, responses: list[AgentResponse]) -> AgentResponse:
+        """Взвешенное голосование: побеждает сторона с наибольшим весом,
+        если её доля > 40% и отрыв от второй > 10%.
+        """
+        votes = {
+            SignalDirection.LONG: 0.0,
+            SignalDirection.SHORT: 0.0,
+            SignalDirection.NEUTRAL: 0.0,
+        }
+        total_weight = 0.0
+        reasons = []
+
+        for resp in responses:
+            name = resp.agent_name
+            weight = self._weights.get(name, 0.0)
+            if weight == 0:
+                continue
+            sig = resp.signal if isinstance(resp.signal, SignalDirection) else None
+            if sig is None:
+                try:
+                    sig = SignalDirection(str(resp.signal))
+                except (ValueError, TypeError, AttributeError):
+                    sig = SignalDirection.NEUTRAL
+            if sig not in votes:
+                sig = SignalDirection.NEUTRAL
+            contribution = weight * (resp.confidence / 100.0)
+            votes[sig] += contribution
+            total_weight += contribution
+            reasons.append(f"{name}: {sig.value} ({resp.confidence:.0f}%)")
+
+        if total_weight == 0:
+            return AgentResponse(
+                agent_name="AstroCouncil",
+                signal=SignalDirection.NEUTRAL,
+                confidence=20,
+                reasoning="All astro agents failed",
+            )
+
+        # Нормализуем голоса
+        for sig in votes:
+            votes[sig] /= total_weight
+
+        sorted_votes = sorted(votes.items(), key=lambda x: x[1], reverse=True)
+        if sorted_votes[0][1] > 0.4 and (sorted_votes[0][1] - sorted_votes[1][1]) > 0.10:
+            final_signal = sorted_votes[0][0]
+        else:
+            final_signal = SignalDirection.NEUTRAL
+
+        raw_confidence = max(votes.values()) * min(100.0, total_weight * 100.0)
+        confidence = max(10.0, min(95.0, raw_confidence))
+
+        reasoning = " | ".join(reasons[:3])
+        reasoning = f"[AstroCouncil] {final_signal.value} ({confidence:.0f}%) — {reasoning}"
+
+        return AgentResponse(
+            agent_name="AstroCouncil",
+            signal=final_signal,
+            confidence=int(confidence),
+            reasoning=reasoning,
+            sources=[],
+            metadata={"votes": votes, "total_weight": total_weight},
+        )
 
     async def _run_sub_agents(self, context: dict[str, Any]) -> list[AgentResponse]:
         """Параллельно запускает Thompson-selected суб-агентов.
@@ -149,11 +201,7 @@ class AstroCouncilAgent(BaseAgent):
 
         selected = context.get("_thompson_selected_astro")
         if selected:
-            agents_to_run = {
-                name: agent
-                for name, agent in self._sub_agents.items()
-                if name in selected
-            }
+            agents_to_run = {name: agent for name, agent in self._sub_agents.items() if name in selected}
         else:
             agents_to_run = self._sub_agents
 
@@ -175,7 +223,7 @@ class AstroCouncilAgent(BaseAgent):
                 responses.append(
                     AgentResponse(
                         agent_name=name,
-                        signal="NEUTRAL",
+                        signal=SignalDirection.NEUTRAL,
                         confidence=30,
                         reasoning=f"Agent error: {str(result)[:100]}",
                         sources=[],
@@ -188,26 +236,20 @@ class AstroCouncilAgent(BaseAgent):
         return responses
 
     def _register_sub_agents(self) -> None:
-        """Регистрация всех суб-агентов."""
+        """Регистрация астро-суб-агентов (AstroCouncil = координатор астро-блока)."""
         try:
-            from agents._impl.bear_researcher import BearResearcherAgent
-            from agents._impl.bull_researcher import BullResearcherAgent
-            from agents._impl.fundamental_agent import FundamentalAgent
-            from agents._impl.macro_agent import MacroAgent
-            from agents._impl.options_flow_agent import OptionsFlowAgent
-            from agents._impl.quant_agent import QuantAgent
-            from agents._impl.sentiment_agent import SentimentAgent
-            from agents._impl.technical_agent import TechnicalAgent
+            from agents._impl.bradley_agent import BradleyAgent
+            from agents._impl.cycle_agent import CycleAgent
+            from agents._impl.elliot_agent import ElliotAgent
+            from agents._impl.gann_agent import GannAgent
+            from agents._impl.time_window_agent import TimeWindowAgent
 
             self._sub_agents = {
-                "Fundamental": FundamentalAgent(),
-                "Macro": MacroAgent(),
-                "Quant": QuantAgent(),
-                "OptionsFlow": OptionsFlowAgent(),
-                "Sentiment": SentimentAgent(),
-                "Technical": TechnicalAgent(),
-                "BullResearcher": BullResearcherAgent(),
-                "BearResearcher": BearResearcherAgent(),
+                "GannAgent": GannAgent(),
+                "BradleyAgent": BradleyAgent(),
+                "ElliotAgent": ElliotAgent(),
+                "CycleAgent": CycleAgent(),
+                "TimeWindowAgent": TimeWindowAgent(),
             }
         except ImportError:
             # Если агенты не найдены, используем пустой dict
