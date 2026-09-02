@@ -97,6 +97,26 @@ def _okx_endpoint(url: str) -> str:
     return "other"
 
 
+def normalize_okx_inst_id(symbol: str) -> str:
+    """Normalize a trading symbol to an OKX spot ``instId`` (BASE-QUOTE).
+
+    Canonical form is ``BTC-USDT``::
+
+        BTC / btc / BTCUSDT / BTC-USDT  ->  BTC-USDT
+        ETHUSDT                         ->  ETH-USDT
+
+    Symbols already containing a dash are returned uppercased as-is (never
+    double-processed). A symbol without a trailing ``USDT`` quote gets
+    ``-USDT`` appended, matching the existing spot-quote convention.
+    """
+    sym = symbol.strip().upper()
+    if "-" in sym:
+        return sym
+    if sym.endswith("USDT"):
+        return sym[: -len("USDT")] + "-USDT"
+    return sym + "-USDT"
+
+
 async def okx_get_json(
     client: httpx.AsyncClient,
     url: str,

@@ -20,7 +20,7 @@ from core.base_agent import (
     BaseAgent,
     SignalDirection,
 )
-from core.http_client import get_http_client
+from core.http_client import get_http_client, normalize_okx_inst_id
 
 logger = logging.getLogger(__name__)
 
@@ -147,7 +147,7 @@ class QuantAgent(BaseAgent[AgentResponse]):
                 "SWING": "1d",
             }
             interval = interval_map.get(timeframe, "1d")
-            inst_id = symbol if "-" in symbol else symbol.replace("USDT", "") + "-USDT"
+            inst_id = normalize_okx_inst_id(symbol)
             url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval.upper()}&limit=100"
             resp = await get_http_client().get(url)
             data = resp.json()
