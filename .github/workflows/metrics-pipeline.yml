@@ -30,7 +30,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install deps
-        run: pip install aiohttp fastapi uvicorn prometheus-client
+        run: pip install aiohttp fastapi uvicorn prometheus-client pyyaml
 
       - name: Start metrics exporter
         run: |
