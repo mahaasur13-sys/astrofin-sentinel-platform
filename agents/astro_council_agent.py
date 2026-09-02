@@ -144,10 +144,18 @@ class AstroCouncilAgent(BaseAgent):
             weight = self._weights.get(name, 0.0)
             if weight == 0:
                 continue
+            sig = resp.signal if isinstance(resp.signal, SignalDirection) else None
+            if sig is None:
+                try:
+                    sig = SignalDirection(str(resp.signal))
+                except (ValueError, TypeError, AttributeError):
+                    sig = SignalDirection.NEUTRAL
+            if sig not in votes:
+                sig = SignalDirection.NEUTRAL
             contribution = weight * (resp.confidence / 100.0)
-            votes[resp.signal] += contribution
+            votes[sig] += contribution
             total_weight += contribution
-            reasons.append(f"{name}: {resp.signal.value} ({resp.confidence:.0f}%)")
+            reasons.append(f"{name}: {sig.value} ({resp.confidence:.0f}%)")
 
         if total_weight == 0:
             return AgentResponse(
