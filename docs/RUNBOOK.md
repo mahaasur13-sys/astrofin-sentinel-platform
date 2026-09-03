@@ -8,6 +8,38 @@ same shape: **Detect → Triage → Mitigate → Recover → Post-mortem**.
 
 ---
 
+## Bootstrap: start the prod stack
+
+The prod compose is `deploy/docker/docker-compose.yml` (app + postgres + redis +
+prometheus + grafana). It guards three variables with `${VAR:?}` — set them
+before running:
+
+```bash
+export POSTGRES_PASSWORD="<real-password>"
+export DATABASE_URL="postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/astrofin"
+export GF_SECURITY_ADMIN_PASSWORD="<grafana-admin-password>"
+
+# Validate interpolation (no build, no start)
+docker compose -f deploy/docker/docker-compose.yml config --quiet
+# Start
+docker compose -f deploy/docker/docker-compose.yml up -d
+```
+
+- `postgres` and `redis` publish **no host ports** — they are reachable only on
+  the internal compose network (#329). Exposed on host: `app` 8000,
+  `prometheus` 9090, `grafana` 3000.
+- Daemon metrics are served in-process on `:9191` (`METRICS_PORT`):
+  `curl -fsS http://127.0.0.1:9191/metrics`.
+
+Run modes (orchestrator):
+
+- `--once` — single pass, no metrics server, exits:
+  `python -m orchestration.sentinel_v5 --once --query "Analyze BTC" --symbol BTCUSDT --timeframe SWING`
+- daemon (no `--once`) — starts the `:9191` metrics server and loops every
+  `KARL_SYNC_INTERVAL` (default 10s) until stopped.
+
+---
+
 ## 0. General triage commands
 
 ```bash

@@ -68,3 +68,17 @@ async def test_retry_on_5xx():
         # Передаём retry вручную (будет реализовано в методе)
         # Пока проверяем только сам retry-механизм — его нужно будет добавить в клиент
         pass  # этот тест написан для будущей реализации retry
+
+
+@pytest.mark.asyncio
+async def test_close_http_client_calls_aclose():
+    """close_http_client() must call aclose() on the shared client."""
+    from core import http_client as _mod
+
+    fake = AsyncMock()
+    _mod._client = fake
+    try:
+        await close_http_client()
+    finally:
+        _mod._client = None
+    fake.aclose.assert_awaited_once()

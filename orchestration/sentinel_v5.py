@@ -24,6 +24,7 @@ from agents.base_agent import AgentResponse, SignalDirection
 from agents.karl_synthesis import KARLSynthesisAgent
 from core.belief import update_beliefs_from_session
 from core.history_db import save_session
+from core.http_client import close_http_client
 from core.thompson import (
     ASTRO_POOL,
     ELECTORAL_POOL,
@@ -425,18 +426,29 @@ def main():
         )
 
     async def _daemon() -> None:
-        while True:
-            try:
-                result = await _run_once()
-                logger.info(
-                    "\nFinal recommendation: %s", result.get("final_recommendation")
-                )
-            except Exception as exc:  # noqa: BLE001 — keep the daemon alive on any error
-                logger.exception("orchestration_run_failed", extra={"error": str(exc)})
-            await asyncio.sleep(sync_interval)
+        try:
+            while True:
+                try:
+                    result = await _run_once()
+                    logger.info(
+                        "\nFinal recommendation: %s", result.get("final_recommendation")
+                    )
+                except Exception as exc:  # noqa: BLE001 — keep the daemon alive on any error
+                    logger.exception("orchestration_run_failed", extra={"error": str(exc)})
+                await asyncio.sleep(sync_interval)
+        finally:
+            # Close the shared httpx client on shutdown so the daemon does not
+            # leak connections. close_http_client() is resilient to a closed loop.
+            await close_http_client()
 
     if args.once:
-        result = asyncio.run(_run_once())
+        async def _run_once_then_close() -> dict:
+            try:
+                return await _run_once()
+            finally:
+                await close_http_client()
+
+        result = asyncio.run(_run_once_then_close())
         logger.info("\nFinal recommendation: %s", result.get("final_recommendation"))
     else:
         _start_metrics_server()
