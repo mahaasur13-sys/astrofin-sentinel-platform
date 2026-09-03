@@ -1,0 +1,28 @@
+name: Compose Config Validate
+
+on:
+  pull_request:
+    branches: [release/**]
+    paths:
+      - "deploy/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose-config:
+    name: Validate prod compose config
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate compose interpolation (dummy env, no build)
+        env:
+          # Dummy placeholders only — they satisfy the ${VAR:?} guards so
+          # `config` can interpolate. Never real secrets, never used to boot.
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_PASSWORD: "ci-dummy"
+        run: |
+          docker compose -f deploy/docker/docker-compose.yml config --quiet
