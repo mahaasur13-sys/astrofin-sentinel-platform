@@ -108,6 +108,16 @@ Grafana oauth2-proxy (C8):
 - `EMAIL_DOMAINS=*` is dev-only; `COOKIE_SECURE=false` on the HTTP loopback.
 - Keycloak / public Let's Encrypt are out of scope.
 
+Grafana secrets from files (C9):
+
+- Admin password and secret key come from `deploy/docker/secrets/` files
+  (`grafana_admin_password`, `grafana_secret_key`), mode `0600`; without them
+  the stack will not start (Compose fails on the missing secret file).
+- They are mounted as `/run/secrets/*` and read via `*__FILE` env vars, so
+  `docker inspect` / compose config no longer shows the password/key.
+- Rotation = rewrite the file + `docker compose up -d --force-recreate grafana`.
+- C10 (Dex) / C11 / C12 are out of scope.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:
