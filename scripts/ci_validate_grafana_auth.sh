@@ -21,6 +21,7 @@ EDGE_OVERLAY="$DIR/docker-compose.grafana-edge.yml"
 OAUTH2_PROXY_OVERLAY="$DIR/docker-compose.grafana-oauth2-proxy.yml"
 DEX_OVERLAY="$DIR/docker-compose.dex.yml"
 DEX_CONFIG="$DIR/dex/config.yaml"
+SSO_OVERLAY="$DIR/docker-compose.grafana-sso.yml"
 
 # Fixed-string patterns that must never appear in the prod compose tree.
 forbidden=(
@@ -190,6 +191,38 @@ fi
 if [ -f "$DEX_CONFIG" ]; then
   if grep -nE 'changeme|secret:[[:space:]]*"?(admin|password)' "$DEX_CONFIG" 2>/dev/null; then
     echo "::error:: dex config must not contain stub secrets" >&2
+    fail=1
+  fi
+fi
+
+# Base and C6 (generic OAuth) must keep the password login form.
+for f in "$BASE" "$OIDC_OVERLAY"; do
+  if [ -f "$f" ] && grep -nF 'GF_AUTH_DISABLE_LOGIN_FORM=true' "$f" 2>/dev/null; then
+    echo "::error:: $f must not set GF_AUTH_DISABLE_LOGIN_FORM=true" >&2
+    fail=1
+  fi
+done
+
+# SSO overlay (if present): forced SSO must be fully enabled + fail-closed.
+if [ -f "$SSO_OVERLAY" ]; then
+  if ! grep -qE 'GF_AUTH_DISABLE_LOGIN_FORM[=:][[:space:]]*"?true' "$SSO_OVERLAY" 2>/dev/null; then
+    echo "::error:: SSO overlay must set GF_AUTH_DISABLE_LOGIN_FORM=true" >&2
+    fail=1
+  fi
+  if ! grep -qE 'GF_AUTH_GENERIC_OAUTH_ENABLED[=:][[:space:]]*"?true' "$SSO_OVERLAY" 2>/dev/null; then
+    echo "::error:: SSO overlay must set GF_AUTH_GENERIC_OAUTH_ENABLED=true" >&2
+    fail=1
+  fi
+  if ! grep -qE 'GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN[=:][[:space:]]*"?true' "$SSO_OVERLAY" 2>/dev/null; then
+    echo "::error:: SSO overlay must set GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN=true" >&2
+    fail=1
+  fi
+  if grep -nF 'GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=true' "$SSO_OVERLAY" 2>/dev/null; then
+    echo "::error:: SSO overlay must set GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=false" >&2
+    fail=1
+  fi
+  if grep -nE 'GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET[=:][[:space:]]*"?(admin|changeme|secret|password)' "$SSO_OVERLAY" 2>/dev/null; then
+    echo "::error:: SSO overlay client secret must not be a stub literal" >&2
     fail=1
   fi
 fi

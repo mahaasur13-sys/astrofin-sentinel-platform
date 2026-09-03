@@ -106,6 +106,28 @@ jobs:
             -f deploy/docker/docker-compose.yml \
             -f deploy/docker/docker-compose.dex.yml \
             config --quiet
+      - name: Validate Grafana forced-SSO overlay config (dummy env, no build)
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
+          DEX_ISSUER: "http://127.0.0.1:5556/dex"
+          DEX_GRAFANA_CLIENT_ID: "dummy_dex_client_id"
+          DEX_GRAFANA_CLIENT_SECRET: "dummy_dex_client_secret"
+          GF_AUTH_GENERIC_OAUTH_NAME: "dex"
+          GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "dummy_dex_client_id"
+          GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "dummy_dex_client_secret"
+          GF_AUTH_GENERIC_OAUTH_AUTH_URL: "http://127.0.0.1:5556/dex/auth"
+          GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "http://127.0.0.1:5556/dex/token"
+          GF_AUTH_GENERIC_OAUTH_API_URL: "http://127.0.0.1:5556/dex/userinfo"
+          GF_AUTH_GENERIC_OAUTH_SCOPES: "openid email profile"
+        run: |
+          docker compose \
+            -f deploy/docker/docker-compose.yml \
+            -f deploy/docker/docker-compose.dex.yml \
+            -f deploy/docker/docker-compose.grafana-sso.yml \
+            config --quiet
       - name: Validate Grafana auth guard (no default admin)
         run: |
           bash scripts/ci_validate_grafana_auth.sh

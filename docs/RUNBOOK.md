@@ -129,6 +129,18 @@ Grafana Dex IdP (C10):
 - No users/passwords are committed; add a dev user at runtime, not in git.
 - C11 (DISABLE_LOGIN_FORM) and C12 (Let's Encrypt) are not included.
 
+Grafana forced SSO (C11):
+
+- Supported profile:
+  `docker compose -f docker-compose.yml -f docker-compose.dex.yml -f
+  docker-compose.grafana-sso.yml up -d`.
+- The login form is hidden (`DISABLE_LOGIN_FORM=true`) and
+  `AUTO_LOGIN=true`; `ALLOW_SIGN_UP=false`.
+- Break-glass: if Dex is down, start only `base` (+ secret files), without
+  `sso.yml`, to regain password login.
+- Don't combine with C8 (oauth2-proxy) in the same profile.
+- C12 (Let's Encrypt) is out of scope.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:
