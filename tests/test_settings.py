@@ -22,6 +22,7 @@ def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "CCXT_API_KEY",
         "CCXT_API_SECRET",
         "LOG_LEVEL",
+        "CORS_ORIGINS",
     ):
         monkeypatch.delenv(k, raising=False)
     # Also bust the lru_cache so get_settings() re-reads env each time
@@ -93,6 +94,41 @@ def test_log_level_invalid_rejected() -> None:
     with pytest.raises(ValidationError):
         # bypass lru_cache by calling Settings() directly
         Settings()
+
+
+# ── CORS_ORIGINS parsing (JSON list / CSV / bare star / empty) ───────────
+
+
+def test_cors_origins_json_list() -> None:
+    os.environ["ENV"] = "test"
+    os.environ["CORS_ORIGINS"] = '["*"]'
+    from core.settings import Settings
+
+    assert Settings().cors_origins == ["*"]
+
+
+def test_cors_origins_csv_list() -> None:
+    os.environ["ENV"] = "test"
+    os.environ["CORS_ORIGINS"] = "http://a,http://b"
+    from core.settings import Settings
+
+    assert Settings().cors_origins == ["http://a", "http://b"]
+
+
+def test_cors_origins_bare_star() -> None:
+    os.environ["ENV"] = "test"
+    os.environ["CORS_ORIGINS"] = "*"
+    from core.settings import Settings
+
+    assert Settings().cors_origins == ["*"]
+
+
+def test_cors_origins_empty_string() -> None:
+    os.environ["ENV"] = "test"
+    os.environ["CORS_ORIGINS"] = ""
+    from core.settings import Settings
+
+    assert Settings().cors_origins == []
 
 
 # ── Production fail-fast ────────────────────────────────────────────────

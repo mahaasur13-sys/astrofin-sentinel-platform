@@ -31,15 +31,16 @@ Phase 2 (follow-up PR): replace remaining ``os.getenv`` with ``settings.X``.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from dotenv import load_dotenv
 from pydantic import Field, SecretStr, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +116,10 @@ class Settings(BaseSettings):
     web_port: int = Field(default=8050, ge=1, le=65_535)
     gunicorn_workers: int = Field(default=4, ge=1, le=64)
     enable_internal_endpoints: bool = Field(default=False)
-    cors_origins: list[str] = Field(default_factory=lambda: ["*"])
+    # ``NoDecode`` stops pydantic-settings from JSON-decoding this field so a
+    # comma-separated value (``http://a,http://b``) reaches the validator below
+    # instead of raising ``SettingsError`` at source-parse time.
+    cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["*"])
 
     # ── ML inference API ──────────────────────────────────────────────
     ml_port: int = Field(default=8081, ge=1, le=65_535)
@@ -244,6 +248,34 @@ class Settings(BaseSettings):
     def _validate_key_path(cls, v: str) -> str:
         # In production, the path MUST exist at process start.
         # In test/dev we skip this — the keys are loaded lazily.
+        return v
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _parse_cors_origins(cls, v: Any) -> Any:
+        """Accept both JSON lists and comma-separated origin lists.
+
+        ``CORS_ORIGINS=["*"]`` (JSON) and ``CORS_ORIGINS=http://a,http://b``
+        (CSV) both resolve to ``list[str]``; a bare ``*`` and an empty value
+        are also handled. Without ``NoDecode`` + this validator,
+        pydantic-settings would crash on the CSV form during startup.
+        """
+        if v is None:
+            return ["*"]
+        if isinstance(v, str):
+            text = v.strip()
+            if not text:
+                return []
+            try:
+                parsed = json.loads(text)
+            except ValueError:
+                parsed = None
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
+            if isinstance(parsed, str):
+                return [parsed.strip()]
+            # Not JSON — treat as comma-separated origins.
+            return [part.strip() for part in text.split(",") if part.strip()]
         return v
 
     # ── Helpers ────────────────────────────────────────────────────────
