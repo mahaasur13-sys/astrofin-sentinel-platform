@@ -98,6 +98,16 @@ Grafana edge proxy (C7):
   the default (commented out in the Caddyfile).
 - No Keycloak / IdP service in this repo.
 
+Grafana oauth2-proxy (C8):
+
+- Enable: `docker compose -f docker-compose.yml -f
+  docker-compose.grafana-oauth2-proxy.yml up -d`; UI: `http://127.0.0.1:4180`.
+- Five `${VAR:?}` env required: CLIENT_ID, CLIENT_SECRET, COOKIE_SECRET,
+  OIDC_ISSUER_URL, REDIRECT_URL. Don't enable without a reachable IdP.
+- C8 ≠ C6 (Grafana Generic OAuth) — don't combine them unless you know why.
+- `EMAIL_DOMAINS=*` is dev-only; `COOKIE_SECURE=false` on the HTTP loopback.
+- Keycloak / public Let's Encrypt are out of scope.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:

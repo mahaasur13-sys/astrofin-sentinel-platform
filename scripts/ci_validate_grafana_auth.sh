@@ -17,6 +17,7 @@ DIR="${1:-deploy/docker}"
 TLS_OVERLAY="$DIR/docker-compose.grafana-tls.yml"
 OIDC_OVERLAY="$DIR/docker-compose.grafana-oidc.yml"
 EDGE_OVERLAY="$DIR/docker-compose.grafana-edge.yml"
+OAUTH2_PROXY_OVERLAY="$DIR/docker-compose.grafana-oauth2-proxy.yml"
 
 # Fixed-string patterns that must never appear in the prod compose tree.
 forbidden=(
@@ -59,6 +60,16 @@ forbidden=(
   '${DOMAIN-'
   '${ACME_EMAIL:-'
   '${ACME_EMAIL-'
+  '${OAUTH2_PROXY_CLIENT_ID:-'
+  '${OAUTH2_PROXY_CLIENT_ID-'
+  '${OAUTH2_PROXY_CLIENT_SECRET:-'
+  '${OAUTH2_PROXY_CLIENT_SECRET-'
+  '${OAUTH2_PROXY_COOKIE_SECRET:-'
+  '${OAUTH2_PROXY_COOKIE_SECRET-'
+  '${OAUTH2_PROXY_OIDC_ISSUER_URL:-'
+  '${OAUTH2_PROXY_OIDC_ISSUER_URL-'
+  '${OAUTH2_PROXY_REDIRECT_URL:-'
+  '${OAUTH2_PROXY_REDIRECT_URL-'
 )
 
 fail=0
@@ -128,6 +139,22 @@ if [ -f "$EDGE_OVERLAY" ]; then
   fi
   if grep -nF '0.0.0.0' "$EDGE_OVERLAY" 2>/dev/null; then
     echo "::error:: edge overlay must not publish on 0.0.0.0" >&2
+    fail=1
+  fi
+fi
+
+# oauth2-proxy overlay (if present): loopback-only, pinned image, no stub secrets.
+if [ -f "$OAUTH2_PROXY_OVERLAY" ]; then
+  if grep -nF ':latest' "$OAUTH2_PROXY_OVERLAY" 2>/dev/null; then
+    echo "::error:: oauth2-proxy image must be pinned (no :latest)" >&2
+    fail=1
+  fi
+  if grep -nE '0\.0\.0\.0:[0-9]+:[0-9]+' "$OAUTH2_PROXY_OVERLAY" 2>/dev/null; then
+    echo "::error:: oauth2-proxy must not publish on 0.0.0.0" >&2
+    fail=1
+  fi
+  if grep -nE 'OAUTH2_PROXY_(CLIENT_SECRET|COOKIE_SECRET)[=:][[:space:]]*"?(admin|changeme|secret|password)' "$OAUTH2_PROXY_OVERLAY" 2>/dev/null; then
+    echo "::error:: oauth2-proxy secret must not be a stub literal" >&2
     fail=1
   fi
 fi
