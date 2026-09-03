@@ -22,8 +22,9 @@ USER appuser
 
 EXPOSE 8000
 
-# Health check
+# Health check — the daemon (orchestration.sentinel_v5) serves Prometheus
+# /metrics on METRICS_PORT (9191), not :8000. Check the port it actually binds.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:9191/metrics || exit 1
 
 CMD ["python", "-m", "orchestration.sentinel_v5"]
