@@ -25,11 +25,11 @@ docker compose -f deploy/docker/docker-compose.yml config --quiet
 docker compose -f deploy/docker/docker-compose.yml up -d
 ```
 
-- `postgres` and `redis` publish **no host ports** — they are reachable only on
-  the internal compose network (#329). Exposed on host: `app` 8000,
-  `prometheus` 9090, `grafana` 3000.
-- Daemon metrics are served in-process on `:9191` (`METRICS_PORT`):
-  `curl -fsS http://127.0.0.1:9191/metrics`.
+- No service publishes on `0.0.0.0`. `postgres` (5432), `redis` (6379), `app`
+  (8000) and `prometheus` (9090) are internal-only on the compose network
+  (#329). The only host binding is Grafana, loopback-only: `127.0.0.1:3000:3000`.
+- Grafana reaches Prometheus by service name (`prometheus:9090`); the daemon's
+  `app:9191` metrics are likewise internal-only (not host-reachable).
 
 Run modes (orchestrator):
 
