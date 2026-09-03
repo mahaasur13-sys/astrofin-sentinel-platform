@@ -1,0 +1,23 @@
+name: Docker Image Build
+
+on:
+  pull_request:
+    branches: [release/**]
+    paths:
+      - "deploy/docker/Dockerfile"
+      - "deploy/docker/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docker-build:
+    name: Build sentinel image (no push)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: |
+          docker build -f deploy/docker/Dockerfile .
