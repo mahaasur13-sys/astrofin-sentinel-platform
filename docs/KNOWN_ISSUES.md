@@ -320,3 +320,18 @@ Everything else (observability, security, AMRE, KARL) is already ✅.
 
 ---
 
+## KI-133 — `sessions` schema defined in three places; live writer is `history_db_pg`
+
+- **Severity:** 🟠 P1
+- **Component:** `db/models.py` (ORM), `schema/001_initial.sql` (TimescaleDB DDL), `core/history_db_pg.py::_INIT_PG_SQL`
+- **Symptom:** The `sessions` table is described in three independent sources that have already drifted:
+  - `db/models.py` → `Session.session_id = Column(String(255), primary_key=True)`
+  - `schema/001_initial.sql` → `session_id VARCHAR(255) PRIMARY KEY`
+  - `core/history_db_pg.py` `_INIT_PG_SQL` → `session_id TEXT NOT NULL UNIQUE` (+ surrogate `id SERIAL PRIMARY KEY`)
+- **Canonical live source:** `core/history_db_pg.py::_INIT_PG_SQL` — the live `--once` path writes sessions through `PostgresHistoryDB`. The ORM (`db/models.py`) and `schema/001_initial.sql` cover init / other paths (Alembic / TimescaleDB bootstrap), not the live writer.
+- **Explicit drift (documentation only, no migration):** `sessions.session_id` is `VARCHAR(255) PRIMARY KEY` in `schema/001_initial.sql` but `TEXT NOT NULL UNIQUE` in the live `_INIT_PG_SQL`. Recorded here only — no migration was (or should be) run against the live cluster for this entry.
+- **Mitigation:** Treat `history_db_pg._INIT_PG_SQL` as the single source of truth for the live `sessions` shape. Consolidate the ORM + `001_initial.sql` toward it in a dedicated migration PR (not this one). Do NOT delete any of the three files.
+- **Owner:** asurdev
+
+---
+
