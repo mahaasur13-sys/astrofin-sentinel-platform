@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
-# CI guard for Grafana auth defaults (Series C1+C2+C3+C4+C5).
+# CI guard for Grafana auth defaults (Series C1+C2+C3+C4+C5+C6).
 #
 # Fail closed (exit 1) if any default/unhardened Grafana credential, auth
 # toggle, default signing key, public :3000 publish, permissive cookie/embedding
-# setting, ROOT_URL fallback, or TLS misconfiguration reappears under
-# deploy/docker/. `${VAR:?...}` is allowed; any other `${VAR:-...}` /
-# `${VAR-...}` fallback and hardcoded literals are not. COOKIE_SECURE=false is
-# allowed in the BASE compose (HTTP loopback) but not in the TLS overlay.
+# setting, ROOT_URL fallback, TLS misconfiguration, or OIDC misconfiguration
+# reappears under deploy/docker/. `${VAR:?...}` is allowed; any other
+# `${VAR:-...}` / `${VAR-...}` fallback and hardcoded literals are not.
+# COOKIE_SECURE=false is allowed in the BASE compose (HTTP loopback) but not in
+# the TLS overlay. DISABLE_LOGIN_FORM=true is never allowed.
 #
 # Deterministic: pure grep + git ls-files, no network, no docker daemon.
 
 set -euo pipefail
 
 DIR="${1:-deploy/docker}"
-OVERLAY="$DIR/docker-compose.grafana-tls.yml"
+TLS_OVERLAY="$DIR/docker-compose.grafana-tls.yml"
+OIDC_OVERLAY="$DIR/docker-compose.grafana-oidc.yml"
 
 # Fixed-string patterns that must never appear in the prod compose tree.
 forbidden=(
@@ -38,6 +40,20 @@ forbidden=(
   '${GF_SERVER_CERT_FILE-'
   '${GF_SERVER_CERT_KEY:-'
   '${GF_SERVER_CERT_KEY-'
+  '${GF_AUTH_GENERIC_OAUTH_NAME:-'
+  '${GF_AUTH_GENERIC_OAUTH_NAME-'
+  '${GF_AUTH_GENERIC_OAUTH_CLIENT_ID:-'
+  '${GF_AUTH_GENERIC_OAUTH_CLIENT_ID-'
+  '${GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:-'
+  '${GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET-'
+  '${GF_AUTH_GENERIC_OAUTH_AUTH_URL:-'
+  '${GF_AUTH_GENERIC_OAUTH_AUTH_URL-'
+  '${GF_AUTH_GENERIC_OAUTH_TOKEN_URL:-'
+  '${GF_AUTH_GENERIC_OAUTH_TOKEN_URL-'
+  '${GF_AUTH_GENERIC_OAUTH_API_URL:-'
+  '${GF_AUTH_GENERIC_OAUTH_API_URL-'
+  '${GF_AUTH_GENERIC_OAUTH_SCOPES:-'
+  '${GF_AUTH_GENERIC_OAUTH_SCOPES-'
 )
 
 fail=0
@@ -62,19 +78,46 @@ if grep -rnF '3000:3000' "$DIR" 2>/dev/null | grep -vF '127.0.0.1:3000:3000'; th
 fi
 
 # TLS overlay (if present) must be strictly HTTPS + secure cookies + fail-closed.
-if [ -f "$OVERLAY" ]; then
-  if grep -nF 'GF_SECURITY_COOKIE_SECURE=false' "$OVERLAY" 2>/dev/null; then
+if [ -f "$TLS_OVERLAY" ]; then
+  if grep -nF 'GF_SECURITY_COOKIE_SECURE=false' "$TLS_OVERLAY" 2>/dev/null; then
     echo "::error:: TLS overlay must set GF_SECURITY_COOKIE_SECURE=true" >&2
     fail=1
   fi
-  if ! grep -qE 'GF_SERVER_PROTOCOL[=:][[:space:]]*"?https' "$OVERLAY" 2>/dev/null; then
+  if ! grep -qE 'GF_SERVER_PROTOCOL[=:][[:space:]]*"?https' "$TLS_OVERLAY" 2>/dev/null; then
     echo "::error:: TLS overlay must set GF_SERVER_PROTOCOL=https" >&2
     fail=1
   fi
-  if grep -nF 'GF_SERVER_ROOT_URL=http://' "$OVERLAY" 2>/dev/null; then
+  if grep -nF 'GF_SERVER_ROOT_URL=http://' "$TLS_OVERLAY" 2>/dev/null; then
     echo "::error:: TLS overlay GF_SERVER_ROOT_URL must be https://" >&2
     fail=1
   fi
+fi
+
+# OIDC overlay (if present) must be enabled, fail-closed, no sign-up, keep login form.
+if [ -f "$OIDC_OVERLAY" ]; then
+  if ! grep -qE 'GF_AUTH_GENERIC_OAUTH_ENABLED[=:][[:space:]]*"?true' "$OIDC_OVERLAY" 2>/dev/null; then
+    echo "::error:: OIDC overlay must set GF_AUTH_GENERIC_OAUTH_ENABLED=true" >&2
+    fail=1
+  fi
+  if grep -nF 'GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=true' "$OIDC_OVERLAY" 2>/dev/null; then
+    echo "::error:: OIDC overlay must set GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=false" >&2
+    fail=1
+  fi
+  if grep -nF 'GF_AUTH_DISABLE_LOGIN_FORM=true' "$OIDC_OVERLAY" 2>/dev/null; then
+    echo "::error:: OIDC overlay must keep GF_AUTH_DISABLE_LOGIN_FORM=false" >&2
+    fail=1
+  fi
+  if grep -nE 'GF_AUTH_GENERIC_OAUTH_CLIENT_(SECRET|ID)[=:][[:space:]]*"?(admin|secret|changeme|password)' "$OIDC_OVERLAY" 2>/dev/null; then
+    echo "::error:: OIDC client secret/id must not be a stub literal" >&2
+    fail=1
+  fi
+fi
+
+# No literal OIDC client secret anywhere under deploy/docker/ (only ${VAR:?} or
+# a your_*_here placeholder is allowed).
+if grep -rnE 'GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=[[:space:]]*"?[^$#]' "$DIR" 2>/dev/null | grep -vE 'your_.*_here'; then
+  echo "::error:: OIDC client secret must be \${VAR:?} or a placeholder" >&2
+  fail=1
 fi
 
 # No cert/key material may be committed under deploy/docker/.
