@@ -22,6 +22,9 @@ OAUTH2_PROXY_OVERLAY="$DIR/docker-compose.grafana-oauth2-proxy.yml"
 DEX_OVERLAY="$DIR/docker-compose.dex.yml"
 DEX_CONFIG="$DIR/dex/config.yaml"
 SSO_OVERLAY="$DIR/docker-compose.grafana-sso.yml"
+PUBLIC_EDGE_OVERLAY="$DIR/docker-compose.grafana-edge-public.yml"
+C7_CADDYFILE="$DIR/edge/Caddyfile"
+PUBLIC_CADDYFILE="$DIR/edge/Caddyfile.public"
 
 # Fixed-string patterns that must never appear in the prod compose tree.
 forbidden=(
@@ -104,8 +107,9 @@ if grep -nE 'GF_SECURITY_(ADMIN_PASSWORD|SECRET_KEY)=' "$BASE" 2>/dev/null; then
 fi
 
 # Ports must not be published on 0.0.0.0 / bare (127.0.0.1 only, or absent).
+# The C12 public edge overlay is the exception (its bare 80:80/443:443 is the contract).
 for p in '3000:3000' '80:80' '443:443'; do
-  if grep -rnF "$p" "$DIR" 2>/dev/null | grep -vF '127.0.0.1:'; then
+  if grep -rnF "$p" "$DIR" --exclude=docker-compose.grafana-edge-public.yml 2>/dev/null | grep -vF '127.0.0.1:'; then
     echo "::error:: forbidden port publish (must be 127.0.0.1 or absent): $p" >&2
     fail=1
   fi
@@ -155,6 +159,50 @@ if [ -f "$EDGE_OVERLAY" ]; then
   fi
   if grep -nF '0.0.0.0' "$EDGE_OVERLAY" 2>/dev/null; then
     echo "::error:: edge overlay must not publish on 0.0.0.0" >&2
+    fail=1
+  fi
+fi
+
+# C7 loopback Caddyfile must not enable public ACME.
+if [ -f "$C7_CADDYFILE" ]; then
+  if grep -nE '^[[:space:]]*(email|tls)[[:space:]]+\{\$ACME_EMAIL\}' "$C7_CADDYFILE" 2>/dev/null; then
+    echo "::error:: C7 Caddyfile must not enable public ACME" >&2
+    fail=1
+  fi
+fi
+
+# Public edge overlay (C12): must publish 80/443 publicly, grafana no host port.
+if [ -f "$PUBLIC_EDGE_OVERLAY" ]; then
+  if ! grep -qF '80:80' "$PUBLIC_EDGE_OVERLAY" 2>/dev/null; then
+    echo "::error:: public edge overlay must publish 80:80" >&2
+    fail=1
+  fi
+  if ! grep -qF '443:443' "$PUBLIC_EDGE_OVERLAY" 2>/dev/null; then
+    echo "::error:: public edge overlay must publish 443:443" >&2
+    fail=1
+  fi
+  if ! grep -q 'ports: !reset' "$PUBLIC_EDGE_OVERLAY" 2>/dev/null; then
+    echo "::error:: public edge overlay grafana must clear its host port" >&2
+    fail=1
+  fi
+  if grep -nF ':latest' "$PUBLIC_EDGE_OVERLAY" 2>/dev/null; then
+    echo "::error:: public edge caddy image must be pinned" >&2
+    fail=1
+  fi
+  if grep -nE '127\.0\.0\.1:(80|443):' "$PUBLIC_EDGE_OVERLAY" 2>/dev/null; then
+    echo "::error:: public edge overlay must publish 80/443 publicly (no 127.0.0.1)" >&2
+    fail=1
+  fi
+fi
+
+# Public Caddyfile must use ACME tls and proxy to grafana.
+if [ -f "$PUBLIC_CADDYFILE" ]; then
+  if ! grep -qE '\btls\b' "$PUBLIC_CADDYFILE" 2>/dev/null; then
+    echo "::error:: Caddyfile.public must have a tls directive" >&2
+    fail=1
+  fi
+  if ! grep -qF 'reverse_proxy grafana:3000' "$PUBLIC_CADDYFILE" 2>/dev/null; then
+    echo "::error:: Caddyfile.public must proxy to grafana:3000" >&2
     fail=1
   fi
 fi

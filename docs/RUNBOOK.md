@@ -141,6 +141,17 @@ Grafana forced SSO (C11):
 - Don't combine with C8 (oauth2-proxy) in the same profile.
 - C12 (Let's Encrypt) is out of scope.
 
+Grafana public edge / ACME (C12):
+
+- C7 = dev loopback (`127.0.0.1:8443`), ACME disabled.
+- C12 = public: `docker compose -f docker-compose.yml -f
+  docker-compose.grafana-edge-public.yml up -d`.
+- Grafana has no host port; users reach it only via `:443`.
+- Requires DNS A/AAAA pointing at the host and open `80`/`443`; firewall is
+  the operator's responsibility.
+- Don't run C7 and C12 in the same `up` (two Caddy profiles).
+- CI interpolates only — it never requests a Let's Encrypt certificate.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:
