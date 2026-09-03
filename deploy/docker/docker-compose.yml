@@ -66,8 +66,13 @@ services:
       - "GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:?GF_SECURITY_ADMIN_USER is required}"
       - "GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:?GF_SECURITY_ADMIN_PASSWORD is required}"
       - "GF_SECURITY_SECRET_KEY=${GF_SECURITY_SECRET_KEY:?GF_SECURITY_SECRET_KEY is required}"
+      - "GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:?GF_SERVER_ROOT_URL is required}"
       - "GF_USERS_ALLOW_SIGN_UP=false"
       - "GF_AUTH_ANONYMOUS_ENABLED=false"
+      - "GF_USERS_ALLOW_ORG_CREATE=false"
+      - "GF_SECURITY_ALLOW_EMBEDDING=false"
+      - "GF_SECURITY_COOKIE_SAMESITE=strict"
+      - "GF_SECURITY_COOKIE_SECURE=false"
     volumes:
       - grafana_data:/var/lib/grafana
       - ../monitoring/dashboards:/etc/grafana/provisioning/dashboards

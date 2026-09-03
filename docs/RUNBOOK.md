@@ -54,6 +54,14 @@ Grafana hardening (C3):
   it to the internet. Rotating `GF_SECURITY_SECRET_KEY` invalidates session
   cookies.
 
+Grafana hardening (C4):
+
+- `GF_SERVER_ROOT_URL` is the fourth required `${VAR:?}` — set it to the exact
+  URL users open the UI with (`http://127.0.0.1:3000`).
+- Embedding and org-create are off; `SameSite=strict`.
+- `GF_SECURITY_COOKIE_SECURE=false` on purpose while there is no HTTPS (C5).
+- Rotating the admin password / secret key resets existing sessions.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:
