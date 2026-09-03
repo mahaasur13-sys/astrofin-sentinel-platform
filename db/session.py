@@ -36,6 +36,7 @@ class DatabaseManager:
         self.sqlite_engine = None
         self.pg_session_factory = None
         self.sqlite_session_factory = None
+        self.sqlite_fallback = False
         self._init_pg()
         self._init_sqlite()
 
@@ -74,7 +75,14 @@ class DatabaseManager:
             connect_args={"check_same_thread": False},
         )
         self.sqlite_session_factory = sessionmaker(bind=self.sqlite_engine, autoflush=False)
-        logger.info("SQLite fallback engine initialized at %s", sqlite_path)
+        # SQLite is only a *fallback* when PostgreSQL failed to initialize.
+        # When PG is up the SQLite engine still exists (for the dual-write
+        # surface) but must not be logged as a fallback.
+        if self.pg_session_factory is None:
+            self.sqlite_fallback = True
+            logger.info("SQLite fallback engine initialized at %s", sqlite_path)
+        else:
+            logger.info("SQLite engine initialized at %s", sqlite_path)
 
     @property
     def pg_available(self) -> bool:
@@ -122,7 +130,10 @@ class DatabaseManager:
                 session.close()
 
     def get_stats(self) -> dict:
-        stats: dict = {"pg_available": self.pg_available}
+        stats: dict = {
+            "pg_available": self.pg_available,
+            "sqlite_fallback": self.sqlite_fallback,
+        }
         if self.pg_engine and self.pg_engine.pool:
             pool = self.pg_engine.pool
             stats.update({
