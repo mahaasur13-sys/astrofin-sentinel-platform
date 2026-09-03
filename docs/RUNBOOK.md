@@ -118,6 +118,17 @@ Grafana secrets from files (C9):
 - Rotation = rewrite the file + `docker compose up -d --force-recreate grafana`.
 - C10 (Dex) / C11 / C12 are out of scope.
 
+Grafana Dex IdP (C10):
+
+- Enable: `docker compose -f docker-compose.yml -f docker-compose.dex.yml up -d`.
+  Grafana UI stays on `:3000`; Dex issuer is `http://127.0.0.1:5556/dex`
+  (internal container URL is `http://dex:5556/dex`).
+- Wire it to C6 Generic OAuth: `AUTH_URL=http://127.0.0.1:5556/dex/auth`,
+  `TOKEN_URL=.../token`, `API_URL=.../userinfo`, `SCOPES=openid email profile`.
+- C8 (oauth2-proxy) is a different profile — don't mix without a reason.
+- No users/passwords are committed; add a dev user at runtime, not in git.
+- C11 (DISABLE_LOGIN_FORM) and C12 (Let's Encrypt) are not included.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:
