@@ -30,6 +30,9 @@ docker compose -f deploy/docker/docker-compose.yml up -d
   (#329). The only host binding is Grafana, loopback-only: `127.0.0.1:3000:3000`.
 - Grafana reaches Prometheus by service name (`prometheus:9090`); the daemon's
   `app:9191` metrics are likewise internal-only (not host-reachable).
+- `GF_SECURITY_ADMIN_PASSWORD` is a hard `${VAR:?}` guard — there is no
+  `admin/admin` default in the image or compose, so `grafana` will not start
+  unless this env is set.
 
 Run modes (orchestrator):
 
