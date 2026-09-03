@@ -1,0 +1,25 @@
+# Grafana edge-proxy overlay — apply ON TOP of docker-compose.yml.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.grafana-edge.yml up -d
+#
+# Removes Grafana's host port and puts a loopback-only Caddy reverse proxy in
+# front. UI: https://127.0.0.1:8443 (self-signed certs from ./certs, C5).
+services:
+  grafana:
+    ports: !reset []
+
+  caddy:
+    image: caddy:2.8.4
+    container_name: astrofinsentinel_caddy
+    ports:
+      - "127.0.0.1:8443:8443"
+      - "127.0.0.1:8080:8080"
+    environment:
+      - "DOMAIN=${DOMAIN:?DOMAIN is required}"
+      - "ACME_EMAIL=${ACME_EMAIL:?ACME_EMAIL is required}"
+    volumes:
+      - ./edge/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs:/etc/caddy/certs:ro
+    depends_on:
+      - grafana
+    restart: unless-stopped

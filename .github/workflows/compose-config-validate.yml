@@ -64,6 +64,21 @@ jobs:
             -f deploy/docker/docker-compose.yml \
             -f deploy/docker/docker-compose.grafana-oidc.yml \
             config --quiet
+      - name: Validate Grafana edge overlay config (dummy env, no build)
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SECURITY_ADMIN_PASSWORD: "ci-dummy"
+          GF_SECURITY_SECRET_KEY: "ci-dummy"
+          GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
+          DOMAIN: "localhost"
+          ACME_EMAIL: "dev@example.invalid"
+        run: |
+          docker compose \
+            -f deploy/docker/docker-compose.yml \
+            -f deploy/docker/docker-compose.grafana-edge.yml \
+            config --quiet
       - name: Validate Grafana auth guard (no default admin)
         run: |
           bash scripts/ci_validate_grafana_auth.sh
