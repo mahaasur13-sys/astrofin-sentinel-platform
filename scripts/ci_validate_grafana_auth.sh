@@ -19,6 +19,8 @@ TLS_OVERLAY="$DIR/docker-compose.grafana-tls.yml"
 OIDC_OVERLAY="$DIR/docker-compose.grafana-oidc.yml"
 EDGE_OVERLAY="$DIR/docker-compose.grafana-edge.yml"
 OAUTH2_PROXY_OVERLAY="$DIR/docker-compose.grafana-oauth2-proxy.yml"
+DEX_OVERLAY="$DIR/docker-compose.dex.yml"
+DEX_CONFIG="$DIR/dex/config.yaml"
 
 # Fixed-string patterns that must never appear in the prod compose tree.
 forbidden=(
@@ -71,6 +73,12 @@ forbidden=(
   '${OAUTH2_PROXY_OIDC_ISSUER_URL-'
   '${OAUTH2_PROXY_REDIRECT_URL:-'
   '${OAUTH2_PROXY_REDIRECT_URL-'
+  '${DEX_GRAFANA_CLIENT_ID:-'
+  '${DEX_GRAFANA_CLIENT_ID-'
+  '${DEX_GRAFANA_CLIENT_SECRET:-'
+  '${DEX_GRAFANA_CLIENT_SECRET-'
+  '${DEX_ISSUER:-'
+  '${DEX_ISSUER-'
 )
 
 fail=0
@@ -166,6 +174,26 @@ if [ -f "$OAUTH2_PROXY_OVERLAY" ]; then
   fi
 fi
 
+# Dex overlay (if present): pinned image, loopback-only host publish.
+if [ -f "$DEX_OVERLAY" ]; then
+  if grep -nF ':latest' "$DEX_OVERLAY" 2>/dev/null; then
+    echo "::error:: dex image must be pinned (no :latest)" >&2
+    fail=1
+  fi
+  if grep -nF '0.0.0.0' "$DEX_OVERLAY" 2>/dev/null; then
+    echo "::error:: dex must not publish on 0.0.0.0" >&2
+    fail=1
+  fi
+fi
+
+# Dex config (if present) must not contain stub secrets.
+if [ -f "$DEX_CONFIG" ]; then
+  if grep -nE 'changeme|secret:[[:space:]]*"?(admin|password)' "$DEX_CONFIG" 2>/dev/null; then
+    echo "::error:: dex config must not contain stub secrets" >&2
+    fail=1
+  fi
+fi
+
 # No literal OIDC client secret anywhere under deploy/docker/ (only ${VAR:?} or
 # a your_*_here placeholder is allowed).
 if grep -rnE 'GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=[[:space:]]*"?[^$#]' "$DIR" 2>/dev/null | grep -vE 'your_.*_here'; then
@@ -182,6 +210,12 @@ fi
 # Only .gitignore and README.md may be tracked under deploy/docker/secrets/.
 if git ls-files -- "$DIR/secrets" 2>/dev/null | grep -vE '(\.gitignore|README\.md)$'; then
   echo "::error:: secret files must not be committed to git" >&2
+  fail=1
+fi
+
+# No sqlite/db files may be committed under deploy/docker/.
+if git ls-files -- "$DIR" 2>/dev/null | grep -E '\.(sqlite|db)$'; then
+  echo "::error:: sqlite/db files must not be committed to git" >&2
   fail=1
 fi
 

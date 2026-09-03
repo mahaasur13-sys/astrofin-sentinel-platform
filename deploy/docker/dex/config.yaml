@@ -1,0 +1,24 @@
+# Dex OIDC provider configuration (dev / loopback).
+# DEX_EXPAND_ENV=true expands $VAR references from the container environment.
+
+issuer: "$DEX_ISSUER"
+
+storage:
+  type: sqlite3
+  config:
+    file: /var/lib/dex/dex.db
+
+web:
+  http: 0.0.0.0:5556
+
+staticClients:
+  - id: "$DEX_GRAFANA_CLIENT_ID"
+    redirectURIs:
+      - http://127.0.0.1:3000/login/generic_oauth
+      - http://127.0.0.1:4180/oauth2/callback
+    name: Grafana
+    secret: "$DEX_GRAFANA_CLIENT_SECRET"
+
+# Password DB is enabled but no static users are committed here.
+# Add a user at runtime (see scripts/gen_dex_dev_user.sh / RUNBOOK C10).
+enablePasswordDB: true
