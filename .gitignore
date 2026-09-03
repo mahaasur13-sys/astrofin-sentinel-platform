@@ -38,6 +38,9 @@ Thumbs.db
 *.p12
 *.pfx
 secrets/
+# deploy/docker/secrets/ keeps only .gitignore + README.md in git (the actual
+# secret files are ignored by deploy/docker/secrets/.gitignore).
+!deploy/docker/secrets/
 .gitleaks-baseline.json.bak
 # ─── Бэкапы и корзина ─────────────────────────────────────
 backup_*.tar.gz

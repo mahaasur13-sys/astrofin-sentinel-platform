@@ -14,6 +14,7 @@
 set -euo pipefail
 
 DIR="${1:-deploy/docker}"
+BASE="$DIR/docker-compose.yml"
 TLS_OVERLAY="$DIR/docker-compose.grafana-tls.yml"
 OIDC_OVERLAY="$DIR/docker-compose.grafana-oidc.yml"
 EDGE_OVERLAY="$DIR/docker-compose.grafana-edge.yml"
@@ -84,6 +85,12 @@ done
 # Any literal (non ${VAR}) GF_SECURITY_SECRET_KEY value = hardcoded key/stub.
 if grep -rnE 'GF_SECURITY_SECRET_KEY=[^$]' "$DIR" 2>/dev/null; then
   echo "::error:: forbidden hardcoded GF_SECURITY_SECRET_KEY literal" >&2
+  fail=1
+fi
+
+# Base compose must not set plaintext Grafana password/secret key (files only).
+if grep -nE 'GF_SECURITY_(ADMIN_PASSWORD|SECRET_KEY)=' "$BASE" 2>/dev/null; then
+  echo "::error:: base compose must use *_FILE for Grafana password/secret key" >&2
   fail=1
 fi
 
@@ -169,6 +176,12 @@ fi
 # No cert/key material may be committed under deploy/docker/.
 if git ls-files -- "$DIR" 2>/dev/null | grep -E '\.(pem|key|crt)$'; then
   echo "::error:: cert/key files must not be committed to git" >&2
+  fail=1
+fi
+
+# Only .gitignore and README.md may be tracked under deploy/docker/secrets/.
+if git ls-files -- "$DIR/secrets" 2>/dev/null | grep -vE '(\.gitignore|README\.md)$'; then
+  echo "::error:: secret files must not be committed to git" >&2
   fail=1
 fi
 
