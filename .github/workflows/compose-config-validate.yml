@@ -26,6 +26,7 @@ jobs:
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SECURITY_ADMIN_PASSWORD: "ci-dummy"
           GF_SECURITY_SECRET_KEY: "ci-dummy"
+          GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
         run: |
           docker compose -f deploy/docker/docker-compose.yml config --quiet
       - name: Validate Grafana auth guard (no default admin)

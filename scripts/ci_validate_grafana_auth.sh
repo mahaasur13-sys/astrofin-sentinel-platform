@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# CI guard for Grafana auth defaults (Series C1+C2+C3).
+# CI guard for Grafana auth defaults (Series C1+C2+C3+C4).
 #
 # Fail closed (exit 1) if any default/unhardened Grafana credential, auth
-# toggle, default signing key, or public :3000 publish reappears under
-# deploy/docker/. `${VAR:?...}` is allowed; any other `${VAR:-...}` /
-# `${VAR-...}` default fallback and hardcoded literals are not.
+# toggle, default signing key, public :3000 publish, permissive cookie/embedding
+# setting, or ROOT_URL fallback reappears under deploy/docker/.
+# `${VAR:?...}` is allowed; any other `${VAR:-...}` / `${VAR-...}` fallback and
+# hardcoded literals are not. COOKIE_SECURE=false is allowed (HTTP loopback; C5).
 #
 # Deterministic: pure grep, no network, no docker daemon.
 
@@ -26,6 +27,11 @@ forbidden=(
   'GF_SECURITY_SECRET_KEY=SW2YcwTIb9zpOOhoPsMm'
   '${GF_SECURITY_SECRET_KEY:-'
   '${GF_SECURITY_SECRET_KEY-'
+  '${GF_SERVER_ROOT_URL:-'
+  '${GF_SERVER_ROOT_URL-'
+  'GF_SECURITY_ALLOW_EMBEDDING=true'
+  'GF_USERS_ALLOW_ORG_CREATE=true'
+  'GF_SECURITY_COOKIE_SAMESITE=none'
 )
 
 fail=0
