@@ -1,0 +1,19 @@
+# Grafana generic OAuth / OIDC overlay — apply ON TOP of docker-compose.yml.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.grafana-oidc.yml up -d
+#
+# Keeps the password login form (GF_AUTH_DISABLE_LOGIN_FORM=false) so you are
+# not locked out if the IdP is unreachable. No IdP service is defined here.
+services:
+  grafana:
+    environment:
+      - "GF_AUTH_GENERIC_OAUTH_ENABLED=true"
+      - "GF_AUTH_GENERIC_OAUTH_NAME=${GF_AUTH_GENERIC_OAUTH_NAME:?GF_AUTH_GENERIC_OAUTH_NAME is required}"
+      - "GF_AUTH_GENERIC_OAUTH_CLIENT_ID=${GF_AUTH_GENERIC_OAUTH_CLIENT_ID:?GF_AUTH_GENERIC_OAUTH_CLIENT_ID is required}"
+      - "GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=${GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:?GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET is required}"
+      - "GF_AUTH_GENERIC_OAUTH_AUTH_URL=${GF_AUTH_GENERIC_OAUTH_AUTH_URL:?GF_AUTH_GENERIC_OAUTH_AUTH_URL is required}"
+      - "GF_AUTH_GENERIC_OAUTH_TOKEN_URL=${GF_AUTH_GENERIC_OAUTH_TOKEN_URL:?GF_AUTH_GENERIC_OAUTH_TOKEN_URL is required}"
+      - "GF_AUTH_GENERIC_OAUTH_API_URL=${GF_AUTH_GENERIC_OAUTH_API_URL:?GF_AUTH_GENERIC_OAUTH_API_URL is required}"
+      - "GF_AUTH_GENERIC_OAUTH_SCOPES=${GF_AUTH_GENERIC_OAUTH_SCOPES:?GF_AUTH_GENERIC_OAUTH_SCOPES is required}"
+      - "GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=false"
+      - "GF_AUTH_DISABLE_LOGIN_FORM=false"

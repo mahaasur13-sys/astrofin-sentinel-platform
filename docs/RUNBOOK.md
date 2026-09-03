@@ -73,6 +73,17 @@ Grafana TLS (C5):
   (SAN `127.0.0.1`/`localhost`); the browser will warn about self-signed.
 - `COOKIE_SECURE=true` only in the TLS profile; certs are gitignored.
 
+Grafana generic OAuth / OIDC (C6):
+
+- Enable: `docker compose -f docker-compose.yml -f
+  docker-compose.grafana-oidc.yml up -d` (TLS+OIDC: add the TLS overlay as a
+  third file).
+- Seven `${VAR:?}` env are required: NAME, CLIENT_ID, CLIENT_SECRET, AUTH_URL,
+  TOKEN_URL, API_URL, SCOPES. `ALLOW_SIGN_UP=false`.
+- The password login form stays (`DISABLE_LOGIN_FORM=false`) — otherwise you
+  get locked out if the IdP is unreachable.
+- Don't enable the overlay in prod without a live, reachable IdP.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:
