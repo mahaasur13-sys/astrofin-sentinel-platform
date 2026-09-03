@@ -309,3 +309,14 @@ Everything else (observability, security, AMRE, KARL) is already ✅.
 
 ---
 
+## KI-132 — Dead weight/council files not on the live v1 path
+
+- **Severity:** ⚪ P3
+- **Component:** `config/agent_weights.yaml`, `core/ensemble_voting.py`, `core/council/*`, `orchestration/council_orchestrator.py`
+- **Symptom:** None of these are imported by `run_sentinel_v5` / `run_astro_council` (grep-verified). `config/agent_weights.yaml` is read by no Python reader — the live reader `agents/_impl/synthesis/weights.py` reads `agents/weights.yaml` / `config/weights.yaml`.
+- **Canonical live sources:** agent weights → `agents/_impl/synthesis/weights.py` (`AGENT_WEIGHTS`/`CATEGORY_WEIGHTS`); astro voting → `agents/astro_council_agent._weighted_vote` + `agents/_impl/synthesis/voter`.
+- **Mitigation:** Marked dead in-file headers (see the yaml + `core/ensemble_voting.py` + `orchestration/council_orchestrator.py`). Do NOT delete yet — retained for a future product track (13-agent ensemble / council orchestration).
+- **Owner:** asurdev
+
+---
+
