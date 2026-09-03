@@ -29,6 +29,21 @@ jobs:
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
         run: |
           docker compose -f deploy/docker/docker-compose.yml config --quiet
+      - name: Validate Grafana TLS overlay config (dummy env, no build)
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SECURITY_ADMIN_PASSWORD: "ci-dummy"
+          GF_SECURITY_SECRET_KEY: "ci-dummy"
+          GF_SERVER_ROOT_URL: "https://127.0.0.1:3000"
+          GF_SERVER_CERT_FILE: "/etc/grafana/ssl/grafana.crt"
+          GF_SERVER_CERT_KEY: "/etc/grafana/ssl/grafana.key"
+        run: |
+          docker compose \
+            -f deploy/docker/docker-compose.yml \
+            -f deploy/docker/docker-compose.grafana-tls.yml \
+            config --quiet
       - name: Validate Grafana auth guard (no default admin)
         run: |
           bash scripts/ci_validate_grafana_auth.sh
