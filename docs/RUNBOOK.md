@@ -43,6 +43,17 @@ Grafana hardening (C2):
 - Rotate the admin password after first login; never expose `:3000` to the
   internet without a reverse-proxy in front.
 
+Grafana hardening (C3):
+
+- `GF_SECURITY_ADMIN_USER`, `GF_SECURITY_ADMIN_PASSWORD` and
+  `GF_SECURITY_SECRET_KEY` are all `${VAR:?}` — grafana won't start in this
+  compose without all three.
+- The official image ships a known default `GF_SECURITY_SECRET_KEY`
+  (`SW2YcwTIb9zpOOhoPsMm`) — never leave it set.
+- From the host `:3000` is loopback-only (or via reverse-proxy); don't publish
+  it to the internet. Rotating `GF_SECURITY_SECRET_KEY` invalidates session
+  cookies.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:
