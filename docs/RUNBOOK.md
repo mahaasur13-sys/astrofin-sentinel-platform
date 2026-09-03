@@ -84,6 +84,20 @@ Grafana generic OAuth / OIDC (C6):
   get locked out if the IdP is unreachable.
 - Don't enable the overlay in prod without a live, reachable IdP.
 
+Grafana edge proxy (C7):
+
+- Profiles (stack with `-f deploy/docker/docker-compose.yml`):
+  - `base` → HTTP `http://127.0.0.1:3000`
+  - `+ docker-compose.grafana-tls.yml` → HTTPS on 3000
+  - `+ docker-compose.grafana-oidc.yml` → generic OAuth
+  - `+ docker-compose.grafana-edge.yml` → Caddy edge
+  - `+ tls + oidc` → three files combined
+- Edge: Grafana drops its host port; Caddy serves `https://127.0.0.1:8443`
+  (and `http://127.0.0.1:8080` health), proxying to `grafana:3000`.
+- `DOMAIN` and `ACME_EMAIL` are `${VAR:?}`; Let's Encrypt / `0.0.0.0` is NOT
+  the default (commented out in the Caddyfile).
+- No Keycloak / IdP service in this repo.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:

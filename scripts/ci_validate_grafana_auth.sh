@@ -16,6 +16,7 @@ set -euo pipefail
 DIR="${1:-deploy/docker}"
 TLS_OVERLAY="$DIR/docker-compose.grafana-tls.yml"
 OIDC_OVERLAY="$DIR/docker-compose.grafana-oidc.yml"
+EDGE_OVERLAY="$DIR/docker-compose.grafana-edge.yml"
 
 # Fixed-string patterns that must never appear in the prod compose tree.
 forbidden=(
@@ -54,6 +55,10 @@ forbidden=(
   '${GF_AUTH_GENERIC_OAUTH_API_URL-'
   '${GF_AUTH_GENERIC_OAUTH_SCOPES:-'
   '${GF_AUTH_GENERIC_OAUTH_SCOPES-'
+  '${DOMAIN:-'
+  '${DOMAIN-'
+  '${ACME_EMAIL:-'
+  '${ACME_EMAIL-'
 )
 
 fail=0
@@ -71,11 +76,13 @@ if grep -rnE 'GF_SECURITY_SECRET_KEY=[^$]' "$DIR" 2>/dev/null; then
   fail=1
 fi
 
-# Grafana :3000 must not be published on 0.0.0.0 / bare (127.0.0.1 only, or absent).
-if grep -rnF '3000:3000' "$DIR" 2>/dev/null | grep -vF '127.0.0.1:3000:3000'; then
-  echo "::error:: forbidden Grafana port publish (must be 127.0.0.1 or absent)" >&2
-  fail=1
-fi
+# Ports must not be published on 0.0.0.0 / bare (127.0.0.1 only, or absent).
+for p in '3000:3000' '80:80' '443:443'; do
+  if grep -rnF "$p" "$DIR" 2>/dev/null | grep -vF '127.0.0.1:'; then
+    echo "::error:: forbidden port publish (must be 127.0.0.1 or absent): $p" >&2
+    fail=1
+  fi
+done
 
 # TLS overlay (if present) must be strictly HTTPS + secure cookies + fail-closed.
 if [ -f "$TLS_OVERLAY" ]; then
@@ -109,6 +116,18 @@ if [ -f "$OIDC_OVERLAY" ]; then
   fi
   if grep -nE 'GF_AUTH_GENERIC_OAUTH_CLIENT_(SECRET|ID)[=:][[:space:]]*"?(admin|secret|changeme|password)' "$OIDC_OVERLAY" 2>/dev/null; then
     echo "::error:: OIDC client secret/id must not be a stub literal" >&2
+    fail=1
+  fi
+fi
+
+# Edge overlay (if present): grafana must drop its host port (proxy is the edge).
+if [ -f "$EDGE_OVERLAY" ]; then
+  if ! grep -q 'ports: !reset' "$EDGE_OVERLAY" 2>/dev/null; then
+    echo "::error:: edge overlay grafana must clear its host port (ports: !reset [])" >&2
+    fail=1
+  fi
+  if grep -nF '0.0.0.0' "$EDGE_OVERLAY" 2>/dev/null; then
+    echo "::error:: edge overlay must not publish on 0.0.0.0" >&2
     fail=1
   fi
 fi

@@ -1,0 +1,19 @@
+# Grafana edge proxy (Caddy). Loopback-only binds.
+# Upstream: the grafana service on the compose network.
+
+{
+    # Public ACME (Let's Encrypt) is an operator decision, NOT the default.
+    # To enable, publish 0.0.0.0:443/80 and uncomment:
+    #   email {$ACME_EMAIL}
+}
+
+# Loopback HTTP — health check.
+http://:8080 {
+    respond "edge ok" 200
+}
+
+# Loopback HTTPS — terminate TLS with the C5 dev certs and proxy to Grafana.
+https://:8443 {
+    tls /etc/caddy/certs/grafana.crt /etc/caddy/certs/grafana.key
+    reverse_proxy grafana:3000
+}
