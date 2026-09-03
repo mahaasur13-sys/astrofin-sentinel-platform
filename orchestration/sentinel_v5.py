@@ -60,6 +60,19 @@ logger = logging.getLogger(__name__)
 KARL_ENABLED = os.getenv("KARL_ENABLED", "true").lower() == "true"
 
 
+def _ensure_decision_record(decision_record: dict | None, session_id: str) -> dict:
+    """Return a decision_record that always carries a ``decision_id``.
+
+    The non-KARL / fallback path yields ``decision_record=None``; without a
+    decision_id the KARL panel prints ``ID=N/A``. Fall back to the session id
+    (a uuid-derived string) and never overwrite an existing KARL_* id.
+    """
+    if decision_record is None:
+        return {"decision_id": session_id}
+    decision_record.setdefault("decision_id", session_id)
+    return decision_record
+
+
 async def run_sentinel_v5(
     user_query: str = "",
     symbol: str = "BTCUSDT",
@@ -172,6 +185,7 @@ async def run_sentinel_v5(
         "final_recommendation": (
             synthesis_result.to_dict() if synthesis_result else None
         ),
+        "decision_record": {"decision_id": session_id},
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -335,6 +349,8 @@ async def run_karl_sentinel_v5(
         amre_output = None
         decision_record = None
         karl_diagnostics_result = None
+
+    decision_record = _ensure_decision_record(decision_record, session_id)
 
     final_output = {
         "session_id": session_id,

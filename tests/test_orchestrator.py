@@ -233,3 +233,21 @@ class TestOrchestratorIntegration:
             timeframe="SWING",
         )
         assert result["flows_run"]["electional"] is False
+
+
+def test_decision_record_never_missing_decision_id():
+    """The KARL panel must never print ID=N/A — always fall back to a stable id."""
+    from orchestration.sentinel_v5 import _ensure_decision_record
+
+    # Non-KARL / fallback path (decision_record is None)
+    rec = _ensure_decision_record(None, "abc12345")
+    assert rec["decision_id"] == "abc12345"
+    assert rec["decision_id"] != "N/A"
+
+    # dict without decision_id → session id added
+    rec = _ensure_decision_record({"signal": "NEUTRAL"}, "deadbeef")
+    assert rec["decision_id"] == "deadbeef"
+
+    # existing KARL_* id is preserved, not overwritten
+    rec = _ensure_decision_record({"decision_id": "KARL_0001_BTC"}, "deadbeef")
+    assert rec["decision_id"] == "KARL_0001_BTC"
