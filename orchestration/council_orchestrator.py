@@ -1,3 +1,8 @@
+# ⚠️ DEAD MODULE (v1) — не используется live-путём run_sentinel_v5 / run_astro_council.
+# Импортируется только scripts/backtest/tools/tests. Канон голосования astro:
+# agents/astro_council_agent._weighted_vote + synthesis/voter; канон весов:
+# agents/_impl/synthesis/weights.py. НЕ удалять — оставлен для будущего product-трека.
+
 """CouncilOrchestrator — Agent → KARL → RiskEngine → Execution pipeline."""
 
 import asyncio
