@@ -62,6 +62,17 @@ Grafana hardening (C4):
 - `GF_SECURITY_COOKIE_SECURE=false` on purpose while there is no HTTPS (C5).
 - Rotating the admin password / secret key resets existing sessions.
 
+Grafana TLS (C5):
+
+- HTTP loopback is unchanged — a single compose file:
+  `docker compose -f deploy/docker/docker-compose.yml up -d`.
+- TLS is an overlay: `docker compose -f docker-compose.yml -f
+  docker-compose.grafana-tls.yml up -d`; it sets `PROTOCOL=https` and
+  `COOKIE_SECURE=true`, serving `https://127.0.0.1:3000`.
+- Generate self-signed certs with `scripts/gen_grafana_dev_certs.sh`
+  (SAN `127.0.0.1`/`localhost`); the browser will warn about self-signed.
+- `COOKIE_SECURE=true` only in the TLS profile; certs are gitignored.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:

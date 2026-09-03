@@ -1,0 +1,18 @@
+# Grafana TLS overlay — apply ON TOP of docker-compose.yml.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.grafana-tls.yml up -d
+#
+# Serves HTTPS on the same loopback bind (127.0.0.1:3000) inherited from the
+# base file. Generate self-signed certs first:
+#   bash scripts/gen_grafana_dev_certs.sh
+services:
+  grafana:
+    environment:
+      - "GF_SERVER_PROTOCOL=https"
+      - "GF_SECURITY_COOKIE_SECURE=true"
+      - "GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:?GF_SERVER_ROOT_URL is required}"
+      - "GF_SERVER_CERT_FILE=${GF_SERVER_CERT_FILE:?GF_SERVER_CERT_FILE is required}"
+      - "GF_SERVER_CERT_KEY=${GF_SERVER_CERT_KEY:?GF_SERVER_CERT_KEY is required}"
+    volumes:
+      - ./certs/grafana.crt:/etc/grafana/ssl/grafana.crt:ro
+      - ./certs/grafana.key:/etc/grafana/ssl/grafana.key:ro
