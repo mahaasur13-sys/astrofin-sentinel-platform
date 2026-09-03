@@ -63,7 +63,10 @@ services:
       # Loopback only — local dashboard access; not exposed to the world.
       - "127.0.0.1:3000:3000"
     environment:
+      - "GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:?GF_SECURITY_ADMIN_USER is required}"
       - "GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:?GF_SECURITY_ADMIN_PASSWORD is required}"
+      - "GF_USERS_ALLOW_SIGN_UP=false"
+      - "GF_AUTH_ANONYMOUS_ENABLED=false"
     volumes:
       - grafana_data:/var/lib/grafana
       - ../monitoring/dashboards:/etc/grafana/provisioning/dashboards

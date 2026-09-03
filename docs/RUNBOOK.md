@@ -34,6 +34,15 @@ docker compose -f deploy/docker/docker-compose.yml up -d
   `admin/admin` default in the image or compose, so `grafana` will not start
   unless this env is set.
 
+Grafana hardening (C2):
+
+- `GF_SECURITY_ADMIN_USER` and `GF_SECURITY_ADMIN_PASSWORD` are both `${VAR:?}`
+  guards — grafana won't start in this compose without them.
+- The official `grafana/grafana` image still defaults to `admin/admin` if run
+  **outside** this compose; this file overrides it, disables signup and anon.
+- Rotate the admin password after first login; never expose `:3000` to the
+  internet without a reverse-proxy in front.
+
 Run modes (orchestrator):
 
 - `--once` — single pass, no metrics server, exits:
