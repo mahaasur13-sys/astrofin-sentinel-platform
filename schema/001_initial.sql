@@ -18,7 +18,7 @@ CREATE TYPE agent_pool AS ENUM ('TECHNICAL', 'MACRO', 'ASTRO', 'ELECTION', 'SENT
 
 -- Sessions
 CREATE TABLE sessions (
-    session_id VARCHAR(255) PRIMARY KEY,
+    session_id TEXT PRIMARY KEY,
     symbol VARCHAR(20) NOT NULL,
     timeframe VARCHAR(20) NOT NULL,
     query_type query_type NOT NULL,
@@ -45,7 +45,7 @@ CREATE INDEX idx_sessions_regime ON sessions (regime);
 -- Agent Signals
 CREATE TABLE agent_signals (
     signal_id VARCHAR(255) PRIMARY KEY,
-    session_id VARCHAR(255) NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
     agent_name VARCHAR(100) NOT NULL,
     agent_pool agent_pool,
     signal signal_direction,
@@ -62,7 +62,7 @@ CREATE INDEX idx_agent_signals_agent ON agent_signals (agent_name);
 -- Astro Positions (Vedic planetary positions at decision time)
 CREATE TABLE astro_positions (
     id BIGSERIAL PRIMARY KEY,
-    session_id VARCHAR(255) REFERENCES sessions(session_id) ON DELETE CASCADE,
+    session_id TEXT REFERENCES sessions(session_id) ON DELETE CASCADE,
     planet VARCHAR(20) NOT NULL,
     longitude NUMERIC(10,6),
     latitude NUMERIC(10,6),
@@ -91,7 +91,7 @@ CREATE TABLE agent_beliefs (
 CREATE TABLE agent_belief_history (
     id BIGSERIAL PRIMARY KEY,
     agent_name VARCHAR(100) NOT NULL,
-    session_id VARCHAR(255) REFERENCES sessions(session_id) ON DELETE SET NULL,
+    session_id TEXT REFERENCES sessions(session_id) ON DELETE SET NULL,
     prior_alpha NUMERIC(10,4),
     prior_beta NUMERIC(10,4),
     posterior_alpha NUMERIC(10,4),
@@ -106,7 +106,7 @@ CREATE INDEX idx_belief_history_agent ON agent_belief_history (agent_name);
 -- Agent Selection Log
 CREATE TABLE agent_selection_log (
     id BIGSERIAL PRIMARY KEY,
-    session_id VARCHAR(255) NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
     agent_name VARCHAR(100) NOT NULL,
     pool_name agent_pool NOT NULL,
     was_called BOOLEAN NOT NULL,
@@ -122,7 +122,7 @@ CREATE INDEX idx_selection_log_agent ON agent_selection_log (agent_name);
 -- KARL Decision Records
 CREATE TABLE karl_decision_records (
     decision_id VARCHAR(255) PRIMARY KEY,
-    session_id VARCHAR(255) REFERENCES sessions(session_id) ON DELETE SET NULL,
+    session_id TEXT REFERENCES sessions(session_id) ON DELETE SET NULL,
     symbol VARCHAR(20),
     price NUMERIC(20,8),
     timeframe VARCHAR(20),
@@ -194,7 +194,7 @@ CREATE TABLE reward_calibration (
 -- Backtest Runs
 CREATE TABLE backtest_runs (
     id BIGSERIAL PRIMARY KEY,
-    session_id VARCHAR(255) REFERENCES sessions(session_id) ON DELETE SET NULL,
+    session_id TEXT REFERENCES sessions(session_id) ON DELETE SET NULL,
     symbol VARCHAR(20) NOT NULL,
     start_date TIMESTAMPTZ NOT NULL,
     end_date TIMESTAMPTZ NOT NULL,
@@ -235,7 +235,7 @@ CREATE INDEX idx_rag_embedding ON rag_embeddings USING hnsw (embedding vector_co
 -- Immutable Audit Log (aligned 1:1 with db.models.AuditLogRecord)
 CREATE TABLE audit_log (
     id SERIAL PRIMARY KEY,
-    session_id VARCHAR(255),
+    session_id TEXT,
     decision_id VARCHAR(255),
     action VARCHAR(20) NOT NULL,
     details_json TEXT,
