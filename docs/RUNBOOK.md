@@ -36,6 +36,26 @@ docker compose -f deploy/docker/docker-compose.yml up -d
 - Prometheus image is pinned (`prom/prometheus:v2.54.1`); the compose `version:`
   key was removed as obsolete.
 
+## Base full smoke
+
+- Required env (4× `${VAR:?}`): `DATABASE_URL`, `POSTGRES_PASSWORD`,
+  `GF_SECURITY_ADMIN_USER`, `GF_SERVER_ROOT_URL=http://127.0.0.1:3000`.
+- Required files: `deploy/docker/secrets/grafana_admin_password` and
+  `grafana_secret_key` (`chmod 644` for uid 472 — see C9).
+- Agree the DB password with the URL (host = `postgres` service name):
+  `export POSTGRES_PASSWORD=...`
+  `export DATABASE_URL="postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/astrofin"`
+- Bring up the whole base (not just grafana):
+  `docker compose -f deploy/docker/docker-compose.yml up -d`
+- Verify:
+  - `docker compose ps` → app / postgres / redis / prometheus / grafana
+  - Grafana: `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/login` → 200
+  - Postgres ready: `docker compose exec postgres pg_isready -U postgres`
+  - app metrics: `docker compose exec app curl -fsS http://localhost:9191/metrics`
+- Grafana login: user from `GF_SECURITY_ADMIN_USER`, password from the
+  `grafana_admin_password` file.
+- Do not enable C7 / C11 / C12 overlays for this base smoke.
+
 Grafana hardening (C2):
 
 - `GF_SECURITY_ADMIN_USER` and `GF_SECURITY_ADMIN_PASSWORD` are both `${VAR:?}`
