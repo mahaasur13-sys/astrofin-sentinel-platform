@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -46,7 +44,7 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.54.1
     container_name: astrofinsentinel_prom
     volumes:
       - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
