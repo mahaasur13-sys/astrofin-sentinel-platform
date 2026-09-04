@@ -111,11 +111,18 @@ Grafana oauth2-proxy (C8):
 Grafana secrets from files (C9):
 
 - Admin password and secret key come from `deploy/docker/secrets/` files
-  (`grafana_admin_password`, `grafana_secret_key`), mode `0600`; without them
-  the stack will not start (Compose fails on the missing secret file).
+  (`grafana_admin_password`, `grafana_secret_key`); without them the stack will
+  not start (Compose fails on the missing secret file).
 - They are mounted as `/run/secrets/*` and read via `*__FILE` env vars, so
   `docker inspect` / compose config no longer shows the password/key.
+- Grafana reads them as **uid 472** inside the container: a host `chmod 600`
+  owned by your user fails with
+  `run.sh: ... /run/secrets/grafana_secret_key: Permission denied`.
+- dev (rootless Docker): `chmod 644`; prod: `chown 472:472 && chmod 440`
+  (verify on rootless, else fall back to 644).
 - Rotation = rewrite the file + `docker compose up -d --force-recreate grafana`.
+- A full `up` of the base stack also needs `DATABASE_URL` and `POSTGRES_PASSWORD`
+  (app/postgres services), plus `GF_SECURITY_ADMIN_USER` and `GF_SERVER_ROOT_URL`.
 - C10 (Dex) / C11 / C12 are out of scope.
 
 Grafana Dex IdP (C10):
