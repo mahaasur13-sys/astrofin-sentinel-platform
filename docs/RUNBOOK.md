@@ -33,6 +33,8 @@ docker compose -f deploy/docker/docker-compose.yml up -d
 - `GF_SECURITY_ADMIN_PASSWORD` is a hard `${VAR:?}` guard — there is no
   `admin/admin` default in the image or compose, so `grafana` will not start
   unless this env is set.
+- Prometheus image is pinned (`prom/prometheus:v2.54.1`); the compose `version:`
+  key was removed as obsolete.
 
 Grafana hardening (C2):
 
