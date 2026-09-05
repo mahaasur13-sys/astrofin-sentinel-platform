@@ -1,0 +1,44 @@
+# Optional WAL-G sidecar overlay — apply ON TOP of docker-compose.yml.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.wal-g.yml \
+#     --profile backup run --rm wal-g
+#
+# Default command is `backup-list` (NOT backup-push on every up). To back up:
+#   docker compose ... --profile backup run --rm wal-g backup-push /var/lib/postgresql/data
+#
+# DISABLED by default via `profiles: ["backup"]`. The BASE stack is unchanged —
+# do NOT add ${WALG_S3_PREFIX:?} to docker-compose.yml (would break compose-config
+# validation). Postgres archive_mode stays OFF (base backups are not PITR).
+#
+# Image is NOT pinned yet: there is no public official wal-g image
+#   (ghcr.io/wal-g/wal-g returns 403, no official Docker Hub image).
+#   Pin after we publish a glibc wal-g v3.0.6 to our own registry.
+#   Do NOT use community images (chekkan/wal-g etc.) — untrusted/stale.
+services:
+  wal-g:
+    image: ghcr.io/OWNER/wal-g-pg:TODO  # TODO: pin glibc wal-g v3.0.6 @sha256
+    container_name: astrofinsentinel_walg
+    profiles: ["backup"]
+    environment:
+      - "PGHOST=postgres"
+      - "PGPORT=5432"
+      - "PGDATABASE=${POSTGRES_DB:-astrofin}"
+      - "PGUSER=${POSTGRES_USER:-postgres}"
+      - "PGPASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
+      - "PGSSLMODE=disable"
+      - "PGDATA=/var/lib/postgresql/data"
+      - "WALG_S3_PREFIX=${WALG_S3_PREFIX:?WALG_S3_PREFIX is required}"
+      - "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:?}"
+      - "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:?}"
+      - "AWS_ENDPOINT=${AWS_ENDPOINT:?}"
+      - "AWS_REGION=${AWS_REGION:-us-east-1}"
+      - "AWS_S3_FORCE_PATH_STYLE=true"
+      - "WALG_LIBSODIUM_KEY_PATH=/run/secrets/walg_libsodium_key"
+      - "WALG_LIBSODIUM_KEY_TRANSFORM=hex"
+    volumes:
+      - pg_data:/var/lib/postgresql/data:rw  # rw: push needs read access to PGDATA
+      # gitignored key file; required for backup-push, unused by backup-list
+      - ./secrets/walg_libsodium_key:/run/secrets/walg_libsodium_key:ro
+    command: ["backup-list"]
+    restart: "no"
+    # No ports published — wal-g is a run-once CLI, not a network service.
