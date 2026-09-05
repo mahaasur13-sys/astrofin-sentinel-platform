@@ -250,6 +250,20 @@ Run modes (orchestrator):
 
 - `tar` ≠ WAL-G ≠ PITR; there is no "full stack backup".
 
+### PITR (archive_mode) — example only, NOT enabled
+
+- PITR = a base backup **plus** a continuous WAL archive (`archive_mode=on` +
+  `archive_command = 'wal-g wal-push %p'`). The current MinIO base
+  `base_000000010000000000000007` was taken with `archive_mode` **off**, so it is
+  **not PITR-capable** (no continuous WAL history).
+- Example config: `deploy/wal-g/postgresql-archive.conf.example` (not mounted
+  anywhere). To enable PITR: spin a **new** cluster / separate volume, add the
+  example lines to that cluster's `postgresql.conf` before first start — **not**
+  `ALTER SYSTEM`, **not** editing the live `docker_pg_data`.
+- `restore_command = 'wal-g wal-fetch %f %p'` is only used when Postgres starts
+  from a fetched backup (recovery), never on the live primary.
+- The wal-g sidecar image is already pinned (`ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343…`).
+
 ## Image pins (digest)
 
 Base stack images are pinned `tag@sha256:` (multi-arch index digest). To refresh a

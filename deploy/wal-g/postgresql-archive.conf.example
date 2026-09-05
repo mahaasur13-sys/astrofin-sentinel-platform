@@ -1,0 +1,15 @@
+# PostgreSQL WAL-G archive config — EXAMPLE (PITR on a FRESH cluster only).
+#
+# This is NOT mounted by docker-compose.yml or docker-compose.wal-g.yml.
+# Do NOT apply these settings to the live docker_pg_data volume (archive must
+# be enabled from the very first WAL segment, on a brand-new cluster / a
+# separate volume) — otherwise the existing base backup has no continuous WAL
+# history and cannot be used for PITR.
+#
+# To enable PITR on a new cluster, include these lines in that cluster's
+# postgresql.conf (not via ALTER SYSTEM on the live primary):
+
+archive_mode = on
+archive_command = 'wal-g wal-push %p'
+archive_timeout = 60
+restore_command = 'wal-g wal-fetch %f %p'
