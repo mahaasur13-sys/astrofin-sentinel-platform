@@ -17,7 +17,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
       - name: Build image
         run: |
           docker build -f deploy/docker/Dockerfile .
+
+  sbom:
+    name: Generate SBOM (build context)
+    needs: docker-build
+    if: success()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610  # v0
+        with:
+          path: .
+          format: spdx-json
+          artifact-name: sentinel-sbom.spdx.json

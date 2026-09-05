@@ -220,6 +220,17 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
 | grafana | `grafana/grafana:11.2.0@sha256:408afb97…` |
 | app base | `python:3.11-slim@sha256:9534e5a8…` |
 
+## Supply chain (actions / SBOM / signing)
+
+- GitHub Actions are pinned by commit SHA (`owner/repo@<40hexSHA>`), not floating
+  `@vN`/`@main`. To refresh a pin: `gh api repos/<owner>/<repo>/git/ref/tags/<tag>`
+  → copy `object.sha` into the `uses:` line (keep the `# vN` comment for context).
+- `scripts/ci_validate_action_pins.sh` fails CI if any `uses:` uses a floating
+  tag/branch without a 40-hex SHA.
+- The image build publishes a source SBOM artifact (SPDX) via `anchore/sbom-action`.
+- Images are pinned by digest, **not signed**: cosign/SBOM-signing is a follow-up
+  (no signing key in this repo).
+
 ---
 
 ## 0. General triage commands
