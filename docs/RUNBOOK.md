@@ -205,6 +205,26 @@ Run modes (orchestrator):
 - Not backed up: `grafana_data`, `redis_data`, `prom_data` volumes.
 - `backup.sh full` ≠ verified restore — a restore drill is still pending.
 
+### Restore drill (safe)
+
+- **Never** run `deploy/wal-g/restore.sh` against a live cluster — it fetches
+  straight into `$PGDATA` and is **legacy/unsafe until reviewed**. Use the drill
+  script instead:
+  `scripts/walg_restore_drill.sh /tmp/pg-drill` (fetches `LATEST` into a safe,
+  empty, non-live directory; refuses `/var/lib/postgresql/data`, `$PGDATA`, and
+  `docker_pg_data` with exit 2).
+- After fetch: `files restored to DEST; start postgres separately on THIS dest only`.
+- `archive_mode` is **off** in this environment, so a base backup is **not
+  PITR-capable** (no continuous WAL archive replay). `backup ≠ PITR`.
+
+### Local proof (Path A, not in release)
+
+- Proven locally with wal-g v3.0.6 + MinIO `s3://astrofin-backups/wal-g`
+  (`backup-push` → `base_000000010000000000000007`), `PGSSLMODE=disable`, and a
+  `docker_pg_data` volume. This is **not** the release posture: the release
+  remains **Path B** until a compose wal-g sidecar + a pinned wal-g image +
+  an encryption secret + `archive_mode`/wal-push exist.
+
 ## Image pins (digest)
 
 Base stack images are pinned `tag@sha256:` (multi-arch index digest). To refresh a
