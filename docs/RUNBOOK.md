@@ -287,8 +287,11 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
 - `scripts/ci_validate_action_pins.sh` fails CI if any `uses:` uses a floating
   tag/branch without a 40-hex SHA.
 - The image build publishes a source SBOM artifact (SPDX) via `anchore/sbom-action`.
-- Images are pinned by digest, **not signed**: cosign/SBOM-signing is a follow-up
-  (no signing key in this repo).
+- `ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343…` is pinned **and** keyless
+  Cosign-signed (GitHub OIDC, no key pair). Verify:
+  `cosign verify --certificate-identity-regexp '^https://github.com/mahaasur13-sys/astrofin-sentinel-platform/.github/workflows/walg-image-cosign.yml@refs/' --certificate-oidc-issuer https://token.actions.githubusercontent.com ghcr.io/mahaasur13-sys/wal-g-pg@sha256:8de343…`
+- The app `sentinel` image is still build-only (**no push → unsigned**). Supply chain
+  is **not** complete: only the self-hosted wal-g image is signed.
 
 ---
 
