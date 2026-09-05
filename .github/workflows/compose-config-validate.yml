@@ -169,6 +169,9 @@ jobs:
       - name: Validate WAL-G sidecar guard (optional, no untrusted image)
         run: |
           bash scripts/ci_validate_walg_sidecar.sh
+      - name: Validate volume snapshot guard (grafana-only, no pg_data)
+        run: |
+          bash scripts/ci_validate_volume_snapshot.sh
       - name: Validate image digests guard (no floating tags on base stack)
         run: |
           bash scripts/ci_validate_image_digests.sh
