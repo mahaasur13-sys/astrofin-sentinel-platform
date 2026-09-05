@@ -169,6 +169,10 @@ class Settings(BaseSettings):
     # ── Database — Dual-Write Migration (Phase 4.8c) ──────────────
     ENABLE_DUAL_WRITE: bool = Field(default=True, description="Write to both PG and SQLite")
     SQLITE_FALLBACK_PATH: str = Field(default="data/astrofin.db")
+    ALLOW_SQLITE_FALLBACK: bool = Field(
+        default=False,
+        description="Opt-in SQLite fallback on Postgres failure (dev/test only)",
+    )
     DB_POOL_SIZE: int = Field(default=10, ge=1)
     DB_MAX_OVERFLOW: int = Field(default=20, ge=0)
 
