@@ -7,7 +7,9 @@ import pytest
 from orchestration.sentinel_v5 import (
     _build_metrics_app,
     _metrics_bind_host,
+    _metrics_fail_closed,
     _read_metrics_token,
+    _start_metrics_server,
 )
 
 
@@ -73,3 +75,34 @@ def test_read_metrics_token_env_wins_over_file(monkeypatch, tmp_path):
     f.write_text("file\n")
     monkeypatch.setenv("METRICS_TOKEN_FILE", str(f))
     assert _read_metrics_token() == "env-wins"
+
+
+def test_metrics_fail_closed_bind_all_no_token():
+    with pytest.raises(RuntimeError):
+        _metrics_fail_closed("0.0.0.0", "")
+
+
+def test_metrics_fail_closed_loopback_no_token_ok():
+    _metrics_fail_closed("127.0.0.1", "")  # must not raise
+
+
+def test_metrics_fail_closed_bind_all_with_token_ok():
+    _metrics_fail_closed("0.0.0.0", "sekrit")  # must not raise
+
+
+def test_start_metrics_bind_all_no_token_raises(monkeypatch):
+    monkeypatch.setenv("METRICS_BIND_ALL", "true")
+    monkeypatch.delenv("METRICS_TOKEN", raising=False)
+    monkeypatch.delenv("METRICS_TOKEN_FILE", raising=False)
+    with pytest.raises(RuntimeError):
+        _start_metrics_server()
+
+
+def test_start_metrics_bind_all_empty_file_raises(monkeypatch, tmp_path):
+    monkeypatch.setenv("METRICS_BIND_ALL", "true")
+    monkeypatch.delenv("METRICS_TOKEN", raising=False)
+    f = tmp_path / "token"
+    f.write_text("")
+    monkeypatch.setenv("METRICS_TOKEN_FILE", str(f))
+    with pytest.raises(RuntimeError):
+        _start_metrics_server()
