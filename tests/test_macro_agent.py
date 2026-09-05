@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 from agents._impl.macro_agent import MacroAgent
 from core.base_agent import SignalDirection
 
@@ -52,10 +52,8 @@ class TestMacroAgentGeopolitical:
     @pytest.mark.asyncio
     async def test_rag_returns_bearish_on_conflict(self, agent):
         mock_rag = MagicMock()
-        mock_rag.search = AsyncMock(
-            return_value=[
-                MagicMock(page_content="war and conflict in region causing instability")
-            ]
+        mock_rag.retrieve = MagicMock(
+            return_value=[{"content": "war and conflict in region causing instability"}]
         )
         agent.rag = mock_rag
         sig, conf, reason = await agent._analyze_geopolitical({})
@@ -64,10 +62,8 @@ class TestMacroAgentGeopolitical:
     @pytest.mark.asyncio
     async def test_rag_returns_bullish_on_peace(self, agent):
         mock_rag = MagicMock()
-        mock_rag.search = AsyncMock(
-            return_value=[
-                MagicMock(page_content="peace agreement signed, trade deal reached")
-            ]
+        mock_rag.retrieve = MagicMock(
+            return_value=[{"content": "peace agreement signed, trade deal reached"}]
         )
         agent.rag = mock_rag
         sig, conf, reason = await agent._analyze_geopolitical({})
