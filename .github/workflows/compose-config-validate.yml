@@ -166,6 +166,9 @@ jobs:
       - name: Validate WAL-G restore guard (no fetch into live PGDATA)
         run: |
           bash scripts/ci_validate_walg_restore_guard.sh
+      - name: Validate WAL-G sidecar guard (optional, no untrusted image)
+        run: |
+          bash scripts/ci_validate_walg_sidecar.sh
       - name: Validate image digests guard (no floating tags on base stack)
         run: |
           bash scripts/ci_validate_image_digests.sh

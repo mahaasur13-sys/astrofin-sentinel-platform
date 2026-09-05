@@ -225,6 +225,20 @@ Run modes (orchestrator):
   remains **Path B** until a compose wal-g sidecar + a pinned wal-g image +
   an encryption secret + `archive_mode`/wal-push exist.
 
+### Sidecar overlay (optional, image NOT pinned)
+
+- `deploy/docker/docker-compose.wal-g.yml` is an **optional** `profiles: ["backup"]`
+  overlay (base stack unchanged). Run it with:
+  `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.wal-g.yml --profile backup run --rm wal-g`
+  (default command `backup-list`, not `backup-push`).
+- The overlay image is **not pinned yet** (`ghcr.io/OWNER/wal-g-pg:TODO`): there
+  is no public official wal-g image (ghcr.io/wal-g/wal-g is 403, no Docker Hub
+  official). Pin after we publish a glibc wal-g v3.0.6 to our own registry.
+  Do **not** use community images (`chekkan/wal-g` etc.).
+- The local proof above used a host `ubuntu:24.04` helper (glibc) — the overlay
+  is the eventual replacement, not yet active. wal-g needs glibc, not
+  alpine/musl. `archive_mode` stays **off**; the restore drill (#370) still applies.
+
 ## Image pins (digest)
 
 Base stack images are pinned `tag@sha256:` (multi-arch index digest). To refresh a
