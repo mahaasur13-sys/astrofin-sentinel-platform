@@ -27,7 +27,7 @@ services:
       - ./logs:/app/logs
 
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15-alpine@sha256:fe0737ba566a2c5b2a28f34433c0a423261900ec17b9bf7ad115e1aae7e57f1b  # refresh: docker buildx imagetools inspect postgres:15-alpine
     container_name: astrofinsentinel_db
     environment:
       - "POSTGRES_DB=${POSTGRES_DB:-astrofin}"
@@ -46,7 +46,7 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf  # refresh: docker buildx imagetools inspect redis:7-alpine
     container_name: astrofinsentinel_redis
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}"]
     environment:
