@@ -1,6 +1,11 @@
 name: WAL-G image Cosign (keyless)
 
 on:
+  push:
+    branches: [release/v1.0.0]
+    paths:
+      - ".github/workflows/walg-image-cosign.yml"
+      - "deploy/docker/docker-compose.wal-g.yml"
   workflow_dispatch:
 
 permissions:
