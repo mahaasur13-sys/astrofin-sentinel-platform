@@ -82,6 +82,8 @@ scrape_configs:
     metrics_path: /metrics
     scrape_interval: 15s
     scrape_timeout: 10s
+    authorization:
+      credentials_file: /run/secrets/metrics_token
     static_configs:
       - targets: ['app:9191']
         labels:
@@ -92,6 +94,8 @@ scrape_configs:
     metrics_path: /metrics
     scrape_interval: 15s
     scrape_timeout: 10s
+    authorization:
+      credentials_file: /run/secrets/metrics_token
     static_configs:
       - targets: ['app:9191']
         labels:

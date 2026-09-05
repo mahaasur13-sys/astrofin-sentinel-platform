@@ -27,8 +27,9 @@ EXPOSE 8000
 
 # Health check — the daemon (orchestration.sentinel_v5) serves Prometheus
 # /metrics on METRICS_PORT (9191), not :8000. Check the port it actually binds.
+# Token is the shared compose secret (same source Prometheus uses).
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:9191/metrics || exit 1
+    CMD curl -f -H "Authorization: Bearer $(cat /run/secrets/metrics_token)" http://localhost:9191/metrics || exit 1
 
 ENTRYPOINT ["/app/deploy/docker/app-entrypoint.sh"]
 
