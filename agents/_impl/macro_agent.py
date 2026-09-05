@@ -24,7 +24,6 @@ from core.base_agent import (
     BaseAgent,
     SignalDirection,
 )
-from knowledge.rag_retriever import RAGRetriever
 
 logger = logging.getLogger(__name__)
 
@@ -52,10 +51,17 @@ class MacroAgent(BaseAgent[AgentResponse]):
         super().__init__(name="MacroAgent", domain="macro", weight=0.15)
         self.rag: Optional[RAGRetriever] = None
 
-    async def _get_rag(self) -> RAGRetriever:
-        """Lazy init RAG retriever."""
+    async def _get_rag(self) -> Optional[RAGRetriever]:
+        """Lazy init RAG retriever.
+
+        The import is deferred so that the optional [rag] dependency (faiss,
+        structlog, etc.) is not required to import or run the MacroAgent. When
+        RAG is unavailable the agent degrades gracefully and still runs.
+        """
         if self.rag is None:
             try:
+                from knowledge.rag_retriever import RAGRetriever
+
                 self.rag = RAGRetriever()  # index_name removed in P2-02 RAGClient (G12)
             except Exception as e:
                 logger.warning("Failed to init RAG for MacroAgent: %s", e)
