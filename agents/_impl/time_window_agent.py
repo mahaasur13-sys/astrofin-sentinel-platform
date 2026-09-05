@@ -4,6 +4,7 @@ Time Window Agent — entry timing and best trading windows.
 
 from __future__ import annotations
 
+import calendar
 import logging
 from datetime import datetime
 
@@ -208,7 +209,8 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
             score = 0.55
         else:
             direction = "neutral"
-            summary = f"1D: midweek ({['Mon', 'Tue', 'Wed', 'Thu', 'Fri'][weekday]})"
+            # calendar.day_abbr maps Mon=0..Sun=6, matching datetime.weekday().
+            summary = f"1D: {calendar.day_abbr[weekday]} (no weekday edge)"
             score = 0.50
 
         return {"direction": direction, "summary": summary, "score": score}
