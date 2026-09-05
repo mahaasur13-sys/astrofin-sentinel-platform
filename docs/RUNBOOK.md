@@ -292,6 +292,9 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
   `cosign verify --certificate-identity-regexp '^https://github.com/mahaasur13-sys/astrofin-sentinel-platform/.github/workflows/walg-image-cosign.yml@refs/' --certificate-oidc-issuer https://token.actions.githubusercontent.com ghcr.io/mahaasur13-sys/wal-g-pg@sha256:8de343…`
 - The app `sentinel` image is still build-only (**no push → unsigned**). Supply chain
   is **not** complete: only the self-hosted wal-g image is signed.
+- To (re)sign: Actions → «WAL-G image Cosign (keyless)» → Run workflow (ref
+  `release/v1.0.0`). This is a separate workflow from «Council Unit Suite» (the
+  PR check named `ci(security): keyless Cosign…` is just the unit suite).
 
 ---
 
