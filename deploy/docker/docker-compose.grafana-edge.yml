@@ -9,7 +9,7 @@ services:
     ports: !reset []
 
   caddy:
-    image: caddy:2.8.4
+    image: caddy:2.8.4@sha256:226d1f059b75399fe19182893c7184591c07b97afc8dfcf44eeb80c9a77a530f  # refresh: docker buildx imagetools inspect caddy:2.8.4
     container_name: astrofinsentinel_caddy
     ports:
       - "127.0.0.1:8443:8443"

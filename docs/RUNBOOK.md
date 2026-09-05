@@ -205,6 +205,21 @@ Run modes (orchestrator):
 - Not backed up: `grafana_data`, `redis_data`, `prom_data` volumes.
 - `backup.sh full` ≠ verified restore — a restore drill is still pending.
 
+## Image pins (digest)
+
+Base stack images are pinned `tag@sha256:` (multi-arch index digest). To refresh a
+pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update the
+`image:`/`FROM` line. CI fails if postgres/redis/python lose their digest or if any
+`image:`/`FROM` uses `:latest`. Digests are not signatures — cosign/SBOM is a follow-up.
+
+| service | image (digest-pinned) |
+|---|---|
+| postgres | `postgres:15-alpine@sha256:fe0737…` |
+| redis | `redis:7-alpine@sha256:ff02b58f…` |
+| prometheus | `prom/prometheus:v2.54.1@sha256:f6639335…` |
+| grafana | `grafana/grafana:11.2.0@sha256:408afb97…` |
+| app base | `python:3.11-slim@sha256:9534e5a8…` |
+
 ---
 
 ## 0. General triage commands
