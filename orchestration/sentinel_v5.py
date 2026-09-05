@@ -244,6 +244,21 @@ async def run_karl_sentinel_v5(
         current_price = await _fetch_price(symbols[0])
     current_price = current_price or 50000
 
+    if persist:
+        # Persist the session row BEFORE the KARL agent runs, so its
+        # decision/signal inserts (FK -> sessions.session_id) do not violate
+        # the FK on a brand-new session_id. The later save_session() is an
+        # upsert and updates this row with the final results.
+        save_session(
+            {
+                "session_id": session_id,
+                "symbol": symbols[0],
+                "timeframe": timeframe,
+                "query_type": route_output.query_type.value,
+                "current_price": current_price,
+            }
+        )
+
     state = {
         "symbol": symbols[0],
         "timeframe_requested": timeframe,
