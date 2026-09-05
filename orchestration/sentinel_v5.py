@@ -400,15 +400,53 @@ async def run_karl_sentinel_v5(
     return final_output
 
 
+def _metrics_bind_host() -> str:
+    """127.0.0.1 by default; 0.0.0.0 only with an explicit METRICS_BIND_ALL flag."""
+    bind_all = os.getenv("METRICS_BIND_ALL", "false").lower() in {"1", "true", "yes"}
+    return "0.0.0.0" if bind_all else "127.0.0.1"
+
+
+def _build_metrics_app(token: str):
+    """Prometheus WSGI app, optionally behind a Bearer-token guard."""
+    from prometheus_client.exposition import make_wsgi_app
+
+    app = make_wsgi_app()
+    if not token:
+        return app
+
+    def _guarded(environ, start_response):
+        if environ.get("HTTP_AUTHORIZATION") != f"Bearer {token}":
+            start_response("401 Unauthorized", [("Content-Type", "text/plain")])
+            return [b"unauthorized\n"]
+        return app(environ, start_response)
+
+    return _guarded
+
+
 def _start_metrics_server() -> None:
-    """Serve Prometheus /metrics in-process (shares the REGISTRY)."""
-    import prometheus_client
+    """Serve Prometheus /metrics in-process (shares the REGISTRY).
+
+    Default bind is loopback (127.0.0.1); ``METRICS_BIND_ALL=true`` opts into
+    binding 0.0.0.0 for the internal compose network (never a host port). If
+    ``METRICS_TOKEN`` is set, /metrics requires ``Authorization: Bearer``.
+    """
+    import threading
+
+    from socketserver import ThreadingMixIn
+    from wsgiref.simple_server import WSGIServer, make_server
+
+    class _ThreadingWSGIServer(ThreadingMixIn, WSGIServer):
+        daemon_threads = True
 
     port = int(os.getenv("METRICS_PORT", "9191"))
-    host = os.getenv("METRICS_HOST", "0.0.0.0")
+    host = _metrics_bind_host()
+    token = os.getenv("METRICS_TOKEN", "")
+    app = _build_metrics_app(token)
+
     try:
-        prometheus_client.start_http_server(port, addr=host)
-        logger.info("[metrics] Prometheus /metrics on %s:%s", host, port)
+        httpd = make_server(host, port, app, server_class=_ThreadingWSGIServer)
+        threading.Thread(target=httpd.serve_forever, daemon=True).start()
+        logger.info("[metrics] Prometheus /metrics on %s:%s (auth=%s)", host, port, bool(token))
     except Exception as e:  # noqa: BLE001 — observability must never crash the daemon
         logger.warning("[metrics] server failed to start: %s", e)
 
