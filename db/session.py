@@ -12,6 +12,7 @@ import time
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine, event, text
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
 
@@ -115,7 +116,10 @@ class DatabaseManager:
 
             session.commit()
 
-        except Exception as e:
+        except OperationalError as e:
+            # Only fall back to SQLite when PostgreSQL is genuinely unreachable.
+            # Data-integrity errors (e.g. UniqueViolation) must propagate so they
+            # are surfaced, not silently swallowed as a successful SQLite write.
             if session:
                 session.rollback()
             if pg_attempted and self.sqlite_session_factory:
@@ -124,6 +128,10 @@ class DatabaseManager:
                     yield fallback
                     fallback.commit()
                     return
+            raise
+        except Exception as e:
+            if session:
+                session.rollback()
             raise
         finally:
             if session:
