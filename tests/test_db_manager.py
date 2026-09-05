@@ -8,7 +8,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://test:test@localhost:5432/test_db")
+os.environ.setdefault("DATABASE_URL", "postgresql+psycopg2://test:test@localhost:5432/test_db")
 os.environ.setdefault("ENABLE_DUAL_WRITE", "true")
 
 from db.session import DatabaseManager, get_db_manager
