@@ -32,10 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: ${{ env.PYTHON_DEFAULT }}
       - run: |
@@ -48,7 +48,7 @@ jobs:
             echo "::warning::DORA report incomplete"
       - name: Upload DORA report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: dora-report
           path: docs/operations/dora_latest.json
@@ -76,8 +76,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.report_only != 'true' || github.event_name == 'schedule'
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: ${{ env.PYTHON_DEFAULT }}
           cache: pip
@@ -104,7 +104,7 @@ jobs:
           pytest -q --tb=no -p no:cacheprovider \
             --co --cov=. --cov-report=xml --cov-config=/dev/null \
             -m "not slow" 2>&1 | tail -10 || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         if: always()
         with:
           name: coverage-xml
