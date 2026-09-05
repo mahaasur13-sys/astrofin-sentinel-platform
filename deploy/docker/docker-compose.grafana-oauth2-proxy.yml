@@ -6,7 +6,7 @@
 # Does NOT replace the Grafana Generic OAuth overlay (C6). No IdP service here.
 services:
   oauth2-proxy:
-    image: quay.io/oauth2-proxy/oauth2-proxy:v7.7.1
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.7.1@sha256:f6a4aa83a27e316114bf79664302b1ffb2cc8ce697fb479273af4feb3fb16fe3  # refresh: docker buildx imagetools inspect quay.io/oauth2-proxy/oauth2-proxy:v7.7.1
     container_name: astrofinsentinel_oauth2_proxy
     ports:
       - "127.0.0.1:4180:4180"

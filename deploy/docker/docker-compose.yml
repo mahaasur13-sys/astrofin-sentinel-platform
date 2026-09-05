@@ -61,7 +61,7 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:v2.54.1
+    image: prom/prometheus:v2.54.1@sha256:f6639335d34a77d9d9db382b92eeb7fc00934be8eae81dbc03b31cfe90411a94  # refresh: docker buildx imagetools inspect prom/prometheus:v2.54.1
     container_name: astrofinsentinel_prom
     secrets:
       - metrics_token
@@ -74,7 +74,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:11.2.0
+    image: grafana/grafana:11.2.0@sha256:408afb9726de5122b00a2576763a8a57a3c86d5b0eff5305bc994ceb3eb96c3f  # refresh: docker buildx imagetools inspect grafana/grafana:11.2.0
     container_name: astrofinsentinel_grafana
     ports:
       # Loopback only — local dashboard access; not exposed to the world.
