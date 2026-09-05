@@ -17,11 +17,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Prepare dummy Grafana secret files (gitignored, not committed)
+      - name: Prepare dummy secret files (gitignored, not committed)
         run: |
           mkdir -p deploy/docker/secrets
           printf 'ci-dummy-admin-password\n' > deploy/docker/secrets/grafana_admin_password
           printf 'ci-dummy-secret-key\n' > deploy/docker/secrets/grafana_secret_key
+          printf 'ci-dummy-metrics-token\n' > deploy/docker/secrets/metrics_token
       - name: Validate compose interpolation (dummy env, no build)
         env:
           # Dummy placeholders only — they satisfy the ${VAR:?} guards so

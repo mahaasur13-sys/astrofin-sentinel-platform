@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from orchestration.sentinel_v5 import _build_metrics_app, _metrics_bind_host
+from orchestration.sentinel_v5 import (
+    _build_metrics_app,
+    _metrics_bind_host,
+    _read_metrics_token,
+)
 
 
 def _call(app, headers=None):
@@ -47,3 +51,25 @@ def test_metrics_token_required():
 
     status, _ = _call(app, {"HTTP_AUTHORIZATION": "Bearer wrong"})
     assert status == "401 Unauthorized"
+
+
+def test_read_metrics_token_from_env(monkeypatch):
+    monkeypatch.setenv("METRICS_TOKEN", "from-env")
+    monkeypatch.delenv("METRICS_TOKEN_FILE", raising=False)
+    assert _read_metrics_token() == "from-env"
+
+
+def test_read_metrics_token_from_file(monkeypatch, tmp_path):
+    monkeypatch.delenv("METRICS_TOKEN", raising=False)
+    f = tmp_path / "token"
+    f.write_text("from-file\n")
+    monkeypatch.setenv("METRICS_TOKEN_FILE", str(f))
+    assert _read_metrics_token() == "from-file"
+
+
+def test_read_metrics_token_env_wins_over_file(monkeypatch, tmp_path):
+    monkeypatch.setenv("METRICS_TOKEN", "env-wins")
+    f = tmp_path / "token"
+    f.write_text("file\n")
+    monkeypatch.setenv("METRICS_TOKEN_FILE", str(f))
+    assert _read_metrics_token() == "env-wins"

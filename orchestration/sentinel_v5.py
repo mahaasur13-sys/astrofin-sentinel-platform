@@ -423,12 +423,28 @@ def _build_metrics_app(token: str):
     return _guarded
 
 
+def _read_metrics_token() -> str:
+    """Bearer token from METRICS_TOKEN env, else METRICS_TOKEN_FILE (compose secret)."""
+    token = os.getenv("METRICS_TOKEN", "").strip()
+    if token:
+        return token
+    token_file = os.getenv("METRICS_TOKEN_FILE", "").strip()
+    if token_file:
+        try:
+            with open(token_file, encoding="utf-8") as fh:
+                return fh.read().strip()
+        except OSError:
+            return ""
+    return ""
+
+
 def _start_metrics_server() -> None:
     """Serve Prometheus /metrics in-process (shares the REGISTRY).
 
     Default bind is loopback (127.0.0.1); ``METRICS_BIND_ALL=true`` opts into
     binding 0.0.0.0 for the internal compose network (never a host port). If
-    ``METRICS_TOKEN`` is set, /metrics requires ``Authorization: Bearer``.
+    ``METRICS_TOKEN`` / ``METRICS_TOKEN_FILE`` is set, /metrics requires an
+    ``Authorization: Bearer`` header.
     """
     import threading
 
@@ -440,8 +456,14 @@ def _start_metrics_server() -> None:
 
     port = int(os.getenv("METRICS_PORT", "9191"))
     host = _metrics_bind_host()
-    token = os.getenv("METRICS_TOKEN", "")
+    token = _read_metrics_token()
     app = _build_metrics_app(token)
+
+    if host == "0.0.0.0" and not token:
+        logger.error(
+            "[metrics] METRICS_BIND_ALL=true without METRICS_TOKEN — /metrics is "
+            "unauthenticated on the internal network"
+        )
 
     try:
         httpd = make_server(host, port, app, server_class=_ThreadingWSGIServer)

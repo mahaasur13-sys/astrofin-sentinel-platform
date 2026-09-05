@@ -11,8 +11,11 @@ services:
       - "KARL_SYNC_INTERVAL=${KARL_SYNC_INTERVAL:-10}"
       # Metrics bind: 0.0.0.0 only for the internal compose network (Prometheus
       # scrape); :9191 is NOT published to the host. Loopback is the code default.
+      # Token comes from the shared secret file (same source Prometheus uses).
       - "METRICS_BIND_ALL=true"
-      - "METRICS_TOKEN=${METRICS_TOKEN:-}"
+      - "METRICS_TOKEN_FILE=/run/secrets/metrics_token"
+    secrets:
+      - metrics_token
     depends_on:
       postgres:
         condition: service_healthy
@@ -60,6 +63,8 @@ services:
   prometheus:
     image: prom/prometheus:v2.54.1
     container_name: astrofinsentinel_prom
+    secrets:
+      - metrics_token
     volumes:
       - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prom_data:/prometheus
@@ -113,3 +118,5 @@ secrets:
     file: ./secrets/grafana_admin_password
   grafana_secret_key:
     file: ./secrets/grafana_secret_key
+  metrics_token:
+    file: ./secrets/metrics_token
