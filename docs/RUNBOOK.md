@@ -35,6 +35,9 @@ docker compose -f deploy/docker/docker-compose.yml up -d
   unless this env is set.
 - Prometheus image is pinned (`prom/prometheus:v2.54.1`); the compose `version:`
   key was removed as obsolete.
+- The app image build context is the repo root and is filtered by the root
+  `.dockerignore` — it must never ship `.git`, `.venv`, `deploy/docker/secrets`
+  or `deploy/docker/certs` into the image.
 
 ## Base full smoke
 
