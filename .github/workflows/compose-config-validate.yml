@@ -172,6 +172,9 @@ jobs:
       - name: Validate volume snapshot guard (grafana-only, no pg_data)
         run: |
           bash scripts/ci_validate_volume_snapshot.sh
+      - name: Validate WAL-G archive-off guard (base compose no archive_mode=on)
+        run: |
+          bash scripts/ci_validate_walg_archive_off_in_base.sh
       - name: Validate image digests guard (no floating tags on base stack)
         run: |
           bash scripts/ci_validate_image_digests.sh
