@@ -28,6 +28,7 @@ jobs:
           # `config` can interpolate. Never real secrets, never used to boot.
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
         run: |
@@ -36,6 +37,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "https://127.0.0.1:3000"
           GF_SERVER_CERT_FILE: "/etc/grafana/ssl/grafana.crt"
@@ -49,6 +51,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
           GF_AUTH_GENERIC_OAUTH_NAME: "dummy_idp"
@@ -67,6 +70,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
           DOMAIN: "localhost"
@@ -80,6 +84,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
           OAUTH2_PROXY_CLIENT_ID: "dummy_client_id"
@@ -96,6 +101,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
           DEX_ISSUER: "http://127.0.0.1:5556/dex"
@@ -110,6 +116,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
           DEX_ISSUER: "http://127.0.0.1:5556/dex"
@@ -132,6 +139,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
           DOMAIN: "example.invalid"
@@ -144,3 +152,6 @@ jobs:
       - name: Validate Grafana auth guard (no default admin)
         run: |
           bash scripts/ci_validate_grafana_auth.sh
+      - name: Validate DB fail-closed guard (no silent SQLite fallback)
+        run: |
+          bash scripts/ci_validate_db_failclosed.sh
