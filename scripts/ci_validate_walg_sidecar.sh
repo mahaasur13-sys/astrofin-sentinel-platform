@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # CI guard: WAL-G sidecar overlay must be optional, port-free, and never use an
-# untrusted third-party wal-g image. The image may be a TODO placeholder (no
-# public official wal-g image yet) — that is a WARNING, not a failure.
+# untrusted third-party wal-g image. TODO / missing @sha256 is a failure.
 #
 # Deterministic: pure grep. No network, no docker pull.
 
@@ -37,7 +36,8 @@ fi
 # 5. The image may be a TODO placeholder / unpinned — WARNING only (no public
 #    official wal-g image to pin yet). Pinned (@sha256:) is also fine.
 if grep -qE 'image:[[:space:]]+.*TODO' "$OVERLAY" || ! grep -qE 'image:[[:space:]]+[^[:space:]]+@sha256:' "$OVERLAY"; then
-  echo "WARNING: $OVERLAY wal-g image is not pinned (TODO); pin glibc wal-g v3.0.6 after publishing to our registry" >&2
+  echo "::error::$OVERLAY wal-g image is TODO or missing @sha256" >&2
+  exit 1
 fi
 
 if [ "$fail" -ne 0 ]; then

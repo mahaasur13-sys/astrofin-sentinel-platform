@@ -10,13 +10,11 @@
 # do NOT add ${WALG_S3_PREFIX:?} to docker-compose.yml (would break compose-config
 # validation). Postgres archive_mode stays OFF (base backups are not PITR).
 #
-# Image is NOT pinned yet: there is no public official wal-g image
-#   (ghcr.io/wal-g/wal-g returns 403, no official Docker Hub image).
-#   Pin after we publish a glibc wal-g v3.0.6 to our own registry.
+# Image: self-hosted glibc wal-g v3.0.6 on GHCR, pinned by index digest.
 #   Do NOT use community images (chekkan/wal-g etc.) — untrusted/stale.
 services:
   wal-g:
-    image: ghcr.io/OWNER/wal-g-pg:TODO  # TODO: pin glibc wal-g v3.0.6 @sha256
+    image: ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343149a7eba28b25d50f6c56210b88f1db36ada10d89a8a12b0d841c74b82
     container_name: astrofinsentinel_walg
     profiles: ["backup"]
     environment:
