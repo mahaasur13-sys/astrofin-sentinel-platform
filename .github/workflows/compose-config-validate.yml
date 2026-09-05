@@ -163,6 +163,9 @@ jobs:
       - name: Validate WAL-G config guard (no fake S3/encryption)
         run: |
           bash scripts/ci_validate_walg_config.sh
+      - name: Validate WAL-G restore guard (no fetch into live PGDATA)
+        run: |
+          bash scripts/ci_validate_walg_restore_guard.sh
       - name: Validate image digests guard (no floating tags on base stack)
         run: |
           bash scripts/ci_validate_image_digests.sh
