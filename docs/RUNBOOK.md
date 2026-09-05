@@ -298,6 +298,11 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
 - First run #1 failed with `UNAUTHORIZED: authentication required` on ghcr.io
   pull (cosign not logged in) — fixed by adding `docker/login-action` (ghcr.io,
   `secrets.GITHUB_TOKEN`).
+- Run #2 failed with `DENIED: requested access to the resource is denied` while
+  pushing the `.sig` manifest: the `wal-g-pg` package is **not linked to this
+  repo**, so `GITHUB_TOKEN` (`packages: write`) cannot write to it. Fix: GitHub →
+  Packages → `wal-g-pg` → Package settings → **Connect repository**
+  (`astrofin-sentinel-platform`). This is a UI action, not a code change.
 
 ---
 
