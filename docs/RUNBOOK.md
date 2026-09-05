@@ -295,6 +295,9 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
 - To (re)sign: Actions → «WAL-G image Cosign (keyless)» → Run workflow (ref
   `release/v1.0.0`). This is a separate workflow from «Council Unit Suite» (the
   PR check named `ci(security): keyless Cosign…` is just the unit suite).
+- First run #1 failed with `UNAUTHORIZED: authentication required` on ghcr.io
+  pull (cosign not logged in) — fixed by adding `docker/login-action` (ghcr.io,
+  `secrets.GITHUB_TOKEN`).
 
 ---
 
