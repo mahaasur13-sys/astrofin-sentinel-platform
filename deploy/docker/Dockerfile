@@ -16,6 +16,9 @@ RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.
 # Copy application code
 COPY . .
 
+# Make the app entrypoint executable for the non-root user
+RUN chmod +x /app/deploy/docker/app-entrypoint.sh
+
 # Create non-root user
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
@@ -26,5 +29,7 @@ EXPOSE 8000
 # /metrics on METRICS_PORT (9191), not :8000. Check the port it actually binds.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:9191/metrics || exit 1
+
+ENTRYPOINT ["/app/deploy/docker/app-entrypoint.sh"]
 
 CMD ["python", "-m", "orchestration.sentinel_v5"]

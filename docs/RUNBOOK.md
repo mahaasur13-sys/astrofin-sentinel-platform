@@ -58,10 +58,9 @@ docker compose -f deploy/docker/docker-compose.yml up -d
 - Grafana login: user from `GF_SECURITY_ADMIN_USER`, password from the
   `grafana_admin_password` file.
 - Do not enable C7 / C11 / C12 overlays for this base smoke.
-- On a fresh volume the first `up` may leave the Postgres schema partial
-  (some tables present, others missing). Ensure it is complete — idempotent,
-  `Base.metadata.create_all` is `checkfirst`, no DROP:
-  `docker compose exec app python -m db`
+- The app entrypoint runs `python -m db` (idempotent `create_all`, no DROP)
+  before the orchestrator; manual `exec python -m db` is no longer needed.
+- On an already-populated volume re-running init is a harmless no-op.
 
 Grafana hardening (C2):
 
