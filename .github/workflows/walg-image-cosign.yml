@@ -1,0 +1,30 @@
+name: WAL-G image Cosign (keyless)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  sign-verify:
+    name: Keyless sign + verify wal-g-pg digest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Pin the exact digest (never sign a floating tag).
+      IMAGE: ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343149a7eba28b25d50f6c56210b88f1db36ada10d89a8a12b0d841c74b82
+    steps:
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac  # v3
+      - name: Sign image (keyless, GitHub OIDC)
+        run: |
+          cosign sign --yes "${IMAGE}"
+      - name: Verify signature (this repo/workflow identity only)
+        run: |
+          cosign verify \
+            --certificate-identity-regexp '^https://github.com/mahaasur13-sys/astrofin-sentinel-platform/.github/workflows/walg-image-cosign.yml@refs/' \
+            --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+            "${IMAGE}"
