@@ -160,3 +160,6 @@ jobs:
       - name: Validate oauth2 email domains guard (no wildcard in non-dev overlays)
         run: |
           bash scripts/ci_validate_oauth2_email_domains.sh
+      - name: Validate WAL-G config guard (no fake S3/encryption)
+        run: |
+          bash scripts/ci_validate_walg_config.sh
