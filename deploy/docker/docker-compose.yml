@@ -9,6 +9,10 @@ services:
       - "REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379/0"
       - "LOG_LEVEL=${LOG_LEVEL:-INFO}"
       - "KARL_SYNC_INTERVAL=${KARL_SYNC_INTERVAL:-10}"
+      # Metrics bind: 0.0.0.0 only for the internal compose network (Prometheus
+      # scrape); :9191 is NOT published to the host. Loopback is the code default.
+      - "METRICS_BIND_ALL=true"
+      - "METRICS_TOKEN=${METRICS_TOKEN:-}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -28,7 +32,9 @@ services:
       - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      # Schema is created idempotently by the app entrypoint `python -m db`
+      # (Base.metadata.create_all). No init.sql is mounted — do not add one
+      # with secrets here.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
