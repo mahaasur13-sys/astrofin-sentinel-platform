@@ -239,6 +239,17 @@ Run modes (orchestrator):
   is the eventual replacement, not yet active. wal-g needs glibc, not
   alpine/musl. `archive_mode` stays **off**; the restore drill (#370) still applies.
 
+### Volume backup policy
+
+| volume | policy |
+|---|---|
+| `pg_data` | WAL-G only (`--profile backup` overlay, pinned image) — never `tar` |
+| `grafana_data` | optional `scripts/volume_snapshot.sh grafana /abs/dest` (tar to a safe empty dest) |
+| `redis_data` | **not backed up** |
+| `prom_data` | **not backed up** |
+
+- `tar` ≠ WAL-G ≠ PITR; there is no "full stack backup".
+
 ## Image pins (digest)
 
 Base stack images are pinned `tag@sha256:` (multi-arch index digest). To refresh a
