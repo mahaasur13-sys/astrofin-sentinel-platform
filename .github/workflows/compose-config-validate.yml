@@ -92,6 +92,7 @@ jobs:
           OAUTH2_PROXY_COOKIE_SECRET: "dummy_cookie_secret_32b_min_xxxx"
           OAUTH2_PROXY_OIDC_ISSUER_URL: "https://example.invalid/"
           OAUTH2_PROXY_REDIRECT_URL: "http://127.0.0.1:4180/oauth2/callback"
+          OAUTH2_EMAIL_DOMAINS: "example.invalid"
         run: |
           docker compose \
             -f deploy/docker/docker-compose.yml \
@@ -155,3 +156,6 @@ jobs:
       - name: Validate DB fail-closed guard (no silent SQLite fallback)
         run: |
           bash scripts/ci_validate_db_failclosed.sh
+      - name: Validate oauth2 email domains guard (no wildcard in non-dev overlays)
+        run: |
+          bash scripts/ci_validate_oauth2_email_domains.sh
