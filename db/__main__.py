@@ -1,11 +1,14 @@
-"""db/__main__.py — Entry point for: python -m db.init
+"""db/__main__.py — CLI entry point.
+
+Invoked via ``python -m db``. ``python -m db.init`` is an equivalent shim
+(see ``db/init.py``) that delegates here, so both commands behave the same.
 
 ATOM-DB-MIGRATION-002
 Usage:
-    python -m db.init              # init schema
-    python -m db.init --status     # show DB status
-    python -m db.init --migrate    # migrate from SQLite
-    python -m db.init --reset      # reset schema (DROP + CREATE)
+    python -m db              # init schema
+    python -m db --status     # show DB status
+    python -m db --migrate    # migrate from SQLite
+    python -m db --reset      # reset schema (DROP + CREATE)
 """
 
 from __future__ import annotations
@@ -20,7 +23,7 @@ log = logging.getLogger(__name__)
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="python -m db.init")
+    parser = argparse.ArgumentParser(prog="python -m db")
     parser.add_argument("--status", action="store_true", help="Show database status")
     parser.add_argument(
         "--migrate", action="store_true", help="Migrate data from SQLite"

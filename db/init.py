@@ -184,3 +184,12 @@ def get_db_status() -> dict:
         pass
 
     return status
+
+
+if __name__ == "__main__":
+    # `python -m db.init` routes here — delegate to the real CLI in
+    # db/__main__.py so --status/--migrate/--reset/--force stay in sync
+    # with `python -m db`. No business logic is duplicated.
+    from db.__main__ import main
+
+    main()
