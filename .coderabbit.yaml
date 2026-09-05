@@ -1,19 +1,55 @@
-# CodeRabbit configuration for AstroFin Sentinel Platform
-# https://docs.coderabbit.ai/guides/configure-coderabbit
-
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+tone_instructions: >
+  Be concise. Security-first. Do not praise. Do not write poems.
+  Flag fail-open data paths, default creds, and secret leakage as critical.
 reviews:
-  # Auto-review on all branches, not just default
-  auto_review:
-    enabled: true
-    base_branches: ["main", "consolidation-v1", "master"]
-  profile: "ASSERTIVE"
+  profile: assertive
   request_changes_workflow: true
   high_level_summary: true
   poem: false
-
-chat:
-  auto_reply: true
-
-knowledge_base:
-  learnings:
-    scope: "auto"
+  review_status: true
+  collapse_walkthrough: true
+  path_filters:
+    - "!**/*.lock"
+    - "!**/coverage/**"
+    - "!.venv/**"
+  auto_review:
+    enabled: true
+    drafts: true
+    base_branches:
+      - "main"
+      - "master"
+      - "release/.*"
+  path_instructions:
+    - path: "db/**"
+      instructions: |
+        Fail-closed database access is mandatory in prod.
+        Flag any except-path that writes to SQLite after Postgres failure
+        and still returns success.
+        Flag duplicate is_postgres_available implementations;
+        only a real SELECT 1 check is acceptable.
+        UniqueViolation/IntegrityError must not be redirected to SQLite.
+    - path: "deploy/docker/**"
+      instructions: |
+        No host bind on 0.0.0.0 unless file is an explicit public overlay
+        already documented as C12.
+        Redis must not run without requirepass in compose.
+        Grafana must keep ${VAR:?} / __FILE secrets, signup/anon off.
+        Flag EMAIL_DOMAINS=* unless filename contains dev or local.
+        Flag empty init.sql mounted into initdb without a comment.
+        Prefer image digests over floating tags, but do not block if noted.
+    - path: "scripts/**"
+      instructions: |
+        Security CI must be fail-closed, no network, no docker.
+        Missing match = error, not warning.
+    - path: ".github/workflows/**"
+      instructions: |
+        New db fail-closed script must be invoked.
+        Do not skip security jobs on docs-only unless paths exclude is correct.
+    - path: "docs/**"
+      instructions: |
+        RUNBOOK must not claim WAL-G/S3 encryption if still commented out.
+  tools:
+    gitleaks:
+      enabled: true
