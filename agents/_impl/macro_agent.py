@@ -33,6 +33,24 @@ VIX_COMPLACENCY_THRESHOLD = 15.0  # VIX ниже этого → самоуспо
 DXY_STRONG_THRESHOLD = 105.0  # сильный доллар → давление на рисковые активы
 DXY_WEAK_THRESHOLD = 95.0  # слабый доллар → поддержка рисковых активов
 
+# Optional [rag] dependencies whose absence is expected (see pyproject extras).
+_OPTIONAL_RAG_MODULES = ("faiss", "sentence_transformers", "structlog")
+
+# Process-wide sentinel: True once we discover the optional RAG dep is missing.
+# run_macro_agent() re-instantiates MacroAgent every cycle, so this must live at
+# module level to avoid logging "Failed to init RAG" on every agent cycle.
+_RAG_UNAVAILABLE = False
+
+
+def _is_missing_optional_rag_dep(exc: BaseException) -> bool:
+    """True when ``exc`` is a ModuleNotFoundError for an optional [rag] dep."""
+    if not isinstance(exc, ModuleNotFoundError):
+        return False
+    name = (getattr(exc, "name", "") or "").split(".")[0]
+    if name in _OPTIONAL_RAG_MODULES:
+        return True
+    return any(f"No module named '{m}'" in str(exc) for m in _OPTIONAL_RAG_MODULES)
+
 
 class MacroAgent(BaseAgent[AgentResponse]):
     """
@@ -57,13 +75,21 @@ class MacroAgent(BaseAgent[AgentResponse]):
         The import is deferred so that the optional [rag] dependency (faiss,
         structlog, etc.) is not required to import or run the MacroAgent. When
         RAG is unavailable the agent degrades gracefully and still runs.
+
+        A missing optional dependency is logged once per process and then
+        cached, so repeated cycles return ``None`` silently instead of warning
+        on every call.
         """
-        if self.rag is None:
+        global _RAG_UNAVAILABLE
+        if self.rag is None and not _RAG_UNAVAILABLE:
             try:
                 from knowledge.rag_retriever import RAGRetriever
 
                 self.rag = RAGRetriever()  # index_name removed in P2-02 RAGClient (G12)
             except Exception as e:
+                if _is_missing_optional_rag_dep(e):
+                    # Optional [rag] dep is absent — warn once, then stay silent.
+                    _RAG_UNAVAILABLE = True
                 logger.warning("Failed to init RAG for MacroAgent: %s", e)
         return self.rag
 
