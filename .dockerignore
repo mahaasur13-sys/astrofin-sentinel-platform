@@ -30,6 +30,7 @@ deploy/docker/secrets
 deploy/docker/certs
 deploy/docker/dex
 deploy/docker/edge
+deploy/wal-g/wal-g.env
 *.pem
 *.key
 .sops.yaml

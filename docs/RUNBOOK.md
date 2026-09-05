@@ -194,6 +194,17 @@ Run modes (orchestrator):
 - daemon (no `--once`) — starts the `:9191` metrics server and loops every
   `KARL_SYNC_INTERVAL` (default 10s) until stopped.
 
+## Backups
+
+- Postgres backup is **out of compose** until a real `WALG_S3_PREFIX` and an
+  encryption key are provided (Path B). Comment-only S3 / `WALG_LIBSODIUM_KEY`
+  in `deploy/wal-g/wal-g.env.example` is **not a backup**.
+- To enable: `cp deploy/wal-g/wal-g.env.example deploy/wal-g/wal-g.env`
+  (gitignored) and set `WALG_S3_PREFIX` + a libsodium key file; then run
+  `deploy/wal-g/backup.sh full`. A pinned wal-g image/digest is a follow-up.
+- Not backed up: `grafana_data`, `redis_data`, `prom_data` volumes.
+- `backup.sh full` ≠ verified restore — a restore drill is still pending.
+
 ---
 
 ## 0. General triage commands
