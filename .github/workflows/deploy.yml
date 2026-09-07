@@ -9,20 +9,19 @@ name: CD — Build, Sign, Deploy
 #   4. deploy-prod      -> kubectl apply to prod cluster (environment: production, requires approval)
 #
 # Required secrets (configure at repo or environment level):
-#   - GHCR_USERNAME / GHCR_TOKEN (or rely on secrets.GITHUB_TOKEN with packages: write)
 #   - KUBE_CONFIG_STAGING (base64-encoded kubeconfig for staging)
 #   - KUBE_CONFIG_PROD     (base64-encoded kubeconfig for production)
-#   - COSIGN_PRIVATE_KEY   (cosign.key contents)
-#   - COSIGN_PASSWORD      (passphrase for the cosign key)
 #   - STAGING_HEALTH_URL   (e.g. https://staging.astrofin.example/healthz)
 #   - PROD_HEALTH_URL      (e.g. https://astrofin.example/healthz)
 #
+# Signing is keyless (Cosign + GitHub OIDC): no COSIGN_PRIVATE_KEY /
+# COSIGN_PASSWORD, no cosign.key written to the runner. Requires id-token: write.
+#
 # Image registry: ghcr.io/mahaasur13-sys/astrofin-sentinel-platform
 #
-# Tag strategy:
-#   - ${VERSION} (from git tag, e.g. v1.2.3)
-#   - latest
-#   - ${VERSION}-sha-${SHORT_SHA}
+# Tag strategy (never :latest):
+#   - ${VERSION}  (from git tag, e.g. v1.2.3)
+#   - <git-sha>   (immutable full commit SHA)
 
 on:
   push:
@@ -100,10 +99,10 @@ jobs:
           file: ./Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          # Never :latest (floating). Semver + immutable git SHA only.
           tags: |
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.version }}
-            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.version }}-sha-${{ steps.meta.outputs.short_sha }}
-            ${{ steps.meta.outputs.image }}:latest
+            ${{ steps.meta.outputs.image }}:${{ github.sha }}
           labels: |
             org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=AstroFin Sentinel Platform
@@ -137,41 +136,26 @@ jobs:
       - name: Install cosign
         uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac  # v3
 
-      - name: Sign image (key-based)
+      - name: Sign image (keyless, GitHub OIDC)
         env:
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD:   ${{ secrets.COSIGN_PASSWORD }}
-          IMAGE:             ${{ steps.meta.outputs.image }}
-          VERSION:           ${{ steps.meta.outputs.version }}
+          IMAGE:  ${{ steps.meta.outputs.image }}
+          DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           set -euo pipefail
-          if [ -z "${COSIGN_PRIVATE_KEY}" ]; then
-            echo "::error::COSIGN_PRIVATE_KEY is empty — refusing to sign."
-            exit 1
-          fi
-          echo "${COSIGN_PRIVATE_KEY}" > cosign.key
-          chmod 0600 cosign.key
-          cosign sign --key cosign.key --yes \
-            "${IMAGE}:${VERSION}"
-          cosign sign --key cosign.key --yes \
-            "${IMAGE}:${VERSION}-sha-${{ steps.meta.outputs.short_sha }}"
-          cosign sign --key cosign.key --yes \
-            "${IMAGE}:latest"
-          # cleanup key from runner
-          shred -u cosign.key || rm -f cosign.key
+          # Sign the manifest digest (not a floating tag). Keyless via the
+          # GitHub Actions OIDC token — no cosign.key, no COSIGN_PRIVATE_KEY.
+          cosign sign --yes "${IMAGE}@${DIGEST}"
 
-      - name: Verify signature
+      - name: Verify signature (this workflow identity only)
         env:
-          IMAGE:   ${{ steps.meta.outputs.image }}
-          VERSION: ${{ steps.meta.outputs.version }}
+          IMAGE:  ${{ steps.meta.outputs.image }}
+          DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           set -euo pipefail
-          # We need the public key to verify. As a fallback, we use the transparency log.
           cosign verify \
-            --certificate-identity-regexp 'https://github.com/.*' \
-            --certificate-oidc-issuer-regexp 'https://token.actions.githubusercontent.com' \
-            "${IMAGE}:${VERSION}" \
-            || echo "::warning::Keyless verification failed (expected if using key-based signing)."
+            --certificate-identity-regexp '^https://github.com/mahaasur13-sys/astrofin-sentinel-platform/.github/workflows/deploy.yml@refs/' \
+            --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+            "${IMAGE}@${DIGEST}"
 
   # ---------------------------------------------------------------------------
   # 2. Deploy to staging
@@ -283,12 +267,18 @@ jobs:
             deploy/k8s/deployment.yaml
           rm -f deploy/k8s/deployment.yaml.bak
 
-      - name: Verify cosign signature on production image
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac  # v3
+
+      - name: Verify cosign signature on production image (keyless)
         env:
           IMAGE:   ${{ needs.build-and-push.outputs.image }}
           VERSION: ${{ needs.build-and-push.outputs.version }}
         run: |
-          cosign verify --key cosign.pub "${IMAGE}:${VERSION}" \
+          cosign verify \
+            --certificate-identity-regexp '^https://github.com/mahaasur13-sys/astrofin-sentinel-platform/.github/workflows/deploy.yml@refs/' \
+            --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+            "${IMAGE}:${VERSION}" \
             || (echo "::error::Image signature verification FAILED — refusing to deploy."; exit 1)
 
       - name: Apply manifests
