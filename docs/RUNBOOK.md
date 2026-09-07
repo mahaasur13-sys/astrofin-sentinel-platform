@@ -326,6 +326,12 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
   first run after merge may fail `DENIED` pushing the `.sig` until the
   `astrofin-sentinel-platform` package is Write-linked to this repo (same one-time
   GitHub → Packages → **Connect repository** step as `wal-g-pg`).
+- Image names: **web** image = `ghcr.io/mahaasur13-sys/astrofin-sentinel-platform`
+  (built by `deploy.yml`); **daemon** image = `ghcr.io/mahaasur13-sys/astrofin-sentinel`
+  (built by `sentinel-image-sign.yml`, #380). The k8s *workload* name
+  `astrofin-sentinel-web` (Deployment/Service/Ingress/HPA) is separate and unchanged;
+  only the image ref inside `deploy/k8s/deployment.yaml` is `astrofin-sentinel-platform`
+  (tag sed-rewritten to `${VERSION}` at deploy time).
 
 ---
 
@@ -481,14 +487,14 @@ kubectl -n astrofin-sentinel logs --previous -l app.kubernetes.io/name=astrofin-
 
 **Triage**
 - Inspect `.github/workflows/` run logs.
-- Check `ghcr.io/mahaasur13-sys/astrofin-sentinel-web` visibility and tags.
+- Check `ghcr.io/mahaasur13-sys/astrofin-sentinel-platform` visibility and tags.
 
 **Mitigate**
 - Re-run workflow; if image push fails on permissions, confirm `packages: write` token scope.
 - Fall back to manual build:
   ```bash
-  docker build -t astrofin-sentinel-web:dev .
-  docker run --rm -p 8050:8050 astrofin-sentinel-web:dev
+  docker build -t astrofin-sentinel-platform:dev .
+  docker run --rm -p 8050:8050 astrofin-sentinel-platform:dev
   ```
 
 ---

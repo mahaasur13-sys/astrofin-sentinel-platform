@@ -178,6 +178,9 @@ jobs:
       - name: Validate image digests guard (no floating tags on base stack)
         run: |
           bash scripts/ci_validate_image_digests.sh
+      - name: Validate k8s image name guard (canonical GHCR image, no floating :latest)
+        run: |
+          bash scripts/ci_validate_k8s_image_name.sh
       - name: Validate action pins guard (no floating @vN refs)
         run: |
           bash scripts/ci_validate_action_pins.sh

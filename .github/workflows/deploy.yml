@@ -182,7 +182,7 @@ jobs:
           set -euo pipefail
           # In-place substitution of the image tag in deploy/k8s/deployment.yaml
           sed -i.bak \
-            -E "s|(image:.*ghcr\.io/mahaasur13-sys/astrofin-sentinel-web:).*|\1${VERSION}|g" \
+            -E "s|(image:.*ghcr\.io/mahaasur13-sys/astrofin-sentinel-platform:).*|\1${VERSION}|g" \
             deploy/k8s/deployment.yaml
           rm -f deploy/k8s/deployment.yaml.bak
           echo "Patched image tag:"
@@ -263,7 +263,7 @@ jobs:
         run: |
           set -euo pipefail
           sed -i.bak \
-            -E "s|(image:.*ghcr\.io/mahaasur13-sys/astrofin-sentinel-web:).*|\1${VERSION}|g" \
+            -E "s|(image:.*ghcr\.io/mahaasur13-sys/astrofin-sentinel-platform:).*|\1${VERSION}|g" \
             deploy/k8s/deployment.yaml
           rm -f deploy/k8s/deployment.yaml.bak
 
