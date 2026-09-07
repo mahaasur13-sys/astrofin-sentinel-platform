@@ -268,11 +268,13 @@ Run modes (orchestrator):
   `pg_data_archive` (the live `pg_data` is never touched). Bring it up:
   `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.postgres-archive.yml --profile archive up -d postgres-archive`
 - This is **not** prod and **not** the current MinIO backup — it is a PITR lab/test
-  cluster. `archive_command` calls `wal-g wal-push %p`, so the `postgres-archive`
-  image must carry the wal-g binary for archival to actually succeed.
+  cluster. The `astrofin-postgres-archive` image (Debian/glibc) **includes** wal-g
+  v3.0.6; the base `postgres:15-alpine` does **not**. `archive_command` therefore
+  only works on the archive cluster.
 - PITR is only real **after** `wal-push` succeeds on this cluster **and** a new
-  base backup is taken on it. `restore_command = 'wal-g wal-fetch %f %p'` is used
-  only during recovery, never on the live primary.
+  base backup is taken on it — it is **not** currently running.
+  `restore_command = 'wal-g wal-fetch %f %p'` is used only during recovery, never
+  on the live primary.
 - The archive cluster is a fresh, separate volume — enable archive from first
   start, never via `ALTER SYSTEM`. The restore drill (#370) still refuses live
   `PGDATA`.
