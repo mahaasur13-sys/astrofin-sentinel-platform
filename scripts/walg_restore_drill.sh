@@ -6,13 +6,13 @@
 # Postgres data directory, never runs `pg_ctl`, and never stops a running
 # cluster. After fetch you start postgres yourself on THIS destination only.
 #
-# Usage:
-#   ./scripts/walg_restore_drill.sh /tmp/pg-drill            # LATEST
-#   ./scripts/walg_restore_drill.sh /tmp/pg-drill base_0000.. # named backup
+# Usage (archive cluster — PGHOST=postgres-archive, volume pg_data_archive):
+#   ./scripts/walg_restore_drill.sh /tmp/pg-drill                       # LATEST
+#   ./scripts/walg_restore_drill.sh /tmp/pg-drill base_00000001000000000000000F
 #   WALG_RESTORE_DIR=/tmp/pg-drill ./scripts/walg_restore_drill.sh
 #
-# Refuses (exit 2) if the destination is a live PGDATA mount:
-#   /var/lib/postgresql/data, $PGDATA, or any path named docker_pg_data.
+# Refuses (exit 2) if the destination is a live PGDATA mount or a live volume:
+#   /var/lib/postgresql/data, $PGDATA, pg_data, pg_data_archive, docker_pg_data.
 # =============================================================================
 set -euo pipefail
 
@@ -53,10 +53,13 @@ for live in "/var/lib/postgresql/data" "${PGDATA:-}"; do
   fi
 done
 
-# Any path that contains a docker_pg_data segment (the local live volume).
-if [[ "$resolved_dest" == *"/docker_pg_data"* ]]; then
-  refuse_live
-fi
+# Any path containing a live data-volume name (base pg_data, archive
+# pg_data_archive, or the legacy docker_pg_data) — fail closed.
+for seg in pg_data pg_data_archive docker_pg_data; do
+  if [[ "$resolved_dest" == *"$seg"* ]]; then
+    refuse_live
+  fi
+done
 
 # ── Guard: destination must be empty or non-existent ───────────────────
 if [[ -e "$DEST" ]]; then

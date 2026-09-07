@@ -216,12 +216,18 @@ Run modes (orchestrator):
 
 - **Never** run `deploy/wal-g/restore.sh` against a live cluster — it fetches
   straight into `$PGDATA` and is **legacy/unsafe until reviewed**. Use the drill
-  script instead:
-  `scripts/walg_restore_drill.sh /tmp/pg-drill` (fetches `LATEST` into a safe,
-  empty, non-live directory; refuses `/var/lib/postgresql/data`, `$PGDATA`, and
+  script instead (archive cluster: `PGHOST=postgres-archive`, volume
+  `pg_data_archive`):
+  `scripts/walg_restore_drill.sh /tmp/pg-drill` (fetches `LATEST` — the archive
+  backup `base_00000001000000000000000F` — into a safe, empty, non-live directory;
+  refuses `/var/lib/postgresql/data`, `$PGDATA`, `pg_data`, `pg_data_archive`, and
   `docker_pg_data` with exit 2).
 - After fetch: `files restored to DEST; start postgres separately on THIS dest only`.
-- `archive_mode` is **off** in this environment, so a base backup is **not
+- `base_000000010000000000000007` (old local MinIO lab proof) and
+  `base_00000001000000000000000F` (archive cluster) are **different timelines** on
+  different clusters/volumes — never treat them as one PITR timeline; the S3 prefix
+  is lab-only.
+- `archive_mode` is **off** on the base cluster, so a base backup is **not
   PITR-capable** (no continuous WAL archive replay). `backup ≠ PITR`.
 
 ### Local proof (Path A, not in release)
