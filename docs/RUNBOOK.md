@@ -312,8 +312,10 @@ Run modes (orchestrator):
 
 Base stack images are pinned `tag@sha256:` (multi-arch index digest). To refresh a
 pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update the
-`image:`/`FROM` line. CI fails if postgres/redis/python lose their digest or if any
-`image:`/`FROM` uses `:latest`. Digests are not signatures — cosign/SBOM is a follow-up.
+`image:`/`FROM` line. CI fails if postgres/redis/python lose their digest, if any
+`image:`/`FROM` uses `:latest`, or if a python/uv `FROM` (web `Dockerfile`) lacks
+`@sha256:<64hex>`. Digests are not signatures — cosign/SBOM is a follow-up. Pinning
+the web base images ≠ signing the final ghcr.io image.
 
 | service | image (digest-pinned) |
 |---|---|
@@ -321,7 +323,8 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
 | redis | `redis:7-alpine@sha256:ff02b58f…` |
 | prometheus | `prom/prometheus:v2.54.1@sha256:f6639335…` |
 | grafana | `grafana/grafana:11.2.0@sha256:408afb97…` |
-| app base | `python:3.11-slim@sha256:9534e5a8…` |
+| app base (daemon) | `python:3.11-slim@sha256:9534e5a8…` |
+| web base | `python:3.12-slim@sha256:78387bc3…` + `ghcr.io/astral-sh/uv:0.6.14@sha256:3362a526…` |
 
 ## Supply chain (actions / SBOM / signing)
 
