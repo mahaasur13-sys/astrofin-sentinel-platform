@@ -1,0 +1,49 @@
+# Optional Postgres WAL-archive overlay — apply ON TOP of docker-compose.yml.
+#
+# Runs a SEPARATE Postgres instance (postgres-archive) with archive_mode=on on
+# its own named volume (pg_data_archive). The live base `postgres` service and
+# its `pg_data` volume are NOT touched (no service replacement, no container_name
+# conflict, no 5432 published).
+#
+# Off by default via profiles: ["archive"]. To start:
+#   docker compose -f docker-compose.yml -f docker-compose.postgres-archive.yml \
+#     --profile archive up -d postgres-archive
+#
+# This is a PITR lab/test cluster — NOT prod and NOT the current MinIO backup.
+# archive_command invokes `wal-g wal-push %p`, so the postgres-archive image must
+# carry the wal-g binary for archival to actually succeed (see RUNBOOK §Backups).
+services:
+  postgres-archive:
+    image: postgres:15-alpine@sha256:fe0737ba566a2c5b2a28f34433c0a423261900ec17b9bf7ad115e1aae7e57f1b  # refresh: docker buildx imagetools inspect postgres:15-alpine
+    container_name: astrofinsentinel_db_archive
+    profiles: ["archive"]
+    environment:
+      - "POSTGRES_DB=${POSTGRES_DB:-astrofin}"
+      - "POSTGRES_USER=${POSTGRES_USER:-postgres}"
+      - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
+    volumes:
+      # Separate named volume — never the live pg_data / docker_pg_data.
+      - pg_data_archive:/var/lib/postgresql/data
+      # Read-only reference: the canonical archive settings (#374). The `-c`
+      # flags below mirror this file so postgres applies them at startup.
+      - ../wal-g/postgresql-archive.conf.example:/etc/postgresql/postgresql-archive.conf:ro
+    command:
+      - "postgres"
+      - "-c"
+      - "archive_mode=on"
+      - "-c"
+      - "archive_command=wal-g wal-push %p"
+      - "-c"
+      - "archive_timeout=60"
+      - "-c"
+      - "restore_command=wal-g wal-fetch %f %p"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: "no"
+    # No ports: the archive cluster is internal-only (5432 is NOT published).
+
+volumes:
+  pg_data_archive:

@@ -257,18 +257,25 @@ Run modes (orchestrator):
 
 - `tar` ≠ WAL-G ≠ PITR; there is no "full stack backup".
 
-### PITR (archive_mode) — example only, NOT enabled
+### PITR (archive_mode) — optional overlay, NOT enabled
 
 - PITR = a base backup **plus** a continuous WAL archive (`archive_mode=on` +
   `archive_command = 'wal-g wal-push %p'`). The current MinIO base
   `base_000000010000000000000007` was taken with `archive_mode` **off**, so it is
   **not PITR-capable** (no continuous WAL history).
-- Example config: `deploy/wal-g/postgresql-archive.conf.example` (not mounted
-  anywhere). To enable PITR: spin a **new** cluster / separate volume, add the
-  example lines to that cluster's `postgresql.conf` before first start — **not**
-  `ALTER SYSTEM`, **not** editing the live `docker_pg_data`.
-- `restore_command = 'wal-g wal-fetch %f %p'` is only used when Postgres starts
-  from a fetched backup (recovery), never on the live primary.
+- Optional overlay: `deploy/docker/docker-compose.postgres-archive.yml` runs a
+  **separate** `postgres-archive` service with `archive_mode=on` on its own volume
+  `pg_data_archive` (the live `pg_data` is never touched). Bring it up:
+  `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.postgres-archive.yml --profile archive up -d postgres-archive`
+- This is **not** prod and **not** the current MinIO backup — it is a PITR lab/test
+  cluster. `archive_command` calls `wal-g wal-push %p`, so the `postgres-archive`
+  image must carry the wal-g binary for archival to actually succeed.
+- PITR is only real **after** `wal-push` succeeds on this cluster **and** a new
+  base backup is taken on it. `restore_command = 'wal-g wal-fetch %f %p'` is used
+  only during recovery, never on the live primary.
+- The archive cluster is a fresh, separate volume — enable archive from first
+  start, never via `ALTER SYSTEM`. The restore drill (#370) still refuses live
+  `PGDATA`.
 - The wal-g sidecar image is already pinned (`ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343…`).
 
 ## Image pins (digest)
