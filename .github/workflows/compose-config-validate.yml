@@ -184,6 +184,9 @@ jobs:
       - name: Validate wal-g archive stack guard (sidecar targets postgres-archive / pg_data_archive)
         run: |
           bash scripts/ci_validate_walg_archive_stack.sh
+      - name: Validate wal-g archive extra-hosts guard (host.docker.internal for MinIO, no hardcoded IP)
+        run: |
+          bash scripts/ci_validate_walg_archive_extra_hosts.sh
       - name: Validate image digests guard (no floating tags on base stack)
         run: |
           bash scripts/ci_validate_image_digests.sh

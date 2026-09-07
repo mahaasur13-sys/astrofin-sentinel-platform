@@ -22,9 +22,12 @@
 #   Do NOT use community images (chekkan/wal-g etc.) — untrusted/stale.
 services:
   wal-g:
-    image: ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343149a7eba28b25d50f6c56210b88f1db36ada10d89a8a12b0d841c74b82
+    image: ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6-uid999@sha256:89be9fb2008d67d9895bfbb642f561caa4db20f4b0ed436b1ea51565d1553c83
     container_name: astrofinsentinel_walg
     profiles: ["backup"]
+    extra_hosts:
+      # MinIO on the host, resolvable as host.docker.internal (no hardcoded IP).
+      - "host.docker.internal:host-gateway"
     environment:
       - "PGHOST=postgres-archive"
       - "PGPORT=5432"
