@@ -1,0 +1,17 @@
+# Postgres + wal-g image for the optional postgres-archive overlay.
+#
+# Debian (glibc) base — NOT alpine. wal-g v3.0.6 is a glibc binary; an
+# alpine/musl base would fail to run it (this already broke once).
+#
+# wal-g is copied out of the pinned, keyless-Cosign-signed wal-g-pg image.
+# Do NOT use community wal-g images (chekkan/wal-g etc.).
+
+FROM postgres:15-bookworm@sha256:5d1d70e254e3c5d7d76847a9deebb18478cd518df37abf6b278d4bdb1fe5d96c
+# refresh: docker buildx imagetools inspect postgres:15-bookworm
+
+# glibc wal-g v3.0.6 from the signed wal-g-pg image (digest pinned, never a tag).
+COPY --from=ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343149a7eba28b25d50f6c56210b88f1db36ada10d89a8a12b0d841c74b82 \
+     /usr/local/bin/wal-g /usr/local/bin/wal-g
+
+# Preserve the official postgres entrypoint and its non-root postgres user.
+# No USER override here — the base image already drops privileges on start.

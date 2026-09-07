@@ -10,11 +10,11 @@
 #     --profile archive up -d postgres-archive
 #
 # This is a PITR lab/test cluster — NOT prod and NOT the current MinIO backup.
-# archive_command invokes `wal-g wal-push %p`, so the postgres-archive image must
-# carry the wal-g binary for archival to actually succeed (see RUNBOOK §Backups).
+# The astrofin-postgres-archive image already carries wal-g v3.0.6 (glibc, copied
+# from the signed wal-g-pg image), so `archive_command = 'wal-g wal-push %p'` works.
 services:
   postgres-archive:
-    image: postgres:15-alpine@sha256:fe0737ba566a2c5b2a28f34433c0a423261900ec17b9bf7ad115e1aae7e57f1b  # refresh: docker buildx imagetools inspect postgres:15-alpine
+    image: ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm@sha256:4806ea35970dd5b49b093b1f308af8ad325f9dde67a80053618f62802fd189e9  # refresh: docker buildx imagetools inspect ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm
     container_name: astrofinsentinel_db_archive
     profiles: ["archive"]
     environment:

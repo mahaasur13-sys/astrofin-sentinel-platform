@@ -178,6 +178,9 @@ jobs:
       - name: Validate WAL-G archive overlay guard (separate volume, archive_mode, no ports)
         run: |
           bash scripts/ci_validate_walg_archive_overlay.sh
+      - name: Validate postgres-archive wal-g guard (debian base, pinned wal-g digest, no alpine)
+        run: |
+          bash scripts/ci_validate_postgres_archive_walg.sh
       - name: Validate image digests guard (no floating tags on base stack)
         run: |
           bash scripts/ci_validate_image_digests.sh
