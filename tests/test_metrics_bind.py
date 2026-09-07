@@ -7,7 +7,9 @@ import pytest
 from orchestration.sentinel_v5 import (
     _build_metrics_app,
     _metrics_bind_host,
+    _metrics_require_token,
     _read_metrics_token,
+    _start_metrics_server,
 )
 
 
@@ -73,3 +75,20 @@ def test_read_metrics_token_env_wins_over_file(monkeypatch, tmp_path):
     f.write_text("file\n")
     monkeypatch.setenv("METRICS_TOKEN_FILE", str(f))
     assert _read_metrics_token() == "env-wins"
+
+
+def test_metrics_bind_all_requires_token():
+    # 0.0.0.0 without a token must fail closed.
+    assert _metrics_require_token("0.0.0.0", "") is True
+    # 0.0.0.0 with a token is allowed.
+    assert _metrics_require_token("0.0.0.0", "tok") is False
+    # loopback without a token stays allowed (regression #366).
+    assert _metrics_require_token("127.0.0.1", "") is False
+
+
+def test_start_metrics_bind_all_no_token_exits(monkeypatch):
+    monkeypatch.setenv("METRICS_BIND_ALL", "true")
+    monkeypatch.delenv("METRICS_TOKEN", raising=False)
+    monkeypatch.delenv("METRICS_TOKEN_FILE", raising=False)
+    with pytest.raises(SystemExit):
+        _start_metrics_server()

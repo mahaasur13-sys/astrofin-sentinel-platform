@@ -192,7 +192,9 @@ Run modes (orchestrator):
 - `--once` — single pass, no metrics server, exits:
   `python -m orchestration.sentinel_v5 --once --query "Analyze BTC" --symbol BTCUSDT --timeframe SWING`
 - daemon (no `--once`) — starts the `:9191` metrics server and loops every
-  `KARL_SYNC_INTERVAL` (default 10s) until stopped.
+  `KARL_SYNC_INTERVAL` (default 10s) until stopped. If `METRICS_BIND_ALL=true`,
+  a `METRICS_TOKEN`/`METRICS_TOKEN_FILE` is **required** — without it the process
+  refuses to start the exporter (exit 1), it does not serve `/metrics`.
 
 ## Backups
 

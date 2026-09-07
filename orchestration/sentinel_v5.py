@@ -406,6 +406,12 @@ def _metrics_bind_host() -> str:
     return "0.0.0.0" if bind_all else "127.0.0.1"
 
 
+def _metrics_require_token(host: str, token: str) -> bool:
+    """True if binding 0.0.0.0 without a token (fail-closed: never expose
+    /metrics on the internal network unauthenticated)."""
+    return host == "0.0.0.0" and not token
+
+
 def _build_metrics_app(token: str):
     """Prometheus WSGI app, optionally behind a Bearer-token guard."""
     from prometheus_client.exposition import make_wsgi_app
@@ -443,9 +449,22 @@ def _start_metrics_server() -> None:
 
     Default bind is loopback (127.0.0.1); ``METRICS_BIND_ALL=true`` opts into
     binding 0.0.0.0 for the internal compose network (never a host port). If
-    ``METRICS_TOKEN`` / ``METRICS_TOKEN_FILE`` is set, /metrics requires an
-    ``Authorization: Bearer`` header.
+    binding 0.0.0.0, a token (``METRICS_TOKEN`` / ``METRICS_TOKEN_FILE``) is
+    REQUIRED — without it the exporter refuses to start (exit 1), it does not
+    serve /metrics unauthenticated.
     """
+    port = int(os.getenv("METRICS_PORT", "9191"))
+    host = _metrics_bind_host()
+    token = _read_metrics_token()
+
+    if _metrics_require_token(host, token):
+        logger.error(
+            "[metrics] METRICS_BIND_ALL=true without METRICS_TOKEN — refusing to "
+            "start the /metrics exporter (fail-closed). Set METRICS_TOKEN(_FILE) "
+            "or drop METRICS_BIND_ALL."
+        )
+        raise SystemExit(1)
+
     import threading
 
     from socketserver import ThreadingMixIn
@@ -454,16 +473,7 @@ def _start_metrics_server() -> None:
     class _ThreadingWSGIServer(ThreadingMixIn, WSGIServer):
         daemon_threads = True
 
-    port = int(os.getenv("METRICS_PORT", "9191"))
-    host = _metrics_bind_host()
-    token = _read_metrics_token()
     app = _build_metrics_app(token)
-
-    if host == "0.0.0.0" and not token:
-        logger.error(
-            "[metrics] METRICS_BIND_ALL=true without METRICS_TOKEN — /metrics is "
-            "unauthenticated on the internal network"
-        )
 
     try:
         httpd = make_server(host, port, app, server_class=_ThreadingWSGIServer)
