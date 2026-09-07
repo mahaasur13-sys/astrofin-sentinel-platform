@@ -355,6 +355,10 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
   `postgres-archive-verify.yml` (every PR touching the archive overlay / Dockerfile /
   sign workflow; `packages: read`, no sign, fork-guarded, digest-drift check). Signed
   only after the first successful sign run — until then verify-on-PR is red (no `.sig`).
+  If the sign/verify run fails `DENIED` on the `.sig`, link the package to this repo:
+  GitHub → Packages → `astrofin-postgres-archive` → Package settings → **Connect
+  repository** (`astrofin-sentinel-platform`) + grant Actions **Write** — the same
+  one-time UI step as `wal-g-pg` (#378).
 
 ---
 
