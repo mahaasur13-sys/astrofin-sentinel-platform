@@ -318,6 +318,14 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
   pushes the git-SHA + `release-v1.0.0` tags, signs the manifest digest, verifies).
   There is **no verify-on-PR** for the sentinel image yet — its tag floats per git
   SHA, so no fixed digest exists to verify against (unlike the wal-g overlay).
+- Web **sign** = `deploy.yml` (push of a `v*.*.*` tag / manual dispatch; builds the
+  root `Dockerfile` multi-arch, pushes `ghcr.io/mahaasur13-sys/astrofin-sentinel-platform`
+  with `<git-sha>` + semver tags — **no `:latest`** — and keyless Cosign-signs the
+  manifest digest). The kubectl deploy steps (staging → smoke → prod) are unchanged;
+  the old key-based `cosign sign --key cosign.key` + `:latest` tag were removed. The
+  first run after merge may fail `DENIED` pushing the `.sig` until the
+  `astrofin-sentinel-platform` package is Write-linked to this repo (same one-time
+  GitHub → Packages → **Connect repository** step as `wal-g-pg`).
 
 ---
 
