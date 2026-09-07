@@ -4,8 +4,9 @@
 # Fail closed (exit 1) if:
 #   - the live deploy/wal-g/wal-g.env is committed (only the .example template
 #     may be in git), or
-#   - any committed file under deploy/wal-g/ has an uncommented literal
-#     WALG_S3_PREFIX=s3:// or WALG_LIBSODIUM_KEY=<literal>, or
+#   - any committed file under deploy/wal-g/ has a literal secret/endpoint:
+#       minioadmin, AWS_ACCESS_KEY_ID=/AWS_SECRET_ACCESS_KEY= (non-placeholder),
+#       WALG_S3_PREFIX=s3://, or WALG_LIBSODIUM_KEY=<literal>, or
 #   - docs/RUNBOOK.md claims WAL-G is enabled when it is out of compose.
 #
 # Deterministic: grep + git ls-files. No network, no docker daemon.
@@ -21,9 +22,21 @@ if git ls-files -- "$DIR/wal-g.env" | grep -q .; then
   fail=1
 fi
 
-# 2. No committed file under DIR may carry an uncommented literal S3 prefix
-#    or encryption key (must be commented or ${VAR:?}/file form).
+# 2. No committed file under DIR may carry a literal secret/endpoint
+#    (must be ${VAR:?}/file form, never a literal key or credential).
 for f in $(git ls-files -- "$DIR"); do
+  if grep -n 'minioadmin' "$f"; then
+    echo "::error:: $f has a literal 'minioadmin' credential" >&2
+    fail=1
+  fi
+  if grep -nE '^[[:space:]]*AWS_SECRET_ACCESS_KEY=[^$#[:space:]]' "$f"; then
+    echo "::error:: $f has a literal AWS_SECRET_ACCESS_KEY (must be \${VAR:?})" >&2
+    fail=1
+  fi
+  if grep -nE '^[[:space:]]*AWS_ACCESS_KEY_ID=[^$#[:space:]]' "$f"; then
+    echo "::error:: $f has a literal AWS_ACCESS_KEY_ID (must be \${VAR:?})" >&2
+    fail=1
+  fi
   if grep -nE '^[[:space:]]*WALG_S3_PREFIX=s3://' "$f"; then
     echo "::error:: $f has an uncommented literal WALG_S3_PREFIX=s3://" >&2
     fail=1

@@ -197,13 +197,20 @@ Run modes (orchestrator):
 ## Backups
 
 - Postgres backup is **out of compose** until a real `WALG_S3_PREFIX` and an
-  encryption key are provided (Path B). Comment-only S3 / `WALG_LIBSODIUM_KEY`
-  in `deploy/wal-g/wal-g.env.example` is **not a backup**.
-- To enable: `cp deploy/wal-g/wal-g.env.example deploy/wal-g/wal-g.env`
-  (gitignored) and set `WALG_S3_PREFIX` + a libsodium key file; then run
-  `deploy/wal-g/backup.sh full`. A pinned wal-g image/digest is a follow-up.
+  encryption key are provided. The S3 scheme in `deploy/wal-g/wal-g.env.example`
+  is a fail-closed `${VAR:?}` template — it is **not a live backup** and does
+  **not** enable S3 (no real bucket/key is committed).
+- To enable AWS S3: `cp deploy/wal-g/wal-g.env.example deploy/wal-g/wal-g.env`
+  (gitignored), set `WALG_S3_PREFIX` + `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`
+  and a libsodium key file, then run `deploy/wal-g/backup.sh full`.
 - Not backed up: `grafana_data`, `redis_data`, `prom_data` volumes.
 - `backup.sh full` ≠ verified restore — a restore drill is still pending.
+
+| target | posture |
+|---|---|
+| local MinIO | lab/dev stand only — **not** durable DR; reachable via `AWS_ENDPOINT` (MinIO-local only) |
+| AWS S3 | copy `wal-g.env.example` → gitignored `deploy/wal-g/wal-g.env`, set `WALG_S3_PREFIX` + `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`; create bucket + IAM separately (no real bucket/key committed) |
+| encryption key | `deploy/docker/secrets/walg_libsodium_key` (gitignored), mounted at `/run/secrets/walg_libsodium_key` |
 
 ### Restore drill (safe)
 
