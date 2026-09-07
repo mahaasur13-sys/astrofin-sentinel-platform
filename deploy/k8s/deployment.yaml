@@ -37,7 +37,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: web
-          image: ghcr.io/mahaasur13-sys/astrofin-sentinel-web:latest
+          image: ghcr.io/mahaasur13-sys/astrofin-sentinel-platform:latest  # placeholder — replaced at deploy time by ${VERSION} (deploy.yml sed)
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
