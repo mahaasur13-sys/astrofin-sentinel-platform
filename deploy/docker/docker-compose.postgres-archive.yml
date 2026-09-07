@@ -18,6 +18,9 @@ services:
     image: ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm@sha256:4806ea35970dd5b49b093b1f308af8ad325f9dde67a80053618f62802fd189e9  # refresh: docker buildx imagetools inspect ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm
     container_name: astrofinsentinel_db_archive
     profiles: ["archive"]
+    extra_hosts:
+      # MinIO on the host, resolvable as host.docker.internal (no hardcoded IP).
+      - "host.docker.internal:host-gateway"
     environment:
       - "POSTGRES_DB=${POSTGRES_DB:-astrofin}"
       - "POSTGRES_USER=${POSTGRES_USER:-postgres}"

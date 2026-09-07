@@ -208,7 +208,7 @@ Run modes (orchestrator):
 
 | target | posture |
 |---|---|
-| local MinIO | lab/dev stand only — **not** durable DR; reachable via `AWS_ENDPOINT` (MinIO-local only) |
+| local MinIO | lab/dev stand only — **not** durable DR; reachable via `AWS_ENDPOINT=http://host.docker.internal:9000` (the archive overlay `extra_hosts` host-gateway) |
 | AWS S3 | copy `wal-g.env.example` → gitignored `deploy/wal-g/wal-g.env`, set `WALG_S3_PREFIX` + `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`; create bucket + IAM separately (no real bucket/key committed) |
 | encryption key | `deploy/docker/secrets/walg_libsodium_key` (gitignored), mounted at `/run/secrets/walg_libsodium_key` |
 
@@ -273,6 +273,9 @@ Run modes (orchestrator):
   at `postgres-archive`/`pg_data_archive`):
   `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.postgres-archive.yml -f deploy/docker/docker-compose.wal-g.yml --profile archive --profile backup run --rm wal-g`
   (default `backup-list`; for a real backup: `… run --rm wal-g backup-push /var/lib/postgresql/data`).
+- MinIO is reached via `host.docker.internal` — both overlays declare
+  `extra_hosts: ["host.docker.internal:host-gateway"]`, so set
+  `AWS_ENDPOINT=http://host.docker.internal:9000` (never a hardcoded `172.x` IP).
 - This is **not** prod and **not** the current MinIO backup — it is a PITR lab/test
   cluster. The `astrofin-postgres-archive` image (Debian/glibc) **includes** wal-g
   v3.0.6; the base `postgres:15-alpine` does **not**. `archive_command` therefore
@@ -290,7 +293,11 @@ Run modes (orchestrator):
 - The archive cluster is a fresh, separate volume — enable archive from first
   start, never via `ALTER SYSTEM`. The restore drill (#370) still refuses live
   `PGDATA`.
-- The wal-g sidecar image is already pinned (`ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343…`).
+- The wal-g sidecar image is pinned and runs as **uid 999** (postgres):
+  `ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6-uid999@sha256:89be9fb2…` — it can read
+  `pg_data_archive` (owned by the archive postgres uid 999) **without `--user 0`**.
+  The older `v3.0.6@sha256:8de343…` (uid 10001) remains the wal-g binary source for
+  `Dockerfile.postgres-archive`.
 - The `astrofin-postgres-archive` image is pinned (`ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm@sha256:4806ea35…`) and keyless Cosign-signed after the first successful `postgres-archive-cosign.yml` run (see §Supply chain).
 
 ## Image pins (digest)

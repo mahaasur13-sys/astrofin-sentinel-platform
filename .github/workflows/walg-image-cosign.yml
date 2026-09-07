@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 10
     env:
       # Pin the exact digest (never sign a floating tag).
-      IMAGE: ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343149a7eba28b25d50f6c56210b88f1db36ada10d89a8a12b0d841c74b82
+      IMAGE: ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6-uid999@sha256:89be9fb2008d67d9895bfbb642f561caa4db20f4b0ed436b1ea51565d1553c83
     steps:
       - name: Login to GHCR
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
