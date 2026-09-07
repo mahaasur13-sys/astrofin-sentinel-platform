@@ -22,6 +22,9 @@ jobs:
       - name: Validate action pins
         run: |
           bash scripts/ci_validate_action_pins.sh
+      - name: Validate metrics bind guard (BIND_ALL requires token)
+        run: |
+          bash scripts/ci_validate_metrics_bind.sh
 
   council-suite:
     name: Council/http/settings/thompson unit suite
@@ -45,4 +48,5 @@ jobs:
             tests/test_okx_candle_url.py \
             tests/test_fundamental_agent_fetch.py \
             tests/test_settings.py \
-            tests/test_thompson_astro_pool.py
+            tests/test_thompson_astro_pool.py \
+            tests/test_metrics_bind.py
