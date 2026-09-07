@@ -114,15 +114,6 @@ jobs:
           provenance: true
           sbom: true
 
-      - name: Extract digest
-        run: |
-          DIGEST=$(docker buildx imagetools inspect \
-            "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.version }}" \
-            --raw | sha256sum | awk '{print $1}')
-          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
-          # also write for next step
-          echo "${DIGEST}" > /tmp/image.digest
-
       # -------------------------- SBOM --------------------------
       - name: Generate SBOM (syft)
         id: sbom
@@ -142,7 +133,8 @@ jobs:
           DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           set -euo pipefail
-          # Sign the manifest digest (not a floating tag). Keyless via the
+          # Sign the pushed repo digest (steps.build.outputs.digest), not a
+          # floating tag and not a local /tmp manifest hash. Keyless via the
           # GitHub Actions OIDC token — no cosign.key, no COSIGN_PRIVATE_KEY.
           cosign sign --yes "${IMAGE}@${DIGEST}"
 
