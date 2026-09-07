@@ -215,10 +215,9 @@ Run modes (orchestrator):
 
 ### Restore drill (safe)
 
-- **Never** run `deploy/wal-g/restore.sh` against a live cluster — it fetches
-  straight into `$PGDATA` and is **legacy/unsafe until reviewed**. Use the drill
-  script instead (archive cluster: `PGHOST=postgres-archive`, volume
-  `pg_data_archive`):
+- `deploy/wal-g/restore.sh` is now a **safe wrapper** around
+  `scripts/walg_restore_drill.sh` — the old `pg_ctl stop` + `backup-fetch $PGDATA`
+  was **removed**. Restore is drill-only:
   `scripts/walg_restore_drill.sh /tmp/pg-drill` (fetches `LATEST` — the archive
   backup `base_00000001000000000000000F` — into a safe, empty, non-live directory;
   refuses `/var/lib/postgresql/data`, `$PGDATA`, `pg_data`, `pg_data_archive`, and
