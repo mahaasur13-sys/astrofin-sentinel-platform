@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# CI guard: volume snapshot must be grafana/redis-only and refuse pg_data/live paths.
+# CI guard: volume snapshot must be grafana/redis/prometheus-only and refuse
+# pg_data/live paths.
 #
 # Fail closed (exit 1) if the snapshot script:
 #   - allows postgres/pg/wal-g, or
 #   - has no pg_data / docker volumes dir refusal, or
-#   - defaults its destination to a live volume path.
+#   - defaults its destination to a live volume path, or
+#   - does not allow prometheus → prom_data.
 #
 # Deterministic: pure grep. No docker run, no network.
 
@@ -34,6 +36,12 @@ fi
 # 4. Destination must not default to a live volume path.
 if grep -nE '^(DEST|OUT)="?[^"]*(/var/lib/docker/volumes|pg_data|docker_pg_data)' "$SCRIPT"; then
   echo "::error:: $SCRIPT defaults its destination to a live volume path" >&2
+  fail=1
+fi
+
+# 5. prometheus must be in the allowlist (→ prom_data).
+if ! grep -qE '^[[:space:]]*prometheus\)' "$SCRIPT" || ! grep -qE 'VOL="prom_data"' "$SCRIPT"; then
+  echo "::error:: $SCRIPT must allow prometheus → prom_data" >&2
   fail=1
 fi
 
