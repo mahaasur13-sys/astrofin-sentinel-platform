@@ -290,8 +290,14 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
 - `ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343…` is pinned **and** keyless
   Cosign-signed (GitHub OIDC, no key pair). Verify:
   `cosign verify --certificate-identity-regexp '^https://github.com/mahaasur13-sys/astrofin-sentinel-platform/.github/workflows/walg-image-cosign.yml@refs/' --certificate-oidc-issuer https://token.actions.githubusercontent.com ghcr.io/mahaasur13-sys/wal-g-pg@sha256:8de343…`
-- The app `sentinel` image is still build-only (**no push → unsigned**). Supply chain
-  is **not** complete: only the self-hosted wal-g image is signed.
+- The app `sentinel` image (`ghcr.io/mahaasur13-sys/astrofin-sentinel:<git-sha>` +
+  `:release-v1.0.0`, never `:latest`) is built, pushed and keyless Cosign-signed by
+  `sentinel-image-sign.yml` on push to `release/v1.0.0`. It is **signed only after
+  the first successful push**; the PR build (`docker-image-build.yml`) stays no-push.
+- The `astrofin-sentinel` GHCR package must be linked to this repo (GitHub → Packages →
+  `astrofin-sentinel` → Package settings → **Connect repository**
+  `astrofin-sentinel-platform`) before the first push, else `GITHUB_TOKEN` cannot
+  write/sign it (same one-time step as `wal-g-pg`).
 - To (re)sign: Actions → «WAL-G image Cosign (keyless)» → Run workflow (ref
   `release/v1.0.0`). This is a separate workflow from «Council Unit Suite» (the
   PR check named `ci(security): keyless Cosign…` is just the unit suite).
@@ -308,6 +314,10 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
   `walg-image-verify.yml` (runs on every PR touching the wal-g overlay; needs
   only `packages: read`; also fails if the overlay digest drifts from the sign
   workflow `IMAGE`).
+- Sentinel **sign** = `sentinel-image-sign.yml` (push to `release/v1.0.0`; builds,
+  pushes the git-SHA + `release-v1.0.0` tags, signs the manifest digest, verifies).
+  There is **no verify-on-PR** for the sentinel image yet — its tag floats per git
+  SHA, so no fixed digest exists to verify against (unlike the wal-g overlay).
 
 ---
 
