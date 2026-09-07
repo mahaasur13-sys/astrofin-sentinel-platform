@@ -11,7 +11,8 @@
 #
 # This is a PITR lab/test cluster — NOT prod and NOT the current MinIO backup.
 # The astrofin-postgres-archive image already carries wal-g v3.0.6 (glibc, copied
-# from the signed wal-g-pg image), so `archive_command = 'wal-g wal-push %p'` works.
+# from the signed wal-g-pg image); the storage env + libsodium key below make
+# `archive_command = 'wal-g wal-push %p'` actually work.
 services:
   postgres-archive:
     image: ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm@sha256:4806ea35970dd5b49b093b1f308af8ad325f9dde67a80053618f62802fd189e9  # refresh: docker buildx imagetools inspect ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm
@@ -21,12 +22,25 @@ services:
       - "POSTGRES_DB=${POSTGRES_DB:-astrofin}"
       - "POSTGRES_USER=${POSTGRES_USER:-postgres}"
       - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
+      # WAL-G storage env — required inside postgres-archive because
+      # archive_command runs `wal-g wal-push %p` in THIS container (the sidecar
+      # env is not shared).
+      - "WALG_S3_PREFIX=${WALG_S3_PREFIX:?WALG_S3_PREFIX is required}"
+      - "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:?}"
+      - "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:?}"
+      - "AWS_ENDPOINT=${AWS_ENDPOINT:?}"
+      - "AWS_REGION=${AWS_REGION:-us-east-1}"
+      - "AWS_S3_FORCE_PATH_STYLE=true"
+      - "WALG_LIBSODIUM_KEY_PATH=/run/secrets/walg_libsodium_key"
+      - "WALG_LIBSODIUM_KEY_TRANSFORM=hex"
     volumes:
       # Separate named volume — never the live pg_data / docker_pg_data.
       - pg_data_archive:/var/lib/postgresql/data
       # Read-only reference: the canonical archive settings (#374). The `-c`
       # flags below mirror this file so postgres applies them at startup.
       - ../wal-g/postgresql-archive.conf.example:/etc/postgresql/postgresql-archive.conf:ro
+      # gitignored libsodium key file — required by archive_command wal-push.
+      - ./secrets/walg_libsodium_key:/run/secrets/walg_libsodium_key:ro
     command:
       - "postgres"
       - "-c"

@@ -277,6 +277,12 @@ Run modes (orchestrator):
   cluster. The `astrofin-postgres-archive` image (Debian/glibc) **includes** wal-g
   v3.0.6; the base `postgres:15-alpine` does **not**. `archive_command` therefore
   only works on the archive cluster.
+- The `postgres-archive` service itself must carry the WAL-G storage env
+  (`WALG_S3_PREFIX`, `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT`,
+  `AWS_REGION`) + the libsodium key file (`/run/secrets/walg_libsodium_key`).
+  **Sidecar-only env is not enough** — `archive_command = 'wal-g wal-push %p'` runs
+  inside `postgres-archive`, so without these it fails `Failed to find any
+  configured storage`.
 - PITR is only real **after** `wal-push` succeeds on this cluster **and** a new
   base backup is taken on it — it is **not** currently running.
   `restore_command = 'wal-g wal-fetch %f %p'` is used only during recovery, never
