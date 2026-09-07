@@ -303,6 +303,11 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
   repo**, so `GITHUB_TOKEN` (`packages: write`) cannot write to it. Fix: GitHub →
   Packages → `wal-g-pg` → Package settings → **Connect repository**
   (`astrofin-sentinel-platform`). This is a UI action, not a code change.
+- Sign vs verify: **sign** = `walg-image-cosign.yml` (push to `release/v1.0.0` /
+  manual dispatch, needs `packages: write` + `id-token`). **verify** =
+  `walg-image-verify.yml` (runs on every PR touching the wal-g overlay; needs
+  only `packages: read`; also fails if the overlay digest drifts from the sign
+  workflow `IMAGE`).
 
 ---
 
