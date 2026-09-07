@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # =============================================================================
-# volume_snapshot.sh — optional snapshot of the grafana_data volume only.
+# volume_snapshot.sh — optional snapshot of grafana_data / redis_data volumes.
 #
 # Usage: ./scripts/volume_snapshot.sh grafana /abs/backup-dir
+#        ./scripts/volume_snapshot.sh redis   /abs/backup-dir
 #
-# Fail-closed: only grafana is snapshot-able. postgres is WAL-G-only (never a
-# tar); redis_data and prom_data are NOT backed up. Refuses to write into
-# docker volumes dir or any pg_data path.
+# Fail-closed: grafana and redis are snapshot-able (tar). postgres is WAL-G-only
+# (never a tar); prom_data is NOT backed up. Refuses to write into docker volumes
+# dir or any pg_data path.
 # =============================================================================
 set -euo pipefail
 
@@ -18,20 +19,23 @@ case "$SERVICE" in
   grafana)
     VOL="grafana_data"
     ;;
-  postgres|pg|wal-g)
+  redis)
+    VOL="redis_data"
+    ;;
+  postgres|pg|pg_data|pg_data_archive|wal-g|docker_pg_data)
     echo "refusing to snapshot $SERVICE: postgres is WAL-G only (never tar)" >&2
     exit 2
     ;;
-  redis|prometheus)
+  prometheus)
     echo "refusing to snapshot $SERVICE: $SERVICE data is not backed up" >&2
     exit 2
     ;;
   "")
-    echo "Usage: $0 grafana <absolute-dest-dir>" >&2
+    echo "Usage: $0 grafana|redis <absolute-dest-dir>" >&2
     exit 2
     ;;
   *)
-    echo "unknown service: $SERVICE (only grafana is snapshot-able)" >&2
+    echo "unknown service: $SERVICE (only grafana, redis are snapshot-able)" >&2
     exit 2
     ;;
 esac
@@ -61,16 +65,20 @@ case "$DEST" in
     ;;
 esac
 
-# ── Guard: refuse if grafana is running (busy volume) ──────────────────
-if docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^astrofinsentinel_grafana$'; then
-  echo "[ERROR] grafana container is running; stop grafana manually before snapshot" >&2
+# ── Guard: refuse if the target container is running (busy volume) ─────
+case "$SERVICE" in
+  grafana) CNAME="astrofinsentinel_grafana" ;;
+  redis)   CNAME="astrofinsentinel_redis" ;;
+esac
+if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${CNAME}$"; then
+  echo "[ERROR] $SERVICE container is running; stop $SERVICE manually before snapshot" >&2
   exit 3
 fi
 
 mkdir -p "$DEST"
 
 TS="$(date -u +%Y%m%dT%H%M%SZ)"
-OUT="${DEST}/grafana-${TS}.tar.gz"
+OUT="${DEST}/${SERVICE}-${TS}.tar.gz"
 
 echo "=== snapshotting ${VOL} -> ${OUT} ==="
 docker run --rm \

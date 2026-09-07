@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CI guard: volume snapshot must be grafana-only and refuse pg_data/live paths.
+# CI guard: volume snapshot must be grafana/redis-only and refuse pg_data/live paths.
 #
 # Fail closed (exit 1) if the snapshot script:
 #   - allows postgres/pg/wal-g, or

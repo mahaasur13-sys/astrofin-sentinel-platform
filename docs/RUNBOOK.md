@@ -203,7 +203,8 @@ Run modes (orchestrator):
 - To enable AWS S3: `cp deploy/wal-g/wal-g.env.example deploy/wal-g/wal-g.env`
   (gitignored), set `WALG_S3_PREFIX` + `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`
   and a libsodium key file, then run `deploy/wal-g/backup.sh full`.
-- Not backed up: `grafana_data`, `redis_data`, `prom_data` volumes.
+- Not backed up: `prom_data` volume. `grafana_data` / `redis_data` are
+  snapshot-able via `scripts/volume_snapshot.sh` (tar), not WAL-G.
 - `backup.sh full` ≠ verified restore — a restore drill is still pending.
 
 | target | posture |
@@ -260,10 +261,11 @@ Run modes (orchestrator):
 | `pg_data` (live base) | **not backed up** — base `archive_mode` is off; never `tar` |
 | `pg_data_archive` | WAL-G only (`--profile archive --profile backup` stack, pinned image) — never `tar` |
 | `grafana_data` | optional `scripts/volume_snapshot.sh grafana /abs/dest` (tar to a safe empty dest) |
-| `redis_data` | **not backed up** |
+| `redis_data` | optional `scripts/volume_snapshot.sh redis /abs/dest` (tar to a safe empty dest); redis tar ≠ WAL-G ≠ PITR |
 | `prom_data` | **not backed up** |
 
-- `tar` ≠ WAL-G ≠ PITR; there is no "full stack backup".
+- `tar` ≠ WAL-G ≠ PITR; there is no "full stack backup". Redis snapshot is a
+  point-in-time `tar` only — it is **not** WAL-G and **not** PITR.
 
 ### PITR (archive_mode) — optional overlay, NOT enabled
 
