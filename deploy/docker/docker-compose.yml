@@ -31,7 +31,7 @@ services:
     container_name: astrofinsentinel_db
     environment:
       - "POSTGRES_DB=${POSTGRES_DB:-astrofin}"
-      - "POSTGRES_USER=${POSTGRES_USER:-postgres}"
+      - "POSTGRES_USER=${POSTGRES_USER:?POSTGRES_USER is required}"
       - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
     volumes:
       - pg_data:/var/lib/postgresql/data

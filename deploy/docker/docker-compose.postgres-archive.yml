@@ -23,7 +23,7 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - "POSTGRES_DB=${POSTGRES_DB:-astrofin}"
-      - "POSTGRES_USER=${POSTGRES_USER:-postgres}"
+      - "POSTGRES_USER=${POSTGRES_USER:?POSTGRES_USER is required}"
       - "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
       # WAL-G storage env — required inside postgres-archive because
       # archive_command runs `wal-g wal-push %p` in THIS container (the sidecar

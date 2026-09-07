@@ -29,6 +29,7 @@ jobs:
           # `config` can interpolate. Never real secrets, never used to boot.
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
           REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
@@ -38,6 +39,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
           REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "https://127.0.0.1:3000"
@@ -52,6 +54,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
           REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
@@ -71,6 +74,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
           REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
@@ -85,6 +89,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
           REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
@@ -103,6 +108,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
           REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
@@ -118,6 +124,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
           REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
@@ -141,6 +148,7 @@ jobs:
         env:
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
           REDIS_PASSWORD: "ci-dummy"
           GF_SECURITY_ADMIN_USER: "ci-dummy"
           GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
@@ -193,6 +201,9 @@ jobs:
       - name: Validate k8s image name guard (canonical GHCR image, no floating :latest)
         run: |
           bash scripts/ci_validate_k8s_image_name.sh
+      - name: Validate postgres-user guard (POSTGRES_USER required, no default superuser)
+        run: |
+          bash scripts/ci_validate_postgres_user_required.sh
       - name: Validate action pins guard (no floating @vN refs)
         run: |
           bash scripts/ci_validate_action_pins.sh
