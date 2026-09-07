@@ -279,6 +279,7 @@ Run modes (orchestrator):
   start, never via `ALTER SYSTEM`. The restore drill (#370) still refuses live
   `PGDATA`.
 - The wal-g sidecar image is already pinned (`ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343…`).
+- The `astrofin-postgres-archive` image is pinned (`ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm@sha256:4806ea35…`) and keyless Cosign-signed after the first successful `postgres-archive-cosign.yml` run (see §Supply chain).
 
 ## Image pins (digest)
 
@@ -348,6 +349,12 @@ pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update t
   `astrofin-sentinel-web` (Deployment/Service/Ingress/HPA) is separate and unchanged;
   only the image ref inside `deploy/k8s/deployment.yaml` is `astrofin-sentinel-platform`
   (tag sed-rewritten to `${VERSION}` at deploy time).
+- **postgres-archive** image = `ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm@sha256:4806ea35…`
+  (Debian/glibc postgres + wal-g). **sign** = `postgres-archive-cosign.yml` (push to
+  `release/v1.0.0` / manual dispatch, `packages: write` + `id-token`). **verify** =
+  `postgres-archive-verify.yml` (every PR touching the archive overlay / Dockerfile /
+  sign workflow; `packages: read`, no sign, fork-guarded, digest-drift check). Signed
+  only after the first successful sign run — until then verify-on-PR is red (no `.sig`).
 
 ---
 
