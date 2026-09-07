@@ -181,6 +181,9 @@ jobs:
       - name: Validate postgres-archive wal-g guard (debian base, pinned wal-g digest, no alpine)
         run: |
           bash scripts/ci_validate_postgres_archive_walg.sh
+      - name: Validate wal-g archive stack guard (sidecar targets postgres-archive / pg_data_archive)
+        run: |
+          bash scripts/ci_validate_walg_archive_stack.sh
       - name: Validate image digests guard (no floating tags on base stack)
         run: |
           bash scripts/ci_validate_image_digests.sh

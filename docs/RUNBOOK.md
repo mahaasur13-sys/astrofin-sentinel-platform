@@ -232,25 +232,27 @@ Run modes (orchestrator):
   remains **Path B** until a compose wal-g sidecar + a pinned wal-g image +
   an encryption secret + `archive_mode`/wal-push exist.
 
-### Sidecar overlay (optional, image NOT pinned)
+### Sidecar overlay (archive stack)
 
 - `deploy/docker/docker-compose.wal-g.yml` is an **optional** `profiles: ["backup"]`
-  overlay (base stack unchanged). Run it with:
-  `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.wal-g.yml --profile backup run --rm wal-g`
+  sidecar. It targets the **archive cluster** (`PGHOST=postgres-archive`,
+  `pg_data_archive`), never the live base `postgres`/`pg_data`. Run the full
+  archive + wal-g stack with:
+  `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.postgres-archive.yml -f deploy/docker/docker-compose.wal-g.yml --profile archive --profile backup run --rm wal-g`
   (default command `backup-list`, not `backup-push`).
-- The overlay image is **not pinned yet** (`ghcr.io/OWNER/wal-g-pg:TODO`): there
-  is no public official wal-g image (ghcr.io/wal-g/wal-g is 403, no Docker Hub
-  official). Pin after we publish a glibc wal-g v3.0.6 to our own registry.
-  Do **not** use community images (`chekkan/wal-g` etc.).
-- The local proof above used a host `ubuntu:24.04` helper (glibc) — the overlay
-  is the eventual replacement, not yet active. wal-g needs glibc, not
-  alpine/musl. `archive_mode` stays **off**; the restore drill (#370) still applies.
+- The sidecar image is pinned and keyless-Cosign-signed:
+  `ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343…`. Do **not** use community
+  images (`chekkan/wal-g` etc.).
+- wal-g needs glibc (not alpine/musl): the archive cluster runs the Debian/glibc
+  `astrofin-postgres-archive` image with wal-g built in. Base `archive_mode` stays
+  **off**; the restore drill (#370) still applies.
 
 ### Volume backup policy
 
 | volume | policy |
 |---|---|
-| `pg_data` | WAL-G only (`--profile backup` overlay, pinned image) — never `tar` |
+| `pg_data` (live base) | **not backed up** — base `archive_mode` is off; never `tar` |
+| `pg_data_archive` | WAL-G only (`--profile archive --profile backup` stack, pinned image) — never `tar` |
 | `grafana_data` | optional `scripts/volume_snapshot.sh grafana /abs/dest` (tar to a safe empty dest) |
 | `redis_data` | **not backed up** |
 | `prom_data` | **not backed up** |
@@ -267,6 +269,10 @@ Run modes (orchestrator):
   **separate** `postgres-archive` service with `archive_mode=on` on its own volume
   `pg_data_archive` (the live `pg_data` is never touched). Bring it up:
   `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.postgres-archive.yml --profile archive up -d postgres-archive`
+- Full archive + wal-g stack (archive cluster **and** the wal-g sidecar pointing
+  at `postgres-archive`/`pg_data_archive`):
+  `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.postgres-archive.yml -f deploy/docker/docker-compose.wal-g.yml --profile archive --profile backup run --rm wal-g`
+  (default `backup-list`; for a real backup: `… run --rm wal-g backup-push /var/lib/postgresql/data`).
 - This is **not** prod and **not** the current MinIO backup — it is a PITR lab/test
   cluster. The `astrofin-postgres-archive` image (Debian/glibc) **includes** wal-g
   v3.0.6; the base `postgres:15-alpine` does **not**. `archive_command` therefore

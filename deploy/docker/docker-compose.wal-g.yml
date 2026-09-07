@@ -1,14 +1,22 @@
-# Optional WAL-G sidecar overlay — apply ON TOP of docker-compose.yml.
+# Optional WAL-G sidecar overlay — apply ON TOP of docker-compose.yml in the
+# ARCHIVE stack. It targets postgres-archive (pg_data_archive), NOT the live base
+# postgres (pg_data).
 #
-#   docker compose -f docker-compose.yml -f docker-compose.wal-g.yml \
-#     --profile backup run --rm wal-g
+#   docker compose \
+#     -f docker-compose.yml \
+#     -f docker-compose.postgres-archive.yml \
+#     -f docker-compose.wal-g.yml \
+#     --profile archive --profile backup \
+#     run --rm wal-g
 #
-# Default command is `backup-list` (NOT backup-push on every up). To back up:
-#   docker compose ... --profile backup run --rm wal-g backup-push /var/lib/postgresql/data
+# Default command is `backup-list` (NOT backup-push on every up). To back up the
+# archive cluster:
+#   docker compose ... --profile archive --profile backup run --rm wal-g backup-push /var/lib/postgresql/data
 #
 # DISABLED by default via `profiles: ["backup"]`. The BASE stack is unchanged —
 # do NOT add ${WALG_S3_PREFIX:?} to docker-compose.yml (would break compose-config
-# validation). Postgres archive_mode stays OFF (base backups are not PITR).
+# validation). Base postgres archive_mode stays OFF; the archive cluster is the
+# PITR target.
 #
 # Image: self-hosted glibc wal-g v3.0.6 on GHCR, pinned by index digest.
 #   Do NOT use community images (chekkan/wal-g etc.) — untrusted/stale.
@@ -18,7 +26,7 @@ services:
     container_name: astrofinsentinel_walg
     profiles: ["backup"]
     environment:
-      - "PGHOST=postgres"
+      - "PGHOST=postgres-archive"
       - "PGPORT=5432"
       - "PGDATABASE=${POSTGRES_DB:-astrofin}"
       - "PGUSER=${POSTGRES_USER:-postgres}"
@@ -34,7 +42,7 @@ services:
       - "WALG_LIBSODIUM_KEY_PATH=/run/secrets/walg_libsodium_key"
       - "WALG_LIBSODIUM_KEY_TRANSFORM=hex"
     volumes:
-      - pg_data:/var/lib/postgresql/data:rw  # rw: push needs read access to PGDATA
+      - pg_data_archive:/var/lib/postgresql/data:rw  # rw: push needs read access to PGDATA
       # gitignored key file; required for backup-push, unused by backup-list
       - ./secrets/walg_libsodium_key:/run/secrets/walg_libsodium_key:ro
     command: ["backup-list"]
