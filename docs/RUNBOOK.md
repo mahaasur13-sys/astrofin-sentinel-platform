@@ -403,6 +403,30 @@ the web base images ≠ signing the final ghcr.io image.
 
 ---
 
+## Prod Go gate
+
+`scripts/ci_validate_prod_gate.sh` is the **git-level** gate (exit 0/1), run in CI
+(`unit-suite.yml`). It orchestrates the existing guards and adds two greps:
+
+- `ci_validate_walg_restore_guard.sh` — no `pg_ctl stop` / `backup-fetch $PGDATA` in `restore.sh`
+- `ci_validate_postgres_user_required.sh` — no `POSTGRES_USER:-postgres`
+- `ci_validate_image_digests.sh` — `python`/`uv` `FROM` pinned `@sha256`
+- `ci_validate_metrics_bind.sh` — `METRICS_BIND_ALL` without token raises `SystemExit`
+- `ci_validate_action_pins.sh` — actions pinned by SHA
+- deploy.yml: no `:latest` push, no `cosign sign --key` / `COSIGN_PRIVATE_KEY`
+
+A green git gate does **not** mean production-ready. These remain **No-Go**:
+
+| item | status |
+|---|---|
+| external secrets manager (vault) | No-Go — secrets are gitignored files on a laptop |
+| real AWS S3 / IAM for WAL-G | No-Go — S3 is a `${VAR:?}` template, not an account |
+| PITR on live `pg_data` | No-Go — base `archive_mode` is off (archive cluster only) |
+| Cosign on the alpine base stack | No-Go — postgres/redis/prom/grafana are digest-pinned, not signed |
+| CodeRabbit App | No-Go — `.coderabbit.yaml` present but App not installed |
+
+---
+
 ## 0. General triage commands
 
 ```bash
