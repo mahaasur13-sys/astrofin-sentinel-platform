@@ -32,6 +32,22 @@ if grep -nE '^(DEST|WALG_RESTORE_DIR)="?[^"]*(PGDATA|/var/lib/postgresql/data|do
   fail=1
 fi
 
+# 4. deploy/wal-g/restore.sh must be neutralized: no pg_ctl stop, no
+#    backup-fetch into PGDATA / pg_data / pg_data_archive / docker_pg_data.
+#    (Comment lines are ignored — the guard checks code, not prose.)
+RESTORE_SH="${2:-deploy/wal-g/restore.sh}"
+if [ -f "$RESTORE_SH" ]; then
+  rlines="$(grep -vE '^[[:space:]]*#' "$RESTORE_SH")"
+  if echo "$rlines" | grep -nE 'pg_ctl[[:space:]]+stop'; then
+    echo "::error:: $RESTORE_SH must not call pg_ctl stop (use the drill)" >&2
+    fail=1
+  fi
+  if echo "$rlines" | grep -nE 'backup-fetch[[:space:]]+[^[:space:]]*(PGDATA|pg_data|pg_data_archive|docker_pg_data)'; then
+    echo "::error:: $RESTORE_SH must not backup-fetch into a live data path" >&2
+    fail=1
+  fi
+fi
+
 if [ "$fail" -ne 0 ]; then
   echo "wal-g restore guard FAILED" >&2
   exit 1
