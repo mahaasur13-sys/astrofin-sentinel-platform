@@ -11,12 +11,14 @@ same shape: **Detect → Triage → Mitigate → Recover → Post-mortem**.
 ## Bootstrap: start the prod stack
 
 The prod compose is `deploy/docker/docker-compose.yml` (app + postgres + redis +
-prometheus + grafana). It guards three variables with `${VAR:?}` — set them
-before running:
+prometheus + grafana). It guards several variables with `${VAR:?}` — set them
+before running. There is **no default superuser name**: `POSTGRES_USER` is
+required (`${POSTGRES_USER:?}`), set it in env/secrets.
 
 ```bash
+export POSTGRES_USER="<real-user>"
 export POSTGRES_PASSWORD="<real-password>"
-export DATABASE_URL="postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/astrofin"
+export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/astrofin"
 export GF_SECURITY_ADMIN_PASSWORD="<grafana-admin-password>"
 
 # Validate interpolation (no build, no start)
@@ -41,13 +43,19 @@ docker compose -f deploy/docker/docker-compose.yml up -d
 
 ## Base full smoke
 
-- Required env (4× `${VAR:?}`): `DATABASE_URL`, `POSTGRES_PASSWORD`,
-  `GF_SECURITY_ADMIN_USER`, `GF_SERVER_ROOT_URL=http://127.0.0.1:3000`.
+- Required env (5× `${VAR:?}`): `DATABASE_URL`, `POSTGRES_USER`,
+  `POSTGRES_PASSWORD`, `GF_SECURITY_ADMIN_USER`,
+  `GF_SERVER_ROOT_URL=http://127.0.0.1:3000`.
 - Required files: `deploy/docker/secrets/grafana_admin_password` and
   `grafana_secret_key` (`chmod 644` for uid 472 — see C9).
-- Agree the DB password with the URL (host = `postgres` service name):
+- Agree the DB user/password with the URL (host = `postgres` service name):
+  `export POSTGRES_USER=...`
   `export POSTGRES_PASSWORD=...`
-  `export DATABASE_URL="postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/astrofin"`
+  `export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/astrofin"`
+- This only removes the yaml default for **new** clusters. If the `pg_data`
+  volume was already `initdb`'d with the `postgres` superuser, that role still
+  exists in the volume — migrate the existing cluster separately, don't assume
+  the role vanished.
 - Bring up the whole base (not just grafana):
   `docker compose -f deploy/docker/docker-compose.yml up -d`
 - Verify:
