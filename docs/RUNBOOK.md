@@ -378,7 +378,8 @@ the web base images ≠ signing the final ghcr.io image.
 - Web **sign** = `deploy.yml` (push of a `v*.*.*` tag / manual dispatch; builds the
   root `Dockerfile` multi-arch, pushes `ghcr.io/mahaasur13-sys/astrofin-sentinel-platform`
   with `<git-sha>` + semver tags — **no `:latest`** — and keyless Cosign-signs the
-  manifest digest). The kubectl deploy steps (staging → smoke → prod) are unchanged;
+  pushed repo digest (`steps.build.outputs.digest`), not a local `/tmp` manifest
+  hash). The kubectl deploy steps (staging → smoke → prod) are unchanged;
   the old key-based `cosign sign --key cosign.key` + `:latest` tag were removed. The
   first run after merge may fail `DENIED` pushing the `.sig` until the
   `astrofin-sentinel-platform` package is Write-linked to this repo (same one-time
