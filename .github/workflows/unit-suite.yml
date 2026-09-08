@@ -25,6 +25,9 @@ jobs:
       - name: Validate metrics bind guard (BIND_ALL requires token)
         run: |
           bash scripts/ci_validate_metrics_bind.sh
+      - name: Prod go gate (orchestrates restore/user/image/metrics/pins/deploy)
+        run: |
+          bash scripts/ci_validate_prod_gate.sh
 
   council-suite:
     name: Council/http/settings/thompson unit suite
