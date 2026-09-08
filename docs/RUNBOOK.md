@@ -336,6 +336,28 @@ the web base images ≠ signing the final ghcr.io image.
 | app base (daemon) | `python:3.11-slim@sha256:9534e5a8…` |
 | web base | `python:3.12-slim@sha256:78387bc3…` + `ghcr.io/astral-sh/uv:0.6.14@sha256:3362a526…` |
 
+### Mirror base images to GHCR (operator-only, offline retry)
+
+Docker Hub anonymous pulls are rate-limited (HTTP `429`, 100 pulls/6h). The
+compose still references the **official** Docker Hub pins; proxying them to
+`ghcr.io/mahaasur13-sys/astrofin-<svc>` (multi-arch index, keyless-signed later)
+is a separate operator step that must **not** run in CI (no Hub/GHCR auth there).
+
+To mirror after the rate limit resets:
+
+```bash
+docker login docker.io   # authenticated pull limit (avoids 429)
+docker login ghcr.io     # write access
+./scripts/mirror_base_images.sh            # copy all four as indexes
+./scripts/mirror_base_images.sh --dry-run  # show source -> dest without copying
+```
+
+The script uses `docker buildx imagetools create` (index-preserving), **never**
+`docker tag` (which would drop `arm64` and leave amd64-only). It exits `1` if a
+destination is not a multi-arch index (`linux/amd64` + `>=1 linux/arm*`) or has no
+valid digest, and `2` on `429`/denied. Only after a successful inspect should the
+compose `image:` lines be switched to the GHCR digest.
+
 ## Supply chain (actions / SBOM / signing)
 
 - GitHub Actions are pinned by commit SHA (`owner/repo@<40hexSHA>`), not floating
