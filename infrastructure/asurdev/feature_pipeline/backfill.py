@@ -25,7 +25,7 @@ logger = structlog.get_logger()
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from feature_pipeline import FeatureBuilder, FeatureExporter, build_features
 
-DSN = os.environ.get('CLUSTER_DSN', 'postgresql://cluster:password@localhost:5432/cluster_metrics')
+DSN = os.environ.get('CLUSTER_DSN', '')
 
 
 def backfill_range(

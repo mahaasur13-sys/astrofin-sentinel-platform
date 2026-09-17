@@ -51,7 +51,7 @@ Env = Literal["development", "test", "production", "staging"]
 _DEFAULTS_DEV: dict[str, str] = {
     "API_KEY": "dev-api-key-change-me",
     "REDIS_URL": "redis://localhost:6379/0",
-    "DATABASE_URL": "postgresql://astrofin:astrofin@localhost:5432/astrofin",
+    "DATABASE_URL": os.getenv("PG_DSN", ""),
     "JWT_PRIVATE_KEY_PATH": "./keys/jwt_private.pem",
     "JWT_PUBLIC_KEY_PATH": "./keys/jwt_public.pem",
 }
