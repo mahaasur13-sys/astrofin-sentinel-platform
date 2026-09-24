@@ -224,6 +224,21 @@ class Settings(BaseSettings):
     pressure_field_influence_strength: float = Field(default=0.15, ge=0.0, le=1.0)
     pressure_field_min_consensus: float = Field(default=0.5, ge=0.0, le=1.0)
 
+    # ── Jev (TypeSafe System One) decisions client — OpenRouter gateway ─
+    jev_base_url: str = Field(default="https://openrouter.ai/api/alpha")
+    jev_model: str = Field(default="typesafe/jev-1.13")  # pin; jev-latest FORBIDDEN
+    jev_api_key: SecretStr = Field(
+        default=SecretStr(""),
+        validation_alias="OPENROUTER_API_KEY",
+        description="Jev Decisions API key — reuses OPENROUTER_API_KEY (no separate secret)",
+    )
+    jev_thresholds: dict[str, float] = Field(
+        default_factory=lambda: {"choice": 0.7, "noul": 0.8, "score": 0.7},
+        description="Per-primitive confidence thresholds (stub values until S-1 calibration)",
+    )
+    jev_timeout_s: float = Field(default=10.0, ge=0.1, le=120.0)
+    jev_escalation_enabled: bool = Field(default=False)
+
     # ── Validators ─────────────────────────────────────────────────────
     @field_validator("env", mode="before")
     @classmethod
