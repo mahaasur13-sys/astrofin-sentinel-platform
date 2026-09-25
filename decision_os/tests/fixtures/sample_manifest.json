@@ -1,0 +1,11 @@
+{
+  "id": "sample-plugin",
+  "name": "Sample Plugin",
+  "version": "2.0.0",
+  "description": "A sample plugin for testing",
+  "author": "Test Team",
+  "permissions": ["support:chat:send", "support:ticket:create"],
+  "hooks": ["before_message_send", "after_message_send"],
+  "tier_required": ["Start"],
+  "entry_point": "main.py"
+}

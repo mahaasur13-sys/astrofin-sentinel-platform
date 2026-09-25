@@ -10,10 +10,16 @@ reviews:
   poem: false
   review_status: true
   collapse_walkthrough: true
+  sequence_diagrams: true
+  changed_files_summary: true
   path_filters:
     - "!**/*.lock"
     - "!**/coverage/**"
     - "!.venv/**"
+    - "!docs/**"
+    - "!*.md"
+    - "!data/**"
+    - "!backtest/data_cache/**"
   auto_review:
     enabled: true
     drafts: true
@@ -21,35 +27,83 @@ reviews:
       - "main"
       - "master"
       - "release/.*"
-  path_instructions:
-    - path: "db/**"
-      instructions: |
-        Fail-closed database access is mandatory in prod.
-        Flag any except-path that writes to SQLite after Postgres failure
-        and still returns success.
-        Flag duplicate is_postgres_available implementations;
-        only a real SELECT 1 check is acceptable.
-        UniqueViolation/IntegrityError must not be redirected to SQLite.
-    - path: "deploy/docker/**"
-      instructions: |
-        No host bind on 0.0.0.0 unless file is an explicit public overlay
-        already documented as C12.
-        Redis must not run without requirepass in compose.
-        Grafana must keep ${VAR:?} / __FILE secrets, signup/anon off.
-        Flag EMAIL_DOMAINS=* unless filename contains dev or local.
-        Flag empty init.sql mounted into initdb without a comment.
-        Prefer image digests over floating tags, but do not block if noted.
-    - path: "scripts/**"
-      instructions: |
-        Security CI must be fail-closed, no network, no docker.
-        Missing match = error, not warning.
-    - path: ".github/workflows/**"
-      instructions: |
-        New db fail-closed script must be invoked.
-        Do not skip security jobs on docs-only unless paths exclude is correct.
-    - path: "docs/**"
-      instructions: |
-        RUNBOOK must not claim WAL-G/S3 encryption if still commented out.
   tools:
     gitleaks:
       enabled: true
+path_instructions:
+  - path: "db/**"
+    instructions: |
+      Fail-closed database access is mandatory in prod.
+      Flag any except-path that writes to SQLite after Postgres failure
+      and still returns success.
+      Flag duplicate is_postgres_available implementations;
+      only a real SELECT 1 check is acceptable.
+      UniqueViolation/IntegrityError must not be redirected to SQLite.
+  - path: "deploy/docker/**"
+    instructions: |
+      No host bind on 0.0.0.0 unless file is an explicit public overlay
+      already documented as C12.
+      Redis must not run without requirepass in compose.
+      Grafana must keep ${VAR:?} / __FILE secrets, signup/anon off.
+      Flag EMAIL_DOMAINS=* unless filename contains dev or local.
+      Flag empty init.sql mounted into initdb without a comment.
+      Prefer image digests over floating tags, but do not block if noted.
+  - path: "scripts/**"
+    instructions: |
+      Security CI must be fail-closed, no network, no docker.
+      Missing match = error, not warning.
+  - path: ".github/workflows/**"
+    instructions: |
+      New db fail-closed script must be invoked.
+      Do not skip security jobs on docs-only unless paths exclude is correct.
+  - path: "docs/**"
+    instructions: |
+      RUNBOOK must not claim WAL-G/S3 encryption if still commented out.
+  - path: "decision_os/core/**"
+    instructions: |
+      КРИТИЧНО: DecisionOS PluginManager. Проверяй:
+      1. Lifecycle: install→enable→disable→unload→update — все состояния.
+      2. HookSystem: корректность register/fire/unregister.
+      3. Sandbox: whitelist permissions, SPEND_KEY жёстко заблокирован.
+      4. ThoughtTracer: корректность trace/entries_json.
+  - path: "decision_os/plugins/dashbeam_transfer/**"
+    instructions: |
+      КРИТИЧНО: DashBeam Transfer Plugin. Проверяй:
+      1. Spend keys Monero НИКОГДА не попадают в код/логи.
+      2. DashBeamTicket: срок действия, одноразовость.
+      3. DashBeamSession: P2P handshake, шифрование TLS 1.3.
+      4. DashBeamRelayConfig: Enterprise-only доступ.
+      5. Все permissions в manifest.json соответствуют tier_required.
+  - path: "decision_os/plugins/builtin/**"
+    instructions: |
+      Встроенные плагины DecisionOS. Проверяй:
+      1. policy-engine: корректность before/after хуков.
+      2. decision-gate: пропуск/блокировка действий.
+      3. crypto-payments: безопасность ключей.
+      4. crypto-wallets: SPEND KEYS NEVER SHARED — критично.
+      5. support-chat: WebSocket + тикеты.
+      6. Каждый manifest.json соответствует реализации.
+  - path: "decision_os/api/**"
+    instructions: |
+      DecisionOS FastAPI. Проверяй: CORS, error handling, rate limiting,
+      bearer auth на мутирующих эндпоинтах.
+  - path: "decision_os/tests/**"
+    instructions: |
+      Тесты DecisionOS. Проверяй:
+      1. 58/58 должны проходить (18 unit + 40 integration).
+      2. Граничные случаи: unload, re-install, spend_key блокировка.
+      3. Тесты DashBeam: ticket lifecycle, session, relay config.
+  - path: "agents/_impl/**"
+    instructions: |
+      Агенты AstroFin. Проверяй: @require_ephemeris декоратор,
+      AgentResponse интерфейс, корректность весов.
+  - path: "roma-execution-bridge/plugins/**"
+    instructions: |
+      ROMA Execution Bridge плагины. Проверяй:
+      PluginManager (async, singleton), Sandbox (4 политики),
+      DashBeam (Iroh, relay, MoneroSharingValidator).
+chat:
+  auto_reply: true
+knowledge_base:
+  learnings:
+    scope: "auto"

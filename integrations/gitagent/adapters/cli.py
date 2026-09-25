@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .mcp_adapter import MCPAdapter
+from .mcp_adapter import MCPAdapter, MCPError
 
 # =============================================================================
 # Agent Export/Import Functions
@@ -189,16 +189,21 @@ def main():
     mcp_install_parser = subparsers.add_parser(
         "mcp-install", help="Connect MCP server through Smithery"
     )
-    mcp_install_parser.add_argument("server_name", help="Smithery qualified server name")
+    mcp_install_parser.add_argument("server_name", nargs="?", help="Smithery qualified server name")
+    mcp_install_parser.add_argument("--server", dest="server_option", help="Smithery qualified server name")
     mcp_install_parser.add_argument("--config", help="JSON config file")
 
     subparsers.add_parser("mcp-list", help="List installed Smithery MCP connections")
-    subparsers.add_parser("mcp-list-tools", help="List tools from MCP connections")
+    mcp_tools_parser = subparsers.add_parser("mcp-list-tools", help="List tools from MCP connections")
+    mcp_tools_parser.add_argument("--server", dest="server_option", help="Server or connection id")
 
     mcp_call_parser = subparsers.add_parser("mcp-call", help="Call a connected MCP tool")
-    mcp_call_parser.add_argument("connection_id")
-    mcp_call_parser.add_argument("tool_name")
-    mcp_call_parser.add_argument("--arguments", default="{}", help="Tool arguments as JSON")
+    mcp_call_parser.add_argument("connection_id", nargs="?", help="Server or connection id")
+    mcp_call_parser.add_argument("tool_name", nargs="?", help="MCP tool name")
+    mcp_call_parser.add_argument("--server", dest="server_option", help="Server or connection id")
+    mcp_call_parser.add_argument("--tool", dest="tool_option", help="MCP tool name")
+    mcp_call_parser.add_argument("--params", dest="params_option", help="Tool parameters as JSON")
+    mcp_call_parser.add_argument("--arguments", default=None, help="Tool arguments as JSON")
 
     subparsers.add_parser("mcp-recommended", help="Show recommended MCP servers")
 
@@ -225,23 +230,41 @@ def main():
         print(json.dumps(result, indent=2))
 
     elif args.command == "mcp-install":
+        server_name = args.server_option or args.server_name
+        if not server_name:
+            mcp_install_parser.error("mcp-install requires --server or server_name")
         config = None
         if args.config:
             with open(args.config) as f:
                 config = json.load(f)
-        result = mcp_install_cli(args.server_name, config=config)
+        result = mcp_install_cli(server_name, config=config)
         print(json.dumps(result, indent=2))
 
     elif args.command == "mcp-list":
         print(json.dumps(mcp_list_cli(), indent=2))
 
     elif args.command == "mcp-list-tools":
-        print(json.dumps(mcp_tools_cli(), indent=2))
+        adapter = MCPAdapter(transport="smithery", server=args.server_option) if args.server_option else MCPAdapter()
+        try:
+            result = adapter.mcp_list_tools(args.server_option)
+        except MCPError as exc:
+            print(json.dumps({"status": "error", "error": str(exc)}))
+        else:
+            print(json.dumps(result, indent=2))
 
     elif args.command == "mcp-call":
-        arguments = json.loads(args.arguments)
-        result = MCPAdapter().call_tool(args.connection_id, args.tool_name, arguments)
-        print(json.dumps(result, indent=2, ensure_ascii=False))
+        connection_id = args.server_option or args.connection_id
+        tool_name = args.tool_option or args.tool_name
+        if not connection_id or not tool_name:
+            mcp_call_parser.error("mcp-call requires --server/connection_id and --tool/tool_name")
+        arguments_text = args.params_option if args.params_option is not None else (args.arguments or "{}")
+        arguments = json.loads(arguments_text)
+        try:
+            result = MCPAdapter(transport="smithery", server=connection_id).call_tool(tool_name, arguments, connection_id)
+        except MCPError as exc:
+            print(json.dumps({"status": "error", "error": str(exc)}))
+        else:
+            print(json.dumps(result, indent=2, ensure_ascii=False))
 
     elif args.command == "mcp-recommended":
         print(json.dumps(MCPAdapter().get_recommended_servers(), indent=2))

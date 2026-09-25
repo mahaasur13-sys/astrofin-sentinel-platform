@@ -1,0 +1,18 @@
+# =============================================================================
+# Grafana Cloud Recording Rules — AstroFin Sentinel
+# =============================================================================
+groups:
+  - name: astrofin_recording
+    interval: 30s
+    rules:
+      # ── Cache Hit Rate (ratio over 5m window) ──
+      # Falls back to 1.0 when no traffic → no NaN in dashboards/alerts.
+      - record: astrofin:cache_hit_rate:ratio5m
+        expr: |
+          (
+            rate(astrofin_cache_hits_total[5m])
+            /
+            (rate(astrofin_cache_hits_total[5m]) + rate(astrofin_cache_misses_total[5m]))
+          )
+          or
+          vector(1)

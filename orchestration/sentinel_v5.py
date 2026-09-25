@@ -35,12 +35,7 @@ from core.thompson import (
 )
 from orchestration.router import route_query
 
-try:
-    from db.session import init_db_if_needed
-
-    PG_AVAILABLE = True
-except Exception:
-    PG_AVAILABLE = False
+PG_AVAILABLE = False
 
 from agents._impl.amre.oap_optimizer import get_oap_optimizer
 
@@ -218,20 +213,6 @@ async def run_karl_sentinel_v5(
     session_id: str | None = None,
 ) -> dict:
     session_id = session_id or str(uuid.uuid4())[:8]
-
-    if PG_AVAILABLE:
-        try:
-            db_init = init_db_if_needed()
-            if db_init.get("tables_created"):
-                logger.info("[DB] PostgreSQL tables initialized")
-            elif db_init.get("postgres_available"):
-                logger.info("[DB] PostgreSQL connected")
-            else:
-                logger.info("[DB] PostgreSQL not available, using SQLite")
-        except Exception as e:
-            logger.warning(f"[DB] Init failed: {e}, using SQLite")
-    else:
-        logger.info("[DB] PostgreSQL not configured, using SQLite")
 
     route_output = route_query(user_query)
     logger.info(f"[Router] Query type: {route_output.query_type.value}")

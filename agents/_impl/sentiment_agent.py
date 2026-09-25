@@ -128,8 +128,11 @@ class SentimentAgent(BaseAgent[AgentResponse]):
         }
 
     async def _fetch_funding_rate(self, symbol: str = "BTCUSDT") -> dict:
-        """Fetch funding rate from Bybit asynchronously."""
-        url = f"https://api.bybit.com/v5/market/tickers?category=linear&symbol={symbol}"
+        """Fetch funding rate from OKX asynchronously."""
+        base_symbol = symbol.split("-", 1)[0]
+        base_symbol = base_symbol[:-4] if base_symbol.endswith("USDT") else base_symbol
+        inst_id = f"{base_symbol}-USDT-SWAP"
+        url = f"https://www.okx.com/api/v5/public/funding-rate?instId={inst_id}"
 
         try:
             async with httpx.AsyncClient() as client:
@@ -137,7 +140,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
 
                 if resp.status_code != 200:
                     logger.warning(
-                        f"[SentimentAgent] HTTP {resp.status_code} from Bybit"
+                        f"[SentimentAgent] HTTP {resp.status_code} from OKX"
                     )
                     return {
                         "score": 0.5,
@@ -147,7 +150,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
 
                 data = resp.json()
                 funding_rate = float(
-                    data.get("result", {}).get("list", [{}])[0].get("fundingRate", 0.0)
+                    data.get("data", [{}])[0].get("fundingRate", 0.0)
                 )
 
                 if funding_rate > 0.001:

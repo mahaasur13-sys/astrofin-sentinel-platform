@@ -1,0 +1,15 @@
+{
+  "id": "support-chat",
+  "name": "Support Chat",
+  "version": "1.0.0",
+  "description": "Real-time поддержка через WebSocket + тикет-система",
+  "author": "DecisionOS Team",
+  "permissions": [
+    "support:chat:send",
+    "support:ticket:create",
+    "support:file:send_p2p"
+  ],
+  "hooks": ["before_message_send", "after_message_send", "before_ticket_create", "after_ticket_create"],
+  "tier_required": ["Start"],
+  "entry_point": "main.py"
+}

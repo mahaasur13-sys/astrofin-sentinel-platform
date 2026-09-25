@@ -1,0 +1,11 @@
+{
+  "id": "menu",
+  "name": "Left Menu",
+  "version": "1.0.0",
+  "description": "Боковое меню навигации — генерируется из активных плагинов",
+  "author": "DecisionOS Team",
+  "permissions": ["ui:menu:render"],
+  "hooks": ["before_menu_render"],
+  "tier_required": ["Start"],
+  "entry_point": "main.py"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "decision-gate",
+  "name": "Decision Gate",
+  "version": "1.0.0",
+  "description": "Gate — пропускает или блокирует действия на основе Policy Engine",
+  "author": "DecisionOS Team",
+  "permissions": ["decision:gate:pass"],
+  "hooks": ["before_decision_gate", "after_decision_gate"],
+  "tier_required": ["Start"],
+  "entry_point": "main.py"
+}

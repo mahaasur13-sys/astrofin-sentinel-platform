@@ -110,29 +110,22 @@ async def run_macro_flow(state: dict, selected_agents: list | None = None) -> di
 
 
 async def _fetch_price(symbol: str, fallback_price: float = 50000.0) -> float:
-    import httpx
+    from data_room.resolvers.coingecko import CoinGeckoResolver
 
-    max_retries = 3
-    async with httpx.AsyncClient() as client:
-        for attempt in range(max_retries):
-            try:
-                url = f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
-                resp = await client.get(url, timeout=5)
-                resp.raise_for_status()
-                data = resp.json()
-                price = float(data.get("price", 0))
-                if price > 0:
-                    logger.debug(f"[Price] {symbol} = {price}")
-                    return price
-                else:
-                    logger.warning(f"[Price] Invalid price for {symbol}: {price}")
-            except Exception as e:
-                logger.warning(
-                    f"[Price] Attempt {attempt + 1}/{max_retries} error: {e}"
-                )
-            if attempt < max_retries - 1:
-                await asyncio.sleep(2**attempt)
-    logger.error(
-        f"[Price] All {max_retries} attempts failed for {symbol}, using fallback {fallback_price}"
+    resolver = CoinGeckoResolver()
+    try:
+        tick = await resolver.resolve(symbol)
+        if tick.price > 0:
+            logger.debug("[Price] %s = %s via %s", symbol, tick.price, tick.source_id)
+            return tick.price
+    except Exception as exc:
+        logger.warning("[Price] Data Room lookup failed for %s: %s", symbol, exc)
+    finally:
+        await resolver.close()
+
+    logger.warning(
+        "[Price] Data Room lookup failed for %s, using fallback %s",
+        symbol,
+        fallback_price,
     )
     return fallback_price

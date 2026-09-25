@@ -440,6 +440,200 @@ class ContinuousBacktest:
 # =============================================================================
 
 
+# =============================================================================
+# EvoX Genesis — Project as permanent, agents promote verified changes
+# =============================================================================
+
+@dataclass
+class StrategySnapshot:
+    """Слепок стратегии в момент оценки — сериализуемый"""
+    strategy_id: str
+    name: str
+    weights: dict[str, float]
+    params: dict[str, Any]
+    oos_sharpe: float = 0.0
+    oos_win_rate: float = 0.0
+    oos_max_dd: float = 0.0
+    is_promoted: bool = False
+    promoted_at: str = ""
+    evaluated_at: str = ""
+
+    def to_dict(self) -> dict:
+        from dataclasses import asdict
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "StrategySnapshot":
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+
+class BacktestProject:
+    """Постоянный проект (EvoX Genesis) — стратегия живёт, агенты продвигают изменения.
+
+    State persists in SQLite. Agents propose changes via promote(),
+    backtest validates OOS, only verified changes become active.
+    """
+
+    def __init__(self, db_path: str = "data/backtest_project.db", project_id: str = "default"):
+        import sqlite3
+        import json
+        self.db_path = db_path
+        self.project_id = project_id
+        self._conn = sqlite3.connect(db_path)
+        self._conn.row_factory = sqlite3.Row
+        self._init_schema()
+
+    def _init_schema(self):
+        self._conn.executescript("""
+            CREATE TABLE IF NOT EXISTS project_state (
+                project_id TEXT PRIMARY KEY,
+                active_strategy_id TEXT,
+                active_weights TEXT DEFAULT '{}',
+                total_promotions INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now'))
+            );
+            CREATE TABLE IF NOT EXISTS strategy_snapshots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id TEXT NOT NULL,
+                strategy_id TEXT NOT NULL,
+                name TEXT,
+                weights TEXT DEFAULT '{}',
+                params TEXT DEFAULT '{}',
+                oos_sharpe REAL DEFAULT 0.0,
+                oos_win_rate REAL DEFAULT 0.0,
+                oos_max_dd REAL DEFAULT 0.0,
+                is_promoted INTEGER DEFAULT 0,
+                promoted_at TEXT,
+                evaluated_at TEXT DEFAULT (datetime('now')),
+                FOREIGN KEY (project_id) REFERENCES project_state(project_id)
+            );
+            CREATE TABLE IF NOT EXISTS promotion_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id TEXT NOT NULL,
+                old_strategy_id TEXT,
+                new_strategy_id TEXT NOT NULL,
+                sharpe_improvement REAL,
+                win_rate_delta REAL,
+                promoted_at TEXT DEFAULT (datetime('now')),
+                reason TEXT
+            );
+            INSERT OR IGNORE INTO project_state (project_id) VALUES (?);
+        """, (self.project_id,))
+        self._conn.commit()
+
+    def snapshot(self, strategy_id: str, name: str, weights: dict, params: dict,
+                 oos_sharpe: float, oos_win_rate: float, oos_max_dd: float) -> StrategySnapshot:
+        """Create a strategy snapshot — proposed change, not yet promoted."""
+        import json
+        snap = StrategySnapshot(
+            strategy_id=strategy_id, name=name, weights=weights, params=params,
+            oos_sharpe=oos_sharpe, oos_win_rate=oos_win_rate, oos_max_dd=oos_max_dd,
+            evaluated_at=datetime.now().isoformat(),
+        )
+        self._conn.execute(
+            "INSERT INTO strategy_snapshots (project_id, strategy_id, name, weights, params, "
+            "oos_sharpe, oos_win_rate, oos_max_dd, evaluated_at) VALUES (?,?,?,?,?,?,?,?,?)",
+            (self.project_id, snap.strategy_id, snap.name, json.dumps(weights),
+             json.dumps(params), snap.oos_sharpe, snap.oos_win_rate, snap.oos_max_dd,
+             snap.evaluated_at),
+        )
+        self._conn.commit()
+        return snap
+
+    def promote(self, strategy_id: str, min_sharpe: float = 0.5,
+                min_win_rate: float = 0.45, max_dd: float = 999.0) -> bool:
+        """Promote a strategy to active IF OOS metrics pass thresholds.
+
+        Gate conditions (configurable):
+        - OOS Sharpe >= min_sharpe
+        - OOS Win Rate >= min_win_rate
+        - OOS Max DD <= max_dd
+
+        Returns True if promoted, False if rejected.
+        """
+        import json
+        row = self._conn.execute(
+            "SELECT * FROM strategy_snapshots WHERE project_id = ? AND strategy_id = ? AND is_promoted = 0 "
+            "ORDER BY evaluated_at DESC LIMIT 1",
+            (self.project_id, strategy_id),
+        ).fetchone()
+
+        if not row:
+            return False
+
+        snap = dict(row)
+        sharpe = float(snap["oos_sharpe"] or 0)
+        win_rate = float(snap["oos_win_rate"] or 0)
+        dd = float(snap["oos_max_dd"] or 0)
+
+        if sharpe < min_sharpe or win_rate < min_win_rate or dd > max_dd:
+            self._conn.execute(
+                "INSERT INTO promotion_log (project_id, old_strategy_id, new_strategy_id, "
+                "sharpe_improvement, win_rate_delta, reason) VALUES (?,?,?,?,?,?)",
+                (self.project_id, "", strategy_id, 0.0, 0.0,
+                 f"REJECTED: sharpe={sharpe:.2f}(min={min_sharpe}) win_rate={win_rate:.2%}(min={min_win_rate}) dd={dd:.2%}(max={max_dd})"),
+            )
+            self._conn.commit()
+            return False
+
+        # Promote: mark snapshot as active, update project state
+        old_active = self._conn.execute(
+            "SELECT active_strategy_id FROM project_state WHERE project_id = ?",
+            (self.project_id,),
+        ).fetchone()
+
+        old_id = old_active["active_strategy_id"] if old_active else ""
+
+        now = datetime.now().isoformat()
+        self._conn.execute(
+            "UPDATE strategy_snapshots SET is_promoted = 1, promoted_at = ? "
+            "WHERE project_id = ? AND strategy_id = ?",
+            (now, self.project_id, strategy_id),
+        )
+        self._conn.execute(
+            "UPDATE project_state SET active_strategy_id = ?, active_weights = ?, "
+            "total_promotions = total_promotions + 1, updated_at = ? WHERE project_id = ?",
+            (strategy_id, snap["weights"], now, self.project_id),
+        )
+        self._conn.execute(
+            "INSERT INTO promotion_log (project_id, old_strategy_id, new_strategy_id, "
+            "sharpe_improvement, win_rate_delta, reason) VALUES (?,?,?,?,?,?)",
+            (self.project_id, old_id, strategy_id,
+             round(sharpe - 0.0, 4), round(win_rate - 0.0, 4), "PROMOTED"),
+        )
+        self._conn.commit()
+        return True
+
+    def active_strategy(self) -> dict | None:
+        """Return the currently active (promoted) strategy."""
+        row = self._conn.execute(
+            "SELECT * FROM project_state WHERE project_id = ?", (self.project_id,),
+        ).fetchone()
+        if not row or not row["active_strategy_id"]:
+            return None
+        return dict(row)
+
+    def history(self, limit: int = 20) -> list[dict]:
+        """Return promotion history log."""
+        rows = self._conn.execute(
+            "SELECT * FROM promotion_log WHERE project_id = ? ORDER BY promoted_at DESC LIMIT ?",
+            (self.project_id, limit),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def snapshots(self, limit: int = 20) -> list[dict]:
+        """Return all strategy snapshots."""
+        rows = self._conn.execute(
+            "SELECT * FROM strategy_snapshots WHERE project_id = ? ORDER BY evaluated_at DESC LIMIT ?",
+            (self.project_id, limit),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def close(self):
+        self._conn.close()
+
+
 def create_backtest_runner(
     horizon: int = 5,
     oos_ratio: float = 0.2,

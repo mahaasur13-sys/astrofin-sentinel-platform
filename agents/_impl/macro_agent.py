@@ -9,6 +9,7 @@ Indicators:
 
 from __future__ import annotations
 
+import inspect
 import logging
 from typing import Optional
 
@@ -226,7 +227,15 @@ class MacroAgent(BaseAgent[AgentResponse]):
             if rag is None:
                 return None, 0, "RAG unavailable for geopolitical analysis"
 
-            results = rag.retrieve(query, top_k=3)
+            retrieve = getattr(rag, "retrieve", None)
+            results = retrieve(query, top_k=3) if callable(retrieve) else None
+            if inspect.isawaitable(results):
+                results = await results
+            if not isinstance(results, list):
+                search = getattr(rag, "search", None)
+                results = search(query, top_k=3) if callable(search) else []
+                if inspect.isawaitable(results):
+                    results = await results
             if not results:
                 return None, 0, "No geopolitical signals found in knowledge base"
 

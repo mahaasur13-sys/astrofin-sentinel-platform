@@ -82,6 +82,8 @@ class PostgresHistoryDB(HistoryDB):
     def _init_db(self):
         with self._conn() as conn:
             with conn.cursor() as cur:
+                cur.execute("CREATE SCHEMA IF NOT EXISTS astrofin")
+                cur.execute("SET search_path TO astrofin, public")
                 cur.execute(_INIT_PG_SQL)
             conn.commit()
 

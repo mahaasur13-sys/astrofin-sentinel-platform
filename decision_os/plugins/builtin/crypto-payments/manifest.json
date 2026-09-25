@@ -1,0 +1,11 @@
+{
+  "id": "crypto-payments",
+  "name": "Crypto Payments",
+  "version": "1.0.0",
+  "description": "Обработка криптоплатежей — Monero, USDT, BTC",
+  "author": "DecisionOS Team",
+  "permissions": ["crypto:payment:create"],
+  "hooks": ["before_payment_create", "after_payment_create"],
+  "tier_required": ["Start"],
+  "entry_point": "main.py"
+}

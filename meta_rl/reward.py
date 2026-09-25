@@ -174,19 +174,14 @@ class RewardCalculator:
                 return short_circuit
 
             cfg = self.config
-            adj_dd = (
-                result.adjusted_drawdown
-                if result.adjusted_drawdown is not None
-                else result.max_drawdown
-            )
+            adj_dd = result.adjusted_drawdown if result.adjusted_drawdown is not None else result.max_drawdown
 
             reward = (
                 cfg.base_reward
                 + cfg.sharpe_weight * self._sharpe_component(result.sharpe)
                 + cfg.pnl_weight * self._pnl_component(result.risk_adjusted_pnl)
                 - self._drawdown_penalty(adj_dd)
-                - cfg.execution_cost_weight
-                * self._execution_cost_penalty(result.execution_cost)
+                - cfg.execution_cost_weight * self._execution_cost_penalty(result.execution_cost)
                 + self._stability_bonus(result)
                 - self._hard_dd_ceiling_penalty(adj_dd)
             )
@@ -204,17 +199,12 @@ class RewardCalculator:
         All pnl/dd values are risk-adjusted (ATOM-META-RL-004).
         """
         cfg = self.config
-        adj_dd = (
-            result.adjusted_drawdown
-            if result.adjusted_drawdown is not None
-            else result.max_drawdown
-        )
+        adj_dd = result.adjusted_drawdown if result.adjusted_drawdown is not None else result.max_drawdown
         return {
             "sharpe_comp": cfg.sharpe_weight * self._sharpe_component(result.sharpe),
             "pnl_comp": cfg.pnl_weight * self._pnl_component(result.risk_adjusted_pnl),
             "dd_penalty": self._drawdown_penalty(adj_dd),
-            "cost_penalty": cfg.execution_cost_weight
-            * self._execution_cost_penalty(result.execution_cost),
+            "cost_penalty": cfg.execution_cost_weight * self._execution_cost_penalty(result.execution_cost),
             "stability_bonus": self._stability_bonus(result),
             "hard_dd_ceiling_penalty": self._hard_dd_ceiling_penalty(adj_dd),
             "risk_adj_pnl_used": result.risk_adjusted_pnl,
@@ -249,9 +239,7 @@ class RewardCalculator:
 
     def _combine(self, reward: float) -> float:
         """Clamp to ``[reward_clip_min, reward_clip_max]`` and guard NaN/Inf."""
-        clipped = float(
-            np.clip(reward, self.config.reward_clip_min, self.config.reward_clip_max)
-        )
+        clipped = float(np.clip(reward, self.config.reward_clip_min, self.config.reward_clip_max))
         if math.isnan(clipped) or math.isinf(clipped):
             return self.config.base_reward
         return clipped

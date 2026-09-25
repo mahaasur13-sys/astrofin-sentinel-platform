@@ -52,7 +52,7 @@ python -m integrations.gitagent.adapters.cli import-agent ./exported_agents/tech
 
 `MCPAdapter` uses the Smithery CLI when available and the public Smithery registry API for discovery. Search is read-only and works without credentials. Connecting a hosted server or calling its tools may require Smithery authentication, a namespace, OAuth, or server-specific configuration.
 
-Install the current CLI with `npm install -g @smithery/cli` or let the adapter use `npx --yes @smithery/cli` when no global binary is present. Smithery's current CLI flow is:
+Install the current CLI with `npm install -g smithery@latest` or let the adapter use `npx --yes smithery@latest` when no global binary is present. Smithery's current CLI flow is:
 
 ```text
 smithery mcp search <term>
@@ -74,6 +74,54 @@ wrapped = adapter.wrap_tool(tools[0]) if tools else None
 ```
 
 `mcp_install()` creates a Smithery connection and persists the local connection record in `~/.gitagent/mcp/installed_servers.json`. It does not silently install an unaudited package into the AstroFin runtime. `mcp_list_tools()` discovers tools through the Smithery CLI/API, and `call_tool()` invokes a connected tool. The adapter preserves the original MCP definition in `original_def` and maps `inputSchema`/`outputSchema` to `input_schema`/`output_schema`.
+
+### Direct stdio transport
+
+Use direct stdio when GitAgent owns the MCP child process, for example with the official GitHub MCP Server. The adapter passes the token only in the child process environment; it never places the token in the command line, JSON metadata, or logs:
+
+```python
+import os
+
+from integrations.gitagent.adapters.mcp_adapter import MCPAdapter
+
+adapter = MCPAdapter.from_stdio(
+    ["github-mcp-server", "stdio"],
+    env={"GITHUB_PERSONAL_ACCESS_TOKEN": os.environ["GITHUB_PERSONAL_ACCESS_TOKEN"]},
+    timeout=30,
+    retries=1,
+)
+try:
+    adapter.initialize()
+    tools = adapter.list_tools()
+    result = adapter.call_tool(
+        "search_repositories",
+        {"query": "repo:mahaasur13-sys/astrofin-sentinel-platform"},
+    )
+finally:
+    adapter.close()
+```
+
+The MCP server binary must be installed separately and available on `PATH`. Store `GITHUB_PERSONAL_ACCESS_TOKEN`, `SMITHERY_API_KEY`, and `SMITHERY_NAMESPACE` in Settings → Advanced or the protected runtime environment. Do not put credentials in `.env`, manifests, `installed_servers.json`, command arguments, or Git.
+
+### Smithery remote transport
+
+For a hosted server, use `MCPAdapter.from_smithery("<qualified-name>")` or the CLI flow below. Smithery CLI performs the remote connection and MCP handshake behind `mcp add`/`tool list`; the adapter exposes the same `initialize()`, `list_tools()`, `call_tool()`, and `close()` lifecycle. Search is public; connection and tool calls may require Smithery authentication or server-specific OAuth/configuration.
+
+```python
+adapter = MCPAdapter.from_smithery("github", timeout=30, retries=1)
+try:
+    adapter.initialize()
+    tools = adapter.list_tools()
+finally:
+    adapter.close()
+```
+
+### Security policy
+
+- Read-only is the default. Tools whose name or description indicates a write operation are rejected with `MCPWriteDenied`.
+- Enable writes only for an explicitly approved process with `MCP_ALLOW_WRITE=true`; write calls are never retried automatically.
+- Authentication failures, timeouts, protocol failures, and tool failures are classified separately.
+- The adapter redacts common token formats and secret environment values from errors and persists only redacted connection metadata.
 
 ### Relevant Smithery servers
 
@@ -100,6 +148,9 @@ python -m integrations.gitagent.adapters.cli mcp-install financial-data/financia
 python -m integrations.gitagent.adapters.cli mcp-list
 python -m integrations.gitagent.adapters.cli mcp-list-tools
 python -m integrations.gitagent.adapters.cli mcp-call <connection-id> <tool-name> --arguments '{"symbol":"BTCUSDT"}'
+python -m integrations.gitagent.adapters.cli mcp-install --server financial-data/financial-data
+python -m integrations.gitagent.adapters.cli mcp-list-tools --server financial-data/financial-data
+python -m integrations.gitagent.adapters.cli mcp-call --server financial-data/financial-data --tool get_price --params '{"symbol":"BTCUSDT"}'
 python -m integrations.gitagent.adapters.cli mcp-recommended
 ```
 

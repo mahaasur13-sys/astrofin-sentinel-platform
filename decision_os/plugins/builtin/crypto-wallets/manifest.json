@@ -1,0 +1,14 @@
+{
+  "id": "crypto-wallets",
+  "name": "Crypto Wallets",
+  "version": "1.0.0",
+  "description": "Управление криптокошельками — Monero view-only + subaddresses, полная изоляция spend keys",
+  "author": "DecisionOS Team",
+  "permissions": [
+    "crypto:wallet:generate",
+    "crypto:wallet:view_only"
+  ],
+  "hooks": ["before_wallet_access", "after_wallet_access"],
+  "tier_required": ["Start"],
+  "entry_point": "main.py"
+}

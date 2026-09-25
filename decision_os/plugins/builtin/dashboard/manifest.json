@@ -1,0 +1,11 @@
+{
+  "id": "dashboard",
+  "name": "Dashboard",
+  "version": "1.0.0",
+  "description": "Главный дашборд — метрики, статусы плагинов, активность",
+  "author": "DecisionOS Team",
+  "permissions": ["ui:dashboard:render"],
+  "hooks": [],
+  "tier_required": ["Start"],
+  "entry_point": "main.py"
+}
