@@ -18,7 +18,7 @@ CREATE TYPE agent_pool AS ENUM ('TECHNICAL', 'MACRO', 'ASTRO', 'ELECTION', 'SENT
 
 -- Sessions
 CREATE TABLE sessions (
-    session_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id TEXT PRIMARY KEY,
     symbol VARCHAR(20) NOT NULL,
     timeframe VARCHAR(20) NOT NULL,
     query_type query_type NOT NULL,
@@ -44,8 +44,8 @@ CREATE INDEX idx_sessions_regime ON sessions (regime);
 
 -- Agent Signals
 CREATE TABLE agent_signals (
-    signal_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    session_id UUID NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    signal_id VARCHAR(255) PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
     agent_name VARCHAR(100) NOT NULL,
     agent_pool agent_pool,
     signal signal_direction,
@@ -58,6 +58,22 @@ CREATE TABLE agent_signals (
 SELECT create_hypertable('agent_signals', 'created_at', migrate_data => true, chunk_interval => '7 days');
 CREATE INDEX idx_agent_signals_session ON agent_signals (session_id);
 CREATE INDEX idx_agent_signals_agent ON agent_signals (agent_name);
+
+-- Astro Positions (Vedic planetary positions at decision time)
+CREATE TABLE astro_positions (
+    id BIGSERIAL PRIMARY KEY,
+    session_id TEXT REFERENCES sessions(session_id) ON DELETE CASCADE,
+    planet VARCHAR(20) NOT NULL,
+    longitude NUMERIC(10,6),
+    latitude NUMERIC(10,6),
+    speed NUMERIC(10,6),
+    nakshatra VARCHAR(50),
+    rashi VARCHAR(20),
+    metadata_json TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_astro_positions_session ON astro_positions (session_id);
 
 -- Agent Beliefs (Thompson Sampling)
 CREATE TABLE agent_beliefs (
@@ -75,7 +91,7 @@ CREATE TABLE agent_beliefs (
 CREATE TABLE agent_belief_history (
     id BIGSERIAL PRIMARY KEY,
     agent_name VARCHAR(100) NOT NULL,
-    session_id UUID REFERENCES sessions(session_id) ON DELETE SET NULL,
+    session_id TEXT REFERENCES sessions(session_id) ON DELETE SET NULL,
     prior_alpha NUMERIC(10,4),
     prior_beta NUMERIC(10,4),
     posterior_alpha NUMERIC(10,4),
@@ -90,7 +106,7 @@ CREATE INDEX idx_belief_history_agent ON agent_belief_history (agent_name);
 -- Agent Selection Log
 CREATE TABLE agent_selection_log (
     id BIGSERIAL PRIMARY KEY,
-    session_id UUID NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
     agent_name VARCHAR(100) NOT NULL,
     pool_name agent_pool NOT NULL,
     was_called BOOLEAN NOT NULL,
@@ -105,8 +121,8 @@ CREATE INDEX idx_selection_log_agent ON agent_selection_log (agent_name);
 
 -- KARL Decision Records
 CREATE TABLE karl_decision_records (
-    decision_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    session_id UUID REFERENCES sessions(session_id) ON DELETE SET NULL,
+    decision_id VARCHAR(255) PRIMARY KEY,
+    session_id TEXT REFERENCES sessions(session_id) ON DELETE SET NULL,
     symbol VARCHAR(20),
     price NUMERIC(20,8),
     timeframe VARCHAR(20),
@@ -138,7 +154,7 @@ CREATE INDEX idx_karl_regime ON karl_decision_records (regime);
 -- OAP Validation History
 CREATE TABLE oap_validation_history (
     id BIGSERIAL PRIMARY KEY,
-    decision_id UUID,
+    decision_id VARCHAR(255),
     status VARCHAR(20),
     confidence INTEGER,
     position_pct NUMERIC(6,4),
@@ -153,7 +169,7 @@ SELECT create_hypertable('oap_validation_history', 'created_at', migrate_data =>
 -- KPI Metrics (TTD/TTC/Out-of-sample)
 CREATE TABLE kpi_metrics (
     id BIGSERIAL PRIMARY KEY,
-    decision_id UUID,
+    decision_id VARCHAR(255),
     metric_name VARCHAR(50) NOT NULL,
     metric_value NUMERIC(12,6),
     regime volatility_regime,
@@ -178,7 +194,7 @@ CREATE TABLE reward_calibration (
 -- Backtest Runs
 CREATE TABLE backtest_runs (
     id BIGSERIAL PRIMARY KEY,
-    session_id UUID REFERENCES sessions(session_id) ON DELETE SET NULL,
+    session_id TEXT REFERENCES sessions(session_id) ON DELETE SET NULL,
     symbol VARCHAR(20) NOT NULL,
     start_date TIMESTAMPTZ NOT NULL,
     end_date TIMESTAMPTZ NOT NULL,
@@ -216,20 +232,17 @@ CREATE INDEX idx_rag_domain ON rag_embeddings (domain);
 CREATE INDEX idx_rag_chunk ON rag_embeddings (chunk_id);
 CREATE INDEX idx_rag_embedding ON rag_embeddings USING hnsw (embedding vector_cosine_ops);
 
--- Immutable Audit Log
+-- Immutable Audit Log (aligned 1:1 with db.models.AuditLogRecord)
 CREATE TABLE audit_log (
-    id BIGSERIAL PRIMARY KEY,
-    table_name VARCHAR(50) NOT NULL,
-    record_id UUID,
+    id SERIAL PRIMARY KEY,
+    session_id TEXT,
+    decision_id VARCHAR(255),
     action VARCHAR(20) NOT NULL,
-    old_data JSONB,
-    new_data JSONB,
+    details_json TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 SELECT create_hypertable('audit_log', 'created_at', migrate_data => true, chunk_interval => '1 month');
-CREATE INDEX idx_audit_table ON audit_log (table_name);
-CREATE INDEX idx_audit_record ON audit_log (record_id);
 
 -- Retention Policies (TimescaleDB)
 SELECT add_retention_policy('sessions', INTERVAL '90 days');

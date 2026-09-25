@@ -305,3 +305,50 @@ groups:
             RPO нарушен. Проверьте `wal-g backup-list` и cron.
           runbook: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#walgbackupstale
 
+  - name: astrofin_okx
+    interval: 30s
+    rules:
+      - alert: OKXDataNotFlowing
+        expr: |
+          up{job="astrofin-okx"} == 1
+          and
+          rate(okx_requests_total{endpoint="candles", okx_code="0"}[10m]) == 0
+        for: 5m
+        labels: {severity: critical, category: market-data}
+        annotations:
+          summary: "OKX candles stopped flowing"
+          description: "Daemon up but no successful candles requests for 10m."
+      - alert: OKXBusinessErrorRateHigh
+        expr: |
+          sum by (endpoint) (rate(okx_requests_total{okx_code!="0", okx_code!=""}[5m])) > 0
+        for: 10m
+        labels: {severity: warning, category: market-data}
+        annotations:
+          summary: "OKX business errors (code != 0) on {{ $labels.endpoint }}"
+          description: "Check instId/bar params (e.g. 51000/50014)."
+      - alert: OKXEmptyCandlesIncreasing
+        expr: rate(okx_empty_candles_total[10m]) > 0
+        for: 10m
+        labels: {severity: warning, category: market-data}
+        annotations:
+          summary: "OKX empty candles (code=0) for {{ $labels.inst_id }} {{ $labels.bar }}"
+          description: "Data quality degradation — candles come back empty."
+      - alert: OKXHttpErrorRateHigh
+        expr: |
+          sum by (endpoint) (rate(okx_requests_total{status!="200"}[5m]))
+            / clamp_min(sum by (endpoint) (rate(okx_requests_total[5m])), 1e-9) > 0.05
+        for: 5m
+        labels: {severity: warning, category: market-data}
+        annotations:
+          summary: "OKX HTTP error rate > 5% on {{ $labels.endpoint }}"
+          description: "Non-200 rate is {{ $value | humanizePercentage }} over 5m."
+      - alert: OKXLatencyHigh
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le, endpoint) (rate(okx_request_duration_seconds_bucket[5m]))) > 5
+        for: 10m
+        labels: {severity: warning, category: market-data}
+        annotations:
+          summary: "OKX p95 latency > 5s on {{ $labels.endpoint }}"
+          description: "p95 OKX latency is {{ $value }}s."
+

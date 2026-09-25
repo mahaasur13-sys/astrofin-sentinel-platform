@@ -17,6 +17,17 @@ def get_signal_attr(sig, key: str, default=None):
     return default
 
 
+def is_no_data(sig, get_signal_attr) -> bool:
+    """True if the signal must abstain (no data / degraded) — it must not enter
+    the weighted-vote denominator. One common sign: metadata.no_data=True;
+    also covers the legacy degraded pattern (metadata.degraded / confidence==0)."""
+    meta = get_signal_attr(sig, "metadata", None) or {}
+    if meta.get("no_data") or meta.get("degraded"):
+        return True
+    conf = get_signal_attr(sig, "confidence", None)
+    return conf == 0
+
+
 def format_breakdown(categories: dict[str, list]) -> str:
     """Format per-category breakdown string for metadata."""
     lines: list[str] = []

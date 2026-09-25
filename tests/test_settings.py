@@ -22,6 +22,7 @@ def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "CCXT_API_KEY",
         "CCXT_API_SECRET",
         "LOG_LEVEL",
+        "CORS_ORIGINS",
     ):
         monkeypatch.delenv(k, raising=False)
     # Also bust the lru_cache so get_settings() re-reads env each time
@@ -57,6 +58,25 @@ def test_env_override_wins() -> None:
     assert s.api_key.get_secret_value() == "secret-from-env"
 
 
+def test_dotenv_database_url_wins_over_dev_default(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A real .env DATABASE_URL (compose user=postgres) must not be shadowed
+    by the astrofin dev default seeded via setdefault."""
+    env_file = tmp_path / ".env"
+    env_file.write_text("DATABASE_URL=postgresql://postgres:x@localhost:5432/astrofin\n")
+
+    import dotenv
+    from core.settings import get_settings
+
+    # Point core.settings.load_dotenv at our temp .env (real parser, temp file).
+    monkeypatch.setattr("core.settings.load_dotenv", lambda: dotenv.load_dotenv(env_file))
+    get_settings.cache_clear()
+
+    get_settings()
+
+    dsn = os.environ.get("DATABASE_URL", "")
+    assert dsn.startswith("postgresql://postgres:")
+
+
 def test_log_level_uppercased() -> None:
     os.environ["ENV"] = "test"
     os.environ["LOG_LEVEL"] = "debug"
@@ -74,6 +94,41 @@ def test_log_level_invalid_rejected() -> None:
     with pytest.raises(ValidationError):
         # bypass lru_cache by calling Settings() directly
         Settings()
+
+
+# ── CORS_ORIGINS parsing (JSON list / CSV / bare star / empty) ───────────
+
+
+def test_cors_origins_json_list() -> None:
+    os.environ["ENV"] = "test"
+    os.environ["CORS_ORIGINS"] = '["*"]'
+    from core.settings import Settings
+
+    assert Settings().cors_origins == ["*"]
+
+
+def test_cors_origins_csv_list() -> None:
+    os.environ["ENV"] = "test"
+    os.environ["CORS_ORIGINS"] = "http://a,http://b"
+    from core.settings import Settings
+
+    assert Settings().cors_origins == ["http://a", "http://b"]
+
+
+def test_cors_origins_bare_star() -> None:
+    os.environ["ENV"] = "test"
+    os.environ["CORS_ORIGINS"] = "*"
+    from core.settings import Settings
+
+    assert Settings().cors_origins == ["*"]
+
+
+def test_cors_origins_empty_string() -> None:
+    os.environ["ENV"] = "test"
+    os.environ["CORS_ORIGINS"] = ""
+    from core.settings import Settings
+
+    assert Settings().cors_origins == []
 
 
 # ── Production fail-fast ────────────────────────────────────────────────

@@ -1,0 +1,13 @@
+# Public Caddy config — ACME (Let's Encrypt) for a real domain.
+# Domain and email come from the container environment (DOMAIN / ACME_EMAIL).
+
+{$DOMAIN}:443 {
+    tls {$ACME_EMAIL}
+    reverse_proxy grafana:3000
+}
+
+:80 {
+    # ACME HTTP-01 challenge is served automatically by Caddy;
+    # redirect everything else to HTTPS.
+    redir https://{$DOMAIN}{uri}
+}

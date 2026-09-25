@@ -1,3 +1,8 @@
+# ⚠️ DEAD (v1) — не используется live-путём. Не читается ни одним Python-ридером.
+# Канон весов: agents/_impl/synthesis/weights.py (AGENT_WEIGHTS / CATEGORY_WEIGHTS).
+# Канон голосования astro: astro_council_agent._weighted_vote + synthesis/voter.
+# НЕ удалять — оставлен для будущего product-трека.
+
 # AstroFin Sentinel v5 — Agent Weights Configuration
 # R-02: Adaptive weights (single source of truth)
 

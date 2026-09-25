@@ -93,8 +93,12 @@ def apply_raw_sql_schema(engine) -> bool:
 
 def init_schema_if_needed() -> bool:
     """
-    Check if PostgreSQL tables exist. If not, create them.
-    Tries: 1) Base.metadata.create_all, 2) raw SQL, 3) SQLite fallback
+    Ensure all PostgreSQL tables exist via Base.metadata.create_all.
+
+    ``create_all`` is checkfirst, so it only creates tables that are missing.
+    This repairs a *partial* schema (e.g. ``sessions`` exists but
+    ``karl_decision_records`` does not), which the previous "any table exists"
+    early-return skipped. No DROP / reset is issued.
     """
     try:
         from db.session import get_engine, is_postgres_available
@@ -105,30 +109,41 @@ def init_schema_if_needed() -> bool:
 
         engine = get_engine()
 
-        # Check if sessions table exists
         from sqlalchemy import inspect
 
+        from db.models import Base
+
+        expected = set(Base.metadata.tables)
         inspector = inspect(engine)
-        existing = inspector.get_table_names()
-
-        if existing:
+        missing_before = sorted(expected - set(inspector.get_table_names()))
+        if missing_before:
             logger.info(
-                f"[DB-INIT] PostgreSQL tables already exist ({len(existing)} tables)"
+                f"[DB-INIT] Missing tables before create_all: {missing_before}"
             )
-            return ensure_runtime_tables(engine)
 
-        # Try SQLAlchemy create_all first
+        # Always run create_all — checkfirst makes it idempotent and creates
+        # only the tables that are absent.
         try:
-            from db.models import Base
-
             Base.metadata.create_all(engine)
-            logger.info("[DB-INIT] Created tables via SQLAlchemy Base.create_all()")
-            return ensure_runtime_tables(engine)
         except Exception as e:
             logger.warning(f"[DB-INIT] Base.create_all failed: {e}")
+            # Fall back to raw SQL only if create_all itself failed.
+            return apply_raw_sql_schema(engine)
 
-        # Fall back to raw SQL
-        return apply_raw_sql_schema(engine)
+        missing_after = sorted(
+            expected - set(inspect(engine).get_table_names())
+        )
+        if missing_after:
+            logger.warning(
+                f"[DB-INIT] create_all done, still missing: {missing_after}"
+            )
+        else:
+            logger.info(
+                "[DB-INIT] All tables ensured via Base.create_all() "
+                f"(created {len(missing_before)} missing table(s))"
+            )
+
+        return ensure_runtime_tables(engine)
 
     except Exception as e:
         logger.error(f"[DB-INIT] Schema init failed: {e}")
@@ -207,3 +222,12 @@ def get_db_status() -> dict:
         pass
 
     return status
+
+
+if __name__ == "__main__":
+    # `python -m db.init` routes here — delegate to the real CLI in
+    # db/__main__.py so --status/--migrate/--reset/--force stay in sync
+    # with `python -m db`. No business logic is duplicated.
+    from db.__main__ import main
+
+    main()

@@ -38,6 +38,11 @@ Thumbs.db
 *.p12
 *.pfx
 secrets/
+# Live WAL-G env is operator-created from wal-g.env.example; never committed.
+deploy/wal-g/wal-g.env
+# deploy/docker/secrets/ keeps only .gitignore + README.md in git (the actual
+# secret files are ignored by deploy/docker/secrets/.gitignore).
+!deploy/docker/secrets/
 .gitleaks-baseline.json.bak
 # ─── Бэкапы и корзина ─────────────────────────────────────
 backup_*.tar.gz
@@ -105,3 +110,4 @@ astrofin-sentinel-platform/
 data/meta_rl/gen_*.png
 data/meta_rl/sessions/gen_*.json
 deploy/monitoring/prometheus-standalone.yml
+deploy/wal-g/image/wal-g

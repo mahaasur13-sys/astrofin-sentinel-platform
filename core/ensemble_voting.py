@@ -1,3 +1,8 @@
+# ⚠️ DEAD MODULE (v1) — не используется live-путём run_sentinel_v5 / run_astro_council.
+# Канон голосования astro: agents/astro_council_agent._weighted_vote + synthesis/voter.
+# Канон весов: agents/_impl/synthesis/weights.py.
+# НЕ удалять — оставлен для Sprint 6 / будущего product-трека.
+
 """core/ensemble_voting.py — Ensemble Voting Engine (Master Agent)
 
 Sprint 6: Production Readiness & Ensemble Logic.

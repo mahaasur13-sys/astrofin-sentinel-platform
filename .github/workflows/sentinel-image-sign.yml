@@ -1,0 +1,64 @@
+name: Sentinel image build+push+sign (keyless)
+
+on:
+  push:
+    branches: [release/v1.0.0]
+    paths:
+      - "deploy/docker/Dockerfile"
+      - "deploy/docker/**"
+      - ".github/workflows/sentinel-image-sign.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build-push-sign:
+    name: Build, push and keyless-sign sentinel image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      IMAGE: ghcr.io/mahaasur13-sys/astrofin-sentinel
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push (git-SHA + release tag, never :latest)
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_SHA}"
+          full="${IMAGE}:${tag}"
+          # Build context is the repo root, filtered by the root .dockerignore
+          # (no .git, .venv, .env*, deploy/docker/secrets|certs|dex|edge, *.key/*.pem).
+          docker build -f deploy/docker/Dockerfile -t "${full}" .
+          docker push "${full}"
+          # Optional human-friendly moving tag; the immutable git-SHA tag remains
+          # the canonical ref. `:latest` is intentionally never pushed.
+          docker tag "${full}" "${IMAGE}:release-v1.0.0"
+          docker push "${IMAGE}:release-v1.0.0"
+          # Resolve the manifest digest and sign THAT (never the floating tag).
+          digest="$(docker inspect --format '{{index .RepoDigests 0}}' "${full}")"
+          echo "IMAGE_DIGEST=${digest}" >> "${GITHUB_ENV}"
+          echo "pushed ${full} (digest ${digest})"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac  # v3
+
+      - name: Sign image digest (keyless, GitHub OIDC)
+        run: |
+          cosign sign --yes "${IMAGE_DIGEST}"
+
+      - name: Verify signature (this workflow identity only)
+        run: |
+          cosign verify \
+            --certificate-identity-regexp '^https://github.com/mahaasur13-sys/astrofin-sentinel-platform/.github/workflows/sentinel-image-sign.yml@refs/' \
+            --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+            "${IMAGE_DIGEST}"

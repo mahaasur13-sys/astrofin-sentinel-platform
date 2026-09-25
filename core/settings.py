@@ -31,14 +31,16 @@ Phase 2 (follow-up PR): replace remaining ``os.getenv`` with ``settings.X``.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
+from dotenv import load_dotenv
 from pydantic import Field, SecretStr, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +51,7 @@ Env = Literal["development", "test", "production", "staging"]
 _DEFAULTS_DEV: dict[str, str] = {
     "API_KEY": "dev-api-key-change-me",
     "REDIS_URL": "redis://localhost:6379/0",
-    "DATABASE_URL": "postgresql://astrofin:astrofin@localhost:5432/astrofin",
+    "DATABASE_URL": os.getenv("PG_DSN", ""),
     "JWT_PRIVATE_KEY_PATH": "./keys/jwt_private.pem",
     "JWT_PUBLIC_KEY_PATH": "./keys/jwt_public.pem",
 }
@@ -114,7 +116,10 @@ class Settings(BaseSettings):
     web_port: int = Field(default=8050, ge=1, le=65_535)
     gunicorn_workers: int = Field(default=4, ge=1, le=64)
     enable_internal_endpoints: bool = Field(default=False)
-    cors_origins: list[str] = Field(default_factory=lambda: ["*"])
+    # ``NoDecode`` stops pydantic-settings from JSON-decoding this field so a
+    # comma-separated value (``http://a,http://b``) reaches the validator below
+    # instead of raising ``SettingsError`` at source-parse time.
+    cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["*"])
 
     # ── ML inference API ──────────────────────────────────────────────
     ml_port: int = Field(default=8081, ge=1, le=65_535)
@@ -164,6 +169,10 @@ class Settings(BaseSettings):
     # ── Database — Dual-Write Migration (Phase 4.8c) ──────────────
     ENABLE_DUAL_WRITE: bool = Field(default=True, description="Write to both PG and SQLite")
     SQLITE_FALLBACK_PATH: str = Field(default="data/astrofin.db")
+    ALLOW_SQLITE_FALLBACK: bool = Field(
+        default=False,
+        description="Opt-in SQLite fallback on Postgres failure (dev/test only)",
+    )
     DB_POOL_SIZE: int = Field(default=10, ge=1)
     DB_MAX_OVERFLOW: int = Field(default=20, ge=0)
 
@@ -260,6 +269,34 @@ class Settings(BaseSettings):
         # In test/dev we skip this — the keys are loaded lazily.
         return v
 
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _parse_cors_origins(cls, v: Any) -> Any:
+        """Accept both JSON lists and comma-separated origin lists.
+
+        ``CORS_ORIGINS=["*"]`` (JSON) and ``CORS_ORIGINS=http://a,http://b``
+        (CSV) both resolve to ``list[str]``; a bare ``*`` and an empty value
+        are also handled. Without ``NoDecode`` + this validator,
+        pydantic-settings would crash on the CSV form during startup.
+        """
+        if v is None:
+            return ["*"]
+        if isinstance(v, str):
+            text = v.strip()
+            if not text:
+                return []
+            try:
+                parsed = json.loads(text)
+            except ValueError:
+                parsed = None
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
+            if isinstance(parsed, str):
+                return [parsed.strip()]
+            # Not JSON — treat as comma-separated origins.
+            return [part.strip() for part in text.split(",") if part.strip()]
+        return v
+
     # ── Helpers ────────────────────────────────────────────────────────
     def is_production(self) -> bool:
         return self.env in {"production", "staging"}
@@ -311,11 +348,16 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Return the process-wide cached :class:`Settings` instance.
 
-    Reads from environment, then ``.env`` if present. Applies dev defaults
-    if running in ``development`` mode and no real values are set.
+    Loads ``.env`` into ``os.environ`` first, then reads the environment
+    (env vars win over ``.env``), and seeds dev defaults only for keys that
+    are still missing.
     """
+    # Load .env first so real values (e.g. DATABASE_URL with compose
+    # user=postgres) are not shadowed by the dev defaults seeded below.
+    load_dotenv()
+
     raw_env = os.getenv("ENV", "development").lower()
-    # For dev: seed defaults that pydantic would otherwise reject
+    # For dev: seed defaults only for keys still missing
     if raw_env in {"development", "test"}:
         for k, v in _DEFAULTS_DEV.items():
             os.environ.setdefault(k, v)

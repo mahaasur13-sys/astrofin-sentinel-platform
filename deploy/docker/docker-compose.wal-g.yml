@@ -1,0 +1,53 @@
+# Optional WAL-G sidecar overlay — apply ON TOP of docker-compose.yml in the
+# ARCHIVE stack. It targets postgres-archive (pg_data_archive), NOT the live base
+# postgres (pg_data).
+#
+#   docker compose \
+#     -f docker-compose.yml \
+#     -f docker-compose.postgres-archive.yml \
+#     -f docker-compose.wal-g.yml \
+#     --profile archive --profile backup \
+#     run --rm wal-g
+#
+# Default command is `backup-list` (NOT backup-push on every up). To back up the
+# archive cluster:
+#   docker compose ... --profile archive --profile backup run --rm wal-g backup-push /var/lib/postgresql/data
+#
+# DISABLED by default via `profiles: ["backup"]`. The BASE stack is unchanged —
+# do NOT add ${WALG_S3_PREFIX:?} to docker-compose.yml (would break compose-config
+# validation). Base postgres archive_mode stays OFF; the archive cluster is the
+# PITR target.
+#
+# Image: self-hosted glibc wal-g v3.0.6 on GHCR, pinned by index digest.
+#   Do NOT use community images (chekkan/wal-g etc.) — untrusted/stale.
+services:
+  wal-g:
+    image: ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6-uid999@sha256:89be9fb2008d67d9895bfbb642f561caa4db20f4b0ed436b1ea51565d1553c83
+    container_name: astrofinsentinel_walg
+    profiles: ["backup"]
+    extra_hosts:
+      # MinIO on the host, resolvable as host.docker.internal (no hardcoded IP).
+      - "host.docker.internal:host-gateway"
+    environment:
+      - "PGHOST=postgres-archive"
+      - "PGPORT=5432"
+      - "PGDATABASE=${POSTGRES_DB:-astrofin}"
+      - "PGUSER=${POSTGRES_USER:?POSTGRES_USER is required}"
+      - "PGPASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
+      - "PGSSLMODE=disable"
+      - "PGDATA=/var/lib/postgresql/data"
+      - "WALG_S3_PREFIX=${WALG_S3_PREFIX:?WALG_S3_PREFIX is required}"
+      - "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:?}"
+      - "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:?}"
+      - "AWS_ENDPOINT=${AWS_ENDPOINT:?}"
+      - "AWS_REGION=${AWS_REGION:-us-east-1}"
+      - "AWS_S3_FORCE_PATH_STYLE=true"
+      - "WALG_LIBSODIUM_KEY_PATH=/run/secrets/walg_libsodium_key"
+      - "WALG_LIBSODIUM_KEY_TRANSFORM=hex"
+    volumes:
+      - pg_data_archive:/var/lib/postgresql/data:rw  # rw: push needs read access to PGDATA
+      # gitignored key file; required for backup-push, unused by backup-list
+      - ./secrets/walg_libsodium_key:/run/secrets/walg_libsodium_key:ro
+    command: ["backup-list"]
+    restart: "no"
+    # No ports published — wal-g is a run-once CLI, not a network service.

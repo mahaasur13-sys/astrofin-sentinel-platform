@@ -23,8 +23,8 @@ cd astrofin-sentinel-platform/astrofin-sentinel-platform
 # Установка Python зависимостей
 pip install fastapi uvicorn sqlalchemy pydantic python-dateutil swisseph
 
-# Инициализация базы данных
-python -m db.init
+# Инициализация базы данных (python -m db.init — эквивалент)
+python -m db
 
 # Запуск API сервера
 uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
@@ -147,7 +147,7 @@ python -m uvicorn api.main:app
 ### Database: "Table does not exist"
 
 ```bash
-python -m db.init
+python -m db            # python -m db.init — эквивалент
 ```
 
 ## Следующие шаги

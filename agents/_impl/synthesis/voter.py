@@ -6,6 +6,7 @@ Extracted from synthesis_agent.py (v1.0.0).
 from __future__ import annotations
 
 from core.base_agent import SignalDirection
+from agents._impl.synthesis.formatting import is_no_data
 from agents._impl.synthesis.weights import CATEGORY_WEIGHTS, MAX_CONFIDENCE, MIN_CONFIDENCE
 
 
@@ -25,6 +26,8 @@ def vote(
             continue
         w = cat_weights.get(cat, 0.10)
         for sig in signals:
+            if is_no_data(sig, get_signal_attr):
+                continue  # abstain: no data, do not enter the vote denominator
             conf = get_signal_attr(sig, "confidence", 50)
             direction = get_signal_attr(sig, "signal", "NEUTRAL").upper()
             if direction in ("LONG", "BUY", "STRONG_BUY"):
