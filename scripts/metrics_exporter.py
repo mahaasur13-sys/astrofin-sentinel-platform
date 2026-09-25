@@ -29,8 +29,6 @@ import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from prometheus_client import REGISTRY, CONTENT_TYPE_LATEST, generate_latest, Counter, Gauge
-import requests
-import threading
 
 from tools.metrics_server import (  # noqa: F401 — side-effect import
     CACHE_HITS,
@@ -54,26 +52,6 @@ EXPORTER_UPTIME = Gauge("astrofin_exporter_uptime_seconds", "Exporter process up
 
 _start_time = time.time()
 EXPORTER_UPTIME.set_function(lambda: time.time() - _start_time)
-
-def _health_probe():
-    """Background thread: probe Ollama and RAG every 60s."""
-    while True:
-        try:
-            r = requests.get("http://localhost:11434/api/version", timeout=3)
-            OLLAMA_STATUS.set(1.0 if r.status_code == 200 else 0.0)
-        except Exception:
-            OLLAMA_STATUS.set(0.0)
-        try:
-            import faiss; import json
-            DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "rag_index"); idx = None; idx_path = os.path.join(DATA_DIR, "faiss.index"); idx = faiss.read_index(idx_path) if os.path.exists(idx_path) else None
-            if idx is not None:
-                RAG_CHUNK_COUNT.set(float(idx.ntotal))
-        except Exception:
-            pass
-        time.sleep(60)
-
-_health_thread = threading.Thread(target=_health_probe, daemon=True)
-_health_thread.start()
 
 app = FastAPI(title="AstroFin Metrics Exporter", docs_url=None, redoc_url=None)
 

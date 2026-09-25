@@ -315,7 +315,11 @@ _db: HistoryDB | None = None
 
 
 def get_db() -> HistoryDB:
-    """Return the configured history backend, falling back to SQLite on failure."""
+    """Returns the active history database backend.
+
+    Auto-selects PostgreSQL (via DATABASE_URL) over SQLite.
+    Falls back to SQLite when PostgreSQL is unavailable.
+    """
     global _db
     if _db is not None:
         return _db
@@ -325,28 +329,13 @@ def get_db() -> HistoryDB:
     dsn = get_settings().database_url.get_secret_value().strip()
     if dsn and any(kw in dsn.lower() for kw in ("postgres", "postgresql", "psycopg")):
         try:
-            from urllib.parse import urlparse
-            import socket
+            from core.history_db_pg import PostgresHistoryDB  # noqa: F401
 
-            parsed = urlparse(dsn)
-            host = parsed.hostname or "localhost"
-            port = parsed.port or 5432
-            with socket.create_connection((host, port), timeout=1.0):
-                pass
-        except (OSError, ValueError):
-            log.warning("PostgreSQL unavailable at configured endpoint; using SQLite history backend")
-        else:
-            try:
-                from core.history_db_pg import PostgresHistoryDB
-
-                _db = PostgresHistoryDB(dsn)
-                return _db
-            except Exception as exc:
-                log.warning("PostgreSQL initialization failed; using SQLite history backend: %s", exc)
-                _db = None
-
+            _db = PostgresHistoryDB(dsn)
+            return _db
+        except Exception:
+            log.warning("History DB operation failed", exc_info=True)
     _db = HistoryDB()
-    log.info("Using SQLite history backend at %s", _db.db_path)
     return _db
 
 

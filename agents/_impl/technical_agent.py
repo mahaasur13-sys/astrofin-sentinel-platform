@@ -10,8 +10,6 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from core.http_client import normalize_okx_inst_id, okx_get_json
-
 from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
     require_ephemeris,
@@ -142,14 +140,16 @@ class TechnicalAgent(BaseAgent[AgentResponse]):
         import httpx
 
         try:
-            inst_id = normalize_okx_inst_id(symbol)
-            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval.upper()}&limit={limit}"
+            inst_id = symbol if "-" in symbol else symbol[:-4] + "-USDT"
+            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval}&limit={limit}"
             async with httpx.AsyncClient() as client:
-                data = await okx_get_json(client, url)
+                resp = await client.get(url, timeout=10)
+                resp.raise_for_status()
+                data = resp.json()
                 return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
             logger.warning(
-                f"Failed to fetch OHLCV data for {symbol}-USDT with interval {interval} and limit {limit}"
+                f"Failed to fetch OHLCV data for {symbol} with interval {interval} and limit {limit}"
             )
             return []
 

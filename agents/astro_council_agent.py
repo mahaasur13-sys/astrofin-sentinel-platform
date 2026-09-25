@@ -19,6 +19,7 @@ from agents._impl.ephemeris_decorator import (
     require_ephemeris,
 )
 from agents._impl.synthesis.weights import AGENT_WEIGHTS, CATEGORY_WEIGHTS
+from agents._impl.types import TradingSignal
 from agents.base_agent import AgentResponse, BaseAgent
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, SignalDirection
@@ -31,11 +32,14 @@ logger = logging.getLogger(__name__)
 # TradingSignal.from_agents looks up weights by agent_name.
 # CATEGORY_WEIGHTS keys are categories; AGENT_WEIGHTS keys are full class names.
 _AGENT_CATEGORY_MAP = {
-    "GannAgent": "astro",
-    "BradleyAgent": "astro",
-    "ElliotAgent": "astro",
-    "CycleAgent": "astro",
-    "TimeWindowAgent": "astro",
+    "Fundamental": "fundamental",
+    "Macro": "macro",
+    "Quant": "quant",
+    "OptionsFlow": "options",
+    "Sentiment": "sentiment",
+    "Technical": "technical",
+    "BullResearcher": "sentiment",
+    "BearResearcher": "sentiment",
 }
 
 
@@ -96,6 +100,8 @@ class AstroCouncilAgent(BaseAgent):
         """
         try:
             dt = context.get("datetime") or datetime.now(timezone.utc)
+            symbol = context.get("symbol", "BTC")
+            price = context.get("price") or context.get("current_price") or 100.0
 
             # 1. Критичный вызов Swiss Ephemeris
             eph = self._call_ephemeris(dt)
@@ -103,14 +109,20 @@ class AstroCouncilAgent(BaseAgent):
             # 2. Параллельный запуск всех суб-агентов
             responses = await self._run_sub_agents(context)
 
-            # 3. Взвешенное голосование большинством
-            final_signal = self._weighted_vote(responses)
+            # 3. Гибридное взвешивание
+            final_signal = TradingSignal.from_agents(
+                symbol=symbol,
+                responses=responses,
+                entry_price=price,
+                weights=self._weights,
+            )
 
+            signal_value = getattr(final_signal.signal, "value", final_signal.signal)
             return AgentResponse(
                 agent_name="AstroCouncil",
-                signal=final_signal.signal,
+                signal=signal_value,
                 confidence=final_signal.confidence,
-                reasoning=final_signal.reasoning,
+                reasoning=final_signal.summary,
                 sources=[],
                 metadata={
                     "astro_yoga": eph.get("yoga", "unknown"),
@@ -201,7 +213,11 @@ class AstroCouncilAgent(BaseAgent):
 
         selected = context.get("_thompson_selected_astro")
         if selected:
-            agents_to_run = {name: agent for name, agent in self._sub_agents.items() if name in selected}
+            agents_to_run = {
+                name: agent
+                for name, agent in self._sub_agents.items()
+                if name in selected
+            }
         else:
             agents_to_run = self._sub_agents
 
@@ -223,7 +239,7 @@ class AstroCouncilAgent(BaseAgent):
                 responses.append(
                     AgentResponse(
                         agent_name=name,
-                        signal=SignalDirection.NEUTRAL,
+                        signal="NEUTRAL",
                         confidence=30,
                         reasoning=f"Agent error: {str(result)[:100]}",
                         sources=[],
@@ -236,20 +252,26 @@ class AstroCouncilAgent(BaseAgent):
         return responses
 
     def _register_sub_agents(self) -> None:
-        """Регистрация астро-суб-агентов (AstroCouncil = координатор астро-блока)."""
+        """Регистрация всех суб-агентов."""
         try:
-            from agents._impl.bradley_agent import BradleyAgent
-            from agents._impl.cycle_agent import CycleAgent
-            from agents._impl.elliot_agent import ElliotAgent
-            from agents._impl.gann_agent import GannAgent
-            from agents._impl.time_window_agent import TimeWindowAgent
+            from agents._impl.bear_researcher import BearResearcherAgent
+            from agents._impl.bull_researcher import BullResearcherAgent
+            from agents._impl.fundamental_agent import FundamentalAgent
+            from agents._impl.macro_agent import MacroAgent
+            from agents._impl.options_flow_agent import OptionsFlowAgent
+            from agents._impl.quant_agent import QuantAgent
+            from agents._impl.sentiment_agent import SentimentAgent
+            from agents._impl.technical_agent import TechnicalAgent
 
             self._sub_agents = {
-                "GannAgent": GannAgent(),
-                "BradleyAgent": BradleyAgent(),
-                "ElliotAgent": ElliotAgent(),
-                "CycleAgent": CycleAgent(),
-                "TimeWindowAgent": TimeWindowAgent(),
+                "Fundamental": FundamentalAgent(),
+                "Macro": MacroAgent(),
+                "Quant": QuantAgent(),
+                "OptionsFlow": OptionsFlowAgent(),
+                "Sentiment": SentimentAgent(),
+                "Technical": TechnicalAgent(),
+                "BullResearcher": BullResearcherAgent(),
+                "BearResearcher": BearResearcherAgent(),
             }
         except ImportError:
             # Если агенты не найдены, используем пустой dict

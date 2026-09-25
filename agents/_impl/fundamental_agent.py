@@ -4,10 +4,7 @@ Fundamental Agent — financial statement analysis, valuation metrics.
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import os
-import time
 
 import aiohttp
 
@@ -25,39 +22,6 @@ from core.base_agent import (
 )
 
 logger = logging.getLogger(__name__)
-
-_COIN_ID_MAP = {"btc": "bitcoin", "eth": "ethereum", "sol": "solana"}
-_CACHE: dict = {}
-_CACHE_TTL = 600  # seconds (10 minutes)
-
-
-def _coingecko_api_key() -> str | None:
-    return os.getenv("COINGECKO_API_KEY") or os.getenv("COINGECKO_DEMO_API_KEY")
-
-
-def _cache_set(data: dict) -> None:
-    _CACHE["data"] = data
-    _CACHE["ts"] = time.time()
-
-
-def _cache_get() -> dict | None:
-    if _CACHE and (time.time() - _CACHE.get("ts", 0)) < _CACHE_TTL:
-        return _CACHE.get("data")
-    return None
-
-
-def _compute_from_prices(prices: list) -> dict:
-    closes = [p[1] for p in prices]
-    current = closes[-1]
-    avg = sum(closes) / len(closes)
-    ath = max(closes)
-    prev = closes[-2] if len(closes) >= 2 else current
-    return {
-        "mvrv_ratio": round(current / avg, 2),
-        "ath_distance_pct": round((ath - current) / ath * 100, 1),
-        "volatility_30d": round((ath - min(closes)) / current * 100, 1),
-        "price_change_24h": round((current - prev) / prev * 100, 1),
-    }
 
 
 class FundamentalAgent(BaseAgent[AgentResponse]):
@@ -80,29 +44,23 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             domain="fundamental",
             weight=0.12,
         )
+        self._session: aiohttp.ClientSession | None = None
 
     @require_ephemeris
     async def analyze(self, state: dict) -> AgentResponse:
         symbol = state.get("symbol", "BTCUSDT")
         current_price = state.get("current_price", 50000)
 
-        # Fetch financial data (one CoinGecko request + cache + backoff)
-        data = await self._fetch_fundamental_data(symbol)
-
-        if data.get("no_data"):
-            return AgentResponse(
-                agent_name="FundamentalAgent",
-                signal=SignalDirection.NEUTRAL,
-                confidence=30,
-                reasoning="No fundamental data available (CoinGecko unavailable)",
-                sources=[],
-                metadata={"no_data": True},
-            )
+        # Fetch financial data
+        crypto_metadata = await self._fetch_crypto_metadata(symbol)
+        onchain_data = await self._fetch_onchain_data(symbol)
 
         # Analyze valuation
-        valuation = self._analyze_valuation(data, current_price)
-        earnings = self._analyze_earnings_quality(data)
-        growth = self._analyze_growth_metrics(data)
+        valuation = self._analyze_valuation(
+            crypto_metadata, onchain_data, current_price
+        )
+        earnings = self._analyze_earnings_quality(crypto_metadata, onchain_data)
+        growth = self._analyze_growth_metrics(onchain_data)
 
         # Combine signals
         scores = []
@@ -130,7 +88,7 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
 
         confidence = int(sum(scores) / len(scores) * 100) if scores else 50
 
-        reasoning = f"Valuation: {valuation['summary']}. Earnings: {earnings['summary']}. Growth: {growth['summary']}. MVRV: {data.get('mvrv_ratio', 'N/A')}"
+        reasoning = f"Valuation: {valuation['summary']}. Earnings: {earnings['summary']}. Growth: {growth['summary']}. MVRV: {onchain_data.get('mvrv_ratio', 'N/A')}"
 
         return AgentResponse(
             agent_name="FundamentalAgent",
@@ -142,7 +100,7 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
                 "valuation": valuation,
                 "earnings": earnings,
                 "growth": growth,
-                "onchain": data,
+                "onchain": onchain_data,
             },
         )
 
@@ -159,56 +117,79 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
             logger.exception("agent_run_unhandled", extra={"agent": self.name})
             return self._degraded(UNKNOWN, repr(e))
 
-    async def _fetch_fundamental_data(self, symbol: str) -> dict:
-        """One CoinGecko request for all needed fields, with demo-key header,
-        a 10-minute cache (successful 200 only), and 429 backoff.
-
-        On 200 → compute + cache + return. On 429/network error and no fresh
-        cache → {"no_data": True} (never a fake MVRV).
-        """
-        cached = _cache_get()
-        if cached:
-            return cached
-
-        base = symbol.replace("USDT", "").replace("USD", "").lower()
-        coin_id = _COIN_ID_MAP.get(base, base)
-        url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart?vs_currency=usd&days=30"
-
-        headers = {}
-        key = _coingecko_api_key()
-        if key:
-            headers["x-cg-demo-api-key"] = key
-
+    async def _fetch_crypto_metadata(self, symbol: str) -> dict:
+        """Fetch basic crypto metadata from CoinGecko."""
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                    if resp.status == 200:
-                        payload = await resp.json()
-                        prices = payload.get("prices", [])
-                        if len(prices) > 1:
-                            data = _compute_from_prices(prices)
-                            _cache_set(data)
-                            return data
-                    elif resp.status == 429:
-                        retry_after = resp.headers.get("Retry-After")
-                        try:
-                            wait = int(retry_after) if retry_after else 30
-                        except (TypeError, ValueError):
-                            wait = 30
-                        logger.warning(
-                            "[FundamentalAgent] CoinGecko 429, backoff %ss",
-                            min(wait, 60),
-                        )
-                        await asyncio.sleep(min(wait, 60))
-        except Exception as exc:
-            logger.warning("[FundamentalAgent] CoinGecko fetch failed: %s", exc)
+            # CoinGecko free API
+            coin_id = symbol.replace("USDT", "").lower()
+            url = f"https://api.coingecko.com/api/v3/coins/{coin_id}"
+            if self._session is None:
+                self._session = aiohttp.ClientSession()
+            async with self._session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    return {
+                        "name": data.get("name", ""),
+                        "market_cap_rank": data.get("market_cap_rank", 999),
+                        "market_cap": data.get("market_data", {})
+                        .get("market_cap", {})
+                        .get("usd", 0),
+                        "volume_24h": data.get("market_data", {})
+                        .get("total_volume", {})
+                        .get("usd", 0),
+                        "price_change_24h": data.get("market_data", {}).get(
+                            "price_change_percentage_24h", 0
+                        ),
+                        "ath": data.get("market_data", {}).get("ath", {}).get("usd", 0),
+                        "atl": data.get("market_data", {}).get("atl", {}).get("usd", 0),
+                    }
+        except Exception:
+            pass
+        return {"market_cap_rank": 999}
 
-        return {"no_data": True}
+    async def _fetch_onchain_data(self, symbol: str) -> dict:
+        """Fetch on-chain metrics (simplified)."""
+        try:
+            # Alternative: use public APIs
+            coin_id = symbol.replace("USDT", "").lower()
+            url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart?vs_currency=usd&days=30"
+            if self._session is None:
+                self._session = aiohttp.ClientSession()
+            async with self._session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    prices = data.get("prices", [])
+                    if len(prices) > 1:
+                        current = prices[-1][1]
+                        ath = max(p[1] for p in prices)
+                        # MVRV approximation
+                        mvrv = current / (sum(p[1] for p in prices) / len(prices))
+                        return {
+                            "mvrv_ratio": round(mvrv, 2),
+                            "ath_distance_pct": round((ath - current) / ath * 100, 1),
+                            "volatility_30d": round(
+                                (max(p[1] for p in prices) - min(p[1] for p in prices))
+                                / current
+                                * 100,
+                                1,
+                            ),
+                        }
+        except Exception as e:
+            logger.warning(
+                f"[FundamentalAgent] Failed to fetch onchain data for {symbol}: {e}"
+            )
+        finally:
+            if self._session is not None:
+                await self._session.close()
+                self._session = None
+        return {"mvrv_ratio": 1.0, "ath_distance_pct": 50.0, "volatility_30d": 10.0}
 
-    def _analyze_valuation(self, data: dict, current_price: float) -> dict:
+    def _analyze_valuation(
+        self, metadata: dict, onchain: dict, current_price: float
+    ) -> dict:
         """Analyze valuation metrics."""
-        mvrv = data.get("mvrv_ratio", 1.0)
-        ath_distance = data.get("ath_distance_pct", 50)
+        mvrv = onchain.get("mvrv_ratio", 1.0)
+        ath_distance = onchain.get("ath_distance_pct", 50)
 
         # MVRV interpretation
         if mvrv < 0.7:
@@ -235,26 +216,34 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
 
         return {"score": min(score, 1.0), "summary": summary}
 
-    def _analyze_earnings_quality(self, data: dict) -> dict:
-        """Analyze earnings/price-action quality from 24h change."""
-        vol_change = abs(data.get("price_change_24h", 0))
+    def _analyze_earnings_quality(self, metadata: dict, onchain: dict) -> dict:
+        """Analyze earnings/transaction quality."""
+        rank = metadata.get("market_cap_rank", 999)
+        vol_change = abs(metadata.get("price_change_24h", 0))
 
-        if vol_change < 2:
-            score = 0.50
-            summary = "Stable"
-        elif vol_change < 5:
+        if rank < 10:
+            score = 0.65
+            summary = "Top-10 cap, stable"
+        elif rank < 50:
+            score = 0.60
+            summary = "Large cap"
+        elif rank < 100:
             score = 0.55
-            summary = "Moderate"
+            summary = "Mid cap"
         else:
             score = 0.45
-            summary = "High vol"
+            summary = "Small cap"
 
-        summary += f" {vol_change:.1f}%"
+        if vol_change > 10:
+            summary += f", high vol {vol_change:.1f}%"
+        else:
+            summary += f", normal vol {vol_change:.1f}%"
+
         return {"score": score, "summary": summary}
 
-    def _analyze_growth_metrics(self, data: dict) -> dict:
+    def _analyze_growth_metrics(self, onchain: dict) -> dict:
         """Analyze growth metrics."""
-        volatility = data.get("volatility_30d", 10)
+        volatility = onchain.get("volatility_30d", 10)
 
         if volatility < 5:
             score = 0.60
