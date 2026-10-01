@@ -31,7 +31,6 @@ clients:
 # ── Limits ─────────────────────────────────────────────────────────────────
 limits_config:
   readline_rate_drop: true
-  max_streams_per_user: 0
   max_line_size: 256kb
   max_line_size_truncate: true
 

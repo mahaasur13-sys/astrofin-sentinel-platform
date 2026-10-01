@@ -21,11 +21,12 @@
 services:
 
   prometheus:
+    user: "1000:1000"
     image: prom/prometheus:v2.55.0
     container_name: astrofin-prometheus
     restart: unless-stopped
     ports:
-      - "9050:9090"
+      - "127.0.0.1:9050:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/recording_rules.yml:/etc/prometheus/recording_rules.yml:ro
@@ -53,7 +54,7 @@ services:
     container_name: astrofin-alertmanager
     restart: unless-stopped
     ports:
-      - "9053:9093"
+      - "127.0.0.1:9053:9093"
     volumes:
       - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     environment:
@@ -71,7 +72,7 @@ services:
     container_name: astrofin-grafana
     restart: unless-stopped
     ports:
-      - "9051:3000"
+      - "127.0.0.1:9051:3000"
     environment:
       GF_SECURITY_ADMIN_USER:     ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
@@ -93,27 +94,12 @@ services:
     container_name: astrofin-blackbox
     restart: unless-stopped
     ports:
-      - "9115:9115"
+      - "127.0.0.1:9115:9115"
     volumes:
       - ./monitoring/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
     command:
       - '--config.file=/etc/blackbox_exporter/config.yml'
 
-  node-exporter:
-    image: prom/node-exporter:v1.8.2
-    container_name: astrofin-node-exporter
-    restart: unless-stopped
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Loki — Log aggregation database (Grafana Cloud-compatible API)
@@ -123,7 +109,7 @@ services:
     container_name: astrofin-loki
     restart: unless-stopped
     ports:
-      - "3100:3100"
+      - "127.0.0.1:3100:3100"
     volumes:
       - loki-data:/loki
       - loki-wal:/wal
@@ -142,7 +128,7 @@ services:
     container_name: astrofin-promtail
     restart: unless-stopped
     ports:
-      - "9080:9080"
+      - "127.0.0.1:9080:9080"
     volumes:
       - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
       - /dev/shm:/dev/shm:ro
