@@ -147,8 +147,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: bridge/roma
-            dir: bridge/roma
           - label: kernel/atom-federation
             dir: kernel/atom-federation
     steps:

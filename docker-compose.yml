@@ -5,7 +5,6 @@
 #   - app          : web dashboard (Dash + Flask + gunicorn)         port 8050
 #   - ml-engine    : ML inference API (FastAPI + uvicorn)            port 8081
 #   - feature-pipeline : ACOS feature builder (one-shot / cron)      port 8090
-#   - gpu-worker   : ROMA execution GPU worker (CUDA)               port 8000
 #   - postgres     : TimescaleDB (metrics storage)                   port 5432
 #   - redis        : job/cache broker                                port 6379
 #   - prometheus   : metrics scrape                                   port 9090
@@ -136,47 +135,6 @@ services:
       retries: 3
       start_period: 20s
     restart: unless-stopped
-    security_opt:
-      - "no-new-privileges:true"
-    cap_drop:
-      - "ALL"
-    networks:
-      - astrofin
-
-  # -----------------------------------------------------------------------
-  # GPU Worker (ROMA execution bridge) — only on NVIDIA hosts
-  # -----------------------------------------------------------------------
-  gpu-worker:
-    build:
-      context: ./bridge/roma
-      dockerfile: gpu_worker/Dockerfile
-    image: roma/gpu-worker:1.0.0
-    container_name: roma-gpu-worker
-    # Profile: only runs when GPU profile is activated:  docker compose --profile gpu up
-    profiles: ["gpu"]
-    runtime: nvidia
-    environment:
-      <<: *common-env
-      NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,utility
-      GPU_WORKER_HOST: 0.0.0.0
-      GPU_WORKER_PORT: "8000"
-      WORKER_ID: gpu-worker-${HOSTNAME:-local}
-      REDIS_URL: redis://redis:6379/1
-    ports:
-      - "8000:8000"
-    depends_on:
-      redis:
-        condition: service_started
-    volumes:
-      - ./bridge/roma/gpu_worker:/app/gpu_worker:ro
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
     security_opt:
       - "no-new-privileges:true"
     cap_drop:
