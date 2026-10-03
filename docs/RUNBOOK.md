@@ -8,6 +8,447 @@ same shape: **Detect → Triage → Mitigate → Recover → Post-mortem**.
 
 ---
 
+## Bootstrap: start the prod stack
+
+The prod compose is `deploy/docker/docker-compose.yml` (app + postgres + redis +
+prometheus + grafana). It guards several variables with `${VAR:?}` — set them
+before running. There is **no default superuser name**: `POSTGRES_USER` is
+required (`${POSTGRES_USER:?}`), set it in env/secrets.
+
+```bash
+export POSTGRES_USER="<real-user>"
+export POSTGRES_PASSWORD="<real-password>"
+export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/astrofin"
+export GF_SECURITY_ADMIN_PASSWORD="<grafana-admin-password>"
+
+# Validate interpolation (no build, no start)
+docker compose -f deploy/docker/docker-compose.yml config --quiet
+# Start
+docker compose -f deploy/docker/docker-compose.yml up -d
+```
+
+- No service publishes on `0.0.0.0`. `postgres` (5432), `redis` (6379), `app`
+  (8000) and `prometheus` (9090) are internal-only on the compose network
+  (#329). The only host binding is Grafana, loopback-only: `127.0.0.1:3000:3000`.
+- Grafana reaches Prometheus by service name (`prometheus:9090`); the daemon's
+  `app:9191` metrics are likewise internal-only (not host-reachable).
+- `GF_SECURITY_ADMIN_PASSWORD` is a hard `${VAR:?}` guard — there is no
+  `admin/admin` default in the image or compose, so `grafana` will not start
+  unless this env is set.
+- Prometheus image is pinned (`prom/prometheus:v2.54.1`); the compose `version:`
+  key was removed as obsolete.
+- The app image build context is the repo root and is filtered by the root
+  `.dockerignore` — it must never ship `.git`, `.venv`, `deploy/docker/secrets`
+  or `deploy/docker/certs` into the image.
+
+## Base full smoke
+
+- Required env (5× `${VAR:?}`): `DATABASE_URL`, `POSTGRES_USER`,
+  `POSTGRES_PASSWORD`, `GF_SECURITY_ADMIN_USER`,
+  `GF_SERVER_ROOT_URL=http://127.0.0.1:3000`.
+- Required files: `deploy/docker/secrets/grafana_admin_password` and
+  `grafana_secret_key` (`chmod 644` for uid 472 — see C9).
+- Agree the DB user/password with the URL (host = `postgres` service name):
+  `export POSTGRES_USER=...`
+  `export POSTGRES_PASSWORD=...`
+  `export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/astrofin"`
+- This only removes the yaml default for **new** clusters. If the `pg_data`
+  volume was already `initdb`'d with the `postgres` superuser, that role still
+  exists in the volume — migrate the existing cluster separately, don't assume
+  the role vanished.
+- Bring up the whole base (not just grafana):
+  `docker compose -f deploy/docker/docker-compose.yml up -d`
+- Verify:
+  - `docker compose ps` → app / postgres / redis / prometheus / grafana
+  - Grafana: `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/login` → 200
+  - Postgres ready: `docker compose exec postgres pg_isready -U postgres`
+  - app metrics: `docker compose exec app curl -fsS http://localhost:9191/metrics`
+- Grafana login: user from `GF_SECURITY_ADMIN_USER`, password from the
+  `grafana_admin_password` file.
+- Do not enable C7 / C11 / C12 overlays for this base smoke.
+- The app entrypoint runs `python -m db` (idempotent `create_all`, no DROP)
+  before the orchestrator; manual `exec python -m db` is no longer needed.
+- On an already-populated volume re-running init is a harmless no-op.
+
+Grafana hardening (C2):
+
+- `GF_SECURITY_ADMIN_USER` and `GF_SECURITY_ADMIN_PASSWORD` are both `${VAR:?}`
+  guards — grafana won't start in this compose without them.
+- The official `grafana/grafana` image still defaults to `admin/admin` if run
+  **outside** this compose; this file overrides it, disables signup and anon.
+- Rotate the admin password after first login; never expose `:3000` to the
+  internet without a reverse-proxy in front.
+
+Grafana hardening (C3):
+
+- `GF_SECURITY_ADMIN_USER`, `GF_SECURITY_ADMIN_PASSWORD` and
+  `GF_SECURITY_SECRET_KEY` are all `${VAR:?}` — grafana won't start in this
+  compose without all three.
+- The official image ships a known default `GF_SECURITY_SECRET_KEY`
+  (`SW2YcwTIb9zpOOhoPsMm`) — never leave it set.
+- From the host `:3000` is loopback-only (or via reverse-proxy); don't publish
+  it to the internet. Rotating `GF_SECURITY_SECRET_KEY` invalidates session
+  cookies.
+
+Grafana hardening (C4):
+
+- `GF_SERVER_ROOT_URL` is the fourth required `${VAR:?}` — set it to the exact
+  URL users open the UI with (`http://127.0.0.1:3000`).
+- Embedding and org-create are off; `SameSite=strict`.
+- `GF_SECURITY_COOKIE_SECURE=false` on purpose while there is no HTTPS (C5).
+- Rotating the admin password / secret key resets existing sessions.
+
+Grafana TLS (C5):
+
+- HTTP loopback is unchanged — a single compose file:
+  `docker compose -f deploy/docker/docker-compose.yml up -d`.
+- TLS is an overlay: `docker compose -f docker-compose.yml -f
+  docker-compose.grafana-tls.yml up -d`; it sets `PROTOCOL=https` and
+  `COOKIE_SECURE=true`, serving `https://127.0.0.1:3000`.
+- Generate self-signed certs with `scripts/gen_grafana_dev_certs.sh`
+  (SAN `127.0.0.1`/`localhost`); the browser will warn about self-signed.
+- `COOKIE_SECURE=true` only in the TLS profile; certs are gitignored.
+
+Grafana generic OAuth / OIDC (C6):
+
+- Enable: `docker compose -f docker-compose.yml -f
+  docker-compose.grafana-oidc.yml up -d` (TLS+OIDC: add the TLS overlay as a
+  third file).
+- Seven `${VAR:?}` env are required: NAME, CLIENT_ID, CLIENT_SECRET, AUTH_URL,
+  TOKEN_URL, API_URL, SCOPES. `ALLOW_SIGN_UP=false`.
+- The password login form stays (`DISABLE_LOGIN_FORM=false`) — otherwise you
+  get locked out if the IdP is unreachable.
+- Don't enable the overlay in prod without a live, reachable IdP.
+
+Grafana edge proxy (C7):
+
+- Profiles (stack with `-f deploy/docker/docker-compose.yml`):
+  - `base` → HTTP `http://127.0.0.1:3000`
+  - `+ docker-compose.grafana-tls.yml` → HTTPS on 3000
+  - `+ docker-compose.grafana-oidc.yml` → generic OAuth
+  - `+ docker-compose.grafana-edge.yml` → Caddy edge
+  - `+ tls + oidc` → three files combined
+- Edge: Grafana drops its host port; Caddy serves `https://127.0.0.1:8443`
+  (and `http://127.0.0.1:8080` health), proxying to `grafana:3000`.
+- `DOMAIN` and `ACME_EMAIL` are `${VAR:?}`; Let's Encrypt / `0.0.0.0` is NOT
+  the default (commented out in the Caddyfile).
+- No Keycloak / IdP service in this repo.
+
+Grafana oauth2-proxy (C8):
+
+- Enable: `docker compose -f docker-compose.yml -f
+  docker-compose.grafana-oauth2-proxy.yml up -d`; UI: `http://127.0.0.1:4180`.
+- Five `${VAR:?}` env required: CLIENT_ID, CLIENT_SECRET, COOKIE_SECRET,
+  OIDC_ISSUER_URL, REDIRECT_URL. Don't enable without a reachable IdP.
+- C8 ≠ C6 (Grafana Generic OAuth) — don't combine them unless you know why.
+- `EMAIL_DOMAINS=*` is dev-only; `COOKIE_SECURE=false` on the HTTP loopback.
+- Keycloak / public Let's Encrypt are out of scope.
+
+Grafana secrets from files (C9):
+
+- Admin password and secret key come from `deploy/docker/secrets/` files
+  (`grafana_admin_password`, `grafana_secret_key`); without them the stack will
+  not start (Compose fails on the missing secret file).
+- They are mounted as `/run/secrets/*` and read via `*__FILE` env vars, so
+  `docker inspect` / compose config no longer shows the password/key.
+- Grafana reads them as **uid 472** inside the container: a host `chmod 600`
+  owned by your user fails with
+  `run.sh: ... /run/secrets/grafana_secret_key: Permission denied`.
+- dev (rootless Docker): `chmod 644`; prod: `chown 472:472 && chmod 440`
+  (verify on rootless, else fall back to 644).
+- Rotation = rewrite the file + `docker compose up -d --force-recreate grafana`.
+- A full `up` of the base stack also needs `DATABASE_URL` and `POSTGRES_PASSWORD`
+  (app/postgres services), plus `GF_SECURITY_ADMIN_USER` and `GF_SERVER_ROOT_URL`.
+- C10 (Dex) / C11 / C12 are out of scope.
+
+Grafana Dex IdP (C10):
+
+- Enable: `docker compose -f docker-compose.yml -f docker-compose.dex.yml up -d`.
+  Grafana UI stays on `:3000`; Dex issuer is `http://127.0.0.1:5556/dex`
+  (internal container URL is `http://dex:5556/dex`).
+- Wire it to C6 Generic OAuth: `AUTH_URL=http://127.0.0.1:5556/dex/auth`,
+  `TOKEN_URL=.../token`, `API_URL=.../userinfo`, `SCOPES=openid email profile`.
+- C8 (oauth2-proxy) is a different profile — don't mix without a reason.
+- No users/passwords are committed; add a dev user at runtime, not in git.
+- C11 (DISABLE_LOGIN_FORM) and C12 (Let's Encrypt) are not included.
+
+Grafana forced SSO (C11):
+
+- Supported profile:
+  `docker compose -f docker-compose.yml -f docker-compose.dex.yml -f
+  docker-compose.grafana-sso.yml up -d`.
+- The login form is hidden (`DISABLE_LOGIN_FORM=true`) and
+  `AUTO_LOGIN=true`; `ALLOW_SIGN_UP=false`.
+- Break-glass: if Dex is down, start only `base` (+ secret files), without
+  `sso.yml`, to regain password login.
+- Don't combine with C8 (oauth2-proxy) in the same profile.
+- C12 (Let's Encrypt) is out of scope.
+
+Grafana public edge / ACME (C12):
+
+- C7 = dev loopback (`127.0.0.1:8443`), ACME disabled.
+- C12 = public: `docker compose -f docker-compose.yml -f
+  docker-compose.grafana-edge-public.yml up -d`.
+- Grafana has no host port; users reach it only via `:443`.
+- Requires DNS A/AAAA pointing at the host and open `80`/`443`; firewall is
+  the operator's responsibility.
+- Don't run C7 and C12 in the same `up` (two Caddy profiles).
+- CI interpolates only — it never requests a Let's Encrypt certificate.
+
+Run modes (orchestrator):
+
+- `--once` — single pass, no metrics server, exits:
+  `python -m orchestration.sentinel_v5 --once --query "Analyze BTC" --symbol BTCUSDT --timeframe SWING`
+- daemon (no `--once`) — starts the `:9191` metrics server and loops every
+  `KARL_SYNC_INTERVAL` (default 10s) until stopped. If `METRICS_BIND_ALL=true`,
+  a `METRICS_TOKEN`/`METRICS_TOKEN_FILE` is **required** — without it the process
+  refuses to start the exporter (exit 1), it does not serve `/metrics`.
+
+## Backups
+
+- Postgres backup is **out of compose** until a real `WALG_S3_PREFIX` and an
+  encryption key are provided. The S3 scheme in `deploy/wal-g/wal-g.env.example`
+  is a fail-closed `${VAR:?}` template — it is **not a live backup** and does
+  **not** enable S3 (no real bucket/key is committed).
+- To enable AWS S3: `cp deploy/wal-g/wal-g.env.example deploy/wal-g/wal-g.env`
+  (gitignored), set `WALG_S3_PREFIX` + `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`
+  and a libsodium key file, then run `deploy/wal-g/backup.sh full`.
+- `grafana_data` / `redis_data` / `prom_data` are snapshot-able via
+  `scripts/volume_snapshot.sh` (tar), not WAL-G.
+- `backup.sh full` ≠ verified restore — a restore drill is still pending.
+
+| target | posture |
+|---|---|
+| local MinIO | lab/dev stand only — **not** durable DR; reachable via `AWS_ENDPOINT=http://host.docker.internal:9000` (the archive overlay `extra_hosts` host-gateway) |
+| AWS S3 | copy `wal-g.env.example` → gitignored `deploy/wal-g/wal-g.env`, set `WALG_S3_PREFIX` + `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`; create bucket + IAM separately (no real bucket/key committed) |
+| encryption key | `deploy/docker/secrets/walg_libsodium_key` (gitignored), mounted at `/run/secrets/walg_libsodium_key` |
+
+### Restore drill (safe)
+
+- `deploy/wal-g/restore.sh` is now a **safe wrapper** around
+  `scripts/walg_restore_drill.sh` — the old `pg_ctl stop` + `backup-fetch $PGDATA`
+  was **removed**. Restore is drill-only:
+  `scripts/walg_restore_drill.sh /tmp/pg-drill` (fetches `LATEST` — the archive
+  backup `base_00000001000000000000000F` — into a safe, empty, non-live directory;
+  refuses `/var/lib/postgresql/data`, `$PGDATA`, `pg_data`, `pg_data_archive`, and
+  `docker_pg_data` with exit 2).
+- After fetch: `files restored to DEST; start postgres separately on THIS dest only`.
+- `base_000000010000000000000007` (old local MinIO lab proof) and
+  `base_00000001000000000000000F` (archive cluster) are **different timelines** on
+  different clusters/volumes — never treat them as one PITR timeline; the S3 prefix
+  is lab-only.
+- `archive_mode` is **off** on the base cluster, so a base backup is **not
+  PITR-capable** (no continuous WAL archive replay). `backup ≠ PITR`.
+
+### Local proof (Path A, not in release)
+
+- Proven locally with wal-g v3.0.6 + MinIO `s3://astrofin-backups/wal-g`
+  (`backup-push` → `base_000000010000000000000007`), `PGSSLMODE=disable`, and a
+  `docker_pg_data` volume. This is **not** the release posture: the release
+  remains **Path B** until a compose wal-g sidecar + a pinned wal-g image +
+  an encryption secret + `archive_mode`/wal-push exist.
+
+### Sidecar overlay (archive stack)
+
+- `deploy/docker/docker-compose.wal-g.yml` is an **optional** `profiles: ["backup"]`
+  sidecar. It targets the **archive cluster** (`PGHOST=postgres-archive`,
+  `pg_data_archive`), never the live base `postgres`/`pg_data`. Run the full
+  archive + wal-g stack with:
+  `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.postgres-archive.yml -f deploy/docker/docker-compose.wal-g.yml --profile archive --profile backup run --rm wal-g`
+  (default command `backup-list`, not `backup-push`).
+- The sidecar image is pinned and keyless-Cosign-signed:
+  `ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343…`. Do **not** use community
+  images (`chekkan/wal-g` etc.).
+- wal-g needs glibc (not alpine/musl): the archive cluster runs the Debian/glibc
+  `astrofin-postgres-archive` image with wal-g built in. Base `archive_mode` stays
+  **off**; the restore drill (#370) still applies.
+
+### Volume backup policy
+
+| volume | policy |
+|---|---|
+| `pg_data` (live base) | **not backed up** — base `archive_mode` is off; never `tar` |
+| `pg_data_archive` | WAL-G only (`--profile archive --profile backup` stack, pinned image) — never `tar` |
+| `grafana_data` | optional `scripts/volume_snapshot.sh grafana /abs/dest` (tar to a safe empty dest) |
+| `redis_data` | optional `scripts/volume_snapshot.sh redis /abs/dest` (tar to a safe empty dest); redis tar ≠ WAL-G ≠ PITR |
+| `prom_data` | optional `scripts/volume_snapshot.sh prometheus /abs/dest` (tar to a safe empty dest); prom tar ≠ WAL-G ≠ PITR |
+
+- `tar` ≠ WAL-G ≠ PITR; there is no "full stack backup". Redis / Prometheus
+  snapshots are point-in-time `tar` only — **not** WAL-G and **not** PITR. A
+  Prometheus TSDB snapshot is **not** a replacement for `remote_write`.
+
+### PITR (archive_mode) — optional overlay, NOT enabled
+
+- PITR = a base backup **plus** a continuous WAL archive (`archive_mode=on` +
+  `archive_command = 'wal-g wal-push %p'`). The current MinIO base
+  `base_000000010000000000000007` was taken with `archive_mode` **off**, so it is
+  **not PITR-capable** (no continuous WAL history).
+- Optional overlay: `deploy/docker/docker-compose.postgres-archive.yml` runs a
+  **separate** `postgres-archive` service with `archive_mode=on` on its own volume
+  `pg_data_archive` (the live `pg_data` is never touched). Bring it up:
+  `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.postgres-archive.yml --profile archive up -d postgres-archive`
+- Full archive + wal-g stack (archive cluster **and** the wal-g sidecar pointing
+  at `postgres-archive`/`pg_data_archive`):
+  `docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.postgres-archive.yml -f deploy/docker/docker-compose.wal-g.yml --profile archive --profile backup run --rm wal-g`
+  (default `backup-list`; for a real backup: `… run --rm wal-g backup-push /var/lib/postgresql/data`).
+- MinIO is reached via `host.docker.internal` — both overlays declare
+  `extra_hosts: ["host.docker.internal:host-gateway"]`, so set
+  `AWS_ENDPOINT=http://host.docker.internal:9000` (never a hardcoded `172.x` IP).
+- This is **not** prod and **not** the current MinIO backup — it is a PITR lab/test
+  cluster. The `astrofin-postgres-archive` image (Debian/glibc) **includes** wal-g
+  v3.0.6; the base `postgres:15-alpine` does **not**. `archive_command` therefore
+  only works on the archive cluster.
+- The `postgres-archive` service itself must carry the WAL-G storage env
+  (`WALG_S3_PREFIX`, `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT`,
+  `AWS_REGION`) + the libsodium key file (`/run/secrets/walg_libsodium_key`).
+  **Sidecar-only env is not enough** — `archive_command = 'wal-g wal-push %p'` runs
+  inside `postgres-archive`, so without these it fails `Failed to find any
+  configured storage`.
+- PITR is only real **after** `wal-push` succeeds on this cluster **and** a new
+  base backup is taken on it — it is **not** currently running.
+  `restore_command = 'wal-g wal-fetch %f %p'` is used only during recovery, never
+  on the live primary.
+- The archive cluster is a fresh, separate volume — enable archive from first
+  start, never via `ALTER SYSTEM`. The restore drill (#370) still refuses live
+  `PGDATA`.
+- The wal-g sidecar image is pinned and runs as **uid 999** (postgres):
+  `ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6-uid999@sha256:89be9fb2…` — it can read
+  `pg_data_archive` (owned by the archive postgres uid 999) **without `--user 0`**.
+  The older `v3.0.6@sha256:8de343…` (uid 10001) remains the wal-g binary source for
+  `Dockerfile.postgres-archive`.
+- The `astrofin-postgres-archive` image is pinned (`ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm@sha256:4806ea35…`) and keyless Cosign-signed after the first successful `postgres-archive-cosign.yml` run (see §Supply chain).
+
+## Image pins (digest)
+
+Base stack images are pinned `tag@sha256:` (multi-arch index digest). To refresh a
+pin: `docker buildx imagetools inspect <image> | grep '^Digest:'`, then update the
+`image:`/`FROM` line. CI fails if postgres/redis/python lose their digest, if any
+`image:`/`FROM` uses `:latest`, or if a python/uv `FROM` (web `Dockerfile`) lacks
+`@sha256:<64hex>`. Digests are not signatures — cosign/SBOM is a follow-up. Pinning
+the web base images ≠ signing the final ghcr.io image.
+
+| service | image (digest-pinned) |
+|---|---|
+| postgres | `postgres:15-alpine@sha256:fe0737…` |
+| redis | `redis:7-alpine@sha256:ff02b58f…` |
+| prometheus | `prom/prometheus:v2.54.1@sha256:f6639335…` |
+| grafana | `grafana/grafana:11.2.0@sha256:408afb97…` |
+| app base (daemon) | `python:3.11-slim@sha256:9534e5a8…` |
+| web base | `python:3.12-slim@sha256:78387bc3…` + `ghcr.io/astral-sh/uv:0.6.14@sha256:3362a526…` |
+
+### Mirror base images to GHCR (operator-only, offline retry)
+
+Docker Hub anonymous pulls are rate-limited (HTTP `429`, 100 pulls/6h). The
+compose still references the **official** Docker Hub pins; proxying them to
+`ghcr.io/mahaasur13-sys/astrofin-<svc>` (multi-arch index, keyless-signed later)
+is a separate operator step that must **not** run in CI (no Hub/GHCR auth there).
+
+To mirror after the rate limit resets:
+
+```bash
+docker login docker.io   # authenticated pull limit (avoids 429)
+docker login ghcr.io     # write access
+./scripts/mirror_base_images.sh            # copy all four as indexes
+./scripts/mirror_base_images.sh --dry-run  # show source -> dest without copying
+```
+
+The script uses `docker buildx imagetools create` (index-preserving), **never**
+`docker tag` (which would drop `arm64` and leave amd64-only). It exits `1` if a
+destination is not a multi-arch index (`linux/amd64` + `>=1 linux/arm*`) or has no
+valid digest, and `2` on `429`/denied. Only after a successful inspect should the
+compose `image:` lines be switched to the GHCR digest.
+
+## Supply chain (actions / SBOM / signing)
+
+- GitHub Actions are pinned by commit SHA (`owner/repo@<40hexSHA>`), not floating
+  `@vN`/`@main`. To refresh a pin: `gh api repos/<owner>/<repo>/git/ref/tags/<tag>`
+  → copy `object.sha` into the `uses:` line (keep the `# vN` comment for context).
+- `scripts/ci_validate_action_pins.sh` fails CI if any `uses:` uses a floating
+  tag/branch without a 40-hex SHA.
+- The image build publishes a source SBOM artifact (SPDX) via `anchore/sbom-action`.
+- `ghcr.io/mahaasur13-sys/wal-g-pg:v3.0.6@sha256:8de343…` is pinned **and** keyless
+  Cosign-signed (GitHub OIDC, no key pair). Verify:
+  `cosign verify --certificate-identity-regexp '^https://github.com/mahaasur13-sys/astrofin-sentinel-platform/.github/workflows/walg-image-cosign.yml@refs/' --certificate-oidc-issuer https://token.actions.githubusercontent.com ghcr.io/mahaasur13-sys/wal-g-pg@sha256:8de343…`
+- The app `sentinel` image (`ghcr.io/mahaasur13-sys/astrofin-sentinel:<git-sha>` +
+  `:release-v1.0.0`, never `:latest`) is built, pushed and keyless Cosign-signed by
+  `sentinel-image-sign.yml` on push to `release/v1.0.0`. It is **signed only after
+  the first successful push**; the PR build (`docker-image-build.yml`) stays no-push.
+- The `astrofin-sentinel` GHCR package must be linked to this repo (GitHub → Packages →
+  `astrofin-sentinel` → Package settings → **Connect repository**
+  `astrofin-sentinel-platform`) before the first push, else `GITHUB_TOKEN` cannot
+  write/sign it (same one-time step as `wal-g-pg`).
+- To (re)sign: Actions → «WAL-G image Cosign (keyless)» → Run workflow (ref
+  `release/v1.0.0`). This is a separate workflow from «Council Unit Suite» (the
+  PR check named `ci(security): keyless Cosign…` is just the unit suite).
+- First run #1 failed with `UNAUTHORIZED: authentication required` on ghcr.io
+  pull (cosign not logged in) — fixed by adding `docker/login-action` (ghcr.io,
+  `secrets.GITHUB_TOKEN`).
+- Run #2 failed with `DENIED: requested access to the resource is denied` while
+  pushing the `.sig` manifest: the `wal-g-pg` package is **not linked to this
+  repo**, so `GITHUB_TOKEN` (`packages: write`) cannot write to it. Fix: GitHub →
+  Packages → `wal-g-pg` → Package settings → **Connect repository**
+  (`astrofin-sentinel-platform`). This is a UI action, not a code change.
+- Sign vs verify: **sign** = `walg-image-cosign.yml` (push to `release/v1.0.0` /
+  manual dispatch, needs `packages: write` + `id-token`). **verify** =
+  `walg-image-verify.yml` (runs on every PR touching the wal-g overlay; needs
+  only `packages: read`; also fails if the overlay digest drifts from the sign
+  workflow `IMAGE`).
+- Sentinel **sign** = `sentinel-image-sign.yml` (push to `release/v1.0.0`; builds,
+  pushes the git-SHA + `release-v1.0.0` tags, signs the manifest digest, verifies).
+  There is **no verify-on-PR** for the sentinel image yet — its tag floats per git
+  SHA, so no fixed digest exists to verify against (unlike the wal-g overlay).
+- Web **sign** = `deploy.yml` (push of a `v*.*.*` tag / manual dispatch; builds the
+  root `Dockerfile` multi-arch, pushes `ghcr.io/mahaasur13-sys/astrofin-sentinel-platform`
+  with `<git-sha>` + semver tags — **no `:latest`** — and keyless Cosign-signs the
+  pushed repo digest (`steps.build.outputs.digest`), not a local `/tmp` manifest
+  hash). The kubectl deploy steps (staging → smoke → prod) are unchanged;
+  the old key-based `cosign sign --key cosign.key` + `:latest` tag were removed. The
+  first run after merge may fail `DENIED` pushing the `.sig` until the
+  `astrofin-sentinel-platform` package is Write-linked to this repo (same one-time
+  GitHub → Packages → **Connect repository** step as `wal-g-pg`).
+- Image names: **web** image = `ghcr.io/mahaasur13-sys/astrofin-sentinel-platform`
+  (built by `deploy.yml`); **daemon** image = `ghcr.io/mahaasur13-sys/astrofin-sentinel`
+  (built by `sentinel-image-sign.yml`, #380). The k8s *workload* name
+  `astrofin-sentinel-web` (Deployment/Service/Ingress/HPA) is separate and unchanged;
+  only the image ref inside `deploy/k8s/deployment.yaml` is `astrofin-sentinel-platform`
+  (tag sed-rewritten to `${VERSION}` at deploy time).
+- **postgres-archive** image = `ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm@sha256:4806ea35…`
+  (Debian/glibc postgres + wal-g). **sign** = `postgres-archive-cosign.yml` (push to
+  `release/v1.0.0` / manual dispatch, `packages: write` + `id-token`). **verify** =
+  `postgres-archive-verify.yml` (every PR touching the archive overlay / Dockerfile /
+  sign workflow; `packages: read`, no sign, fork-guarded, digest-drift check). Signed
+  only after the first successful sign run — until then verify-on-PR is red (no `.sig`).
+  If the sign/verify run fails `DENIED` on the `.sig`, link the package to this repo:
+  GitHub → Packages → `astrofin-postgres-archive` → Package settings → **Connect
+  repository** (`astrofin-sentinel-platform`) + grant Actions **Write** — the same
+  one-time UI step as `wal-g-pg` (#378).
+
+---
+
+## Prod Go gate
+
+`scripts/ci_validate_prod_gate.sh` is the **git-level** gate (exit 0/1), run in CI
+(`unit-suite.yml`). It orchestrates the existing guards and adds two greps:
+
+- `ci_validate_walg_restore_guard.sh` — no `pg_ctl stop` / `backup-fetch $PGDATA` in `restore.sh`
+- `ci_validate_postgres_user_required.sh` — no `POSTGRES_USER:-postgres`
+- `ci_validate_image_digests.sh` — `python`/`uv` `FROM` pinned `@sha256`
+- `ci_validate_metrics_bind.sh` — `METRICS_BIND_ALL` without token raises `SystemExit`
+- `ci_validate_action_pins.sh` — actions pinned by SHA
+- deploy.yml: no `:latest` push, no `cosign sign --key` / `COSIGN_PRIVATE_KEY`
+
+A green git gate does **not** mean production-ready. These remain **No-Go**:
+
+| item | status |
+|---|---|
+| external secrets manager (vault) | No-Go — secrets are gitignored files on a laptop |
+| real AWS S3 / IAM for WAL-G | No-Go — S3 is a `${VAR:?}` template, not an account |
+| PITR on live `pg_data` | No-Go — base `archive_mode` is off (archive cluster only) |
+| Cosign on the alpine base stack | No-Go — postgres/redis/prom/grafana are digest-pinned, not signed |
+| CodeRabbit App | No-Go — `.coderabbit.yaml` present but App not installed |
+
+---
+
 ## 0. General triage commands
 
 ```bash
@@ -160,14 +601,14 @@ kubectl -n astrofin-sentinel logs --previous -l app.kubernetes.io/name=astrofin-
 
 **Triage**
 - Inspect `.github/workflows/` run logs.
-- Check `ghcr.io/mahaasur13-sys/astrofin-sentinel-web` visibility and tags.
+- Check `ghcr.io/mahaasur13-sys/astrofin-sentinel-platform` visibility and tags.
 
 **Mitigate**
 - Re-run workflow; if image push fails on permissions, confirm `packages: write` token scope.
 - Fall back to manual build:
   ```bash
-  docker build -t astrofin-sentinel-web:dev .
-  docker run --rm -p 8050:8050 astrofin-sentinel-web:dev
+  docker build -t astrofin-sentinel-platform:dev .
+  docker run --rm -p 8050:8050 astrofin-sentinel-platform:dev
   ```
 
 ---

@@ -1,0 +1,69 @@
+# ── VCS & CI — never in the image ─────────────────────────
+.git
+.gitignore
+.gitattributes
+.github
+
+# ── Python virtualenvs & bytecode ─────────────────────────
+.venv
+.venv*
+venv
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# ── Python tool caches & build artifacts ──────────────────
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.hypothesis
+.eggs
+*.egg-info
+*.egg
+
+# ── Secrets & environment — never in the image ────────────
+.env
+.env.*
+deploy/docker/secrets
+deploy/docker/certs
+deploy/docker/dex
+deploy/docker/edge
+deploy/wal-g/wal-g.env
+*.pem
+*.key
+.sops.yaml
+.secrets.baseline
+
+# ── Local databases & data volumes ────────────────────────
+docker_pg_data
+pg_data
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Docs, reports, coverage & analysis output ─────────────
+*.md
+**/*.md
+docs
+reports
+REPORTS
+audit_reports
+coverage.xml
+uv.lock
+graphify-out
+Documents
+Downloads
+
+# ── Tests (not imported by the app runtime) ───────────────
+tests
+
+# ── Non-runtime inlined submodules / IaC / frontend ───────
+kernel
+bridge
+infrastructure
+deploy/iac
+archive
+artifacts
+web-react

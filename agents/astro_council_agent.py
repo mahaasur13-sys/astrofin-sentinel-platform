@@ -22,7 +22,7 @@ from agents._impl.synthesis.weights import AGENT_WEIGHTS, CATEGORY_WEIGHTS
 from agents._impl.types import TradingSignal
 from agents.base_agent import AgentResponse, BaseAgent
 from agents.metrics import track_agent_metrics
-from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN
+from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +138,69 @@ class AstroCouncilAgent(BaseAgent):
         except Exception as e:  # noqa: BLE001 — last-resort guard
             logger.exception("agent_run_unhandled", extra={"agent": self.name})
             return self._degraded(UNKNOWN, repr(e))
+
+    def _weighted_vote(self, responses: list[AgentResponse]) -> AgentResponse:
+        """Взвешенное голосование: побеждает сторона с наибольшим весом,
+        если её доля > 40% и отрыв от второй > 10%.
+        """
+        votes = {
+            SignalDirection.LONG: 0.0,
+            SignalDirection.SHORT: 0.0,
+            SignalDirection.NEUTRAL: 0.0,
+        }
+        total_weight = 0.0
+        reasons = []
+
+        for resp in responses:
+            name = resp.agent_name
+            weight = self._weights.get(name, 0.0)
+            if weight == 0:
+                continue
+            sig = resp.signal if isinstance(resp.signal, SignalDirection) else None
+            if sig is None:
+                try:
+                    sig = SignalDirection(str(resp.signal))
+                except (ValueError, TypeError, AttributeError):
+                    sig = SignalDirection.NEUTRAL
+            if sig not in votes:
+                sig = SignalDirection.NEUTRAL
+            contribution = weight * (resp.confidence / 100.0)
+            votes[sig] += contribution
+            total_weight += contribution
+            reasons.append(f"{name}: {sig.value} ({resp.confidence:.0f}%)")
+
+        if total_weight == 0:
+            return AgentResponse(
+                agent_name="AstroCouncil",
+                signal=SignalDirection.NEUTRAL,
+                confidence=20,
+                reasoning="All astro agents failed",
+            )
+
+        # Нормализуем голоса
+        for sig in votes:
+            votes[sig] /= total_weight
+
+        sorted_votes = sorted(votes.items(), key=lambda x: x[1], reverse=True)
+        if sorted_votes[0][1] > 0.4 and (sorted_votes[0][1] - sorted_votes[1][1]) > 0.10:
+            final_signal = sorted_votes[0][0]
+        else:
+            final_signal = SignalDirection.NEUTRAL
+
+        raw_confidence = votes[final_signal] * min(100.0, total_weight * 100.0)
+        confidence = max(10.0, min(95.0, raw_confidence))
+
+        reasoning = " | ".join(reasons[:3])
+        reasoning = f"[AstroCouncil] {final_signal.value} ({confidence:.0f}%) — {reasoning}"
+
+        return AgentResponse(
+            agent_name="AstroCouncil",
+            signal=final_signal,
+            confidence=int(confidence),
+            reasoning=reasoning,
+            sources=[],
+            metadata={"votes": votes, "total_weight": total_weight},
+        )
 
     async def _run_sub_agents(self, context: dict[str, Any]) -> list[AgentResponse]:
         """Параллельно запускает Thompson-selected суб-агентов.

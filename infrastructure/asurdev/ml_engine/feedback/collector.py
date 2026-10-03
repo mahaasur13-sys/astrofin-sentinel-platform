@@ -1,3 +1,4 @@
+import os
 #!/usr/bin/env python3
 """
 Feedback Collector — ingests job outcomes from state_store into TimescaleDB.
@@ -73,7 +74,7 @@ class FeedbackCollector:
                 port=5432,
                 dbname="cluster_metrics",
                 user="postgres",
-                password="postgres",
+                password=os.getenv("POSTGRES_PASSWORD", ""),
             )
         except Exception:
             return False

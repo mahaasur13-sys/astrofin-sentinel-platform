@@ -95,7 +95,9 @@ if _BACKEND == "postgresql":
                     kpi_snapshot_json=_d(record.get("kpi_snapshot", {})),
                     metadata_json=_d(record.get("metadata", {})),
                 )
-                s.add(dr)
+                # Upsert on decision_id: repeated cycles for the same symbol must
+                # UPDATE the existing row, not raise a PK UniqueViolation. PK stays.
+                s.merge(dr)
                 return record["decision_id"]
 
         @staticmethod
@@ -166,7 +168,7 @@ if _BACKEND == "postgresql":
                         kpi_snapshot_json=_d(record.get("kpi_snapshot", {})),
                         metadata_json=_d(record.get("metadata", {})),
                     )
-                    s.add(dr)
+                    s.merge(dr)
                 return len(records)
 
     class AgentSignalRepository:

@@ -6,13 +6,12 @@
 # This Dockerfile uses uv for dependency management. The lockfile (uv.lock)
 # is the single source of truth for transitive resolution. See ADR-0010.
 
-ARG PYTHON_VERSION=3.12
-ARG UV_VERSION=0.6.14
-
-FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+# Pin refresh: docker buildx imagetools inspect ghcr.io/astral-sh/uv:0.6.14
+FROM ghcr.io/astral-sh/uv:0.6.14@sha256:3362a526af7eca2fcd8604e6a07e873fb6e4286d8837cb753503558ce1213664 AS uv
 # Pure multi-stage importer; no runtime cost.
 
-FROM python:${PYTHON_VERSION}-slim AS builder
+# Pin refresh: docker buildx imagetools inspect python:3.12-slim
+FROM python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea AS builder
 WORKDIR /build
 
 # Build deps for psycopg2 / swisseph wheels.
@@ -36,7 +35,8 @@ RUN uv export --frozen --no-hashes --format requirements-txt \
  && uv pip wheel --no-cache-dir --wheel-dir /wheels -r /tmp/requirements.txt
 
 
-FROM python:${PYTHON_VERSION}-slim AS runtime
+# Pin refresh: docker buildx imagetools inspect python:3.12-slim
+FROM python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

@@ -12,6 +12,7 @@ import time
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine, event, text
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
 
@@ -20,6 +21,20 @@ from core.settings import settings
 logger = logging.getLogger(__name__)
 
 _db_manager = None
+
+
+def allow_sqlite_fallback() -> bool:
+    """Whether the data-plane may fall back to SQLite on Postgres failure.
+
+    Fail-closed by default: production/staging (and any run without the
+    explicit flag) are Postgres-only — an ``OperationalError`` must propagate,
+    never silently downgrade a write-path to SQLite. Fallback is opt-in and
+    restricted to development/test environments.
+    """
+    return bool(settings.ALLOW_SQLITE_FALLBACK) and settings.env in {
+        "development",
+        "test",
+    }
 
 
 class DatabaseManager:
@@ -36,6 +51,7 @@ class DatabaseManager:
         self.sqlite_engine = None
         self.pg_session_factory = None
         self.sqlite_session_factory = None
+        self.sqlite_fallback = False
         self._init_pg()
         self._init_sqlite()
 
@@ -52,6 +68,7 @@ class DatabaseManager:
                 max_overflow=settings.DB_MAX_OVERFLOW,
                 pool_pre_ping=True,
                 pool_recycle=3600,
+                connect_args={"connect_timeout": 3},
                 echo=os.getenv("SQL_ECHO", "") == "1",
             )
 
@@ -75,7 +92,14 @@ class DatabaseManager:
             connect_args={"check_same_thread": False},
         )
         self.sqlite_session_factory = sessionmaker(bind=self.sqlite_engine, autoflush=False)
-        logger.info("SQLite fallback engine initialized at %s", sqlite_path)
+        # SQLite is only a *fallback* when PostgreSQL failed to initialize.
+        # When PG is up the SQLite engine still exists (for the dual-write
+        # surface) but must not be logged as a fallback.
+        if self.pg_session_factory is None:
+            self.sqlite_fallback = True
+            logger.info("SQLite fallback engine initialized at %s", sqlite_path)
+        else:
+            logger.info("SQLite engine initialized at %s", sqlite_path)
 
     @property
     def pg_available(self) -> bool:
@@ -108,22 +132,32 @@ class DatabaseManager:
 
             session.commit()
 
-        except Exception as e:
+        except OperationalError as e:
+            # Fail-closed in production: Postgres is the only data-plane and an
+            # OperationalError must propagate (write-path is NOT success).
+            # SQLite fallback is dev/test-only and explicitly opt-in.
             if session:
                 session.rollback()
-            if pg_attempted and self.sqlite_session_factory:
-                logger.warning("PG session failed, falling back to SQLite: %s", e)
+            if pg_attempted and self.sqlite_session_factory and allow_sqlite_fallback():
+                logger.error("PG session failed, falling back to SQLite: %s", e)
                 with self.sqlite_session_factory() as fallback:
                     yield fallback
                     fallback.commit()
                     return
+            raise
+        except Exception as e:
+            if session:
+                session.rollback()
             raise
         finally:
             if session:
                 session.close()
 
     def get_stats(self) -> dict:
-        stats: dict = {"pg_available": self.pg_available}
+        stats: dict = {
+            "pg_available": self.pg_available,
+            "sqlite_fallback": self.sqlite_fallback,
+        }
         if self.pg_engine and self.pg_engine.pool:
             pool = self.pg_engine.pool
             stats.update({
@@ -160,6 +194,7 @@ def get_session_factory():
 
 
 def is_postgres_available() -> bool:
+    """Single source of truth: real ``SELECT 1`` against Postgres."""
     return get_db_manager().pg_available
 
 
@@ -186,9 +221,3 @@ def pg_session():
     """Backward-компатибельная PG сессия с авто-коммитом."""
     with get_db_manager().session(use_pg=True) as s:
         yield s
-
-
-def is_postgres_available() -> bool:
-    """Check if PG connection can be established."""
-    mgr = get_db_manager()
-    return mgr.pg_engine is not None and mgr.pg_session_factory is not None

@@ -35,7 +35,7 @@ class FeatureBuilder:
         self.backend = backend
         self.tsdb_dsn = tsdb_dsn or os.environ.get(
             'CLUSTER_DSN',
-            'postgresql://cluster:password@localhost:5432/cluster_metrics'
+            ''
         )
         self.prometheus_url = prometheus_url
         self._conn = None

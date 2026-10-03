@@ -31,10 +31,10 @@ cd AstroFinSentinelV5
 # Автоматически (при импорте db/)
 python3 -c "from db import init_db_if_needed; print(init_db_if_needed())"
 
-# Или через CLI
-python3 -m db.init --status
-python3 -m db.init              # init schema
-python3 -m db.init --migrate   # миграция из SQLite
+# Или через CLI (python3 -m db.init — эквивалентный shim)
+python3 -m db --status
+python3 -m db              # init schema
+python3 -m db --migrate   # миграция из SQLite
 ```
 
 ### 4. Запустить приложение
@@ -71,7 +71,7 @@ python3 -m orchestration.sentinel_v5 "Analyze BTC" BTCUSDT SWING
 ```
 db/
 ├── __init__.py          — exports
-├── __main__.py          — CLI: python -m db.init
+├── __main__.py          — CLI: python -m db (python -m db.init — shim)
 ├── session.py           — Connection pooling + retry + SQLite fallback
 ├── models.py            — 22 SQLAlchemy моделей
 ├── repositories.py      — CRUD для всех сущностей

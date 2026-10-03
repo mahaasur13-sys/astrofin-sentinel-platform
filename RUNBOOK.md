@@ -38,39 +38,40 @@ kubectl -n astrofin rollout status  deploy/ml-inference
 
 ### Backup & Disaster Recovery (WAL-G)
 
-**Architecture:** WAL-G sidecar continuously archives WAL segments and takes daily full base backups. Backups stored in `WALG_S3_PREFIX` (S3-compatible) or `WALG_FILE_PREFIX` (local filesystem).
+**Current posture:** base `postgres` runs with `archive_mode=off` (live `pg_data` is
+**not** PITR-capable). PITR is only on the optional archive cluster
+(`postgres-archive` / `pg_data_archive`). See `docs/RUNBOOK.md` §Backups/PITR.
 
-Config: `deploy/wal-g/wal-g.env`. Scripts: `deploy/wal-g/backup.sh`, `deploy/wal-g/restore.sh`.
+Backup script: `deploy/wal-g/backup.sh`. Restore is **drill-only**:
+`scripts/walg_restore_drill.sh <empty-dest>` (`deploy/wal-g/restore.sh` is a safe
+wrapper; it never `pg_ctl stop` / `backup-fetch` into live PGDATA).
 
-#### Take a manual full backup
+#### Take a manual full backup (archive cluster)
 ```bash
-docker compose exec wal-g-backup wal-g backup-push /var/lib/postgresql/data
-docker compose exec wal-g-backup wal-g backup-list  # verify
+docker compose -f deploy/docker/docker-compose.yml \
+  -f deploy/docker/docker-compose.postgres-archive.yml \
+  -f deploy/docker/docker-compose.wal-g.yml \
+  --profile archive --profile backup \
+  run --rm wal-g backup-push /var/lib/postgresql/data
 ```
 
-#### Restore to the latest backup
-1. `systemctl stop astrofin-web` or `docker compose stop web`
-2. `docker compose stop postgres`
-3. `docker compose run --rm -e WALG_S3_PREFIX="${WALG_S3_PREFIX}" -v astrofin_pgdata:/var/lib/postgresql/data wal-g-backup wal-g backup-fetch /var/lib/postgresql/data LATEST`
-4. `docker compose up -d postgres && sleep 5 && docker compose exec postgres pg_isready -U astrofin`
-5. `python -m migrations.migrate up`
-6. `systemctl start astrofin-web && curl -fsS http://127.0.0.1:8050/healthz`
-
-#### Point-in-time recovery (PITR)
+#### Restore drill (safe, never into live data)
 ```bash
-docker compose run --rm -e WALG_S3_PREFIX="${WALG_S3_PREFIX}" -e PITR="2026-07-25T12:00:00Z" -v astrofin_pgdata:/var/lib/postgresql/data wal-g-backup wal-g backup-fetch /var/lib/postgresql/data LATEST
+scripts/walg_restore_drill.sh /tmp/pg-drill   # LATEST (archive backup)
+scripts/walg_restore_drill.sh /tmp/pg-drill base_00000001000000000000000F
 ```
+(refuses `/var/lib/postgresql/data`, `$PGDATA`, `pg_data`, `pg_data_archive`,
+`docker_pg_data` with exit 2)
 
 #### Verify backup integrity
 ```bash
-docker compose exec wal-g-backup wal-g backup-list --detail
-docker compose logs wal-g-backup --tail 20
+docker compose -f deploy/docker/docker-compose.yml -f deploy/docker/docker-compose.postgres-archive.yml -f deploy/docker/docker-compose.wal-g.yml --profile archive --profile backup run --rm wal-g backup-list --detail
 ```
 
 #### Schedule
-- **Full backup:** every 24h at 02:00 UTC (`deploy/wal-g/backup-cron.sh`)
-- **WAL archival:** continuous via `archive_command` in `postgresql.conf`
-- **Retention:** 7 daily + 4 weekly + 6 monthly (see `wal-g.env`)
+- Full backup: opt-in (manual / `--profile backup`), no cron on live.
+- WAL archival: archive cluster only (`archive_mode=on`); base stays **off**.
+- Retention: 7 daily + 4 weekly + 6 monthly (see `wal-g.env`)
 
 ### Rotate secrets (JWT keys, API tokens)
 

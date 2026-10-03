@@ -28,9 +28,7 @@ if str(_project_root) not in sys.path:
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
-from prometheus_client import REGISTRY, CONTENT_TYPE_LATEST, generate_latest, Counter
-import requests
-import threading
+from prometheus_client import REGISTRY, CONTENT_TYPE_LATEST, generate_latest, Counter, Gauge
 
 from tools.metrics_server import (  # noqa: F401 — side-effect import
     CACHE_HITS,
@@ -50,28 +48,10 @@ from tools.metrics_server import (  # noqa: F401 — side-effect import
 
 EXPORTER_SCRAPES = Counter("astrofin_exporter_scrapes_total", "Total Prometheus scrape requests")
 EXPORTER_ERRORS = Counter("astrofin_exporter_errors_total", "Metrics generation errors")
+EXPORTER_UPTIME = Gauge("astrofin_exporter_uptime_seconds", "Exporter process uptime in seconds since start")
 
 _start_time = time.time()
-
-def _health_probe():
-    """Background thread: probe Ollama and RAG every 60s."""
-    while True:
-        try:
-            r = requests.get("http://localhost:11434/api/version", timeout=3)
-            OLLAMA_STATUS.set(1.0 if r.status_code == 200 else 0.0)
-        except Exception:
-            OLLAMA_STATUS.set(0.0)
-        try:
-            import faiss; import json
-            DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "rag_index"); idx = None; idx_path = os.path.join(DATA_DIR, "faiss.index"); idx = faiss.read_index(idx_path) if os.path.exists(idx_path) else None
-            if idx is not None:
-                RAG_CHUNK_COUNT.set(float(idx.ntotal))
-        except Exception:
-            pass
-        time.sleep(60)
-
-_health_thread = threading.Thread(target=_health_probe, daemon=True)
-_health_thread.start()
+EXPORTER_UPTIME.set_function(lambda: time.time() - _start_time)
 
 app = FastAPI(title="AstroFin Metrics Exporter", docs_url=None, redoc_url=None)
 

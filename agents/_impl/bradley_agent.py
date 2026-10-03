@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import logging
 
+from core.http_client import normalize_okx_inst_id, okx_get_json
+
 from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
     require_ephemeris,
@@ -58,6 +60,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
                 confidence=20,
                 reasoning="No market data for Bradley Model analysis",
                 sources=[],
+                metadata={"no_data": True},
             )
 
         # Bradley seasonality
@@ -110,12 +113,10 @@ class BradleyAgent(BaseAgent[AgentResponse]):
         import httpx
 
         try:
-            inst_id = symbol if "-" in symbol else symbol + "-USDT"
+            inst_id = normalize_okx_inst_id(symbol)
             url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval}&limit={limit}"
             async with httpx.AsyncClient() as client:
-                resp = await client.get(url, timeout=10)
-                resp.raise_for_status()
-                data = resp.json()
+                data = await okx_get_json(client, url)
                 return [[float(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), float(x[5])] for x in data.get("data", [])]
         except Exception:
             logger.warning(

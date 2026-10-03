@@ -68,8 +68,8 @@ ASTRO_POOL = AgentPool(
         "ElliotAgent",
         "CycleAgent",
         "TimeWindowAgent",
-        "MuhurtaAgent",
-        "ElectionAgent",
+        # MuhurtaAgent / ElectionAgent — отдельный продуктный трек
+        # (ELECTORAL_POOL ниже); не в ASTRO_POOL v1 (#303 canonical weights).
     ],
     min_select=4,
     max_select=7,

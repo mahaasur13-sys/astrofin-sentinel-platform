@@ -1,0 +1,209 @@
+name: Compose Config Validate
+
+on:
+  pull_request:
+    branches: [release/**]
+    paths:
+      - "deploy/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose-config:
+    name: Validate prod compose config
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+      - name: Prepare dummy secret files (gitignored, not committed)
+        run: |
+          mkdir -p deploy/docker/secrets
+          printf 'ci-dummy-admin-password\n' > deploy/docker/secrets/grafana_admin_password
+          printf 'ci-dummy-secret-key\n' > deploy/docker/secrets/grafana_secret_key
+          printf 'ci-dummy-metrics-token\n' > deploy/docker/secrets/metrics_token
+      - name: Validate compose interpolation (dummy env, no build)
+        env:
+          # Dummy placeholders only — they satisfy the ${VAR:?} guards so
+          # `config` can interpolate. Never real secrets, never used to boot.
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
+          REDIS_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
+        run: |
+          docker compose -f deploy/docker/docker-compose.yml config --quiet
+      - name: Validate Grafana TLS overlay config (dummy env, no build)
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
+          REDIS_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SERVER_ROOT_URL: "https://127.0.0.1:3000"
+          GF_SERVER_CERT_FILE: "/etc/grafana/ssl/grafana.crt"
+          GF_SERVER_CERT_KEY: "/etc/grafana/ssl/grafana.key"
+        run: |
+          docker compose \
+            -f deploy/docker/docker-compose.yml \
+            -f deploy/docker/docker-compose.grafana-tls.yml \
+            config --quiet
+      - name: Validate Grafana OIDC overlay config (dummy env, no build)
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
+          REDIS_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
+          GF_AUTH_GENERIC_OAUTH_NAME: "dummy_idp"
+          GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "dummy_client_id"
+          GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "dummy_client_secret"
+          GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://example.invalid/authorize"
+          GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://example.invalid/token"
+          GF_AUTH_GENERIC_OAUTH_API_URL: "https://example.invalid/userinfo"
+          GF_AUTH_GENERIC_OAUTH_SCOPES: "openid"
+        run: |
+          docker compose \
+            -f deploy/docker/docker-compose.yml \
+            -f deploy/docker/docker-compose.grafana-oidc.yml \
+            config --quiet
+      - name: Validate Grafana edge overlay config (dummy env, no build)
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
+          REDIS_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
+          DOMAIN: "localhost"
+          ACME_EMAIL: "dev@example.invalid"
+        run: |
+          docker compose \
+            -f deploy/docker/docker-compose.yml \
+            -f deploy/docker/docker-compose.grafana-edge.yml \
+            config --quiet
+      - name: Validate Grafana oauth2-proxy overlay config (dummy env, no build)
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
+          REDIS_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
+          OAUTH2_PROXY_CLIENT_ID: "dummy_client_id"
+          OAUTH2_PROXY_CLIENT_SECRET: "dummy_client_secret"
+          OAUTH2_PROXY_COOKIE_SECRET: "dummy_cookie_secret_32b_min_xxxx"
+          OAUTH2_PROXY_OIDC_ISSUER_URL: "https://example.invalid/"
+          OAUTH2_PROXY_REDIRECT_URL: "http://127.0.0.1:4180/oauth2/callback"
+          OAUTH2_EMAIL_DOMAINS: "example.invalid"
+        run: |
+          docker compose \
+            -f deploy/docker/docker-compose.yml \
+            -f deploy/docker/docker-compose.grafana-oauth2-proxy.yml \
+            config --quiet
+      - name: Validate Dex overlay config (dummy env, no build)
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
+          REDIS_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
+          DEX_ISSUER: "http://127.0.0.1:5556/dex"
+          DEX_GRAFANA_CLIENT_ID: "dummy_dex_client_id"
+          DEX_GRAFANA_CLIENT_SECRET: "dummy_dex_client_secret"
+        run: |
+          docker compose \
+            -f deploy/docker/docker-compose.yml \
+            -f deploy/docker/docker-compose.dex.yml \
+            config --quiet
+      - name: Validate Grafana forced-SSO overlay config (dummy env, no build)
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
+          REDIS_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
+          DEX_ISSUER: "http://127.0.0.1:5556/dex"
+          DEX_GRAFANA_CLIENT_ID: "dummy_dex_client_id"
+          DEX_GRAFANA_CLIENT_SECRET: "dummy_dex_client_secret"
+          GF_AUTH_GENERIC_OAUTH_NAME: "dex"
+          GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "dummy_dex_client_id"
+          GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "dummy_dex_client_secret"
+          GF_AUTH_GENERIC_OAUTH_AUTH_URL: "http://127.0.0.1:5556/dex/auth"
+          GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "http://127.0.0.1:5556/dex/token"
+          GF_AUTH_GENERIC_OAUTH_API_URL: "http://127.0.0.1:5556/dex/userinfo"
+          GF_AUTH_GENERIC_OAUTH_SCOPES: "openid email profile"
+        run: |
+          docker compose \
+            -f deploy/docker/docker-compose.yml \
+            -f deploy/docker/docker-compose.dex.yml \
+            -f deploy/docker/docker-compose.grafana-sso.yml \
+            config --quiet
+      - name: Validate Grafana public edge overlay config (dummy env, no ACME)
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          POSTGRES_PASSWORD: "ci-dummy"
+          POSTGRES_USER: "ci-user"
+          REDIS_PASSWORD: "ci-dummy"
+          GF_SECURITY_ADMIN_USER: "ci-dummy"
+          GF_SERVER_ROOT_URL: "http://127.0.0.1:3000"
+          DOMAIN: "example.invalid"
+          ACME_EMAIL: "dev@example.invalid"
+        run: |
+          docker compose \
+            -f deploy/docker/docker-compose.yml \
+            -f deploy/docker/docker-compose.grafana-edge-public.yml \
+            config --quiet
+      - name: Validate Grafana auth guard (no default admin)
+        run: |
+          bash scripts/ci_validate_grafana_auth.sh
+      - name: Validate DB fail-closed guard (no silent SQLite fallback)
+        run: |
+          bash scripts/ci_validate_db_failclosed.sh
+      - name: Validate oauth2 email domains guard (no wildcard in non-dev overlays)
+        run: |
+          bash scripts/ci_validate_oauth2_email_domains.sh
+      - name: Validate WAL-G config guard (no fake S3/encryption)
+        run: |
+          bash scripts/ci_validate_walg_config.sh
+      - name: Validate WAL-G restore guard (no fetch into live PGDATA)
+        run: |
+          bash scripts/ci_validate_walg_restore_guard.sh
+      - name: Validate WAL-G sidecar guard (optional, no untrusted image)
+        run: |
+          bash scripts/ci_validate_walg_sidecar.sh
+      - name: Validate volume snapshot guard (grafana-only, no pg_data)
+        run: |
+          bash scripts/ci_validate_volume_snapshot.sh
+      - name: Validate WAL-G archive-off guard (base compose no archive_mode=on)
+        run: |
+          bash scripts/ci_validate_walg_archive_off_in_base.sh
+      - name: Validate WAL-G archive overlay guard (separate volume, archive_mode, no ports)
+        run: |
+          bash scripts/ci_validate_walg_archive_overlay.sh
+      - name: Validate postgres-archive wal-g guard (debian base, pinned wal-g digest, no alpine)
+        run: |
+          bash scripts/ci_validate_postgres_archive_walg.sh
+      - name: Validate wal-g archive stack guard (sidecar targets postgres-archive / pg_data_archive)
+        run: |
+          bash scripts/ci_validate_walg_archive_stack.sh
+      - name: Validate wal-g archive extra-hosts guard (host.docker.internal for MinIO, no hardcoded IP)
+        run: |
+          bash scripts/ci_validate_walg_archive_extra_hosts.sh
+      - name: Validate image digests guard (no floating tags on base stack)
+        run: |
+          bash scripts/ci_validate_image_digests.sh
+      - name: Validate k8s image name guard (canonical GHCR image, no floating :latest)
+        run: |
+          bash scripts/ci_validate_k8s_image_name.sh
+      - name: Validate postgres-user guard (POSTGRES_USER required, no default superuser)
+        run: |
+          bash scripts/ci_validate_postgres_user_required.sh
+      - name: Validate action pins guard (no floating @vN refs)
+        run: |
+          bash scripts/ci_validate_action_pins.sh

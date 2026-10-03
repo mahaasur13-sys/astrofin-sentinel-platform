@@ -144,7 +144,10 @@ AGENT_DURATION = Histogram(
 
 )
 
-from meta_rl.metrics import *  # re-export
+try:
+    from meta_rl.metrics import *  # re-export meta_rl metrics (requires numpy)
+except ImportError:  # noqa: BLE001 — metrics server/exporter must work without meta_rl
+    pass
 
 
 

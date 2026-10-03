@@ -13,9 +13,11 @@ giving future contributors a working pytest skeleton to flesh out.
 
 from __future__ import annotations
 
+import asyncio
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -117,3 +119,35 @@ def test_large_input():
     # Stub assertion — the contract is "completes without exploding".
     assert len(big_state["history"]) == 10_000
     assert sum(len(s) for s in big_state["rag_context"]) >= 500_000
+
+
+# ── weekday handling (weekend IndexError regression) ─────────────────────
+
+
+def _scan_daily_on_weekday(weekday: int) -> dict:
+    """Run _scan_daily_window for a given weekday with a mocked clock + data.
+
+    No network / docker: _fetch_ohlcv is stubbed and datetime.utcnow() is
+    fixed to 2026-01-05 (a Monday) + `weekday` days, so Mon..Sun is covered.
+    """
+    agent = _mod.create()
+    data = [[float(100 + i), float(100 + i)] for i in range(20)]
+    fixed_now = datetime(2026, 1, 5, 12, 0, 0) + timedelta(days=weekday)
+    with patch.object(agent, "_fetch_ohlcv", AsyncMock(return_value=data)), \
+         patch("agents._impl.time_window_agent.datetime") as mock_dt:
+        mock_dt.utcnow.return_value = fixed_now
+        return asyncio.run(agent._scan_daily_window("BTCUSDT"))
+
+
+@pytest.mark.parametrize("weekday", [0, 4, 5, 6])
+def test_daily_window_all_weekdays_no_indexerror(weekday):
+    """weekday()==0..6 must never index a 5-element Mon-Fri list (IndexError)."""
+    result = _scan_daily_on_weekday(weekday)
+    assert result.get("summary")
+
+
+def test_daily_window_weekend_names():
+    """Saturday/Sunday must be named correctly (not 'midweek')."""
+    for weekday, day in [(5, "Sat"), (6, "Sun")]:
+        result = _scan_daily_on_weekday(weekday)
+        assert day in result["summary"]

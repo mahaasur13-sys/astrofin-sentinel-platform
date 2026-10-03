@@ -20,7 +20,6 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
 
@@ -79,7 +78,7 @@ class AgentPool(enum.Enum):
 
 class Session(Base):
     __tablename__ = "sessions"
-    session_id = Column(String(255), primary_key=True)
+    session_id = Column(Text, primary_key=True)
     symbol = Column(String(20), nullable=False)
     timeframe = Column(String(20), nullable=False)
     query_type = Column(String(20), nullable=False)
@@ -103,9 +102,9 @@ class Session(Base):
 
 class AgentSignal(Base):
     __tablename__ = "agent_signals"
-    signal_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    signal_id = Column(String(255), primary_key=True, default=lambda: str(uuid.uuid4()))
     session_id = Column(
-        String(255), ForeignKey("sessions.session_id", ondelete="CASCADE")
+        Text, ForeignKey("sessions.session_id", ondelete="CASCADE")
     )
     agent_name = Column(String(100), nullable=False)
     agent_pool = Column(String(20))
@@ -124,7 +123,7 @@ class AstroPosition(Base):
     __tablename__ = "astro_positions"
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(
-        String(255), ForeignKey("sessions.session_id", ondelete="CASCADE")
+        Text, ForeignKey("sessions.session_id", ondelete="CASCADE")
     )
     planet = Column(String(20), nullable=False)
     longitude = Column(Numeric(10, 6))
@@ -141,8 +140,8 @@ class AuditLogRecord(Base):
 
     __tablename__ = "audit_log"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(UUID(as_uuid=True))
-    decision_id = Column(UUID(as_uuid=True))
+    session_id = Column(Text)
+    decision_id = Column(String(255))
     action = Column(String(20), nullable=False)
     details_json = Column(Text)
     created_at = Column(DateTime(timezone=True), default=func.now())
@@ -169,7 +168,7 @@ class AgentBeliefHistory(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     agent_name = Column(String(100), nullable=False)
     session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="SET NULL")
+        Text, ForeignKey("sessions.session_id", ondelete="SET NULL")
     )
     prior_alpha = Column(Numeric(10, 4))
     prior_beta = Column(Numeric(10, 4))
@@ -184,7 +183,7 @@ class AgentSelectionLog(Base):
     __tablename__ = "agent_selection_log"
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="CASCADE")
+        Text, ForeignKey("sessions.session_id", ondelete="CASCADE")
     )
     agent_name = Column(String(100), nullable=False)
     pool_name = Column(String(20), nullable=False)
@@ -198,7 +197,7 @@ class KARLDecisionRecord(Base):
     __tablename__ = "karl_decision_records"
     decision_id = Column(String(255), primary_key=True)
     session_id = Column(
-        String(255), ForeignKey("sessions.session_id", ondelete="SET NULL")
+        Text, ForeignKey("sessions.session_id", ondelete="SET NULL")
     )
     symbol = Column(String(20))
     price = Column(Numeric(20, 8))
@@ -228,7 +227,7 @@ class KARLDecisionRecord(Base):
 class OAPValidationHistory(Base):
     __tablename__ = "oap_validation_history"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    decision_id = Column(UUID(as_uuid=True))
+    decision_id = Column(String(255))
     status = Column(String(20))
     confidence = Column(Integer)
     position_pct = Column(Numeric(6, 4))
@@ -241,7 +240,7 @@ class OAPValidationHistory(Base):
 class KPIMetrics(Base):
     __tablename__ = "kpi_metrics"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    decision_id = Column(UUID(as_uuid=True))
+    decision_id = Column(String(255))
     metric_name = Column(String(50), nullable=False)
     metric_value = Column(Numeric(12, 6))
     regime = Column(String(20))
@@ -263,7 +262,7 @@ class BacktestRun(Base):
     __tablename__ = "backtest_runs"
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(
-        UUID(as_uuid=True), ForeignKey("sessions.session_id", ondelete="SET NULL")
+        Text, ForeignKey("sessions.session_id", ondelete="SET NULL")
     )
     symbol = Column(String(20), nullable=False)
     start_date = Column(DateTime(timezone=True), nullable=False)

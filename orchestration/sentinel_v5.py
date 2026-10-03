@@ -24,6 +24,7 @@ from agents.base_agent import AgentResponse, SignalDirection
 from agents.karl_synthesis import KARLSynthesisAgent
 from core.belief import update_beliefs_from_session
 from core.history_db import save_session
+from core.http_client import close_http_client
 from core.thompson import (
     ASTRO_POOL,
     ELECTORAL_POOL,
@@ -53,6 +54,19 @@ from orchestration.result_aggregator import (  # noqa: F401
 logger = logging.getLogger(__name__)
 
 KARL_ENABLED = os.getenv("KARL_ENABLED", "true").lower() == "true"
+
+
+def _ensure_decision_record(decision_record: dict | None, session_id: str) -> dict:
+    """Return a decision_record that always carries a ``decision_id``.
+
+    The non-KARL / fallback path yields ``decision_record=None``; without a
+    decision_id the KARL panel prints ``ID=N/A``. Fall back to the session id
+    (a uuid-derived string) and never overwrite an existing KARL_* id.
+    """
+    if decision_record is None:
+        return {"decision_id": session_id}
+    decision_record.setdefault("decision_id", session_id)
+    return decision_record
 
 
 async def run_sentinel_v5(
@@ -167,6 +181,7 @@ async def run_sentinel_v5(
         "final_recommendation": (
             synthesis_result.to_dict() if synthesis_result else None
         ),
+        "decision_record": {"decision_id": session_id},
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -209,6 +224,21 @@ async def run_karl_sentinel_v5(
     if current_price == 0 and symbols:
         current_price = await _fetch_price(symbols[0])
     current_price = current_price or 50000
+
+    if persist:
+        # Persist the session row BEFORE the KARL agent runs, so its
+        # decision/signal inserts (FK -> sessions.session_id) do not violate
+        # the FK on a brand-new session_id. The later save_session() is an
+        # upsert and updates this row with the final results.
+        save_session(
+            {
+                "session_id": session_id,
+                "symbol": symbols[0],
+                "timeframe": timeframe,
+                "query_type": route_output.query_type.value,
+                "current_price": current_price,
+            }
+        )
 
     state = {
         "symbol": symbols[0],
@@ -317,6 +347,8 @@ async def run_karl_sentinel_v5(
         decision_record = None
         karl_diagnostics_result = None
 
+    decision_record = _ensure_decision_record(decision_record, session_id)
+
     final_output = {
         "session_id": session_id,
         "symbol": symbols[0],
@@ -349,6 +381,89 @@ async def run_karl_sentinel_v5(
     return final_output
 
 
+def _metrics_bind_host() -> str:
+    """127.0.0.1 by default; 0.0.0.0 only with an explicit METRICS_BIND_ALL flag."""
+    bind_all = os.getenv("METRICS_BIND_ALL", "false").lower() in {"1", "true", "yes"}
+    return "0.0.0.0" if bind_all else "127.0.0.1"
+
+
+def _metrics_require_token(host: str, token: str) -> bool:
+    """True if binding 0.0.0.0 without a token (fail-closed: never expose
+    /metrics on the internal network unauthenticated)."""
+    return host == "0.0.0.0" and not token
+
+
+def _build_metrics_app(token: str):
+    """Prometheus WSGI app, optionally behind a Bearer-token guard."""
+    from prometheus_client.exposition import make_wsgi_app
+
+    app = make_wsgi_app()
+    if not token:
+        return app
+
+    def _guarded(environ, start_response):
+        if environ.get("HTTP_AUTHORIZATION") != f"Bearer {token}":
+            start_response("401 Unauthorized", [("Content-Type", "text/plain")])
+            return [b"unauthorized\n"]
+        return app(environ, start_response)
+
+    return _guarded
+
+
+def _read_metrics_token() -> str:
+    """Bearer token from METRICS_TOKEN env, else METRICS_TOKEN_FILE (compose secret)."""
+    token = os.getenv("METRICS_TOKEN", "").strip()
+    if token:
+        return token
+    token_file = os.getenv("METRICS_TOKEN_FILE", "").strip()
+    if token_file:
+        try:
+            with open(token_file, encoding="utf-8") as fh:
+                return fh.read().strip()
+        except OSError:
+            return ""
+    return ""
+
+
+def _start_metrics_server() -> None:
+    """Serve Prometheus /metrics in-process (shares the REGISTRY).
+
+    Default bind is loopback (127.0.0.1); ``METRICS_BIND_ALL=true`` opts into
+    binding 0.0.0.0 for the internal compose network (never a host port). If
+    binding 0.0.0.0, a token (``METRICS_TOKEN`` / ``METRICS_TOKEN_FILE``) is
+    REQUIRED — without it the exporter refuses to start (exit 1), it does not
+    serve /metrics unauthenticated.
+    """
+    port = int(os.getenv("METRICS_PORT", "9191"))
+    host = _metrics_bind_host()
+    token = _read_metrics_token()
+
+    if _metrics_require_token(host, token):
+        logger.error(
+            "[metrics] METRICS_BIND_ALL=true without METRICS_TOKEN — refusing to "
+            "start the /metrics exporter (fail-closed). Set METRICS_TOKEN(_FILE) "
+            "or drop METRICS_BIND_ALL."
+        )
+        raise SystemExit(1)
+
+    import threading
+
+    from socketserver import ThreadingMixIn
+    from wsgiref.simple_server import WSGIServer, make_server
+
+    class _ThreadingWSGIServer(ThreadingMixIn, WSGIServer):
+        daemon_threads = True
+
+    app = _build_metrics_app(token)
+
+    try:
+        httpd = make_server(host, port, app, server_class=_ThreadingWSGIServer)
+        threading.Thread(target=httpd.serve_forever, daemon=True).start()
+        logger.info("[metrics] Prometheus /metrics on %s:%s (auth=%s)", host, port, bool(token))
+    except Exception as e:  # noqa: BLE001 — observability must never crash the daemon
+        logger.warning("[metrics] server failed to start: %s", e)
+
+
 def main():
     import argparse
 
@@ -360,22 +475,50 @@ def main():
     )
     parser.add_argument("--karl", action="store_true", default=True)
     parser.add_argument("--query", default="", help="User query")
+    parser.add_argument(
+        "--once", action="store_true", help="Run a single pass and exit (no daemon loop)"
+    )
     args = parser.parse_args()
 
-    if args.karl:
-        result = asyncio.run(
-            run_karl_sentinel_v5(
+    sync_interval = int(os.getenv("KARL_SYNC_INTERVAL", "10"))
+
+    async def _run_once() -> dict:
+        if args.karl:
+            return await run_karl_sentinel_v5(
                 user_query=args.query, symbol=args.symbol, timeframe=args.timeframe
             )
-        )
-    else:
-        result = asyncio.run(
-            run_sentinel_v5(
-                user_query=args.query, symbol=args.symbol, timeframe=args.timeframe
-            )
+        return await run_sentinel_v5(
+            user_query=args.query, symbol=args.symbol, timeframe=args.timeframe
         )
 
-    logger.info("\nFinal recommendation: %s", result.get("final_recommendation"))
+    async def _daemon() -> None:
+        try:
+            while True:
+                try:
+                    result = await _run_once()
+                    logger.info(
+                        "\nFinal recommendation: %s", result.get("final_recommendation")
+                    )
+                except Exception as exc:  # noqa: BLE001 — keep the daemon alive on any error
+                    logger.exception("orchestration_run_failed", extra={"error": str(exc)})
+                await asyncio.sleep(sync_interval)
+        finally:
+            # Close the shared httpx client on shutdown so the daemon does not
+            # leak connections. close_http_client() is resilient to a closed loop.
+            await close_http_client()
+
+    if args.once:
+        async def _run_once_then_close() -> dict:
+            try:
+                return await _run_once()
+            finally:
+                await close_http_client()
+
+        result = asyncio.run(_run_once_then_close())
+        logger.info("\nFinal recommendation: %s", result.get("final_recommendation"))
+    else:
+        _start_metrics_server()
+        asyncio.run(_daemon())
 
 
 if __name__ == "__main__":

@@ -1,0 +1,61 @@
+name: Postgres-archive image Cosign verify (PR)
+
+on:
+  pull_request:
+    branches: [release/v1.0.0]
+    paths:
+      - "deploy/docker/docker-compose.postgres-archive.yml"
+      - "deploy/docker/Dockerfile.postgres-archive"
+      - ".github/workflows/postgres-archive-cosign.yml"
+      - ".github/workflows/postgres-archive-verify.yml"
+      - "scripts/ci_validate_postgres_archive_walg.sh"
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  verify:
+    name: Verify postgres-archive signature (no sign)
+    # Fork PRs cannot read the private GHCR package with GITHUB_TOKEN.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+
+      - name: Overlay digest must match cosign IMAGE
+        run: |
+          overlay_ref="$(grep -oE 'ghcr\.io/mahaasur13-sys/astrofin-postgres-archive:[^@[:space:]]+@sha256:[0-9a-f]{64}' deploy/docker/docker-compose.postgres-archive.yml | head -1)"
+          sign_ref="$(grep -oE 'IMAGE: ghcr\.io/mahaasur13-sys/astrofin-postgres-archive:[^@[:space:]]+@sha256:[0-9a-f]{64}' .github/workflows/postgres-archive-cosign.yml | sed 's/^IMAGE: //' | head -1)"
+          overlay_digest="${overlay_ref##*@}"
+          sign_digest="${sign_ref##*@}"
+          echo "overlay=$overlay_ref"
+          echo "sign=$sign_ref"
+          if [ -z "$overlay_digest" ] || [ -z "$sign_digest" ]; then
+            echo "::error::could not extract digest from overlay or cosign workflow"
+            exit 1
+          fi
+          if [ "$overlay_digest" != "$sign_digest" ]; then
+            echo "::error::overlay digest ($overlay_digest) drifted from cosign IMAGE ($sign_digest)"
+            exit 1
+          fi
+          echo "digest match: $overlay_digest"
+          echo "IMAGE=$overlay_ref" >> "$GITHUB_ENV"
+
+      - name: Login to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac  # v3
+
+      - name: Verify signature
+        run: |
+          cosign verify \
+            --certificate-identity-regexp '^https://github.com/mahaasur13-sys/astrofin-sentinel-platform/.github/workflows/postgres-archive-cosign.yml@refs/' \
+            --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+            "${IMAGE}"

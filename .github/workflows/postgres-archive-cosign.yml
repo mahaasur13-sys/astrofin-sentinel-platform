@@ -1,0 +1,42 @@
+name: Postgres-archive image Cosign (keyless)
+
+on:
+  push:
+    branches: [release/v1.0.0]
+    paths:
+      - ".github/workflows/postgres-archive-cosign.yml"
+      - "deploy/docker/Dockerfile.postgres-archive"
+      - "deploy/docker/docker-compose.postgres-archive.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  sign-verify:
+    name: Keyless sign + verify postgres-archive digest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Pin the exact digest (never sign a floating tag).
+      IMAGE: ghcr.io/mahaasur13-sys/astrofin-postgres-archive:15-bookworm@sha256:4806ea35970dd5b49b093b1f308af8ad325f9dde67a80053618f62802fd189e9
+    steps:
+      - name: Login to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac  # v3
+      - name: Sign image (keyless, GitHub OIDC)
+        run: |
+          cosign sign --yes "${IMAGE}"
+      - name: Verify signature (this repo/workflow identity only)
+        run: |
+          cosign verify \
+            --certificate-identity-regexp '^https://github.com/mahaasur13-sys/astrofin-sentinel-platform/.github/workflows/postgres-archive-cosign.yml@refs/' \
+            --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+            "${IMAGE}"

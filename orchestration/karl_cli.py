@@ -27,7 +27,7 @@ console = Console() if RICH else None
 
 def cprint(msg, style=None):
     if RICH:
-        console.log.info(msg, style=style or "")
+        console.log(msg, style=style or "")
     else:
         log.info(msg)
 
@@ -70,7 +70,7 @@ def print_decision_rich(record, amre, synth):
     main.append(f"  CONF={confidence:3}  ", style="bold white")
     main.append(f"  ID={decision_id}", style="dim")
     try:
-        console.log.info(
+        console.log(
             Panel(
                 main,
                 title="[bold]KARL DECISION[/bold]",
@@ -128,10 +128,19 @@ async def visualize_current_topology(session_id=None):
 import click
 
 
-@click.group()
-def cli():
+@click.group(invoke_without_command=True)
+@click.option(
+    "--once",
+    is_flag=True,
+    help="Run a single analysis pass (same as `analyze` with defaults)",
+)
+@click.pass_context
+def cli(ctx, once):
     """AstroFin Sentinel V5 — KARL CLI"""
-    pass
+    if once:
+        ctx.invoke(analyze, query="Analyze BTC", symbol="BTCUSDT", timeframe="SWING")
+    elif ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
 
 
 @cli.command()
