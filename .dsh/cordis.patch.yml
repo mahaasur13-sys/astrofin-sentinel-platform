@@ -37,7 +37,7 @@
         args:
           - '/home/workspace/.dsh/mcp-servers/roma_bridge.py'
         env:
-          ROMA_API_KEY: !!js process.env.ROMA_API_KEY || ''
+          ROMA_API_KEY: !!js process.env.ROMA_API_KEY
           ROMA_API_URL: 'http://localhost:8900'
         failOnStartupError: true
         toolCallTimeoutMs: 30000

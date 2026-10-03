@@ -48,6 +48,9 @@ dependencies = [
   # Networking / async (used by data_provider + tests)
   "aiohttp>=3.9.0,<4.0",
   "httpx>=0.26.0,<1.0",
+
+  # MCP SDK — DSH host bridges in .dsh/mcp-servers (roma_bridge, zo_bridge)
+  "mcp>=1.28.0,<2.0",
   "slowapi>=0.1.9,<1.0",
   "tenacity>=8.0.0,<10.0",
 

@@ -9,28 +9,82 @@ Architecture Principle:
 
 All GPU/CPU/billing operations MUST go through this MCP server.
 Harness NEVER accesses GPU rental APIs directly.
+
+Access control:
+  * ROMA_API_KEY is mandatory. Missing or empty is an explicit configuration
+    error, never a silent unauthenticated request.
+  * The tool allowlist is fail-closed (see tool_allowlist.py): unset or blank
+    means read-only, and mutating/financial tools are granted only when named
+    explicitly in ROMA_BRIDGE_ALLOWED_TOOLS.
 """
 import asyncio
 import json
 import os
-import sys
 
 import httpx
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
 
+from tool_allowlist import is_allowed, resolve_allowed_tools, warn
+
 ROMA_BASE = os.environ.get("ROMA_API_URL", "http://localhost:8900")
-ROMA_API_KEY = os.environ.get("ROMA_API_KEY", "")
 
 server = Server("roma-execution-bridge")
 
 
+class ConfigError(RuntimeError):
+    """Explicit configuration failure — fail closed instead of degrading silently."""
+
+
+# JS interop yields these when the variable is unset; treat them as missing.
+_MISSING_KEY_SENTINELS = frozenset({"", "undefined", "null"})
+
+
+def resolve_api_key(raw: str | None) -> str:
+    """Return the ROMA API key or raise ConfigError. Never returns a blank key."""
+    value = "" if raw is None else str(raw).strip()
+    if value.lower() in _MISSING_KEY_SENTINELS:
+        raise ConfigError(
+            "ROMA_API_KEY is missing or empty. Refusing to proceed: an "
+            "unauthenticated ROMA request is a fail-open configuration. "
+            "Set ROMA_API_KEY in the harness environment (see .dsh/.env.example)."
+        )
+    return value
+
+
+# ── Tool registry ──────────────────────────────────────────────────────────
+# READ_ONLY: safe to expose to every role.
+# PRIVILEGED: submit_job provisions GPU/CPU capacity (real spend) and
+# cancel_job mutates a running job — granted only by explicit allowlist.
+
+READ_ONLY_TOOLS = frozenset({
+    "check_health",
+    "get_job_status",
+    "list_jobs",
+    "get_workers",
+    "get_worker_metrics",
+    "get_billing_balance",
+    "get_billing_ledger",
+    "get_billing_spend_cap",
+    "get_usage",
+})
+PRIVILEGED_TOOLS = frozenset({
+    "submit_job",
+    "cancel_job",
+})
+
+ALLOWED_TOOLS = resolve_allowed_tools(
+    READ_ONLY_TOOLS, PRIVILEGED_TOOLS, os.environ.get("ROMA_BRIDGE_ALLOWED_TOOLS")
+)
+
+
 async def _roma_request(method: str, path: str, json_body: dict | None = None) -> dict:
     """Make an authenticated request to ROMA API."""
-    headers = {"Content-Type": "application/json"}
-    if ROMA_API_KEY:
-        headers["X-API-Key"] = ROMA_API_KEY
+    headers = {
+        "Content-Type": "application/json",
+        "X-API-Key": resolve_api_key(os.environ.get("ROMA_API_KEY")),
+    }
 
     url = f"{ROMA_BASE}{path}"
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -49,7 +103,7 @@ async def _roma_request(method: str, path: str, json_body: dict | None = None) -
 
 @server.list_tools()
 async def list_tools() -> list[Tool]:
-    return [
+    tools = [
         Tool(
             name="check_health",
             description="Check ROMA Execution Bridge health status",
@@ -154,10 +208,15 @@ async def list_tools() -> list[Tool]:
             },
         ),
     ]
+    return [tool for tool in tools if is_allowed(tool.name, ALLOWED_TOOLS)]
 
 
 @server.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+    if not is_allowed(name, ALLOWED_TOOLS):
+        warn(f"denied tool call: {name!r}")
+        return [TextContent(type="text", text=f"Tool not permitted: {name}")]
+
     try:
         if name == "check_health":
             result = await _roma_request("GET", "/health")
@@ -212,8 +271,10 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
             return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
         else:
-            return [TextContent(type="text", text=f"Unknown tool: {name}")]
+            return [TextContent(type="text", text=f"Tool not permitted: {name}")]
 
+    except ConfigError:
+        raise
     except httpx.HTTPStatusError as e:
         return [TextContent(type="text", text=f"ROMA API error ({e.response.status_code}): {e.response.text[:500]}")]
     except Exception as e:
@@ -221,6 +282,9 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
 
 async def main():
+    # Fail closed before serving: no ROMA tool is useful without a credential,
+    # and advertising them would only surface the failure per call.
+    resolve_api_key(os.environ.get("ROMA_API_KEY"))
     async with stdio_server() as (read_stream, write_stream):
         await server.run(read_stream, write_stream, server.create_initialization_options())
 
