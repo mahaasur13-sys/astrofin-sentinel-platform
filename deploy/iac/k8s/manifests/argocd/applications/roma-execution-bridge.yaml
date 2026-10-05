@@ -12,7 +12,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/mahaasur13-sys/roma-execution-bridge.git
-    targetRevision: master
+    targetRevision: 3527e14f8c87ec13275c9ef86d9bbfe79c73d9a5
     path: deploy/manifests
     directory:
       recurse: true
