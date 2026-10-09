@@ -710,23 +710,94 @@ def render_report(report: Report) -> None:
         log.info(YELLOW(f"⚠ {len(warns)} soft warning(s). Build allowed."))
 
 
+def _blocks(report: Report, fail_on: str) -> bool:
+    """Threshold decision, mirroring scripts/validate_agent.py semantics."""
+    if fail_on == "never":
+        return False
+    if fail_on == "warning":
+        return report.has_failures or report.has_warnings
+    return report.has_failures  # "error": FAIL blocks, WARN stays non-blocking
+
+
+def _eligible(src: Path) -> bool:
+    if src.suffix in SKIP_SUFFIXES:
+        return False
+    return not any(part in SKIP_NAMES for part in src.parts)
+
+
+def resolve_explicit_inputs(paths: list[str]) -> tuple[list[Path], list[str]]:
+    """Expand explicit CLI inputs into eligible files. Never imports scanned code.
+
+    Directories expand recursively and deterministically; symlinks escaping the
+    given tree are not followed. Absent, unsupported or empty inputs raise an
+    actionable input error instead of silently succeeding.
+    """
+    files: list[Path] = []
+    errors: list[str] = []
+
+    for raw in paths:
+        resolved = Path(raw).resolve()
+        if not resolved.exists():
+            errors.append(f"{raw}: path does not exist (absent or dangling symlink)")
+            continue
+        if resolved.is_file():
+            if resolved.suffix != ".py":
+                errors.append(f"{raw}: unsupported explicit input (not a .py file)")
+            elif not _eligible(resolved):
+                errors.append(f"{raw}: excluded by current file rules (skip name/suffix)")
+            else:
+                files.append(resolved)
+            continue
+        if resolved.is_dir():
+            expanded: list[Path] = []
+            for cand in sorted(resolved.rglob("*.py"), key=str):
+                if not cand.is_file():
+                    continue
+                real = cand.resolve()
+                if resolved not in real.parents:
+                    continue  # symlink escaping the explicit tree
+                if not _eligible(real):
+                    continue
+                expanded.append(real)
+            if not expanded:
+                errors.append(f"{raw}: directory contains no eligible .py files")
+            else:
+                files.extend(expanded)
+            continue
+        errors.append(f"{raw}: unsupported explicit input (not a regular file or directory)")
+
+    return sorted(dict.fromkeys(files), key=str), errors
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="AstroFin architecture linter")
-    parser.add_argument("paths", nargs="*", help="specific files to lint")
+    parser.add_argument("paths", nargs="*", help="specific files or directories to lint")
     parser.add_argument("--changed", action="store_true", help="only git-changed files")
+    parser.add_argument(
+        "--fail-on",
+        choices=["error", "warning", "never"],
+        default="error",
+        help="exit non-zero on this severity or higher (default: error). "
+        "Compatibility flag — used by .github/workflows/quality-gate.yml.",
+    )
     args = parser.parse_args(argv)
 
     report = Report()
 
+    input_errors: list[str] = []
     if args.paths:
-        files = [Path(p).resolve() for p in args.paths]
+        files, input_errors = resolve_explicit_inputs(args.paths)
     else:
         files = list(iter_python_files(REPO_ROOT, only_changed=args.changed))
 
+    if input_errors:
+        for err in input_errors:
+            log.error(RED(f"✖ input error: {err}"))
+        # Operational input errors are not policy findings — they stay non-zero
+        # regardless of --fail-on, including --fail-on never.
+        return 2
+
     for f in files:
-        if not f.exists():
-            log.info(YELLOW(f"skip: {f} (does not exist)"))
-            continue
         lint_file(f, report)
 
     # Cross-file rule (R5) needs the registry on disk:
@@ -735,14 +806,14 @@ def main(argv: list[str] | None = None) -> int:
     check_no_submodules(report)
 
     render_report(report)
-    if report.has_failures:
+
+    if _blocks(report, args.fail_on):
         return 1
-    if report.has_warnings:
-        return 0  # warnings are non-blocking — allow CI to pass
     return 0
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     sys.exit(main())
 
 
