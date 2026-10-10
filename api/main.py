@@ -352,7 +352,8 @@ def run_agent(req: AgentRequest, request: Request):
     agent_decisions = []
     for aid, name, domain in AGENT_SPECS:
         try:
-            fname = "agents/_impl/ml_predictor_agent.py" if name == "MLPredictorAgent" else f"agents/_impl/{re.sub(r"(?<=[a-z])([A-Z])", r"_\1", name).lower()}.py"
+            slug = re.sub(r'(?<=[a-z])([A-Z])', r'_\1', name).lower()
+            fname = "agents/_impl/ml_predictor_agent.py" if name == "MLPredictorAgent" else f"agents/_impl/{slug}.py"
             spec = importlib.util.spec_from_file_location(name.lower(), fname)
             if spec and spec.loader:
                 mod = importlib.util.module_from_spec(spec)
