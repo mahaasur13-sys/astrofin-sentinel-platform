@@ -89,7 +89,7 @@ class AgentResponse(BaseModel):
     result: str
 
 
-class DashboardAgent(BaseModel):
+class DashboardAgentInfo(BaseModel):
     id: str
     name: str
     weight: float
@@ -116,7 +116,7 @@ class EnsembleSignal(BaseModel):
 
 
 class DashboardResponse(BaseModel):
-    agents: list[DashboardAgent]
+    agents: list[DashboardAgentInfo]
     regime: RegimeProbs
     ensemble: EnsembleSignal
     safety_gate: str = "SAFE"
@@ -166,7 +166,7 @@ def get_astro_aspects(request: Request):
 @app.get("/api/v1/dashboard", response_model=DashboardResponse)
 @require_api_key
 def get_dashboard(request: Request):
-    agents = [DashboardAgent(**a) for a in AGENT_DEFS]
+    agents = [DashboardAgentInfo(**a) for a in AGENT_DEFS]
 
     buy_count = sum(1 for a in agents if a.signal == "LONG")
     sell_count = sum(1 for a in agents if a.signal == "SHORT")
