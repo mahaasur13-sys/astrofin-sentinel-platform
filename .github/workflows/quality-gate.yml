@@ -4,10 +4,16 @@ on:
   pull_request:
     branches: [ master, develop ]
     paths:
+      - 'agents/**'
       - 'agents/_impl/**'
       - 'core/**'
       - 'orchestration/**'
       - 'web/**'
+      - 'data_room/**'
+      - 'api/**'
+      - 'monitoring/**'
+      - 'trading/**'
+      - 'meta_rl/**'
       - 'scripts/**'
       - 'docs/**'
       - '.github/workflows/**'
@@ -64,7 +70,7 @@ jobs:
           mapfile -t files < <(
             git diff --name-only "$base"...HEAD \
               | grep -E '\.py$' \
-              | grep -E '^(agents/|core/|scripts/|orchestration/|web/)' || true
+              | grep -E '^(agents/|core/|scripts/|orchestration/|web/|data_room/|api/|monitoring/|trading/|meta_rl/)' || true
           )
           set -e
           existing=()
