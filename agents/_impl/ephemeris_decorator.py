@@ -5,6 +5,7 @@ require_ephemeris decorator and ephemeris utilities.
 from __future__ import annotations
 
 import functools
+import inspect
 from collections.abc import Callable
 from typing import ParamSpec, TypeVar
 
@@ -30,19 +31,40 @@ def require_ephemeris(func: Callable[P, T]) -> Callable[P, T]:
         async def analyze(self, state: dict) -> AgentResponse:
             ...
 
+    Synchronous callables are supported too: the wrapper is selected from the
+    decorated callable itself, so a plain function (including a FastAPI route
+    function) is never treated as a bound method.
+
     Raises:
         EphemerisUnavailableError: If Swiss Ephemeris is not installed.
     """
 
-    @functools.wraps(func)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+    def _guard(owner: object | None) -> None:
         if not HAS_SWISS_EPHEMERIS:
-            raise EphemerisUnavailableError(
-                f"Agent '{args[0].__class__.__name__}' requires Swiss Ephemeris. Install with: pip install pyswisseph"
+            target = (
+                type(owner).__name__
+                if owner is not None
+                else getattr(func, "__qualname__", getattr(func, "__name__", repr(func)))
             )
-        return await func(*args, **kwargs)
+            raise EphemerisUnavailableError(
+                f"Agent '{target}' requires Swiss Ephemeris. Install with: pip install pyswisseph"
+            )
 
-    return wrapper
+    if inspect.iscoroutinefunction(func):
+
+        @functools.wraps(func)
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            _guard(args[0] if args else None)
+            return await func(*args, **kwargs)
+
+        return wrapper
+
+    @functools.wraps(func)
+    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        _guard(args[0] if args else None)
+        return func(*args, **kwargs)
+
+    return sync_wrapper
 
 
 class EphemerisUnavailableError(Exception):

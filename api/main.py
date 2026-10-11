@@ -16,7 +16,7 @@ import logging
 import inspect, asyncio
 import os
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -26,6 +26,8 @@ from slowapi.errors import RateLimitExceeded
 
 from core.auth import require_api_key
 from core.base_agent import BaseAgent
+
+from api.services.astro import AstroService, AstroUnavailableError, EphemerisUnavailableError
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -89,7 +91,7 @@ class AgentResponse(BaseModel):
     result: str
 
 
-class DashboardAgent(BaseModel):
+class DashboardAgentInfo(BaseModel):
     id: str
     name: str
     weight: float
@@ -116,7 +118,7 @@ class EnsembleSignal(BaseModel):
 
 
 class DashboardResponse(BaseModel):
-    agents: list[DashboardAgent]
+    agents: list[DashboardAgentInfo]
     regime: RegimeProbs
     ensemble: EnsembleSignal
     safety_gate: str = "SAFE"
@@ -139,13 +141,11 @@ def health():
 @require_api_key
 def get_astro_aspects(request: Request):
     """Current astrological aspects from Swiss Ephemeris — source of truth."""
-    from core.aspects import AspectsEngine
-    from core.ephemeris import get_planetary_positions
-
     now = datetime.now(timezone.utc)
-    positions = get_planetary_positions(now)
-    engine = AspectsEngine()
-    report = engine.compute(positions)
+    try:
+        result = AstroService().compute_aspects(now)
+    except (EphemerisUnavailableError, AstroUnavailableError) as exc:
+        raise HTTPException(status_code=503, detail="Ephemeris service unavailable") from exc
 
     return {
         "timestamp": now.isoformat(),
@@ -157,16 +157,16 @@ def get_astro_aspects(request: Request):
                 "orb": round(a.orb, 2),
                 "signature": a.signature,
             }
-            for a in report.aspects
+            for a in result.aspects
         ],
-        "source": "swiss_ephemeris",
+        "source": result.source,
     }
 
 
 @app.get("/api/v1/dashboard", response_model=DashboardResponse)
 @require_api_key
 def get_dashboard(request: Request):
-    agents = [DashboardAgent(**a) for a in AGENT_DEFS]
+    agents = [DashboardAgentInfo(**a) for a in AGENT_DEFS]
 
     buy_count = sum(1 for a in agents if a.signal == "LONG")
     sell_count = sum(1 for a in agents if a.signal == "SHORT")
@@ -291,29 +291,19 @@ def run_agent(req: AgentRequest, request: Request):
 
     # ── 1. Real ephemeris & aspects ──
     try:
-        from core.aspects import AspectsEngine
-        from core.ephemeris import get_planetary_positions
-
-        dt = datetime.now(timezone.utc)
-        positions = get_planetary_positions(dt)
-        engine = AspectsEngine()
-        report = engine.compute(positions)
-        aspects = (
-            [
-                {
-                    "planet1": a.planet1,
-                    "planet2": a.planet2,
-                    "type": str(a.aspect_type.name).lower()
-                    if hasattr(a.aspect_type, "name")
-                    else str(a.aspect_type).lower(),
-                    "orb": round(a.orb, 2),
-                    "score": round(a.score, 2),
-                }
-                for a in report.aspects
-            ]
-            if hasattr(report, "aspects")
-            else []
-        )
+        result = AstroService().compute_aspects(datetime.now(timezone.utc))
+        aspects = [
+            {
+                "planet1": a.planet1,
+                "planet2": a.planet2,
+                "type": str(a.aspect_type.name).lower()
+                if hasattr(a.aspect_type, "name")
+                else str(a.aspect_type).lower(),
+                "orb": round(a.orb, 2),
+                "score": round(a.score, 2),
+            }
+            for a in result.aspects
+        ]
         muhurta_score = 100  # placeholder — real panchanga call
     except Exception:
         aspects = []
@@ -456,15 +446,10 @@ def get_interpretation(request: Request):
     """Vedic + astro interpretation for traders: verdict, Muhurta, Choghadiya, Nakshatra."""
     from datetime import datetime, timezone
 
-    from core.aspects import AspectsEngine
-    from core.ephemeris import get_planetary_positions
-
+    dt = datetime.now(timezone.utc)
     try:
-        dt = datetime.now(timezone.utc)
-        positions = get_planetary_positions(dt)
-        engine = AspectsEngine()
-        report = engine.compute(positions)
-        aspects = report.aspects
+        result = AstroService().compute_aspects(dt)
+        aspects = result.aspects
     except Exception:
         aspects = []
 
