@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import math
 
 import numpy as np
@@ -454,6 +455,156 @@ class TestScoredStrategy:
         d = scored.to_dict()
         assert d["generation"] == 3
         assert "confidence_threshold" in d["strategy_params"]
+
+
+# ── 12. BaseAgent contract (S2/R1: MetaAgent(BaseAgent[AgentResponse])) ─────
+
+
+class TestMetaAgentBaseAgentContract:
+    """S2/R1 integration: MetaAgent must be a genuine BaseAgent subclass."""
+
+    def test_meta_agent_is_a_base_agent_subclass(self):
+        from core.base_agent import BaseAgent
+
+        assert issubclass(MetaAgent, BaseAgent)
+        agent = MetaAgent(config=EvolutionConfig(population_size=4, random_seed=7))
+        assert isinstance(agent, BaseAgent)
+
+    def test_base_agent_identity_is_initialised(self):
+        agent = MetaAgent(config=EvolutionConfig(population_size=4, random_seed=7))
+        assert agent.name == "MetaAgent"
+        assert agent.domain == "meta_rl"
+        assert agent.weight == 0.0
+
+    def test_run_without_market_data_returns_agent_response(self):
+        from core.base_agent import AgentResponse, SignalDirection
+
+        agent = MetaAgent(config=EvolutionConfig(population_size=4, random_seed=7))
+        response = asyncio.run(agent.run({}))
+
+        assert isinstance(response, AgentResponse)
+        assert response.agent_name == "MetaAgent"
+        assert isinstance(response.signal, SignalDirection)
+        assert 0 <= response.confidence <= 100
+        assert response.metadata["evolution_executed"] is False
+        assert "q_star" in response.metadata
+
+    def test_run_without_market_data_is_read_only(self):
+        agent = MetaAgent(
+            config=EvolutionConfig(population_size=5, random_seed=11),
+            karl_state={"current_q_star": 0.42, "current_regime": "HIGH"},
+        )
+        before_state = dict(agent.get_karl_state())
+        before_oap = dict(agent.get_karl_state()["oap_weights"])
+        before_generation = agent.generation
+        before_best = agent._best_reward
+
+        response = asyncio.run(agent.run({"symbol": "BTCUSDT"}))
+
+        assert dict(agent.get_karl_state()) == before_state
+        assert dict(agent.get_karl_state()["oap_weights"]) == before_oap
+        assert agent.generation == before_generation
+        assert agent._best_reward == before_best
+        assert response.metadata["evolution_executed"] is False
+        assert response.metadata["q_star"] == 0.42
+        assert response.metadata["regime"] == "HIGH"
+
+    def test_run_with_market_data_executes_real_cycle(
+        self, sample_market_data, monkeypatch
+    ):
+        agent = MetaAgent(config=EvolutionConfig(population_size=6, random_seed=13))
+        calls = {"init": 0, "evaluate": 0, "select": 0, "karl": 0}
+        real_init = agent.initialize_population
+        real_evaluate = agent.evaluate_population
+        real_select = agent.select
+        real_karl = agent.update_karl
+
+        def spy_init(*a, **kw):
+            calls["init"] += 1
+            return real_init(*a, **kw)
+
+        def spy_evaluate(*a, **kw):
+            calls["evaluate"] += 1
+            return real_evaluate(*a, **kw)
+
+        def spy_select(*a, **kw):
+            calls["select"] += 1
+            return real_select(*a, **kw)
+
+        def spy_karl(*a, **kw):
+            calls["karl"] += 1
+            return real_karl(*a, **kw)
+
+        monkeypatch.setattr(agent, "initialize_population", spy_init)
+        monkeypatch.setattr(agent, "evaluate_population", spy_evaluate)
+        monkeypatch.setattr(agent, "select", spy_select)
+        monkeypatch.setattr(agent, "update_karl", spy_karl)
+
+        response = asyncio.run(agent.run({"market_data": sample_market_data}))
+
+        assert calls == {"init": 1, "evaluate": 1, "select": 1, "karl": 1}
+        assert response.metadata["evolution_executed"] is True
+        assert response.metadata["population_size"] == 6
+        assert response.metadata["elite_count"] == agent.config.elite_count
+        assert response.metadata["best_strategy_id"] is not None
+        assert response.metadata["best_chromosome"]
+
+    def test_run_accepts_ohlcv_key_alias(self, sample_market_data):
+        agent = MetaAgent(config=EvolutionConfig(population_size=4, random_seed=17))
+        response = asyncio.run(
+            agent.run({"ohlcv": sample_market_data["ohlcv"], "regime": "BULL"})
+        )
+        assert response.metadata["evolution_executed"] is True
+        assert response.metadata["population_size"] == 4
+
+    def test_run_degrades_instead_of_reporting_fake_success(self, monkeypatch):
+        from core.base_agent import UNKNOWN as DEGRADED_REASON, SignalDirection
+
+        agent = MetaAgent(config=EvolutionConfig(population_size=4, random_seed=19))
+
+        def boom(*_a, **_kw):
+            raise RuntimeError("simulated evaluation failure")
+
+        monkeypatch.setattr(agent, "evaluate_population", boom)
+        response = asyncio.run(agent.run({"market_data": [{"close": 1.0}]}))
+
+        assert response.signal is SignalDirection.NEUTRAL
+        assert response.confidence == 0
+        assert response.metadata["degraded"] is True
+        assert response.metadata["degradation_reason"] == DEGRADED_REASON
+        assert "simulated evaluation failure" in response.reasoning
+
+    def test_run_does_not_mask_programming_defects(self, monkeypatch):
+        agent = MetaAgent(config=EvolutionConfig(population_size=4, random_seed=23))
+
+        def boom(*_a, **_kw):
+            raise AssertionError("programming defect")
+
+        monkeypatch.setattr(agent, "evaluate_population", boom)
+        with pytest.raises(AssertionError):
+            asyncio.run(agent.run({"market_data": [{"close": 1.0}]}))
+
+    def test_legacy_constructor_call_shapes_still_work(self):
+        assert MetaAgent() is not None
+        cfg = EvolutionConfig(population_size=5, elite_count=2)
+        assert MetaAgent(config=cfg).config.population_size == 5
+        assert MetaAgent(evaluator=StrategyEvaluator()) is not None
+        assert MetaAgent(reward_config=RewardConfig()) is not None
+        assert MetaAgent(karl_state={"current_q_star": 0.3}) is not None
+
+    def test_legacy_sync_api_is_unchanged(self, sample_market_data):
+        agent = MetaAgent(config=EvolutionConfig(population_size=5, random_seed=29))
+        population = agent.initialize_population()
+        assert len(population) == 5
+
+        scored = agent.evaluate_population(population, sample_market_data)
+        assert len(scored) == 5
+        assert all(isinstance(s.reward, float) for s in scored)
+
+        elites = agent.select(scored)
+        assert len(elites) == agent.config.elite_count
+        assert isinstance(agent.get_karl_state(), dict)
+        assert agent.generation == 1
 
 
 if __name__ == "__main__":

@@ -14,6 +14,12 @@ import numpy as np
 from meta_rl.reward import RewardCalculator, RewardConfig
 from meta_rl.strategy_evaluator import StrategyEvaluator
 from meta_rl.strategy_pool import ScoredStrategy, StrategyPool
+from core.base_agent import (
+    UNKNOWN as DEGRADATION_UNKNOWN,
+    AgentResponse,
+    BaseAgent,
+    SignalDirection,
+)
 from meta_rl.types import EvaluationResult
 
 logger = logging.getLogger(__name__)
@@ -100,7 +106,7 @@ class EvolutionConfig:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class MetaAgent:
+class MetaAgent(BaseAgent[AgentResponse]):
     """Meta-RL agent with bidirectional KARL integration (ATOM-META-RL-005/009).
 
     ATOM-META-RL-009: replay_historical_sessions() loads past sessions and
@@ -110,6 +116,7 @@ class MetaAgent:
     def __init__(
         self, evaluator=None, reward_config=None, config=None, karl_state=None
     ):
+        super().__init__(name="MetaAgent", domain="meta_rl", weight=0.0)
         self.evaluator = evaluator or StrategyEvaluator()
         self.reward_calc = RewardCalculator(reward_config or RewardConfig())
         self.config = config or EvolutionConfig()
@@ -128,6 +135,130 @@ class MetaAgent:
             self._karl_state.last_update_gen = karl_state.get("last_update_gen", 0)
 
         self._session_id = "meta_rl_default"
+
+    # ── BaseAgent contract (S2/R1) ──────────────────────────────────────────
+    #
+    # MetaAgent is a synchronous population-based optimizer: initialize_population
+    # → evaluate_population → select → evolve, with KARL bookkeeping in
+    # update_karl.  The async ``run`` below is the single BaseAgent entry point;
+    # it exposes that real cycle to the agent council and changes no legacy API.
+
+    _REGIME_CONFIDENCE_MULTIPLIER = {
+        "LOW": 0.9,
+        "NORMAL": 1.0,
+        "HIGH": 0.75,
+        "EXTREME": 0.5,
+    }
+
+    def _q_norm(self) -> float:
+        """Map KARL q_star (≈ -1..1) into a 0..1 confidence factor."""
+        q_star = float(self._karl_state.current_q_star)
+        return max(0.0, min(1.0, (q_star + 1.0) / 2.0))
+
+    def _confidence_from_q(self, q_norm: float) -> int:
+        regime = str(self._karl_state.current_regime or "NORMAL").upper()
+        multiplier = self._REGIME_CONFIDENCE_MULTIPLIER.get(regime, 1.0)
+        return max(0, min(100, int(round(100.0 * q_norm * multiplier))))
+
+    def _karl_response(self, state: dict) -> AgentResponse:
+        """Project the current KARL state into an AgentResponse (strictly read-only)."""
+        q_star = float(self._karl_state.current_q_star)
+        q_norm = self._q_norm()
+        regime = str(self._karl_state.current_regime or "NORMAL")
+        if q_norm >= 0.65:
+            signal = SignalDirection.LONG
+        elif q_norm <= 0.35:
+            signal = SignalDirection.SHORT
+        else:
+            signal = SignalDirection.NEUTRAL
+        return AgentResponse(
+            agent_name=self.name,
+            signal=signal,
+            confidence=self._confidence_from_q(q_norm),
+            reasoning=(
+                f"Meta-RL KARL state: q_star={q_star:.4f} (q_norm={q_norm:.4f}), "
+                f"regime={regime}, generation={self._generation}; no market_data was "
+                "supplied, so no evolution cycle was executed."
+            ),
+            sources=["meta_rl.karl_state"],
+            metadata={
+                "q_star": q_star,
+                "q_norm": q_norm,
+                "regime": regime,
+                "generation": self._generation,
+                "population_size": self.config.population_size,
+                "evolution_executed": False,
+                "session_id": self._session_id,
+            },
+            session_id=self._session_id,
+        )
+
+    def _population_response(self, scored_population, elites) -> AgentResponse:
+        rewards = [float(s.reward) for s in scored_population]
+        best = max(rewards) if rewards else 0.0
+        mean = sum(rewards) / len(rewards) if rewards else 0.0
+        q_star = float(self._karl_state.current_q_star)
+        q_norm = self._q_norm()
+        if best > 0.0:
+            signal = SignalDirection.LONG
+        elif best < 0.0:
+            signal = SignalDirection.SHORT
+        else:
+            signal = SignalDirection.NEUTRAL
+        best_elite = elites[0] if elites else None
+        return AgentResponse(
+            agent_name=self.name,
+            signal=signal,
+            confidence=self._confidence_from_q(q_norm),
+            reasoning=(
+                f"Meta-RL evolution cycle executed over {len(scored_population)} "
+                f"strategies: best_reward={best:.4f}, mean_reward={mean:.4f}, "
+                f"elites={len(elites)}, q_star={q_star:.4f} (q_norm={q_norm:.4f})."
+            ),
+            sources=["meta_rl.meta_agent"],
+            metadata={
+                "best_reward": best,
+                "mean_reward": mean,
+                "elite_count": len(elites),
+                "best_strategy_id": getattr(best_elite, "id", None),
+                "best_chromosome": (
+                    dict(best_elite.strategy.chromosome)
+                    if best_elite is not None
+                    else {}
+                ),
+                "q_star": q_star,
+                "q_norm": q_norm,
+                "regime": str(self._karl_state.current_regime or "NORMAL"),
+                "generation": self._generation,
+                "population_size": len(scored_population),
+                "evolution_executed": True,
+                "session_id": self._session_id,
+            },
+            session_id=self._session_id,
+        )
+
+    async def run(self, state: dict) -> AgentResponse:
+        """BaseAgent entry point: execute one real meta-RL cycle.
+
+        With market data: initialize_population → evaluate_population → select →
+        update_karl, then report the measured outcome.  Without market data: return
+        the current KARL projection without mutating any MetaAgent state.
+        """
+        state = state or {}
+        market_data = state.get("market_data") or state.get("ohlcv")
+        if not market_data:
+            return self._karl_response(state)
+        try:
+            population = self.initialize_population()
+            scored_population = self.evaluate_population(population, market_data)
+            elites = self.select(scored_population)
+            self.update_karl(elites)
+        except (AssertionError, NotImplementedError):
+            raise
+        except Exception as exc:
+            logger.warning("[META-RL] run() cycle failed: %s", exc)
+            return self._degraded(DEGRADATION_UNKNOWN, str(exc))
+        return self._population_response(scored_population, elites)
 
     @property
     def generation(self) -> int:
