@@ -65,11 +65,16 @@ class RedisCache:
         self._fallback_ttl.pop(key, None)
 
     async def clear(self):
-        """Очистить весь кэш (только fallback)."""
+        """Очистить кэш: fallback полностью; Redis — no-op (ключи без namespace)."""
         if self.redis:
-            try:
-                await self.redis.flushdb()
-            except Exception:
-                log.warning("Cache access failed", exc_info=True)
+            # Ключи в Redis пишутся без префикса/namespace, поэтому нет
+            # безопасного способа выбрать только ключи этого кэша, а
+            # flushdb() стирает всю БД (чужие данные). Не вызываем flushdb и
+            # не делаем SCAN по всей базе: для Redis clear() остаётся no-op
+            # до появления собственного namespace у ключей.
+            log.warning(
+                "RedisCache.clear: Redis backend has no key namespace; "
+                "refusing flushdb() (no-op). Only in-memory fallback cleared."
+            )
         self.fallback.clear()
         self._fallback_ttl.clear()
