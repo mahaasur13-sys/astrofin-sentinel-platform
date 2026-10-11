@@ -117,3 +117,98 @@ def test_large_input():
     # Stub assertion — the contract is "completes without exploding".
     assert len(big_state["history"]) == 10_000
     assert sum(len(s) for s in big_state["rag_context"]) >= 500_000
+
+
+# ── 7. additive synchronous support (S2 API R2 slice) ───────────────────
+
+import asyncio  # noqa: E402
+
+
+class _Service:
+    """Minimal stand-in for a service whose method calls a primitive."""
+
+    def __init__(self) -> None:
+        self.body_calls = 0
+
+    @_mod.require_ephemeris
+    def compute(self, value: int = 1) -> int:
+        self.body_calls += 1
+        return value * 2
+
+
+def test_sync_free_function_guard_raises_guard_not_indexerror():
+    """A free (non-method) sync function must raise the guard, never IndexError."""
+
+    @_mod.require_ephemeris
+    def free() -> str:
+        return "ok"
+
+    with patch.object(_mod, "HAS_SWISS_EPHEMERIS", False):
+        with pytest.raises(_mod.EphemerisUnavailableError):
+            free()
+
+
+def test_sync_free_function_runs_when_dependency_available():
+    @_mod.require_ephemeris
+    def free(value: int) -> int:
+        return value + 1
+
+    with patch.object(_mod, "HAS_SWISS_EPHEMERIS", True):
+        assert free(41) == 42
+
+
+def test_sync_method_guard_blocks_before_body():
+    service = _Service()
+    with patch.object(_mod, "HAS_SWISS_EPHEMERIS", False):
+        with pytest.raises(_mod.EphemerisUnavailableError):
+            service.compute(2)
+    assert service.body_calls == 0
+
+
+def test_sync_method_runs_when_dependency_available():
+    service = _Service()
+    with patch.object(_mod, "HAS_SWISS_EPHEMERIS", True):
+        assert service.compute(21) == 42
+    assert service.body_calls == 1
+
+
+def test_async_method_guard_message_uses_class_name():
+    """Existing async callers keep the exact class-name message contract."""
+
+    class _Agent:
+        @_mod.require_ephemeris
+        async def analyze(self) -> str:
+            return "ok"
+
+    with patch.object(_mod, "HAS_SWISS_EPHEMERIS", False):
+        with pytest.raises(_mod.EphemerisUnavailableError) as err:
+            asyncio.run(_Agent().analyze())
+    assert "_Agent" in str(err.value)
+
+
+def test_async_wrapper_metadata_preserved():
+    @_mod.require_ephemeris
+    async def analyze(self, state: dict) -> str:
+        """docstring stays"""
+        return "ok"
+
+    assert analyze.__name__ == "analyze"
+    assert analyze.__doc__ == "docstring stays"
+    assert inspect_signature_params(analyze) == ["self", "state"]
+
+
+def test_sync_wrapper_metadata_preserved():
+    @_mod.require_ephemeris
+    def compute(self, value: int = 1) -> int:
+        """sync docstring stays"""
+        return value
+
+    assert compute.__name__ == "compute"
+    assert compute.__doc__ == "sync docstring stays"
+    assert inspect_signature_params(compute) == ["self", "value"]
+
+
+def inspect_signature_params(func) -> list[str]:
+    import inspect
+
+    return list(inspect.signature(func).parameters)

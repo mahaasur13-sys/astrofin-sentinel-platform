@@ -29,7 +29,7 @@ try:
 except ImportError:
     CACHE_HITS = type("_Stub", (), {"inc": lambda: None})()
     CACHE_MISSES = type("_Stub", (), {"inc": lambda: None})()
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Protocol, Sequence, runtime_checkable
 
 
 def _utc_now_deterministic() -> datetime:
@@ -44,6 +44,13 @@ try:
 except ImportError:
     HAS_SWISS_EPHEMERIS = False
     swe = None  # type: ignore[assignment]
+
+# Concrete error type raised by the Swiss Ephemeris C extension. Only this narrow
+# type is translated at the provider boundary; programming errors (TypeError,
+# AttributeError, ...) propagate unchanged. Empty when the dependency is absent.
+_SWISS_LIB_ERRORS: tuple[type[BaseException], ...] = (
+    (swe.Error,) if swe is not None else ()
+)
 
 
 # Planet constants (Swiss Ephemeris IDs)
@@ -61,6 +68,23 @@ PLANETS: dict[str, int] = {
     "north_node": 10,
     "chiron": 15,
 }
+
+
+# ─── Explicit provenance contract ───────────────────────────────────────────
+SOURCE_SWISS_EPHEMERIS = "swiss_ephemeris"
+SOURCE_SIMPLE_EPHEMERIS = "simple_ephemeris"
+
+
+class EphemerisDependencyError(RuntimeError):
+    """Swiss Ephemeris dependency is absent (broken environment, not runtime failure)."""
+
+
+class EphemerisCalculationError(RuntimeError):
+    """A strict Swiss Ephemeris calculation failed for one requested body."""
+
+
+class EphemerisBatchError(RuntimeError):
+    """Strict Swiss failed and the full Simple retry could not complete."""
 
 
 # ─── DTOs ───────────────────────────────────────────────────────────────────
@@ -87,6 +111,19 @@ class NatalChart:
     timestamp: datetime
     latitude: float
     longitude: float
+
+
+@dataclass(frozen=True)
+class EphemerisBatch:
+    """Positions for one request plus the provenance of the computation.
+
+    ``source`` is exactly ``SOURCE_SWISS_EPHEMERIS`` when every requested body
+    came from strict Swiss execution, and exactly ``SOURCE_SIMPLE_EPHEMERIS``
+    when the whole request was recomputed through the Simple provider.
+    """
+
+    positions: dict[str, "PlanetPosition"]
+    source: str
 
 
 # ─── Provider protocol ──────────────────────────────────────────────────────
@@ -221,6 +258,106 @@ class SwissEphemerisProvider:
             except Exception:
                 log.debug("Skipping planet due to calculation error", planet=name)
         return result
+
+
+    def calculate_planet_strict(
+        self, name: str, jd: float, flags: int = 1
+    ) -> PlanetPosition:
+        """Strict Swiss-only calculation for one body. Never falls back.
+
+        Raises:
+            EphemerisDependencyError: Swiss Ephemeris is not installed.
+            EphemerisCalculationError: the library rejected the request, the body
+                has no ephemeris file, or the returned data is unusable.
+        """
+        if not self._available or self._swe is None:
+            raise EphemerisDependencyError("swiss ephemeris dependency unavailable")
+        if name.lower() == "chiron" and not self._chiron_available:
+            raise EphemerisCalculationError("chiron ephemeris file unavailable")
+        planet_id = PLANETS.get(name.lower(), 0)
+        try:
+            result = self._swe.calc(jd, planet_id, flags)
+        except _SWISS_LIB_ERRORS as exc:
+            raise EphemerisCalculationError(
+                f"swiss ephemeris calculation failed for {name!r}"
+            ) from exc
+        xx = result[0] if isinstance(result, tuple) else result
+        if not isinstance(xx, (list, tuple)) or len(xx) < 4:
+            raise EphemerisCalculationError(
+                f"swiss ephemeris returned no usable data for {name!r}"
+            )
+        speed = xx[3]
+        return PlanetPosition(
+            planet=name,
+            longitude=xx[0] % 360,
+            speed=speed,
+            retrograde=speed < 0,
+        )
+
+    def get_planetary_batch(
+        self,
+        dt: datetime,
+        sidereal: bool = False,
+        planets: Sequence[str] | None = None,
+    ) -> EphemerisBatch:
+        """Provenance-tagged batch: strict Swiss, else a full Simple recompute.
+
+        Every requested body is computed through strict Swiss calls only. If any
+        single body fails, the whole partial Swiss batch is discarded and every
+        requested body is recomputed through ``SimpleEphemerisProvider`` with
+        identical inputs. Provenance is taken from the executed branch — never
+        inferred by comparing numeric output.
+
+        An explicitly empty ``planets`` sequence is invalid caller input and is
+        rejected with ``ValueError`` before any dependency or provider work.
+        """
+        if planets is None:
+            requested = list(PLANETS)
+        else:
+            requested = list(planets)
+            if not requested:
+                raise ValueError("planets must not be empty")
+        jd = self.julian_day(dt)
+        flags = 1 | 256  # SEFLG_SPEED — retrograde detection
+        if sidereal and self._available and self._swe is not None:
+            flags |= self._swe.SIDM_LAHIRI
+
+        strict: dict[str, PlanetPosition] = {}
+        for name in requested:
+            try:
+                position = self.calculate_planet_strict(name, jd, flags)
+            except EphemerisCalculationError:
+                strict = {}
+                break
+            if not isinstance(position, PlanetPosition):
+                # Missing/invalid result counts as a strict failure.
+                strict = {}
+                break
+            strict[name] = position
+
+        if len(strict) == len(requested) and all(
+            isinstance(position, PlanetPosition) for position in strict.values()
+        ):
+            return EphemerisBatch(positions=strict, source=SOURCE_SWISS_EPHEMERIS)
+
+        return self._simple_batch(requested, jd, flags)
+
+    def _simple_batch(
+        self, requested: list[str], jd: float, flags: int
+    ) -> EphemerisBatch:
+        """Recompute the entire request through Simple; raise if incomplete."""
+        simple = SimpleEphemerisProvider()
+        retry: dict[str, PlanetPosition] = {}
+        try:
+            for name in requested:
+                retry[name] = simple.calculate_planet(name, jd, flags)
+        except Exception as exc:
+            raise EphemerisBatchError("simple ephemeris retry failed") from exc
+        if len(retry) != len(requested) or not all(
+            isinstance(position, PlanetPosition) for position in retry.values()
+        ):
+            raise EphemerisBatchError("simple ephemeris retry incomplete")
+        return EphemerisBatch(positions=retry, source=SOURCE_SIMPLE_EPHEMERIS)
 
 
 class SimpleEphemerisProvider:
@@ -402,10 +539,34 @@ def get_planetary_positions(
     return _default_provider.get_planetary_positions(dt, latitude, longitude, sidereal)
 
 
+def get_planetary_batch(
+    dt: datetime,
+    sidereal: bool = False,
+    planets: Sequence[str] | None = None,
+) -> EphemerisBatch:
+    """Get a provenance-tagged planetary batch from the active provider.
+
+    Unlike ``get_planetary_positions`` this reports which provider actually
+    produced the batch and never hides a per-body fallback.
+    """
+    batch_api = getattr(_default_provider, "get_planetary_batch", None)
+    if batch_api is None:
+        raise EphemerisBatchError(
+            "active provider does not expose a provenance batch API"
+        )
+    return batch_api(dt, sidereal=sidereal, planets=planets)
+
+
 __all__ = [
     "PlanetPosition",
     "HouseCusps",
     "NatalChart",
+    "EphemerisBatch",
+    "EphemerisBatchError",
+    "EphemerisCalculationError",
+    "EphemerisDependencyError",
+    "SOURCE_SIMPLE_EPHEMERIS",
+    "SOURCE_SWISS_EPHEMERIS",
     "EphemerisProtocol",
     "SwissEphemerisProvider",
     "SimpleEphemerisProvider",
@@ -414,6 +575,7 @@ __all__ = [
     "calculate_natal_chart",
     "get_current_positions",
     "get_planetary_positions",
+    "get_planetary_batch",
     "get_provider",
     "set_provider",
     "HAS_SWISS_EPHEMERIS",
