@@ -217,14 +217,6 @@ def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> No
     """
     if "_archived" in src.parts:
         return
-    # R1 is an agent contract, not a naming rule for API schemas or Meta-RL
-    # coordinators that happen to end in "Agent".
-    try:
-        rel = src.resolve().relative_to(REPO_ROOT).as_posix()
-    except ValueError:
-        return
-    if not rel.startswith("agents/_impl/"):
-        return
     # Project root is the first ancestor of the file that contains a
     # top-level ``agents/`` directory. ``src`` is always under it.
     project_root = src
@@ -271,13 +263,9 @@ def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: 
     if "_archived" in src.parts:
         return
 
-    # R2 protects astro-agent execution. API handlers and Meta-RL orchestration
-    # may call ephemeris-backed services without being agent run methods.
-    try:
-        rel = src.resolve().relative_to(REPO_ROOT).as_posix()
-    except ValueError:
-        return
-    if not rel.startswith("agents/"):
+    # --- CHANGE 2: skip core/ and scripts/ for R2 ---
+    rel = str(_rel(src))
+    if rel.startswith(("core/", "scripts/")):
         return
 
     # AST-based detection: walk function bodies for real ephemeris calls.
