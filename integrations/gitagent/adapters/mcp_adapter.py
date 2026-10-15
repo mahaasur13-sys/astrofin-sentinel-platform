@@ -361,6 +361,24 @@ class MCPAdapter:
         return {"Authorization": f"Bearer {token}"} if token else {}
 
     @staticmethod
+    def _smithery_namespace() -> str | None:
+        namespace = os.environ.get("SMITHERY_NAMESPACE", "").strip()
+        return namespace or None
+
+    @staticmethod
+    def _contains_sensitive_config(value: Any) -> bool:
+        sensitive = ("key", "token", "secret", "password", "credential", "authorization")
+        if isinstance(value, dict):
+            return any(
+                any(word in str(key).lower() for word in sensitive)
+                or MCPAdapter._contains_sensitive_config(item)
+                for key, item in value.items()
+            )
+        if isinstance(value, list):
+            return any(MCPAdapter._contains_sensitive_config(item) for item in value)
+        return False
+
+    @staticmethod
     def _redact_config(value: Any) -> Any:
         sensitive = ("key", "token", "secret", "password", "credential", "authorization")
         if isinstance(value, dict):
@@ -444,8 +462,14 @@ class MCPAdapter:
         qualified_name = server_name.strip()
         connection_id = self._connection_id(qualified_name)
         result: dict[str, Any] = {"status": "pending", "name": qualified_name, "connection_id": connection_id, "storage_path": str(self.storage_path), "transport": "smithery"}
+        command = ["mcp", "add", qualified_name, "--id", connection_id]
+        namespace = self._smithery_namespace()
+        if namespace:
+            command.extend(["--namespace", namespace])
+        if config and not self._contains_sensitive_config(config):
+            command.extend(["--config", json.dumps(config, separators=(",", ":"))])
         try:
-            completed = self._run_cli(["mcp", "add", qualified_name, "--id", connection_id], timeout=90)
+            completed = self._run_cli(command, timeout=90)
         except subprocess.TimeoutExpired:
             return {**result, "status": "timeout", "error": "Smithery CLI timed out"}
         except (FileNotFoundError, subprocess.SubprocessError) as exc:
@@ -484,7 +508,11 @@ class MCPAdapter:
         if tools:
             return tools
         try:
-            completed = self._run_cli(["tool", "list", connection_id, "--limit", "1000"], timeout=int(self.timeout))
+            command = ["tool", "list", connection_id, "--flat", "--limit", "1000"]
+            namespace = self._smithery_namespace()
+            if namespace:
+                command.extend(["--namespace", namespace])
+            completed = self._run_cli(command, timeout=int(self.timeout))
         except (FileNotFoundError, subprocess.SubprocessError) as exc:
             raise MCPError(self._redact_text(str(exc))) from exc
         if completed.returncode != 0:
@@ -566,7 +594,17 @@ class MCPAdapter:
         tool = next((item for item in self._tools if item.get("name") == name), {})
         self._assert_tool_allowed(name, str(tool.get("description", "")))
         try:
-            completed = self._run_cli(["tool", "call", connection_id, name, json.dumps(params, separators=(",", ":"))], timeout=int(self.timeout))
+            command = [
+                "tool",
+                "call",
+                connection_id,
+                name,
+                json.dumps(params, separators=(",", ":")),
+            ]
+            namespace = self._smithery_namespace()
+            if namespace:
+                command.extend(["--namespace", namespace])
+            completed = self._run_cli(command, timeout=int(self.timeout))
         except subprocess.TimeoutExpired as exc:
             raise MCPTimeoutError("Smithery tool call timed out") from exc
         except (FileNotFoundError, subprocess.SubprocessError) as exc:
@@ -639,7 +677,11 @@ class MCPAdapter:
         if connection_id not in self.installed_servers:
             return {"status": "error", "message": f"Server {connection_id} not found"}
         try:
-            completed = self._run_cli(["mcp", "remove", connection_id], timeout=30)
+            command = ["mcp", "remove", connection_id]
+            namespace = self._smithery_namespace()
+            if namespace:
+                command.extend(["--namespace", namespace])
+            completed = self._run_cli(command, timeout=30)
             error = self._redact_text(completed.stderr.strip()) if completed.returncode else ""
         except (FileNotFoundError, subprocess.SubprocessError) as exc:
             error = self._redact_text(str(exc))

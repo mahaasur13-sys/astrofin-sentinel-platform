@@ -1,0 +1,36 @@
+# ROMA Docs — agent cordis composition
+# Read-only профиль для авто-документации.
+# Только: fs (read-only) + web + ROMA + Zo. Без bash, без суб-агентов.
+
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: |-
+      You are a ROMA documentation agent. Your working directory is {{cwd}}.
+      You can READ files, search the web, and query ROMA Bridge (mcp__roma__*) and Zo Bridge (mcp__zo__*).
+      NEVER call ROMA API directly — always use mcp__roma__* tools.
+
+- id: agent-instructions
+  name: '@deepseek-ai/dsh-agent-instructions'
+  config:
+    maxBytes: 16384
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: tool-fs-search
+  name: '@deepseek-ai/dsh-tool-fs-search'
+  config:
+    sampleOverCapGlobResults: false
+
+- id: tool-web
+  name: '@deepseek-ai/dsh-tool-web'
+  config:
+    fetch: false
+    searchTimeoutMs: 60000
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: false
+# ACCESS CONTROL: READ-ONLY — no bash, no code, no write operations

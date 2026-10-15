@@ -39,14 +39,13 @@ astrofin-sentinel-platform/
 │
 ├── infrastructure/asurdev/  # Home-cluster IaC, ACOS admission controllers
 ├── kernel/atom-federation/  # Deterministic alignment kernel, formal verification
-├── bridge/roma/             # GPU execution bridge, SaaS billing, Stripe webhooks
 │
 ├── docs/                    # Architecture, ADRs, agent registry
 ├── deploy/                  # Docker, docker-compose, health endpoints
 └── config/                  # CRDs, deployment manifests
 ```
 
-When you change a file under `infrastructure/`, `kernel/`, or `bridge/`,
+When you change a file under `infrastructure/` or `kernel/`,
 make sure the corresponding package still builds and its own tests pass
 (`cd infrastructure/asurdev && make test`, etc.).
 

@@ -14,7 +14,7 @@ Unified monorepo aggregating three production-grade projects under one CI/CD:
 | `/` (root) | `push/` | KARL / AMRE / Astro Council — orchestration, meta-RL, web dashboard |
 | `infrastructure/asurdev/` | `AsurDev/` | Home-cluster IaC, ACOS admission controllers, monitoring stack |
 | `kernel/atom-federation/` | `atom-federation-os/` | Deterministic alignment kernel, formal verification, K8s operator (re-integration in progress, see [Roadmap](#roadmap--known-issues)) |
-| `bridge/roma/` | `roma-execution-bridge/` | GPU execution bridge, SaaS billing, Stripe webhooks |
+| *(external repo)* | [`roma-execution-bridge`](https://github.com/mahaasur13-sys/roma-execution-bridge) | GPU execution bridge, SaaS billing, Stripe webhooks — canonical source is a separate repository, not part of this tree |
 
 > **Repository structure note (2026-07):** A nested duplicate copy of the entire tree
 > (`astrofin-sentinel-platform/astrofin-sentinel-platform/`) was consolidated into this single
@@ -56,7 +56,6 @@ astrofin-sentinel-platform/
 ├── monitoring/                   # Prometheus exporter, OpenTelemetry, health endpoints
 ├── infrastructure/asurdev/       # Cluster IaC, ACOS admission controllers
 ├── kernel/atom-federation/       # Alignment + verification kernel, K8s operator
-├── bridge/roma/                  # GPU execution bridge, SaaS billing
 ├── scripts/                      # Monorepo-level automation (DORA, audits)
 ├── docs/                         # Architecture, contribution, runbooks
 ├── audit_reports/                # CI artifacts, audit snapshots
@@ -90,8 +89,8 @@ python -m monitoring.health_endpoints
 # Atom-Federation kernel verification
 python -m kernel.atom_federation.verification.runner
 
-# ROMA execution bridge (local)
-cd bridge/roma && uvicorn roma_execution_bridge.main:app --reload
+# ROMA execution bridge — canonical source is a separate repository (not part of this tree):
+# https://github.com/mahaasur13-sys/roma-execution-bridge
 ```
 
 ## Documentation

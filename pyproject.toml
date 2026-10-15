@@ -48,6 +48,9 @@ dependencies = [
   # Networking / async (used by data_provider + tests)
   "aiohttp>=3.9.0,<4.0",
   "httpx>=0.26.0,<1.0",
+
+  # MCP SDK — DSH host bridges in .dsh/mcp-servers (roma_bridge, zo_bridge)
+  "mcp>=1.28.0,<2.0",
   "slowapi>=0.1.9,<1.0",
   "tenacity>=8.0.0,<10.0",
 
@@ -166,7 +169,7 @@ markers = [
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "BLE001"]
-# E501 disabled: 162 pre-existing long lines in bridge/roma/saas/* and tests
+# E501 disabled: pre-existing long lines across the repository (bulk under infrastructure/),
 # originated before migration/v1-unification. Auto-fix is unsafe (touches SQL/strings).
 # TODO: fix long lines post-stabilization — see ROADMAP §CI Cleanup.
 ignore = ["E501", "BLE001", "E402", "E702", "E741", "E701", "C901", "F402", "F403", "F811", "E721"]

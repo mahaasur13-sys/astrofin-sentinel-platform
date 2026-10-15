@@ -1,0 +1,34 @@
+# ROMA CI/CD — agent cordis composition
+# Минимальный профиль для CI/CD пайплайнов.
+# Только: bash + fs + ROMA. Без веб-поиска, без суб-агентов, без навыков.
+
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: |-
+      You are a ROMA CI/CD pipeline agent. Your working directory is {{cwd}}.
+      You have access to the ROMA Bridge (mcp__roma__*) for GPU/CPU job management.
+      NEVER call ROMA API directly — always use mcp__roma__* tools.
+      You run in CI/CD mode: minimal interaction, fail-fast on errors.
+
+- id: agent-instructions
+  name: '@deepseek-ai/dsh-agent-instructions'
+  config:
+    maxBytes: 16384
+
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+  disabled: !!js process.platform === 'win32'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: tool-fs-search
+  name: '@deepseek-ai/dsh-tool-fs-search'
+  config:
+    sampleOverCapGlobResults: false
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: false
