@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from api.schemas import (
     AgentDecisionDetail,
@@ -13,6 +13,7 @@ from api.schemas import (
     SessionListItem,
     SessionListResponse,
 )
+from core.auth import require_api_key
 from db.models import KARLDecisionRecord, Session
 from db.session import get_db_manager
 
@@ -22,7 +23,8 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 
 @router.get("/", response_model=SessionListResponse)
-async def get_sessions_list(skip: int = 0, limit: int = 50):
+@require_api_key
+async def get_sessions_list(request: Request, skip: int = 0, limit: int = 50):
     """Returns paginated list of sessions for SessionTable component.
 
     Args:
@@ -60,7 +62,8 @@ async def get_sessions_list(skip: int = 0, limit: int = 50):
 
 
 @router.get("/{session_id}/details", response_model=SessionDetailResponse)
-async def get_session_details(session_id: str):
+@require_api_key
+async def get_session_details(request: Request, session_id: str):
     """Returns full session context for React Context Drawer.
 
     Joins sessions + karl_decision_records to show Council Debate.
