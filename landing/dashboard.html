@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — ROMA Execution Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050508;--bg-card:#0c0c10;--bg-elevated:#111116;--cyan:#06d6d6;--violet:#a855f7;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--text:#e8e8ed;--text-muted:#9ca3af;--border:rgba(6,214,214,0.18);--glow-cyan:0 0 20px rgba(6,214,214,0.35);--glow-violet:0 0 20px rgba(168,85,247,0.35);--radius:12px;--font-body:'Inter',system-ui,-apple-system,sans-serif;--font-heading:'Orbitron',system-ui,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;min-height:100vh}
+#orbital-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.55}
+.header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:14px 0}
+.container{width:100%;max-width:1400px;margin:0 auto;padding:0 24px}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.logo-a{text-decoration:none;display:flex;align-items:center;gap:10px}
+.logo{font-family:var(--font-heading);font-weight:700;font-size:1.2rem;letter-spacing:0.06em;color:var(--cyan);text-shadow:var(--glow-cyan);display:flex;align-items:center;gap:10px}
+.logo-badge{font-size:0.6rem;background:rgba(6,214,214,0.15);border:1px solid var(--cyan);padding:2px 8px;border-radius:999px;color:var(--cyan)}
+.header-right{display:flex;align-items:center;gap:20px}
+.nav{display:flex;align-items:center;gap:16px}
+.nav a{color:var(--text-muted);text-decoration:none;font-size:0.82rem;font-weight:500;transition:color 0.2s;padding:4px 0;border-bottom:2px solid transparent}
+.nav a:hover{color:var(--cyan)}
+.nav a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.header-btn{display:flex;align-items:center;gap:8px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;cursor:pointer;font-family:var(--font-body);font-size:0.8rem;transition:all 0.25s}
+.header-btn:hover{border-color:var(--cyan);box-shadow:var(--glow-cyan)}
+.header-btn.crypto-btn{border-color:rgba(168,85,247,0.3);}.header-btn.crypto-btn:hover{border-color:var(--violet);box-shadow:var(--glow-violet);}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#6b7280;flex-shrink:0}
+.status-dot.active{background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse-green 1.6s infinite}
+@keyframes pulse-green{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.55;transform:scale(1.25)}}
+.user-badge{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;font-size:0.82rem;color:var(--text-muted)}
+.user-badge .user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--violet));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.72rem;color:#fff}
+.dash-layout{display:flex;gap:0;min-height:calc(100vh - 60px);position:relative;z-index:1}
+.sidebar{width:220px;flex-shrink:0;background:rgba(5,5,8,0.7);border-right:1px solid var(--border);padding:20px 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;backdrop-filter:blur(8px)}
+.sidebar-section{padding:4px 0}
+.sidebar-heading{font-family:var(--font-heading);font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.12em;padding:12px 20px 6px}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:8px 20px;font-size:0.82rem;color:var(--text-muted);text-decoration:none;transition:all 0.2s;border-left:2px solid transparent}
+.sidebar-link:hover{color:var(--text);background:rgba(6,214,214,0.04)}
+.sidebar-link.active{color:var(--cyan);border-left-color:var(--cyan);background:rgba(6,214,214,0.06)}
+.sidebar-link .si{width:18px;text-align:center;flex-shrink:0}
+.main-area{flex:1;padding:24px 32px;overflow-y:auto}
+.main-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+.main-header h1{font-family:var(--font-heading);font-size:1.6rem;font-weight:700}
+.main-header .time-range{display:flex;gap:4px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:3px}
+.time-btn{padding:7px 14px;border-radius:6px;border:none;background:transparent;color:var(--text-muted);font-family:var(--font-body);font-size:0.78rem;cursor:pointer;transition:all 0.2s}
+.time-btn.active{background:rgba(6,214,214,0.12);color:var(--cyan)}
+.no-key-state{text-align:center;padding:80px 20px}
+.no-key-icon{font-size:3rem;margin-bottom:16px}
+.no-key-state h2{font-family:var(--font-heading);font-size:1.4rem;color:var(--text);margin-bottom:8px}
+.no-key-state p{color:var(--text-muted);margin-bottom:24px;max-width:500px;margin-left:auto;margin-right:auto}
+.no-key-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--cyan),#0891b2);color:#000;padding:14px 28px;border-radius:10px;font-weight:600;cursor:pointer;border:none;font-family:var(--font-body);font-size:0.95rem;transition:all 0.25s}
+.no-key-btn:hover{box-shadow:var(--glow-cyan);transform:translateY(-2px)}
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:28px}
+.metric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;transition:all 0.3s;position:relative;overflow:hidden}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0;transition:opacity 0.3s}
+.metric-card:hover{border-color:var(--cyan);box-shadow:var(--glow-cyan)}
+.metric-card:hover::before{opacity:1}
+.metric-label{font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.metric-value{font-family:var(--font-heading);font-size:2rem;font-weight:700;color:var(--cyan);text-shadow:var(--glow-cyan);margin-bottom:4px}
+.metric-change{font-size:0.78rem;font-family:var(--font-mono)}
+.metric-change.up{color:var(--green)}.metric-change.down{color:var(--red)}.metric-change.neutral{color:var(--text-muted)}
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:28px}
+.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;overflow:hidden}
+.chart-card h3{font-family:var(--font-heading);font-size:0.95rem;color:var(--text);margin-bottom:16px}
+.chart-card canvas{width:100%!important;height:200px!important}
+.jobs-section{margin-bottom:28px}
+.jobs-section h3{font-family:var(--font-heading);font-size:1.1rem;color:var(--text);margin-bottom:16px}
+.jobs-table{width:100%;border-collapse:separate;border-spacing:0;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.jobs-table th,.jobs-table td{padding:12px 16px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem}
+.jobs-table th{font-family:var(--font-heading);font-size:0.72rem;color:var(--cyan);text-transform:uppercase;letter-spacing:0.06em;background:rgba(6,214,214,0.04)}
+.jobs-table td{color:var(--text-muted)}.jobs-table td:first-child{font-family:var(--font-mono);color:var(--cyan);font-size:0.8rem}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:0.7rem;font-weight:600;text-transform:uppercase}
+.status-running{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.3)}
+.status-queued{background:rgba(245,158,11,0.12);color:var(--yellow);border:1px solid rgba(245,158,11,0.3)}
+.status-done{background:rgba(6,214,214,0.1);color:var(--cyan);border:1px solid rgba(6,214,214,0.25)}
+.status-failed{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.25)}
+.jobs-empty{text-align:center;padding:40px;color:var(--text-muted)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all 0.3s}
+.modal-overlay.open{opacity:1;visibility:visible}
+.modal{background:var(--bg-elevated);border:1px solid var(--border);border-radius:16px;width:100%;max-width:460px;padding:32px;box-shadow:0 0 60px rgba(6,214,214,0.15);transform:scale(0.92);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+.modal-overlay.open .modal{transform:scale(1)}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.modal-title{font-family:var(--font-heading);font-size:1.25rem;font-weight:700;color:var(--cyan)}
+.modal-subtitle{font-size:0.85rem;color:var(--text-muted);margin-top:4px}
+.modal-close{background:none;border:none;color:var(--text-muted);font-size:1.4rem;cursor:pointer;padding:4px;line-height:1}
+.modal-close:hover{color:var(--text)}
+.form-group{margin-bottom:24px}
+.form-label{display:block;font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;font-family:var(--font-mono)}
+.input-wrap{position:relative}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 44px 12px 14px;color:var(--text);font-family:var(--font-mono);font-size:0.9rem;outline:none;transition:border-color 0.2s}
+.form-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(6,214,214,0.15)}
+.toggle-visibility{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px}
+.modal-hint{font-size:0.75rem;color:var(--text-muted);margin-bottom:24px;line-height:1.5}
+.modal-actions{display:flex;gap:16px;flex-wrap:wrap}
+.btn-save{flex:1;background:linear-gradient(135deg,var(--cyan),#0891b2);color:#000;font-weight:600;padding:14px 28px;border-radius:10px;font-family:var(--font-body);font-size:0.95rem;cursor:pointer;border:none}
+.btn-delete{background:transparent;border:1px solid rgba(239,68,68,0.4);color:var(--red);padding:14px 28px;border-radius:10px;font-family:var(--font-body);font-size:0.95rem;cursor:pointer}
+.btn-delete:hover{border-color:var(--red);background:rgba(239,68,68,0.1)}
+.btn-cancel{background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:14px 28px;border-radius:10px;font-family:var(--font-body);font-size:0.95rem;cursor:pointer}
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-elevated);border:1px solid var(--green);color:var(--text);padding:12px 24px;border-radius:10px;font-size:0.9rem;z-index:2000;box-shadow:0 0 30px rgba(34,197,94,0.25);opacity:0;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.chat-fab{position:fixed;bottom:28px;right:28px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--violet));border:none;cursor:pointer;z-index:900;display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 0 30px rgba(6,214,214,0.4);transition:transform 0.25s}
+.chat-fab:hover{transform:scale(1.08)}
+.chat-window{position:fixed;bottom:92px;right:28px;width:560px;height:700px;max-height:calc(100vh - 130px);background:var(--bg-elevated);border:1px solid var(--border);border-radius:16px;z-index:950;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,0.6);opacity:0;visibility:hidden;transform:scale(0.92) translateY(20px);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+.chat-window.open{opacity:1;visibility:visible;transform:scale(1) translateY(0)}
+.chat-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(6,214,214,0.04)}
+.chat-header-left{display:flex;align-items:center;gap:10px}
+.chat-title{font-family:var(--font-heading);font-size:0.9rem;font-weight:600;color:var(--cyan)}
+.chat-header-actions{display:flex;gap:6px}.chat-header-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px}
+.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:88%;padding:10px 14px;border-radius:12px;font-size:0.88rem;line-height:1.5;word-break:break-word}
+.msg.user{align-self:flex-end;background:rgba(6,214,214,0.12);border:1px solid rgba(6,214,214,0.25);border-bottom-right-radius:4px}
+.msg.assistant{align-self:flex-start;background:var(--bg-card);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.system{align-self:center;background:transparent;color:var(--text-muted);font-size:0.78rem;text-align:center}
+.chat-input-area{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:0.88rem;resize:none;min-height:44px;max-height:120px;outline:none}
+.chat-input:focus{border-color:var(--cyan)}
+.chat-send,.chat-stop{width:44px;height:44px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.chat-send{background:linear-gradient(135deg,var(--cyan),#0891b2);color:#000}
+.chat-stop{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:var(--red);display:none}
+.chat-stop.visible{display:flex}
+@media(max-width:900px){.sidebar{display:none}.charts-row{grid-template-columns:1fr}.metrics-grid{grid-template-columns:repeat(2,1fr)}.main-area{padding:20px 16px}}
+@media(max-width:600px){.nav a{display:none}.metrics-grid{grid-template-columns:1fr 1fr}.chat-window{width:calc(100vw - 20px);right:10px;bottom:80px;height:calc(100vh - 110px)}.metrics-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<canvas id="orbital-canvas"></canvas>
+
+<header class="header">
+  <div class="container header-inner">
+    <a href="/" class="logo-a"><div class="logo">ROMA<span class="logo-badge">v2.0</span></div></a>
+    <div class="header-right">
+      <nav class="nav">
+        <a href="/features.html">Features</a>
+        <a href="/pricing.html">Pricing</a>
+        <a href="/docs.html">Docs</a>
+        <a href="/dashboard.html" class="active">Dashboard</a>
+        <a href="/#crypto" class="header-btn crypto-btn">₿ Crypto</a>
+        <button class="header-btn" id="apiKeyBtn"><span class="status-dot" id="keyStatusDot"></span><span>🔑 API Key</span></button>
+      </nav>
+      <div class="user-badge" id="userBadge"><div class="user-avatar" id="userAvatar">?</div><span id="userName">User</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="dash-layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Main</div>
+      <a href="#" class="sidebar-link active" data-view="overview"><span class="si">◈</span>Overview</a>
+      <a href="#" class="sidebar-link" data-view="jobs"><span class="si">▸</span>Jobs</a>
+      <a href="#" class="sidebar-link" data-view="gpu"><span class="si">⊞</span>GPU Cluster</a>
+      <a href="#" class="sidebar-link" data-view="billing"><span class="si">$</span>Billing</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Settings</div>
+      <a href="#" class="sidebar-link" id="sidebarApiKey"><span class="si">🔑</span>API Key</a>
+      <a href="#" class="sidebar-link" id="sidebarDocs"><span class="si">📄</span>Documentation</a>
+    </div>
+  </aside>
+
+  <main class="main-area">
+    <div id="viewOverview">
+      <div class="main-header">
+        <h1>Cluster Overview</h1>
+        <div class="time-range" id="timeRange">
+          <button class="time-btn active" data-range="24h">24h</button>
+          <button class="time-btn" data-range="7d">7d</button>
+          <button class="time-btn" data-range="30d">30d</button>
+        </div>
+      </div>
+
+      <div id="noKeyState" class="no-key-state">
+        <div class="no-key-icon">🔑</div>
+        <h2>API Key Required</h2>
+        <p>Connect your ROMA API key to view real-time cluster metrics, active jobs, and billing data.</p>
+        <button class="no-key-btn" id="noKeySetBtn">⚡ Set API Key</button>
+      </div>
+
+      <div id="dashContent" style="display:none">
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="metric-label">Jobs Running</div><div class="metric-value" id="mJobs">—</div><div class="metric-change up">+3 this hour</div></div>
+          <div class="metric-card"><div class="metric-label">GPU Hours</div><div class="metric-value" id="mGpuHours">—</div><div class="metric-change up">1,240 this month</div></div>
+          <div class="metric-card"><div class="metric-label">Success Rate</div><div class="metric-value" id="mSuccess">—</div><div class="metric-change up">98.7%</div></div>
+          <div class="metric-card"><div class="metric-label">Est. Cost</div><div class="metric-value" id="mCost">—</div><div class="metric-change neutral">$372.15 MTD</div></div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card"><h3>GPU Utilization (24h)</h3><canvas id="chartUtil"></canvas></div>
+          <div class="chart-card"><h3>Job Status</h3><canvas id="chartStatus"></canvas></div>
+        </div>
+
+        <div class="jobs-section">
+          <h3>Active Jobs</h3>
+          <table class="jobs-table"><thead><tr><th>Job ID</th><th>Image</th><th>GPU</th><th>Status</th><th>Duration</th><th>Cost</th></tr></thead>
+          <tbody id="jobsTbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div id="viewJobs" style="display:none"><h1>Jobs History</h1><p style="color:var(--text-muted);margin-top:16px">Full job history and filtering coming in the next update.</p></div>
+    <div id="viewGpu" style="display:none"><h1>GPU Cluster</h1><p style="color:var(--text-muted);margin-top:16px">Cluster topology and node status coming in the next update.</p></div>
+    <div id="viewBilling" style="display:none"><h1>Billing</h1><p style="color:var(--text-muted);margin-top:16px">Detailed billing and usage analytics coming in the next update.</p></div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="apiKeyModal">
+  <div class="modal">
+    <div class="modal-header"><div><div class="modal-title">API Key Settings</div><div class="modal-subtitle">Управление доступом к ROMA Execution Bridge</div></div><button class="modal-close" id="modalClose">×</button></div>
+    <div class="form-group"><label class="form-label">X-API-Key</label><div class="input-wrap"><input type="password" class="form-input" id="apiKeyInput" placeholder="Введите ваш X-API-Key" autocomplete="off"><button class="toggle-visibility" id="toggleVisibility" type="button">👁</button></div></div>
+    <p class="modal-hint">Ключ хранится только в вашем браузере.</p>
+    <div class="modal-actions"><button class="btn-save" id="saveKeyBtn">Сохранить</button><button class="btn-delete" id="deleteKeyBtn">Удалить ключ</button><button class="btn-cancel" id="cancelKeyBtn">Отмена</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<button class="chat-fab" id="chatFab" title="ROMA AI Assistant">◈</button>
+
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header"><div class="chat-header-left"><span class="status-dot" id="chatKeyDot"></span><span class="chat-title">ROMA AI Assistant</span></div><div class="chat-header-actions"><button class="chat-header-btn" id="chatApiKeyBtn" title="API Key">🔑</button><button class="chat-header-btn" id="chatCloseBtn" title="Close">×</button></div></div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-area"><textarea class="chat-input" id="chatInput" placeholder="Напишите команду или вопрос..." rows="1"></textarea><button class="chat-send" id="chatSend">➤</button><button class="chat-stop" id="chatStop">⏹</button></div>
+</div>
+
+<script>
+/* Particles */
+(function(){const c=document.getElementById('orbital-canvas'),x=c.getContext('2d');let w,h,p=[];const L=['#06d6d6','#a855f7','#22c55e','#06b6d4','#c084fc'];function rs(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}function cp(){p=[];for(let i=0;i<16;i++)p.push({l:1,x:Math.random()*w,y:Math.random()*h,r:0.5+Math.random()*1,oR:40+Math.random()*100,a:Math.random()*Math.PI*2,s:0.010+Math.random()*0.014,cl:L[Math.floor(Math.random()*L.length)],al:0.2+Math.random()*0.25});for(let i=0;i<8;i++)p.push({l:2,x:Math.random()*w,y:Math.random()*h,r:1+Math.random()*1.5,oR:60+Math.random()*140,a:Math.random()*Math.PI*2,s:0.005+Math.random()*0.008,cl:L[Math.floor(Math.random()*L.length)],al:0.12+Math.random()*0.2});for(let i=0;i<5;i++)p.push({l:3,x:Math.random()*w,y:Math.random()*h,r:1.5+Math.random()*2,oR:80+Math.random()*160,a:Math.random()*Math.PI*2,s:0.002+Math.random()*0.005,cl:L[Math.floor(Math.random()*L.length)],al:0.08+Math.random()*0.15})}function dr(){x.clearRect(0,0,w,h);p.forEach(q=>{q.a+=q.s;const cx=q.x+Math.cos(q.a)*q.oR*0.5,cy=q.y+Math.sin(q.a)*q.oR*0.3;x.beginPath();x.arc(cx,cy,q.r,0,Math.PI*2);x.fillStyle=q.cl;x.globalAlpha=q.al;x.shadowBlur=q.l===3?8:3;x.shadowColor=q.cl;x.fill();x.shadowBlur=0});x.globalAlpha=1;requestAnimationFrame(dr)}rs();cp();dr();window.addEventListener('resize',()=>{rs();cp()})})();
+
+/* API Key */
+const SK='roma_api_key',NK='roma_user_name';const gK=()=>localStorage.getItem(SK)||'';const gN=()=>localStorage.getItem(NK)||'';const uS=()=>{const h=!!gK();document.getElementById('keyStatusDot').classList.toggle('active',h);document.getElementById('chatKeyDot').classList.toggle('active',h);toggleDashState()};const oM=()=>{document.getElementById('apiKeyInput').value=gK();document.getElementById('apiKeyModal').classList.add('open');setTimeout(()=>document.getElementById('apiKeyInput').focus(),100)};const cM=()=>document.getElementById('apiKeyModal').classList.remove('open');const sT=m=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)};
+document.getElementById('apiKeyBtn').addEventListener('click',oM);
+document.getElementById('chatApiKeyBtn').addEventListener('click',oM);
+document.getElementById('sidebarApiKey').addEventListener('click',e=>{e.preventDefault();oM()});
+document.getElementById('sidebarDocs').addEventListener('click',e=>{e.preventDefault();window.location.href='/docs.html'});
+document.getElementById('modalClose').addEventListener('click',cM);
+document.getElementById('cancelKeyBtn').addEventListener('click',cM);
+document.getElementById('apiKeyModal').addEventListener('click',e=>{if(e.target===document.getElementById('apiKeyModal'))cM()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')cM()});
+document.getElementById('toggleVisibility').addEventListener('click',()=>{const el=document.getElementById('apiKeyInput'),p=el.type==='password';el.type=p?'text':'password';document.getElementById('toggleVisibility').textContent=p?'🙈':'👁'});
+document.getElementById('saveKeyBtn').addEventListener('click',()=>{const v=document.getElementById('apiKeyInput').value.trim();v?localStorage.setItem(SK,v):localStorage.removeItem(SK);uS();sT(v?'API Key saved':'API Key removed');cM()});
+document.getElementById('deleteKeyBtn').addEventListener('click',()=>{localStorage.removeItem(SK);document.getElementById('apiKeyInput').value='';uS();sT('API Key removed');cM()});
+document.getElementById('noKeySetBtn').addEventListener('click',oM);
+
+/* User */
+const un=gN();if(un){document.getElementById('userName').textContent=un;document.getElementById('userAvatar').textContent=un.charAt(0).toUpperCase()}else{const n=prompt('Enter your name:');if(n&&n.trim()){localStorage.setItem(NK,n.trim());document.getElementById('userName').textContent=n.trim();document.getElementById('userAvatar').textContent=n.trim().charAt(0).toUpperCase()}}
+
+/* Sidebar */
+document.querySelectorAll('.sidebar-link[data-view]').forEach(l=>{l.addEventListener('click',e=>{e.preventDefault();document.querySelectorAll('.sidebar-link[data-view]').forEach(ll=>ll.classList.remove('active'));l.classList.add('active');const v=l.dataset.view;['viewOverview','viewJobs','viewGpu','viewBilling'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('view'+v.charAt(0).toUpperCase()+v.slice(1)).style.display='block'})});
+
+/* Time range */
+document.querySelectorAll('.time-btn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.time-btn').forEach(bb=>bb.classList.remove('active'));b.classList.add('active')})});
+
+/* Dashboard state */
+function toggleDashState(){const has=gK();document.getElementById('noKeyState').style.display=has?'none':'block';document.getElementById('dashContent').style.display=has?'block':'none';if(has)populateDash()}
+function populateDash(){
+  document.getElementById('mJobs').textContent=Math.floor(Math.random()*8+3);
+  document.getElementById('mGpuHours').textContent=Math.floor(Math.random()*800+400);
+  document.getElementById('mSuccess').textContent=(98+Math.random()*2).toFixed(1)+'%';
+  document.getElementById('mCost').textContent='$'+(Math.random()*300+100).toFixed(2);
+  /* Jobs table */
+  const jobs=[{id:'job_kx9m2f',img:'pytorch/pytorch:2.1.0',gpu:'A100×2',status:'running',dur:'2h 14m',cost:'$18.40'},{id:'job_m7n3pq',img:'nvcr.io/nvidia/tensorflow',gpu:'H100×1',status:'running',dur:'45m',cost:'$6.20'},{id:'job_w2x8br',img:'huggingface/transformers',gpu:'A100×1',status:'queued',dur:'—',cost:'—'},{id:'job_v5y1cd',img:'custom:roma-inference',gpu:'T4×4',status:'done',dur:'3h 02m',cost:'$12.80'}];
+  document.getElementById('jobsTbody').innerHTML=jobs.map(j=>'<tr><td>'+j.id+'</td><td>'+j.img+'</td><td>'+j.gpu+'</td><td><span class="status-badge status-'+j.status+'">'+j.status+'</span></td><td>'+j.dur+'</td><td>'+j.cost+'</td></tr>').join('');
+  /* Charts */
+  drawUtilChart();drawStatusChart()
+}
+function drawUtilChart(){
+  const c=document.getElementById('chartUtil'),x=c.getContext('2d'),dpr=window.devicePixelRatio||1;c.width=c.offsetWidth*dpr;c.height=200*dpr;x.scale(dpr,dpr);const W=c.offsetWidth,H=200,P=40,vals=[];for(let i=0;i<24;i++)vals.push(60+Math.random()*35);
+  x.fillStyle='#050508';x.fillRect(0,0,W,H);
+  x.strokeStyle='rgba(255,255,255,0.06)';x.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=P+(H-P*2)*(i/4);x.beginPath();x.moveTo(0,y);x.lineTo(W,y);x.stroke()}
+  const grad=x.createLinearGradient(0,P,0,H-P);grad.addColorStop(0,'rgba(6,214,214,0.25)');grad.addColorStop(1,'rgba(6,214,214,0.02)');
+  x.beginPath();x.moveTo(0,H-P);vals.forEach((v,i)=>{x.lineTo(i*(W/23),H-P-(v-60)/(100-60)*(H-P*2))});x.lineTo(W,H-P);x.closePath();x.fillStyle=grad;x.fill();
+  x.beginPath();vals.forEach((v,i)=>{i===0?x.moveTo(0,H-P-(v-60)/(100-60)*(H-P*2)):x.lineTo(i*(W/23),H-P-(v-60)/(100-60)*(H-P*2))});x.strokeStyle='#06d6d6';x.lineWidth=2;x.shadowBlur=8;x.shadowColor='#06d6d6';x.stroke();x.shadowBlur=0
+}
+function drawStatusChart(){
+  const c=document.getElementById('chartStatus'),x=c.getContext('2d'),dpr=window.devicePixelRatio||1;c.width=c.offsetWidth*dpr;c.height=200*dpr;x.scale(dpr,dpr);const W=c.offsetWidth,H=200,CX=W/2,CY=H/2-10,R=70,d=[{v:3,color:'#22c55e',label:'Running'},{v:1,color:'#f59e0b',label:'Queued'},{v:4,color:'#06d6d6',label:'Done'},{v:1,color:'#ef4444',label:'Failed'}],total=d.reduce((s,i)=>s+i.v,0);let a=-Math.PI/2;
+  d.forEach(s=>{const slice=(s.v/total)*Math.PI*2;x.beginPath();x.moveTo(CX,CY);x.arc(CX,CY,R,a,a+slice);x.fillStyle=s.color;x.globalAlpha=0.8;x.fill();a+=slice});
+  x.beginPath();x.arc(CX,CY,R*0.45,0,Math.PI*2);x.fillStyle='#0c0c10';x.fill();x.globalAlpha=1;
+  x.font='600 14px "Orbitron"';x.fillStyle='#e8e8ed';x.textAlign='center';x.fillText('9',CX,CY+6);x.font='10px Inter';x.fillText('Total Jobs',CX,CY+20)
+}
+uS();
+window.addEventListener('resize',()=>{if(gK()){drawUtilChart();drawStatusChart()}});
+
+/* Chat */
+(function(){const fab=document.getElementById('chatFab'),we=document.getElementById('chatWindow'),cb=document.getElementById('chatCloseBtn'),me=document.getElementById('chatMessages'),ie=document.getElementById('chatInput'),sb=document.getElementById('chatSend'),stb=document.getElementById('chatStop');const HK='roma_chat_history';let un2=gN(),is=!1,ac=null;function oc(){we.classList.add('open');if(!un2)setTimeout(()=>{const n=prompt('Enter your name:');if(n&&n.trim()){un2=n.trim();localStorage.setItem(NK,un2);as('Welcome, '+un2+'!')}},300);ie.focus()}function cc(){we.classList.remove('open')}fab.addEventListener('click',oc);cb.addEventListener('click',cc);function am(r,t){const d=document.createElement('div');d.className='msg '+r;d.textContent=t;me.appendChild(d);me.scrollTop=me.scrollHeight;sh();return d}function as(t){am('system',t)}function sh(){const ms=[];me.querySelectorAll('.msg').forEach(m=>{if(!m.classList.contains('system'))ms.push({role:m.classList.contains('user')?'user':'assistant',text:m.textContent})});localStorage.setItem(HK,JSON.stringify(ms.slice(-40)))}function lh(){try{const r=localStorage.getItem(HK);if(!r)return;JSON.parse(r).forEach(m=>am(m.role,m.text))}catch(e){}}lh();if(me.children.length===0)as('ROMA AI Assistant online.');async function sr(ut){is=!0;sb.style.display='none';stb.classList.add('visible');ac=new AbortController();const ad=am('assistant',''),rs=['Running cluster diagnostics...',gK()?'API key detected. Fetching metrics...':'⚠ No API key set. Dashboard data unavailable.','Cluster: '+(gK()?'All systems nominal.':'Connect your API key in Settings.')];let full='';try{for(const c of rs){if(ac.signal.aborted)break;for(const ch of c+' '){if(ac.signal.aborted)break;full+=ch;ad.textContent=full;me.scrollTop=me.scrollHeight;await new Promise(r=>setTimeout(r,10+Math.random()*15))}await new Promise(r=>setTimeout(r,150))}}catch(e){}is=!1;sb.style.display='flex';stb.classList.remove('visible');sh()}function sm(){const t=ie.value.trim();if(!t||is)return;am('user',t);ie.value='';ie.style.height='auto';sr(t)}sb.addEventListener('click',sm);ie.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sm()}});stb.addEventListener('click',()=>{if(ac)ac.abort();is=!1;sb.style.display='flex';stb.classList.remove('visible')});ie.addEventListener('input',()=>{ie.style.height='auto';ie.style.height=Math.min(ie.scrollHeight,120)+'px'})})();
+</script>
+</body>
+</html>
