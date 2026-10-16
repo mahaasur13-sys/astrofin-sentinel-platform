@@ -5,7 +5,6 @@ Endpoints:
     GET  /api/v1/dashboard        — full dashboard state (agents, regime, ensemble)
     GET  /api/v1/astro/aspects    — current astrological aspects from ephemeris
     POST /api/v1/agent/run        — run an agent with LLM routing
-    WS   /ws/agent/{agent_id}     — WebSocket real-time agent streaming
     GET  /health                  — health check
 import re
 """
@@ -16,7 +15,7 @@ import logging
 import inspect, asyncio
 import os
 
-from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -253,20 +252,6 @@ def get_dashboard(request: Request):
     )
 
 
-def _find_agent_file(name: str) -> str | None:
-    import os, glob
-    target = re.sub(r'(?<=[a-z])([A-Z])', r'_', name).lower()
-    pattern = f'agents/_impl/{target}.py'
-    if os.path.exists(pattern):
-        return pattern
-    # Heuristic: try variants with extra underscores
-    base = target.replace('_', '')
-    for f in glob.glob(f'agents/_impl/{base[:3]}*.py'):
-        tail = os.path.splitext(os.path.basename(f))[0]
-        if tail.replace('_', '') == base:
-            return f
-    return None
-
 @app.post("/api/v1/agent/run")
 @require_api_key
 
@@ -373,7 +358,6 @@ def run_agent(req: AgentRequest, request: Request):
                     result = asyncio.run(agent_cls().analyze(state))
                     if result is None:
                         raise RuntimeError("async agent not supported")
-                        raise RuntimeError("no result")
                     signal = getattr(
                         getattr(result, "signal", None), "value", str(getattr(result, "signal", "NEUTRAL"))
                     )
@@ -603,27 +587,8 @@ def get_interpretation(request: Request):
     }
 
 
-@app.websocket("/ws/agent/{agent_id}")
-async def ws_agent(websocket: WebSocket, agent_id: str):
-    """WebSocket endpoint — real-time agent streaming for Sprint 4."""
-    await websocket.accept()
-    try:
-        await websocket.send_text("connected")
-        while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"echo: {data}")
-    except WebSocketDisconnect:
-        pass
 
 
-from fastapi.responses import Response
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-
-
-@app.get("/metrics", include_in_schema=False)
-async def metrics_endpoint():
-    """Prometheus metrics endpoint — scraped by prometheus.yml."""
-    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 # ── Serve React production build (after all API routes) ──
