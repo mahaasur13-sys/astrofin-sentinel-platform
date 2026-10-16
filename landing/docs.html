@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docs — DecisionOS v2.0 API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050508;--bg-card:#0c0c10;--bg-elevated:#111116;--cyan:#06d6d6;--violet:#a855f7;--green:#22c55e;--red:#ef4444;--text:#e8e8ed;--text-muted:#9ca3af;--border:rgba(6,214,214,0.18);--glow-cyan:0 0 20px rgba(6,214,214,0.35);--glow-violet:0 0 20px rgba(168,85,247,0.35);--radius:12px;--font-body:'Inter',system-ui,-apple-system,sans-serif;--font-heading:'Orbitron',system-ui,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;min-height:100vh}
+#orbital-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.65}
+.header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:14px 0}
+.container{width:100%;max-width:1300px;margin:0 auto;padding:0 24px}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.logo-a{text-decoration:none;color:var(--cyan);display:flex;align-items:center;gap:10px}
+.logo{font-family:var(--font-heading);font-weight:700;font-size:1.2rem;letter-spacing:0.06em;color:var(--cyan);text-shadow:var(--glow-cyan);display:flex;align-items:center;gap:10px}
+.logo-badge{font-size:0.6rem;background:rgba(6,214,214,0.15);border:1px solid var(--cyan);padding:2px 8px;border-radius:999px;color:var(--cyan)}
+.nav{display:flex;align-items:center;gap:20px}
+.nav a{color:var(--text-muted);text-decoration:none;font-size:0.85rem;font-weight:500;transition:color 0.2s;padding:4px 0;border-bottom:2px solid transparent}
+.nav a:hover{color:var(--cyan)}
+.nav a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.header-btn{display:flex;align-items:center;gap:8px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;cursor:pointer;font-family:var(--font-body);font-size:0.8rem;transition:all 0.25s}
+.header-btn:hover{border-color:var(--cyan);box-shadow:var(--glow-cyan)}
+.header-btn.crypto-btn{border-color:rgba(168,85,247,0.3);}.header-btn.crypto-btn:hover{border-color:var(--violet);box-shadow:var(--glow-violet);}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#6b7280;flex-shrink:0}
+.status-dot.active{background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse-green 1.6s infinite}
+@keyframes pulse-green{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.55;transform:scale(1.25)}}
+.docs-layout{display:flex;gap:0;position:relative;z-index:1;min-height:calc(100vh - 60px)}
+.sidebar{width:260px;flex-shrink:0;background:rgba(5,5,8,0.7);border-right:1px solid var(--border);padding:24px 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;backdrop-filter:blur(8px)}
+.sidebar-search{padding:0 20px 16px}
+.sidebar-search input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:var(--font-body);font-size:0.85rem;outline:none;transition:border-color 0.2s}
+.sidebar-search input:focus{border-color:var(--cyan)}
+.sidebar-section{padding:8px 0}
+.sidebar-section-title{font-family:var(--font-heading);font-size:0.68rem;color:var(--cyan);text-transform:uppercase;letter-spacing:0.1em;padding:8px 20px;margin-top:8px}
+.sidebar-link{display:block;padding:6px 20px;font-size:0.82rem;color:var(--text-muted);text-decoration:none;transition:all 0.2s;border-left:2px solid transparent;margin-left:0}
+.sidebar-link:hover{color:var(--text);background:rgba(6,214,214,0.05)}
+.sidebar-link.active{color:var(--cyan);border-left-color:var(--cyan);background:rgba(6,214,214,0.06)}
+.sidebar-link.search-hidden{display:none}
+.content{flex:1;padding:32px 40px;max-width:800px}
+.content h1{font-family:var(--font-heading);font-size:2rem;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,#fff,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.content h2{font-family:var(--font-heading);font-size:1.35rem;font-weight:700;margin:40px 0 16px;color:var(--text);padding-bottom:8px;border-bottom:1px solid var(--border)}
+.content h3{font-family:var(--font-heading);font-size:1.05rem;font-weight:600;margin:28px 0 12px;color:var(--cyan)}
+.content p{font-size:0.92rem;color:var(--text-muted);margin-bottom:16px;line-height:1.7}
+.content ul,.content ol{margin-bottom:16px;padding-left:24px;color:var(--text-muted);font-size:0.9rem}
+.content li{margin-bottom:6px}
+.content a{color:var(--cyan);text-decoration:none;border-bottom:1px solid rgba(6,214,214,0.3)}
+.content a:hover{border-bottom-color:var(--cyan)}
+.code-block{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;margin:16px 0;overflow:hidden}
+.code-block .code-header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:rgba(6,214,214,0.04);border-bottom:1px solid var(--border)}
+.code-block .code-lang{font-family:var(--font-mono);font-size:0.72rem;color:var(--cyan);text-transform:uppercase}
+.code-block .code-copy{background:none;border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.72rem;transition:all 0.2s}
+.code-block .code-copy:hover{border-color:var(--cyan);color:var(--cyan)}
+.code-block pre{padding:16px 20px;overflow-x:auto;margin:0}
+.code-block code{font-family:var(--font-mono);font-size:0.82rem;color:#c9d1d9;line-height:1.7;white-space:pre}
+.code-block .hl-method{color:#ff79c6}.code-block .hl-path{color:#50fa7b}.code-block .hl-header{color:#f1fa8c}.code-block .hl-key{color:#8be9fd}.code-block .hl-comment{color:#6272a4}.code-block .hl-string{color:#f1fa8c}.code-block .hl-num{color:#bd93f9}.code-block .hl-json-key{color:#ff79c6}.code-block .hl-curl{color:#50fa7b}
+.inline-code{background:rgba(6,214,214,0.1);border:1px solid rgba(6,214,214,0.2);padding:2px 7px;border-radius:5px;font-family:var(--font-mono);font-size:0.85em;color:var(--cyan)}
+.endpoint-tag{display:inline-block;font-family:var(--font-mono);font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:5px;margin-right:8px;text-transform:uppercase}
+.endpoint-get{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.3)}
+.endpoint-post{background:rgba(6,214,214,0.12);color:var(--cyan);border:1px solid rgba(6,214,214,0.3)}
+.endpoint-delete{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.3)}
+.callout{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:0.88rem;display:flex;gap:12px;align-items:flex-start}
+.callout-info{border-left:3px solid var(--cyan)}.callout-warning{border-left:3px solid #f59e0b}.callout-danger{border-left:3px solid var(--red)}
+.callout-icon{font-size:1.2rem;flex-shrink:0}.callout-info .callout-icon{color:var(--cyan)}.callout-warning .callout-icon{color:#f59e0b}.callout-danger .callout-icon{color:var(--red)}
+table{width:100%;border-collapse:separate;border-spacing:0;margin:16px 0;font-size:0.88rem}
+table th,table td{padding:12px 16px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.05)}
+table th{font-family:var(--font-heading);font-size:0.78rem;color:var(--cyan);text-transform:uppercase;letter-spacing:0.05em;background:rgba(6,214,214,0.04)}
+table td{color:var(--text-muted)}
+table td:first-child{font-family:var(--font-mono);font-size:0.82rem;color:var(--text)}
+.code-inline{background:rgba(6,214,214,0.1);padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-size:0.85em;color:var(--cyan)}
+.footer{border-top:1px solid var(--border);padding:24px 0;text-align:center;color:var(--text-muted);font-size:0.82rem;position:relative;z-index:1}
+.no-results{text-align:center;padding:40px;color:var(--text-muted);font-size:0.9rem}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all 0.3s}
+.modal-overlay.open{opacity:1;visibility:visible}
+.modal{background:var(--bg-elevated);border:1px solid var(--border);border-radius:16px;width:100%;max-width:460px;padding:32px;box-shadow:0 0 60px rgba(6,214,214,0.15);transform:scale(0.92);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+.modal-overlay.open .modal{transform:scale(1)}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.modal-title{font-family:var(--font-heading);font-size:1.25rem;font-weight:700;color:var(--cyan)}
+.modal-subtitle{font-size:0.85rem;color:var(--text-muted);margin-top:4px}
+.modal-close{background:none;border:none;color:var(--text-muted);font-size:1.4rem;cursor:pointer;padding:4px;line-height:1}
+.modal-close:hover{color:var(--text)}
+.form-group{margin-bottom:24px}
+.form-label{display:block;font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;font-family:var(--font-mono)}
+.input-wrap{position:relative}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 44px 12px 14px;color:var(--text);font-family:var(--font-mono);font-size:0.9rem;outline:none;transition:border-color 0.2s}
+.form-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(6,214,214,0.15)}
+.toggle-visibility{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px}
+.modal-hint{font-size:0.75rem;color:var(--text-muted);margin-bottom:24px;line-height:1.5}
+.modal-actions{display:flex;gap:16px;flex-wrap:wrap}
+.btn-save{flex:1;background:linear-gradient(135deg,var(--cyan),#0891b2);color:#000;font-weight:600;padding:14px 28px;border-radius:10px;font-family:var(--font-body);font-size:0.95rem;cursor:pointer;border:none;transition:all 0.25s}
+.btn-delete{background:transparent;border:1px solid rgba(239,68,68,0.4);color:var(--red);padding:14px 28px;border-radius:10px;font-family:var(--font-body);font-size:0.95rem;cursor:pointer;transition:all 0.25s}
+.btn-delete:hover{border-color:var(--red);background:rgba(239,68,68,0.1)}
+.btn-cancel{background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:14px 28px;border-radius:10px;font-family:var(--font-body);font-size:0.95rem;cursor:pointer;transition:all 0.25s}
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-elevated);border:1px solid var(--green);color:var(--text);padding:12px 24px;border-radius:10px;font-size:0.9rem;z-index:2000;box-shadow:0 0 30px rgba(34,197,94,0.25);opacity:0;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.chat-fab{position:fixed;bottom:28px;right:28px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--violet));border:none;cursor:pointer;z-index:900;display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 0 30px rgba(6,214,214,0.4);transition:transform 0.25s}
+.chat-fab:hover{transform:scale(1.08)}
+.chat-window{position:fixed;bottom:92px;right:28px;width:560px;height:700px;max-height:calc(100vh - 130px);background:var(--bg-elevated);border:1px solid var(--border);border-radius:16px;z-index:950;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,0.6);opacity:0;visibility:hidden;transform:scale(0.92) translateY(20px);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+.chat-window.open{opacity:1;visibility:visible;transform:scale(1) translateY(0)}
+.chat-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(6,214,214,0.04)}
+.chat-header-left{display:flex;align-items:center;gap:10px}
+.chat-title{font-family:var(--font-heading);font-size:0.9rem;font-weight:600;color:var(--cyan)}
+.chat-header-actions{display:flex;gap:6px}
+.chat-header-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px}
+.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:88%;padding:10px 14px;border-radius:12px;font-size:0.88rem;line-height:1.5;word-break:break-word}
+.msg.user{align-self:flex-end;background:rgba(6,214,214,0.12);border:1px solid rgba(6,214,214,0.25);border-bottom-right-radius:4px}
+.msg.assistant{align-self:flex-start;background:var(--bg-card);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.system{align-self:center;background:transparent;color:var(--text-muted);font-size:0.78rem;text-align:center}
+.chat-input-area{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:0.88rem;resize:none;min-height:44px;max-height:120px;outline:none}
+.chat-input:focus{border-color:var(--cyan)}
+.chat-send,.chat-stop{width:44px;height:44px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.chat-send{background:linear-gradient(135deg,var(--cyan),#0891b2);color:#000}
+.chat-stop{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:var(--red);display:none}
+.chat-stop.visible{display:flex}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 20px}}
+@media(max-width:600px){.nav a{display:none}.chat-window{width:calc(100vw - 20px);right:10px;bottom:80px;height:calc(100vh - 110px)}}
+</style>
+</head>
+<body>
+<canvas id="orbital-canvas"></canvas>
+
+<header class="header">
+  <div class="container header-inner">
+    <a href="/" class="logo-a"><div class="logo">ROMA<span class="logo-badge">v2.0</span></div></a>
+    <nav class="nav">
+      <a href="/features.html">Features</a>
+      <a href="/pricing.html">Pricing</a>
+      <a href="/docs.html" class="active">Docs</a>
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/#crypto" class="header-btn crypto-btn">₿ Crypto</a>
+      <button class="header-btn" id="apiKeyBtn"><span class="status-dot" id="keyStatusDot"></span><span>🔑 API Key</span></button>
+    </nav>
+  </div>
+</header>
+
+<div class="docs-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-search"><input type="text" id="docSearch" placeholder="Search docs..."></div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Getting Started</div>
+      <a href="#overview" class="sidebar-link active" data-search="overview introduction welcome">Overview</a>
+      <a href="#quickstart" class="sidebar-link" data-search="quickstart getting started setup install">Quick Start</a>
+      <a href="#authentication" class="sidebar-link" data-search="authentication auth x-api-key api key token">Authentication</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Core API</div>
+      <a href="#health" class="sidebar-link" data-search="health check status ping liveness">GET /health</a>
+      <a href="#submit" class="sidebar-link" data-search="submit job task create post">POST /submit</a>
+      <a href="#status" class="sidebar-link" data-search="status job task get check">GET /status</a>
+      <a href="#jobs" class="sidebar-link" data-search="jobs list all active queue">GET /jobs</a>
+      <a href="#usage" class="sidebar-link" data-search="usage billing metrics cost gpu hours">GET /usage</a>
+      <a href="#cancel" class="sidebar-link" data-search="cancel delete stop job task">DELETE /cancel</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Guides</div>
+      <a href="#examples" class="sidebar-link" data-search="examples code samples python curl">Examples</a>
+      <a href="#errors" class="sidebar-link" data-search="errors codes handling debug">Error Codes</a>
+      <a href="#rate-limits" class="sidebar-link" data-search="rate limits throttling quota">Rate Limits</a>
+    </div>
+  </aside>
+
+  <main class="content" id="docContent">
+
+<h1>API Documentation</h1>
+<p>Complete reference for the ROMA Execution Bridge REST API. All endpoints return JSON. Base URL: <code class="code-inline">https://api.roma.dev/v1</code></p>
+
+<section id="overview">
+<h2>Overview</h2>
+<p>ROMA Execution Bridge is a multi-tenant GPU execution platform. Submit AI workloads — training, inference, batch processing — through a single REST API. Every request is authenticated, metered, and monitored.</p>
+<div class="callout callout-info"><span class="callout-icon">◈</span><div>The API is versioned via the URL path. Current stable version: <code class="code-inline">v1</code>. Breaking changes trigger a new version.</div></div>
+</section>
+
+<section id="quickstart">
+<h2>Quick Start</h2>
+<p>1. Get your API key from the dashboard<br>2. Set the <code class="code-inline">X-API-Key</code> header<br>3. Submit your first job</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="code-copy">Copy</button></div><pre><code><span class="hl-comment"># Health check (no auth required)</span>
+<span class="hl-curl">curl</span> <span class="hl-string">https://api.roma.dev/v1/health</span>
+
+<span class="hl-comment"># Submit a training job</span>
+<span class="hl-curl">curl</span> -X <span class="hl-method">POST</span> <span class="hl-string">https://api.roma.dev/v1/submit</span> \
+  -H <span class="hl-string">"X-API-Key: $ROMA_KEY"</span> \
+  -H <span class="hl-string">"Content-Type: application/json"</span> \
+  -d <span class="hl-string">'{"image":"pytorch/pytorch:2.1.0","command":"python train.py","gpu_type":"A100","gpu_count":1}'</span></code></pre></div>
+</section>
+
+<section id="authentication">
+<h2>Authentication</h2>
+<p>All authenticated endpoints require an <code class="code-inline">X-API-Key</code> header.</p>
+<table><thead><tr><th>Header</th><th>Required</th><th>Description</th></tr></thead><tbody>
+<tr><td>X-API-Key</td><td>Yes*</td><td>Your ROMA API key (<code class="code-inline">/health</code> excluded)</td></tr>
+<tr><td>Content-Type</td><td>For POST</td><td>Must be <code class="code-inline">application/json</code></td></tr>
+</tbody></table>
+<div class="callout callout-warning"><span class="callout-icon">⚠</span><div>Never expose your API key in client-side code or version control. Use environment variables.</div></div>
+</section>
+
+<section id="health">
+<h2><span class="endpoint-tag endpoint-get">GET</span> /health</h2>
+<p>Public health check. Returns cluster status and version.</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">response</span></div><pre><code>{
+  <span class="hl-json-key">"status"</span>: <span class="hl-string">"healthy"</span>,
+  <span class="hl-json-key">"version"</span>: <span class="hl-string">"2.0.0"</span>,
+  <span class="hl-json-key">"gpu_available"</span>: <span class="hl-num">42</span>,
+  <span class="hl-json-key">"uptime_seconds"</span>: <span class="hl-num">864000</span>
+}</code></pre></div>
+</section>
+
+<section id="submit">
+<h2><span class="endpoint-tag endpoint-post">POST</span> /submit</h2>
+<p>Submit a new job for execution. Returns a <code class="code-inline">job_id</code> for tracking.</p>
+<h3>Request Body</h3>
+<table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead><tbody>
+<tr><td>image</td><td>string</td><td>Yes</td><td>Docker image for execution</td></tr>
+<tr><td>command</td><td>string</td><td>Yes</td><td>Command to run inside container</td></tr>
+<tr><td>gpu_type</td><td>string</td><td>No</td><td>GPU type (T4, A100, H100). Default: T4</td></tr>
+<tr><td>gpu_count</td><td>int</td><td>No</td><td>Number of GPUs. Default: 1</td></tr>
+<tr><td>priority</td><td>string</td><td>No</td><td>normal / high. Default: normal</td></tr>
+</tbody></table>
+<div class="code-block"><div class="code-header"><span class="code-lang">response 201</span></div><pre><code>{
+  <span class="hl-json-key">"job_id"</span>: <span class="hl-string">"job_kx9m2f"</span>,
+  <span class="hl-json-key">"status"</span>: <span class="hl-string">"queued"</span>,
+  <span class="hl-json-key">"estimated_start_s"</span>: <span class="hl-num">12</span>
+}</code></pre></div>
+</section>
+
+<section id="status">
+<h2><span class="endpoint-tag endpoint-get">GET</span> /status/{job_id}</h2>
+<p>Get current status and details for a specific job.</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">response</span></div><pre><code>{
+  <span class="hl-json-key">"job_id"</span>: <span class="hl-string">"job_kx9m2f"</span>,
+  <span class="hl-json-key">"status"</span>: <span class="hl-string">"running"</span>,
+  <span class="hl-json-key">"gpu_type"</span>: <span class="hl-string">"A100"</span>,
+  <span class="hl-json-key">"started_at"</span>: <span class="hl-string">"2026-08-19T18:30:00Z"</span>,
+  <span class="hl-json-key">"duration_s"</span>: <span class="hl-num">3600</span>,
+  <span class="hl-json-key">"gpu_util_pct"</span>: <span class="hl-num">87.5</span>,
+  <span class="hl-json-key">"memory_mb"</span>: <span class="hl-num">32768</span>
+}</code></pre></div>
+</section>
+
+<section id="jobs">
+<h2><span class="endpoint-tag endpoint-get">GET</span> /jobs</h2>
+<p>List all jobs for the authenticated tenant. Supports pagination.</p>
+<table><thead><tr><th>Query Param</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td>limit</td><td>20</td><td>Max results per page (max 100)</td></tr>
+<tr><td>offset</td><td>0</td><td>Pagination offset</td></tr>
+<tr><td>status</td><td>—</td><td>Filter: queued / running / done / failed</td></tr>
+</tbody></table>
+</section>
+
+<section id="usage">
+<h2><span class="endpoint-tag endpoint-get">GET</span> /usage</h2>
+<p>Current billing period usage and limits.</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">response</span></div><pre><code>{
+  <span class="hl-json-key">"period_start"</span>: <span class="hl-string">"2026-08-01T00:00:00Z"</span>,
+  <span class="hl-json-key">"period_end"</span>: <span class="hl-string">"2026-09-01T00:00:00Z"</span>,
+  <span class="hl-json-key">"gpu_hours_used"</span>: <span class="hl-num">1240.5</span>,
+  <span class="hl-json-key">"gpu_hours_limit"</span>: <span class="hl-num">5000</span>,
+  <span class="hl-json-key">"cost_estimate_usd"</span>: <span class="hl-string">"372.15"</span>
+}</code></pre></div>
+</section>
+
+<section id="cancel">
+<h2><span class="endpoint-tag endpoint-delete">DELETE</span> /cancel/{job_id}</h2>
+<p>Cancel a queued or running job. Running jobs are terminated with SIGTERM.</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">response 200</span></div><pre><code>{
+  <span class="hl-json-key">"job_id"</span>: <span class="hl-string">"job_kx9m2f"</span>,
+  <span class="hl-json-key">"status"</span>: <span class="hl-string">"cancelled"</span>,
+  <span class="hl-json-key">"billed_seconds"</span>: <span class="hl-num">2140</span>
+}</code></pre></div>
+</section>
+
+<section id="examples">
+<h2>Examples</h2>
+<h3>Python</h3>
+<div class="code-block"><div class="code-header"><span class="code-lang">python</span><button class="code-copy">Copy</button></div><pre><code><span class="hl-key">import</span> requests
+
+API = <span class="hl-string">"https://api.roma.dev/v1"</span>
+HEADERS = {<span class="hl-string">"X-API-Key"</span>: <span class="hl-string">"your-key"</span>}
+
+<span class="hl-comment"># Submit a job</span>
+resp = requests.post(<span class="hl-string">f"{API}/submit"</span>, json={
+    <span class="hl-string">"image"</span>: <span class="hl-string">"pytorch/pytorch:2.1.0"</span>,
+    <span class="hl-string">"command"</span>: <span class="hl-string">"python train.py --epochs 10"</span>,
+    <span class="hl-string">"gpu_type"</span>: <span class="hl-string">"A100"</span>,
+    <span class="hl-string">"gpu_count"</span>: <span class="hl-num">2</span>
+}, headers=HEADERS)
+
+job_id = resp.json()[<span class="hl-string">"job_id"</span>]
+
+<span class="hl-comment"># Poll status</span>
+<span class="hl-key">while</span> <span class="hl-key">True</span>:
+    s = requests.get(<span class="hl-string">f"{API}/status/{job_id}"</span>, headers=HEADERS)
+    <span class="hl-key">if</span> s.json()[<span class="hl-string">"status"</span>] == <span class="hl-string">"done"</span>:
+        <span class="hl-key">break</span></code></pre></div>
+
+<h3>Node.js</h3>
+<div class="code-block"><div class="code-header"><span class="code-lang">javascript</span><button class="code-copy">Copy</button></div><pre><code><span class="hl-key">const</span> API = <span class="hl-string">'https://api.roma.dev/v1'</span>;
+<span class="hl-key">const</span> headers = { <span class="hl-string">'X-API-Key'</span>: process.env.ROMA_KEY, <span class="hl-string">'Content-Type'</span>: <span class="hl-string">'application/json'</span> };
+
+<span class="hl-key">const</span> { job_id } = <span class="hl-key">await</span> fetch(<span class="hl-string">`${API}/submit`</span>, {
+  method: <span class="hl-string">'POST'</span>, headers,
+  body: JSON.stringify({ image: <span class="hl-string">'pytorch/pytorch:2.1.0'</span>, command: <span class="hl-string">'python train.py'</span> })
+}).then(r => r.json());
+
+console.log(<span class="hl-string">`Job submitted: ${job_id}`</span>);</code></pre></div>
+</section>
+
+<section id="errors">
+<h2>Error Codes</h2>
+<table><thead><tr><th>Code</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>200</td><td>Success</td></tr>
+<tr><td>201</td><td>Job created</td></tr>
+<tr><td>400</td><td>Bad request — invalid parameters</td></tr>
+<tr><td>401</td><td>Missing or invalid API key</td></tr>
+<tr><td>402</td><td>Quota exceeded — upgrade your plan</td></tr>
+<tr><td>404</td><td>Job not found</td></tr>
+<tr><td>429</td><td>Rate limit exceeded</td></tr>
+<tr><td>500</td><td>Internal server error</td></tr>
+</tbody></table>
+</section>
+
+<section id="rate-limits">
+<h2>Rate Limits</h2>
+<table><thead><tr><th>Plan</th><th>Requests / min</th><th>Concurrent jobs</th></tr></thead><tbody>
+<tr><td>Free</td><td>60</td><td>1</td></tr>
+<tr><td>Pro</td><td>600</td><td>10</td></tr>
+<tr><td>Enterprise</td><td>6,000</td><td>Unlimited</td></tr>
+</tbody></table>
+<div class="callout callout-info"><span class="callout-icon">◈</span><div>Rate limit headers are included in every response: <code class="code-inline">X-RateLimit-Remaining</code>, <code class="code-inline">X-RateLimit-Reset</code>.</div></div>
+</section>
+
+  </main>
+</div>
+
+<footer class="footer"><div class="container">ROMA Execution Bridge · DecisionOS v2.0 · Enterprise GPU Infrastructure</div></footer>
+
+<div class="modal-overlay" id="apiKeyModal">
+  <div class="modal">
+    <div class="modal-header"><div><div class="modal-title">API Key Settings</div><div class="modal-subtitle">Управление доступом к ROMA Execution Bridge</div></div><button class="modal-close" id="modalClose">×</button></div>
+    <div class="form-group"><label class="form-label">X-API-Key</label><div class="input-wrap"><input type="password" class="form-input" id="apiKeyInput" placeholder="Введите ваш X-API-Key" autocomplete="off"><button class="toggle-visibility" id="toggleVisibility" type="button">👁</button></div></div>
+    <p class="modal-hint">Ключ хранится только в вашем браузере.</p>
+    <div class="modal-actions"><button class="btn-save" id="saveKeyBtn">Сохранить</button><button class="btn-delete" id="deleteKeyBtn">Удалить ключ</button><button class="btn-cancel" id="cancelKeyBtn">Отмена</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<button class="chat-fab" id="chatFab" title="ROMA AI Assistant">◈</button>
+
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header"><div class="chat-header-left"><span class="status-dot" id="chatKeyDot"></span><span class="chat-title">ROMA AI Assistant</span></div><div class="chat-header-actions"><button class="chat-header-btn" id="chatApiKeyBtn" title="API Key">🔑</button><button class="chat-header-btn" id="chatCloseBtn" title="Close">×</button></div></div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-area"><textarea class="chat-input" id="chatInput" placeholder="Напишите команду или вопрос..." rows="1"></textarea><button class="chat-send" id="chatSend">➤</button><button class="chat-stop" id="chatStop">⏹</button></div>
+</div>
+
+<script>
+/* Particles */
+(function(){const c=document.getElementById('orbital-canvas'),x=c.getContext('2d');let w,h,p=[];const L=['#06d6d6','#a855f7','#22c55e','#06b6d4','#c084fc'];function rs(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}function cp(){p=[];for(let i=0;i<18;i++)p.push({l:1,x:Math.random()*w,y:Math.random()*h,r:0.5+Math.random()*1,oR:40+Math.random()*100,a:Math.random()*Math.PI*2,s:0.012+Math.random()*0.016,cl:L[Math.floor(Math.random()*L.length)],al:0.25+Math.random()*0.3});for(let i=0;i<10;i++)p.push({l:2,x:Math.random()*w,y:Math.random()*h,r:1+Math.random()*1.5,oR:60+Math.random()*140,a:Math.random()*Math.PI*2,s:0.006+Math.random()*0.01,cl:L[Math.floor(Math.random()*L.length)],al:0.15+Math.random()*0.25});for(let i=0;i<6;i++)p.push({l:3,x:Math.random()*w,y:Math.random()*h,r:1.5+Math.random()*2.5,oR:80+Math.random()*180,a:Math.random()*Math.PI*2,s:0.003+Math.random()*0.006,cl:L[Math.floor(Math.random()*L.length)],al:0.1+Math.random()*0.18});for(let i=0;i<5;i++)p.push({l:4,x:Math.random()*w,y:Math.random()*h,r:0.6,oR:50+Math.random()*120,a:Math.random()*Math.PI*2,s:0.008+Math.random()*0.012,cl:L[Math.floor(Math.random()*3)],al:0.08+Math.random()*0.14,ln:!0})}function dr(){x.clearRect(0,0,w,h);p.forEach(q=>{q.a+=q.s;const cx=q.x+Math.cos(q.a)*q.oR*0.5,cy=q.y+Math.sin(q.a)*q.oR*0.3;if(q.ln){x.beginPath();x.ellipse(q.x,q.y,q.oR*0.6,q.oR*0.3,0,0,Math.PI*2);x.strokeStyle=q.cl;x.globalAlpha=q.al*0.4;x.lineWidth=0.5;x.stroke()}x.beginPath();x.arc(cx,cy,q.r,0,Math.PI*2);x.fillStyle=q.cl;x.globalAlpha=q.al;x.shadowBlur=q.l===3?10:3;x.shadowColor=q.cl;x.fill();x.shadowBlur=0});x.globalAlpha=1;requestAnimationFrame(dr)}rs();cp();dr();window.addEventListener('resize',()=>{rs();cp()})})();
+
+/* API Key */
+const SK='roma_api_key';const gK=()=>localStorage.getItem(SK)||'';const uS=()=>{const h=!!gK();document.getElementById('keyStatusDot').classList.toggle('active',h);document.getElementById('chatKeyDot').classList.toggle('active',h)};const oM=()=>{document.getElementById('apiKeyInput').value=gK();document.getElementById('apiKeyModal').classList.add('open');setTimeout(()=>document.getElementById('apiKeyInput').focus(),100)};const cM=()=>document.getElementById('apiKeyModal').classList.remove('open');const sT=m=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)};document.getElementById('apiKeyBtn').addEventListener('click',oM);document.getElementById('chatApiKeyBtn').addEventListener('click',oM);document.getElementById('modalClose').addEventListener('click',cM);document.getElementById('cancelKeyBtn').addEventListener('click',cM);document.getElementById('apiKeyModal').addEventListener('click',e=>{if(e.target===document.getElementById('apiKeyModal'))cM()});document.addEventListener('keydown',e=>{if(e.key==='Escape')cM()});document.getElementById('toggleVisibility').addEventListener('click',()=>{const el=document.getElementById('apiKeyInput'),p=el.type==='password';el.type=p?'text':'password';document.getElementById('toggleVisibility').textContent=p?'🙈':'👁'});document.getElementById('saveKeyBtn').addEventListener('click',()=>{const v=document.getElementById('apiKeyInput').value.trim();v?localStorage.setItem(SK,v):localStorage.removeItem(SK);uS();sT(v?'API Key saved':'API Key removed');cM()});document.getElementById('deleteKeyBtn').addEventListener('click',()=>{localStorage.removeItem(SK);document.getElementById('apiKeyInput').value='';uS();sT('API Key removed');cM()});uS();
+
+/* Doc Search */
+(function(){const inp=document.getElementById('docSearch');const links=document.querySelectorAll('.sidebar-link');const sections=document.querySelectorAll('.content section');inp.addEventListener('input',()=>{const q=inp.value.toLowerCase().trim();if(!q){links.forEach(l=>l.classList.remove('search-hidden'));return}let any=!1;links.forEach(l=>{const ds=l.dataset.search||'';const txt=l.textContent.toLowerCase();if(ds.includes(q)||txt.includes(q)){l.classList.remove('search-hidden');any=!0}else{l.classList.add('search-hidden')}});if(!any)links.forEach(l=>l.classList.remove('search-hidden'))});links.forEach(l=>{l.addEventListener('click',e=>{links.forEach(ll=>ll.classList.remove('active'));l.classList.add('active')})})})();
+
+/* Copy buttons */
+document.querySelectorAll('.code-copy').forEach(btn=>{btn.addEventListener('click',()=>{const pre=btn.closest('.code-block').querySelector('pre code');const txt=pre.textContent;navigator.clipboard.writeText(txt).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500)})})});
+
+/* Chat */
+(function(){const fab=document.getElementById('chatFab'),we=document.getElementById('chatWindow'),cb=document.getElementById('chatCloseBtn'),me=document.getElementById('chatMessages'),ie=document.getElementById('chatInput'),sb=document.getElementById('chatSend'),stb=document.getElementById('chatStop');const HK='roma_chat_history',NK='roma_user_name';let un=localStorage.getItem(NK)||'',is=!1,ac=null;function oc(){we.classList.add('open');if(!un)setTimeout(()=>{const n=prompt('Enter your name for ROMA Assistant:');if(n&&n.trim()){un=n.trim();localStorage.setItem(NK,un);as('Welcome, '+un+'! Ready to execute commands.')}},300);ie.focus()}function cc(){we.classList.remove('open')}fab.addEventListener('click',oc);cb.addEventListener('click',cc);function am(r,t){const d=document.createElement('div');d.className='msg '+r;d.textContent=t;me.appendChild(d);me.scrollTop=me.scrollHeight;sh();return d}function as(t){am('system',t)}function sh(){const ms=[];me.querySelectorAll('.msg').forEach(m=>{if(!m.classList.contains('system'))ms.push({role:m.classList.contains('user')?'user':'assistant',text:m.textContent})});localStorage.setItem(HK,JSON.stringify(ms.slice(-40)))}function lh(){try{const r=localStorage.getItem(HK);if(!r)return;JSON.parse(r).forEach(m=>am(m.role,m.text))}catch(e){}}lh();if(me.children.length===0)as('ROMA AI Assistant online.');async function sr(ut){is=!0;sb.style.display='none';stb.classList.add('visible');ac=new AbortController();const ad=am('assistant',''),rs=['Job submitted via ROMA Execution Bridge...','GPU cluster: '+Math.floor(Math.random()*40+10)+' nodes available.','Status: queued → running. Monitor with GET /status/{job_id}'];let full='';try{for(const c of rs){if(ac.signal.aborted)break;for(const ch of c+' '){if(ac.signal.aborted)break;full+=ch;ad.textContent=full;me.scrollTop=me.scrollHeight;await new Promise(r=>setTimeout(r,10+Math.random()*15))}await new Promise(r=>setTimeout(r,150))}}catch(e){}is=!1;sb.style.display='flex';stb.classList.remove('visible');sh()}function sm(){const t=ie.value.trim();if(!t||is)return;am('user',t);ie.value='';ie.style.height='auto';sr(t)}sb.addEventListener('click',sm);ie.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sm()}});stb.addEventListener('click',()=>{if(ac)ac.abort();is=!1;sb.style.display='flex';stb.classList.remove('visible')});ie.addEventListener('input',()=>{ie.style.height='auto';ie.style.height=Math.min(ie.scrollHeight,120)+'px'})})();
+</script>
+</body>
+</html>

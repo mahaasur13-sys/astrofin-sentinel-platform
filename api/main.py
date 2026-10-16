@@ -5,7 +5,6 @@ Endpoints:
     GET  /api/v1/dashboard        — full dashboard state (agents, regime, ensemble)
     GET  /api/v1/astro/aspects    — current astrological aspects from ephemeris
     POST /api/v1/agent/run        — run an agent with LLM routing
-    WS   /ws/agent/{agent_id}     — WebSocket real-time agent streaming
     GET  /health                  — health check
 import re
 """
@@ -16,7 +15,7 @@ import logging
 import inspect, asyncio
 import os
 
-from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -47,6 +46,14 @@ async def metrics():
 from api.routes.sessions import router as sessions_router
 
 app.include_router(sessions_router, prefix="/api/v1")
+
+@app.on_event("startup")
+def _init_db_on_startup() -> None:
+    """Create the tables the API reads (PostgreSQL, or SQLite when unset)."""
+    from db.init import init_db_if_needed
+
+    result = init_db_if_needed()
+    logging.getLogger("api.main").info("db_init_on_startup: %s", result)
 
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
@@ -125,6 +132,10 @@ class DashboardResponse(BaseModel):
     pnl: float = 0.0
     mode: str = "Live"
     agent_analysis: dict = {}
+    price_source: str = "unavailable"
+    price: float | None = None
+    agents_source: str = "static_placeholder"
+    regime_source: str = "static_placeholder"
 
 
 class _ApiAgent(BaseAgent):
@@ -178,53 +189,31 @@ def get_dashboard(request: Request):
         else ("BUY" if buy_count > sell_count else "SELL" if sell_count > buy_count else "HOLD")
     )
 
-    # Launch real Gann/Bradley/Elliot agents for dashboard
-    import asyncio
+    # Gann/Bradley/Elliot need a real 90-bar series — never run them on generated data
     import importlib.util
-    import random
 
-    agent_results = {}
+    agent_results: dict = {}
+    price_source = "unavailable"
+    price: float | None = None
+    prices: list | None = None
     try:
-        random.seed(42)
-        real_price = 64290.0
-        try:
-            import asyncio
+        import httpx
 
-            import httpx
+        r = httpx.get(
+            "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart",
+            params={"vs_currency": "usd", "days": 90},
+            timeout=10,
+        )
+        if r.status_code == 200:
+            raw = r.json().get("prices", [])
+            if len(raw) >= 90:
+                prices = [[int(p[0]), p[1] * 0.99, p[1] * 1.01, p[1] * 0.99, p[1], 5000] for p in raw[-90:]]
+                price = prices[-1][4]
+                price_source = "coingecko"
+    except Exception as exc:
+        logging.getLogger("api.main").warning("dashboard_price_fetch_failed: %s", exc)
 
-            async def _fetch_cg():
-                async with httpx.AsyncClient(timeout=10) as cg:
-                    r = await cg.get(
-                        "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart",
-                        params={"vs_currency": "usd", "days": 90},
-                    )
-                    if r.status_code == 200:
-                        data = r.json()
-                        raw = data.get("prices", [])
-                        if len(raw) >= 90:
-                            return raw[-1][1], raw[-90:]
-                    return None, None
-
-            loop = asyncio.get_event_loop()
-            price_val, price_raw = loop.run_until_complete(_fetch_cg())
-            if price_val is not None and price_raw is not None:
-                real_price = price_val
-                prices = [[int(p[0]), p[1] * 0.99, p[1] * 1.01, p[1] * 0.99, p[1], 5000] for p in price_raw]
-        except Exception:
-            pass
-        if "prices" not in dir() or not prices:
-            real_price = 64290.0
-            base_price = real_price * 0.90
-            prices = []
-            b = base_price
-            for _ in range(90):
-                drift = (random.random() - 0.48) * 150
-                vol = random.gauss(0, 600)
-                close = b + drift + vol
-                ts = 1784390400000 + _ * 86400000
-                prices.append([ts, close * 0.99, close * 1.01, close * 0.99, close, 5000])
-                b = close
-            prices[-1][4] = real_price
+    if prices:
         for agent_key, fname, clsname in [
             ("gann", "gann_agent.py", "GannAgent"),
             ("bradley", "bradley_agent.py", "BradleyAgent"),
@@ -235,7 +224,7 @@ def get_dashboard(request: Request):
                 if spec and spec.loader:
                     mod = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(mod)
-                    state = {"symbol": "BTCUSDT", "current_price": prices[-1][4], "_price_data": prices}
+                    state = {"symbol": "BTCUSDT", "current_price": price, "_price_data": prices}
                     result = asyncio.run(getattr(mod, clsname)().analyze(state))
                     agent_results[agent_key] = {
                         "signal": result.signal.value if hasattr(result.signal, "value") else str(result.signal),
@@ -246,8 +235,6 @@ def get_dashboard(request: Request):
                     }
             except Exception as e:
                 agent_results[agent_key] = {"signal": "ERROR", "confidence": 0, "reasoning": str(e), "sources": []}
-    except Exception as e:
-        agent_results = {"error": str(e)}
 
     return DashboardResponse(
         agents=agents,
@@ -260,22 +247,10 @@ def get_dashboard(request: Request):
             hold_count=hold_count,
         ),
         agent_analysis=agent_results,
+        price_source=price_source,
+        price=price,
     )
 
-
-def _find_agent_file(name: str) -> str | None:
-    import os, glob
-    target = re.sub(r'(?<=[a-z])([A-Z])', r'_', name).lower()
-    pattern = f'agents/_impl/{target}.py'
-    if os.path.exists(pattern):
-        return pattern
-    # Heuristic: try variants with extra underscores
-    base = target.replace('_', '')
-    for f in glob.glob(f'agents/_impl/{base[:3]}*.py'):
-        tail = os.path.splitext(os.path.basename(f))[0]
-        if tail.replace('_', '') == base:
-            return f
-    return None
 
 @app.post("/api/v1/agent/run")
 @require_api_key
@@ -304,26 +279,45 @@ def run_agent(req: AgentRequest, request: Request):
             }
             for a in result.aspects
         ]
-        muhurta_score = 100  # placeholder — real panchanga call
+        aspects_source = "swiss_ephemeris"
+        muhurta_score = None  # not computed on this path — null beats a fake 100/100
     except Exception:
         aspects = []
-        muhurta_score = 50
+        aspects_source = "unavailable"
+        muhurta_score = None
 
     # ── 2. CoinGecko real price ──
+    price_source = "unavailable"
     try:
         import json
         import urllib.request
 
         url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
         req_url = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req_url, timeout=5) as resp:  # nosec B310  # nosec B310
+        with urllib.request.urlopen(req_url, timeout=5) as resp:  # nosec B310
             data = json.loads(resp.read())
-            real_price = data.get("bitcoin", {}).get("usd", 64210)
-    except Exception:
-        real_price = 64210
+        real_price = float(data["bitcoin"]["usd"])
+        price_source = "coingecko"
+    except Exception as exc:
+        logger.warning("agent_run_price_fetch_failed: %s", exc)
+        real_price = None
     price = float(req.price) if hasattr(req, "price") and req.price else real_price
 
-    # ── 3. Run agents (with fallback) ──
+    # ── 3. Run agents — only on a real price series ──
+    if price_source != "coingecko" or price is None:
+        return {
+            "result": {
+                "agents": [],
+                "ensemble": None,
+                "aspects_source": aspects_source,
+                "muhurta_placeholder": True,
+                "price": None,
+                "price_source": price_source,
+                "processing_time_ms": round((time.time() - start) * 1000, 1),
+                "note": "no real price series — agents skipped",
+            }
+        }
+
     AGENT_SPECS = [
         ("1", "FundamentalAgent", "fundamental"),
         ("2", "QuantAgent", "quant"),
@@ -339,11 +333,13 @@ def run_agent(req: AgentRequest, request: Request):
         ("12", "GannAgent", "astro"),
         ("13", "CycleAgent", "astro"),
     ]
+    def _snake(agent_name: str) -> str:
+        return re.sub(r"(?<=[a-z])([A-Z])", r"_\1", agent_name).lower()
+
     agent_decisions = []
     for aid, name, domain in AGENT_SPECS:
         try:
-            slug = re.sub(r'(?<=[a-z])([A-Z])', r'_\1', name).lower()
-            fname = "agents/_impl/ml_predictor_agent.py" if name == "MLPredictorAgent" else f"agents/_impl/{slug}.py"
+            fname = "agents/_impl/ml_predictor_agent.py" if name == "MLPredictorAgent" else f"agents/_impl/{_snake(name)}.py"
             spec = importlib.util.spec_from_file_location(name.lower(), fname)
             if spec and spec.loader:
                 mod = importlib.util.module_from_spec(spec)
@@ -362,7 +358,6 @@ def run_agent(req: AgentRequest, request: Request):
                     result = asyncio.run(agent_cls().analyze(state))
                     if result is None:
                         raise RuntimeError("async agent not supported")
-                        raise RuntimeError("no result")
                     signal = getattr(
                         getattr(result, "signal", None), "value", str(getattr(result, "signal", "NEUTRAL"))
                     )
@@ -408,6 +403,8 @@ def run_agent(req: AgentRequest, request: Request):
     else:
         ensemble_conf = 50
 
+    price_label = f"${price:,.0f}" if price is not None else "недоступна"
+
     return {
         "result": {
             "agents": agent_decisions,
@@ -417,7 +414,7 @@ def run_agent(req: AgentRequest, request: Request):
                 "buy_count": buy_count,
                 "sell_count": sell_count,
                 "neutral_count": neutral_count,
-                "recommendation": f"Цена: ${price:,.0f} | "
+                "recommendation": f"Цена: {price_label} | "
                 + (
                     "Открыть LONG с SL −3%"
                     if ensemble_action == "BUY"
@@ -426,15 +423,19 @@ def run_agent(req: AgentRequest, request: Request):
                     else "Ждать пробоя диапазона"
                 ),
                 "risk_factors": [
-                    f"Muhurta score: {muhurta_score}/100",
+                    "Muhurta score: unavailable (placeholder — not computed)",
                     f"Aspects found: {len(aspects)}",
-                    "Price source: CoinGecko live",
+                    f"Price source: {price_source}",
                 ],
                 "astro_factors": [
-                    f"Aspects: {len(aspects)} planetary angles computed",
-                    f"Muhurta: {muhurta_score}/100 via Swiss Ephemeris",
+                    f"Aspects: {len(aspects)} planetary angles ({aspects_source})",
+                    "Muhurta: not computed (placeholder, not from Swiss Ephemeris)",
                 ][:2],
             },
+            "price": price,
+            "price_source": price_source,
+            "aspects_source": aspects_source,
+            "muhurta_placeholder": muhurta_score is None,
             "processing_time_ms": round((time.time() - start) * 1000, 1),
         }
     }
@@ -450,8 +451,10 @@ def get_interpretation(request: Request):
     try:
         result = AstroService().compute_aspects(dt)
         aspects = result.aspects
+        aspects_source = "swiss_ephemeris"
     except Exception:
         aspects = []
+        aspects_source = "unavailable"
 
     # Score each aspect (Aspect objects → dict records)
     aspect_records = []
@@ -488,31 +491,37 @@ def get_interpretation(request: Request):
     aspect_avg = (sum(fav_scores) + sum(unfav_scores)) / max(len(fav_scores) + len(unfav_scores), 1)
 
     # Simple Muhurta from Nakshatra
+    panchanga_source = "unavailable"
     try:
         from core.panchanga import calculate_panchanga, get_choghadiya
 
         panchanga = calculate_panchanga(dt)
         n = panchanga.get("nakshatra", {}) if isinstance(panchanga, dict) else {}
-        n_name = n.get("name", "Uttara Phalguni") if isinstance(n, dict) else "Uttara Phalguni"
-        n_good = n.get("good", True) if isinstance(n, dict) else True
-        n_grade = "good" if n_good else "mixed"
-        n_mult = 0.8 if n_good else 0.5
-        muhurta_score = 90 if n_good else 50
+        n_name = n.get("name") if isinstance(n, dict) else None
+        n_good = n.get("good") if isinstance(n, dict) else None
+        n_grade = None if n_good is None else ("good" if n_good else "mixed")
+        n_mult = None if n_good is None else (0.8 if n_good else 0.5)
+        muhurta_score = None if n_good is None else (90 if n_good else 50)
         slots = get_choghadiya(dt) if callable(get_choghadiya) else []
-        current = (
-            slots[0] if slots else {"name": "Amrit", "icon": "DIAMOND", "quality": "auspicious", "recommended": True}
-        )
+        current = slots[0] if slots else None
+        panchanga_source = "swiss_ephemeris"
     except Exception:
-        n_name = "Uttara Phalguni"
-        n_grade = "good"
-        n_mult = 0.8
-        muhurta_score = 100
+        n_name = None
+        n_grade = None
+        n_mult = None
+        muhurta_score = None
         slots = []
-        current = {"name": "Amrit", "icon": "DIAMOND", "quality": "auspicious", "recommended": True}
+        current = None
 
-    composite = round(max(0, min(100, 50 + aspect_avg * 5 + muhurta_score * 0.3)), 1)
+    composite = (
+        round(max(0, min(100, 50 + aspect_avg * 5 + muhurta_score * 0.3)), 1)
+        if muhurta_score is not None
+        else None
+    )
 
-    if muhurta_score >= 80 and len(fav_scores) > len(unfav_scores):
+    if muhurta_score is None:
+        verdict, v_icon, v_text = "unavailable", "⚪", "Панчанга недоступна — Muhurta не рассчитана"
+    elif muhurta_score >= 80 and len(fav_scores) > len(unfav_scores):
         verdict, v_icon, v_text = "favourable", "🟢", "Благоприятное время для входа"
     elif muhurta_score >= 50 or len(fav_scores) >= len(unfav_scores):
         verdict, v_icon, v_text = "caution", "🟡", "Нейтрально — входить осторожно, с уменьшенным размером"
@@ -528,12 +537,16 @@ def get_interpretation(request: Request):
         "nakshatra": n_name,
         "nakshatra_grade": n_grade,
         "nakshatra_multiplier": n_mult,
-        "choghadiya_current": {
-            "name": current.get("name", "Amrit") if isinstance(current, dict) else "Amrit",
-            "icon": current.get("icon", "DIAMOND") if isinstance(current, dict) else "DIAMOND",
-            "quality": current.get("quality", "auspicious") if isinstance(current, dict) else "auspicious",
-            "recommended": current.get("recommended", True) if isinstance(current, dict) else True,
-        },
+        "choghadiya_current": (
+            {
+                "name": current.get("name", "?") if isinstance(current, dict) else None,
+                "icon": current.get("icon") if isinstance(current, dict) else None,
+                "quality": current.get("quality") if isinstance(current, dict) else None,
+                "recommended": current.get("recommended") if isinstance(current, dict) else None,
+            }
+            if isinstance(current, dict)
+            else None
+        ),
         "choghadiya_slots": [
             {
                 "period": i,
@@ -568,30 +581,14 @@ def get_interpretation(request: Request):
             }
             for a in sorted([a for a in aspect_records if "unfavourable" in a["label"]], key=lambda x: x["score"])[:5]
         ],
+        "aspects_source": aspects_source,
+        "panchanga_source": panchanga_source,
+        "placeholder": muhurta_score is None,
     }
 
 
-@app.websocket("/ws/agent/{agent_id}")
-async def ws_agent(websocket: WebSocket, agent_id: str):
-    """WebSocket endpoint — real-time agent streaming for Sprint 4."""
-    await websocket.accept()
-    try:
-        await websocket.send_text("connected")
-        while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"echo: {data}")
-    except WebSocketDisconnect:
-        pass
 
 
-from fastapi.responses import Response
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-
-
-@app.get("/metrics", include_in_schema=False)
-async def metrics_endpoint():
-    """Prometheus metrics endpoint — scraped by prometheus.yml."""
-    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 # ── Serve React production build (after all API routes) ──
