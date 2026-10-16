@@ -18,6 +18,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 
+from agents._impl.synthesis.weights import AGENT_WEIGHTS as _AGENT_WEIGHTS
+
 
 class Signal(str, Enum):
     LONG = "LONG"
@@ -29,21 +31,28 @@ class Signal(str, Enum):
         return {Signal.LONG: 1.0, Signal.SHORT: -1.0, Signal.NEUTRAL: 0.0, Signal.HOLD: 0.0}[self]
 
 
-HYBRID_WEIGHTS: dict[str, float] = {
-    "fundamental":     0.1754,
-    "quant":           0.1754,
-    "macro":           0.1316,
-    "options_flow":    0.1316,
-    "sentiment":       0.0877,
-    "technical":       0.0877,
-    "bull":            0.0439,
-    "bear":            0.0439,
-    "electoral":       0.0263,
-    "bradley":         0.0263,
-    "gann":            0.0263,
-    "cycle":           0.0439,
-    "market_analyst":  -1.0,  # informational only, не голосует
+# Short vote keys → canonical agent weights (single source: agents/_impl/synthesis/weights.py).
+# TimeWindow/Elliot не голосуют в этом движке.
+_VOTE_AGENTS: dict[str, str] = {
+    "fundamental": "FundamentalAgent",
+    "quant": "QuantAgent",
+    "macro": "MacroAgent",
+    "options_flow": "OptionsFlowAgent",
+    "sentiment": "SentimentAgent",
+    "technical": "TechnicalAgent",
+    "bull": "BullResearcher",
+    "bear": "BearResearcher",
+    "electoral": "ElectoralAgent",
+    "bradley": "BradleyAgent",
+    "gann": "GannAgent",
+    "cycle": "CycleAgent",
 }
+_VOTE_TOTAL = sum(_AGENT_WEIGHTS[name] for name in _VOTE_AGENTS.values())
+
+HYBRID_WEIGHTS: dict[str, float] = {
+    key: _AGENT_WEIGHTS[name] / _VOTE_TOTAL for key, name in _VOTE_AGENTS.items()
+}
+HYBRID_WEIGHTS["market_analyst"] = -1.0  # informational only, не голосует
 
 
 REGIME_MULTIPLIER: dict[str, float] = {

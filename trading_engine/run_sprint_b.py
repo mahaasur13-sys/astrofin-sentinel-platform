@@ -8,12 +8,23 @@ import sys
 import os
 
 import psycopg2
-from prometheus_client import Gauge
+from prometheus_client import Counter, Gauge, start_http_server
 from psycopg2.extras import Json
 
 trading_engine_up = Gauge("trading_engine_up", "1 if trading engine process is running")
+trading_engine_last_signal_timestamp_seconds = Gauge(
+    "trading_engine_last_signal_timestamp_seconds",
+    "Unix timestamp of the last signal actually written to trading_signals",
+)
+trading_engine_cycles_total = Counter(
+    "trading_engine_cycles_total", "Live-loop cycles by outcome", ["result"]
+)
 
-DB_URL = os.getenv("DATABASE_URL", "postgresql://astrofin:astrofin@localhost:5432/astrofin")
+DB_URL = os.getenv("DATABASE_URL")
+if not DB_URL:
+    raise RuntimeError(
+        "DATABASE_URL is not set — refusing to start. Sealed DSN: /root/.sealed/astrofin-db-dsn.txt"
+    )
 
 from datetime import datetime
 
@@ -41,6 +52,7 @@ def run_once(args) -> dict:
     signal = strategy.compute()
     if signal.get("price_source") == "unavailable":
         logger.error("Skipping cycle, nothing persisted: %s", signal.get("error"))
+        trading_engine_cycles_total.labels(result="skipped").inc()
         return signal
 
     direction = signal.get("direction", "NEUTRAL")
@@ -67,13 +79,17 @@ def run_once(args) -> dict:
     )
 
     if args.db_save:
-        _save_to_db(result)
+        if _save_to_db(result):
+            trading_engine_last_signal_timestamp_seconds.set(time.time())
+            trading_engine_cycles_total.labels(result="saved").inc()
+        else:
+            trading_engine_cycles_total.labels(result="db_error").inc()
 
     return result
 
 
-def _save_to_db(signal_data: dict):
-    """Persist signal to TimescaleDB hypertable trading_signals."""
+def _save_to_db(signal_data: dict) -> bool:
+    """Persist signal to TimescaleDB hypertable trading_signals. True if the row landed."""
     try:
         conn = psycopg2.connect(DB_URL)
         cur = conn.cursor()
@@ -94,12 +110,18 @@ def _save_to_db(signal_data: dict):
         conn.commit()
         cur.close()
         conn.close()
+        return True
     except Exception as exc:
         logger.error("Failed to persist signal: %s", exc)
+        return False
 
 
 def run_live_loop(args):
     """Continuously generate signals at the configured interval."""
+    try:
+        start_http_server(int(os.getenv("METRICS_PORT", "9193")))
+    except OSError as exc:
+        logger.error("Metrics port unavailable, continuing without /metrics: %s", exc)
     trading_engine_up.set(1)
     logger.info("Starting live loop | interval=%ds | XAU=%.0f%% | WFA=%.0f%%",
                  args.interval, args.xau_weight, args.wfa_weight)
