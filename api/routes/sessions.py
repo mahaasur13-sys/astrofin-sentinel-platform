@@ -97,7 +97,7 @@ async def get_session_details(request: Request, session_id: str):
             session_id=str(session.session_id),
             symbol=session.symbol,
             start_time=session.created_at,
-            end_time=session.finished_at,
+            end_time=session.finished_at or None,  # PG хранит finished_at как TEXT; пустая строка → None
             final_signal=session.final_signal or "NEUTRAL",
             final_pnl=None,
             agent_decisions=agent_decisions,
