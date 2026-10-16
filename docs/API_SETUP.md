@@ -54,7 +54,6 @@ curl "http://localhost:8000/api/v1/sessions/?skip=0&limit=10"
 | `POST` | `/api/v1/agent/run` | Запустить агент с LLM роутингом |
 | `GET` | `/api/v1/astro/aspects` | Текущие астрологические аспекты |
 | `GET` | `/api/v1/astro/interpretation` | Ведическая интерпретация для трейдеров |
-| `WS` | `/ws/agent/{agent_id}` | WebSocket real-time стриминг агента |
 
 ## React Frontend Integration
 

@@ -217,6 +217,9 @@ def check_base_agent_inheritance(tree: ast.AST, src: Path, report: Report) -> No
     """
     if "_archived" in src.parts:
         return
+    # api/ holds Pydantic response models (e.g. DashboardAgent), not agent classes.
+    if str(_rel(src)).startswith("api/"):
+        return
     # Project root is the first ancestor of the file that contains a
     # top-level ``agents/`` directory. ``src`` is always under it.
     project_root = src
@@ -264,8 +267,10 @@ def check_require_ephemeris(tree: ast.AST, src: Path, source_text: str, report: 
         return
 
     # --- CHANGE 2: skip core/ and scripts/ for R2 ---
+    # api/ is the HTTP layer: its handlers call get_planetary_positions directly,
+    # but @require_ephemeris is an async guard for agent methods (args[0] is self).
     rel = str(_rel(src))
-    if rel.startswith(("core/", "scripts/")):
+    if rel.startswith(("core/", "scripts/", "api/")):
         return
 
     # AST-based detection: walk function bodies for real ephemeris calls.
@@ -345,6 +350,9 @@ def check_data_room_compliance(src: Path, source_text: str, report: Report) -> N
 
 # ─── R4: web/ routes must have @require_auth ───────────────────────────────
 
+# Both decorators live in core/auth.py: require_auth (Flask) and require_api_key (FastAPI).
+AUTH_DECORATORS = ("require_auth", "require_api_key", "auth_required")
+
 
 def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> None:
     if WEB_DIR not in src.parents and src.parent != WEB_DIR:
@@ -360,7 +368,7 @@ def check_web_auth_decorators(src: Path, source_text: str, report: Report) -> No
             is_route = any(".route(" in d for d in decorator_names)
             if not is_route:
                 continue
-            has_auth = any("require_auth" in d or "auth_required" in d for d in decorator_names)
+            has_auth = any(any(name in d for name in AUTH_DECORATORS) for d in decorator_names)
             is_public = "PUBLIC" in source_text.split(ast.unparse(node))[0][-200:]  # weak but useful
             if not has_auth and not is_public:
                 # Allow if the function is named with a public prefix or returns a static asset.
@@ -611,7 +619,17 @@ def check_no_submodules(report: Report) -> None:
 
 # ─── Driver ─────────────────────────────────────────────────────────────────
 
-SCAN_DIRS = ["agents", "core", "orchestration", "web", "scripts", "tools"]
+SCAN_DIRS = [
+    "agents",
+    "core",
+    "orchestration",
+    "web",
+    "scripts",
+    "tools",
+    "api",
+    "data_room",
+    "trading_engine",
+]
 SKIP_SUFFIXES = {".pyc", ".pyo", ".swp", ".bak"}
 SKIP_NAMES = {"__pycache__", ".venv", "venv", "node_modules", ".git", ".ruff_cache", ".pytest_cache"}
 
@@ -711,6 +729,7 @@ def render_report(report: Report) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     parser = argparse.ArgumentParser(description="AstroFin architecture linter")
     parser.add_argument("paths", nargs="*", help="specific files to lint")
     parser.add_argument("--changed", action="store_true", help="only git-changed files")
