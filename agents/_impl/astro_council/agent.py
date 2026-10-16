@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 
 from agents._impl.ephemeris_decorator import EphemerisUnavailableError
+from agents._impl.synthesis.weights import AGENT_WEIGHTS as _AGENT_WEIGHTS
 from agents.metrics import track_agent_metrics
 from core.base_agent import (
     EPHEMERIS_UNAVAILABLE,
@@ -21,13 +22,10 @@ from core.base_agent import (
 
 logger = logging.getLogger(__name__)
 
-AGENT_WEIGHTS = {
-    "BradleyAgent": 0.20,
-    "GannAgent": 0.20,
-    "CycleAgent": 0.20,
-    "ElectoralAgent": 0.20,
-    "TimeWindowAgent": 0.20,
-}
+# Канонические веса: agents/_impl/synthesis/weights.py (3/3/2/3/5), нормированы внутри astro-блока.
+_ASTRO_AGENTS = ("BradleyAgent", "GannAgent", "CycleAgent", "ElectoralAgent", "TimeWindowAgent")
+_ASTRO_TOTAL = sum(_AGENT_WEIGHTS[a] for a in _ASTRO_AGENTS)
+AGENT_WEIGHTS = {a: _AGENT_WEIGHTS[a] / _ASTRO_TOTAL for a in _ASTRO_AGENTS}
 
 
 class AstroCouncilAgent(BaseAgent[AgentResponse]):

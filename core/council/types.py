@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
+from agents._impl.synthesis.weights import CATEGORY_WEIGHTS as _CATEGORY_WEIGHTS
+
 
 class Signal(Enum):
     LONG = "LONG"
@@ -44,13 +46,13 @@ class CouncilResult:
 
 # ── Agent registry ──────────────────────────────────────────────────────────
 AGENT_WEIGHTS = {
-    "fundamental": 0.20,
-    "quant": 0.20,
-    "macro": 0.15,
-    "technical": 0.10,
-    "sentiment": 0.10,
-    "optionsflow": 0.15,
-    "astro": 0.10,
+    "fundamental": _CATEGORY_WEIGHTS["fundamental"],
+    "quant": _CATEGORY_WEIGHTS["quant"],
+    "macro": _CATEGORY_WEIGHTS["macro"],
+    "technical": _CATEGORY_WEIGHTS["technical"],
+    "sentiment": _CATEGORY_WEIGHTS["sentiment"],
+    "optionsflow": _CATEGORY_WEIGHTS["options"],
+    "astro": _CATEGORY_WEIGHTS["astro"],
 }
 
 AGENT_DESCRIPTIONS = {
