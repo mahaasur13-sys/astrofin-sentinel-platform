@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>VERIFY: pending</title>
+<style>
+  body { background: #17171a; color: #e8e8ea; font: 14px/1.5 ui-monospace, monospace; margin: 0; padding: 24px; }
+  h1 { font-size: 18px; }
+  table { border-collapse: collapse; }
+  td, th { border: 1px solid #333; padding: 4px 10px; text-align: left; }
+  .ok { color: #5ddc7a; }
+  .bad { color: #ff6b6b; }
+</style>
+</head>
+<body>
+<h1 id="verdict">running…</h1>
+<table id="out"></table>
+<script src="calculator.js?v=285970c6e9"></script>
+<script>
+// Same table as the specification. Runs the shipped engine in the browser.
+const CASES = [
+  ["200 + 10 %",        ["2","0","0","+","1","0","%","="], "220"],
+  ["200 − 10 %",        ["2","0","0","-","1","0","%","="], "180"],
+  ["200 × 10 %",        ["2","0","0","*","1","0","%","="], "20"],
+  ["200 ÷ 10 %",        ["2","0","0","/","1","0","%","="], "2000"],
+  ["100 + 10 % + 10 %", ["1","0","0","+","1","0","%","+","1","0","%","="], "121"],
+  ["200 + 10 % %",      ["2","0","0","+","1","0","%","%","="], "200.2"],
+  ["200 %",             ["2","0","0","%"], "2"],
+  ["200 = %",           ["2","0","0","=","%"], "2"],
+  ["200 ÷ 0 %",         ["2","0","0","/","0","%","="], "Infinity"],
+  ["200 − 150 %",       ["2","0","0","-","1","5","0","%","="], "-100"],
+  ["−200 + 10 %",       ["±","2","0","0","+","1","0","%","="], "-180"],
+  ["± 200 + 10 %",      ["±","2","0","0","+","1","0","%","="], "-180"],
+  ["0 + 10 %",          ["0","+","1","0","%","="], "0"]
+];
+
+let failed = 0;
+const rows = CASES.map(([label, keys, want]) => {
+  const c = new Calculator();
+  keys.forEach(k => c.press(k));
+  const got = c.display();
+  const ok = got === want;
+  if (!ok) failed++;
+  return `<tr><td>${label}</td><td>${got}</td><td>${want}</td><td class="${ok ? "ok" : "bad"}">${ok ? "PASS" : "FAIL"}</td></tr>`;
+});
+
+document.getElementById("out").innerHTML =
+  "<tr><th>Выражение</th><th>Получено</th><th>Ожидалось</th><th>Статус</th></tr>" + rows.join("");
+const verdict = failed === 0 ? `ALL PASS (${CASES.length}/${CASES.length})` : `FAIL (${CASES.length - failed}/${CASES.length})`;
+document.getElementById("verdict").textContent = verdict;
+document.title = "VERIFY: " + verdict;
+</script>
+</body>
+</html>
