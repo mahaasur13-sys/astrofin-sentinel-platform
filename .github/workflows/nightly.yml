@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: nightly
@@ -44,9 +45,12 @@ jobs:
       - name: Generate DORA report
         run: |
           mkdir -p docs/operations
-          python3 scripts/dora_metrics.py --window 30 \
-            --out docs/operations/dora_latest.json || \
-            echo "::warning::DORA report incomplete"
+          python3 scripts/dora_metrics.py --days 30 \
+            --out docs/operations/dora_latest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
       - name: Upload DORA report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
