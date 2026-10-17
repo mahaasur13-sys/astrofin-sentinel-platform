@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: nightly
@@ -43,9 +44,13 @@ jobs:
           pip install pyyaml
       - name: Generate DORA report
         run: |
-          python3 scripts/dora_metrics.py --window 30 \
-            --out docs/operations/dora_latest.json || \
-            echo "::warning::DORA report incomplete"
+          mkdir -p docs/operations
+          python3 scripts/dora_metrics.py --days 30 \
+            --out docs/operations/dora_latest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
       - name: Upload DORA report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
@@ -53,17 +58,6 @@ jobs:
           name: dora-report
           path: docs/operations/dora_latest.json
           retention-days: 90
-      - name: Commit DORA report (if changed)
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet docs/operations/dora_latest.json; then
-            echo "No changes to DORA report."
-          else
-            git add docs/operations/dora_latest.json
-            git commit -m "chore(ops): nightly DORA report $(date -u +%Y-%m-%d)"
-            git push || echo "::warning::DORA push failed (likely insufficient permissions)"
-          fi
 
   # -------------------------------------------------------------------------
   # Heavy tests (full suite, integration, e2e subset) — only if not report_only.
