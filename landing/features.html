@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Features — DecisionOS v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050508; --bg-card: #0c0c10; --bg-elevated: #111116;
+  --cyan: #06d6d6; --violet: #a855f7; --green: #22c55e; --red: #ef4444;
+  --text: #e8e8ed; --text-muted: #9ca3af;
+  --border: rgba(6,214,214,0.18);
+  --glow-cyan: 0 0 20px rgba(6,214,214,0.35);
+  --glow-violet: 0 0 20px rgba(168,85,247,0.35);
+  --radius: 12px;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Orbitron', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;min-height:100vh}
+#orbital-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.85}
+.container{width:100%;max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+.header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,0.82);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:16px 0}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.logo{font-family:var(--font-heading);font-weight:700;font-size:1.25rem;letter-spacing:0.06em;color:var(--cyan);text-shadow:var(--glow-cyan);display:flex;align-items:center;gap:10px}
+.logo-a{text-decoration:none;color:var(--cyan);display:flex;align-items:center;gap:10px}
+.logo-badge{font-size:0.65rem;background:rgba(6,214,214,0.15);border:1px solid var(--cyan);padding:2px 8px;border-radius:999px;color:var(--cyan)}
+.nav{display:flex;align-items:center;gap:24px}
+.nav a{color:var(--text-muted);text-decoration:none;font-size:0.9rem;font-weight:500;transition:color 0.2s;padding:4px 0;border-bottom:2px solid transparent}
+.nav a:hover{color:var(--cyan)}
+.nav a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.header-btn{display:flex;align-items:center;gap:8px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:var(--font-body);font-size:0.875rem;transition:all 0.25s}
+.header-btn:hover{border-color:var(--cyan);box-shadow:var(--glow-cyan)}
+.header-btn.crypto-btn{border-color:rgba(168,85,247,0.3);}.header-btn.crypto-btn:hover{border-color:var(--violet);box-shadow:var(--glow-violet);}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#6b7280;flex-shrink:0}
+.status-dot.active{background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse-green 1.6s infinite}
+@keyframes pulse-green{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.55;transform:scale(1.25)}}
+.page-hero{padding:48px 0 32px;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(6,214,214,0.08);border:1px solid rgba(6,214,214,0.3);padding:6px 14px;border-radius:999px;font-size:0.8rem;color:var(--cyan);margin-bottom:24px;font-family:var(--font-mono)}
+.page-hero h1{font-family:var(--font-heading);font-weight:800;font-size:clamp(2rem,4.5vw,3rem);line-height:1.15;margin-bottom:16px;background:linear-gradient(135deg,#fff 0%,var(--cyan) 50%,var(--violet) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.page-hero p{font-size:1.1rem;color:var(--text-muted);max-width:600px;margin:0 auto}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:64px}
+.feature-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:32px;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.35s;border-radius:inherit;pointer-events:none}
+.feature-card:hover{transform:translateY(-6px);border-color:var(--violet);box-shadow:0 0 40px rgba(168,85,247,0.25)}
+.feature-card:hover::before{opacity:1;box-shadow:inset 0 0 60px rgba(168,85,247,0.06)}
+.feature-icon{font-size:2rem;margin-bottom:16px;display:inline-block;width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:rgba(6,214,214,0.08);border-radius:12px;transition:all 0.3s}
+.feature-card:hover .feature-icon{background:rgba(6,214,214,0.18);box-shadow:0 0 20px rgba(6,214,214,0.3)}
+.feature-card h3{font-family:var(--font-heading);font-size:1.05rem;margin-bottom:8px;color:var(--text);letter-spacing:0.02em}
+.feature-card p{font-size:0.88rem;color:var(--text-muted);line-height:1.65}
+.feature-card .feature-tag{display:inline-block;font-size:0.7rem;font-family:var(--font-mono);color:var(--cyan);margin-top:14px;padding:3px 8px;background:rgba(6,214,214,0.08);border-radius:6px;border:1px solid rgba(6,214,214,0.2)}
+.arch-section{margin-bottom:80px;text-align:center}
+.arch-section h2{font-family:var(--font-heading);font-size:1.6rem;margin-bottom:32px;color:var(--text)}
+.arch-diagram{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:800px;margin:0 auto 32px}
+.arch-node{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:left;transition:all 0.3s}
+.arch-node:hover{border-color:var(--cyan);box-shadow:var(--glow-cyan)}
+.arch-node .arch-node-title{font-family:var(--font-heading);font-size:0.95rem;color:var(--cyan);margin-bottom:12px}
+.arch-node ul{list-style:none;font-size:0.85rem;color:var(--text-muted)}
+.arch-node ul li{padding:4px 0;font-family:var(--font-mono);font-size:0.8rem}
+.arch-node ul li::before{content:'◈ ';color:var(--violet)}
+.arch-arrow{display:flex;justify-content:center;align-items:center;color:var(--cyan);font-size:1.5rem;margin:16px 0}
+.cta-section{text-align:center;padding:48px 0;margin-bottom:64px}
+.cta-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:40px;max-width:600px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:20px}
+.cta-card h2{font-family:var(--font-heading);font-size:1.5rem;margin-bottom:8px;color:var(--text)}
+.cta-card p{color:var(--text-muted);font-size:0.95rem}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:10px;font-family:var(--font-body);font-weight:600;font-size:0.95rem;cursor:pointer;border:none;transition:all 0.25s;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),#0891b2);color:#000;box-shadow:var(--glow-cyan)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(6,214,214,0.5)}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-secondary:hover{border-color:var(--violet);box-shadow:var(--glow-violet)}
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:64px}
+.stat-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center;transition:all 0.3s}
+.stat-item:hover{border-color:var(--cyan);box-shadow:var(--glow-cyan)}
+.stat-item .stat-num{font-family:var(--font-heading);font-size:1.6rem;color:var(--cyan);text-shadow:var(--glow-cyan);margin-bottom:4px}
+.stat-item .stat-lbl{font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em}
+.footer{border-top:1px solid var(--border);padding:32px 0;text-align:center;color:var(--text-muted);font-size:0.85rem}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all 0.3s}
+.modal-overlay.open{opacity:1;visibility:visible}
+.modal{background:var(--bg-elevated);border:1px solid var(--border);border-radius:16px;width:100%;max-width:460px;padding:32px;box-shadow:0 0 60px rgba(6,214,214,0.15);transform:scale(0.92);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+.modal-overlay.open .modal{transform:scale(1)}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.modal-title{font-family:var(--font-heading);font-size:1.25rem;font-weight:700;color:var(--cyan)}
+.modal-subtitle{font-size:0.85rem;color:var(--text-muted);margin-top:4px}
+.modal-close{background:none;border:none;color:var(--text-muted);font-size:1.4rem;cursor:pointer;padding:4px;line-height:1}
+.modal-close:hover{color:var(--text)}
+.form-group{margin-bottom:24px}
+.form-label{display:block;font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;font-family:var(--font-mono)}
+.input-wrap{position:relative}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 44px 12px 14px;color:var(--text);font-family:var(--font-mono);font-size:0.9rem;outline:none;transition:border-color 0.2s}
+.form-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(6,214,214,0.15)}
+.toggle-visibility{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px}
+.modal-hint{font-size:0.75rem;color:var(--text-muted);margin-bottom:24px;line-height:1.5}
+.modal-actions{display:flex;gap:16px;flex-wrap:wrap}
+.btn-save{flex:1;background:linear-gradient(135deg,var(--cyan),#0891b2);color:#000;font-weight:600}
+.btn-delete{background:transparent;border:1px solid rgba(239,68,68,0.4);color:var(--red)}
+.btn-delete:hover{border-color:var(--red);background:rgba(239,68,68,0.1)}
+.btn-cancel{background:transparent;border:1px solid var(--border);color:var(--text-muted)}
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-elevated);border:1px solid var(--green);color:var(--text);padding:12px 24px;border-radius:10px;font-size:0.9rem;z-index:2000;box-shadow:0 0 30px rgba(34,197,94,0.25);opacity:0;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.chat-fab{position:fixed;bottom:28px;right:28px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--violet));border:none;cursor:pointer;z-index:900;display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 0 30px rgba(6,214,214,0.4)}
+.chat-fab:hover{transform:scale(1.08);box-shadow:0 0 45px rgba(6,214,214,0.55)}
+.chat-window{position:fixed;bottom:100px;right:28px;width:620px;height:780px;max-height:calc(100vh - 140px);background:var(--bg-elevated);border:1px solid var(--border);border-radius:16px;z-index:950;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,0.6),0 0 40px rgba(6,214,214,0.12);opacity:0;visibility:hidden;transform:scale(0.92) translateY(20px);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+.chat-window.open{opacity:1;visibility:visible;transform:scale(1) translateY(0)}
+.chat-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:rgba(6,214,214,0.04)}
+.chat-header-left{display:flex;align-items:center;gap:10px}
+.chat-title{font-family:var(--font-heading);font-size:0.95rem;font-weight:600;color:var(--cyan)}
+.chat-header-actions{display:flex;gap:8px;align-items:center}
+.chat-header-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px;transition:color 0.2s}
+.chat-header-btn:hover{color:var(--text)}
+.chat-messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:88%;padding:12px 16px;border-radius:12px;font-size:0.92rem;line-height:1.55;word-break:break-word;animation:msgIn 0.25s ease-out}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end;background:rgba(6,214,214,0.12);border:1px solid rgba(6,214,214,0.25);border-bottom-right-radius:4px}
+.msg.assistant{align-self:flex-start;background:var(--bg-card);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.system{align-self:center;background:transparent;color:var(--text-muted);font-size:0.8rem;text-align:center;animation:none}
+.chat-input-area{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end}
+.chat-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:var(--font-body);font-size:0.92rem;resize:none;min-height:48px;max-height:140px;outline:none;transition:border-color 0.2s}
+.chat-input:focus{border-color:var(--cyan)}
+.chat-send,.chat-stop{width:48px;height:48px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.2rem;transition:all 0.2s;flex-shrink:0}
+.chat-send{background:linear-gradient(135deg,var(--cyan),#0891b2);color:#000}
+.chat-send:hover{box-shadow:var(--glow-cyan)}
+.chat-stop{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:var(--red);display:none}
+.chat-stop.visible{display:flex}
+@media(max-width:900px){.features-grid{grid-template-columns:1fr 1fr}.stats-bar{grid-template-columns:1fr 1fr}.arch-diagram{grid-template-columns:1fr}}
+@media(max-width:600px){.features-grid{grid-template-columns:1fr}.stats-bar{grid-template-columns:1fr}.nav a{display:none}.chat-window{width:calc(100vw - 24px);height:calc(100vh - 120px);right:12px;bottom:90px}}
+</style>
+</head>
+<body>
+<canvas id="orbital-canvas"></canvas>
+
+<header class="header">
+  <div class="container header-inner">
+    <a href="/" class="logo-a"><div class="logo">ROMA<span class="logo-badge">DecisionOS v2.0</span></div></a>
+    <nav class="nav">
+      <a href="/features.html" class="active">Features</a>
+      <a href="/pricing.html">Pricing</a>
+      <a href="/docs.html">Docs</a>
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/#crypto" class="header-btn crypto-btn">₿ Crypto</a>
+      <button class="header-btn" id="apiKeyBtn" title="API Key Settings">
+        <span class="status-dot" id="keyStatusDot"></span>
+        <span>🔑 API Key</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="page-hero">
+    <div class="container">
+      <div class="hero-badge">◈ Enterprise Capabilities · Production-Ready</div>
+      <h1>Built for GPU-scale<br>AI workloads</h1>
+      <p>Every feature engineered for multi-tenant, high-throughput GPU & CPU execution. Zero compromises.</p>
+    </div>
+  </section>
+
+  <section class="container stats-bar">
+    <div class="stat-item"><div class="stat-num" data-target="17">0</div><div class="stat-lbl">API Endpoints</div></div>
+    <div class="stat-item"><div class="stat-num" data-target="6">0</div><div class="stat-lbl">Policy Actions</div></div>
+    <div class="stat-item"><div class="stat-num" data-target="99.9">0</div><div class="stat-lbl">Uptime SLA</div></div>
+    <div class="stat-item"><div class="stat-num" data-target="12">0</div><div class="stat-lbl">GPU Topologies</div></div>
+  </section>
+
+  <section class="container features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">◈</div>
+      <h3>Unified Execution</h3>
+      <p>Submit training, inference, batch and benchmark jobs through a single REST interface. One API, any workload.</p>
+      <span class="feature-tag">POST /submit</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">◉</div>
+      <h3>Tenant Isolation</h3>
+      <p>API-key authentication with per-tenant job state, usage tracking, and plan-aware resource limits.</p>
+      <span class="feature-tag">X-API-Key</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">✦</div>
+      <h3>Operational Visibility</h3>
+      <p>Health checks, Prometheus metrics, structured logs, real-time job status and billing event streams.</p>
+      <span class="feature-tag">GET /health</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⬡</div>
+      <h3>Policy Engine</h3>
+      <p>Declarative policy language for routing, quotas, priority, preemption and affinity rules.</p>
+      <span class="feature-tag">Policy Actions</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">◓</div>
+      <h3>Billing & Usage</h3>
+      <p>Per-second GPU billing, usage dashboards, cost attribution, and plan-based rate limiting.</p>
+      <span class="feature-tag">GET /usage</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">◈</div>
+      <h3>GPU Observability</h3>
+      <p>Live GPU telemetry — memory, utilization, temperature. Built-in NVIDIA DCGM integration.</p>
+      <span class="feature-tag">Prometheus</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">◉</div>
+      <h3>API Gateway</h3>
+      <p>Rate limiting, request validation, CORS, streaming response support. Built on FastAPI.</p>
+      <span class="feature-tag">Gateway</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⬡</div>
+      <h3>Security & RBAC</h3>
+      <p>Scoped API keys, audit logging, request signing, and organization-level access control.</p>
+      <span class="feature-tag">RBAC</span>
+    </div>
+  </section>
+
+  <section class="container arch-section">
+    <h2>Execution Architecture</h2>
+    <div class="arch-diagram">
+      <div class="arch-node">
+        <div class="arch-node-title">◈ Control Plane</div>
+        <ul><li>REST API Gateway</li><li>Policy Engine</li><li>Job Scheduler</li><li>Billing Pipeline</li><li>Auth & Key Mgmt</li></ul>
+      </div>
+      <div class="arch-node">
+        <div class="arch-node-title">◉ Execution Plane</div>
+        <ul><li>GPU Worker Pool</li><li>NVIDIA DCGM</li><li>Container Runtime</li><li>Metrics Collector</li><li>Log Shipper</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="container cta-section">
+    <div class="cta-card">
+      <h2>Ready to deploy?</h2>
+      <p>Start with our Free tier — 100 GPU-hours included. No credit card required.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+        <a href="/pricing.html" class="btn btn-primary">View Plans</a>
+        <a href="/docs.html" class="btn btn-secondary">Read Docs</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">ROMA Execution Bridge · DecisionOS v2.0 · Enterprise GPU Infrastructure</div>
+</footer>
+
+<div class="modal-overlay" id="apiKeyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title">API Key Settings</div><div class="modal-subtitle">Управление доступом к ROMA Execution Bridge</div></div>
+      <button class="modal-close" id="modalClose">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">X-API-Key</label>
+      <div class="input-wrap">
+        <input type="password" class="form-input" id="apiKeyInput" placeholder="Введите ваш X-API-Key" autocomplete="off">
+        <button class="toggle-visibility" id="toggleVisibility" type="button">👁</button>
+      </div>
+    </div>
+    <p class="modal-hint">Ключ хранится только в вашем браузере и автоматически передаётся в заголовке X-API-Key</p>
+    <div class="modal-actions">
+      <button class="btn btn-save" id="saveKeyBtn">Сохранить</button>
+      <button class="btn btn-delete" id="deleteKeyBtn">Удалить ключ</button>
+      <button class="btn btn-cancel" id="cancelKeyBtn">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<button class="chat-fab" id="chatFab" title="ROMA AI Assistant">◈</button>
+
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header">
+    <div class="chat-header-left"><span class="status-dot" id="chatKeyDot"></span><span class="chat-title">ROMA AI Assistant</span></div>
+    <div class="chat-header-actions">
+      <button class="chat-header-btn" id="chatApiKeyBtn" title="API Key">🔑</button>
+      <button class="chat-header-btn" id="chatCloseBtn" title="Close">×</button>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-area">
+    <textarea class="chat-input" id="chatInput" placeholder="Напишите команду или вопрос..." rows="1"></textarea>
+    <button class="chat-send" id="chatSend">➤</button>
+    <button class="chat-stop" id="chatStop">⏹</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const canvas=document.getElementById('orbital-canvas'),ctx=canvas.getContext('2d');
+  let w,h,particles=[];
+  const COLORS=['#06d6d6','#a855f7','#22c55e','#06b6d4','#c084fc'];
+  function rs(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight}
+  function cp(){
+    particles=[];
+    for(let i=0;i<28;i++)particles.push({layer:1,x:Math.random()*w,y:Math.random()*h,r:0.6+Math.random()*1.2,orbitR:40+Math.random()*120,angle:Math.random()*Math.PI*2,speed:0.018+Math.random()*0.022,color:COLORS[Math.floor(Math.random()*COLORS.length)],alpha:0.35+Math.random()*0.4});
+    for(let i=0;i<18;i++)particles.push({layer:2,x:Math.random()*w,y:Math.random()*h,r:1.2+Math.random()*1.8,orbitR:60+Math.random()*160,angle:Math.random()*Math.PI*2,speed:0.010+Math.random()*0.014,color:COLORS[Math.floor(Math.random()*COLORS.length)],alpha:0.25+Math.random()*0.35});
+    for(let i=0;i<10;i++)particles.push({layer:3,x:Math.random()*w,y:Math.random()*h,r:2+Math.random()*3,orbitR:80+Math.random()*200,angle:Math.random()*Math.PI*2,speed:0.005+Math.random()*0.008,color:COLORS[Math.floor(Math.random()*COLORS.length)],alpha:0.15+Math.random()*0.25});
+    for(let i=0;i<8;i++)particles.push({layer:4,x:Math.random()*w,y:Math.random()*h,r:0.8,orbitR:50+Math.random()*140,angle:Math.random()*Math.PI*2,speed:0.012+Math.random()*0.016,color:COLORS[Math.floor(Math.random()*3)],alpha:0.12+Math.random()*0.18,isLine:!0});
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    particles.forEach(p=>{
+      p.angle+=p.speed;
+      const cx=p.x+Math.cos(p.angle)*p.orbitR*0.6,cy=p.y+Math.sin(p.angle)*p.orbitR*0.35;
+      if(p.isLine){ctx.beginPath();ctx.ellipse(p.x,p.y,p.orbitR*0.7,p.orbitR*0.35,0,0,Math.PI*2);ctx.strokeStyle=p.color;ctx.globalAlpha=p.alpha*0.5;ctx.lineWidth=0.6;ctx.stroke()}
+      ctx.beginPath();ctx.arc(cx,cy,p.r,0,Math.PI*2);ctx.fillStyle=p.color;ctx.globalAlpha=p.alpha;ctx.shadowBlur=p.layer===3?12:4;ctx.shadowColor=p.color;ctx.fill();ctx.shadowBlur=0
+    });
+    ctx.globalAlpha=1;requestAnimationFrame(draw)
+  }
+  rs();cp();draw();window.addEventListener('resize',()=>{rs();cp()});
+})();
+
+/* API Key + Modal */
+const SK='roma_api_key';
+const gK=()=>localStorage.getItem(SK)||'';
+const uS=()=>{const h=!!gK();document.getElementById('keyStatusDot').classList.toggle('active',h);document.getElementById('chatKeyDot').classList.toggle('active',h)};
+const oM=()=>{document.getElementById('apiKeyInput').value=gK();document.getElementById('apiKeyModal').classList.add('open');setTimeout(()=>document.getElementById('apiKeyInput').focus(),100)};
+const cM=()=>document.getElementById('apiKeyModal').classList.remove('open');
+const sT=m=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)};
+document.getElementById('apiKeyBtn').addEventListener('click',oM);
+document.getElementById('chatApiKeyBtn').addEventListener('click',oM);
+document.getElementById('modalClose').addEventListener('click',cM);
+document.getElementById('cancelKeyBtn').addEventListener('click',cM);
+document.getElementById('apiKeyModal').addEventListener('click',e=>{if(e.target===document.getElementById('apiKeyModal'))cM()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')cM()});
+document.getElementById('toggleVisibility').addEventListener('click',()=>{const el=document.getElementById('apiKeyInput'),p=el.type==='password';el.type=p?'text':'password';document.getElementById('toggleVisibility').textContent=p?'🙈':'👁'});
+document.getElementById('saveKeyBtn').addEventListener('click',()=>{const v=document.getElementById('apiKeyInput').value.trim();v?localStorage.setItem(SK,v):localStorage.removeItem(SK);uS();sT(v?'✅ API Key успешно сохранён':'🗑 API Key удалён');cM()});
+document.getElementById('deleteKeyBtn').addEventListener('click',()=>{localStorage.removeItem(SK);document.getElementById('apiKeyInput').value='';uS();sT('🗑 API Key удалён');cM()});
+uS();
+
+/* Counters */
+(function(){
+  const sec=document.querySelector('.stats-bar'),vals=sec.querySelectorAll('.stat-num');let ad=!1;
+  function eo(t){return 1-Math.pow(1-t,3)}
+  function ac(){if(ad)return;ad=!0;vals.forEach(el=>{
+    const tg=parseFloat(el.dataset.target),dr=1800,st=performance.now();
+    function tick(now){const pr=Math.min((now-st)/dr,1),es=eo(pr);if(tg>=100){el.textContent=tg===99.9?'99.9%':Math.floor(tg*es).toLocaleString('en-US')}else el.textContent=Math.floor(tg*es);if(pr<1)requestAnimationFrame(tick);else el.textContent=tg===99.9?'99.9%':tg>=1000?tg.toLocaleString('en-US'):tg}
+    requestAnimationFrame(tick)
+  })}
+  const ob=new IntersectionObserver(e=>{if(e[0].isIntersecting)ac()},{threshold:0.4});ob.observe(sec)
+})();
+
+/* Chat */
+(function(){
+  const fab=document.getElementById('chatFab'),we=document.getElementById('chatWindow'),cb=document.getElementById('chatCloseBtn'),me=document.getElementById('chatMessages'),ie=document.getElementById('chatInput'),sb=document.getElementById('chatSend'),stb=document.getElementById('chatStop');
+  const HK='roma_chat_history',NK='roma_user_name';let un=localStorage.getItem(NK)||'',is=!1,ac=null;
+  function oc(){we.classList.add('open');if(!un)setTimeout(()=>{const n=prompt('Введите ваше имя для ROMA Assistant:');if(n&&n.trim()){un=n.trim();localStorage.setItem(NK,un);as(`Добро пожаловать, ${un}! Готов выполнять команды.`)}},300);ie.focus()}
+  function cc(){we.classList.remove('open')}
+  fab.addEventListener('click',oc);cb.addEventListener('click',cc);
+  function am(r,t){const d=document.createElement('div');d.className=`msg ${r}`;d.textContent=t;me.appendChild(d);me.scrollTop=me.scrollHeight;sh();return d}
+  function as(t){am('system',t)}
+  function sh(){const ms=[];me.querySelectorAll('.msg').forEach(m=>{if(!m.classList.contains('system'))ms.push({role:m.classList.contains('user')?'user':'assistant',text:m.textContent})});localStorage.setItem(HK,JSON.stringify(ms.slice(-40)))}
+  function lh(){try{const r=localStorage.getItem(HK);if(!r)return;JSON.parse(r).forEach(m=>am(m.role,m.text))}catch(e){}}
+  lh();if(me.children.length===0)as('ROMA AI Assistant online. Streaming ready.');
+  async function sr(ut){is=!0;sb.style.display='none';stb.classList.add('visible');ac=new AbortController();const ad=am('assistant',''),rs=[`Понял, ${un||'оператор'}. Инициирую задачу через ROMA Execution Bridge…`,`Проверяю доступность GPU-кластера… X-API-Key ${gK()?'обнаружен':'не установлен'}.`,`Задача принята в очередь. Job ID: job_${Date.now().toString(36)}. Статус: queued → running.`,`Мониторинг активен. Используйте GET /status/{job_id} для отслеживания.`];let full='';
+    try{for(const c of rs){if(ac.signal.aborted)break;for(const ch of c+' '){if(ac.signal.aborted)break;full+=ch;ad.textContent=full;me.scrollTop=me.scrollHeight;await new Promise(r=>setTimeout(r,12+Math.random()*18))}await new Promise(r=>setTimeout(r,180))}}catch(e){}
+    is=!1;sb.style.display='flex';stb.classList.remove('visible');sh()
+  }
+  function sm(){const t=ie.value.trim();if(!t||is)return;am('user',t);ie.value='';ie.style.height='auto';sr(t)}
+  sb.addEventListener('click',sm);ie.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sm()}});
+  stb.addEventListener('click',()=>{if(ac)ac.abort();is=!1;sb.style.display='flex';stb.classList.remove('visible')});
+  ie.addEventListener('input',()=>{ie.style.height='auto';ie.style.height=Math.min(ie.scrollHeight,140)+'px'})
+})();
+
+/* Scroll-reveal for feature cards */
+(function(){
+  const cards=document.querySelectorAll('.feature-card');
+  const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)'}})},{threshold:0.15});
+  cards.forEach((c,i)=>{c.style.opacity='0';c.style.transform='translateY(30px)';c.style.transition='all 0.5s ease-out';c.style.transitionDelay=`${i*0.06}s`;observer.observe(c)})
+})();
+</script>
+</body>
+</html>

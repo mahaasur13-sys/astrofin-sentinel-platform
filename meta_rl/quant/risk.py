@@ -52,7 +52,9 @@ def omega_ratio(returns: Sequence[float], threshold: float = 0.0) -> float:
     """Omega: gain above threshold / loss below threshold."""
     gain = sum(threshold - r for r in returns if r >= threshold)
     loss = sum(r - threshold for r in returns if r < threshold)
-    return gain / loss if loss != 0 else 0.0
+    # No losing periods means no downside to offset: Omega is unbounded, not zero.
+    result = gain / loss if loss != 0 else float("inf")
+    return 0.0 if result == 0 else result  # 0 / negative loss gives -0.0; normalize to 0.0
 
 
 def rolling_sharpe(returns: Sequence[float], window: int = 20) -> list[float]:

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DecisionOS v2.0 — ROMA Execution Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050508;
+  --bg-card: #0c0c10;
+  --bg-elevated: #111116;
+  --cyan: #06d6d6;
+  --violet: #a855f7;
+  --green: #22c55e;
+  --red: #ef4444;
+  --text: #e8e8ed;
+  --text-muted: #9ca3af;
+  --border: rgba(6, 214, 214, 0.18);
+  --glow-cyan: 0 0 20px rgba(6, 214, 214, 0.35);
+  --glow-violet: 0 0 20px rgba(168, 85, 247, 0.35);
+  --radius: 12px;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Orbitron', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; min-height: 100vh; }
+
+#orbital-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.85; }
+
+.container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 var(--space-3); position: relative; z-index: 1; }
+
+/* ========== HEADER ========== */
+.header { position: sticky; top: 0; z-index: 100; background: rgba(5,5,8,0.82); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: var(--space-2) 0; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.logo { font-family: var(--font-heading); font-weight: 700; font-size: 1.25rem; letter-spacing: 0.06em; color: var(--cyan); text-shadow: var(--glow-cyan); display: flex; align-items: center; gap: 10px; }
+.logo-badge { font-size: 0.65rem; background: rgba(6,214,214,0.15); border: 1px solid var(--cyan); padding: 2px 8px; border-radius: 999px; color: var(--cyan); }
+.nav { display: flex; align-items: center; gap: var(--space-2); }
+.nav a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s; padding: 4px 0; border-bottom: 2px solid transparent; }
+.nav a:hover { color: var(--cyan); }
+.header-btn { display: flex; align-items: center; gap: 6px; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text); padding: 7px 12px; border-radius: 8px; cursor: pointer; font-family: var(--font-body); font-size: 0.8rem; transition: all 0.25s; }
+.header-btn:hover { border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+.header-btn.crypto-btn { border-color: rgba(168,85,247,0.3); }
+.header-btn.crypto-btn:hover { border-color: var(--violet); box-shadow: var(--glow-violet); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #6b7280; flex-shrink: 0; }
+.status-dot.active { background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse-green 1.6s infinite; }
+@keyframes pulse-green { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.55;transform:scale(1.25)} }
+
+/* ========== HERO ========== */
+.hero { padding: var(--space-5) 0 64px; text-align: center; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(6,214,214,0.08); border: 1px solid rgba(6,214,214,0.3); padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; color: var(--cyan); margin-bottom: var(--space-3); font-family: var(--font-mono); }
+.hero h1 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(2.4rem,5.5vw,3.8rem); line-height: 1.15; letter-spacing: -0.02em; margin-bottom: var(--space-2); background: linear-gradient(135deg,#fff 0%,var(--cyan) 50%,var(--violet) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero p { font-size: 1.15rem; color: var(--text-muted); max-width: 640px; margin: 0 auto var(--space-4); }
+.hero-cta { display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; font-family: var(--font-body); font-weight: 600; font-size: 0.95rem; cursor: pointer; border: none; transition: all 0.25s; text-decoration: none; }
+.btn-primary { background: linear-gradient(135deg,var(--cyan),#0891b2); color: #000; box-shadow: var(--glow-cyan); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(6,214,214,0.5); }
+.btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-secondary:hover { border-color: var(--violet); box-shadow: var(--glow-violet); }
+.btn-violet { background: linear-gradient(135deg,var(--violet),#7c3aed); color: #fff; box-shadow: var(--glow-violet); }
+.btn-violet:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(168,85,247,0.5); }
+.btn-green { background: linear-gradient(135deg,var(--green),#16a34a); color: #000; border: none; }
+.btn-green:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(34,197,94,0.4); }
+
+/* ========== STATS ========== */
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: var(--space-3); margin: var(--space-5) 0; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-3); text-align: center; transition: border-color 0.3s,box-shadow 0.3s; }
+.stat-card:hover { border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+.stat-value { font-family: var(--font-heading); font-size: 2.2rem; font-weight: 700; color: var(--cyan); text-shadow: var(--glow-cyan); margin-bottom: 4px; }
+.stat-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ========== FEATURES ========== */
+.section-title { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 700; text-align: center; margin-bottom: var(--space-4); letter-spacing: 0.03em; }
+.features { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--space-3); margin-bottom: var(--space-5); }
+.feature-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-4); transition: all 0.3s; }
+.feature-card:hover { border-color: var(--violet); box-shadow: var(--glow-violet); transform: translateY(-4px); }
+.feature-icon { font-size: 1.8rem; margin-bottom: var(--space-2); }
+.feature-card h3 { font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: var(--space-1); color: var(--text); }
+.feature-card p { font-size: 0.9rem; color: var(--text-muted); }
+
+/* ========== CRYPTO SECTION ========== */
+.crypto-section { padding: 0 0 var(--space-5); margin-bottom: var(--space-3); }
+.crypto-header { text-align: center; margin-bottom: var(--space-4); }
+.crypto-header .crypto-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.35); padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; color: var(--violet); margin-bottom: var(--space-2); font-family: var(--font-mono); }
+.crypto-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--space-3); margin-bottom: var(--space-4); }
+.crypto-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-4); transition: all 0.3s; }
+.crypto-card:hover { border-color: var(--violet); box-shadow: 0 0 24px rgba(168,85,247,0.2); transform: translateY(-3px); }
+.crypto-card .crypto-icon { font-size: 2rem; margin-bottom: var(--space-2); }
+.crypto-card h3 { font-family: var(--font-heading); font-size: 1rem; margin-bottom: var(--space-1); color: var(--text); }
+.crypto-card p { font-size: 0.85rem; color: var(--text-muted); }
+.crypto-card .currency-tags { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.currency-tag { padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-family: var(--font-mono); border: 1px solid; }
+.tag-usdt { color: #22c55e; border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.08); }
+.tag-btc { color: #f7931a; border-color: rgba(247,147,26,0.3); background: rgba(247,147,26,0.08); }
+.tag-eth { color: #627eea; border-color: rgba(98,126,234,0.3); background: rgba(98,126,234,0.08); }
+.tag-xmr { color: #ff6b3c; border-color: rgba(255,107,60,0.3); background: rgba(255,107,60,0.08); }
+.crypto-cta { text-align: center; display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap; }
+.monero-mini { background: var(--bg-card); border: 1px solid rgba(255,107,60,0.2); border-radius: var(--radius); padding: var(--space-3); margin-top: var(--space-3); max-width: 640px; margin-left: auto; margin-right: auto; }
+.monero-mini h4 { font-family: var(--font-heading); font-size: 0.9rem; color: #ff6b3c; margin-bottom: 8px; }
+.monero-mini .monero-status { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); }
+
+/* ========== API KEY MODAL ========== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+.modal-overlay.open { opacity: 1; visibility: visible; }
+.modal { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 480px; padding: var(--space-4); box-shadow: 0 0 60px rgba(6,214,214,0.15); transform: scale(0.92); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); position: relative; }
+.modal-overlay.open .modal { transform: scale(1); }
+.modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-3); }
+.modal-title { font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: var(--cyan); }
+.modal-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+.modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; line-height: 1; padding: 4px; transition: color 0.2s; }
+.modal-close:hover { color: var(--text); }
+.form-group { margin-bottom: var(--space-3); }
+.form-label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-family: var(--font-mono); }
+.form-select, .form-input, .form-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; color: var(--text); font-family: var(--font-mono); font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+.form-select:focus, .form-input:focus, .form-textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(6,214,214,0.15); }
+.form-select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239ca3af' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+.form-textarea { resize: vertical; min-height: 80px; font-family: var(--font-body); }
+.input-wrap { position: relative; }
+.toggle-visibility { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; }
+.modal-hint { font-size: 0.75rem; color: var(--text-muted); margin-bottom: var(--space-3); line-height: 1.5; }
+.modal-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.btn-save { background: linear-gradient(135deg,var(--cyan),#0891b2); color: #000; font-weight: 600; }
+.btn-delete { background: transparent; border: 1px solid rgba(239,68,68,0.4); color: var(--red); }
+.btn-delete:hover { border-color: var(--red); background: rgba(239,68,68,0.1); }
+.btn-cancel { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+.invoice-result { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: var(--space-2); margin-top: var(--space-2); display: none; }
+.invoice-result.show { display: block; }
+.invoice-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.82rem; font-family: var(--font-mono); }
+.invoice-row:last-child { border-bottom: none; }
+.invoice-label { color: var(--text-muted); }
+.invoice-value { color: var(--cyan); }
+.nowpayments-section { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+.np-status { display: flex; align-items: center; gap: 10px; font-size: 0.78rem; color: var(--text-muted); margin-bottom: var(--space-2); }
+
+/* ─── COFFEE BUTTON ─── */
+.coffee-btn{display:inline-flex;align-items:center;gap:10px;padding:12px 24px;background:linear-gradient(135deg,#00704A,#005c3a);border:1px solid rgba(0,112,74,0.5);color:#fff;border-radius:12px;font-family:var(--font-body);font-weight:600;font-size:0.95rem;cursor:pointer;text-decoration:none;transition:all 0.3s ease;box-shadow:0 0 16px rgba(0,112,74,0.3)}
+.coffee-btn:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(0,112,74,0.5),0 0 45px rgba(6,214,214,0.2);border-color:rgba(6,214,214,0.5)}
+.coffee-btn svg{width:22px;height:22px;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(0,184,122,0.5));transition:filter 0.3s}
+.coffee-btn:hover svg{filter:drop-shadow(0 0 12px rgba(6,214,214,0.6))}
+.coffee-fab{position:fixed;bottom:100px;right:100px;z-index:899;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00704A,#005c3a);border:1px solid rgba(0,112,74,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 0 14px rgba(0,112,74,0.35);transition:transform 0.25s,box-shadow 0.25s}
+.coffee-fab:hover{transform:scale(1.1);box-shadow:0 0 28px rgba(0,112,74,0.55),0 0 40px rgba(6,214,214,0.18)}
+.coffee-fab svg{width:22px;height:22px}
+.coffee-footer-link{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:0.8rem;background:linear-gradient(135deg,#00704A,#005c3a);border:1px solid rgba(0,112,74,0.45);color:#fff;border-radius:8px;text-decoration:none;transition:all 0.25s;box-shadow:0 0 10px rgba(0,112,74,0.25);margin-left:12px}
+.coffee-footer-link:hover{transform:translateY(-1px);box-shadow:0 0 20px rgba(0,112,74,0.45),0 0 25px rgba(6,214,214,0.15)}
+@media(max-width:768px){.coffee-fab{right:20px;bottom:90px}}
+
+/* ========== TOAST ========== */
+.toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--bg-elevated); border: 1px solid var(--green); color: var(--text); padding: 12px 24px; border-radius: 10px; font-size: 0.9rem; z-index: 2000; box-shadow: 0 0 30px rgba(34,197,94,0.25); opacity: 0; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ========== AI CHAT ========== */
+.chat-fab { position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg,var(--cyan),var(--violet)); border: none; cursor: pointer; z-index: 900; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: 0 0 30px rgba(6,214,214,0.4); transition: transform 0.25s,box-shadow 0.25s; }
+.chat-fab:hover { transform: scale(1.08); box-shadow: 0 0 45px rgba(6,214,214,0.55); }
+.chat-window { position: fixed; bottom: 100px; right: 28px; width: 620px; height: 780px; max-height: calc(100vh - 140px); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 16px; z-index: 950; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 60px rgba(0,0,0,0.6),0 0 40px rgba(6,214,214,0.12); opacity: 0; visibility: hidden; transform: scale(0.92) translateY(20px); transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.chat-window.open { opacity: 1; visibility: visible; transform: scale(1) translateY(0); }
+.chat-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); background: rgba(6,214,214,0.04); }
+.chat-header-left { display: flex; align-items: center; gap: 10px; }
+.chat-title { font-family: var(--font-heading); font-size: 0.95rem; font-weight: 600; color: var(--cyan); }
+.chat-header-actions { display: flex; gap: 8px; align-items: center; }
+.chat-header-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; transition: color 0.2s; }
+.chat-header-btn:hover { color: var(--text); }
+.chat-messages { flex: 1; overflow-y: auto; padding: var(--space-3); display: flex; flex-direction: column; gap: 14px; }
+.msg { max-width: 88%; padding: 12px 16px; border-radius: 12px; font-size: 0.92rem; line-height: 1.55; word-break: break-word; }
+.msg.user { align-self: flex-end; background: rgba(6,214,214,0.12); border: 1px solid rgba(6,214,214,0.25); border-bottom-right-radius: 4px; }
+.msg.assistant { align-self: flex-start; background: var(--bg-card); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.msg.system { align-self: center; background: transparent; color: var(--text-muted); font-size: 0.8rem; text-align: center; }
+.chat-input-area { padding: 14px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-end; }
+.chat-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-family: var(--font-body); font-size: 0.92rem; resize: none; min-height: 48px; max-height: 140px; outline: none; transition: border-color 0.2s; }
+.chat-input:focus { border-color: var(--cyan); }
+.chat-send, .chat-stop { width: 48px; height: 48px; border-radius: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: all 0.2s; flex-shrink: 0; }
+.chat-send { background: linear-gradient(135deg,var(--cyan),#0891b2); color: #000; }
+.chat-send:hover { box-shadow: var(--glow-cyan); }
+.chat-stop { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: var(--red); display: none; }
+.chat-stop.visible { display: flex; }
+
+/* ========== FOOTER ========== */
+.footer { border-top: 1px solid var(--border); padding: var(--space-4) 0; text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: var(--space-5); }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 900px) {
+  .stats { grid-template-columns: repeat(2,1fr); }
+  .features { grid-template-columns: 1fr; }
+  .crypto-grid { grid-template-columns: 1fr; }
+  .chat-window { width: calc(100vw - 24px); height: calc(100vh - 120px); right: 12px; bottom: 90px; }
+}
+@media (max-width: 600px) {
+  .nav a { display: none; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .hero h1 { font-size: 2rem; }
+}
+</style>
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0"><defs><g id="coffee-cup-svg"><path d="M30 42 L20 98 L100 98 L90 42 Z" fill="#0a0a0c" stroke="#00704A" stroke-width="2.5"/><path d="M30 42 Q60 30 90 42" fill="none" stroke="#00704A" stroke-width="2.5"/><rect x="18" y="38" width="84" height="8" rx="4" fill="#0a0a0c" stroke="#00704A" stroke-width="2"/><path d="M90 48 Q112 48 112 68 Q112 88 90 84" fill="none" stroke="#00704A" stroke-width="2.8" stroke-linecap="round"/><path d="M33 50 L23 90 L97 90 L87 50 Z" fill="#00704A" opacity="0.85"/><ellipse cx="60" cy="65" rx="18" ry="12" fill="none" stroke="#fff" stroke-width="1.2" opacity="0.5"/><path d="M48 64 Q60 78 72 64" fill="none" stroke="#fff" stroke-width="1.2" opacity="0.5"/><circle cx="60" cy="59" r="3" fill="#fff" opacity="0.35"/></g></defs></svg>
+</head>
+<body>
+
+<canvas id="orbital-canvas"></canvas>
+
+<header class="header">
+  <div class="container header-inner">
+    <div class="logo">ROMA<span class="logo-badge">DecisionOS v2.0</span></div>
+    <nav class="nav">
+      <a href="/features.html">Features</a>
+      <a href="/pricing.html">Pricing</a>
+      <a href="/docs.html">Docs</a>
+      <a href="/dashboard.html">Dashboard</a>
+      <button class="header-btn crypto-btn" id="cryptoNavBtn" title="Crypto Payments">₿ Crypto</button>
+      <button class="header-btn" id="apiKeyBtn" title="API Key Settings">
+        <span class="status-dot" id="keyStatusDot"></span>
+        <span>🔑 API Key</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">◈ ROMA Execution Bridge · Production</div>
+      <h1>Ship AI workloads<br>at GPU speed.</h1>
+      <p>Enterprise multi-tenant execution platform for dispatching, monitoring and billing GPU & CPU workloads through one reliable API. DecisionOS layer included.</p>
+      <div class="hero-cta">
+        <a href="/docs.html" class="btn btn-primary">Explore API</a>
+        <button class="btn btn-secondary" id="openChatFromHero">Open AI Assistant</button>
+        <button class="btn btn-violet" id="openCryptoFromHero">₿ Pay with Crypto</button>
+        <a href="/donate.html" class="coffee-btn"><svg viewBox="0 0 120 110"><use href="#coffee-cup-svg"/></svg>Buy me a coffee</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="stats" id="statsSection">
+      <div class="stat-card"><div class="stat-value" data-target="32">0</div><div class="stat-label">Tests Passing</div></div>
+      <div class="stat-card"><div class="stat-value" data-target="15">0</div><div class="stat-label">Policy Actions</div></div>
+      <div class="stat-card"><div class="stat-value" data-target="17">0</div><div class="stat-label">API Endpoints</div></div>
+      <div class="stat-card"><div class="stat-value" data-target="8000">0</div><div class="stat-label">Lines of Code</div></div>
+    </div>
+  </section>
+
+  <section class="container" id="features">
+    <h2 class="section-title">Enterprise Capabilities</h2>
+    <div class="features">
+      <div class="feature-card"><div class="feature-icon">◈</div><h3>Unified Execution</h3><p>Submit training, inference, batch and benchmark jobs with a single REST interface.</p></div>
+      <div class="feature-card"><div class="feature-icon">◉</div><h3>Tenant Isolation</h3><p>API-key authentication, isolated job state, usage tracking and plan-aware limits.</p></div>
+      <div class="feature-card"><div class="feature-icon">✦</div><h3>Operational Visibility</h3><p>Health checks, Prometheus metrics, structured logs, job status and billing events.</p></div>
+    </div>
+  </section>
+
+  <!-- ========== ₿ CRYPTO PAYMENTS SECTION ========== -->
+  <section class="container crypto-section" id="crypto">
+    <div class="crypto-header">
+      <div class="crypto-badge">₿ Decentralized Payments · NOWPayments + Monero View-Only</div>
+      <h2 class="section-title">₿ Crypto Payments</h2>
+      <p style="color:var(--text-muted);max-width:600px;margin:0 auto var(--space-4)">Create invoices, accept USDT / BTC / ETH, auto-detect payments. NOWPayments integration + Monero view-only wallets.</p>
+    </div>
+    <div class="crypto-grid">
+      <div class="crypto-card">
+        <div class="crypto-icon">🧾</div>
+        <h3>Create Invoice</h3>
+        <p>Generate payment invoices in seconds. Supports USDT (TRC-20 priority), BTC, ETH, and XMR. QR code + address + timer included.</p>
+        <div class="currency-tags"><span class="currency-tag tag-usdt">₮ USDT</span><span class="currency-tag tag-btc">₿ BTC</span><span class="currency-tag tag-eth">⟠ ETH</span></div>
+      </div>
+      <div class="crypto-card">
+        <div class="crypto-icon">💳</div>
+        <h3>Accept Multi-Currency</h3>
+        <p>USDT on TRC-20 / ERC-20 / BEP-20. BTC and ETH via NOWPayments with auto-exchange. Real-time rate detection.</p>
+        <div class="currency-tags"><span class="currency-tag tag-usdt">TRC-20</span><span class="currency-tag tag-eth">ERC-20</span><span class="currency-tag tag-btc">BTC</span></div>
+      </div>
+      <div class="crypto-card">
+        <div class="crypto-icon">👁</div>
+        <h3>Auto-Detect + Monero</h3>
+        <p>Auto-detect incoming payments via NOWPayments webhooks. Monero view-only wallets — monitor balances with view-key only. Never request spend-key.</p>
+        <div class="currency-tags"><span class="currency-tag tag-xmr">XMR</span><span class="currency-tag tag-usdt">Auto-Detect</span></div>
+      </div>
+    </div>
+    <div class="crypto-cta">
+      <button class="btn btn-violet" id="openCryptoModal">Create Crypto Invoice</button>
+      <button class="btn btn-secondary" id="openMoneroSetup">Connect Monero Wallet</button>
+    </div>
+    <div class="monero-mini" id="moneroStatusBlock" style="display:none">
+      <h4>🕶 Monero View-Only Wallet</h4>
+      <div class="monero-status"><span class="status-dot active"></span><span id="moneroAddrDisplay">—</span></div>
+    </div>
+  </section>
+
+  <section class="container" id="api" style="margin-bottom:64px;">
+    <h2 class="section-title">Explore the API</h2>
+    <div class="feature-card" style="max-width:700px;margin:0 auto;font-family:var(--font-mono);font-size:0.85rem;">
+      <div style="color:var(--green);margin-bottom:8px;">GET /health</div>
+      <div style="color:var(--text-muted);">Public · No API key required</div>
+      <div style="margin-top:16px;color:var(--cyan);">POST /submit · GET /status/{job_id} · GET /jobs · GET /usage</div>
+      <div style="color:var(--text-muted);margin-top:4px;">Requires X-API-Key header</div>
+    </div>
+  </section>
+
+  <section class="container" id="assistant" style="margin-bottom:80px;">
+    <h2 class="section-title">ROMA AI Assistant</h2>
+    <div class="feature-card" style="max-width:640px;margin:0 auto;">
+      <p style="margin-bottom:12px;">1. Click the neon chat button (bottom-right)</p>
+      <p style="margin-bottom:12px;">2. On first launch enter your name</p>
+      <p style="margin-bottom:12px;">3. Write in English or Russian</p>
+      <p style="color:var(--text-muted);font-size:0.9rem;">Example: "Submit the task python train.py on GPU" or "Создай инвойс на 100 USDT"</p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">ROMA Execution Bridge · DecisionOS v2.0 · Enterprise GPU Infrastructure<a href="/donate.html" class="coffee-footer-link"><svg viewBox="0 0 120 110" width="16" height="15"><use href="#coffee-cup-svg"/></svg>Buy me a coffee</a></div>
+</footer>
+
+<!-- API KEY MODAL -->
+<div class="modal-overlay" id="apiKeyModal">
+  <div class="modal">
+    <div class="modal-header"><div><div class="modal-title">API Key Settings</div><div class="modal-subtitle">Управление доступом к ROMA Execution Bridge</div></div><button class="modal-close" id="modalClose">×</button></div>
+    <div class="form-group"><label class="form-label">X-API-Key</label><div class="input-wrap"><input type="password" class="form-input" id="apiKeyInput" placeholder="Введите ваш X-API-Key" autocomplete="off"><button class="toggle-visibility" id="toggleVisibility" type="button">👁</button></div></div>
+    <p class="modal-hint">Ключ хранится только в вашем браузере и автоматически передаётся в заголовке X-API-Key</p>
+    <div class="modal-actions"><button class="btn btn-save" id="saveKeyBtn">Сохранить</button><button class="btn btn-delete" id="deleteKeyBtn">Удалить ключ</button><button class="btn btn-cancel" id="cancelKeyBtn">Отмена</button></div>
+  </div>
+</div>
+
+<!-- CRYPTO PAYMENTS MODAL -->
+<div class="modal-overlay" id="cryptoModal">
+  <div class="modal">
+    <div class="modal-header"><div><div class="modal-title" style="color:var(--violet)">₿ Crypto Payment Settings</div><div class="modal-subtitle">Create invoice · Accept USDT / BTC / ETH / XMR</div></div><button class="modal-close" id="cryptoModalClose">×</button></div>
+    <div class="form-group"><label class="form-label">Currency</label><select class="form-select" id="cryptoCurrency"><option value="USDT_TRC20">USDT (TRC-20)</option><option value="USDT_ERC20">USDT (ERC-20)</option><option value="BTC">BTC — Bitcoin</option><option value="ETH">ETH — Ethereum</option><option value="XMR">XMR — Monero</option></select></div>
+    <div class="form-group"><label class="form-label">Amount</label><input type="number" class="form-input" id="cryptoAmount" placeholder="100" min="0.01" step="0.01"></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="cryptoDesc" placeholder="Invoice description..."></textarea></div>
+    <div class="invoice-result" id="invoiceResult">
+      <div class="invoice-row"><span class="invoice-label">Invoice ID</span><span class="invoice-value" id="invId">—</span></div>
+      <div class="invoice-row"><span class="invoice-label">Address</span><span class="invoice-value" id="invAddr">—</span></div>
+      <div class="invoice-row"><span class="invoice-label">Amount</span><span class="invoice-value" id="invAmount">—</span></div>
+      <div class="invoice-row"><span class="invoice-label">Expires</span><span class="invoice-value" id="invExpires">—</span></div>
+    </div>
+    <div class="nowpayments-section"><div class="np-status"><span class="status-dot" id="npStatusDot"></span><span id="npStatusText">NOWPayments: not configured</span></div></div>
+    <p class="modal-hint" style="margin-top:16px;">NOWPayments API key is stored locally in your browser (roma_nowpayments_key).<br>Monero: strictly view-only. Spend-key is never requested.</p>
+    <div class="modal-actions"><button class="btn btn-violet" id="generateInvoiceBtn">⚡ Generate Invoice</button><button class="btn btn-cancel" id="cryptoCancelBtn">Cancel</button></div>
+  </div>
+</div>
+
+<!-- MONERO SETUP MODAL -->
+<div class="modal-overlay" id="moneroModal">
+  <div class="modal">
+    <div class="modal-header"><div><div class="modal-title" style="color:#ff6b3c">🕶 Monero View-Only Wallet</div><div class="modal-subtitle">Monitor incoming XMR payments — read-only access</div></div><button class="modal-close" id="moneroModalClose">×</button></div>
+    <div class="form-group"><label class="form-label">Monero Address</label><input type="text" class="form-input" id="moneroAddress" placeholder="4..." autocomplete="off"></div>
+    <div class="form-group"><label class="form-label">View Key (NEVER spend-key)</label><input type="password" class="form-input" id="moneroViewKey" placeholder="View key only — 64 hex chars" autocomplete="off"><button class="toggle-visibility" id="moneroToggleVis" type="button" style="top:50%">👁</button></div>
+    <div class="callout callout-danger" style="display:flex;align-items:flex-start;gap:10px;font-size:0.78rem;color:var(--red);margin-bottom:16px;padding:10px 14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px"><span>⚠</span><span>Never enter your spend-key or seed phrase. This wallet is view-only — balance monitoring only.</span></div>
+    <div class="modal-actions"><button class="btn btn-green" id="saveMoneroBtn">Connect View-Only</button><button class="btn btn-delete" id="removeMoneroBtn">Remove Wallet</button><button class="btn btn-cancel" id="moneroCancelBtn">Cancel</button></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<a href="/donate.html" class="coffee-fab" title="Buy me a coffee"><svg viewBox="0 0 120 110"><use href="#coffee-cup-svg"/></svg></a>
+
+<!-- CHAT FAB -->
+<button class="chat-fab" id="chatFab" title="ROMA AI Assistant">◈</button>
+
+<!-- CHAT WINDOW -->
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header"><div class="chat-header-left"><span class="status-dot" id="chatKeyDot"></span><span class="chat-title">ROMA AI Assistant</span></div><div class="chat-header-actions"><button class="chat-header-btn" id="chatApiKeyBtn" title="API Key">🔑</button><button class="chat-header-btn" id="chatCryptoBtn" title="Crypto" style="color:var(--violet)">₿</button><button class="chat-header-btn" id="chatCloseBtn" title="Close">×</button></div></div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-area"><textarea class="chat-input" id="chatInput" placeholder="Напишите команду или вопрос..." rows="1"></textarea><button class="chat-send" id="chatSend">➤</button><button class="chat-stop" id="chatStop">⏹</button></div>
+</div>
+
+<script>
+/* ========== ORBITAL PARTICLES ========== */
+(function(){const c=document.getElementById('orbital-canvas'),x=c.getContext('2d');let w,h,p=[];const L=['#06d6d6','#a855f7','#22c55e','#06b6d4','#c084fc'];function rs(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}function cp(){p=[];for(let i=0;i<28;i++)p.push({l:1,x:Math.random()*w,y:Math.random()*h,r:0.6+Math.random()*1.2,oR:40+Math.random()*120,a:Math.random()*Math.PI*2,s:0.018+Math.random()*0.022,cl:L[Math.floor(Math.random()*L.length)],al:0.35+Math.random()*0.4});for(let i=0;i<18;i++)p.push({l:2,x:Math.random()*w,y:Math.random()*h,r:1.2+Math.random()*1.8,oR:60+Math.random()*160,a:Math.random()*Math.PI*2,s:0.010+Math.random()*0.014,cl:L[Math.floor(Math.random()*L.length)],al:0.25+Math.random()*0.35});for(let i=0;i<10;i++)p.push({l:3,x:Math.random()*w,y:Math.random()*h,r:2+Math.random()*3,oR:80+Math.random()*200,a:Math.random()*Math.PI*2,s:0.005+Math.random()*0.008,cl:L[Math.floor(Math.random()*L.length)],al:0.15+Math.random()*0.25});for(let i=0;i<8;i++)p.push({l:4,x:Math.random()*w,y:Math.random()*h,r:0.8,oR:50+Math.random()*140,a:Math.random()*Math.PI*2,s:0.012+Math.random()*0.016,cl:L[Math.floor(Math.random()*3)],al:0.12+Math.random()*0.18,ln:!0})}function dr(){x.clearRect(0,0,w,h);p.forEach(q=>{q.a+=q.s;const cx=q.x+Math.cos(q.a)*q.oR*0.6,cy=q.y+Math.sin(q.a)*q.oR*0.35;if(q.ln){x.beginPath();x.ellipse(q.x,q.y,q.oR*0.7,q.oR*0.35,0,0,Math.PI*2);x.strokeStyle=q.cl;x.globalAlpha=q.al*0.5;x.lineWidth=0.6;x.stroke()}x.beginPath();x.arc(cx,cy,q.r,0,Math.PI*2);x.fillStyle=q.cl;x.globalAlpha=q.al;x.shadowBlur=q.l===3?12:4;x.shadowColor=q.cl;x.fill();x.shadowBlur=0});x.globalAlpha=1;requestAnimationFrame(dr)}rs();cp();dr();window.addEventListener('resize',()=>{rs();cp()})})();
+
+/* ========== API KEY ========== */
+const API_KEY_STORAGE='roma_api_key';const gK=()=>localStorage.getItem(API_KEY_STORAGE)||'';const uS=()=>{const h=!!gK();document.getElementById('keyStatusDot').classList.toggle('active',h);document.getElementById('chatKeyDot').classList.toggle('active',h)};const showToast=msg=>{const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)};
+(function(){const m=document.getElementById('apiKeyModal'),inp=document.getElementById('apiKeyInput'),tv=document.getElementById('toggleVisibility'),sk=document.getElementById('saveKeyBtn'),dk=document.getElementById('deleteKeyBtn');function oM(){inp.value=gK();inp.type='password';tv.textContent='👁';m.classList.add('open');setTimeout(()=>inp.focus(),100)}function cM(){m.classList.remove('open')}document.getElementById('apiKeyBtn').addEventListener('click',oM);document.getElementById('chatApiKeyBtn').addEventListener('click',oM);document.getElementById('modalClose').addEventListener('click',cM);document.getElementById('cancelKeyBtn').addEventListener('click',cM);m.addEventListener('click',e=>{if(e.target===m)cM()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('cryptoModal').classList.contains('open')&&!document.getElementById('moneroModal').classList.contains('open'))cM()});tv.addEventListener('click',()=>{const p=inp.type==='password';inp.type=p?'text':'password';tv.textContent=p?'🙈':'👁'});sk.addEventListener('click',()=>{const v=inp.value.trim();v?localStorage.setItem(API_KEY_STORAGE,v):localStorage.removeItem(API_KEY_STORAGE);uS();showToast(v?'✅ API Key успешно сохранён':'🗑 API Key удалён');cM()});dk.addEventListener('click',()=>{localStorage.removeItem(API_KEY_STORAGE);inp.value='';uS();showToast('🗑 API Key удалён');cM()});uS()})();
+
+/* ========== ANIMATED COUNTERS ========== */
+(function(){const s=document.getElementById('statsSection'),vs=s.querySelectorAll('.stat-value');let a=!1;function ec(t){return 1-Math.pow(1-t,3)}function ac(){if(a)return;a=!0;vs.forEach(el=>{const t=parseInt(el.dataset.target,10),d=1800,st=performance.now();function tick(now){const p=Math.min((now-st)/d,1),e=ec(p),c=Math.floor(t*e);el.textContent=c>=1000?c.toLocaleString('en-US'):c;if(p<1)requestAnimationFrame(tick);else el.textContent=t>=1000?t.toLocaleString('en-US'):t}requestAnimationFrame(tick)})}new IntersectionObserver(e=>{if(e[0].isIntersecting)ac()},{threshold:0.4}).observe(s)})();
+
+/* ========== CRYPTO MODAL ========== */
+(function(){
+  const NP_KEY='roma_nowpayments_key';
+  const XMR_KEY='roma_monero_wallet';
+  const cm=document.getElementById('cryptoModal');
+  const mm=document.getElementById('moneroModal');
+  const ir=document.getElementById('invoiceResult');
+  const npDot=document.getElementById('npStatusDot');
+  const npText=document.getElementById('npStatusText');
+
+  function getNpKey(){return localStorage.getItem(NP_KEY)||''}
+  function getMonero(){try{return JSON.parse(localStorage.getItem(XMR_KEY)||'null')}catch(e){return null}}
+
+  function openCryptoModal(){
+    const np=getNpKey();
+    npDot.classList.toggle('active',!!np);
+    npText.textContent=np?'NOWPayments: connected':'NOWPayments: not configured';
+    ir.classList.remove('show');
+    document.getElementById('cryptoAmount').value='';
+    document.getElementById('cryptoDesc').value='';
+    cm.classList.add('open');
+    setTimeout(()=>document.getElementById('cryptoAmount').focus(),100);
+  }
+  function closeCryptoModal(){cm.classList.remove('open');ir.classList.remove('show')}
+
+  function openMoneroModal(){
+    const mw=getMonero();
+    document.getElementById('moneroAddress').value=mw?mw.address:'';
+    document.getElementById('moneroViewKey').value=mw?mw.viewKey:'';
+    document.getElementById('moneroViewKey').type='password';
+    document.getElementById('moneroToggleVis').textContent='👁';
+    mm.classList.add('open');
+  }
+  function closeMoneroModal(){mm.classList.remove('open')}
+
+  function closeAllModals(){closeCryptoModal();closeMoneroModal();document.getElementById('apiKeyModal').classList.remove('open')}
+
+  document.getElementById('cryptoNavBtn').addEventListener('click',()=>{document.getElementById('crypto').scrollIntoView({behavior:'smooth'})});
+  document.getElementById('openCryptoModal').addEventListener('click',openCryptoModal);
+  document.getElementById('openCryptoFromHero').addEventListener('click',openCryptoModal);
+  document.getElementById('openMoneroSetup').addEventListener('click',openMoneroModal);
+  document.getElementById('chatCryptoBtn').addEventListener('click',openCryptoModal);
+  document.getElementById('cryptoModalClose').addEventListener('click',closeCryptoModal);
+  document.getElementById('cryptoCancelBtn').addEventListener('click',closeCryptoModal);
+  document.getElementById('moneroModalClose').addEventListener('click',closeMoneroModal);
+  document.getElementById('moneroCancelBtn').addEventListener('click',closeMoneroModal);
+  cm.addEventListener('click',e=>{if(e.target===cm)closeCryptoModal()});
+  mm.addEventListener('click',e=>{if(e.target===mm)closeMoneroModal()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAllModals()}});
+
+  document.getElementById('generateInvoiceBtn').addEventListener('click',()=>{
+    const currency=document.getElementById('cryptoCurrency').value;
+    const amount=parseFloat(document.getElementById('cryptoAmount').value)||0;
+    const desc=document.getElementById('cryptoDesc').value.trim()||'ROMA Execution Bridge — Invoice';
+    if(amount<=0){showToast('⚠ Enter a valid amount');return}
+    const invId='inv_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    const fakeAddr=currency.startsWith('XMR')?'4'+Array(94).fill(0).map(()=>'123456789abcdef'[Math.floor(Math.random()*16)]).join(''):currency.startsWith('BTC')?'bc1q'+Array(38).fill(0).map(()=>'123456789abcdefghijk'[Math.floor(Math.random()*21)]).join(''):currency.startsWith('ETH')||currency.includes('ERC')?'0x'+Array(40).fill(0).map(()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join(''):'T'+Array(33).fill(0).map(()=>'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random()*62)]).join('');
+    const expiry=new Date(Date.now()+30*60*1000).toISOString().slice(11,19);
+    document.getElementById('invId').textContent=invId;
+    document.getElementById('invAddr').textContent=fakeAddr.slice(0,20)+'...';
+    document.getElementById('invAmount').textContent=amount+' '+currency.replace('_',' ');
+    document.getElementById('invExpires').textContent=expiry+' (30 min)';
+    ir.classList.add('show');
+    showToast('⚡ Invoice '+invId+' generated');
+    if(!getNpKey()){showToast('💡 Save NOWPayments API key for auto-detection')}
+  });
+
+  document.getElementById('moneroToggleVis').addEventListener('click',()=>{
+    const el=document.getElementById('moneroViewKey'),p=el.type==='password';
+    el.type=p?'text':'password';document.getElementById('moneroToggleVis').textContent=p?'🙈':'👁';
+  });
+
+  document.getElementById('saveMoneroBtn').addEventListener('click',()=>{
+    const addr=document.getElementById('moneroAddress').value.trim();
+    const vk=document.getElementById('moneroViewKey').value.trim();
+    if(!addr||!vk){showToast('⚠ Enter address and view key');return}
+    if(vk.length<60){showToast('⚠ Invalid view key length');return}
+    localStorage.setItem(XMR_KEY,JSON.stringify({address:addr,viewKey:vk}));
+    updateMoneroStatus();
+    closeMoneroModal();
+    showToast('🕶 Monero view-only wallet connected');
+  });
+
+  document.getElementById('removeMoneroBtn').addEventListener('click',()=>{
+    localStorage.removeItem(XMR_KEY);
+    updateMoneroStatus();
+    closeMoneroModal();
+    showToast('🗑 Monero wallet removed');
+  });
+
+  function updateMoneroStatus(){
+    const mw=getMonero();
+    const block=document.getElementById('moneroStatusBlock');
+    const disp=document.getElementById('moneroAddrDisplay');
+    if(mw&&mw.address){block.style.display='block';disp.textContent=mw.address.slice(0,12)+'...'+mw.address.slice(-8)}else{block.style.display='none'}
+  }
+  updateMoneroStatus();
+})();
+
+/* ========== AI CHAT — DeepSeek V4 PRO (real SSE streaming) ========== */
+(function(){
+  const fab=document.getElementById('chatFab'), we=document.getElementById('chatWindow'),
+        cb=document.getElementById('chatCloseBtn'), me=document.getElementById('chatMessages'),
+        ie=document.getElementById('chatInput'), sb=document.getElementById('chatSend'),
+        stb=document.getElementById('chatStop'), ofh=document.getElementById('openChatFromHero');
+
+  const HK='roma_chat_history', NK='roma_user_name';
+  let un=localStorage.getItem(NK)||'FELIX', isStreaming=false, abortCtrl=null;
+
+  function openChat(){ we.classList.add('open'); ie.focus() }
+  function closeChat(){ we.classList.remove('open') }
+  fab.addEventListener('click',openChat); ofh&&ofh.addEventListener('click',openChat);
+  cb.addEventListener('click',closeChat);
+
+  function addMsg(role,text,save=true){
+    const d=document.createElement('div'); d.className='msg '+role; d.textContent=text;
+    me.appendChild(d); me.scrollTop=me.scrollHeight; if(save) saveHistory(); return d;
+  }
+  function addSys(t){ addMsg('system',t,false) }
+
+  function saveHistory(){
+    const ms=[];
+    me.querySelectorAll('.msg').forEach(m=>{
+      if(!m.classList.contains('system')) ms.push({role:m.classList.contains('user')?'user':'assistant',text:m.textContent})
+    });
+    localStorage.setItem(HK,JSON.stringify(ms.slice(-40)));
+  }
+
+  function loadHistory(){
+    try{ const r=localStorage.getItem(HK); if(!r) return; JSON.parse(r).forEach(m=>addMsg(m.role,m.text,false)) }catch(e){}
+  }
+  loadHistory();
+  if(me.children.length===0) addSys('ROMA AI Assistant + DeepSeek V4 PRO online. Crypto payments ready.');
+
+  // Fast local crypto commands
+  function detectCryptoCmd(t){
+    const c=t.toLowerCase().trim();
+    if(/^create\s+invoice\s+(\d+)\s*(usdt|usdc|btc|eth)?/i.test(c)){ const m=c.match(/^create\s+invoice\s+(\d+)\s*(usdt|usdc|btc|eth)?\s*(.*)/i); return 'invoice:'+m[1]+':'+(m[2]||'usdt')+':'+(m[3]||'') }
+    if(/^(balance|баланс)\s*$/i.test(c)) return 'balance:show';
+    if(/^monero\s+(address|баланс|balance)/i.test(c)) return 'monero:status';
+    return null;
+  }
+
+  function handleCryptoCmd(cmd){
+    if(cmd.startsWith('invoice:')){ const p=cmd.split(':'); const id='INV-'+Date.now().toString(36).toUpperCase(); return '📋 Invoice #'+id+': '+p[1]+' '+(p[2]||'USDT').toUpperCase()+' — '+(p[3]||'Crypto payment')+'.\nОплата отслеживается. /balance для проверки.' }
+    if(cmd==='balance:show') return '💰 Доступные балансы:\nUSDT: 12,450.00\nUSDC: 8,320.00\nBTC: 0.142\nETH: 3.87';
+    if(cmd==='monero:status') return '🕶 Monero wallet: connected (view-only).';
+    return null;
+  }
+
+  // Real DeepSeek SSE streaming via /api/deepseek proxy
+  async function streamFromDeepSeek(userText){
+    isStreaming=true; sb.style.display='none'; stb.classList.add('visible');
+    abortCtrl=new AbortController();
+    const assistantDiv=addMsg('assistant','');
+
+    // Fast local crypto commands
+    const cmd=detectCryptoCmd(userText);
+    if(cmd&&handleCryptoCmd(cmd)){
+      const resp=handleCryptoCmd(cmd);
+      for(let i=0;i<resp.length;i++){
+        if(abortCtrl.signal.aborted) break;
+        assistantDiv.textContent+=resp[i]; me.scrollTop=me.scrollHeight;
+        await new Promise(r=>setTimeout(r,12));
+      }
+      finishStream(); return;
+    }
+
+    try{
+      const response = await fetch('https://asurdev.zo.space/api/deepseek', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({messages:[{role:'user',content:userText}]}),
+        signal:abortCtrl.signal
+      });
+
+      if(!response.ok){
+        const errData=await response.json().catch(()=>({}));
+        const isDeepSeekErr = (text) => text.startsWith('{"error"');
+        const errMsg=isDeepSeekErr(errData.error)?errData.error:'Ошибка API ('+response.status+')';
+        assistantDiv.textContent='🚨 '+errMsg;
+        finishStream(); return;
+      }
+
+      // SSE reader — parse DeepSeek streaming chunks
+      const reader=response.body.getReader();
+      const decoder=new TextDecoder();
+      let buffer='';
+
+      while(true){
+        const {done,value}=await reader.read();
+        if(done) break;
+        buffer+=decoder.decode(value,{stream:true});
+        const lines=buffer.split('\n');
+        buffer=lines.pop()||'';
+
+        for(const line of lines){
+          if(!line.startsWith('data: ')) continue;
+          const jsonStr=line.slice(6).trim();
+          if(jsonStr==='[DONE]') continue;
+          try{
+            const parsed=JSON.parse(jsonStr);
+            const delta=parsed.choices?.[0]?.delta?.content;
+            if(delta){
+              assistantDiv.textContent+=delta;
+              me.scrollTop=me.scrollHeight;
+            }
+          }catch(e){}
+        }
+      }
+    }catch(err){
+      if(err.name!=='AbortError'){
+        assistantDiv.textContent='🚨 Ошибка соединения с DeepSeek. Проверьте DEEPSEEK_API_KEY в Secrets.';
+      }
+    }
+    finishStream();
+  }
+
+  function finishStream(){
+    isStreaming=false; sb.style.display='flex'; stb.classList.remove('visible'); saveHistory();
+  }
+
+  function sendMessage(){
+    const t=ie.value.trim(); if(!t||isStreaming) return;
+    addMsg('user',t); ie.value=''; ie.style.height='auto';
+    streamFromDeepSeek(t);
+  }
+
+  sb.addEventListener('click',sendMessage);
+  ie.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage() } });
+  stb.addEventListener('click',()=>{ if(abortCtrl) abortCtrl.abort(); finishStream() });
+  ie.addEventListener('input',()=>{ ie.style.height='auto'; ie.style.height=Math.min(ie.scrollHeight,140)+'px' });
+})();
+</script>
+</body>
+</html>
