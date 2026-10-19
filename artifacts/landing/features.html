@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Sentinel AI — weights and invariants. Six engines, transparent weights, L1–L4 billing invariants.">
+<title>Features — Sentinel AI</title>
+<style>
+:root {
+  --bg: #050508; --bg-card: #0c0c10; --bg-elevated: #111116;
+  --cyan: #06d6d6; --green: #22c55e;
+  --text: #e8e8ed; --text-muted: #8b8fa3;
+  --border: rgba(6, 214, 214, 0.18); --border-strong: rgba(6, 214, 214, 0.3);
+  --glow-cyan: 0 0 20px rgba(6, 214, 214, 0.35);
+  --radius: 12px; --space-1: 8px; --space-2: 16px; --space-3: 24px; --space-4: 32px;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Orbitron', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+.container { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 var(--space-3); }
+a { color: var(--cyan); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.header { position: sticky; top: 0; z-index: 100; background: rgba(5,5,8,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+.header-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; gap: 14px; flex-wrap: wrap; }
+.logo { font-family: var(--font-heading); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.06em; color: var(--cyan); text-shadow: var(--glow-cyan); }
+.nav { display: flex; gap: 12px; flex-wrap: wrap; }
+.nav a { color: var(--text-muted); font-size: 0.86rem; }
+.nav a:hover { color: var(--cyan); }
+.nav a.on { color: var(--cyan); font-weight: 600; }
+.section { padding: var(--space-4) 0; }
+.page-hero { padding: 56px 0 24px; text-align: center; }
+.page-hero h1 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(1.9rem,4vw,3rem); line-height: 1.15; color: #fff; margin-bottom: var(--space-2); }
+.page-hero h1 .accent { background: linear-gradient(135deg,var(--cyan),#62e6ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.page-hero p { color: var(--text-muted); max-width: 680px; margin: 0 auto; font-size: 1.02rem; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-4); margin: var(--space-3) 0; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.section-title { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: var(--space-3); }
+table { width: 100%; border-collapse: collapse; margin: var(--space-2) 0; font-size: 0.9rem; }
+th { background: var(--bg-elevated); color: var(--cyan); text-align: left; padding: 11px 14px; border-bottom: 2px solid var(--border); font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--bg-elevated); color: var(--text-muted); }
+td:first-child { color: var(--text); font-weight: 600; }
+.mono { font-family: var(--font-mono); }
+.sum-row td { color: var(--cyan); font-weight: 700; border-top: 2px solid var(--border); }
+.slogan-table td { color: var(--text-muted); }
+.slogan-table td:first-child { color: var(--cyan); font-weight: 600; font-family: var(--font-mono); }
+.code { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 15px 16px; font-family: var(--font-mono); font-size: 0.78rem; overflow-x: auto; white-space: pre-wrap; color: #cbd5e1; margin: 12px 0; }
+.footer { border-top: 1px solid var(--border); padding: var(--space-4) 0; text-align: center; color: var(--text-muted); font-size: 0.82rem; margin-top: var(--space-5); }
+.footer a { color: var(--cyan); }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="container header-inner">
+    <div class="logo">◈ Sentinel</div>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="features.html" class="on">Features</a>
+      <a href="index.html#decisionos">DecisionOS</a>
+      <a href="index.html#roma">ROMA</a>
+      <a href="index.html#trust">Trust</a>
+      <a href="index.html#control">Control</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="container page-hero">
+    <h1>Weights &amp; <span class="accent">invariants</span></h1>
+    <p>Transparent engine weights and the four billing invariants that govern every execution.</p>
+  </section>
+
+  <section class="container section">
+    <h2 class="section-title">Three slogans</h2>
+    <div class="card">
+      <table class="slogan-table">
+        <tr><th>#</th><th>Slogan</th><th>Angle</th></tr>
+        <tr><td>1</td><td>Logic, not arrows.</td><td>explainability</td></tr>
+        <tr><td>2</td><td>Six engines. One read. Your call.</td><td>synthesis</td></tr>
+        <tr><td>3</td><td>Quota. Cost. Policy. Then execution.</td><td>gate</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="container section" id="decisionos">
+    <h2 class="section-title">Sentinel AI DecisionOS — engine weights</h2>
+    <div class="two-col">
+      <div class="card">
+        <h3 style="font-family:var(--font-heading);color:var(--cyan);font-size:1rem;margin-bottom:10px;">Discipline weights</h3>
+        <table>
+          <tr><th>Discipline</th><th>Weight</th></tr>
+          <tr><td>Fundamental</td><td class="mono">20</td></tr>
+          <tr><td>Quant</td><td class="mono">20</td></tr>
+          <tr><td>Macro</td><td class="mono">15</td></tr>
+          <tr><td>Options Flow</td><td class="mono">15</td></tr>
+          <tr><td>Sentiment</td><td class="mono">10</td></tr>
+          <tr><td>Technical</td><td class="mono">10</td></tr>
+          <tr class="sum-row"><td>Σ</td><td class="mono">100</td></tr>
+        </table>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin-top:8px;">Each engine explains its lean.</p>
+      </div>
+      <div class="card">
+        <h3 style="font-family:var(--font-heading);color:var(--cyan);font-size:1rem;margin-bottom:10px;">Billing invariants</h3>
+        <table>
+          <tr><th>Layer</th><th>Guarantee</th></tr>
+          <tr><td>L1</td><td class="mono">append_only</td></tr>
+          <tr><td>L2</td><td class="mono">atomic_debit</td></tr>
+          <tr><td>L3</td><td class="mono">idempotency</td></tr>
+          <tr><td>L4</td><td class="mono">fail_closed</td></tr>
+        </table>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin-top:8px;">Gate: EnterpriseDecisionGate — quota · cost · policy.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section" id="trust">
+    <h2 class="section-title">Trust</h2>
+    <div class="card">
+      <p style="color:var(--text-muted);font-size:1.05rem;text-align:center;margin-bottom:12px;">Trust by construction, not by promise.</p>
+      <table>
+        <tr><th>Signal</th><th>Evidence</th></tr>
+        <tr><td>Hash-only keys</td><td class="mono">tenants.api_key deleted · unhashed 0/3400</td></tr>
+        <tr><td>Append-only ledger</td><td class="mono">L1 INSERT-only + trigger 009</td></tr>
+        <tr><td>PITR</td><td class="mono">567=567 full-cycle · archive_mode on</td></tr>
+        <tr><td>Clean scans</td><td class="mono">gitleaks 0 · bandit 0 high · pip-audit 0 · safety 3.7.0</td></tr>
+        <tr><td>Canon hashes</td><td class="mono">e91b51c4 · 2ca0815</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="container section" id="control">
+    <h2 class="section-title">Control</h2>
+    <div class="card" style="text-align:center;">
+      <p style="font-family:var(--font-heading);font-size:1.3rem;color:var(--cyan);margin-bottom:8px;">It explains. You decide.</p>
+      <p style="color:var(--text-muted);">Explains — never auto-executes. Simulated capital, live markets.</p>
+    </div>
+  </section>
+
+  <section class="container section">
+    <h2 class="section-title">Structure (JSON)</h2>
+    <div class="card">
+      <div class="code">{
+  "brand": "Sentinel AI",
+  "tagline": "Logic, not arrows.",
+  "hero": {
+    "headline": "Logic, not arrows.",
+    "subhead": "Decision intelligence for modern traders. Six independent engines synthesize into one explainable read. The ROMA Execution Bridge enforces quota ∧ cost ∧ policy before anything runs.",
+    "closing": "You see why — and you stay in control."
+  },
+  "sections": {
+    "decisionos": { "tagline": "Six engines. One read. Your call.", "weights_sum": 100 },
+    "roma": { "tagline": "Quota. Cost. Policy. Then execution.", "invariants": ["L1 append_only", "L2 atomic_debit", "L3 idempotency", "L4 fail_closed"] },
+    "trust": { "tagline": "Trust by construction, not by promise.", "issues": "0/3400" },
+    "control": { "tagline": "It explains. You decide." }
+  }
+}</div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">Sentinel AI DecisionOS + ROMA Execution Bridge + Sentinel AI Paper · hash-only 0/3400 · e91b51c4 · 2ca0815 · <a href="index.html">Home</a></div>
+</footer>
+</body>
+</html>

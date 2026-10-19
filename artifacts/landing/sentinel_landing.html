@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentinel AI — Logic, not arrows.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: rgba(20, 24, 34, 0.55);
+    --cyan: #00f0ff;
+    --violet: #bd00ff;
+    --green: #00ff88;
+    --flat: #8a93a6;
+    --text: #e8eaf0;
+    --muted: #8a93a6;
+    --border: rgba(0, 240, 255, 0.2);
+    --border-strong: rgba(0, 240, 255, 0.35);
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-display: 'Space Grotesk', 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { min-height: 100%; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* subtle grid + radial glow */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(1100px 520px at 78% -8%, rgba(0, 240, 255, 0.10), transparent 60%),
+      radial-gradient(900px 480px at 8% 110%, rgba(189, 0, 255, 0.10), transparent 60%),
+      var(--bg);
+  }
+  .bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 240, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 240, 255, 0.045) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(circle at 50% 40%, black, transparent 85%);
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 72px 32px 96px;
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 64px;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  /* ===================== LEFT ===================== */
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(0, 240, 255, 0.05);
+    box-shadow: 0 0 22px rgba(0, 240, 255, 0.12);
+    animation: fadeUp 0.7s ease both;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(44px, 6vw, 76px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 26px 0 24px;
+    animation: fadeUp 0.7s 0.08s ease both;
+  }
+  .logic {
+    color: var(--violet);
+    text-shadow: 0 0 18px rgba(189, 0, 255, 0.55), 0 0 46px rgba(189, 0, 255, 0.28);
+  }
+  .arrows {
+    color: var(--cyan);
+    text-shadow: 0 0 18px rgba(0, 240, 255, 0.55), 0 0 46px rgba(0, 240, 255, 0.28);
+  }
+
+  .sub {
+    max-width: 520px;
+    font-size: 17px;
+    color: #c6ccd8;
+    margin-bottom: 10px;
+    animation: fadeUp 0.7s 0.16s ease both;
+  }
+  .sub code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    color: var(--cyan);
+  }
+  .closing {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 30px;
+    animation: fadeUp 0.7s 0.22s ease both;
+  }
+
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 26px;
+    animation: fadeUp 0.7s 0.28s ease both;
+  }
+  .btn {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .btn--primary {
+    background: linear-gradient(135deg, var(--cyan), #00c8ff);
+    color: #041016;
+    border: 1px solid transparent;
+    box-shadow: 0 0 26px rgba(0, 240, 255, 0.35), 0 6px 20px rgba(0, 240, 255, 0.22);
+  }
+  .btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 40px rgba(0, 240, 255, 0.55), 0 10px 28px rgba(0, 240, 255, 0.3);
+  }
+  .btn--ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+  }
+  .btn--ghost:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 18px rgba(0, 240, 255, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .checks {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 30px;
+    animation: fadeUp 0.7s 0.34s ease both;
+  }
+  .checks li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14.5px;
+    color: #c6ccd8;
+  }
+  .checks .tick {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: inline-grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #041016;
+    background: var(--green);
+    box-shadow: 0 0 12px rgba(0, 255, 136, 0.45);
+  }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--muted);
+    padding: 9px 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.02);
+    animation: fadeUp 0.7s 0.4s ease both;
+  }
+  .status strong { color: var(--text); font-weight: 600; }
+  .dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 10px var(--green);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+
+  /* ===================== RIGHT (console) ===================== */
+
+  .console {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.05), 0 30px 70px rgba(0, 0, 0, 0.5), 0 0 50px rgba(0, 240, 255, 0.06);
+    overflow: hidden;
+    animation: fadeUp 0.8s 0.15s ease both;
+  }
+
+  .console__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .tl { width: 12px; height: 12px; border-radius: 50%; }
+  .tl--r { background: #ff5f57; }
+  .tl--y { background: #febc2e; }
+  .tl--g { background: #28c840; }
+  .console__title {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-left: 8px;
+  }
+  .badge-live {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--green);
+    padding: 4px 10px;
+    border: 1px solid rgba(0, 255, 136, 0.35);
+    border-radius: 999px;
+    background: rgba(0, 255, 136, 0.08);
+  }
+  .badge-live .dot { width: 7px; height: 7px; }
+
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .tab {
+    padding: 7px 13px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    transition: all 0.18s ease;
+  }
+  .tab:hover { color: var(--cyan); }
+  .tab.active {
+    color: var(--cyan);
+    background: rgba(0, 240, 255, 0.08);
+    border-color: rgba(0, 240, 255, 0.3);
+    box-shadow: 0 0 14px rgba(0, 240, 255, 0.12);
+  }
+
+  .ticker {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 18px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .ticker__sym { color: var(--text); font-weight: 700; font-size: 15px; }
+  .ticker__chg { color: var(--green); }
+  .spacer { flex: 1; }
+  .pill {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .pill--paper { color: var(--green); border-color: rgba(0, 255, 136, 0.35); }
+  .pill--noncust { color: var(--cyan); border-color: rgba(0, 240, 255, 0.3); }
+
+  .chart {
+    padding: 8px 18px 4px;
+  }
+  .chart svg { width: 100%; height: 170px; display: block; }
+  .chart-grid {
+    stroke: rgba(0, 240, 255, 0.06);
+    stroke-width: 1;
+  }
+  .chart-line {
+    fill: none;
+    stroke: var(--cyan);
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.5));
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 14px 18px 18px;
+  }
+  .panel {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .panel__head {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 10px;
+  }
+  .rows { list-style: none; }
+  .rows li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 4px 0;
+    color: #c6ccd8;
+  }
+  .rows .w { color: var(--muted); }
+  .side { font-style: normal; font-weight: 600; }
+  .side--long { color: var(--green); }
+  .side--flat { color: var(--flat); }
+  .rows--kv li span { color: var(--muted); }
+  .rows--kv li em { color: #c6ccd8; font-style: normal; text-align: right; }
+
+  .film {
+    display: block;
+    width: calc(100% - 36px);
+    margin: 0 18px 18px;
+    padding: 13px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cyan);
+    background: rgba(0, 240, 255, 0.06);
+    border: 1px solid var(--border-strong);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .film:hover {
+    background: rgba(0, 240, 255, 0.14);
+    box-shadow: 0 0 26px rgba(0, 240, 255, 0.25);
+  }
+  .film .play { color: var(--text); }
+
+  /* ===================== FILM MODAL ===================== */
+
+  .film-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(2, 4, 8, 0.94);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  .film-modal.open { opacity: 1; visibility: visible; }
+  .film-stage {
+    position: relative;
+    width: min(96vw, 1280px);
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0, 240, 255, 0.2);
+  }
+  .film-stage video { width: 100%; height: 100%; display: block; background: #000; }
+  .film-close {
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 40px; height: 40px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .film-close:hover { color: var(--cyan); border-color: var(--cyan); }
+
+  /* ===================== ANIM ===================== */
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--green); }
+    50% { opacity: 0.35; box-shadow: 0 0 2px var(--green); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===================== RESPONSIVE ===================== */
+
+  @media (max-width: 768px) {
+    .wrap {
+      grid-template-columns: 1fr;
+      gap: 44px;
+      padding: 48px 20px 72px;
+      align-items: start;
+    }
+    h1 { font-size: 44px; }
+    .panels { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<main class="wrap">
+  <!-- LEFT -->
+  <section class="left">
+    <span class="eyebrow">Decision intelligence for modern traders</span>
+
+    <h1><span class="logic">Logic,</span><br><span class="arrows">not arrows.</span></h1>
+
+    <p class="sub">Six independent engines synthesize into one explainable read. The ROMA Execution Bridge enforces <code>quota ∧ cost ∧ policy</code> before anything runs.</p>
+    <p class="closing">You see why — and you stay in control.</p>
+
+    <div class="cta">
+      <a class="btn btn--primary" href="#">Start Free Paper Trading →</a>
+      <a class="btn btn--ghost" href="#">Sign In</a>
+    </div>
+
+    <ul class="checks">
+      <li><span class="tick">✓</span>Free account</li>
+      <li><span class="tick">✓</span>No card required</li>
+      <li><span class="tick">✓</span>Simulated capital, live markets</li>
+    </ul>
+
+    <div class="status">
+      <span class="dot"></span>
+      <span>Sentinel AI Desktop</span>
+      <strong>· Live Now</strong>
+    </div>
+  </section>
+
+  <!-- RIGHT -->
+  <section class="right">
+    <div class="console">
+      <div class="console__bar">
+        <span class="tl tl--r"></span><span class="tl tl--y"></span><span class="tl tl--g"></span>
+        <span class="console__title">Sentinel AI — Decision Intelligence</span>
+        <span class="badge-live"><span class="dot"></span>LIVE NOW</span>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="Signals">Signals</button>
+        <button class="tab" data-tab="Intelligence">Intelligence</button>
+        <button class="tab" data-tab="Research">Research</button>
+        <button class="tab" data-tab="Execution">Execution</button>
+        <button class="tab" data-tab="Simulation">Simulation</button>
+        <button class="tab" data-tab="Risk">Risk</button>
+      </div>
+
+      <div class="ticker">
+        <span class="ticker__sym">BTCUSDT</span>
+        <span class="ticker__chg">+2.41%</span>
+        <span class="spacer"></span>
+        <span class="pill pill--paper">PAPER TRADING</span>
+        <span class="pill pill--noncust">NON-CUSTODIAL</span>
+      </div>
+
+      <div class="chart">
+        <svg viewBox="0 0 800 180" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="fillG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#00f0ff" stop-opacity="0.30"/>
+              <stop offset="1" stop-color="#00f0ff" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- grid -->
+          <g class="chart-grid">
+            <line x1="0" y1="45" x2="800" y2="45"/><line x1="0" y1="90" x2="800" y2="90"/><line x1="0" y1="135" x2="800" y2="135"/>
+            <line x1="100" y1="0" x2="100" y2="180"/><line x1="200" y1="0" x2="200" y2="180"/><line x1="300" y1="0" x2="300" y2="180"/><line x1="400" y1="0" x2="400" y2="180"/><line x1="500" y1="0" x2="500" y2="180"/><line x1="600" y1="0" x2="600" y2="180"/><line x1="700" y1="0" x2="700" y2="180"/>
+          </g>
+          <!-- ascending line -->
+          <path class="chart-line" d="M0,150 L50,138 L100,142 L150,112 L200,122 L250,84 L300,96 L350,60 L400,72 L450,44 L500,54 L550,28 L600,38 L650,18 L700,26 L750,8 L800,4"/>
+          <!-- gradient fill -->
+          <path d="M0,150 L50,138 L100,142 L150,112 L200,122 L250,84 L300,96 L350,60 L400,72 L450,44 L500,54 L550,28 L600,38 L650,18 L700,26 L750,8 L800,4 L800,180 L0,180 Z" fill="url(#fillG)"/>
+        </svg>
+      </div>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="panel__head">AI Assist</div>
+          <ul class="rows">
+            <li><span>Fundamental</span><span class="w">0.20</span><em class="side side--long">LONG</em></li>
+            <li><span>Quant</span><span class="w">0.20</span><em class="side side--long">LONG</em></li>
+            <li><span>Macro</span><span class="w">0.15</span><em class="side side--flat">FLAT</em></li>
+            <li><span>Options Flow</span><span class="w">0.15</span><em class="side side--long">LONG</em></li>
+          </ul>
+        </div>
+        <div class="panel">
+          <div class="panel__head">Risk Controls</div>
+          <ul class="rows rows--kv">
+            <li><span>Gate</span><em>quota ∧ cost ∧ policy</em></li>
+            <li><span>Ledger</span><em>append-only · L1–L4</em></li>
+            <li><span>Keys</span><em>hash-only · 0/3400</em></li>
+            <li><span>PITR</span><em>567=567</em></li>
+          </ul>
+        </div>
+      </div>
+
+      <button class="film" id="filmBtn"><span class="play">▶</span>&nbsp;PRODUCT FILM</button>
+    </div>
+  </section>
+</main>
+
+<!-- FILM MODAL -->
+<div class="film-modal" id="filmModal" role="dialog" aria-modal="true" aria-label="Sentinel AI Product Film">
+  <div class="film-stage">
+    <button class="film-close" id="filmClose" aria-label="Close">×</button>
+    <video src="product_film_v4_remux.webm" controls autoplay muted playsinline preload="auto"></video>
+  </div>
+</div>
+
+<script>
+  // Tab switching (visual only — Signals stays the demo content)
+  document.querySelectorAll('.tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+    });
+  });
+
+  // Product film modal
+  var modal = document.getElementById('filmModal');
+  var video = modal.querySelector('video');
+  document.getElementById('filmBtn').addEventListener('click', function () {
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    video.play().catch(function () {});
+  });
+  function closeFilm() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+    video.pause();
+  }
+  document.getElementById('filmClose').addEventListener('click', closeFilm);
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeFilm(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeFilm(); });
+</script>
+</body>
+</html>

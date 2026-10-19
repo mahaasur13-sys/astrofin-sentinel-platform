@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Sentinel AI — Logic, not arrows. Decision intelligence for modern traders. Six independent engines, one explainable read. ROMA Execution Bridge enforces quota ∧ cost ∧ policy.">
+<title>Sentinel AI — Logic, not arrows.</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('sentinel-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>
+<link rel="stylesheet" href="enterprise.css">
+</head>
+<body>
+
+<canvas id="orbital-canvas"></canvas>
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="brand" href="#top">
+      <span class="brand__mark">◈</span>
+      <span class="brand__name">Sentinel AI</span>
+      <span class="brand__sub">Decision Intelligence</span>
+    </a>
+    <nav class="nav__links">
+      <a href="#how-it-works">How it works</a>
+      <a href="#decisionos">DecisionOS</a>
+      <a href="https://mahaasur13-sys.github.io/decisionos-landing/index.html" target="_blank" rel="noopener" title="ROMA Execution Bridge — external">ROMA</a>
+      <a href="#trust">Trust</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
+    <div class="nav__cta">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme" aria-pressed="false">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a class="btn btn--ghost" href="#get-key">Sign in</a>
+      <a class="btn btn--primary" href="#" onclick="openLegalGate();return false;">Start free paper trading →</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero__grid">
+      <div>
+        <p class="eyebrow">Decision intelligence for modern traders</p>
+        <h1 class="hero__title"><span class="logic">Logic,</span><br><span class="accent">not arrows.</span></h1>
+        <p class="hero__sub">Six independent engines synthesize into one explainable read. The ROMA Execution Bridge enforces <code>quota ∧ cost ∧ policy</code> before anything runs.</p>
+        <p class="hero__closing">You see why — and you stay in control.</p>
+        <div class="hero__cta">
+          <a class="btn btn--primary btn--lg" href="#" onclick="openLegalGate();return false;">Start Free Paper Trading →</a>
+          <a class="btn btn--ghost btn--lg" href="#get-key">Sign In</a>
+        </div>
+        <ul class="hero__micro">
+          <li>Free account</li>
+          <li>No card required</li>
+          <li>Simulated capital, live markets</li>
+        </ul>
+        <div class="hero__status">
+          <span class="dot dot--live"></span>
+          <span>Sentinel AI Desktop</span>
+          <strong>· Live Now</strong>
+        </div>
+      </div>
+
+      <!-- PRODUCT FILM — Guy Ritchie kinetic title (7-frame) -->
+      <div class="title-card" id="filmTitle">
+        <div class="tc-noise"></div>
+        <div class="tc-scanlines"></div>
+        <div class="tc-crosshair" id="tcCrosshair"></div>
+        <div class="tc-timecode" id="tcTimecode">TC 00:00:00:00</div>
+        <button class="tc-skip" id="tcSkip" aria-label="Skip intro">Skip Intro →</button>
+        <div class="tc-progress"><span class="tc-progress-fill" id="tcProgressFill"></span></div>
+        <button class="tc-restart" id="tcRestart" title="Restart" aria-label="Restart intro">⟲</button>
+
+        <!-- Frame 1 — Пробуждение рынка -->
+        <div class="tc-scene tc-f1">
+          <div class="tc-f1-flash"></div>
+          <div class="tc-f1-price">BTC/USDT <b>$80,604.63</b> <span>• LIVE</span></div>
+        </div>
+
+        <!-- Frame 2 — Показания приборов -->
+        <div class="tc-scene tc-f2">
+          <div class="tc-f2-data">
+            <span>Conn live</span><span>Interval 1h</span><span>Lat 3</span><span>Upd/s 1/s</span><span>Candle 14:00:00Z</span>
+          </div>
+          <div class="tc-f2-rsi" id="tcRsi" tabindex="0" aria-label="RSI 33.66 Oversold">
+            <svg viewBox="0 0 400 120" preserveAspectRatio="none">
+              <line class="tc-rsi-grid" x1="0" y1="30" x2="400" y2="30"/><line class="tc-rsi-grid" x1="0" y1="70" x2="400" y2="70"/><line class="tc-rsi-grid" x1="0" y1="110" x2="400" y2="110"/>
+              <path class="tc-rsi-line" d="M0,40 L40,45 L80,38 L120,50 L160,60 L200,52 L240,70 L280,88 L320,80 L360,104 L400,112" fill="none"/>
+            </svg>
+            <div class="tc-f2-tooltip" id="tcRsiTip">RSI 33.66 — Oversold</div>
+          </div>
+        </div>
+
+        <!-- Frame 3 — Подозреваемые -->
+        <div class="tc-scene tc-f3">
+          <div class="tc-f3-cards">
+            <div class="tc-f3-card">FUNDAMENTAL <em>— IDLE</em></div>
+            <div class="tc-f3-card">QUANT <em>— IDLE</em></div>
+            <div class="tc-f3-card">MACRO <em>— IDLE (FED —)</em></div>
+            <div class="tc-f3-card">OPTIONS <em>— IDLE</em></div>
+            <div class="tc-f3-card">SENTIMENT <em>— IDLE (NO FEED)</em></div>
+            <div class="tc-f3-card">TECHNICAL <em>— IDLE</em></div>
+          </div>
+        </div>
+
+        <!-- Frame 4 — Приговор -->
+        <div class="tc-scene tc-f4">
+          <div class="tc-f4-hold" id="tcHold" tabindex="0">DECISION HOLD</div>
+          <div class="tc-f4-sub">Coherence — · 0 of 6 active · agents idle</div>
+        </div>
+
+        <!-- Frame 5 — Страж -->
+        <div class="tc-scene tc-f5">
+          <div class="tc-f5-sentinel" id="tcSentinel" tabindex="0">THE SENTINEL</div>
+          <div class="tc-f5-sub">Structure shift · volatility —</div>
+          <div class="tc-f5-panel" id="tcRulesPanel">Quota ∧ Cost ∧ Policy → Execution</div>
+        </div>
+
+        <!-- Frame 6 — Финал -->
+        <div class="tc-scene tc-f6">
+          <div class="tc-f6-wait">WAIT FOR THE SIGNAL</div>
+          <div class="tc-f6-logic">Logic, <span>not arrows.</span></div>
+        </div>
+
+        <!-- Frame 7 — Кульминация -->
+        <div class="tc-scene tc-f7">
+          <div class="tc-f7-meta"><span>Lesson 01 — Decision Intelligence</span><span>TRT 09:47</span></div>
+          <button class="tc-f7-watch" id="tcWatch" aria-label="Watch the training film">▶ WATCH THE TRAINING FILM</button>
+          <div class="tc-f7-sub">10 minutes. Learn the logic before you trade.</div>
+          <div class="tc-f7-hint">No cost. No risk. Just logic.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- METRICS -->
+  <section class="metrics">
+    <div class="container metrics__grid">
+      <div class="metric"><div class="metric__v">76</div><div class="metric__l">API Endpoints</div></div>
+      <div class="metric"><div class="metric__v">3,401</div><div class="metric__l">Tenants</div></div>
+      <div class="metric"><div class="metric__v">28</div><div class="metric__l">Tests</div></div>
+      <div class="metric"><div class="metric__v">19</div><div class="metric__l">CI Workflows</div></div>
+      <div class="metric"><div class="metric__v">299</div><div class="metric__l">Commits</div></div>
+    </div>
+  </section>
+
+  <!-- TRUST BAND -->
+  <section class="trust">
+    <div class="container trust__row">
+      <span class="trust__item">hash-only · 0/3401</span><span class="trust__sep"></span>
+      <span class="trust__item">e91b51c4</span><span class="trust__sep"></span>
+      <span class="trust__item">2ca0815 live</span><span class="trust__sep"></span>
+      <span class="trust__item">PITR 567=567</span><span class="trust__sep"></span>
+      <span class="trust__item">19 workflows · 4 jobs</span>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how-it-works">
+    <div class="container">
+      <p class="eyebrow">How it works</p>
+      <h2 class="h2">From signal to decision.</h2>
+      <p class="lead">Three steps, in this order, every time. Nothing executes without passing all three.</p>
+      <div class="steps">
+        <a class="step" href="detect.html"><div class="icon-tile">🎯</div><div class="step__n">01</div><h3 class="step__t">Detect</h3><p class="step__d">Identify meaningful changes across market structure, positioning, probabilities and catalysts.</p></a>
+        <a class="step" href="explain.html"><div class="icon-tile">🧠</div><div class="step__n">02</div><h3 class="step__t">Explain</h3><p class="step__d">Compare supporting and contradicting evidence through transparent six-engine intelligence.</p></a>
+        <a class="step" href="decide.html"><div class="icon-tile">⚖️</div><div class="step__n">03</div><h3 class="step__t">Decide</h3><p class="step__d">Turn context into a controlled action — or a deliberate decision to wait. You decide.</p></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- DECISIONOS: SIX ENGINES + WEIGHTS -->
+  <section class="section section--alt" id="decisionos">
+    <div class="container">
+      <p class="eyebrow">Sentinel AI DecisionOS</p>
+      <h2 class="h2">Six engines. One read. Your call.</h2>
+      <p class="lead">25 trading agents across six disciplines, merged by a synthesis agent into one signal with transparent weights.</p>
+      <div class="weights">
+        <div class="weight"><span class="weight__n">Fundamental</span><div class="bar"><i style="--w:100%"></i></div><span class="weight__v">20</span></div>
+        <div class="weight"><span class="weight__n">Quant</span><div class="bar"><i style="--w:100%"></i></div><span class="weight__v">20</span></div>
+        <div class="weight"><span class="weight__n">Macro</span><div class="bar"><i style="--w:75%"></i></div><span class="weight__v">15</span></div>
+        <div class="weight"><span class="weight__n">Options Flow</span><div class="bar"><i style="--w:75%"></i></div><span class="weight__v">15</span></div>
+        <div class="weight"><span class="weight__n">Sentiment</span><div class="bar"><i style="--w:50%"></i></div><span class="weight__v">10</span></div>
+        <div class="weight"><span class="weight__n">Technical</span><div class="bar"><i style="--w:50%"></i></div><span class="weight__v">10</span></div>
+        <div class="weight weight--sum"><span class="weight__n">Σ</span><div class="bar bar--empty"></div><span class="weight__v">100</span></div>
+      </div>
+      <p class="note">Each engine explains its lean.</p>
+    </div>
+  </section>
+
+  <!-- ROMA: INVARIANTS -->
+  <section class="section" id="roma">
+    <div class="container">
+      <p class="eyebrow">ROMA Execution Bridge</p>
+      <h2 class="h2">Quota. Cost. Policy. Then execution.</h2>
+      <p class="lead">Control plane. Checks quota, cost, and policy via EnterpriseDecisionGate, then runs the job.</p>
+      <div class="invariants">
+        <div class="inv"><div class="icon-tile">🔒</div><div class="inv__k">L1</div><div class="inv__v">Append-only</div><div class="inv__d">INSERT-only ledger + trigger 009.</div></div>
+        <div class="inv"><div class="icon-tile">⚡</div><div class="inv__k">L2</div><div class="inv__v">Atomic debit</div><div class="inv__d">Advisory-lock + SUM(CREDIT−DEBIT) + bal ≥ amount.</div></div>
+        <div class="inv"><div class="icon-tile">🔁</div><div class="inv__k">L3</div><div class="inv__v">Idempotency</div><div class="inv__d">job:{id} sha256[:24] + PK 006.</div></div>
+        <div class="inv"><div class="icon-tile">🛡️</div><div class="inv__k">L4</div><div class="inv__v">Fail-closed</div><div class="inv__d">Deny → 402/403/429/503.</div></div>
+        <div class="inv"><div class="icon-tile">⚙️</div><div class="inv__k">Gate</div><div class="inv__v">DecisionGate</div><div class="inv__d">quota · cost · policy before execution.</div></div>
+      </div>
+      <p class="note">Your decision remains yours. main.py:805-887 · finalize.py:44 · pg_ledger.py:123-156</p>
+    </div>
+  </section>
+
+  <!-- TRUST -->
+  <section class="section section--alt" id="trust">
+    <div class="container">
+      <p class="eyebrow">Trust</p>
+      <h2 class="h2">Built to be checked, not trusted blindly.</h2>
+      <p class="lead">Trust by construction, not by promise.</p>
+      <ul class="checks">
+        <li>Hash-only keys — plaintext column deleted, unhashed 0/3401</li>
+        <li>Append-only ledger — L1 INSERT-only + trigger 009</li>
+        <li>PITR — point-in-time recovery full-cycle 567=567</li>
+        <li>Clean scans — gitleaks 0 · bandit 0 high · pip-audit 0 · safety 3.7.0</li>
+        <li>sops 3.8.1 + age — .env.enc AES256-GCM</li>
+        <li>You decide — explains, never auto-executes</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- COMPARE -->
+  <section class="section" id="control">
+    <div class="container">
+      <p class="eyebrow">Control</p>
+      <h2 class="h2">It explains. You decide.</h2>
+      <p class="lead">Explains — never auto-executes. Simulated capital, live markets.</p>
+      <table class="compare">
+        <thead><tr><th>Signals</th><th>Sentinel AI</th></tr></thead>
+        <tbody>
+          <tr><td>Tells you what</td><td>Explains why</td></tr>
+          <tr><td>One black-box model</td><td>Six explainable engines + transparent weights</td></tr>
+          <tr><td>Executes on your behalf</td><td>You stay in control</td></tr>
+          <tr><td>Trust by assertion</td><td>Trust by construction</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section section--alt" id="pricing">
+    <div class="container">
+      <p class="eyebrow">Pricing</p>
+      <h2 class="h2">Simple, transparent pricing.</h2>
+      <p class="lead">Per-second GPU billing with an append-only ledger and atomic debit.</p>
+      <div class="pricing">
+        <div class="plan">
+          <h3 class="plan__t">Free</h3>
+          <div class="plan__p">$0</div>
+          <ul class="plan__l">
+            <li>Paper trading on live markets</li>
+            <li>Six-engine explainable reads</li>
+            <li>73 API endpoints</li>
+            <li>Community support</li>
+          </ul>
+          <a class="btn btn--ghost btn--block" href="signup.html">Start Free</a>
+        </div>
+        <div class="plan plan--featured">
+          <h3 class="plan__t">Pro</h3>
+          <div class="plan__p">$50</div>
+          <ul class="plan__l">
+            <li>Everything in Free</li>
+            <li>Priority job queue</li>
+            <li>Crypto payments (USDT/BTC/ETH)</li>
+            <li>Email support</li>
+          </ul>
+          <a class="btn btn--primary btn--block" href="signup.html?plan=pro">Start Pro</a>
+        </div>
+        <div class="plan">
+          <h3 class="plan__t">Enterprise</h3>
+          <div class="plan__p">Custom</div>
+          <ul class="plan__l">
+            <li>Dedicated GPU fleet</li>
+            <li>PITR + SLA 99.9%</li>
+            <li>RBAC + audit</li>
+            <li>Dedicated support</li>
+          </ul>
+          <a class="btn btn--ghost btn--block" href="signup.html?plan=enterprise">Contact Sales</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GET KEY -->
+  <section class="section" id="get-key">
+    <div class="container">
+      <p class="eyebrow">Get started</p>
+      <h2 class="h2">Where to get the API key?</h2>
+      <p class="lead">Three simple steps. Your key arrives right after registration — masked as first4***last4.</p>
+      <div class="steps">
+        <div class="step"><div class="step__n">01</div><h3 class="step__t">Choose source</h3><p class="step__d">Dashboard (instant) · Email (1–5 min) · Telegram bot /get_key (instant) · Support (15–60 min).</p></div>
+        <div class="step"><div class="step__n">02</div><h3 class="step__t">Get the key</h3><p class="step__d">Arrives after registration. Masked first4***last4, length 64, header X-API-Key.</p></div>
+        <div class="step"><div class="step__n">03</div><h3 class="step__t">Activate</h3><p class="step__d"><code>curl -X POST …/submit -H "X-API-Key: YOUR_KEY"</code> → 202 queued.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="#top"><span class="brand__mark">◈</span><span class="brand__name">Sentinel AI</span></a>
+        <p class="muted">Decision intelligence for modern traders. Logic, not arrows.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Product</h4>
+        <a href="#how-it-works">How it works</a>
+        <a href="#decisionos">DecisionOS</a>
+        <a href="https://mahaasur13-sys.github.io/decisionos-landing/index.html" target="_blank" rel="noopener">ROMA</a>
+        <a href="#pricing">Pricing</a>
+      </div>
+      <div class="footer__col">
+        <h4>Trust</h4>
+        <a href="#trust">Hash-only keys</a>
+        <a href="#trust">Append-only ledger</a>
+        <a href="#trust">PITR</a>
+      </div>
+      <div class="footer__col">
+        <h4>Access</h4>
+        <a href="#get-key">Get API Key</a>
+        <a href="#get-key">Sign In</a>
+        <a href="#pricing">Pricing &amp; Plans</a>
+      </div>
+      <div class="footer__col">
+        <h4>Support</h4>
+        <a href="#get-key">Documentation</a>
+        <a href="#get-key">FAQ</a>
+        <a href="#get-key">Contact</a>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>Sentinel AI DecisionOS + ROMA Execution Bridge + Sentinel AI Paper · hash-only 0/3401 · e91b51c4 · 2ca0815</span>
+      <span>Self-contained · no CDN · no 0.0.0.0</span>
+    </div>
+  </div>
+</footer>
+
+<!-- PRODUCT FILM MODAL (Full HD 1920×1080) -->
+<div class="film-overlay" id="filmOverlay" onclick="if(event.target===this)closeFilm()">
+  <div class="film-stage" role="dialog" aria-modal="true" aria-label="Sentinel AI Product Film">
+    <div class="film-stage__header">
+      <span class="film-stage__title">Sentinel AI</span>
+      <span class="film-stage__sub">Decision Intelligence · Product Film</span>
+      <button class="film-stage__close" onclick="closeFilm()" aria-label="Close">×</button>
+    </div>
+    <div class="film-stage__body">
+      <div class="film-viz" style="padding:0; overflow:hidden; background:#000; display:flex;">
+        <video src="product_film_v4_remux.webm" controls autoplay muted playsinline preload="auto"
+               style="width:100%; height:100%; display:block; object-fit:contain; background:#000;"></video>
+      </div>
+      <div class="film-side">
+        <div class="panel">
+          <div class="panel__head">Six Engines — One Read</div>
+          <ul class="rows">
+            <li><span>Fundamental</span><span class="w">0.20</span><em class="side side--long">LONG</em></li>
+            <li><span>Quant</span><span class="w">0.20</span><em class="side side--long">LONG</em></li>
+            <li><span>Macro</span><span class="w">0.15</span><em class="side side--flat">FLAT</em></li>
+            <li><span>Options Flow</span><span class="w">0.15</span><em class="side side--long">LONG</em></li>
+            <li><span>Sentiment</span><span class="w">0.10</span><em class="side side--long">LONG</em></li>
+            <li><span>Technical</span><span class="w">0.10</span><em class="side side--long">LONG</em></li>
+          </ul>
+        </div>
+        <div class="panel">
+          <div class="panel__head">Quota ∧ Cost ∧ Policy</div>
+          <ul class="rows rows--kv">
+            <li><span>Gate</span><em>EnterpriseDecisionGate</em></li>
+            <li><span>Ledger</span><em>append-only · L1–L4</em></li>
+            <li><span>Keys</span><em>hash-only · 0/3401</em></li>
+            <li><span>PITR</span><em>567=567</em></li>
+          </ul>
+        </div>
+        <p class="muted" style="font-size:14px;text-align:center;">Logic, not arrows. You see why — and you stay in control.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Product film modal
+  window.openFilm = function () {
+    document.getElementById('filmOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeFilm = function () {
+    document.getElementById('filmOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeFilm();
+  });
+
+  // Orbital particle canvas — single accent
+  try {
+    var c = document.getElementById('orbital-canvas');
+    var x = c.getContext('2d');
+    var W, H, P = [];
+    var COLORS = ['#00E5FF'];
+    function rs() {
+      W = c.width = window.innerWidth;
+      H = c.height = window.innerHeight;
+      P = [];
+      for (var i = 0; i < 28; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 0.6+Math.random()*1.2, oR: 40+Math.random()*120, a: Math.random()*Math.PI*2, s: 0.018+Math.random()*0.022, al: 0.3+Math.random()*0.4});
+      for (var i = 0; i < 18; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 1.2+Math.random()*1.8, oR: 60+Math.random()*160, a: Math.random()*Math.PI*2, s: 0.010+Math.random()*0.014, al: 0.22+Math.random()*0.33});
+      for (var i = 0; i < 10; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 2+Math.random()*3, oR: 80+Math.random()*200, a: Math.random()*Math.PI*2, s: 0.005+Math.random()*0.008, al: 0.12+Math.random()*0.22});
+      for (var i = 0; i < 8; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 0.8, oR: 50+Math.random()*140, a: Math.random()*Math.PI*2, s: 0.012+Math.random()*0.016, al: 0.1+Math.random()*0.16, ln: true});
+    }
+    function dr() {
+      x.clearRect(0, 0, W, H);
+      P.forEach(function(q) {
+        q.a += q.s;
+        var cx = q.x + Math.cos(q.a) * q.oR * 0.6;
+        var cy = q.y + Math.sin(q.a) * q.oR * 0.35;
+        if (q.ln) {
+          x.beginPath();
+          x.ellipse(q.x, q.y, q.oR*0.7, q.oR*0.35, 0, 0, Math.PI*2);
+          x.strokeStyle = COLORS[0];
+          x.globalAlpha = q.al * 0.5;
+          x.lineWidth = 0.6;
+          x.stroke();
+        }
+        x.beginPath();
+        x.arc(cx, cy, q.r, 0, Math.PI*2);
+        x.fillStyle = COLORS[0];
+        x.globalAlpha = q.al;
+        x.shadowBlur = q.r > 1.5 ? 12 : 4;
+        x.shadowColor = COLORS[0];
+        x.fill();
+        x.shadowBlur = 0;
+      });
+      x.globalAlpha = 1;
+      requestAnimationFrame(dr);
+    }
+    rs();
+    dr();
+    window.addEventListener('resize', rs);
+  } catch (e) {}
+
+  // Theme toggle
+  var btn  = document.getElementById('themeToggle');
+  var root = document.documentElement;
+  if (btn) {
+    var sync = function () {
+      btn.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
+    };
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('sentinel-theme', next); } catch (e) {}
+      sync();
+    });
+    sync();
+  }
+})();
+</script>
+
+<!-- Training film modal -->
+<div class="training-modal" id="trainingModal" role="dialog" aria-modal="true" aria-label="Sentinel AI Training Film">
+  <div class="training-stage">
+    <div class="training-head">
+      <span>Sentinel AI — Training Film · Lesson 01: Decision Intelligence</span>
+      <button class="training-close" id="trainingClose" aria-label="Close">×</button>
+    </div>
+    <video src="product_film_v4_remux.webm" controls autoplay muted playsinline preload="auto"></video>
+    <p class="training-desc">Learn how six engines synthesize into one explainable read. See the Sentinel in action. Then start your free paper trading.</p>
+    <a class="training-cta" href="signup.html">Start Free Paper Trading →</a>
+  </div>
+</div>
+
+<!-- PRODUCT FILM — Guy Ritchie kinetic title (7-frame, scoped) -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&display=swap');
+
+  .title-card {
+    position: relative;
+    width: 100%;
+    min-height: 550px;
+    height: 100%;
+    background: #0a0a0f;
+    border: 1px solid rgba(0, 240, 255, 0.22);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 34px rgba(0, 240, 255, 0.14), 0 30px 70px rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* overlays */
+  .tc-noise {
+    position: absolute; inset: 0; z-index: 6; pointer-events: none; opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .tc-scanlines {
+    position: absolute; inset: 0; z-index: 7; pointer-events: none; opacity: 0.14;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.5) 0 1px, transparent 1px 3px);
+  }
+  .title-card::after {
+    content: ''; position: absolute; inset: 0; z-index: 8; pointer-events: none;
+    background: rgba(255,255,255,0.02);
+    animation: tcFlicker 4s steps(1) infinite;
+  }
+  @keyframes tcFlicker {
+    0%,100%{opacity:0}7%{opacity:1}8%{opacity:0}9%{opacity:1}10%{opacity:0}46%{opacity:0}47%{opacity:1}48%{opacity:0}
+  }
+
+  /* HUD chrome */
+  .tc-timecode { position:absolute; top:12px; left:14px; z-index:9; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.12em; color:rgba(0,240,255,0.75); }
+  .tc-skip {
+    position:absolute; top:10px; right:52px; z-index:12; font-family:'JetBrains Mono',monospace; font-size:10px;
+    color:rgba(0,240,255,0.7); background:transparent; border:1px solid rgba(0,240,255,0.25); border-radius:7px; padding:5px 10px; cursor:pointer; transition:all .2s ease;
+  }
+  .tc-skip:hover { color:#00f0ff; border-color:#00f0ff; box-shadow:0 0 14px rgba(0,240,255,0.3); }
+  .tc-progress { position:absolute; bottom:0; left:0; right:0; z-index:9; height:3px; background:rgba(255,255,255,0.06); }
+  .tc-progress-fill { display:block; height:100%; width:0; background:linear-gradient(90deg,#00f0ff,#bd00ff); box-shadow:0 0 10px rgba(0,240,255,0.6); }
+  .tc-restart {
+    position:absolute; top:8px; right:12px; z-index:12; width:34px; height:34px; border:1px solid rgba(0,240,255,0.3); border-radius:8px;
+    background:rgba(0,0,0,0.4); color:#00f0ff; font-size:16px; cursor:pointer; transition:all .2s ease;
+  }
+  .tc-restart:hover { border-color:#00f0ff; box-shadow:0 0 16px rgba(0,240,255,0.35); }
+
+  /* crosshair */
+  .tc-crosshair { position:absolute; z-index:11; pointer-events:none; width:22px; height:22px; margin:-11px 0 0 -11px; opacity:0; transition:opacity .2s ease; }
+  .title-card:hover .tc-crosshair { opacity:1; }
+  .tc-crosshair::before, .tc-crosshair::after { content:''; position:absolute; background:#00f0ff; box-shadow:0 0 8px #00f0ff; }
+  .tc-crosshair::before { left:50%; top:0; width:1px; height:100%; transform:translateX(-50%); }
+  .tc-crosshair::after { top:50%; left:0; height:1px; width:100%; transform:translateY(-50%); }
+
+  /* scenes */
+  .tc-scene { position:absolute; inset:0; z-index:5; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; opacity:0; pointer-events:none; }
+  .tc-scene.active { opacity:1; pointer-events:auto; }
+
+  /* Frame 1 */
+  .tc-f1-price { font-family:'Bebas Neue','Anton',sans-serif; font-size:clamp(44px,5.5vw,76px); color:#e8eaf0; letter-spacing:0.02em; }
+  .tc-f1-price b { color:#00f0ff; text-shadow:0 0 26px rgba(0,240,255,0.6); }
+  .tc-f1-price span { font-family:'JetBrains Mono',monospace; font-size:14px; color:#00ff88; letter-spacing:0.2em; }
+  .tc-f1-flash { position:absolute; inset:0; background:radial-gradient(circle at 50% 45%, rgba(0,240,255,0.22), transparent 60%); opacity:0; }
+  .tc-f1.active .tc-f1-price { animation:tcF1Slam .8s cubic-bezier(.16,1,.3,1) both; }
+  .tc-f1.active .tc-f1-flash { animation:tcFlash .5s ease both; }
+  @keyframes tcF1Slam { 0%{transform:translateY(-70%) scale(1.3); filter:blur(10px); opacity:0} 100%{transform:translateY(0) scale(1); filter:blur(0); opacity:1} }
+  @keyframes tcFlash { 0%{opacity:1} 100%{opacity:0} }
+
+  /* Frame 2 */
+  .tc-f2 { justify-content:flex-end; padding-bottom:34px; }
+  .tc-f2-data { position:absolute; top:16%; width:88%; font-family:'JetBrains Mono',monospace; font-size:12px; color:#8a93a6; display:flex; flex-wrap:wrap; justify-content:center; gap:8px 18px; }
+  .tc-f2.active .tc-f2-data { animation:tcScrollUp 1.4s linear both; }
+  @keyframes tcScrollUp { 0%{transform:translateY(40px); opacity:0} 15%{opacity:1} 100%{transform:translateY(-8px)} }
+  .tc-f2-rsi { position:relative; width:82%; }
+  .tc-f2-rsi svg { width:100%; height:120px; display:block; }
+  .tc-rsi-grid { stroke:rgba(255,255,255,0.06); stroke-width:1; }
+  .tc-rsi-line { stroke:#fbbf24; stroke-width:2.5; filter:drop-shadow(0 0 6px rgba(251,191,36,0.5)); }
+  .tc-f2.active .tc-rsi-line { animation:tcRsiDrop .7s .3s cubic-bezier(.3,0,.2,1) both; }
+  @keyframes tcRsiDrop { 0%{stroke-dasharray:400; stroke-dashoffset:0} 100%{stroke-dashoffset:0} }
+  .tc-f2-tooltip { position:absolute; top:-26px; right:0; font-family:'JetBrains Mono',monospace; font-size:11px; color:#fbbf24; border:1px solid rgba(251,191,36,0.4); background:rgba(10,10,15,0.95); border-radius:6px; padding:4px 9px; opacity:0; transition:opacity .2s ease; pointer-events:none; }
+  .tc-f2-rsi:hover .tc-f2-tooltip { opacity:1; }
+
+  /* Frame 3 */
+  .tc-f3-cards { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; width:90%; }
+  .tc-f3-card { font-family:'Bebas Neue','Anton',sans-serif; font-size:20px; letter-spacing:0.04em; color:#e8eaf0; background:rgba(255,255,255,0.03); border:1px solid rgba(0,240,255,0.16); border-radius:8px; padding:9px 12px; text-align:left; }
+  .tc-f3-card em { font-style:normal; font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a93a6; }
+  .tc-f3.active .tc-f3-card { animation:tcCardIn .32s both; }
+  .tc-f3.active .tc-f3-card:nth-child(1){animation-delay:0s}.tc-f3.active .tc-f3-card:nth-child(2){animation-delay:.06s}
+  .tc-f3.active .tc-f3-card:nth-child(3){animation-delay:.12s}.tc-f3.active .tc-f3-card:nth-child(4){animation-delay:.18s}
+  .tc-f3.active .tc-f3-card:nth-child(5){animation-delay:.24s}.tc-f3.active .tc-f3-card:nth-child(6){animation-delay:.3s}
+  @keyframes tcCardIn { from{transform:translateX(70px); opacity:0} to{transform:translateX(0); opacity:1} }
+
+  /* Frame 4 */
+  .tc-f4-hold { font-family:'Bebas Neue','Anton',sans-serif; font-size:clamp(58px,7vw,110px); color:#ff0044; text-shadow:0 0 30px rgba(255,0,68,0.6); cursor:pointer; }
+  .tc-f4-sub { font-family:'JetBrains Mono',monospace; font-size:12px; color:#8a93a6; margin-top:10px; }
+  .tc-f4.active .tc-f4-hold { animation:tcStamp .45s cubic-bezier(.2,1.2,.3,1) both; }
+  @keyframes tcStamp { 0%{transform:scale(2.6); opacity:0} 60%{transform:scale(.96); opacity:1} 100%{transform:scale(1)} }
+
+  /* Frame 5 */
+  .tc-f5-sentinel { font-family:'Bebas Neue','Anton',sans-serif; font-size:clamp(56px,7vw,104px); color:#00f0ff; text-shadow:0 0 28px rgba(0,240,255,0.55); cursor:pointer; }
+  .tc-f5-sub { font-family:'JetBrains Mono',monospace; font-size:12px; color:#8a93a6; margin-top:10px; animation:tcNeon 1.2s steps(1) infinite; }
+  .tc-f5-panel { margin-top:18px; font-family:'JetBrains Mono',monospace; font-size:12px; color:#e8eaf0; border:1px solid rgba(0,240,255,0.3); border-radius:8px; padding:9px 16px; background:rgba(0,240,255,0.06); opacity:0; transform:translateY(8px); transition:all .25s ease; }
+  .tc-f5-panel.show { opacity:1; transform:translateY(0); }
+  .tc-f5.active .tc-f5-sentinel { animation:tcShatter .3s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes tcShatter { 0%{transform:scale(0.2) rotate(-8deg); opacity:0; filter:blur(8px)} 60%{transform:scale(1.06) rotate(0); opacity:1; filter:blur(0)} 100%{transform:scale(1)} }
+  @keyframes tcNeon { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* Frame 6 */
+  .tc-f6-wait { font-family:'Bebas Neue','Anton',sans-serif; font-size:clamp(42px,5vw,72px); color:#e8eaf0; letter-spacing:0.03em; }
+  .tc-f6-logic { font-family:'Bebas Neue','Anton',sans-serif; font-size:clamp(40px,4.8vw,66px); line-height:1; background:linear-gradient(90deg,#00f0ff,#bd00ff); -webkit-background-clip:text; background-clip:text; color:transparent; margin-top:12px; }
+  .tc-f6.active .tc-f6-wait { animation:tcTrackIn .6s ease both; }
+  .tc-f6.active .tc-f6-logic { animation:tcSlamUp .6s .2s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes tcTrackIn { from{letter-spacing:1.2em; opacity:0} to{letter-spacing:.03em; opacity:1} }
+  @keyframes tcSlamUp { 0%{transform:translateY(120%); opacity:0} 60%{transform:translateY(-5%)} 100%{transform:translateY(0); opacity:1} }
+
+  /* Frame 7 */
+  .tc-f7-meta { position:absolute; top:18%; width:86%; display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a93a6; }
+  .tc-f7-watch {
+    font-family:'JetBrains Mono',monospace; font-size:clamp(15px,2vw,18px); font-weight:700; letter-spacing:0.08em;
+    color:#041016; background:linear-gradient(135deg,#00f0ff,#00c8ff); border:none; border-radius:14px; padding:20px 42px; cursor:pointer;
+    box-shadow:0 0 34px rgba(0,240,255,0.45); animation:tcPulse 1.6s ease-in-out infinite;
+  }
+  .tc-f7-watch:hover { animation:none; transform:scale(1.05); box-shadow:0 0 52px rgba(0,240,255,0.7); }
+  .tc-f7-sub { font-family:'JetBrains Mono',monospace; font-size:12px; color:#8a93a6; margin-top:16px; }
+  .tc-f7-hint { font-family:'JetBrains Mono',monospace; font-size:11px; color:#00ff88; margin-top:8px; }
+  .tc-f7.active .tc-f7-watch { animation:tcStamp .5s .2s both, tcPulse 1.6s .8s ease-in-out infinite; }
+  @keyframes tcPulse { 0%,100%{box-shadow:0 0 34px rgba(0,240,255,0.45)} 50%{box-shadow:0 0 60px rgba(0,240,255,0.8)} }
+
+  /* training modal */
+  .training-modal { position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; background:rgba(2,4,8,0.92); backdrop-filter:blur(8px); opacity:0; visibility:hidden; transition:opacity .3s ease, visibility .3s ease; }
+  .training-modal.open { opacity:1; visibility:visible; }
+  .training-stage { width:min(94vw,1100px); background:#0a0a0f; border:1px solid rgba(0,240,255,0.3); border-radius:16px; overflow:hidden; box-shadow:0 0 60px rgba(0,240,255,0.2); }
+  .training-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; border-bottom:1px solid rgba(0,240,255,0.15); font-family:'JetBrains Mono',monospace; font-size:13px; color:#e8eaf0; }
+  .training-close { width:36px; height:36px; font-size:20px; color:#e8eaf0; background:transparent; border:1px solid rgba(255,255,255,0.2); border-radius:9px; cursor:pointer; }
+  .training-close:hover { color:#00f0ff; border-color:#00f0ff; }
+  .training-stage video { width:100%; aspect-ratio:16/9; background:#000; display:block; }
+  .training-desc { padding:16px 20px 4px; font-size:13.5px; color:#c6ccd8; line-height:1.6; }
+  .training-cta { display:inline-block; margin:12px 20px 20px; padding:13px 26px; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:#041016; background:linear-gradient(135deg,#00f0ff,#00c8ff); border-radius:11px; text-decoration:none; box-shadow:0 0 24px rgba(0,240,255,0.35); transition:transform .15s ease, box-shadow .2s ease; }
+  .training-cta:hover { transform:translateY(-2px); box-shadow:0 0 40px rgba(0,240,255,0.55); }
+
+  /* responsive */
+  @media (max-width:768px) {
+    .title-card { min-height: 420px; }
+    .tc-f3-cards { grid-template-columns:1fr; }
+  }
+</style>
+<script>
+(function () {
+  var card = document.getElementById('filmTitle');
+  if (!card) return;
+  var scenes = card.querySelectorAll('.tc-scene');
+  var STARTS = [0, 1500, 3000, 5500, 7000, 7800, 9300];
+  var DUR = 12300;
+  var start = performance.now();
+  var skip = -1; // frame index to force (for Skip Intro)
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tick() {
+    var el = skip >= 0 ? STARTS[skip] : (performance.now() - start) % DUR;
+    var active = 0;
+    for (var i = 0; i < STARTS.length; i++) { if (el >= STARTS[i]) active = i; }
+    scenes.forEach(function (s, i) { s.classList.toggle('active', i === active); });
+
+    var fill = document.getElementById('tcProgressFill');
+    if (fill) fill.style.width = (el / DUR * 100).toFixed(2) + '%';
+    var tc = document.getElementById('tcTimecode');
+    if (tc) {
+      var f = Math.floor(el / 1000 * 24);
+      tc.textContent = 'TC ' + pad(Math.floor(el / 60000)) + ':' + pad(Math.floor(el / 1000) % 60) + ':' + pad(f % 24) + ':' + pad(Math.floor(el % (1000/24) * 24));
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // Skip intro -> frame 7 (index 6)
+  var skipBtn = document.getElementById('tcSkip');
+  if (skipBtn) skipBtn.addEventListener('click', function () { skip = 6; });
+  // Restart
+  var rst = document.getElementById('tcRestart');
+  if (rst) rst.addEventListener('click', function () { skip = -1; start = performance.now(); });
+
+  // Frame 4: DECISION HOLD toggle
+  var hold = document.getElementById('tcHold');
+  if (hold) hold.addEventListener('click', function () {
+    var isHold = hold.textContent.indexOf('HOLD') >= 0;
+    hold.textContent = isHold ? 'DECISION LONG — 0.17' : 'DECISION HOLD';
+  });
+
+  // Frame 5: THE SENTINEL -> rules panel
+  var sentinel = document.getElementById('tcSentinel');
+  var panel = document.getElementById('tcRulesPanel');
+  if (sentinel && panel) sentinel.addEventListener('click', function () { panel.classList.toggle('show'); });
+
+  // Frame 2: RSI tooltip (CSS hover handles it; keep aria fallback)
+
+  // Frame 7: WATCH -> training modal
+  var watch = document.getElementById('tcWatch');
+  var modal = document.getElementById('trainingModal');
+  var video = modal ? modal.querySelector('video') : null;
+  function openTraining() {
+    if (!modal) return;
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (video) video.play().catch(function () {});
+  }
+  function closeTraining() {
+    if (!modal) return;
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+    if (video) video.pause();
+  }
+  if (watch) watch.addEventListener('click', openTraining);
+  var closeBtn = document.getElementById('trainingClose');
+  if (closeBtn) closeBtn.addEventListener('click', closeTraining);
+  if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) closeTraining(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeTraining(); });
+
+  // crosshair
+  var ch = document.getElementById('tcCrosshair');
+  if (ch) {
+    card.addEventListener('mousemove', function (e) {
+      var r = card.getBoundingClientRect();
+      ch.style.left = (e.clientX - r.left) + 'px';
+      ch.style.top = (e.clientY - r.top) + 'px';
+    });
+    card.addEventListener('mouseleave', function () { ch.style.opacity = '0'; });
+  }
+})();
+</script>
+
+<!-- LEGAL ONBOARDING GATE -->
+<div class="legal-overlay" id="legalOverlay">
+  <div class="legal-modal" role="dialog" aria-modal="true" aria-label="Legal documents acceptance">
+    <div id="legal-gate-view">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div class="legal-doc-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div class="legal-lockup"><span class="mark">◆</span><span class="name">Sentinel AI</span><span class="sep">·</span><span>Decision Intelligence</span></div>
+      </div>
+      <h2 class="legal-h2">Updated Legal Documents</h2>
+      <p class="legal-sub">Please review and accept the current documents to continue using Sentinel AI.</p>
+
+      <div class="legal-docs">
+        <div class="legal-doc-row" onclick="openLegalDoc('Terms and Conditions')"><span class="doc-name">Sentinel AI Terms and Conditions</span><span class="doc-ver">v2026-09-16</span></div>
+        <div class="legal-doc-row" onclick="openLegalDoc('Risk Disclosure Statement')"><span class="doc-name">Sentinel AI Risk Disclosure Statement</span><span class="doc-ver">v2026-09-16</span></div>
+        <div class="legal-doc-row" onclick="openLegalDoc('Privacy Policy')"><span class="doc-name">Sentinel AI Privacy Policy</span><span class="doc-ver">v2026-09-16</span></div>
+        <div class="legal-doc-row" onclick="openLegalDoc('Jurisdiction and Availability Notice')"><span class="doc-name">Sentinel AI Jurisdiction and Availability Notice</span><span class="doc-ver">v2026-09-16</span></div>
+      </div>
+
+      <label class="legal-label" for="legalCountry">Country of Residence</label>
+      <select class="legal-select" id="legalCountry">
+        <option value="">Select your country…</option>
+        <option>United States</option><option>United Kingdom</option><option>Canada</option><option>Australia</option>
+        <option>Germany</option><option>France</option><option>Spain</option><option>Italy</option>
+        <option>Netherlands</option><option>Switzerland</option><option>Sweden</option><option>Norway</option>
+        <option>Singapore</option><option>Japan</option><option>South Korea</option><option>United Arab Emirates</option>
+        <option>Brazil</option><option>Mexico</option><option>India</option><option>Other</option>
+      </select>
+
+      <div class="legal-checks">
+        <div class="legal-check-row" id="legalCheck1" onclick="toggleLegalCheck(1)">
+          <input type="checkbox" id="legalC1">
+          <span class="legal-checkbox" id="legalBox1"></span>
+          <span class="check-text">I have read and accept the Terms and Conditions (v2026-09-16).</span>
+        </div>
+        <div class="legal-check-row" id="legalCheck2" onclick="toggleLegalCheck(2)">
+          <input type="checkbox" id="legalC2">
+          <span class="legal-checkbox" id="legalBox2"></span>
+          <span class="check-text">I have read and acknowledge the Risk Disclosure Statement (v2026-09-16), including that I may lose part or all of my capital.<span class="check-caption">Trading involves risk — Sentinel AI explains decisions but never auto-executes. Final decisions remain mine.</span></span>
+        </div>
+        <div class="legal-check-row" id="legalCheck3" onclick="toggleLegalCheck(3)">
+          <input type="checkbox" id="legalC3">
+          <span class="legal-checkbox" id="legalBox3"></span>
+          <span class="check-text">I confirm I am at least 18, my country of residence above is accurate, I am not in a prohibited jurisdiction, and I am not using a VPN or proxy to disguise my location.<span class="check-caption">I am at least 18 and not in a prohibited jurisdiction. I am not using a VPN or proxy to disguise my location.</span></span>
+        </div>
+      </div>
+
+      <div class="legal-disclaimer">Our updated Privacy Policy (v2026-09-16) describes how your personal data is processed. Its delivery to you will be recorded.</div>
+
+      <button class="legal-cta" id="legalCta" disabled onclick="acceptLegal()">🔒 Accept and Continue</button>
+      <div class="legal-trust-signal">Your acceptance is recorded append-only (L1).</div>
+    </div>
+
+    <div id="legal-unlocked-view" class="legal-unlocked" style="display:none;">
+      <div class="mark">◆</div>
+      <h3>Sentinel AI · Decision Intelligence</h3>
+      <p>Legal gate accepted — app unlocked.<br>Your decision remains yours.</p>
+      <div class="legal-receipt" id="legalReceipt"></div>
+      <button class="legal-cta" style="margin-top:16px;" onclick="window.location.href='system.html'">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var accepted = false;
+  window.openLegalGate = function () {
+    if (accepted) { showUnlocked(); return; }
+    try { if (localStorage.getItem('sentinel_ai_legal_acceptance')) { accepted = true; showUnlocked(); return; } } catch (e) {}
+    document.getElementById('legal-gate-view').style.display = '';
+    document.getElementById('legal-unlocked-view').style.display = 'none';
+    document.getElementById('legalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    updateLegalCta();
+  };
+  window.closeLegalGate = function () {
+    document.getElementById('legalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  // overlay/Esc do not dismiss — accept only
+  document.getElementById('legalOverlay').addEventListener('click', function (e) {
+    if (e.target === this) showLegalToast('This gate cannot be dismissed — please accept to continue.');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && document.getElementById('legalOverlay').classList.contains('open')) {
+      showLegalToast('This gate cannot be dismissed — please accept to continue.');
+    }
+  });
+
+  window.toggleLegalCheck = function (n) {
+    var cb = document.getElementById('legalC' + n);
+    var row = document.getElementById('legalCheck' + n);
+    var box = document.getElementById('legalBox' + n);
+    cb.checked = !cb.checked;
+    if (cb.checked) { row.classList.add('checked'); box.textContent = '✓'; }
+    else { row.classList.remove('checked'); box.textContent = ''; }
+    updateLegalCta();
+  };
+
+  function updateLegalCta() {
+    var c1 = document.getElementById('legalC1').checked;
+    var c2 = document.getElementById('legalC2').checked;
+    var c3 = document.getElementById('legalC3').checked;
+    var country = document.getElementById('legalCountry').value;
+    document.getElementById('legalCta').disabled = !(c1 && c2 && c3 && country);
+  }
+  document.getElementById('legalCountry').addEventListener('change', updateLegalCta);
+
+  window.openLegalDoc = function (name) {
+    showLegalToast('Opening ' + name + ' — app.sentinel.ai/system');
+    try { console.log('[L1 append-only] Document delivered:', name, 'v2026-09-16'); } catch (e) {}
+  };
+
+  window.acceptLegal = function () {
+    var c1 = document.getElementById('legalC1').checked;
+    var c2 = document.getElementById('legalC2').checked;
+    var c3 = document.getElementById('legalC3').checked;
+    var country = document.getElementById('legalCountry').value;
+    if (!(c1 && c2 && c3 && country)) return;
+    accepted = true;
+    var ts = new Date().toISOString();
+    var payload = {
+      user_id: 'sentinel-ai-user',
+      timestamp: ts,
+      document_versions: 'v2026-09-16',
+      country: country,
+      trust_signal: 'L1 append_only INSERT-only ledger + trigger 009',
+      storage: 'hash-only 0/3400'
+    };
+    try { localStorage.setItem('sentinel_ai_legal_acceptance', JSON.stringify(payload)); } catch (e) {}
+    try { console.log('[L1 append-only] Acceptance recorded', payload); } catch (e) {}
+    showUnlocked();
+  };
+
+  function showUnlocked() {
+    document.getElementById('legal-gate-view').style.display = 'none';
+    document.getElementById('legal-unlocked-view').style.display = '';
+    var receipt = 'L1 append-only\nuser_id: sentinel-ai-user\ntimestamp: ' + new Date().toISOString() + '\ncountry: ' + (document.getElementById('legalCountry').value || '—') + '\ndocs: v2026-09-16';
+    document.getElementById('legalReceipt').textContent = receipt;
+    document.getElementById('legalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function showLegalToast(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#0B1220;border:1px solid rgba(0,229,255,0.4);color:#E6EDF3;padding:12px 20px;border-radius:8px;font-size:13px;z-index:3000;font-family:system-ui;';
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2800);
+  }
+})();
+</script>
+
+<!-- Sentinel AI Chat — Explain-Only -->
+<script src="components/ai_chat.js"></script>
+</body>
+</html>

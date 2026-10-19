@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Sentinel AI · Decision Intelligence — System. Paper trading, six engines, decision intelligence.">
+<title>Sentinel AI · Decision Intelligence — System</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050508;
+  --surface: #0B1220;
+  --surface-2: #111827;
+  --border: #1F2937;
+  --border-strong: rgba(0,229,255,0.25);
+  --accent: #00E5FF;
+  --accent-2: #06d6d6;
+  --green: #22c55e;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --text: #E6EDF3;
+  --muted: #6B7280;
+  --dim: #8B949E;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-display: 'Orbitron', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+a { color: var(--accent); text-decoration: none; }
+#orbital-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.6; }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3) 50%, transparent 51%),
+    radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.22) 50%, transparent 51%),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.18) 50%, transparent 51%);
+}
+.container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+/* top banner */
+.top-banner { background: rgba(0,229,255,0.06); border-bottom: 1px solid var(--border); text-align: center; padding: 8px 16px; font-size: 12px; color: var(--dim); position: relative; z-index: 2; }
+.top-banner b { color: var(--accent); font-weight: 600; }
+.top-banner .mono { font-family: var(--font-mono); font-size: 11px; }
+
+/* header */
+.header { position: sticky; top: 0; z-index: 50; background: rgba(5,5,8,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-strong); }
+.header__inner { display: flex; align-items: center; gap: 16px; padding: 14px 0; flex-wrap: wrap; }
+.brand-lockup { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.brand-lockup .mark { color: var(--accent); }
+.brand-lockup .name { color: var(--text); font-weight: 700; }
+.brand-lockup .sep { opacity: 0.4; }
+.nav-links { display: flex; gap: 18px; margin-left: 8px; flex-wrap: wrap; }
+.nav-links a { color: var(--dim); font-size: 13px; }
+.nav-links a.active { color: var(--accent); font-weight: 600; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.paper-badge { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(0,229,255,0.3); color: var(--accent); background: rgba(0,229,255,0.08); }
+.user-chip { font-family: var(--font-mono); font-size: 12px; color: var(--dim); }
+
+/* welcome card */
+.welcome { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin: 28px 0 20px; }
+.welcome .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+.welcome h1 { font-family: var(--font-display); font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.welcome .sub { color: var(--dim); font-size: 14px; margin-bottom: 16px; }
+.welcome .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.meta-chip { font-family: var(--font-mono); font-size: 11px; padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--dim); background: rgba(255,255,255,0.02); }
+.meta-chip b { color: var(--text); font-weight: 600; }
+.activity { background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.2); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--dim); margin-bottom: 18px; line-height: 1.7; }
+.welcome .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, var(--accent), #00B8CC); color: #001318; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 26px rgba(0,229,255,0.4); }
+.btn-ghost { background: transparent; border-color: var(--border-strong); color: var(--text); }
+.btn-ghost:hover { border-color: var(--accent); }
+
+/* mini cards */
+.mini-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.mini-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: border-color 0.2s, transform 0.2s; }
+.mini-card:hover { border-color: rgba(0,229,255,0.4); transform: translateY(-2px); }
+.mini-card .ic { font-size: 20px; margin-bottom: 8px; }
+.mini-card h4 { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.mini-card .v { font-size: 20px; font-weight: 800; color: var(--accent); font-family: var(--font-mono); margin-bottom: 6px; }
+.mini-card p { font-size: 12px; color: var(--dim); line-height: 1.6; }
+.mini-card .mono { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); margin-top: 6px; line-height: 1.7; }
+
+/* status row */
+.status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.status-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+.status-card .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.status-card .val { font-size: 22px; font-weight: 800; color: var(--accent); font-family: var(--font-mono); margin-bottom: 6px; }
+.status-card p { font-size: 12px; color: var(--dim); line-height: 1.6; }
+
+/* getting started */
+.getting { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 20px; }
+.getting h2 { font-family: var(--font-display); font-size: 20px; color: #fff; margin-bottom: 6px; }
+.getting .gsub { color: var(--dim); font-size: 13.5px; margin-bottom: 16px; }
+.progress-line { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.progress-label { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+.step { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.step:last-child { border-bottom: none; }
+.step-num { font-family: var(--font-mono); font-size: 11px; color: var(--accent); width: 70px; flex-shrink: 0; padding-top: 2px; }
+.step-done .step-num { color: var(--green); }
+.step-body h5 { font-size: 14px; color: #fff; font-weight: 600; margin-bottom: 4px; }
+.step-body p { font-size: 12.5px; color: var(--dim); line-height: 1.6; }
+.step-body .mono { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); margin-top: 5px; line-height: 1.7; }
+.getting-note { font-size: 12px; color: var(--muted); margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px; line-height: 1.7; }
+
+/* portfolio */
+.portfolio { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 20px; }
+.portfolio h2 { font-family: var(--font-display); font-size: 20px; color: #fff; margin-bottom: 16px; }
+.pf-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.pf-card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.pf-card .l { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.pf-card .v { font-size: 20px; font-weight: 800; color: #fff; font-family: var(--font-mono); }
+.pf-card .s { font-size: 11px; color: var(--dim); margin-top: 4px; }
+.conditions { margin-top: 16px; font-family: var(--font-mono); font-size: 11.5px; color: var(--dim); }
+.conditions b { color: var(--text); }
+
+/* footer */
+.footer { border-top: 1px solid var(--border-strong); padding: 28px 0; margin-top: 30px; text-align: center; font-size: 11.5px; color: var(--muted); position: relative; z-index: 1; }
+.footer .trust { font-family: var(--font-mono); line-height: 2; max-width: 800px; margin: 12px auto 0; }
+
+@media (max-width: 900px) { .mini-grid, .status-grid, .pf-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .mini-grid, .status-grid, .pf-grid { grid-template-columns: 1fr; } .nav-links { display: none; } }
+</style>
+</head>
+<body>
+
+<canvas id="orbital-canvas"></canvas>
+
+<div class="top-banner">
+  <b>PAPER TRADING</b> — Simulated funds — no real money at risk · <span class="mono">Sentinel AI · Decision Intelligence · Reasons, not arrows. · Your decision remains yours · hash-only 0/3400 · e91b51c4 · 2ca0815</span>
+</div>
+
+<header class="header">
+  <div class="container header__inner">
+    <div class="brand-lockup"><span class="mark">◆</span><span class="name">Sentinel AI</span><span class="sep">·</span><span>Decision Intelligence</span></div>
+    <nav class="nav-links">
+      <a href="index.html">System</a>
+      <a href="#">Trading</a>
+      <a href="detect.html">Decisions</a>
+      <a href="explain.html">Intelligence</a>
+      <a href="#">Insights</a>
+      <a href="index.html">Landing</a>
+      <a href="roma.html">ROMA</a>
+    </nav>
+    <div class="header-right">
+      <span class="paper-badge">Paper</span>
+      <span class="user-chip">serjey kleem · Paper Trading</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- WELCOME -->
+  <section class="welcome">
+    <p class="eyebrow">Decision Intelligence Platform — Sentinel DecisionOS + ROMA Execution Bridge + Sentinel Paper</p>
+    <h1>Welcome to Sentinel AI</h1>
+    <p class="sub">Sentinel DecisionOS — Decision Intelligence for Modern Traders — Reasons, not arrows. — Six engines. One read. Your call.</p>
+    <div class="meta">
+      <span class="meta-chip">Mode: <b>Paper</b> — Simulated funds</span>
+      <span class="meta-chip">Engine: <b>Standby</b> — 25 agents → 6 disciplines → synthesis</span>
+      <span class="meta-chip">Uptime: <b>—</b> · pg:true 2.1.0</span>
+      <span class="meta-chip">Cycles: <b id="tele-cycles">—</b> · Last synthesis <b id="tele-signal">—</b> · 0 of 6 engines idle</span>
+    </div>
+    <div class="activity">
+      Elevated activity detected — monitoring signal density and volatility · BTC structure shift volatility — · 25 agents scan — not every tick, but meaningful changes · 0 of 6 active — agents idle · Decision HOLD · Coherence — · Fundamental idle Quant idle Macro idle Options idle Sentiment idle Technical idle
+    </div>
+    <div class="cta-row">
+      <button class="btn btn-primary" onclick="window.open('trading.html','_blank')">▶ Start Paper Trading</button>
+      <button class="btn btn-ghost" onclick="viewSignals()">◎ View Signals</button>
+    </div>
+  </section>
+
+  <!-- MINI CARDS -->
+  <section class="mini-grid">
+    <div class="mini-card"><div class="ic">📄</div><h4>Paper Trading Ready</h4><div class="v">$1 000 000</div><p>Simulated funds — no real money at risk.</p><div class="mono">Free account · No card required · Sentinel Paper simulation_mode · You stay in control</div></div>
+    <div class="mini-card"><div class="ic">🧠</div><h4>AI Analysis</h4><div class="v">6 engines</div><p>Decision HOLD · 25 agents across six disciplines.</p><div class="mono">Fundamental 20 Quant 20 Macro 15 Options Flow 15 Sentiment 10 Technical 10 Σ100 · Each engine explains its lean · 0 of 6 active — agents idle</div></div>
+    <div class="mini-card"><div class="ic">📡</div><h4>Signals Generated</h4><div class="v">0 of 6 active — agents idle</div><p>Signals with confidence %.</p><div class="mono">Decision HOLD · Coherence — · Fundamental idle · Quant idle · Macro idle · Options idle · Sentiment idle · Technical idle · (20·0+20·0+15·0+15·0+10·0+10·0)/100 = 0% → HOLD</div></div>
+    <div class="mini-card"><div class="ic">⚙️</div><h4>Controlled Execution</h4><div class="v">You decide</div><p>Auto-execute disabled for you.</p><div class="mono">Sentinel explains, never auto-executes · Quota. Cost. Policy. Then execution. · L1 append_only L2 atomic_debit L3 idempotency L4 fail_closed · No debit at submit · debit only at finalize · Your decision remains yours</div></div>
+  </section>
+
+  <!-- STATUS ROW -->
+  <section class="status-grid">
+    <div class="status-card"><div class="label">Signal Quality</div><div class="val">—</div><p>Decision HOLD · Coherence — · 0 of 6 active — agents idle · Built to be checked. Signal Quality and Key Confidence describes current market &amp; model conditions.</p></div>
+    <div class="status-card"><div class="label">Models Active</div><div class="val">6</div><p>Fundamental 20 · Quant 20 · Macro 15 · Options Flow 15 · Sentiment 10 · Technical 10 Σ100 · Each engine explains its lean · 25 agents.</p></div>
+    <div class="status-card"><div class="label">Consensus</div><div class="val">—</div><p>0 of 6 active — agents idle — 0 active vs 6 idle · Fundamental idle Quant idle Options idle Technical idle vs Macro idle Sentiment idle · transparent.</p></div>
+    <div class="status-card"><div class="label">Platform Status</div><div class="val">Standby</div><p>pg:true 2.1.0 · hash-only 0/3400 · Weak signals don't mean platform is broken — it simply waits for better conditions · You see why — and you stay in control · e91b51c4 2ca0815.</p></div>
+  </section>
+
+  <!-- GETTING STARTED -->
+  <section class="getting">
+    <h2>Getting Started — Your first paper trade in four steps</h2>
+    <p class="gsub">Simulated capital on live markets, so nothing here can cost you money. The AI explains each read before you act on it. · Sentinel AI · Decision Intelligence</p>
+    <div class="progress-line">
+      <span class="progress-label">Progress 2 of 3 required</span>
+      <a href="manual_order.html" class="btn btn-primary" id="trade-on-paper" onclick="console.log('[system] trade on paper clicked')">Trade on paper →</a>
+    </div>
+
+    <div class="step step-done">
+      <div class="step-num">STEP 1 ✓</div>
+      <div class="step-body"><h5>Set up your profile</h5><p>Risk level and preferred exchange — the AI sizes every paper trade from these.</p><div class="mono">Sentinel Paper · Free account</div></div>
+    </div>
+    <div class="step step-done">
+      <div class="step-num">STEP 2 ✓</div>
+      <div class="step-body"><h5>Watch the AI read a market</h5><p>Open the Trading page — chart on the left, engine votes and the unified stance on the right.</p><div class="mono">Decision HOLD · Coherence — · 0 of 6 active — agents idle · Each engine explains its lean</div></div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="color:var(--accent);">STEP 3 ACTIVE</div>
+      <div class="step-body"><h5>Place your first paper trade</h5><p>Simulated capital, live prices. Use the Manual order form or take the AI's signal with one click.</p><div class="mono">Paper BUY 0.5% · stop set · EnterpriseDecisionGate checks quota ∧ cost ∧ policy → runs job · L1 append_only L2 atomic_debit L3 idempotency L4 fail_closed · No debit at submit · 202 queued job:{id} sha256[:24] · Your decision remains yours</div></div>
+    </div>
+    <div class="step">
+      <div class="step-num">STEP 4 OPTIONAL</div>
+      <div class="step-body"><h5>Let the AI explain for you</h5><p>Optional. Turn on Auto Explain and the ensemble opens and explains paper positions within your risk limits.</p><div class="mono">It explains. You decide. · Explains never auto-executes · You see why — and you stay in control</div></div>
+    </div>
+
+    <p class="getting-note">2 of 3 required steps done. Paper trading uses simulated funds; Sentinel never holds your money and its reads can be wrong. · Trust by construction · hash-only 0/3400 · e91b51c4 · 2ca0815 · 73 paths / 76 operations · 86 branches · 19 workflows · L1 append_only · Your acceptance is recorded append-only (L1) · Your decision remains yours</p>
+  </section>
+
+  <!-- PORTFOLIO -->
+  <section class="portfolio">
+    <h2>Portfolio</h2>
+    <div class="pf-grid">
+      <div class="pf-card"><div class="l">Portfolio Value</div><div class="v">$1 000 000</div><div class="s">100% cash · Paper — Simulated funds</div></div>
+      <div class="pf-card"><div class="l">Total P&amp;L</div><div class="v">+$0</div><div class="s">All-time · Paper · no closed trades</div></div>
+      <div class="pf-card"><div class="l">Win Rate</div><div class="v">—</div><div class="s">no closed trades · Decision HOLD · Coherence — · Built to be checked</div></div>
+      <div class="pf-card"><div class="l">Positions</div><div class="v">0</div><div class="s">none open · quota ∧ cost ∧ policy → execution · L1 L2 L3 L4 · Your decision remains yours</div></div>
+    </div>
+    <div class="conditions">Trading Conditions: <b>Consensus —</b> · Stability — · Caution — · Macro idle Fed — · Sentiment idle no live sentiment feed — wait</div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="brand-lockup"><span class="mark">◆</span><span class="name">Sentinel AI</span><span class="sep">·</span><span>Decision Intelligence</span></div>
+    <div class="trust">hash-only 0/3400 · e91b51c4 · 2ca0815 · 73 paths / 76 operations · 86 branches · 19 workflows · L1 append_only INSERT-only ledger + trigger 009 · L2 atomic_debit Advisory-lock + SUM(CREDIT−DEBIT) + bal ≥ amount · e.g. balance $0.008527→$0.007327 Δ −$0.0012 (120.025 sec × $0.00001/sec GPU) · L3 idempotency job:{id} sha256[:24] + PK 006 · L4 fail_closed Deny → 402/403/429/503 · Gate DecisionGate quota · cost · policy before execution · Your decision remains yours · main.py:805-887 · finalize.py:44 · pg_ledger.py:123-156 · Your acceptance is recorded append-only (L1) · app.sentinel.ai/system</div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  try {
+    var c = document.getElementById('orbital-canvas');
+    var x = c.getContext('2d');
+    var W, H, P = [];
+    var COLORS = ['#00E5FF'];
+    function rs() {
+      W = c.width = window.innerWidth; H = c.height = window.innerHeight; P = [];
+      for (var i = 0; i < 28; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 0.6+Math.random()*1.2, oR: 40+Math.random()*120, a: Math.random()*Math.PI*2, s: 0.018+Math.random()*0.022, al: 0.3+Math.random()*0.4});
+      for (var i = 0; i < 18; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 1.2+Math.random()*1.8, oR: 60+Math.random()*160, a: Math.random()*Math.PI*2, s: 0.010+Math.random()*0.014, al: 0.22+Math.random()*0.33});
+      for (var i = 0; i < 10; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 2+Math.random()*3, oR: 80+Math.random()*200, a: Math.random()*Math.PI*2, s: 0.005+Math.random()*0.008, al: 0.12+Math.random()*0.22});
+      for (var i = 0; i < 8; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 0.8, oR: 50+Math.random()*140, a: Math.random()*Math.PI*2, s: 0.012+Math.random()*0.016, al: 0.1+Math.random()*0.16, ln: true});
+    }
+    function dr() {
+      x.clearRect(0, 0, W, H);
+      P.forEach(function(q) {
+        q.a += q.s;
+        var cx = q.x + Math.cos(q.a) * q.oR * 0.6;
+        var cy = q.y + Math.sin(q.a) * q.oR * 0.35;
+        if (q.ln) { x.beginPath(); x.ellipse(q.x, q.y, q.oR*0.7, q.oR*0.35, 0, 0, Math.PI*2); x.strokeStyle = COLORS[0]; x.globalAlpha = q.al*0.5; x.lineWidth = 0.6; x.stroke(); }
+        x.beginPath(); x.arc(cx, cy, q.r, 0, Math.PI*2); x.fillStyle = COLORS[0]; x.globalAlpha = q.al; x.shadowBlur = q.r>1.5?12:4; x.shadowColor = COLORS[0]; x.fill(); x.shadowBlur = 0;
+      });
+      x.globalAlpha = 1; requestAnimationFrame(dr);
+    }
+    rs(); dr(); window.addEventListener('resize', rs);
+  } catch (e) {}
+
+  window.toast = function (msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#0B1220;border:1px solid rgba(0,229,255,0.4);color:#E6EDF3;padding:12px 20px;border-radius:8px;font-size:13px;z-index:3000;font-family:system-ui;max-width:90vw;';
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 3000);
+  };
+})();
+</script>
+
+<!-- Sentinel AI Chat — Explain-Only -->
+<script src="components/ai_chat.js"></script>
+
+<!-- Live telemetry: real Cycles count from orchestrator history.db -->
+<script>
+(function () {
+  var TELEMETRY = null;
+
+  function render(t) {
+    if (typeof t.cycles === 'number') {
+      var el = document.getElementById('tele-cycles');
+      if (el) el.textContent = t.cycles.toLocaleString('en-US');
+    }
+    if (t.last_signal) {
+      var s = document.getElementById('tele-signal');
+      if (s) s.textContent = t.last_signal + (typeof t.last_confidence === 'number' ? ' (' + t.last_confidence + ')' : '');
+    }
+  }
+
+  fetch('http://127.0.0.1:8790/telemetry')
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (t) { TELEMETRY = t; render(t); })
+    .catch(function () { /* leave '—' — honest when telemetry is down */ });
+
+  window.viewSignals = function () {
+    var tip = window.toast || function (m) { alert(m); };
+    var show = function (t) {
+      var sig = (t && t.last_signal)
+        ? t.last_signal + (typeof t.last_confidence === 'number' ? ' (' + t.last_confidence + ')' : '')
+        : '—';
+      tip('Signals — Last synthesis ' + sig + ' · Cycles ' +
+          (t && typeof t.cycles === 'number' ? t.cycles : '—') +
+          ' · 0 of 6 engines idle · read-only');
+    };
+    if (TELEMETRY) { show(TELEMETRY); return; }
+    fetch('http://127.0.0.1:8790/telemetry')
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (t) { TELEMETRY = t; render(t); show(t); })
+      .catch(function () { tip('Signals — telemetry offline (no live signal)'); });
+  };
+})();
+</script>
+
+<!-- Soft auth check: log session state (guest vs signed-in). No hard redirect in dev. -->
+<script>
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('sentinel_session') || 'null');
+    if (!s) { console.warn('[auth] no session — running in guest mode'); return; }
+    console.log('[auth] session:', s.provider, s.mode, s.email);
+  } catch (e) { console.warn('[auth] session parse error', e); }
+})();
+</script>
+</body>
+</html>

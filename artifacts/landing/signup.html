@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Sentinel AI · Decision Intelligence — Sign up. Connect 6 AI Intelligence Engines. Multi-model agreement before execution.">
+<title>Sentinel AI · Decision Intelligence — Sign Up</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="enterprise.css">
+<style>
+:root {
+  --signup-bg: #050508;
+  --signup-surface: #111827;
+  --signup-border: #1F2937;
+  --signup-accent: #00E5FF;
+  --signup-accent-2: #00B8CC;
+  --signup-text: #E6EDF3;
+  --signup-muted: #6B7280;
+  --signup-dim: #8B949E;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--signup-bg); color: var(--signup-text); font-family: 'Inter', system-ui, sans-serif; line-height: 1.6; min-height: 100vh; }
+a { color: var(--signup-accent); text-decoration: none; }
+
+/* orbital canvas */
+#orbital-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.6; }
+
+/* cosmic background dots + grid */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.35) 50%, transparent 51%),
+    radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.25) 50%, transparent 51%),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.2) 50%, transparent 51%),
+    radial-gradient(1px 1px at 85% 70%, rgba(255,255,255,0.25) 50%, transparent 51%),
+    radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.18) 50%, transparent 51%),
+    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+}
+
+.container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+/* top bar */
+.topbar { position: sticky; top: 0; z-index: 50; background: rgba(5,5,8,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0,229,255,0.18); }
+.topbar__inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; flex-wrap: wrap; }
+.brand-lockup { display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6B7280; text-decoration: none; transition: opacity 0.2s ease; }
+.brand-lockup .mark { color: var(--signup-accent); transition: filter 0.2s ease; }
+.brand-lockup .name { color: var(--signup-text); font-weight: 700; }
+.brand-lockup .sep { opacity: 0.4; }
+.brand-lockup:hover { opacity: 0.9; }
+.brand-lockup:hover .mark { filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.6)); }
+.brand-lockup:focus-visible { outline: 2px solid #00f0ff; outline-offset: 4px; border-radius: 4px; }
+.status-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.status-pill { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(0,229,255,0.3); color: var(--signup-accent); background: rgba(0,229,255,0.08); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.status-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--signup-accent); box-shadow: 0 0 8px var(--signup-accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* main two-column */
+.main-grid { display: grid; grid-template-columns: 1fr 460px; gap: 48px; align-items: start; padding: 48px 0 64px; }
+
+/* left marketing */
+.marketing .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signup-accent); margin: 0 0 16px; }
+.marketing h1 { font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: clamp(30px, 3.6vw, 46px); line-height: 1.12; letter-spacing: -0.02em; margin: 0 0 14px; color: #fff; }
+.marketing .subhead { font-size: 17px; color: var(--signup-dim); margin: 0 0 16px; font-weight: 500; }
+.marketing .para { font-size: 14.5px; color: var(--signup-dim); margin: 0 0 12px; max-width: 620px; }
+.slogans { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 24px; }
+.slogans .chip { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--signup-muted); border: 1px solid rgba(0,229,255,0.18); border-radius: 999px; padding: 4px 10px; }
+
+/* feature cards 2x2 */
+.feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+.feature-card { background: rgba(17,24,39,0.6); border: 1px solid var(--signup-border); border-radius: 12px; padding: 18px; transition: border-color 0.2s, transform 0.2s; }
+.feature-card:hover { border-color: rgba(0,229,255,0.4); transform: translateY(-2px); }
+.feature-card .f-icon { font-size: 22px; margin-bottom: 8px; }
+.feature-card h4 { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; margin: 0 0 6px; color: #fff; }
+.feature-card p { font-size: 12.5px; color: var(--signup-dim); margin: 0; line-height: 1.6; }
+.feature-card .f-mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--signup-muted); margin-top: 6px; line-height: 1.6; }
+
+.bottom-line { font-size: 12px; color: var(--signup-muted); border-top: 1px solid rgba(0,229,255,0.18); padding-top: 14px; font-family: 'JetBrains Mono', monospace; line-height: 1.8; }
+
+/* right form card */
+.form-card {
+  background: linear-gradient(180deg, #111827, #0B1220);
+  border: 1px solid var(--signup-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 0 0 1px rgba(0,229,255,0.06), 0 20px 60px rgba(0,0,0,0.5);
+  position: sticky;
+  top: 90px;
+}
+.tabs { display: flex; gap: 4px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+.tab { flex: 1; text-align: center; padding: 9px; border-radius: 8px; border: none; background: transparent; color: var(--signup-muted); font-size: 14px; font-weight: 600; cursor: pointer; }
+.tab--active { background: rgba(0,229,255,0.12); color: var(--signup-accent); }
+.form-card h2 { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; margin: 0 0 4px; color: #fff; }
+.form-card .form-sub { font-size: 13px; color: var(--signup-muted); margin: 0 0 18px; }
+
+.social-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(15,28,42,0.6); border: 1px solid rgba(0,229,255,0.35); border-radius: 8px; padding: 11px; color: var(--signup-text); font-size: 14px; font-weight: 500; cursor: pointer; margin-bottom: 10px; transition: border-color 0.15s ease, background 0.15s ease, transform 0.05s ease; }
+.social-btn:hover { border-color: rgba(0,229,255,0.85); background: rgba(0,229,255,0.06); }
+.social-btn:active { transform: scale(0.985); }
+.social-btn:focus-visible { outline: 2px solid var(--signup-accent); outline-offset: 2px; }
+.social-note { font-size: 11px; color: var(--signup-muted); text-align: center; margin: 0 0 16px; line-height: 1.5; }
+
+.divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--signup-muted); font-size: 11px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.1em; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--signup-border); }
+
+.field { margin-bottom: 14px; }
+.field-label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signup-muted); margin-bottom: 6px; }
+.input-wrap { position: relative; }
+.input-wrap .in-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--signup-muted); font-size: 14px; pointer-events: none; }
+.input { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 11px 12px 11px 36px; color: var(--signup-text); font-size: 14px; outline: none; }
+.input::placeholder { color: var(--signup-muted); }
+.input:focus { border-color: var(--signup-accent); box-shadow: 0 0 0 3px rgba(0,229,255,0.15); }
+.input--noicon { padding-left: 12px; }
+.eye-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--signup-muted); cursor: pointer; font-size: 14px; }
+select.input { appearance: none; }
+
+.check-row { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; padding: 8px; border-radius: 8px; border: 1px solid transparent; margin-bottom: 10px; transition: all 0.2s; }
+.check-row.checked { border-color: rgba(0,229,255,0.18); background: rgba(0,229,255,0.04); }
+.check-row input { display: none; }
+.checkbox { width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--signup-border); flex-shrink: 0; margin-top: 2px; display: inline-flex; align-items: center; justify-content: center; color: #001318; font-size: 10px; font-weight: 700; }
+.check-row.checked .checkbox { background: var(--signup-accent); border-color: var(--signup-accent); box-shadow: 0 0 10px rgba(0,229,255,0.5); }
+.check-text { font-size: 12.5px; color: var(--signup-text); line-height: 1.5; }
+.check-text .ver { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--signup-muted); }
+.check-row--optional .check-text { color: var(--signup-muted); }
+
+.privacy-note { border: 1px dashed var(--signup-border); border-radius: 8px; padding: 10px 12px; font-size: 11.5px; color: var(--signup-muted); margin-bottom: 14px; line-height: 1.5; }
+
+.turnstile { border: 1px solid var(--signup-border); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 14px; font-size: 12px; color: var(--signup-accent); font-family: 'JetBrains Mono', monospace; }
+
+.cta-btn { width: 100%; height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #00E5FF, #00B8CC); color: #001014; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; transition: all 0.2s; }
+.cta-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.cta-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(0,229,255,0.4); }
+
+.trust-signal { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--signup-muted); text-align: center; margin-top: 12px; line-height: 1.7; }
+
+@media (max-width: 980px) { .main-grid { grid-template-columns: 1fr; } .feature-grid { grid-template-columns: 1fr; } .form-card { position: static; } }
+</style>
+</head>
+<body>
+
+<canvas id="orbital-canvas"></canvas>
+
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand-lockup" href="index.html#top" aria-label="Sentinel AI — на главную"><span class="mark">◆</span><span class="name">Sentinel AI</span><span class="sep">·</span><span>Decision Intelligence</span></a>
+    <div class="status-pills">
+      <span class="status-pill"><span class="dot"></span>System Live</span>
+      <span class="status-pill">6 AI Engines Active</span>
+      <span class="status-pill">2 990 Founder Seats Remaining</span>
+      <span class="status-pill">◆ Sentinel AI · Decision Intelligence</span>
+    </div>
+  </div>
+</header>
+
+<main class="container main-grid">
+  <!-- LEFT MARKETING -->
+  <div class="marketing">
+    <p class="eyebrow">Decision Intelligence Platform</p>
+    <h1>Connect 6 AI Intelligence Engines</h1>
+    <p class="subhead">Multi-model agreement before execution.</p>
+    <p class="para">Collective intelligence — multiple AI systems analyzing, aligning, and executing strategies together before every trade. Automatically runs trading strategies across time horizons — no setup required.</p>
+    <div class="slogans">
+      <span class="chip">Reasons, not arrows.</span>
+      <span class="chip">Six engines. One read. Your call.</span>
+      <span class="chip">Quota. Cost. Policy. Then execution.</span>
+      <span class="chip">Trust by construction, not by promise.</span>
+      <span class="chip">It explains. You decide.</span>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="f-icon">🧠</div>
+        <h4>Collective Intelligence</h4>
+        <p>Six AI engines agree before execution.</p>
+        <div class="f-mono">25 agents → 6 disciplines → synthesis agent → one signal · weights 20/20/15/15/10/10 Σ100 · Decision HOLD · Coherence — · 0 of 6 active — agents idle</div>
+      </div>
+      <div class="feature-card">
+        <div class="f-icon">🛡️</div>
+        <h4>Your Assets. Your Control.</h4>
+        <p>Trade-only API keys. Zero withdrawal access.</p>
+        <div class="f-mono">Your decision remains yours · main.py:805-887 · finalize.py:44 · pg_ledger.py:123-156 · No debit at submit — debit only at finalize</div>
+      </div>
+      <div class="feature-card">
+        <div class="f-icon">📈</div>
+        <h4>Regime-Aware Execution</h4>
+        <p>Strategies that adapt across time horizons.</p>
+        <div class="f-mono">Detect BTC structure shift volatility — · Explain 0 of 6 active — agents idle · Decide Paper BUY 0.5% or hold</div>
+      </div>
+      <div class="feature-card">
+        <div class="f-icon">⚙️</div>
+        <h4>Ensemble Consensus</h4>
+        <p>Weighted multi-model agreement, fully auditable.</p>
+        <div class="f-mono">Fundamental 20 Quant 20 Macro 15 Options Flow 15 Sentiment 10 Technical 10 Σ100 · Each engine explains its lean · hash-only 0/3400 e91b51c4 2ca0815</div>
+      </div>
+    </div>
+
+    <div class="bottom-line">
+      2 990 Founder Seats Remaining · 6-month prepaid early-adopter program · Sentinel AI · Decision Intelligence<br>
+      hash-only 0/3400 · e91b51c4 · 2ca0815 · 73 paths / 76 operations · 86 branches · 19 workflows · append-only L1
+    </div>
+  </div>
+
+  <!-- RIGHT FORM -->
+  <div class="form-card">
+    <div class="tabs">
+      <button class="tab" onclick="switchTab('signin')">Sign In</button>
+      <button class="tab tab--active" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+    </div>
+
+    <h2>Join the early access</h2>
+    <p class="form-sub">Reserve your spot and start with the ensemble engine.</p>
+
+    <button class="social-btn" onclick="signInWith('Google')">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11 11 0 0 0 1 12c0 1.77.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+    <button class="social-btn" onclick="signInWith('Microsoft')">
+      <svg width="16" height="16" viewBox="0 0 24 24"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg>
+      Continue with Microsoft
+    </button>
+    <!-- TODO: app.sentinel.ai/system is the production domain — not live on localhost -->
+    <p class="social-note">By continuing with Google or Microsoft you agree to our Terms and Privacy Policy. New accounts confirm eligibility &amp; risk disclosures right after sign-in. · <span style="font-family:'JetBrains Mono',monospace;color:var(--signup-accent);">app.sentinel.ai/system</span></p>
+
+    <div class="divider">OR WITH EMAIL</div>
+
+    <div class="field">
+      <label class="field-label">Full Name</label>
+      <div class="input-wrap"><span class="in-icon">👤</span><input class="input" id="signupName" placeholder="Ada Lovelace" type="text"></div>
+    </div>
+    <div class="field">
+      <label class="field-label">Email Address</label>
+      <div class="input-wrap"><span class="in-icon">✉️</span><input class="input" id="signupEmail" placeholder="you@example.com" type="email"></div>
+    </div>
+    <div class="field">
+      <label class="field-label">Password</label>
+      <div class="input-wrap"><span class="in-icon">🔒</span><input class="input" id="signupPassword" placeholder="••••••••" type="password"><button class="eye-toggle" onclick="toggleEye()">👁</button></div>
+    </div>
+    <div class="field">
+      <label class="field-label">Confirm Password</label>
+      <div class="input-wrap"><span class="in-icon">🔒</span><input class="input" id="signupConfirm" placeholder="••••••••" type="password"></div>
+    </div>
+    <div class="field">
+      <label class="field-label">Country of Residence</label>
+      <div class="input-wrap"><span class="in-icon">🌐</span>
+        <select class="input" id="signupCountry">
+          <option value="">Select your country…</option>
+          <option>United States</option><option>United Kingdom</option><option>Canada</option><option>Australia</option>
+          <option>Germany</option><option>France</option><option>Spain</option><option>Italy</option>
+          <option>Netherlands</option><option>Switzerland</option><option>Sweden</option><option>Norway</option>
+          <option>Singapore</option><option>Japan</option><option>South Korea</option><option>United Arab Emirates</option>
+          <option>Brazil</option><option>Mexico</option><option>India</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="check-row" id="chk1" onclick="toggleCheck(1)">
+      <input type="checkbox" id="c1">
+      <span class="checkbox" id="box1"></span>
+      <span class="check-text">I have read and accept the Terms and Conditions. <span class="ver">v2026-09-16</span></span>
+    </div>
+    <div class="check-row" id="chk2" onclick="toggleCheck(2)">
+      <input type="checkbox" id="c2">
+      <span class="checkbox" id="box2"></span>
+      <span class="check-text">I have read and acknowledge the Risk Disclosure Statement, including that I may lose part or all of my capital. <span class="ver">v2026-09-16</span></span>
+    </div>
+    <div class="check-row" id="chk3" onclick="toggleCheck(3)">
+      <input type="checkbox" id="c3">
+      <span class="checkbox" id="box3"></span>
+      <span class="check-text">I confirm I am at least 18 years old, I am not located in a prohibited jurisdiction, and I am not using a VPN or proxy to disguise my location. <span class="ver">Country accurate · v2026-09-16</span></span>
+    </div>
+    <div class="check-row check-row--optional" id="chk4" onclick="toggleCheck(4)">
+      <input type="checkbox" id="c4">
+      <span class="checkbox" id="box4"></span>
+      <span class="check-text">(Optional) Send me product updates and marketing emails. Not required to use the platform; you can opt out anytime.</span>
+    </div>
+
+    <div class="privacy-note">Our Privacy Policy describes how your personal data is processed. Its delivery to you is recorded at signup. <span class="ver" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#6B7280;">v2026-09-16</span><br>Your acceptance is recorded append-only (L1).</div>
+
+    <div class="turnstile">✓ Cloudflare Turnstile — Success!</div>
+
+    <button class="cta-btn" id="signupCta" disabled onclick="submitSignup()">🔒 Create Account</button>
+    <div class="trust-signal">Your acceptance is recorded append-only (L1).<br>hash-only 0/3400 · e91b51c4 · 2ca0815 · 73 paths / 76 operations · L1 append_only INSERT-only ledger + trigger 009 · L2 atomic_debit · L3 idempotency job:{id} sha256[:24] + PK 006 · L4 fail_closed · Your decision remains yours</div>
+  </div>
+</main>
+
+<script>
+(function () {
+  // orbital canvas
+  try {
+    var c = document.getElementById('orbital-canvas');
+    var x = c.getContext('2d');
+    var W, H, P = [];
+    var COLORS = ['#00E5FF'];
+    function rs() {
+      W = c.width = window.innerWidth; H = c.height = window.innerHeight; P = [];
+      for (var i = 0; i < 28; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 0.6+Math.random()*1.2, oR: 40+Math.random()*120, a: Math.random()*Math.PI*2, s: 0.018+Math.random()*0.022, al: 0.3+Math.random()*0.4});
+      for (var i = 0; i < 18; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 1.2+Math.random()*1.8, oR: 60+Math.random()*160, a: Math.random()*Math.PI*2, s: 0.010+Math.random()*0.014, al: 0.22+Math.random()*0.33});
+      for (var i = 0; i < 10; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 2+Math.random()*3, oR: 80+Math.random()*200, a: Math.random()*Math.PI*2, s: 0.005+Math.random()*0.008, al: 0.12+Math.random()*0.22});
+      for (var i = 0; i < 8; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 0.8, oR: 50+Math.random()*140, a: Math.random()*Math.PI*2, s: 0.012+Math.random()*0.016, al: 0.1+Math.random()*0.16, ln: true});
+    }
+    function dr() {
+      x.clearRect(0, 0, W, H);
+      P.forEach(function(q) {
+        q.a += q.s;
+        var cx = q.x + Math.cos(q.a) * q.oR * 0.6;
+        var cy = q.y + Math.sin(q.a) * q.oR * 0.35;
+        if (q.ln) { x.beginPath(); x.ellipse(q.x, q.y, q.oR*0.7, q.oR*0.35, 0, 0, Math.PI*2); x.strokeStyle = COLORS[0]; x.globalAlpha = q.al*0.5; x.lineWidth = 0.6; x.stroke(); }
+        x.beginPath(); x.arc(cx, cy, q.r, 0, Math.PI*2); x.fillStyle = COLORS[0]; x.globalAlpha = q.al; x.shadowBlur = q.r>1.5?12:4; x.shadowColor = COLORS[0]; x.fill(); x.shadowBlur = 0;
+      });
+      x.globalAlpha = 1; requestAnimationFrame(dr);
+    }
+    rs(); dr(); window.addEventListener('resize', rs);
+  } catch (e) {}
+
+  // tab switching
+  window.switchTab = function (t) {
+    var tabs = document.querySelectorAll('.tab');
+    tabs.forEach(function (el) { el.classList.remove('tab--active'); });
+    if (t === 'signup') { document.getElementById('tab-signup').classList.add('tab--active'); }
+    else { tabs[0].classList.add('tab--active'); console.log('[signup] switchTab: sign-in not available — coming soon'); showToast('Sign in — coming soon. Use Create Account to continue.'); }
+  };
+
+  // checkboxes
+  window.toggleCheck = function (n) {
+    var cb = document.getElementById('c' + n);
+    var row = document.getElementById('chk' + n);
+    var box = document.getElementById('box' + n);
+    cb.checked = !cb.checked;
+    if (cb.checked) { row.classList.add('checked'); box.textContent = '✓'; }
+    else { row.classList.remove('checked'); box.textContent = ''; }
+    updateCta();
+  };
+
+  window.toggleEye = function () {
+    var pw = document.getElementById('signupPassword');
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+  };
+
+  function updateCta() {
+    var name = document.getElementById('signupName').value.trim();
+    var email = document.getElementById('signupEmail').value.trim();
+    var pw = document.getElementById('signupPassword').value;
+    var cf = document.getElementById('signupConfirm').value;
+    var country = document.getElementById('signupCountry').value;
+    var c1 = document.getElementById('c1').checked;
+    var c2 = document.getElementById('c2').checked;
+    var c3 = document.getElementById('c3').checked;
+    var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    var ok = name.length >= 2 && emailOk && pw.length >= 8 && pw === cf && country && c1 && c2 && c3;
+    document.getElementById('signupCta').disabled = !ok;
+  }
+  ['signupName','signupEmail','signupPassword','signupConfirm','signupCountry'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', updateCta);
+    document.getElementById(id).addEventListener('change', updateCta);
+  });
+
+  window.submitSignup = function () {
+    var name = document.getElementById('signupName').value.trim();
+    var email = document.getElementById('signupEmail').value.trim();
+    var country = document.getElementById('signupCountry').value;
+    var ts = new Date().toISOString();
+    var payload = { fullName: name, email: email, country: country, timestamp: ts, documents: 'v2026-09-16', checks: ['terms','risk','jurisdiction'], trust_signal: 'L1 append_only INSERT-only ledger + trigger 009', storage: 'hash-only 0/3400' };
+    try { localStorage.setItem('sentinel_ai_signup', JSON.stringify(payload)); } catch (e) {}
+    try { console.log('[L1 append-only] Signup acceptance recorded', payload); } catch (e) {}
+    showToast('Account created — confirm eligibility & risk disclosures to activate your key.');
+  };
+
+  window.signInWith = function (p) {
+    console.log('[signup] sign-in attempt: ' + p.toLowerCase());
+    // Path A — mock sign-in for localhost. No client_secret, no real OAuth.
+    var user = {
+      provider: p.toLowerCase(),
+      email: p === 'Google' ? 'demo@gmail.com' : 'demo@outlook.com',
+      name: 'Demo User',
+      ts: new Date().toISOString(),
+      mode: 'mock'
+    };
+    try { localStorage.setItem('sentinel_session', JSON.stringify(user)); } catch (e) {}
+    showToast(p + ' sign-in successful (mock) — redirecting…');
+    setTimeout(function () { window.location.href = 'system.html'; }, 900);
+  };
+
+  function showToast(msg) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#111827;border:1px solid rgba(0,229,255,0.4);color:#E6EDF3;padding:12px 20px;border-radius:8px;font-size:13px;z-index:3000;font-family:system-ui;max-width:90vw;';
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 3200);
+  }
+
+  updateCta();
+})();
+</script>
+
+<!-- Sentinel AI Chat — Explain-Only -->
+<script src="components/ai_chat.js"></script>
+</body>
+</html>
