@@ -1,0 +1,5 @@
+*.webm
+__pycache__/
+*.pyc
+*.bak
+*.patch

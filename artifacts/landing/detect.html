@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Sentinel AI — Detect. Identify meaningful changes across market structure, positioning, probabilities and catalysts.">
+<title>Sentinel AI — 01 / Detect</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="enterprise.css">
+</head>
+<body>
+
+<canvas id="orbital-canvas"></canvas>
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="brand" href="index.html">
+      <span class="brand__mark">◈</span>
+      <span class="brand__name">Sentinel AI</span>
+      <span class="brand__sub">Decision Intelligence</span>
+    </a>
+    <nav class="nav__links">
+      <a href="index.html">Home</a>
+      <a href="detect.html" style="color:var(--primary);">Detect</a>
+      <a href="index.html#decisionos">DecisionOS</a>
+      <a href="index.html#roma">ROMA</a>
+      <a href="index.html#trust">Trust</a>
+    </nav>
+    <div class="nav__cta">
+      <a class="btn btn--ghost" href="index.html#get-key">Sign in</a>
+      <a class="btn btn--primary" href="index.html#get-key">Start free paper trading →</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container" style="max-width:1000px;">
+      <p class="eyebrow">01 / Detect</p>
+      <h1 class="hero__title" style="font-size:clamp(36px,5vw,64px);">Detect.</h1>
+      <p class="hero__sub">Identify meaningful changes across market structure, positioning, probabilities and catalysts.</p>
+      <p class="hero__closing">25 trading agents continuously scan for meaningful changes — not every tick, but meaningful changes — across four dimensions, merged by a synthesis agent into one signal with transparent weights.</p>
+      <div class="hero__cta">
+        <a class="btn btn--ghost btn--lg" href="index.html">← Back</a>
+        <a class="btn btn--primary btn--lg" href="index.html#how-it-works">02 / Explain →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST BAND -->
+  <section class="trust">
+    <div class="container trust__row">
+      <span class="trust__item">hash-only · 0/3400</span><span class="trust__sep"></span>
+      <span class="trust__item">e91b51c4</span><span class="trust__sep"></span>
+      <span class="trust__item">2ca0815 live</span><span class="trust__sep"></span>
+      <span class="trust__item">73 paths / 76 ops</span><span class="trust__sep"></span>
+      <span class="trust__item">PITR 567=567</span>
+    </div>
+  </section>
+
+  <!-- 4 DIMENSIONS -->
+  <section class="section" id="dimensions">
+    <div class="container">
+      <p class="eyebrow">Four dimensions</p>
+      <h2 class="h2">Meaningful changes, four ways.</h2>
+      <div class="steps" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="step">
+          <div class="icon-tile">📐</div>
+          <div class="step__n">Structure</div>
+          <h3 class="step__t">Market structure</h3>
+          <p class="step__d">Order book depth, spread, liquidity clusters, volatility regime, BTC structure shift, support/resistance break.</p>
+          <p class="note" style="font-family:var(--font-mono);font-size:12px;">BTC · structure shift · volatility —<br>Depth — · no live orderbook · volatility —</p>
+        </div>
+        <div class="step">
+          <div class="icon-tile">📊</div>
+          <div class="step__n">Positioning</div>
+          <h3 class="step__t">Market positioning</h3>
+          <p class="step__d">Open interest, funding rates, long/short ratios, whale wallet moves, exchange inflows/outflows, positioning crowding.</p>
+          <p class="note" style="font-family:var(--font-mono);font-size:12px;">ETH · positioning crowded · OI —<br>funding — · long/short —</p>
+        </div>
+        <div class="step">
+          <div class="icon-tile">🎲</div>
+          <div class="step__n">Probabilities</div>
+          <h3 class="step__t">Event probabilities</h3>
+          <p class="step__d">Event probability, Fed decision probability, earnings probability, catalyst priced vs not priced, what the market already discounts and what it ignores.</p>
+          <p class="note" style="font-family:var(--font-mono);font-size:12px;">Fed decision · no live feed<br>impact high</p>
+        </div>
+        <div class="step">
+          <div class="icon-tile">⚡</div>
+          <div class="step__n">Catalysts</div>
+          <h3 class="step__t">Upcoming catalysts</h3>
+          <p class="step__d">Upcoming catalysts ranked by likely impact, scheduled catalysts with live probability, alerts when probability moves, what is scheduled, what is priced, what the market still ignores.</p>
+          <p class="note" style="font-family:var(--font-mono);font-size:12px;">BTC ETF inflow deadline in 2d · impact high<br>probability — (no live feed) · alert</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENGINES / WEIGHTS -->
+  <section class="section section--alt" id="engines">
+    <div class="container">
+      <p class="eyebrow">How Detect works</p>
+      <h2 class="h2">25 agents → 6 disciplines → synthesis → one signal.</h2>
+      <div class="weights">
+        <div class="weight"><span class="weight__n">Fundamental</span><div class="bar"><i style="--w:100%"></i></div><span class="weight__v">20</span></div>
+        <div class="weight"><span class="weight__n">Quant</span><div class="bar"><i style="--w:100%"></i></div><span class="weight__v">20</span></div>
+        <div class="weight"><span class="weight__n">Macro</span><div class="bar"><i style="--w:75%"></i></div><span class="weight__v">15</span></div>
+        <div class="weight"><span class="weight__n">Options Flow</span><div class="bar"><i style="--w:75%"></i></div><span class="weight__v">15</span></div>
+        <div class="weight"><span class="weight__n">Sentiment</span><div class="bar"><i style="--w:50%"></i></div><span class="weight__v">10</span></div>
+        <div class="weight"><span class="weight__n">Technical</span><div class="bar"><i style="--w:50%"></i></div><span class="weight__v">10</span></div>
+        <div class="weight weight--sum"><span class="weight__n">Σ</span><div class="bar bar--empty"></div><span class="weight__v">100</span></div>
+      </div>
+      <p class="note">0 of 6 active — agents idle · Decision HOLD · Coherence — · Each engine explains its lean.</p>
+    </div>
+  </section>
+
+  <!-- SYNTHESIS -->
+  <section class="section" id="synthesis">
+    <div class="container">
+      <p class="eyebrow">Synthesis</p>
+      <h2 class="h2">One signal. Transparent weights.</h2>
+      <table class="compare">
+        <thead><tr><th>Discipline</th><th>Weight</th><th>Role in Detect</th></tr></thead>
+        <tbody>
+          <tr><td>Fundamental</td><td>20</td><td>Structural breaks in valuation, earnings, on-chain fundamentals</td></tr>
+          <tr><td>Quant</td><td>20</td><td>Quantitative anomalies — order book depth, OI, funding, volatility, option-implied probability</td></tr>
+          <tr><td>Macro</td><td>15</td><td>Macro regime shifts — Fed, CPI, ETF, regulation; event probabilities</td></tr>
+          <tr><td>Options Flow</td><td>15</td><td>Options flow imbalances — calls vs puts; unusual flow before a catalyst</td></tr>
+          <tr><td>Sentiment</td><td>10</td><td>Sentiment shifts — news, social, positioning crowding</td></tr>
+          <tr><td>Technical</td><td>10</td><td>Technical breaks — support/resistance, pattern, break above liquidity cluster</td></tr>
+          <tr><td style="color:var(--primary);font-weight:700;">Σ</td><td style="color:var(--primary);font-weight:700;">100</td><td style="color:var(--text);">Synthesis agent merges into one signal — Decision HOLD, Coherence —</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CODE -->
+  <section class="section section--alt" id="proof">
+    <div class="container" style="max-width:760px;">
+      <p class="eyebrow">Proof</p>
+      <h2 class="h2">Detect explains — never executes.</h2>
+      <div class="code" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:18px;font-family:var(--font-mono);font-size:13px;color:var(--text);">
+        <div><span style="color:var(--primary);">curl</span> /health → <span style="color:var(--green);">ok pg:true 2.1.0 pool 2/10</span></div>
+        <div>main.py:805-887 — No debit at submit 869-872</div>
+        <div>Detect does not execute — it explains why.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="index.html"><span class="brand__mark">◈</span><span class="brand__name">Sentinel AI</span></a>
+        <p class="muted">Decision intelligence for modern traders. Logic, not arrows.</p>
+      </div>
+      <div class="footer__col">
+        <h4>How it works</h4>
+        <a href="detect.html">01 · Detect</a>
+        <a href="index.html#how-it-works">02 · Explain</a>
+        <a href="index.html#how-it-works">03 · Decide</a>
+      </div>
+      <div class="footer__col">
+        <h4>Product</h4>
+        <a href="index.html#decisionos">DecisionOS</a>
+        <a href="index.html#roma">ROMA</a>
+        <a href="index.html#trust">Trust</a>
+      </div>
+      <div class="footer__col">
+        <h4>Access</h4>
+        <a href="index.html#get-key">Get API Key</a>
+        <a href="index.html#get-key">Sign In</a>
+      </div>
+      <div class="footer__col">
+        <h4>Support</h4>
+        <a href="index.html#get-key">Documentation</a>
+        <a href="index.html#get-key">FAQ</a>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>Sentinel AI DecisionOS + ROMA Execution Bridge + Sentinel AI Paper · hash-only 0/3400 · e91b51c4 · 2ca0815</span>
+      <span>Self-contained · no CDN · no 0.0.0.0</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // Orbital particle canvas — single accent
+  try {
+    var c = document.getElementById('orbital-canvas');
+    var x = c.getContext('2d');
+    var W, H, P = [];
+    var COLORS = ['#00E5FF'];
+    function rs() {
+      W = c.width = window.innerWidth;
+      H = c.height = window.innerHeight;
+      P = [];
+      for (var i = 0; i < 28; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 0.6+Math.random()*1.2, oR: 40+Math.random()*120, a: Math.random()*Math.PI*2, s: 0.018+Math.random()*0.022, al: 0.3+Math.random()*0.4});
+      for (var i = 0; i < 18; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 1.2+Math.random()*1.8, oR: 60+Math.random()*160, a: Math.random()*Math.PI*2, s: 0.010+Math.random()*0.014, al: 0.22+Math.random()*0.33});
+      for (var i = 0; i < 10; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 2+Math.random()*3, oR: 80+Math.random()*200, a: Math.random()*Math.PI*2, s: 0.005+Math.random()*0.008, al: 0.12+Math.random()*0.22});
+      for (var i = 0; i < 8; i++) P.push({x: Math.random()*W, y: Math.random()*H, r: 0.8, oR: 50+Math.random()*140, a: Math.random()*Math.PI*2, s: 0.012+Math.random()*0.016, al: 0.1+Math.random()*0.16, ln: true});
+    }
+    function dr() {
+      x.clearRect(0, 0, W, H);
+      P.forEach(function(q) {
+        q.a += q.s;
+        var cx = q.x + Math.cos(q.a) * q.oR * 0.6;
+        var cy = q.y + Math.sin(q.a) * q.oR * 0.35;
+        if (q.ln) {
+          x.beginPath();
+          x.ellipse(q.x, q.y, q.oR*0.7, q.oR*0.35, 0, 0, Math.PI*2);
+          x.strokeStyle = COLORS[0];
+          x.globalAlpha = q.al * 0.5;
+          x.lineWidth = 0.6;
+          x.stroke();
+        }
+        x.beginPath();
+        x.arc(cx, cy, q.r, 0, Math.PI*2);
+        x.fillStyle = COLORS[0];
+        x.globalAlpha = q.al;
+        x.shadowBlur = q.r > 1.5 ? 12 : 4;
+        x.shadowColor = COLORS[0];
+        x.fill();
+        x.shadowBlur = 0;
+      });
+      x.globalAlpha = 1;
+      requestAnimationFrame(dr);
+    }
+    rs();
+    dr();
+    window.addEventListener('resize', rs);
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

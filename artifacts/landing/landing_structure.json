@@ -1,0 +1,112 @@
+{
+  "brand": "Sentinel AI",
+  "category": "decision_intelligence_for_traders",
+  "tagline": "Logic, not arrows.",
+  "lineup": {
+    "platform": "Sentinel AI",
+    "intelligence_layer": "Sentinel AI DecisionOS",
+    "execution_layer": "ROMA Execution Bridge",
+    "simulation_mode": "Sentinel AI Paper"
+  },
+  "hero": {
+    "headline": "Logic, not arrows.",
+    "subhead": "Decision intelligence for modern traders. Six independent engines synthesize into one explainable read. The ROMA Execution Bridge enforces quota ∧ cost ∧ policy before anything runs.",
+    "closing": "You see why — and you stay in control.",
+    "cta_primary": "Start free paper trading",
+    "cta_secondary": "Sign in",
+    "microcopy": ["Free account", "No card required", "Simulated capital, live markets"]
+  },
+  "sections": {
+    "decisionos": {
+      "tagline": "Six engines. One read. Your call.",
+      "body": "25 trading agents across six disciplines, merged by a synthesis agent into one signal with transparent weights.",
+      "weights": {
+        "Fundamental": 20,
+        "Quant": 20,
+        "Macro": 15,
+        "Options Flow": 15,
+        "Sentiment": 10,
+        "Technical": 10,
+        "sum": 100
+      },
+      "note": "Each engine explains its lean."
+    },
+    "roma": {
+      "tagline": "Quota. Cost. Policy. Then execution.",
+      "body": "Control plane. Checks quota, cost, and policy via EnterpriseDecisionGate, then runs the job.",
+      "gate": "EnterpriseDecisionGate",
+      "checks": ["quota", "cost", "policy"],
+      "invariants": {
+        "L1": "append_only",
+        "L2": "atomic_debit",
+        "L3": "idempotency",
+        "L4": "fail_closed"
+      },
+      "proof": "main.py:805-887 · billing/finalize.py:44 · pg_ledger.py:123-156"
+    },
+    "trust": {
+      "tagline": "Trust by construction, not by promise.",
+      "signals": ["hash-only keys", "append-only ledger", "PITR", "clean scans"],
+      "evidence": {
+        "hash_only": true,
+        "issues": "0/3400",
+        "hashes": ["e91b51c4", "2ca0815"]
+      }
+    },
+    "control": {
+      "tagline": "It explains. You decide.",
+      "note": "Explains — never auto-executes."
+    }
+  },
+  "get_key": {
+    "title": "Where to get the API key?",
+    "steps": [
+      {"n": 1, "title": "Choose source", "options": ["Dashboard", "Email", "Telegram bot", "Support"]},
+      {"n": 2, "title": "Get the key", "note": "masked first4***last4, len=64, header X-API-Key"},
+      {"n": 3, "title": "Activate", "code": "curl -X POST http://127.0.0.1:8080/submit -H \"X-API-Key: YOUR_KEY\" → 202 queued"}
+    ]
+  },
+  "real_metrics": {
+    "tenants": 3400,
+    "jobs_active": "1.0 vs 31.0 total",
+    "endpoints": "73 paths / 76 operations (/openapi.json)",
+    "pitr": "567=567",
+    "reconciliation_diff": "0.0038",
+    "balance_delta": "0.008527→0.007327",
+    "ledger_rowcount": "21→22",
+    "workflows": 19,
+    "security_jobs": 4,
+    "hashes": ["e91b51c4", "2ca0815"],
+    "branches": "86 total (80 remote) — not 287"
+  },
+  "fake_metrics_removed": ["-38/-42/-26/-10509", "110/122/75/30900", "demo -49/-55/-34/-13686"],
+  "github_source": {
+    "repo": "https://github.com/mahaasur13-sys/decisionos-landing",
+    "design_tokens": {
+      "bg": "#050508",
+      "bg_card": "#0c0c10",
+      "bg_elevated": "#111116",
+      "accent": "#06d6d6",
+      "green": "#22c55e",
+      "border": "rgba(6,214,214,0.18)",
+      "glow": "0 0 20px rgba(6,214,214,0.35)",
+      "fonts": ["Orbitron", "Inter", "JetBrains Mono"],
+      "theme": "dark, single accent cyan"
+    },
+    "orbital_canvas": "28+18+10+8 particles, single color #06d6d6"
+  },
+  "tree_state": {
+    "treeB": "14 untracked + 2 modified + FINAL CLOSE, artifacts/landing/ writable",
+    "treeC": "dirty: M db_adapter.py, M db_pg_sync.py, ?? migrations/009, ?? *.bak — uncommitted wipe (read-only)",
+    "treeA": "e91b51c4 = origin/release/v1.0.0, clean"
+  },
+  "constraints": {
+    "self_contained": true,
+    "no_cdn": true,
+    "no_0_0_0_0": true,
+    "no_e2b": true,
+    "no_neurotrader": true,
+    "no_astro_timing": true,
+    "single_accent": true
+  }
+}

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="AstroFin Sentinel Platform — API documentation. REST endpoints for the ROMA Execution Bridge: /health, /submit, /status, /jobs, /usage, /workers, /billing.">
+<title>Docs — AstroFin Sentinel Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.page-hero { padding: 64px 0 28px; text-align: center; }
+.page-hero h1 { font-family: var(--font-heading); font-weight: 800; font-size: clamp(2rem,4.5vw,3.2rem); line-height: 1.15; background: linear-gradient(135deg,#fff 0%,var(--cyan) 50%,var(--violet) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: var(--space-2); }
+.page-hero p { color: var(--text-muted); max-width: 720px; margin: 0 auto; font-size: 1.05rem; }
+.doc-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-4); margin: var(--space-3) 0; }
+.doc-card h2 { font-family: var(--font-heading); font-size: 1.2rem; color: var(--text); margin-bottom: 10px; }
+.doc-card p { color: var(--text-muted); font-size: 0.9rem; margin: 6px 0; }
+.doc-card table { margin: 10px 0; }
+code.inline { font-family: var(--font-mono); background: var(--bg); border: 1px solid var(--border); padding: 1px 7px; border-radius: 5px; font-size: 0.82rem; color: var(--cyan); }
+</style>
+</head>
+<body>
+<canvas id="orbital-canvas"></canvas>
+<header class="header">
+  <div class="container header-inner">
+    <div class="logo">ASTROFIN<span class="logo-badge">SENTINEL</span></div>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="features.html">Features</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="docs.html" class="nav-active">Docs</a>
+      <button class="header-btn" onclick="location.href='index.html#get-key'">🔑 Get Key</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="container page-hero">
+    <h1>API Documentation</h1>
+    <p>Complete reference for the AstroFin Sentinel + ROMA Execution Bridge REST API. All endpoints return JSON. Base URL: <code class="inline">http://127.0.0.1:8080</code></p>
+  </section>
+
+  <section class="container">
+    <div class="doc-card">
+      <h2>Authentication</h2>
+      <p>All authenticated endpoints require an <code class="inline">X-API-Key</code> header. Keys are hash-only (plaintext column deleted) and masked <code class="inline">first4***last4</code>.</p>
+      <table>
+        <tr><th>Header</th><th>Required</th><th>Description</th></tr>
+        <tr><td><code class="inline">X-API-Key</code></td><td>Yes*</td><td>Your API key (<code class="inline">/health</code> excluded)</td></tr>
+        <tr><td><code class="inline">Content-Type</code></td><td>For POST</td><td>Must be <code class="inline">application/json</code></td></tr>
+      </table>
+    </div>
+
+    <div class="doc-card">
+      <h2><span class="method method-get">GET</span> /health</h2>
+      <p>Public health check — no API key required.</p>
+      <div class="code"><span class="c-cyan">curl</span> http://127.0.0.1:8080/health
+<span class="c-green"># {"status":"ok","pg":true,"version":"2.1.0","pool":"2/10"}</span>
+<button class="copy-btn" onclick="copyHealthCurl()">Copy</button></div>
+    </div>
+
+    <div class="doc-card">
+      <h2><span class="method method-post">POST</span> /submit</h2>
+      <p>Submit a job. Requires <code class="inline">X-API-Key</code>. Billing debit happens at completion, not at submit.</p>
+      <h3 style="color:var(--cyan);font-size:0.9rem;margin:10px 0 6px;">Request Body</h3>
+      <div class="code">{
+  "task": "echo hello",
+  "backend": "gpu_worker"
+}</div>
+      <div class="code"><span class="c-cyan">curl</span> -X POST http://127.0.0.1:8080/submit \
+  -H "X-API-Key: YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"task":"echo hello","backend":"gpu_worker"}'
+<span class="c-green"># → 202 {"job_id":"…","tenant_id":"t-test-paper-20260909"}</span>
+<button class="copy-btn" onclick="copySubmitCurl()">Copy curl</button></div>
+    </div>
+
+    <div class="doc-card">
+      <h2><span class="method method-get">GET</span> /status/{job_id}</h2>
+      <p>Get the current status of a job.</p>
+      <div class="code"><span class="c-cyan">curl</span> -H "X-API-Key: YOUR_KEY" http://127.0.0.1:8080/status/{job_id}</div>
+    </div>
+
+    <div class="doc-card">
+      <h2><span class="method method-get">GET</span> /jobs</h2>
+      <p>List all jobs for your tenant.</p>
+      <div class="code"><span class="c-cyan">curl</span> -H "X-API-Key: YOUR_KEY" http://127.0.0.1:8080/jobs</div>
+    </div>
+
+    <div class="doc-card">
+      <h2><span class="method method-get">GET</span> /usage</h2>
+      <p>Usage report for your tenant.</p>
+      <div class="code"><span class="c-cyan">curl</span> -H "X-API-Key: YOUR_KEY" http://127.0.0.1:8080/usage</div>
+    </div>
+
+    <div class="doc-card">
+      <h2><span class="method method-get">GET</span> /billing/balance · /billing/ledger</h2>
+      <p>Billing balance and append-only ledger for your tenant.</p>
+      <div class="code"><span class="c-cyan">curl</span> -H "X-API-Key: YOUR_KEY" http://127.0.0.1:8080/billing/balance
+<span class="c-cyan">curl</span> -H "X-API-Key: YOUR_KEY" http://127.0.0.1:8080/billing/ledger</div>
+    </div>
+
+    <div class="doc-card">
+      <h2>Billing invariants — L1–L4</h2>
+      <p>Every charge is governed by four hard invariants:</p>
+      <table>
+        <tr><th>Layer</th><th>Guarantee</th></tr>
+        <tr><td>L1</td><td>Append-only ledger — INSERT only + trigger 009</td></tr>
+        <tr><td>L2</td><td>Atomic debit — <code class="inline">pg_advisory_xact_lock</code> + <code class="inline">WITH bal AS SUM(CREDIT-DEBIT)</code> + <code class="inline">WHERE bal&gt;=amount</code></td></tr>
+        <tr><td>L3</td><td>Idempotency — <code class="inline">job:{id}</code> sha256[:24] + PK 006</td></tr>
+        <tr><td>L4</td><td>Fail-closed — 402/403/429/503</td></tr>
+      </table>
+    </div>
+
+    <div class="doc-card" style="text-align:center;">
+      <p style="margin-bottom:16px;">Full interactive API docs available at the bridge:</p>
+      <a href="http://127.0.0.1:8080/docs" class="btn btn-primary" target="_blank" rel="noopener">Open Swagger UI</a>
+      <a href="http://127.0.0.1:8080/redoc" class="btn btn-secondary" target="_blank" rel="noopener">Open ReDoc</a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">AstroFin Sentinel Platform · v1.0.0 · self-hosted GPU Infrastructure · Powered by ROMA Execution Bridge v2.1.0 · <a href="index.html">Home</a> · <a href="features.html">Features</a> · <a href="pricing.html">Pricing</a></div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  window.showToast=function(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2800)};
+  function flashCopy(btn){if(!btn)btn=document.activeElement;if(btn&&btn.classList&&btn.classList.contains('copy-btn')){var old=btn.textContent;btn.textContent='✅ copied';btn.classList.add('ok');setTimeout(function(){btn.textContent=old;btn.classList.remove('ok');},1400);}}
+  function copyText(t){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(flashCopy,flashCopy);}else{var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);flashCopy();}}catch(e){flashCopy();}}
+  window.copyHealthCurl=function(){copyText("curl http://127.0.0.1:8080/health")};
+  window.copySubmitCurl=function(){copyText('curl -X POST http://127.0.0.1:8080/submit \\\n  -H "X-API-Key: YOUR_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"task":"echo hello","backend":"gpu_worker"}\'')};
+  try{(function(){const c=document.getElementById('orbital-canvas');if(!c)return;const x=c.getContext('2d');if(!x)return;let w,h,p=[];const L=['#06d6d6','#a855f7','#22c55e','#06b6d4','#c084fc'];function rs(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}function cp(){p=[];for(let i=0;i<26;i++)p.push({x:Math.random()*w,y:Math.random()*h,r:0.6+Math.random()*1.2,oR:40+Math.random()*120,a:Math.random()*Math.PI*2,s:0.018+Math.random()*0.022,cl:L[Math.floor(Math.random()*L.length)],al:0.35+Math.random()*0.4});for(let i=0;i<8;i++)p.push({x:Math.random()*w,y:Math.random()*h,r:0.8,oR:50+Math.random()*140,a:Math.random()*Math.PI*2,s:0.012+Math.random()*0.016,cl:L[Math.floor(Math.random()*3)],al:0.12+Math.random()*0.18,ln:!0})}function dr(){x.clearRect(0,0,w,h);p.forEach(q=>{q.a+=q.s;const cx=q.x+Math.cos(q.a)*q.oR*0.6,cy=q.y+Math.sin(q.a)*q.oR*0.35;if(q.ln){x.beginPath();x.ellipse(q.x,q.y,q.oR*0.7,q.oR*0.35,0,0,Math.PI*2);x.strokeStyle=q.cl;x.globalAlpha=q.al*0.5;x.lineWidth=0.6;x.stroke()}x.beginPath();x.arc(cx,cy,q.r,0,Math.PI*2);x.fillStyle=q.cl;x.globalAlpha=q.al;x.shadowBlur=q.r>1.5?12:4;x.shadowColor=q.cl;x.fill();x.shadowBlur=0});x.globalAlpha=1;requestAnimationFrame(dr)}rs();cp();dr();window.addEventListener('resize',()=>{rs();cp()})})();}catch(e){}
+})();
+</script>
+</body>
+</html>

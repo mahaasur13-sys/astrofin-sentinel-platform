@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+  <!-- тёмная подложка — чтобы иконка читалась на любой теме вкладки браузера -->
+  <circle cx="12" cy="12" r="12" fill="#0a0a0f"/>
+  <!-- внешнее кольцо — лазуритовый / cyan -->
+  <circle cx="12" cy="12" r="10" fill="none" stroke="#00f0ff" stroke-width="2"/>
+  <!-- среднее кольцо — фиолетовый / violet -->
+  <circle cx="12" cy="12" r="6" fill="none" stroke="#bd00ff" stroke-width="2"/>
+  <!-- центр — белый кружок -->
+  <circle cx="12" cy="12" r="2.5" fill="#ffffff"/>
+</svg>
