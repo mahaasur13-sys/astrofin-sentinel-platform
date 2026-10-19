@@ -13,9 +13,7 @@
 (function () {
   'use strict';
 
-  var AGENTS_URL = 'http://127.0.0.1:8791/agents';
   var PRICE_URL = 'https://data-api.binance.vision/api/v3/ticker/price?symbol=BTCUSDT';
-  var AGENTS_POLL_MS = 8000;
   var PRICE_FALLBACK_MS = 15000;
   var STALE_MS = 10000;
   var STORE_KEY = 'sentinel_manual_orders';
@@ -32,6 +30,7 @@
     priceTs: 0,                  // Date.now() of last price (live path)
     agents: [],
     summary: null,
+    ts: null,
     equity: null,                // null until user types it
     slPct: DEFAULT_SL_PCT,
     leverage: DEFAULT_LEVERAGE,
@@ -101,24 +100,22 @@
       .catch(function (err) { log('price fallback failed:', err && err.message); });
   }
 
-  // ---------------- agents ----------------
-  function fetchAgents() {
-    if (document.hidden) return;
-    fetch(AGENTS_URL)
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) {
-        state.agents = (d && d.agents) ? d.agents : [];
-        state.summary = (d && d.summary) ? d.summary : null;
-        renderAgents();
-        renderStatus();
-      })
-      .catch(function (err) {
-        state.summary = null;
-        log('agents unreachable:', err && err.message);
-        renderAgents();
-        renderStatus();
-      });
+  // ---------------- agents (snapshot from agents_shared.js) ----------------
+  function fmtTs(ts) {
+    if (!ts) return '—';
+    var m = /T(\d{2}:\d{2}:\d{2})/.exec(ts);
+    return m ? (m[1] + 'Z') : ts;
   }
+
+  function applyAgents(d) {
+    state.agents = (d && d.agents) ? d.agents : [];
+    state.summary = (d && d.summary) ? d.summary : null;
+    state.ts = (d && d.ts) ? d.ts : null;
+    renderAgents();
+    renderStatus();
+  }
+
+  window.addEventListener('agents:snapshot', function (e) { applyAgents(e.detail); });
 
   function renderAgents() {
     var long = [], short = [];
@@ -149,7 +146,7 @@
       var act = s ? (s.active + ' of ' + s.total + ' active') : 'agents offline';
       var coh = (s && s.coherence != null) ? ('coherence ' + s.coherence) : 'coherence —';
       var vol = (state.ewma != null) ? ('vol ' + (state.ewma * 100).toFixed(2) + '%') : 'vol —';
-      el.osubText.textContent = 'Symbol BTC/USDT · Decision ' + dec + ' · ' + act + ' · ' + coh + ' · ' + vol;
+      el.osubText.textContent = 'Symbol BTC/USDT · Decision ' + dec + ' · ' + act + ' · ' + coh + ' · ' + vol + ' · ' + fmtTs(state.ts);
     }
   }
 
@@ -366,16 +363,15 @@
   }
 
   bind();
-  fetchAgents();
   renderStatus();
 
   // Static placeholders — honest labels (no live quota/cost/policy/ledger feed here).
   log('Check 1/2/3 + EnterpriseDecisionGate: static placeholder (no live quota/cost/policy feed in this landing).');
   log('acceptance footer hash/metrics: static (0/3400 tenants · 76 endpoints · 86 branches · 19 workflows · commit hashes) — not a live ledger.');
 
-  setInterval(fetchAgents, AGENTS_POLL_MS);
+  // /agents snapshot arrives from agents_shared.js (single source of truth).
   setInterval(fallbackPrice, PRICE_FALLBACK_MS);
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) { fetchAgents(); fallbackPrice(); }
+    if (!document.hidden) { fallbackPrice(); }
   });
 })();

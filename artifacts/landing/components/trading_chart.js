@@ -8,7 +8,6 @@
   if (typeof LightweightCharts === 'undefined') return;
 
   var SYMBOL = 'BTCUSDT';
-  var AGENTS_URL = 'http://127.0.0.1:8791/agents';
   var INTERVAL_MAP = { '1m': '1m', '5m': '5m', '1h': '1h', '4h': '4h', '1D': '1d' };
   var currentInterval = '1h';                 // single source of truth (matches the "on" button)
 
@@ -64,6 +63,14 @@
 
   function setConn(status, color) {
     hud('hud-conn', status, color);
+    // P1: bind the header "System Live" pill to the same WebSocket state.
+    var livePill = document.getElementById('system-live');
+    var liveLabel = document.getElementById('system-live-label');
+    if (livePill) {
+      var isLive = (status === 'live');
+      livePill.className = 'pill ' + (isLive ? 'pill-live' : 'pill-warn');
+      if (liveLabel) liveLabel.textContent = isLive ? 'System Live' : 'System ' + status;
+    }
     var last = candles.length ? candles[candles.length - 1].close : null;
     var px = document.querySelector('.chart-px');
     if (px) { px.textContent = (status === 'live' && last) ? ('$' + last.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' · live') : status; px.style.color = color; }
@@ -247,29 +254,25 @@
     }, 250);
   }
 
-  function pollAgents() {
-    if (document.hidden) return;
-    fetch(AGENTS_URL)
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) {
-        if (!d || !d.summary) return;
-        hud('hud-agents', d.summary.active + ' of ' + d.summary.total);
-        hud('hud-decision', d.summary.decision + (d.summary.coherence !== null ? ' · ' + d.summary.coherence : ''));
-        var markers = [];
-        d.agents.forEach(function (a) {
-          if (a.status === 'ok' && a.confidence >= 50 && candles.length) {
-            var sig = (a.signal || '').toUpperCase();
-            if (sig.indexOf('LONG') >= 0 || sig.indexOf('BUY') >= 0) {
-              markers.push({ time: candles[candles.length - 1].time, position: 'belowBar', color: '#22c55e', shape: 'arrowUp', text: a.agent.slice(0, 4) });
-            } else if (sig.indexOf('SHORT') >= 0 || sig.indexOf('SELL') >= 0) {
-              markers.push({ time: candles[candles.length - 1].time, position: 'aboveBar', color: '#ef4444', shape: 'arrowDown', text: a.agent.slice(0, 4) });
-            }
-          }
-        });
-        candleSeries.setMarkers(markers);
-      })
-      .catch(function () { hud('hud-agents', 'offline', '#ef4444'); });
-  }
+  // /agents snapshot arrives from agents_shared.js (single poller).
+  window.addEventListener('agents:snapshot', function (e) {
+    var d = e.detail;
+    if (!d || !d.summary) { hud('hud-agents', 'offline', '#ef4444'); return; }
+    hud('hud-agents', d.summary.active + ' of ' + d.summary.total);
+    hud('hud-decision', d.summary.decision + (d.summary.coherence !== null ? ' · ' + d.summary.coherence : ''));
+    var markers = [];
+    (d.agents || []).forEach(function (a) {
+      if (a.status === 'ok' && a.confidence >= 50 && candles.length) {
+        var sig = (a.signal || '').toUpperCase();
+        if (sig.indexOf('LONG') >= 0 || sig.indexOf('BUY') >= 0) {
+          markers.push({ time: candles[candles.length - 1].time, position: 'belowBar', color: '#22c55e', shape: 'arrowUp', text: a.agent.slice(0, 4) });
+        } else if (sig.indexOf('SHORT') >= 0 || sig.indexOf('SELL') >= 0) {
+          markers.push({ time: candles[candles.length - 1].time, position: 'aboveBar', color: '#ef4444', shape: 'arrowDown', text: a.agent.slice(0, 4) });
+        }
+      }
+    });
+    candleSeries.setMarkers(markers);
+  });
 
   // Delegated click handling (capture phase — robust against re-renders / z-index / overlay quirks)
   document.addEventListener('click', function (e) {
@@ -386,8 +389,8 @@
   setConn('connecting', '#FBBF24');
   loadHistory(currentInterval);
   subscribeKlines(currentInterval);
-  setInterval(pollAgents, 8000);
+  // /agents polling lives in agents_shared.js (single source of truth).
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) { pollAgents(); loadHistory(currentInterval); subscribeKlines(currentInterval); }
+    if (!document.hidden) { loadHistory(currentInterval); subscribeKlines(currentInterval); }
   });
 })();

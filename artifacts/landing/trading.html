@@ -65,6 +65,8 @@ body::before {
 .pill { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--dim); background: rgba(255,255,255,0.02); white-space: nowrap; }
 .pill-live { color: var(--green); border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.08); display: inline-flex; align-items: center; gap: 6px; }
 .pill-live .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+.pill-warn { color: #FBBF24; border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.08); display: inline-flex; align-items: center; gap: 6px; }
+.pill-warn .dot { width: 7px; height: 7px; border-radius: 50%; background: #FBBF24; box-shadow: 0 0 8px #FBBF24; }
 .pill-cyan { color: var(--accent); border-color: rgba(0,229,255,0.3); background: rgba(0,229,255,0.08); }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
@@ -193,9 +195,9 @@ body::before {
       <a href="roma.html">ROMA</a>
     </nav>
     <div class="header-pills">
-      <span class="pill pill-live"><span class="dot"></span>System Live</span>
+      <span class="pill pill-live" id="system-live"><span class="dot"></span><span id="system-live-label">System Live</span></span>
       <span class="pill pill-cyan">6 AI Engines Active</span>
-      <span class="pill pill-cyan">Decision HOLD · Coherence —</span>
+      <span class="pill pill-cyan" id="header-decision">Decision — · agents connecting…</span>
       <span class="pill">Manual</span>
     </div>
   </div>
@@ -232,8 +234,8 @@ body::before {
         <span>Decision <b id="hud-decision">—</b></span>
         <span>Full <b id="hud-full">off</b></span>
       </div>
-      <div class="chart-insight">
-        Structure shift · volatility — · Fundamental idle · Quant idle · Macro idle (Fed —) · Options idle · Sentiment idle (no live sentiment feed) · Technical idle · Decision HOLD · Coherence — · 0 of 6 active — agents idle
+      <div class="chart-insight" id="chart-insight">
+        agents connecting…
       </div>
     </div>
 
@@ -436,6 +438,7 @@ body::before {
 
 <!-- lightweight-charts (local) + trading chart -->
 <script src="components/lightweight-charts.js"></script>
+<script src="components/agents_shared.js"></script>
 <script src="components/trading_chart.js"></script>
 <script src="components/orderbook.js"></script>
 <script src="components/manual_order.js"></script>

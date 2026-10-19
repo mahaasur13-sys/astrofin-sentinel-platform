@@ -8,7 +8,6 @@
   var SYMBOL = 'BTCUSDT';
   var REST_URL = 'https://data-api.binance.vision/api/v3/depth?symbol=' + SYMBOL + '&limit=20';
   var WS_URL = 'wss://stream.binance.com:9443/ws/btcusdt@depth20@100ms';
-  var AGENTS_URL = 'http://127.0.0.1:8791/agents';
 
   var obWs = null;
   var reconnectDelay = 1000;
@@ -84,25 +83,22 @@
     if (!rafPending) { rafPending = true; requestAnimationFrame(render); }
   }
 
-  function pollFundamental() {
-    fetch(AGENTS_URL)
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) {
-        var f = null;
-        if (d && d.agents) {
-          for (var i = 0; i < d.agents.length; i++) { if (d.agents[i].agent === 'fundamental') { f = d.agents[i]; break; } }
-        }
-        if (!f) { set('ob-st-fund', 'Fundamental idle'); return; }
-        if (f.status === 'ok') {
-          set('ob-st-fund', 'Fundamental ' + (f.signal || '—') + (typeof f.confidence === 'number' ? ' ' + f.confidence : ''));
-        } else if (f.status === 'no_data') {
-          set('ob-st-fund', 'Fundamental idle');
-        } else {
-          set('ob-st-fund', 'Fundamental unavailable');
-        }
-      })
-      .catch(function () { set('ob-st-fund', 'Fundamental idle'); });
-  }
+  // "Fundamental idle" status from the shared agents snapshot (agents_shared.js).
+  window.addEventListener('agents:snapshot', function (e) {
+    var d = e.detail;
+    var f = null;
+    if (d && d.agents) {
+      for (var i = 0; i < d.agents.length; i++) { if (d.agents[i].agent === 'fundamental') { f = d.agents[i]; break; } }
+    }
+    if (!f) { set('ob-st-fund', 'Fundamental idle'); return; }
+    if (f.status === 'ok') {
+      set('ob-st-fund', 'Fundamental ' + (f.signal || '—') + (typeof f.confidence === 'number' ? ' ' + f.confidence : ''));
+    } else if (f.status === 'no_data') {
+      set('ob-st-fund', 'Fundamental idle');
+    } else {
+      set('ob-st-fund', 'Fundamental unavailable');
+    }
+  });
 
   function fetchSnapshot() {
     fetch(REST_URL)
@@ -142,8 +138,6 @@
   // boot
   if (el('orderbook')) {
     connect();
-    pollFundamental();
-    setInterval(pollFundamental, 8000);
     startStaleWatch();
     document.addEventListener('visibilitychange', function () {
       if (!document.hidden) { fetchSnapshot(); if (!obWs) connect(); }
