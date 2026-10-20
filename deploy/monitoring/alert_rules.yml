@@ -352,3 +352,62 @@ groups:
           summary: "OKX p95 latency > 5s on {{ $labels.endpoint }}"
           description: "p95 OKX latency is {{ $value }}s."
 
+  - name: roma-jev-shadow
+    interval: 30s
+    rules:
+      - alert: JevShadowFallbackHigh
+        # Denominator excludes disabled too: _record_fallback increments
+        # observations_total for disabled as well. A - empty == empty in PromQL,
+        # hence the "or" fallback to the raw observations rate.
+        expr: |
+          (
+            sum by (point) (rate(roma_jev_shadow_fallback_total{point="R1", reason!="disabled"}[30m]))
+            /
+            clamp_min(
+              sum by (point) (rate(roma_jev_shadow_observations_total{point="R1"}[30m]))
+              - sum by (point) (rate(roma_jev_shadow_fallback_total{point="R1", reason="disabled"}[30m]))
+              or sum by (point) (rate(roma_jev_shadow_observations_total{point="R1"}[30m])),
+              1e-9
+            )
+          ) > 0.2
+          and
+          (
+            sum by (point) (rate(roma_jev_shadow_observations_total{point="R1"}[30m]))
+            - sum by (point) (rate(roma_jev_shadow_fallback_total{point="R1", reason="disabled"}[30m]))
+            or sum by (point) (rate(roma_jev_shadow_observations_total{point="R1"}[30m]))
+          ) > 0
+        for: 15m
+        labels: {severity: warning, category: jev-shadow}
+        annotations:
+          summary: "Jev R1 shadow: fallback выше 20% наблюдений ({{ $value | humanizePercentage }})"
+          description: |
+            Доля fallback-исходов среди shadow-наблюдений R1 выше 20% за 30m
+            (reason="disabled" исключён из числителя и знаменателя). Shadow не
+            меняет вердикт, но деградация Jev скрывает реальные расхождения
+            классификатора.
+            Runbook: https://github.com/mahaasur13-sys/roma-execution-bridge/blob/master/docs/jev-shadow-ops-runbook.md
+            Откат: удалить JEV_GATE_SHADOW и JEV_ENABLED из реестра сервиса ключами.
+
+      - alert: JevShadowDropped
+        # increase() is reset-safe (5->0->1 still yields increase>0). The right branch
+        # applies `unless offset` PER-SERIES before sum, so a brand-new instance's
+        # first drop fires even when other instances already have 15m of history.
+        expr: |
+          (
+            sum by (point) (increase(roma_jev_shadow_dropped_total{point="R1"}[15m])) > 0
+            or
+            (sum by (point) (
+              roma_jev_shadow_dropped_total{point="R1"} > 0
+              unless roma_jev_shadow_dropped_total{point="R1"} offset 15m
+            ) > 0)
+          )
+        for: 0m
+        labels: {severity: warning, category: jev-shadow}
+        annotations:
+          summary: "Jev R1 shadow: наблюдения отброшены (dropped)"
+          description: |
+            Очередь bounded-обсервера переполнена: хотя бы одно наблюдение отброшено
+            за 15m либо серия впервые появилась с ненулевым значением.
+            Данные shadow неполные, agreement-метрика занижена.
+            Runbook: https://github.com/mahaasur13-sys/roma-execution-bridge/blob/master/docs/jev-shadow-ops-runbook.md
+            Откат: удалить JEV_GATE_SHADOW и JEV_ENABLED из реестра сервиса ключами.

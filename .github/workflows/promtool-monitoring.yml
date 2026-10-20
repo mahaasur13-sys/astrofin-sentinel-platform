@@ -36,6 +36,7 @@ jobs:
             monitoring:
               - 'deploy/monitoring/**'
               - '.github/workflows/promtool-monitoring.yml'
+              - '.github/scripts/check-jev-canon-drift.sh'
       - name: Download Prometheus v2.54.1 (sha256-pinned)
         if: steps.filter.outputs.monitoring == 'true'
         run: |
@@ -44,12 +45,40 @@ jobs:
           echo "31715ef65e8a898d0f97c8c08c03b6b9afe485ac84e1698bcfec90fc6e62924f  /tmp/prometheus.tar.gz" | sha256sum -c -
           tar -xzf /tmp/prometheus.tar.gz -C /tmp --strip-components=1
           sudo install -m 0755 /tmp/promtool /usr/local/bin/promtool
+      - name: Download yq v4.54.1 (sha256-pinned)
+        if: steps.filter.outputs.monitoring == 'true'
+        run: |
+          curl -fsSL -o /tmp/yq \
+            https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_amd64
+          echo "8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353cf702ea5f  /tmp/yq" | sha256sum -c -
+          sudo install -m 0755 /tmp/yq /usr/local/bin/yq
       - name: promtool check rules
         if: steps.filter.outputs.monitoring == 'true'
         run: |
           promtool check rules \
             deploy/monitoring/alert_rules.yml \
             deploy/monitoring/recording-rules.yml
+      - name: Jev rules drift check vs ROMA canon
+        if: steps.filter.outputs.monitoring == 'true'
+        run: bash .github/scripts/check-jev-canon-drift.sh
+      - name: promtool test rules (ROMA canon Jev cases)
+        if: steps.filter.outputs.monitoring == 'true'
+        run: |
+          # The Jev shadow cases live in ROMA; run them against this repo's copy
+          # of the group so a rules edit cannot land without the canon cases
+          # passing. The group is re-emitted standalone, with the runbook path
+          # restored to its repo-relative form, and the test's rule_files is
+          # repointed at that standalone file.
+          mkdir -p /tmp/jev-canon-tests
+          curl -fsSL -o /tmp/jev-canon-tests/jev-shadow-alerts.test.yml \
+            https://raw.githubusercontent.com/mahaasur13-sys/roma-execution-bridge/master/deploy/monitoring/tests/jev-shadow-alerts.test.yml
+          yq -o=yaml '[.groups[] | select(.name == "roma-jev-shadow")]' \
+            deploy/monitoring/alert_rules.yml \
+            | sed 's#https://github.com/mahaasur13-sys/roma-execution-bridge/blob/master/docs/jev-shadow-ops-runbook.md#docs/jev-shadow-ops-runbook.md#' \
+            | sed '1i groups:' > /tmp/jev-canon-tests/jev-shadow.rules.yml
+          sed -i 's#^  - \.\./alert-rules-roma\.yml#  - ./jev-shadow.rules.yml#' \
+            /tmp/jev-canon-tests/jev-shadow-alerts.test.yml
+          cd /tmp/jev-canon-tests && promtool test rules jev-shadow-alerts.test.yml
       - name: promtool check config
         if: steps.filter.outputs.monitoring == 'true'
         run: |
