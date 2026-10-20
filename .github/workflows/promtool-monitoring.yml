@@ -1,0 +1,71 @@
+name: Promtool Monitoring
+
+# Validates the Prometheus rules and the standalone config under deploy/monitoring/.
+# Modelled on roma-execution-bridge's promtool-rules job (.github/workflows/ci.yml).
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+# Cancel in-progress runs for the same ref on new pushes.
+concurrency:
+  group: promtool-monitoring-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  promtool-monitoring:
+    name: Prometheus rules + config
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      # dorny/paths-filter lists the PR's changed files through the API, which
+      # requires pull-requests: read on top of contents: read.
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Detect monitoring changes
+        id: filter
+        uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3.0.4
+        with:
+          filters: |
+            monitoring:
+              - 'deploy/monitoring/**'
+              - '.github/workflows/promtool-monitoring.yml'
+      - name: Download Prometheus v2.54.1 (sha256-pinned)
+        if: steps.filter.outputs.monitoring == 'true'
+        run: |
+          curl -fsSL -o /tmp/prometheus.tar.gz \
+            https://github.com/prometheus/prometheus/releases/download/v2.54.1/prometheus-2.54.1.linux-amd64.tar.gz
+          echo "31715ef65e8a898d0f97c8c08c03b6b9afe485ac84e1698bcfec90fc6e62924f  /tmp/prometheus.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/prometheus.tar.gz -C /tmp --strip-components=1
+          sudo install -m 0755 /tmp/promtool /usr/local/bin/promtool
+      - name: promtool check rules
+        if: steps.filter.outputs.monitoring == 'true'
+        run: |
+          promtool check rules \
+            deploy/monitoring/alert_rules.yml \
+            deploy/monitoring/recording-rules.yml
+      - name: promtool check config
+        if: steps.filter.outputs.monitoring == 'true'
+        run: |
+          # The tracked config points at absolute host paths (rule_files,
+          # password_file) that do not exist on a runner, so validate a
+          # rewritten copy and leave the tracked file untouched.
+          echo "dummy-ci-password" > /tmp/prom-gc-basic-auth
+          sed -e "s#/home/workspace/#${GITHUB_WORKSPACE}/#g" \
+              -e "s#/root/.sealed/prom-gc-basic-auth#/tmp/prom-gc-basic-auth#" \
+              deploy/monitoring/prometheus-standalone.yml > /tmp/prometheus-standalone.ci.yml
+          promtool check config /tmp/prometheus-standalone.ci.yml
+      - name: promtool test rules
+        if: steps.filter.outputs.monitoring == 'true'
+        run: |
+          if compgen -G "deploy/monitoring/tests/*.test.yml" > /dev/null; then
+            promtool test rules deploy/monitoring/tests/*.test.yml
+          else
+            echo "no rule unit tests in deploy/monitoring/tests — skipping"
+          fi
