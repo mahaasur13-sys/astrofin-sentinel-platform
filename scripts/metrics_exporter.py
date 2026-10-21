@@ -16,6 +16,7 @@ Metrics:   GET /metrics → Prometheus text format
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 import time
@@ -29,6 +30,7 @@ import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from prometheus_client import REGISTRY, CONTENT_TYPE_LATEST, generate_latest, Counter, Gauge
+from prometheus_client.metrics_core import GaugeMetricFamily
 
 from tools.metrics_server import (  # noqa: F401 — side-effect import
     CACHE_HITS,
@@ -52,6 +54,35 @@ EXPORTER_UPTIME = Gauge("astrofin_exporter_uptime_seconds", "Exporter process up
 
 _start_time = time.time()
 EXPORTER_UPTIME.set_function(lambda: time.time() - _start_time)
+BACKUP_STATE_FILE = Path(os.environ.get("BACKUP_STATE_FILE", "/root/.sealed/pgdump/state.json"))
+
+
+class BackupStateCollector:
+    """walg_backup_* from the pgdump service's state.json; no file → no series (alert stays honest)."""
+
+    def collect(self):
+        try:
+            state = json.loads(BACKUP_STATE_FILE.read_text())
+        except (OSError, ValueError):
+            return
+        yield GaugeMetricFamily(
+            "walg_backup_last_success_timestamp",
+            "Unix ts of the last fully successful pg_dump run",
+            value=float(state.get("last_success_ts") or 0),
+        )
+        yield GaugeMetricFamily(
+            "walg_backup_last_attempt_timestamp",
+            "Unix ts of the last pg_dump attempt",
+            value=float(state.get("last_attempt_ts") or 0),
+        )
+        yield GaugeMetricFamily(
+            "walg_backup_last_result",
+            "Last pg_dump run result: 1=ok, 0=fail",
+            value=1.0 if state.get("last_result") == "ok" else 0.0,
+        )
+
+
+REGISTRY.register(BackupStateCollector())
 
 app = FastAPI(title="AstroFin Metrics Exporter", docs_url=None, redoc_url=None)
 
