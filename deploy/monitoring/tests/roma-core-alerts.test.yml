@@ -1,0 +1,114 @@
+rule_files:
+  - ../alert_rules.yml
+evaluation_interval: 30s
+tests:
+  # (a) Everything healthy: /metrics answers and billing counters are exported flat.
+  # ROMANoMetrics is absent()-only now, so a live series must keep it silent;
+  # a flat failure counter must not wake the webhook alert.
+  - name: a_all_present_healthy_no_fire
+    interval: 30s
+    input_series:
+      - series: 'roma_requests_total{status="200"}'
+        values: '0+1x40'
+      - series: 'roma_cloudpayments_failure_total{provider="cloudpayments"}'
+        values: '0x40'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: ROMANoMetrics
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: ROMANoMetrics
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: ROMABillingWebhookDown
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: ROMABillingMetricsAbsent
+        exp_alerts: []
+
+  # (b1) /metrics is gone (no roma_requests_total at all) -> absence alert fires
+  # after its 2m hold, and only after it.
+  - name: b1_nometrics_absent_fires
+    interval: 30s
+    input_series:
+      - series: 'roma_cloudpayments_failure_total{provider="cloudpayments"}'
+        values: '0x40'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: ROMANoMetrics
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: ROMANoMetrics
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              category: monitoring
+            exp_annotations:
+              summary: "ROMA /metrics endpoint not responding"
+      - eval_time: 3m
+        alertname: ROMABillingMetricsAbsent
+        exp_alerts: []
+
+  # (c1) Webhook failures are being recorded -> stale-free alert fires after 3m.
+  - name: c1_webhook_failures_growing_fires
+    interval: 30s
+    input_series:
+      - series: 'roma_requests_total{status="200"}'
+        values: '0+1x40'
+      - series: 'roma_cloudpayments_failure_total{provider="cloudpayments"}'
+        values: '0+1x40'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: ROMABillingWebhookDown
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: ROMABillingWebhookDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              category: billing
+            exp_annotations:
+              summary: "CloudPayments webhook failures detected"
+              description: "investigate immediately — tenants cannot complete payments"
+
+  # (c2) Counter exported but not moving -> no fire, early or late. The old
+  # `or absent(roma_cloudpayments_webhooks_total)` fallback made this alert
+  # permanently firing; that fallback is what this case pins down.
+  - name: c2_webhook_failures_flat_no_fire
+    interval: 30s
+    input_series:
+      - series: 'roma_requests_total{status="200"}'
+        values: '0+1x40'
+      - series: 'roma_cloudpayments_failure_total{provider="cloudpayments"}'
+        values: '0x40'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: ROMABillingWebhookDown
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: ROMABillingWebhookDown
+        exp_alerts: []
+
+  # (c3) The billing counter itself disappears -> dedicated absence alert after
+  # 10m, and the failure alert stays silent (no data is not a failure signal).
+  - name: c3_billing_metrics_absent_fires
+    interval: 30s
+    input_series:
+      - series: 'roma_requests_total{status="200"}'
+        values: '0+1x40'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: ROMABillingMetricsAbsent
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: ROMABillingMetricsAbsent
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              category: billing
+            exp_annotations:
+              summary: "CloudPayments metrics missing — billing is blind"
+              description: "roma_cloudpayments_failure_total stopped being exported, so webhook failures are unobservable and ROMABillingWebhookDown cannot fire. Check billing metrics wiring and /metrics."
+      - eval_time: 12m
+        alertname: ROMABillingWebhookDown
+        exp_alerts: []

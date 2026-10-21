@@ -431,3 +431,103 @@ groups:
             Данные shadow неполные, agreement-метрика занижена.
             Runbook: https://github.com/mahaasur13-sys/roma-execution-bridge/blob/master/docs/jev-shadow-ops-runbook.md
             Откат: удалить JEV_GATE_SHADOW и JEV_ENABLED из реестра сервиса ключами.
+
+  # ------------------------------------------------------------------------
+  # ROMA canon — группы roma-critical / roma-warning / roma-billing скопированы
+  # побайтово из roma-execution-bridge@8fe47283 deploy/monitoring/alert-rules-roma.yml.
+  # Дрейф ловит .github/scripts/check-jev-canon-drift.sh (те же группы).
+  # Откат: удалить блок от этого комментария до конца файла.
+  # ------------------------------------------------------------------------
+  - name: roma-critical
+    rules:
+      - alert: ROMAHighErrorRate
+        expr: |
+          sum(rate(roma_requests_total{status=~"5.."}[5m]))
+          / sum(rate(roma_requests_total[5m])) > 0.05
+        for: 5m
+        labels: {severity: critical, category: api}
+        annotations:
+          summary: "ROMA error rate above 5% ({{ $value | humanizePercentage }})"
+          description: "5xx errors spiking. Check /metrics and Loki logs for /dev/shm/roma-execution-bridge.log"
+
+      - alert: ROMABillingWebhookDown
+        expr: sum(increase(roma_cloudpayments_failure_total[10m])) > 0
+        for: 3m
+        labels: {severity: critical, category: billing}
+        annotations:
+          summary: "CloudPayments webhook failures detected"
+          description: "investigate immediately — tenants cannot complete payments"
+
+      - alert: ROMABillingMetricsAbsent
+        expr: absent(roma_cloudpayments_failure_total)
+        for: 10m
+        labels: {severity: critical, category: billing}
+        annotations:
+          summary: "CloudPayments metrics missing — billing is blind"
+          description: "roma_cloudpayments_failure_total stopped being exported, so webhook failures are unobservable and ROMABillingWebhookDown cannot fire. Check billing metrics wiring and /metrics."
+
+      - alert: ROMANoMetrics
+        expr: absent(roma_requests_total)
+        for: 2m
+        labels: {severity: critical, category: monitoring}
+        annotations:
+          summary: "ROMA /metrics endpoint not responding"
+
+  - name: roma-warning
+    rules:
+      - alert: ROMAHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(roma_request_duration_seconds_bucket[5m])) by (le)) > 1.0
+        for: 5m
+        labels: {severity: warning, category: api}
+        annotations:
+          summary: "p95 latency > 1s ({{ $value }}s)"
+
+      - alert: ROMADeepQueue
+        expr: roma_queue_depth > 10
+        for: 3m
+        labels: {severity: warning, category: resources}
+        annotations:
+          summary: "Queue depth {{ $value }} ≥ 10 — backends may be slow"
+
+      - alert: ROMAAuthSpike
+        expr: rate(roma_auth_failures_total[5m]) > 0.2
+        for: 5m
+        labels: {severity: warning, category: security}
+        annotations:
+          summary: "Auth failures spiking: {{ $value }} failures/sec — possible brute force"
+
+  - name: roma-billing
+    rules:
+      - alert: ROMASpendCap90Pct
+        expr: roma_spend_cap_pct > 90
+        for: 1m
+        labels: {severity: warning, category: billing}
+        annotations:
+          summary: "Tenant {{ $labels.tenant_id }} spend-cap at {{ $value }}% (plan {{ $labels.plan }})"
+          description: "Balance ${{ query \"roma_spend_cap_balance_usd{tenant_id='$labels.tenant_id'}\" | first | value }} / ${{ query \"label_replace(roma_spend_cap_pct{tenant_id='$labels.tenant_id',plan='$labels.plan'},'cap','$value','','')\" | first | value }}. Consider upgrading plan."
+
+      - alert: ROMASpendCapExceeded
+        expr: rate(roma_spend_cap_blocked_total[5m]) > 0
+        for: 1m
+        labels: {severity: critical, category: billing}
+        annotations:
+          summary: "Tenant {{ $labels.tenant_id }} jobs BLOCKED by spend-cap"
+          description: "Plan {{ $labels.plan }} has reached its limit. Tenant needs to upgrade or wait for reset."
+
+      - alert: ROMAHighGPUCost
+        expr: rate(roma_gpu_seconds_total[15m]) * 0.00001 * 3600 > 1.0
+        for: 5m
+        labels: {severity: warning, category: billing}
+        annotations:
+          summary: "Tenant {{ $labels.tenant_id }} GPU burn rate > $1/hr"
+          description: "GPU seconds accumulating fast. Current rate: ${{ $value }}/hr."
+
+      - alert: ROMANoBillingEvents
+        expr: rate(roma_billing_cost_total[30m]) == 0 and rate(roma_requests_total[30m]) > 0
+        for: 10m
+        labels: {severity: warning, category: billing}
+        annotations:
+          summary: "Requests flowing but no billing events — _increment_usage may be broken"
+
