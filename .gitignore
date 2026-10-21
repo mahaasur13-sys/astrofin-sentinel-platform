@@ -110,3 +110,4 @@ astrofin-sentinel-platform/
 data/meta_rl/gen_*.png
 data/meta_rl/sessions/gen_*.json
 deploy/wal-g/image/wal-g
+backtest/data_cache/XAUUSD_4h.json
