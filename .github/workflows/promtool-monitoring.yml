@@ -58,7 +58,7 @@ jobs:
           promtool check rules \
             deploy/monitoring/alert_rules.yml \
             deploy/monitoring/recording-rules.yml
-      - name: Jev rules drift check vs ROMA canon
+      - name: ROMA canon drift check (jev-shadow/critical/warning/billing)
         if: steps.filter.outputs.monitoring == 'true'
         run: bash .github/scripts/check-jev-canon-drift.sh
       - name: promtool test rules (ROMA canon Jev cases)
