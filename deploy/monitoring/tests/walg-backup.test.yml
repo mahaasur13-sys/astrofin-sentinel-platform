@@ -1,0 +1,104 @@
+rule_files:
+  - ../alert_rules.yml
+
+evaluation_interval: 1m
+
+tests:
+  # (a) свежая метрика: успешный бэкап только что — ни одного алерта
+  - name: fresh backup timestamp, no alerts
+    interval: 1m
+    input_series:
+      - series: 'walg_backup_last_success_timestamp{instance="localhost:9191"}'
+        values: '0+60x10'
+      - series: 'walg_backup_last_result{instance="localhost:9191"}'
+        values: '1+0x10'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: WALGBackupStale
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: WALGBackupMetricAbsent
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: WALGBackupFailed
+        exp_alerts: []
+
+  # (b) бэкап старше 28h: WALGBackupStale firing, остальные молчат
+  - name: backup older than 28h fires stale
+    interval: 1m
+    input_series:
+      - series: 'walg_backup_last_success_timestamp{instance="localhost:9191"}'
+        values: '0+0x1800'
+    alert_rule_test:
+      - eval_time: 1750m
+        alertname: WALGBackupStale
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              team: sre
+              category: backup
+              instance: localhost:9191
+            exp_annotations:
+              summary: "WAL-G backup старше 28 часов"
+              description: |
+                Последний успешный WAL-G backup сделан более 28h назад.
+                RPO нарушен. Проверьте `wal-g backup-list` и cron.
+              runbook: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#walgbackupstale
+      - eval_time: 1750m
+        alertname: WALGBackupMetricAbsent
+        exp_alerts: []
+      - eval_time: 1750m
+        alertname: WALGBackupFailed
+        exp_alerts: []
+
+  # (c) метрики нет вовсе: только WALGBackupMetricAbsent, Stale не срабатывает
+  - name: metric absent, only absence alert fires
+    interval: 1m
+    input_series: []
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: WALGBackupMetricAbsent
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              team: sre
+              category: backup
+            exp_annotations:
+              summary: "WAL-G backup: метрика отсутствует"
+              description: |
+                Экспортёр не отдаёт walg_backup_last_success_timestamp уже 10m —
+                бэкепов нет либо сломан astrofin-metrics-exporter (state.json отсутствует).
+      - eval_time: 12m
+        alertname: WALGBackupStale
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: WALGBackupFailed
+        exp_alerts: []
+
+  # (d) последний запуск неуспешен: WALGBackupFailed warning
+  - name: failed backup result fires warning
+    interval: 1m
+    input_series:
+      - series: 'walg_backup_last_success_timestamp{instance="localhost:9191"}'
+        values: '0+60x10'
+      - series: 'walg_backup_last_result{instance="localhost:9191"}'
+        values: '0+0x10'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: WALGBackupFailed
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              category: backup
+              instance: localhost:9191
+            exp_annotations:
+              summary: "WAL-G backup: последний запуск неуспешен"
+              description: |
+                state.json сообщает last_result=fail (pg_dump упал на одной из баз).
+                Проверьте /dev/shm/astrofin-pgdump.log.
+      - eval_time: 6m
+        alertname: WALGBackupStale
+        exp_alerts: []
+      - eval_time: 6m
+        alertname: WALGBackupMetricAbsent
+        exp_alerts: []

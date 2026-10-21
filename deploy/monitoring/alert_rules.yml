@@ -287,12 +287,7 @@ groups:
       # WAL-G backup stale (no successful backup in 28h)
       # ------------------------------------------------------------------
       - alert: WALGBackupStale
-        expr: |
-          time() - (
-            max by (instance) (walg_backup_last_success_timestamp)
-            or
-            vector(1700000000)
-          ) > 100800
+        expr: time() - max by (instance) (walg_backup_last_success_timestamp) > 100800
         for: 2m
         labels:
           severity: critical
@@ -304,6 +299,31 @@ groups:
             Последний успешный WAL-G backup сделан более 28h назад.
             RPO нарушен. Проверьте `wal-g backup-list` и cron.
           runbook: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md#walgbackupstale
+
+      - alert: WALGBackupMetricAbsent
+        expr: absent(walg_backup_last_success_timestamp)
+        for: 10m
+        labels:
+          severity: critical
+          team: sre
+          category: backup
+        annotations:
+          summary: "WAL-G backup: метрика отсутствует"
+          description: |
+            Экспортёр не отдаёт walg_backup_last_success_timestamp уже 10m —
+            бэкепов нет либо сломан astrofin-metrics-exporter (state.json отсутствует).
+
+      - alert: WALGBackupFailed
+        expr: walg_backup_last_result == 0
+        for: 5m
+        labels:
+          severity: warning
+          category: backup
+        annotations:
+          summary: "WAL-G backup: последний запуск неуспешен"
+          description: |
+            state.json сообщает last_result=fail (pg_dump упал на одной из баз).
+            Проверьте /dev/shm/astrofin-pgdump.log.
 
   - name: astrofin_okx
     interval: 30s
