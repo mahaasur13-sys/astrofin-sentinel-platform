@@ -1,0 +1,101 @@
+rule_files:
+  - ../alert_rules.yml
+evaluation_interval: 1m
+tests:
+  # Healthy: ledger reconciles, pool is quiet, backup is recent — no ROMA ops alert
+  # may fire. promtool simulates time() from the test epoch, so a recent backup is
+  # simply the epoch itself (age stays at minutes, far below the 28h window).
+  - name: a_healthy_no_fire
+    interval: 1m
+    input_series:
+      - series: 'roma_ledger_reconciliation_diff{tenant_id="t1"}'
+        values: '0+0x17'
+      - series: 'roma_pg_connections_active{pool="billing"}'
+        values: '3+0x17'
+      - series: 'roma_backup_last_success_timestamp'
+        values: '0+0x17'
+    alert_rule_test:
+      - eval_time: 16m
+        alertname: ROMALedgerDiff
+        exp_alerts: []
+      - eval_time: 16m
+        alertname: ROMAPGPoolSaturation
+        exp_alerts: []
+      - eval_time: 16m
+        alertname: ROMABackupStale
+        exp_alerts: []
+
+  # Ledger divergence: abs(diff) > 0 sustained for 5m.
+  - name: b_ledger_diff_fires
+    interval: 1m
+    input_series:
+      - series: 'roma_ledger_reconciliation_diff{tenant_id="t1"}'
+        values: '2+0x14'
+      - series: 'roma_pg_connections_active{pool="billing"}'
+        values: '3+0x14'
+      - series: 'roma_backup_last_success_timestamp'
+        values: '0+0x14'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: ROMALedgerDiff
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              category: billing
+              tenant_id: t1
+            exp_annotations:
+              summary: "ROMA ledger reconciliation mismatch (diff 2)"
+              description: "Ledger entry count diverged from the billing ledger for tenant t1. Re-run scripts/reconciliation.py and check billing DB writes before the next spend-cap cycle."
+      - eval_time: 7m
+        alertname: ROMAPGPoolSaturation
+        exp_alerts: []
+
+  # Pool saturation: 12 active > threshold 8.
+  - name: c_pg_pool_saturation_fires
+    interval: 1m
+    input_series:
+      - series: 'roma_ledger_reconciliation_diff{tenant_id="t1"}'
+        values: '0+0x14'
+      - series: 'roma_pg_connections_active{pool="billing"}'
+        values: '12+0x14'
+      - series: 'roma_backup_last_success_timestamp'
+        values: '0+0x14'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: ROMAPGPoolSaturation
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              category: infra
+              pool: billing
+            exp_annotations:
+              summary: "ROMA PG pool saturation (12 active on billing)"
+              description: "Postgres pool billing holds more than 8 active connections for 5m. Check slow queries, pool sizing and leaked connections in roma-execution-bridge."
+      - eval_time: 7m
+        alertname: ROMALedgerDiff
+        exp_alerts: []
+
+  # Backup older than 28h: the timestamp is 200000s before the test epoch, so the
+  # age is ~200000s > 100800s once evaluation time advances.
+  - name: d_backup_stale_fires
+    interval: 1m
+    input_series:
+      - series: 'roma_ledger_reconciliation_diff{tenant_id="t1"}'
+        values: '0+0x31'
+      - series: 'roma_pg_connections_active{pool="billing"}'
+        values: '3+0x31'
+      - series: 'roma_backup_last_success_timestamp'
+        values: '-200000+0x31'
+    alert_rule_test:
+      - eval_time: 17m
+        alertname: ROMABackupStale
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              category: backup
+            exp_annotations:
+              summary: "ROMA backup older than 28h"
+              description: "roma_backup_last_success_timestamp has not advanced for more than 28h; a value of 0 means no backup was ever recorded. Check the ROMA backup job and its target directory."
+      - eval_time: 17m
+        alertname: ROMAPGPoolSaturation
+        exp_alerts: []
