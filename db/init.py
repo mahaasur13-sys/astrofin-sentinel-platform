@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 _SCHEMA_SQL = Path(__file__).parent.parent / "schema" / "001_initial.sql"
 
-_RUNTIME_TABLES_SQL = (
+_RUNTIME_TABLES_SQL_PG = (
     """
     CREATE TABLE IF NOT EXISTS karl_decision_records (
         decision_id TEXT PRIMARY KEY, session_id TEXT, symbol TEXT,
@@ -44,12 +44,43 @@ _RUNTIME_TABLES_SQL = (
     "CREATE INDEX IF NOT EXISTS idx_agent_runtime_session ON agent_signals(session_id)",
 )
 
+# SQLite has no schemas, no gen_random_uuid() and no NOW(): same columns, portable types.
+_RUNTIME_TABLES_SQL_SQLITE = (
+    """
+    CREATE TABLE IF NOT EXISTS karl_decision_records (
+        decision_id TEXT PRIMARY KEY, session_id TEXT, symbol TEXT,
+        price NUMERIC(20, 8), timeframe TEXT, regime TEXT, state_hash TEXT,
+        top_trajectories_json TEXT, selected_ensemble_json TEXT, q_values_json TEXT,
+        q_star NUMERIC(8, 6), advantage NUMERIC(8, 6),
+        uncertainty_aleatoric NUMERIC(6, 4), uncertainty_epistemic NUMERIC(6, 4),
+        uncertainty_total NUMERIC(6, 4), confidence_raw INTEGER, confidence_final INTEGER,
+        confidence_adjustments_json TEXT, final_action TEXT, position_pct NUMERIC(6, 4),
+        kpi_snapshot_json TEXT, metadata_json TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_karl_runtime_session ON karl_decision_records(session_id)",
+    "CREATE INDEX IF NOT EXISTS idx_karl_runtime_symbol ON karl_decision_records(symbol)",
+    """
+    CREATE TABLE IF NOT EXISTS agent_signals (
+        signal_id TEXT PRIMARY KEY, session_id TEXT,
+        agent_name TEXT NOT NULL, agent_pool TEXT, signal TEXT, confidence INTEGER,
+        reasoning TEXT, metadata_json TEXT, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_agent_runtime_session ON agent_signals(session_id)",
+)
+
 def ensure_runtime_tables(engine) -> bool:
     try:
         with engine.begin() as conn:
-            conn.exec_driver_sql("CREATE SCHEMA IF NOT EXISTS astrofin")
-            conn.exec_driver_sql("SET search_path TO astrofin, public")
-            for statement in _RUNTIME_TABLES_SQL:
+            if engine.dialect.name == "postgresql":
+                conn.exec_driver_sql("CREATE SCHEMA IF NOT EXISTS astrofin")
+                conn.exec_driver_sql("SET search_path TO astrofin, public")
+                statements = _RUNTIME_TABLES_SQL_PG
+            else:
+                statements = _RUNTIME_TABLES_SQL_SQLITE
+            for statement in statements:
                 conn.exec_driver_sql(statement)
         return True
     except Exception as e:
@@ -77,7 +108,7 @@ def apply_raw_sql_schema(engine) -> bool:
                 if stmt.startswith("--") or not stmt:
                     continue
                 try:
-                    conn.exec_driver_cmds(stmt)
+                    conn.exec_driver_sql(stmt)
                 except Exception as e:
                     # Some statements like CREATE EXTENSION may already exist
                     if "already exists" not in str(e):
@@ -151,8 +182,22 @@ def init_schema_if_needed() -> bool:
 
 
 def _init_sqlite_fallback() -> bool:
-    """Ensure SQLite history.db exists for fallback mode."""
+    """Ensure the SQLite fallback database exists *with its tables*.
+
+    Touching an empty file is not enough: the API reads sessions from this
+    engine when PostgreSQL is not configured, so the schema must be created
+    here or every query fails with "no such table".
+    """
     try:
+        from db.models import Base
+        from db.session import get_db_manager
+
+        engine = get_db_manager().sqlite_engine
+        if engine is None:
+            return False
+        Base.metadata.create_all(engine)
+        ensure_runtime_tables(engine)
+
         from core.history_db import _db_path
 
         path = _db_path()

@@ -14,6 +14,10 @@ from strategies.generator import GeneratedStrategy, random_chromosome
 
 logger = logging.getLogger(__name__)
 
+# cosine of two identical vectors lands at 1.0 +/- float noise, so an exact
+# threshold (e.g. 1.0) must be compared with a tolerance, not bit-exactly.
+_COSINE_EPS = 1e-9
+
 
 def downsample_equity_curve(curve, max_points: int = 1000):
     """Downsample an equity curve (sequence of floats) to at most ``max_points``
@@ -374,7 +378,7 @@ class StrategyPool:
             max_sims = 1.0 - dist[:, 0]
             threshold = float(self.diversity_threshold)
             for (_, candidate, _), sim in zip(candidates_with_chrom, max_sims):
-                if float(sim) < threshold:
+                if float(sim) < threshold - _COSINE_EPS:
                     filtered.append(candidate)
             return filtered
         except Exception as exc:  # noqa: BLE001 — degrade gracefully
@@ -385,7 +389,7 @@ class StrategyPool:
                 max_sim = max(
                     self._cosine_sim(cand_vec, vec) for vec in existing_vectors
                 )
-                if max_sim < self.diversity_threshold:
+                if max_sim < float(self.diversity_threshold) - _COSINE_EPS:
                     filtered.append(candidate)
             return filtered
 

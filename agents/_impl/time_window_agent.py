@@ -22,6 +22,9 @@ from core.base_agent import (
 
 logger = logging.getLogger(__name__)
 
+# Weekday 0..6 — all seven, so indexing never runs past Friday.
+_DAY_ABBR = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+
 
 class TimeWindowAgent(BaseAgent[AgentResponse]):
     """
@@ -206,9 +209,14 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
                 direction = "bullish"
                 summary = "1D: Friday rebound"
             score = 0.55
+        elif weekday in (5, 6):  # Saturday, Sunday
+            # Crypto/gold trade 24/7 but there is no weekday session bias.
+            direction = "neutral"
+            summary = f"1D: weekend ({_DAY_ABBR[weekday]})"
+            score = 0.50
         else:
             direction = "neutral"
-            summary = f"1D: midweek ({['Mon', 'Tue', 'Wed', 'Thu', 'Fri'][weekday]})"
+            summary = f"1D: midweek ({_DAY_ABBR[weekday]})"
             score = 0.50
 
         return {"direction": direction, "summary": summary, "score": score}
