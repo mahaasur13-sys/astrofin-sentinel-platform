@@ -84,6 +84,33 @@ class BackupStateCollector:
 
 REGISTRY.register(BackupStateCollector())
 
+OFFSITE_STATE_FILE = Path(os.environ.get("OFFSITE_STATE_FILE", "/root/.sealed/pgdump/offsite_state.json"))
+
+
+class OffsiteStateCollector:
+    """pgdump_offsite_* from the offsite copy state.json; no file → no series, so absent() can fire."""
+
+    def collect(self):
+        try:
+            state = json.loads(OFFSITE_STATE_FILE.read_text())
+        except (OSError, ValueError):
+            return
+        if "last_success_ts" not in state:
+            return
+        yield GaugeMetricFamily(
+            "pgdump_offsite_last_success_timestamp",
+            "Unix ts of the last fully successful offsite dump copy",
+            value=float(state.get("last_success_ts") or 0),
+        )
+        yield GaugeMetricFamily(
+            "pgdump_offsite_last_result",
+            "Last offsite copy result: 1=ok, 0=fail",
+            value=1.0 if state.get("last_result") == "ok" else 0.0,
+        )
+
+
+REGISTRY.register(OffsiteStateCollector())
+
 app = FastAPI(title="AstroFin Metrics Exporter", docs_url=None, redoc_url=None)
 
 

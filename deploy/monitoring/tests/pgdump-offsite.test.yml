@@ -1,0 +1,104 @@
+rule_files:
+  - ../alert_rules.yml
+
+evaluation_interval: 1m
+
+tests:
+  # (a) свежая offsite-копия: ни одного алерта
+  - name: fresh offsite copy, no alerts
+    interval: 1m
+    input_series:
+      - series: 'pgdump_offsite_last_success_timestamp{instance="localhost:9191"}'
+        values: '0+60x10'
+      - series: 'pgdump_offsite_last_result{instance="localhost:9191"}'
+        values: '1+0x10'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: PgdumpOffsiteStale
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: PgdumpOffsiteFailed
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: PgdumpOffsiteMetricAbsent
+        exp_alerts: []
+
+  # (b) offsite-копия старше 28h: только PgdumpOffsiteStale
+  - name: offsite copy older than 28h fires stale
+    interval: 1m
+    input_series:
+      - series: 'pgdump_offsite_last_success_timestamp{instance="localhost:9191"}'
+        values: '0+0x1800'
+    alert_rule_test:
+      - eval_time: 1750m
+        alertname: PgdumpOffsiteStale
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              team: sre
+              category: backup
+              instance: localhost:9191
+            exp_annotations:
+              summary: "Offsite pg_dump старше 28 часов"
+              description: |
+                pgdump_offsite_last_success_timestamp старше 28h — копия в B2 не обновляется.
+                Проверьте /dev/shm/astrofin-pgdump.log и offsite_state.json.
+      - eval_time: 1750m
+        alertname: PgdumpOffsiteFailed
+        exp_alerts: []
+      - eval_time: 1750m
+        alertname: PgdumpOffsiteMetricAbsent
+        exp_alerts: []
+
+  # (c) метрики нет вовсе: только PgdumpOffsiteMetricAbsent
+  - name: metric absent, only absence alert fires
+    interval: 1m
+    input_series: []
+    alert_rule_test:
+      - eval_time: 32m
+        alertname: PgdumpOffsiteMetricAbsent
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              team: sre
+              category: backup
+            exp_annotations:
+              summary: "Offsite pg_dump: метрика отсутствует"
+              description: |
+                Экспортёр не отдаёт pgdump_offsite_last_success_timestamp уже 30m —
+                offsite_state.json отсутствует либо astrofin-metrics-exporter сломан.
+      - eval_time: 32m
+        alertname: PgdumpOffsiteStale
+        exp_alerts: []
+      - eval_time: 32m
+        alertname: PgdumpOffsiteFailed
+        exp_alerts: []
+
+  # (d) последняя загрузка неуспешна: PgdumpOffsiteFailed warning
+  - name: failed offsite result fires warning
+    interval: 1m
+    input_series:
+      - series: 'pgdump_offsite_last_success_timestamp{instance="localhost:9191"}'
+        values: '0+60x40'
+      - series: 'pgdump_offsite_last_result{instance="localhost:9191"}'
+        values: '0+0x40'
+    alert_rule_test:
+      - eval_time: 31m
+        alertname: PgdumpOffsiteFailed
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              team: sre
+              category: backup
+              instance: localhost:9191
+            exp_annotations:
+              summary: "Offsite pg_dump: последняя загрузка в B2 неуспешна"
+              description: |
+                offsite_state.json сообщает last_result=fail: rclone upload или проверка
+                sha256 не прошли. Локальный дамп при этом на месте.
+      - eval_time: 31m
+        alertname: PgdumpOffsiteStale
+        exp_alerts: []
+      - eval_time: 31m
+        alertname: PgdumpOffsiteMetricAbsent
+        exp_alerts: []

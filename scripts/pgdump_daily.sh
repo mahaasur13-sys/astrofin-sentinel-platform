@@ -3,6 +3,7 @@
 # Dump at start, then every day at 03:30Z; up to 3 attempts per day (retry in 30 min).
 set -uo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 OUT_DIR=/root/.sealed/pgdump
 STATE="$OUT_DIR/state.json"
 DBS="astrofin astrofin_db roma roma_test"
@@ -116,6 +117,9 @@ while :; do
     attempts=$((attempts + 1))
     if dump_all "$(date -u +%Y%m%dT%H%MZ)"; then
       rotate
+      if ! bash "$SCRIPT_DIR/pgdump_offsite.sh"; then
+        log "offsite copy failed — local dump kept, see offsite_state.json"
+      fi
       break
     fi
     if [ "$attempts" -ge "$MAX_ATTEMPTS" ]; then
