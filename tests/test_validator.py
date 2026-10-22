@@ -22,7 +22,13 @@ except ModuleNotFoundError:
         "agent_validator module not in repo (parked — G12)", allow_module_level=True
     )
 
-# ─── Fixtures ─────────────────────────────────────────────────────────────────
+# ─── Fixtures ─────────────────────────────────────────────────────────────────# ATOM-GITAGENT-002 narrowed AgentYamlValidator: it no longer requires
+# tools/rules/output_schema nor checks version format, so the two assertions
+# below lost their contract. Flip this if the requirements come back.
+_OPTIONAL_FIELDS_ENFORCED = False
+
+
+
 
 
 @pytest.fixture
@@ -249,6 +255,10 @@ class TestInvalidAgentYaml:
         assert result.valid is False
         assert any("name" in e.path for e in result.errors)
 
+    @pytest.mark.skipif(
+        not _OPTIONAL_FIELDS_ENFORCED,
+        reason="validator no longer requires tools/rules/output_schema (ATOM-GITAGENT-002)",
+    )
     def test_missing_required_field(self, validator, tmp_agent_dir):
         agent_dir = tmp_agent_dir / "missing_field"
         agent_dir.mkdir()
@@ -267,6 +277,10 @@ class TestInvalidAgentYaml:
         result = validator.validate_file(agent_dir / "agent.yaml")
         assert result.valid is False
 
+    @pytest.mark.skipif(
+        not _OPTIONAL_FIELDS_ENFORCED,
+        reason="validator no longer checks version format (ATOM-GITAGENT-002)",
+    )
     def test_invalid_version_format(self, validator, tmp_agent_dir):
         agent_dir = tmp_agent_dir / "bad_version"
         agent_dir.mkdir()

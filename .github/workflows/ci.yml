@@ -131,8 +131,9 @@ jobs:
         env:
           SENTINEL_METRICS_ENABLED: "0"
         run: |
+          set -o pipefail
           pytest --collect-only -q --co -p no:cacheprovider \
-            -p "ignore::pytest.PytestUnknownMarkWarning" \
+            -W "ignore::pytest.PytestUnknownMarkWarning" \
             2>&1 | tail -20
 
   # -------------------------------------------------------------------------
@@ -164,6 +165,7 @@ jobs:
         working-directory: ${{ matrix.dir }}
         run: |
           if [ -d tests ] || [ -d saas ]; then
+            set -o pipefail
             find . -name "test_*.py" -not -path "*/build/*" -print0 \
               | xargs -0 pytest --collect-only -q -p no:cacheprovider 2>&1 | tail -20 \
               || echo "::warning::collect issues in ${{ matrix.dir }}"
