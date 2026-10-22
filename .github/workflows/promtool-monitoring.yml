@@ -52,6 +52,17 @@ jobs:
             https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_amd64
           echo "8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353cf702ea5f  /tmp/yq" | sha256sum -c -
           sudo install -m 0755 /tmp/yq /usr/local/bin/yq
+      - name: Download amtool v0.34.1 (sha256-pinned)
+        if: steps.filter.outputs.monitoring == 'true'
+        run: |
+          curl -fsSL -o /tmp/alertmanager.tar.gz \
+            https://github.com/prometheus/alertmanager/releases/download/v0.34.1/alertmanager-0.34.1.linux-amd64.tar.gz
+          echo "265b9d1e55ef0d5306a436018af6d2b686c2ce051f03d968f7464ecb1372a7e8  /tmp/alertmanager.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/alertmanager.tar.gz -C /tmp --strip-components=1 alertmanager-0.34.1.linux-amd64/amtool
+          sudo install -m 0755 /tmp/amtool /usr/local/bin/amtool
+      - name: amtool check-config
+        if: steps.filter.outputs.monitoring == 'true'
+        run: amtool check-config deploy/monitoring/alertmanager.yml
       - name: promtool check rules
         if: steps.filter.outputs.monitoring == 'true'
         run: |
