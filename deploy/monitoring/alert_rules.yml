@@ -65,6 +65,48 @@ groups:
             Проверьте /dev/shm/astrofin-pgdump.log.
 
 
+      # ------------------------------------------------------------------
+      # Offsite copy of the pg_dump set to Backblaze B2 (scripts/pgdump_offsite.sh)
+      # ------------------------------------------------------------------
+      - alert: PgdumpOffsiteStale
+        expr: (time() - pgdump_offsite_last_success_timestamp) > 100800
+        for: 15m
+        labels:
+          severity: critical
+          team: sre
+          category: backup
+        annotations:
+          summary: "Offsite pg_dump старше 28 часов"
+          description: |
+            pgdump_offsite_last_success_timestamp старше 28h — копия в B2 не обновляется.
+            Проверьте /dev/shm/astrofin-pgdump.log и offsite_state.json.
+
+      - alert: PgdumpOffsiteFailed
+        expr: pgdump_offsite_last_result == 0
+        for: 30m
+        labels:
+          severity: warning
+          team: sre
+          category: backup
+        annotations:
+          summary: "Offsite pg_dump: последняя загрузка в B2 неуспешна"
+          description: |
+            offsite_state.json сообщает last_result=fail: rclone upload или проверка
+            sha256 не прошли. Локальный дамп при этом на месте.
+
+      - alert: PgdumpOffsiteMetricAbsent
+        expr: absent(pgdump_offsite_last_success_timestamp)
+        for: 30m
+        labels:
+          severity: warning
+          team: sre
+          category: backup
+        annotations:
+          summary: "Offsite pg_dump: метрика отсутствует"
+          description: |
+            Экспортёр не отдаёт pgdump_offsite_last_success_timestamp уже 30m —
+            offsite_state.json отсутствует либо astrofin-metrics-exporter сломан.
+
   - name: roma-jev-shadow
     interval: 30s
     rules:
