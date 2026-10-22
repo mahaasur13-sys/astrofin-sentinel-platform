@@ -139,7 +139,13 @@ groups:
           description: |
             Prometheus не может снять метрики с localhost:9193 — процесс
             astrofin-prod-strategy не запущен или упал (проверь supervisorctl status).
-
+  # ------------------------------------------------------------------------
+  # Jev R1 shadow — включено 2026-10-19 (флаги JEV_ENABLED=1, JEV_GATE_SHADOW=1
+  # добавлены в реестр сервиса ключами). Метрики: roma_jev_shadow_*
+  # (job roma-execution-bridge, target localhost:8900).
+  # Runbook: docs/jev-shadow-ops-runbook.md
+  # Откат: удалить JEV_GATE_SHADOW и JEV_ENABLED из реестра сервиса ключами.
+  # ------------------------------------------------------------------------
   - name: roma-jev-shadow
     interval: 30s
     rules:
