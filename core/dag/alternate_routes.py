@@ -24,7 +24,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Optional, Any
+from typing import Optional, Any
 
 try:
     from prometheus_client import Counter

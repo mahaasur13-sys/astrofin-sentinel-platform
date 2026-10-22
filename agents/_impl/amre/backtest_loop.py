@@ -476,7 +476,6 @@ class BacktestProject:
 
     def __init__(self, db_path: str = "data/backtest_project.db", project_id: str = "default"):
         import sqlite3
-        import json
         self.db_path = db_path
         self.project_id = project_id
         self._conn = sqlite3.connect(db_path)
@@ -552,7 +551,6 @@ class BacktestProject:
 
         Returns True if promoted, False if rejected.
         """
-        import json
         row = self._conn.execute(
             "SELECT * FROM strategy_snapshots WHERE project_id = ? AND strategy_id = ? AND is_promoted = 0 "
             "ORDER BY evaluated_at DESC LIMIT 1",

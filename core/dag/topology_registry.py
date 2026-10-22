@@ -22,9 +22,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Callable, Optional
+from typing import TYPE_CHECKING, Optional
 
 from prometheus_client import Counter
+
+if TYPE_CHECKING:
+    from core.dag.pipeline import DAGPipeline
 
 logger = logging.getLogger(__name__)
 

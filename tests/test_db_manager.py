@@ -25,6 +25,10 @@ def test_sqlite_fallback_available(clean_manager):
     assert clean_manager.sqlite_session_factory is not None
 
 
+@pytest.mark.skipif(
+    os.environ.get("SENTINEL_PG_TESTS") != "1",
+    reason="no reachable PostgreSQL: needs SENTINEL_PG_TESTS=1 and a live DATABASE_URL",
+)
 def test_pg_session_factory_initialized(clean_manager):
     assert clean_manager.pg_session_factory is not None
 
