@@ -107,6 +107,39 @@ groups:
             Экспортёр не отдаёт pgdump_offsite_last_success_timestamp уже 30m —
             offsite_state.json отсутствует либо astrofin-metrics-exporter сломан.
 
+  - name: astrofin_trading_engine
+    interval: 30s
+    rules:
+
+      - alert: TradingEngineSilent
+        expr: |
+          time() - trading_engine_last_signal_timestamp_seconds > 600
+        for: 2m
+        labels:
+          severity: critical
+          service: astrofin-prod-strategy
+          category: trading-engine
+        annotations:
+          summary: "Trading engine: нет новых строк в trading_signals > 10 мин"
+          description: |
+            Последняя запись в trading_signals была {{ $value | humanizeDuration }} назад
+            (цикл раз в 60с). Проверь /dev/shm/astrofin-prod-strategy.log: частые причины —
+            пропуск цикла из-за отсутствия backtest/data_cache/XAUUSD_4h.json или отказ БД.
+          runbook: https://github.com/mahaasur13-sys/astrofin-sentinel-platform/blob/master/RUNBOOK.md
+
+      - alert: TradingEngineDown
+        expr: up{job="astrofin-prod-strategy"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: astrofin-prod-strategy
+          category: trading-engine
+        annotations:
+          summary: "Trading engine: процесс не отвечает на scrape"
+          description: |
+            Prometheus не может снять метрики с localhost:9193 — процесс
+            astrofin-prod-strategy не запущен или упал (проверь supervisorctl status).
+
   - name: roma-jev-shadow
     interval: 30s
     rules:
