@@ -403,13 +403,6 @@ class TestFailFastGuarantee:
         with pytest.raises(SafetyViolationError):
             importlib.import_module('orchestration.mutation_executor')
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            'P0: gateway context never activates (guard_policy.py:99 Field, '
-            'no ExecutionGateway.execute); see PR-B'
-        ),
-    )
     def test_mutation_allowed_inside_context(self, gateway):
         '''Mutation succeeds when inside mutation_context.'''
         result = None
@@ -427,6 +420,51 @@ class TestFailFastGuarantee:
 
         assert result is not None
         assert result.success
+
+
+# ── Test: execute() is the only mutation path ─────────────────────────────────
+
+class TestExecuteIsTheOnlyMutationPath:
+
+    def test_execute_applies_mutation_through_canon_chain(self):
+        '''gateway.execute() runs G1..G10 -> ACT and mutates exactly once.'''
+        calls = []
+
+        class FakeExecutor:
+            def apply_mutation(self, **kwargs):
+                calls.append(kwargs['tick'])
+                return {'applied': True}
+
+        gw = ExecutionGateway(mutation_executor=FakeExecutor())
+        result = gw.execute('benign intent')
+
+        assert result.final_passed, result.block_reason
+        assert calls == [1]
+        assert result.trace[-1] == 'ACT:pass'
+
+    def test_execute_without_executor_blocks(self):
+        '''No executor wired -> ACT blocks instead of reporting success.'''
+        gw = ExecutionGateway()
+        result = gw.execute('benign intent')
+
+        assert not result.final_passed
+        assert result.block_gate == 'ACT'
+        assert result.block_reason == 'NO_MUTATION_EXECUTOR'
+
+    def test_execute_drives_payload_style_executor(self):
+        '''MutationExecutor.execute(payload) is reachable only via execute().'''
+        from orchestration.execution_gateway import _as_mutation_executor
+
+        gw = ExecutionGateway()
+        with gw.mutation_context():
+            from orchestration.mutation_executor import MutationExecutor
+            executor = MutationExecutor(gw)
+        gw._mutation_executor = _as_mutation_executor(executor)
+
+        result = gw.execute('benign intent')
+
+        assert result.final_passed, result.block_reason
+        assert len(executor.get_mutation_log()) == 1
 
 
 # ── Test: Async-Safety ────────────────────────────────────────────────────────

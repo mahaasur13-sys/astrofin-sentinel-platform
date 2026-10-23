@@ -1,61 +1,56 @@
-# execution_gateway.py — atom-federation-os v9.0+ATOM-META-RL-016+P0.1+P0.3
-# ExecutionGateway — единая точка входа всех мутаций в ATOMFEDERATION-OS.
+# execution_gateway.py — facade over the canonical ExecutionGateway.
 #
-# HARD SAFETY GUARANTEES:
-#   1. Singleton — only one instance exists
-#   2. mutation_context() — ONLY way to perform mutations
-#   3. @requires_gateway decorator — guards all mutation methods
-#   4. Runtime Self-Audit at startup — detects bypass paths
-#   5. ExecutionGuardPolicy — global fail-fast enforcement
-#   6. Thread-safe + Async-aware context management
-#   7. Full audit trail for every mutation
+# The gate chain (G1..G10 -> ACT) and the sole entry point live in
+# orchestration/ExecutionGateway/execution_gateway.py. This module only keeps
+# the API the rest of the tree imports (singleton, requires_gateway,
+# mutation_context) and wires the canonical gateway to the local executor
+# protocol. No gate logic is duplicated here.
+#
+#   1. Singleton — one instance per process
+#   2. mutation_context() — activates GatewayContext + guard policy context
+#   3. @requires_gateway — guards all mutation methods
 #
 # FAIL-FAST: Any violation → SystemShutdown (no recovery)
+
+from __future__ import annotations
 
 import threading
 from collections.abc import Callable
 from contextlib import contextmanager
 from functools import wraps
-from typing import Optional
+from typing import Any, Optional
 
-# ── Import Guards (P0.2 — Import Protection) ──────────────────────────────────
-# These must be imported FIRST, before any protected modules
-try:
-    from core.runtime.import_guard import GatewayContextGuard, install_firewall
-    _FIREWALL_INSTALLED = True
-except ImportError:
-    install_firewall = None
-    GatewayContextGuard = None
-    _FIREWALL_INSTALLED = False
+from core.runtime.execution_context import ContextMode, EnhancedExecutionContext
+from core.runtime.guard_policy import ExecutionGuardPolicy
+from core.runtime.import_guard import GatewayContext
+from orchestration.ExecutionGateway.execution_gateway import (
+    ExecutionGateway as _CanonGateway,
+)
+from orchestration.ExecutionGateway.execution_gateway import (
+    GateResult,
+    GateStatus,
+    GatewayResult,
+    GatewayState,
+)
 
-# ── Self-Audit (P0.1) ──────────────────────────────────────────────────────────
-# Run at startup to detect bypass paths
-try:
-    from core.runtime.self_audit import RuntimeVerifier, SelfAudit, run_startup_audit
-    _SELF_AUDIT_AVAILABLE = True
-except ImportError:
-    run_startup_audit = None
-    SelfAudit = None
-    RuntimeVerifier = None
-    _SELF_AUDIT_AVAILABLE = False
+__all__ = [
+    'AuditLogger',
+    'ExecutionGateway',
+    'GateResult',
+    'GateStatus',
+    'GatewayResult',
+    'GatewayState',
+    'SafetyViolationError',
+]
 
-# ── Guard Policy (P0.3) ────────────────────────────────────────────────────────
-try:
-    from core.runtime.guard_policy import ExecutionGuardPolicy, SystemShutdown
-    _GUARD_POLICY_AVAILABLE = True
-except ImportError:
-    ExecutionGuardPolicy = None
-    SystemShutdown = Exception
-    _GUARD_POLICY_AVAILABLE = False
 
-# ── Enhanced Context (P1.4) ────────────────────────────────────────────────────
-try:
-    from core.runtime.execution_context import ContextMode, EnhancedExecutionContext
-    _CONTEXT_AVAILABLE = True
-except ImportError:
-    EnhancedExecutionContext = None
-    ContextMode = None
-    _CONTEXT_AVAILABLE = False
+# ── Layers ─────────────────────────────────────────────────────────────────────
+# guard_policy, import_guard and execution_context are imported unconditionally
+# above, so every layer below is present whenever this module imports at all.
+
+_SELF_AUDIT_AVAILABLE = True
+_GUARD_POLICY_AVAILABLE = True
+_CONTEXT_AVAILABLE = True
 
 
 # ── Exception Types ────────────────────────────────────────────────────────────
@@ -104,30 +99,62 @@ class AuditLogger:
             return list(self._entries[-count:])
 
 
+# ── Executor adapter ───────────────────────────────────────────────────────────
+
+class _PayloadExecutorAdapter:
+    '''
+    Adapts the payload-style executor (MutationExecutor.execute(payload)) to
+    the apply_mutation(...) call the canonical ACT stage makes.
+    '''
+
+    def __init__(self, executor: Any) -> None:
+        self._executor = executor
+
+    def apply_mutation(self, drift_score: float, health_score: float,
+                       mutation_density: float, coherence_drop: float,
+                       oscillation_detected: bool, tick: int = 0) -> Any:
+        from orchestration.mutation_executor import MutationPayload
+
+        payload = MutationPayload(
+            tick=tick,
+            agent_id='execution_gateway',
+            operation='apply_mutation',
+            state_delta={
+                'drift_score': drift_score,
+                'health_score': health_score,
+                'mutation_density': mutation_density,
+                'coherence_drop': coherence_drop,
+                'oscillation_detected': oscillation_detected,
+            },
+        )
+        return self._executor.execute(payload)
+
+
+def _as_mutation_executor(executor: Any) -> Any:
+    '''Allow both executor protocols: apply_mutation(...) and execute(payload).'''
+    if executor is None or hasattr(executor, 'apply_mutation'):
+        return executor
+    if hasattr(executor, 'execute'):
+        return _PayloadExecutorAdapter(executor)
+    return executor
+
+
 # ── ExecutionGateway ───────────────────────────────────────────────────────────
 
-class ExecutionGateway:
+class ExecutionGateway(_CanonGateway):
     '''
-    Singleton gateway-guard для всех state mutations в системе.
+    Singleton gateway-guard for all state mutations.
 
     Guarantees:
-        1. Singleton — only one instance per process
+        1. Singleton — one instance per process
         2. mutation_context() — only way to enable mutations
         3. @requires_gateway — guards all decorated methods
-        4. Runtime Self-Audit at startup
-        5. ExecutionGuardPolicy for global enforcement
-        6. Thread-safe + async-aware
-        7. Full audit trail
+        4. Canonical gate chain G1..G10 -> ACT for every execute()
 
     Usage:
         gateway = ExecutionGateway.instance()
         with gateway.mutation_context():
             executor.execute(payload)
-
-    Decorator:
-        @ExecutionGateway.requires_gateway
-        def mutate(self, ...):
-            ...
     '''
 
     _instance: Optional['ExecutionGateway'] = None
@@ -135,40 +162,15 @@ class ExecutionGateway:
     _init_lock = threading.Lock()
     _initialized: bool = False
 
-    def __new__(cls) -> 'ExecutionGateway':
+    def __new__(cls, *args: Any, **kwargs: Any) -> 'ExecutionGateway':
         if cls._instance is None:
             with cls._init_lock:
                 if cls._instance is None:
-                    instance = super().__new__(cls)
-
-                    # ── Initialize core state ──────────────────────────────
-                    instance._can_mutate = False
-                    instance._active_context = False
-                    instance._ctx_lock = threading.RLock()
-
-                    # ── Enhanced context (P1.4) ──────────────────────────
-                    if _CONTEXT_AVAILABLE:
-                        instance._enhanced_ctx = EnhancedExecutionContext.instance()
-                    else:
-                        instance._enhanced_ctx = None
-
-                    # ── Guard Policy (P0.3) ───────────────────────────────
-                    if _GUARD_POLICY_AVAILABLE:
-                        instance._policy = ExecutionGuardPolicy.instance()
-                    else:
-                        instance._policy = None
-
-                    # ── Audit logger ─────────────────────────────────────
-                    instance._audit = AuditLogger()
-
-                    # ── Install import firewall (P0.2) ───────────────────
-                    if _FIREWALL_INSTALLED and callable(install_firewall):
-                        install_firewall()
-
-                    cls._instance = instance
+                    cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, mutation_executor: Any = None,
+                 proof_verifier: Any = None) -> None:
         if self._initialized:
             return
 
@@ -176,33 +178,26 @@ class ExecutionGateway:
             if self._initialized:
                 return
 
-            # ── Run Startup Self-Audit (P0.1) ───────────────────────────
-            if _SELF_AUDIT_AVAILABLE and callable(run_startup_audit):
-                try:
-                    audit_result = run_startup_audit()
-                    self._audit.log(
-                        'startup_audit',
-                        'ExecutionGateway',
-                        '__init__',
-                        allowed=audit_result.passed,
-                        reason='self_audit' if audit_result.passed else audit_result.error_message,
-                        details={
-                            'modules_scanned': audit_result.total_modules_scanned,
-                            'mutation_points': audit_result.mutation_points_found,
-                            'bypass_paths': len(audit_result.bypass_paths_detected),
-                            'graph_hash': audit_result.graph_hash,
-                        }
-                    )
-                except SystemShutdown:
-                    raise
-                except Exception as e:
-                    self._audit.log(
-                        'startup_audit',
-                        'ExecutionGateway',
-                        '__init__',
-                        allowed=False,
-                        reason=f'audit_error: {e}',
-                    )
+            super().__init__(
+                mutation_executor=_as_mutation_executor(mutation_executor),
+                proof_verifier=proof_verifier,
+            )
+
+            self._can_mutate = False
+            self._active_context = False
+            self._ctx_lock = threading.RLock()
+            self._policy = ExecutionGuardPolicy.instance()
+            self._enhanced_ctx = EnhancedExecutionContext.instance()
+            self._audit = AuditLogger()
+
+            self._audit.log(
+                'startup',
+                'ExecutionGateway',
+                '__init__',
+                allowed=True,
+                reason='canonical_gate_chain',
+                details={'mutation_executor': type(mutation_executor).__name__},
+            )
 
             self._initialized = True
 
@@ -217,27 +212,16 @@ class ExecutionGateway:
     def reset(cls) -> None:
         '''Reset singleton (for testing only).'''
         with cls._lock:
-            if cls._instance is not None:
-                if cls._instance._enhanced_ctx:
-                    cls._instance._enhanced_ctx.reset()
             cls._instance = None
             cls._initialized = False
 
     @classmethod
     def requires_gateway(cls, func: Callable) -> Callable:
         '''
-        Static decorator — работает с singleton-экземпляром.
+        Static decorator — works with the singleton instance.
 
-        Guarantees:
-            - Mutation allowed ONLY when mutation_context is active
-            - Raises SafetyViolationError on any bypass attempt
-            - Triggers ExecutionGuardPolicy check (P0.3)
-            - Logs to audit trail
-
-        Bypass physically impossible:
-            - Checks singleton state on EVERY call
-            - Guard policy validates caller registration
-            - Stack trace verification
+        Raises SafetyViolationError on any call outside mutation_context();
+        the guard policy may escalate it to SystemShutdown.
         '''
         @wraps(func)
         def guarded(self, *args, **kwargs):
@@ -251,19 +235,16 @@ class ExecutionGateway:
                     func.__qualname__,
                     allowed=False,
                     reason='no_active_context',
-                    details={'active': gateway._active_context, 'can_mutate': gateway._can_mutate}
+                    details={'active': gateway._active_context,
+                             'can_mutate': gateway._can_mutate}
                 )
 
-                # ── Guard Policy check (P0.3) — may trigger SystemShutdown
-                if _GUARD_POLICY_AVAILABLE and gateway._policy:
-                    try:
-                        gateway._policy.assert_mutation_allowed(
-                            self.__class__.__module__,
-                            func.__qualname__,
-                            operation=func.__name__
-                        )
-                    except SystemShutdown:
-                        raise
+                # ── Guard Policy check — may trigger SystemShutdown ────
+                gateway._policy.assert_mutation_allowed(
+                    self.__class__.__module__,
+                    func.__qualname__,
+                    operation=func.__name__,
+                )
 
                 raise SafetyViolationError(
                     f'Mutation blocked by ExecutionGateway: {func.__qualname__}. '
@@ -271,22 +252,18 @@ class ExecutionGateway:
                 )
 
             # ── Runtime verifier check (P0.1) ───────────────────────────
-            if _SELF_AUDIT_AVAILABLE and RuntimeVerifier:
-                try:
-                    RuntimeVerifier.verify_mutation_call(
-                        self.__class__.__module__,
-                        func.__qualname__,
-                        operation=func.__name__
-                    )
-                except SystemShutdown:
-                    raise
+            from core.runtime.self_audit import RuntimeVerifier
+            RuntimeVerifier.verify_mutation_call(
+                self.__class__.__module__,
+                func.__qualname__,
+                operation=func.__name__,
+            )
 
             # ── Enhanced context check (P1.4) ──────────────────────────
-            if _CONTEXT_AVAILABLE and gateway._enhanced_ctx:
-                gateway._enhanced_ctx.assert_mutation_allowed(
-                    operation=func.__name__,
-                    payload_summary=f'{self.__class__.__name__}.{func.__name__}'
-                )
+            gateway._enhanced_ctx.assert_mutation_allowed(
+                operation=func.__name__,
+                payload_summary=f'{self.__class__.__name__}.{func.__name__}',
+            )
 
             return func(self, *args, **kwargs)
 
@@ -297,64 +274,52 @@ class ExecutionGateway:
         '''
         Единственный разрешённый способ выполнить мутацию.
 
-        Thread-safe: весь контекст защищён RLock.
-        Async-safe: работает с asyncio.
-        Bypass невозможен без SafetyViolationError.
-
-        Args:
-            can_mutate: False — read-only context (для drift detection, scan)
+        Activates both the import-time GatewayContext and the guard policy
+        context, and restores the previous state on exit (nesting-safe).
 
         Raises:
             SafetyViolationError: if mutation attempted outside context
             SystemShutdown: if bypass detected
         '''
-        # ── Guard policy verification (P0.3) ───────────────────────────
-        if _GUARD_POLICY_AVAILABLE and self._policy:
-            self._policy.assert_gateway_active('mutation_context')
+        self._policy.assert_gateway_active('mutation_context')
+        mode = ContextMode.MUTATION_ALLOWED if can_mutate else ContextMode.READ_ONLY
 
-        # ── Enhanced context (P1.4) ───────────────────────────────────
-        if _CONTEXT_AVAILABLE and self._enhanced_ctx:
-            mode = ContextMode.MUTATION_ALLOWED if can_mutate else ContextMode.READ_ONLY
-            with self._enhanced_ctx.mutation_context(can_mutate=can_mutate, mode=mode):
-                self._enter_context(can_mutate)
-                try:
-                    yield self
-                finally:
-                    self._exit_context()
-        else:
-            # Fallback to basic context
-            self._enter_context(can_mutate)
-            try:
-                yield self
-            finally:
-                self._exit_context()
-
-    def _enter_context(self, can_mutate: bool) -> None:
-        '''Enter mutation context.'''
         with self._ctx_lock:
+            previous = (self._active_context, self._can_mutate)
             self._can_mutate = can_mutate
             self._active_context = True
 
+        GatewayContext.activate('mutation_context')
+        self._policy.push_gateway_context('orchestration.execution_gateway')
         self._audit.log(
             'context_enter',
             'ExecutionGateway',
             'mutation_context',
             allowed=True,
-            details={'can_mutate': can_mutate}
+            details={'can_mutate': can_mutate},
         )
 
-    def _exit_context(self) -> None:
-        '''Exit mutation context.'''
-        with self._ctx_lock:
-            self._can_mutate = False
-            self._active_context = False
+        try:
+            with self._enhanced_ctx.mutation_context(can_mutate=can_mutate, mode=mode):
+                yield self
+        finally:
+            self._policy.pop_gateway_context('orchestration.execution_gateway')
+            GatewayContext.deactivate()
 
-        self._audit.log(
-            'context_exit',
-            'ExecutionGateway',
-            'mutation_context',
-            allowed=True,
-        )
+            with self._ctx_lock:
+                self._active_context, self._can_mutate = previous
+
+            self._audit.log(
+                'context_exit',
+                'ExecutionGateway',
+                'mutation_context',
+                allowed=True,
+            )
+
+    def execute(self, input_data: Any, intent: str = '') -> GatewayResult:
+        '''Run the canonical G1..G10 -> ACT chain with the mutation context open.'''
+        with self.mutation_context():
+            return super().execute(input_data, intent)
 
     def is_safe(self) -> bool:
         '''Check if mutation is currently allowed.'''
@@ -382,6 +347,7 @@ class ExecutionGateway:
             'self_audit_available': _SELF_AUDIT_AVAILABLE,
             'enhanced_context_available': _CONTEXT_AVAILABLE,
             'audit_entries': len(self._audit.get_recent(10000)),
+            'gate': self.stats,
         }
 
 
