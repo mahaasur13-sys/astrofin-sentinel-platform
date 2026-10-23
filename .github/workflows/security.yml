@@ -34,16 +34,16 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install bandit
-      - name: Bandit medium+ confidence
+      - name: Bandit HIGH (blocking) / medium+ (report)
         run: |
           bandit -r . \
             -ll -ii \
             -x .venv,venv,__pycache__,.git,.pytest_cache,tests,build,dist,.zo_scratch,.STALE* \
             --format json --output bandit-report.json || true
           bandit -r . \
-            -ll -ii \
+            -lll -ii \
             -x .venv,venv,__pycache__,.git,.pytest_cache,tests,build,dist,.zo_scratch,.STALE* \
-            --skip B101 || true
+            --skip B101
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: bandit-report
