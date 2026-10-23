@@ -23,7 +23,10 @@ except ImportError:
 
 _WPE_ABSENT = pytest.mark.skipif(
     WorkerProjectionEngine is None,
-    reason="WorkerProjectionEngine is not implemented in swarm.worker_projection_engine",
+    reason=(
+        "WorkerProjectionEngine есть только в build/lib/swarm/, в swarm/ — заглушка; "
+        "см. backlog swarm source/build"
+    ),
 )
 
 
