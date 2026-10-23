@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import subprocess
 
 # ── Base class ────────────────────────────────────────────────────────────────
@@ -82,12 +83,12 @@ class _PartitionHalfCluster(ChaosScenario):
             "iptables -D DOCKER-USER -s 172.28.1.11 -d 172.28.1.10 -j DROP",
         ]
         for r in self._rules:
-            subprocess.run(r, shell=True, capture_output=True)
+            subprocess.run(shlex.split(r), capture_output=True)
         return {"ok": True, "detail": "partition applied: A↮B, C reachable"}
 
     def rollback(self) -> None:
         for r in self._cleanup:
-            subprocess.run(r, shell=True, capture_output=True)
+            subprocess.run(shlex.split(r), capture_output=True)
         self._rules.clear()
         self._cleanup.clear()
 
@@ -108,12 +109,12 @@ class _AsymmetricPartition(ChaosScenario):
     def apply(self, cluster_ctx: dict) -> dict:
         self._rules = ["iptables -I DOCKER-USER -s 172.28.1.10 -d 172.28.1.11 -j DROP"]
         for r in self._rules:
-            subprocess.run(r, shell=True, capture_output=True)
+            subprocess.run(shlex.split(r), capture_output=True)
         return {"ok": True, "detail": "asymmetric partition: A→B blocked, B→A ok"}
 
     def rollback(self) -> None:
         for r in self._rules:
-            subprocess.run(r.replace("-I", "-D"), shell=True, capture_output=True)
+            subprocess.run(shlex.split(r.replace("-I", "-D")), capture_output=True)
         self._rules.clear()
 
 
@@ -238,12 +239,12 @@ class _NodeIsolation(ChaosScenario):
             "iptables -I DOCKER-USER -s 172.28.1.11 -d 172.28.1.12 -j DROP",
         ]
         for r in self._rules:
-            subprocess.run(r, shell=True, capture_output=True)
+            subprocess.run(shlex.split(r), capture_output=True)
         return {"ok": True, "detail": "node-c isolated from A+B"}
 
     def rollback(self) -> None:
         for r in self._rules:
-            subprocess.run(r.replace("-I", "-D"), shell=True, capture_output=True)
+            subprocess.run(shlex.split(r.replace("-I", "-D")), capture_output=True)
         self._rules.clear()
 
 

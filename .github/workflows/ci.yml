@@ -63,12 +63,16 @@ jobs:
       - name: ruff
         run: |
           ruff check . --output-format=github
-      - name: bandit (security)
+      - name: bandit (security, HIGH blocks / MEDIUM report)
         run: |
           bandit -r . -ll -ii \
             -x .venv,venv,__pycache__,.git,.pytest_cache,tests,build,dist \
             --skip B101 \
             -f json -o bandit-report.json || true
+          bandit -r . -lll -ii \
+            -x .venv,venv,__pycache__,.git,.pytest_cache,tests,build,dist \
+            --skip B101 \
+            -f txt
       - name: radon (cyclomatic complexity, informational)
         run: |
           radon cc . -a -s -n C \
