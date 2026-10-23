@@ -81,7 +81,8 @@ testpaths = [
     "sbs/tests",
     "alignment",
     "orchestration/phase2",
-    "federation/tests"
+    "federation/tests",
+    "tests/test_enforcement_layer.py"
 ]
 asyncio_mode = "auto"
 filterwarnings = [
