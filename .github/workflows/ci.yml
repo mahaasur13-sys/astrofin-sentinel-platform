@@ -163,7 +163,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-asyncio httpx pyyaml "pydantic>=2.0" fastapi uvicorn jinja2
           # Extras declared in pyproject (ml, grpc) plus the operator's own pin.
-          pip install "numpy>=1.26" grpcio protobuf "kubernetes==29.0.0"
+          pip install "numpy>=1.26" grpcio "protobuf>=6.31.1" "kubernetes==29.0.0"
           ls ${{ matrix.dir }} 2>&1 | head -3 || true
       - name: pytest (declared suite)
         working-directory: ${{ matrix.dir }}

@@ -57,7 +57,7 @@ class AtomicLedgerWriter:
     '''
 
     _instance: AtomicLedgerWriter | None = None
-    _lock = threading.Lock()
+    _lock = threading.RLock()  # re-entrant: get_stats() calls verify_linearizability() under it
 
     def __new__(cls) -> AtomicLedgerWriter:
         if cls._instance is None:
