@@ -59,7 +59,7 @@ jobs:
       - name: Install linters
         run: |
           python -m pip install --upgrade pip
-          pip install ruff bandit radon
+          pip install ruff bandit==1.9.4 radon
       - name: ruff
         run: |
           ruff check . --output-format=github
@@ -146,7 +146,6 @@ jobs:
     name: Sub-package tests (${{ matrix.label }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -162,17 +161,19 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-asyncio httpx pyyaml pydantic>=2.0 fastapi uvicorn jinja2
+          pip install pytest pytest-asyncio httpx pyyaml "pydantic>=2.0" fastapi uvicorn jinja2
+          # Extras declared in pyproject (ml, grpc) plus the operator's own pin.
+          pip install "numpy>=1.26" grpcio "protobuf>=6.31.1" "kubernetes==29.0.0"
           ls ${{ matrix.dir }} 2>&1 | head -3 || true
-      - name: pytest (collect-only)
+      - name: pytest (declared suite)
+        working-directory: ${{ matrix.dir }}
+        run: pytest -p no:cacheprovider
+      - name: pytest (collect-only, whole tree)
         working-directory: ${{ matrix.dir }}
         run: |
-          if [ -d tests ] || [ -d saas ]; then
-            set -o pipefail
-            find . -name "test_*.py" -not -path "*/build/*" -print0 \
-              | xargs -0 pytest --collect-only -q -p no:cacheprovider 2>&1 | tail -20 \
-              || echo "::warning::collect issues in ${{ matrix.dir }}"
-          fi
+          set -o pipefail
+          find . -name "test_*.py" -not -path "*/build/*" -print0 \
+            | xargs -0 pytest --collect-only -q -p no:cacheprovider
 
   # 5. Validate data room structure.
   # -------------------------------------------------------------------------

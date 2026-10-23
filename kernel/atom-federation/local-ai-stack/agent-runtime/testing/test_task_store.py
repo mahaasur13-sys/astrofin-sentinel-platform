@@ -13,9 +13,31 @@ Covers:
 """
 
 import asyncio
+import socket
+import sys
 import time
+from pathlib import Path
 
 import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+
+def _redis_reachable() -> bool:
+    try:
+        socket.create_connection(("127.0.0.1", 6379), timeout=0.2).close()
+        return True
+    except OSError:
+        return False
+
+
+pytest.importorskip("redis", reason="integration test needs the redis client")
+
+pytestmark = pytest.mark.skipif(
+    not _redis_reachable(),
+    reason="integration test needs a live Redis on 127.0.0.1:6379 (not provided by the CI sub-package job)",
+)
+
 from agent_runtime.task_store import (
     STATE_PREFIX,
     TaskState,
