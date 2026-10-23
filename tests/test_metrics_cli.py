@@ -31,9 +31,7 @@ def test_with_metrics_flag_registers_metrics():
     """
     from prometheus_client import REGISTRY, generate_latest
 
-    from tools.metrics_server import REQUEST_COUNT
-
-    REQUEST_COUNT._value.get() if hasattr(REQUEST_COUNT, "_value") else 0
+    import tools.metrics_server as ms  # noqa: F401 — registers the astrofin_* families
 
     proc = subprocess.Popen(
         [
@@ -53,10 +51,8 @@ def test_with_metrics_flag_registers_metrics():
     proc.terminate()
     proc.wait()
 
-    # После запуска с --with-metrics счётчик REQUEST_COUNT должен был инкрементироваться
-    # (даже если оркестратор упал, сервер метрик остаётся в процессе и вызовет инкремент).
-    # Здесь проверяем, что метрики с префиксом astrofin_ зарегистрированы.
+    # The child process has its own registry, so only the families imported here are
+    # observable. Assert the metrics the module actually publishes.
     output = generate_latest(REGISTRY).decode()
-    assert (
-        "astrofin_requests_total" in output
-    ), "Metrics must contain astrofin_requests_total"
+    assert "astrofin_up" in output, "Metrics must contain astrofin_up"
+    assert "astrofin_rag_queries_total" in output, "Metrics must contain astrofin_rag_queries_total"

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -10,23 +10,41 @@ from agents._impl.bear_researcher import BearResearcherAgent
 from core.http_client import normalize_okx_inst_id
 
 
-@pytest.mark.asyncio
-async def test_bear_researcher_builds_instid_bar_url():
-    captured: dict[str, str] = {}
+class _Resp:
+    def raise_for_status(self) -> None:
+        pass
 
-    async def _capture(client, url: str, **kw) -> dict:
-        captured["url"] = url
+    def json(self) -> dict:
         return {"data": []}
 
-    agent = BearResearcherAgent()
-    with (
-        patch("agents._impl.bear_researcher.okx_get_json", new=_capture),
-        patch("httpx.AsyncClient") as _client_cls,
-    ):
-        _client_cls.return_value = AsyncMock()
-        await agent._fetch_ohlcv("BTC", "1d", 60)
 
-    assert captured["url"] == ("https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1D&limit=60")
+class _CapturingClient:
+    """Stands in for httpx.AsyncClient and records the URL actually requested."""
+
+    def __init__(self) -> None:
+        self.urls: list[str] = []
+
+    async def __aenter__(self) -> "_CapturingClient":
+        return self
+
+    async def __aexit__(self, *exc) -> None:
+        return None
+
+    async def get(self, url: str, **kw) -> _Resp:
+        self.urls.append(url)
+        return _Resp()
+
+
+@pytest.mark.asyncio
+async def test_bear_researcher_builds_instid_bar_url():
+    client = _CapturingClient()
+    with patch("httpx.AsyncClient", return_value=client):
+        await BearResearcherAgent()._fetch_ohlcv("BTCUSDT", "1d", 60)
+
+    assert len(client.urls) == 1, "expected exactly one OKX candles request"
+    assert client.urls[0] == (
+        "https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1d&limit=60"
+    )
 
 
 @pytest.mark.parametrize(

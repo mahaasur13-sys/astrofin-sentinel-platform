@@ -12,8 +12,7 @@ import re
 
 from datetime import datetime, timezone
 import re
-import logging
-import inspect, asyncio
+import asyncio
 import os
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
@@ -264,7 +263,8 @@ def get_dashboard(request: Request):
 
 
 def _find_agent_file(name: str) -> str | None:
-    import os, glob
+    import os
+    import glob
     target = re.sub(r'(?<=[a-z])([A-Z])', r'_', name).lower()
     pattern = f'agents/_impl/{target}.py'
     if os.path.exists(pattern):
@@ -282,7 +282,6 @@ def _find_agent_file(name: str) -> str | None:
 
 def run_agent(req: AgentRequest, request: Request):
     """Return decisions from agents with real ephemeris, aspects, and honest ensemble."""
-    logger = logging.getLogger("api.main")
     import importlib
     import time
     from datetime import datetime, timezone

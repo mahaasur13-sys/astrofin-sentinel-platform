@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 
 import pytest
 
@@ -35,6 +36,10 @@ def test_logger_includes_correlation_id(capsys):
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(
+    os.environ.get("SENTINEL_LLM_TESTS") != "1",
+    reason="full orchestrator run needs an LLM router (Ollama/OpenRouter): set SENTINEL_LLM_TESTS=1",
+)
 def test_orchestrator_sets_correlation_id(capsys):
     from orchestration.sentinel_v5 import run_sentinel_v5
 

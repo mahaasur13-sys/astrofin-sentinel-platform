@@ -138,14 +138,6 @@ class QuantAgent(BaseAgent[AgentResponse]):
     async def _fetch_price_history(self, symbol: str, timeframe: str) -> list:
         """Fetch OHLCV data from Binance."""
         try:
-            interval_map = {
-                "1H": "1h",
-                "4H": "4h",
-                "1D": "1d",
-                "1W": "1w",
-                "SWING": "1d",
-            }
-            interval = interval_map.get(timeframe, "1d")
             inst_id = symbol if "-" in symbol else symbol[:-4] + "-USDT"
             url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar=1D&limit=100"
             resp = await get_http_client().get(url)

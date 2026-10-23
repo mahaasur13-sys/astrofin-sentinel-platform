@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -85,7 +84,6 @@ def _apply_alternate_route_if_needed(
                 "[AltRoute] %s: DELEGATE → %s (trigger=%s)",
                 nid, route.delegate_to, trigger.value,
             )
-            from core.dag.node import DAGNode
             import asyncio as _asyncio
             try:
                 delegate_node = pipeline._nodes[route.delegate_to].node
@@ -213,7 +211,6 @@ class DAGPipeline:
         max_level = max(levels.keys())
 
         node_level_map = {meta.node.node_id: meta.level for meta in self._nodes.values()}
-        run_t0 = time.time()
 
         async with observe_pipeline(
             self.name,

@@ -45,11 +45,21 @@ def happy_state() -> dict:
 
 def test_happy_path():
     """Well-formed state must not raise and must return a sane response."""
-    _instance = (
-        getattr(_mod, "create", lambda: None)()
-        or getattr(_mod, list(getattr(_mod, "__dict__", {}))[0])()
-    )
-    assert _mod is not None  # type: ignore[name-defined]
+    # ``ephemeris_decorator`` is a pure module (no factory, no agent class):
+    # ``create`` never existed, so calling ``list(__dict__)[0]`` used to hit
+    # ``__name__`` and die with "str object is not callable".
+    assert callable(_mod.require_ephemeris)
+    assert issubclass(_mod.EphemerisUnavailableError, Exception)
+
+
+def test_happy_path_decorates_sync_function():
+    """Guard passes through to the body when Swiss Ephemeris is available."""
+    @_mod.require_ephemeris
+    def probe(value: int) -> int:
+        return value * 2
+
+    with patch.object(_mod, "HAS_SWISS_EPHEMERIS", True):
+        assert probe(21) == 42
 
 
 # ── 2. empty state ──────────────────────────────────────────────────────

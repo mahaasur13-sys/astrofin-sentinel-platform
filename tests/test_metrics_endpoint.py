@@ -23,9 +23,9 @@ def test_metrics_are_registered():
 
     import tools.metrics_server as ms
 
-    # Увеличим тестовый счётчик
-    ms.REQUEST_COUNT.inc()
+    # Увеличим реально публикуемый счётчик
+    ms.CACHE_HITS.inc()
     output = generate_latest(REGISTRY).decode()
-    assert "astrofin_requests_total" in output
+    assert "astrofin_cache_hits_total" in output
     assert "astrofin_broker_errors_total" in output
-    assert "astrofin_ollama_available" in output
+    assert "astrofin_ollama_status" in output

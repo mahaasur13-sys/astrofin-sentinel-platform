@@ -2,15 +2,13 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 from pathlib import Path
-from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from decision_os.core import PluginManager, PluginState
+from decision_os.core import PluginManager
 from decision_os.core.plugin_manager import PluginManifest
 
 logger = logging.getLogger("decisionos.api")
