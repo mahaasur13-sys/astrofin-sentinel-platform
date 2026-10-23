@@ -15,14 +15,14 @@ TaskStore — единый источник истины для управлен
 from __future__ import annotations
 
 import json
+import os
 import time
 from dataclasses import dataclass, field
 from enum import Enum
 
-import redis
 import redis.asyncio as aioredis
 
-REDIS_URL = redis.environ.get("REDIS_URL", "redis://localhost:6379")
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 
 STATE_PREFIX = "task_state:"
 RESULT_PREFIX = "result:"
