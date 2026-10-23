@@ -137,7 +137,7 @@ class SelfAudit:
                 )
 
             # Register all mutation points in guard policy
-            cls._policy.initialize(result.registered_points)
+            audit._policy.initialize(result.registered_points)
 
             return result
 

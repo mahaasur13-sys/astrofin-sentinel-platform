@@ -11,6 +11,8 @@
 import os
 import sys
 import types
+
+import pytest
 from pathlib import Path
 
 # Deterministic environment — MUST be set before any other import
@@ -158,26 +160,30 @@ def _inject_mocks():
                 setattr(sys.modules[parent_name], attr, sys.modules[name])
 
 
-# Inject before any test code runs
-_inject_mocks()
+def _install_mocks():
+    _inject_mocks()
+    _override_modules()
 
-# Override specific modules with our mocks
-sys.modules['atomos.core.execution_loop'] = types.ModuleType('atomos.core.execution_loop')
-sys.modules['atomos.core.execution_loop'].ExecutionLoop = _MockExecutionLoop
-sys.modules['atomos.core.execution_loop'].SBSRuntimeEnforcer = type('MockSBSEnforcer', (), {})
-sys.modules['atomos.core.execution_loop'].ExecutionPlan = type('ExecutionPlan', (), {})
-sys.modules['atomos.core.execution_loop'].SimulatedStep = type('SimulatedStep', (), {})
-sys.modules['atomos.core.execution_loop'].RiskProfile = type('RiskProfile', (), {})
 
-sys.modules['atomos.swarm.swarm_engine'] = types.ModuleType('atomos.swarm.swarm_engine')
-sys.modules['atomos.swarm.swarm_engine'].register = lambda *a, **k: (lambda f: f)
-sys.modules['atomos.swarm.swarm_engine'].SwarmEngine = _MockSwarmEngine
+def _override_modules():
+    """Override specific modules with our mocks."""
+    sys.modules['atomos.core.execution_loop'] = types.ModuleType('atomos.core.execution_loop')
+    sys.modules['atomos.core.execution_loop'].ExecutionLoop = _MockExecutionLoop
+    sys.modules['atomos.core.execution_loop'].SBSRuntimeEnforcer = type('MockSBSEnforcer', (), {})
+    sys.modules['atomos.core.execution_loop'].ExecutionPlan = type('ExecutionPlan', (), {})
+    sys.modules['atomos.core.execution_loop'].SimulatedStep = type('SimulatedStep', (), {})
+    sys.modules['atomos.core.execution_loop'].RiskProfile = type('RiskProfile', (), {})
 
-sys.modules['atomos.runtime.async_runtime'] = types.ModuleType('atomos.runtime.async_runtime')
-sys.modules['atomos.runtime.async_runtime'].AsyncExecutionEngine = _MockAsyncExecutionEngine
+    sys.modules['atomos.swarm.swarm_engine'] = types.ModuleType('atomos.swarm.swarm_engine')
+    sys.modules['atomos.swarm.swarm_engine'].register = lambda *a, **k: (lambda f: f)
+    sys.modules['atomos.swarm.swarm_engine'].SwarmEngine = _MockSwarmEngine
 
-sys.modules['atomos.core.service_registry'] = types.ModuleType('atomos.core.service_registry')
-sys.modules['atomos.core.service_registry'].register = lambda *a, **k: (lambda f: f)
+    sys.modules['atomos.runtime.async_runtime'] = types.ModuleType('atomos.runtime.async_runtime')
+    sys.modules['atomos.runtime.async_runtime'].AsyncExecutionEngine = _MockAsyncExecutionEngine
+
+    sys.modules['atomos.core.service_registry'] = types.ModuleType('atomos.core.service_registry')
+    sys.modules['atomos.core.service_registry'].register = lambda *a, **k: (lambda f: f)
+
 
 # ── Add paths for real packages when available ───────────────────────
 _ATOMOS_PKG = _ROOT.parent / 'atomos_pkg'
@@ -191,3 +197,17 @@ sys.path.insert(0, str(_ROOT / 'kubernetes'))
 import warnings
 
 warnings.filterwarnings('ignore', category=DeprecationWarning, module='atomos.*')
+
+# ── Lazy installation (scoped to this directory's tests) ──────────────
+# Installing the stubs at import time leaked into other test packages that
+# share the same session (e.g. sbs/tests imports the real atomos).
+@pytest.fixture(scope="session", autouse=True)
+def _atomos_stubs():
+    saved = {k: v for k, v in sys.modules.items() if k == "atomos" or k.startswith("atomos.")}
+    _install_mocks()
+    try:
+        yield
+    finally:
+        for k in [k for k in sys.modules if k == "atomos" or k.startswith("atomos.")]:
+            del sys.modules[k]
+        sys.modules.update(saved)
