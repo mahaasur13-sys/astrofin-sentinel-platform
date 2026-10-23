@@ -41,6 +41,13 @@ class _JevHandler(BaseHTTPRequestHandler):
     cfg: dict = {"status": 200, "body": b"{}", "sleep": 0.0, "location": None}
 
     def do_POST(self):  # noqa: N802 — http.server API
+        # Drain the request body before replying: an early reply leaves unread
+        # data on the socket, so close() sends RST and the client reports a
+        # transport error instead of the status/timeout under test.
+        with contextlib.suppress(Exception):
+            length = int(self.headers.get("Content-Length") or 0)
+            if length:
+                self.rfile.read(length)
         sleep = self.cfg.get("sleep", 0.0)
         if sleep:
             time.sleep(sleep)
