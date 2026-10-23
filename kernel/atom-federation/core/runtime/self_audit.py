@@ -268,16 +268,9 @@ class SelfAudit:
                     key = f'{mod_name}:{func_name}'
 
                     # Check if in allowed module (file path check)
-                    if is_execution_gateway_file:
-                        mutation_points[key] = MutationPoint(
-                            module=mod_name,
-                            function=func_name,
-                            file_path=str(py_file),
-                            line_number=lineno,
-                            registered_at=datetime.now(timezone.utc).isoformat(),
-                            caller_stack_hash='',
-                        )
-                    elif any(forbidden in mod_name for forbidden in _FORBIDDEN_CALLER_MODULES):
+                    # Forbidden list wins over the allowlist, so the allowlist
+                    # can never whitelist a module that is forbidden by name.
+                    if any(forbidden in mod_name for forbidden in _FORBIDDEN_CALLER_MODULES):
                         # Forbidden module
                         bypasses.append(BypassPath(
                             source_module=mod_name,
@@ -288,6 +281,19 @@ class SelfAudit:
                             line_number=lineno,
                             bypass_type='forbidden_module',
                         ))
+                    elif (
+                        is_execution_gateway_file
+                        or is_v8_2b_module
+                        or mod_name in _ALLOWED_MUTATION_MODULES
+                    ):
+                        mutation_points[key] = MutationPoint(
+                            module=mod_name,
+                            function=func_name,
+                            file_path=str(py_file),
+                            line_number=lineno,
+                            registered_at=datetime.now(timezone.utc).isoformat(),
+                            caller_stack_hash='',
+                        )
                     else:
                         # Mutation function in non-gateway module
                         bypasses.append(BypassPath(
