@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from core.runtime.guard_policy import (
+    MUTATION_SURFACES,
     ExecutionGuardPolicy,
     MutationPoint,
     SystemShutdown,
@@ -43,13 +44,8 @@ _FORBIDDEN_CALLER_MODULES = frozenset({
     'swarm.execution_loop', 'kubernetes.operator',
 })
 
-# Modules where mutation IS allowed (whitelist)
-_ALLOWED_MUTATION_MODULES = frozenset({
-    'orchestration.execution_gateway',
-    'orchestration.executiongateway',
-    'orchestration.mutation_executor',  # only its own methods
-    'orchestration.v8_2b_controlled_autocorrection.mutation_executor',
-})
+# Modules where mutation IS allowed (whitelist) — single source of truth.
+_ALLOWED_MUTATION_MODULES = MUTATION_SURFACES
 
 
 # ── Bypass Detection Results ───────────────────────────────────────────────────

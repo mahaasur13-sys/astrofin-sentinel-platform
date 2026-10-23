@@ -160,7 +160,8 @@ class RuntimeExecutionGuard:
 
         found: list[tuple[str, str]] = []  # (module, method_name)
 
-        for mod_name, mod in sys.modules.items():
+        # Snapshot: scanning pulls modules in lazily, which mutates sys.modules.
+        for mod_name, mod in list(sys.modules.items()):
             if mod is None:
                 continue
             # Skip internal modules

@@ -133,7 +133,8 @@ def _act_stage(state: GatewayState) -> GateResult:
             return GateResult(gate="ACT", status=GateStatus.PASS, data={"result": result})
         except Exception as exc:
             return GateResult(gate="ACT", status=GateStatus.BLOCK, block_reason=f"ACTUATION_ERROR: {exc}")
-    return GateResult(gate="ACT", status=GateStatus.PASS, data={"result": "no_executor"})
+    # No executor wired: nothing was mutated, so this is not a passing execution.
+    return GateResult(gate="ACT", status=GateStatus.BLOCK, block_reason="NO_MUTATION_EXECUTOR")
 
 
 # Singleton runtime guard (lazy import)

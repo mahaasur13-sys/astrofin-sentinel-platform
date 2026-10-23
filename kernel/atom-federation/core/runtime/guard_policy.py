@@ -26,6 +26,16 @@ from enum import Enum
 
 log = logging.getLogger(__name__)
 
+# Modules whose methods may originate a mutation from inside a gateway context.
+# Mirrored by core.runtime.self_audit (which imports this set) so there is one
+# single source of truth for what counts as a mutation surface.
+MUTATION_SURFACES = frozenset({
+    'orchestration.execution_gateway',
+    'orchestration.executiongateway',
+    'orchestration.mutation_executor',
+    'orchestration.v8_2b_controlled_autocorrection.mutation_executor',
+})
+
 
 class ViolationSeverity(Enum):
     BLOCKED = 1          # Gateway blocked, but caught
@@ -96,7 +106,7 @@ class ExecutionGuardPolicy:
     _init_lock = threading.Lock()
 
     # Protection state
-    _active_context_modules: set[str] = field(default_factory=set)
+    _active_context_modules: set[str] = set()
     _gateway_depth: int = 0
 
     # Allowed entry point (ONLY this can originate mutations)
@@ -200,12 +210,17 @@ class ExecutionGuardPolicy:
             self._log_violation(violation)
             self._trigger_shutdown(violation)
 
-        # CRITICAL CHECK 2: Caller must be registered mutation point OR gateway internals
-        key = f'{caller_module}:{caller_function}'
+        # CRITICAL CHECK 2: Caller must be a registered mutation point, a declared
+        # mutation surface, or the gateway itself. self_audit registers bare
+        # function names ('execute'), while decorators report qualnames
+        # ('MutationExecutor.execute'), so compare on the base name.
+        key = f'{caller_module}:{caller_function.rsplit(".", 1)[-1]}'
         is_gateway_internal = any(x in caller_module.lower() for x in (
             'executiongateway', 'execution_gateway'))
 
-        if not is_gateway_internal and key not in self._mutation_points:
+        if (not is_gateway_internal
+                and caller_module not in MUTATION_SURFACES
+                and key not in self._mutation_points):
             violation = self._create_violation(
                 severity=ViolationSeverity.CRITICAL,
                 message=f'Unregistered mutation point: {caller_module}.{caller_function}',
