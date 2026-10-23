@@ -5,6 +5,7 @@
 # 2. mutation_context() — thread-safe with _ctx_lock
 # 3. SQLite WAL + deferred isolation — no deadlock
 
+import random
 import sqlite3
 import threading
 import time
@@ -203,6 +204,42 @@ class TestBypassImpossible:
 
         with gateway.mutation_context():
             assert bypasser.unsafe_mutation() == 'bypassed!'
+
+
+class TestNestedContextDepth:
+    def test_nested_contexts_never_clear_flags_while_a_thread_is_inside(self):
+        """Restoring a snapshot on exit lets one thread switch off another's context.
+
+        Every thread is inside its own (nested) mutation_context when the first
+        one leaves; the remaining threads must still see is_safe() == True.
+        """
+        gateway = ExecutionGateway()
+        n_threads = 8
+        all_inside = threading.Barrier(n_threads, timeout=10)
+        first_exited = threading.Event()
+        seen_unsafe = []
+
+        def worker(index: int) -> None:
+            with gateway.mutation_context():
+                all_inside.wait()
+                with gateway.mutation_context():
+                    time.sleep(random.uniform(0, 0.01))
+                    if index != 0:
+                        first_exited.wait(timeout=10)
+                        time.sleep(random.uniform(0, 0.01))
+                        if not gateway.is_safe():
+                            seen_unsafe.append(index)
+            if index == 0:
+                first_exited.set()
+
+        threads = [threading.Thread(target=worker, args=(i,)) for i in range(n_threads)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        assert seen_unsafe == [], f'context switched off under threads: {seen_unsafe}'
+        assert gateway.is_safe() is False
 
 
 if __name__ == '__main__':

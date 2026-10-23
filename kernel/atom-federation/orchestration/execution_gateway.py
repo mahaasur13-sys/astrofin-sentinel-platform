@@ -183,9 +183,9 @@ class ExecutionGateway(_CanonGateway):
                 proof_verifier=proof_verifier,
             )
 
-            self._can_mutate = False
-            self._active_context = False
             self._ctx_lock = threading.RLock()
+            self._ctx_local = threading.local()
+            self._context_depth = 0
             self._policy = ExecutionGuardPolicy.instance()
             self._enhanced_ctx = EnhancedExecutionContext.instance()
             self._audit = AuditLogger()
@@ -228,15 +228,14 @@ class ExecutionGateway(_CanonGateway):
             gateway = cls.instance()
 
             # ── Primary check: context must be active ──────────────────
-            if not gateway._active_context or not gateway._can_mutate:
+            if not gateway._latch_open():
                 gateway._audit.log(
                     'mutation_blocked',
                     self.__class__.__module__,
                     func.__qualname__,
                     allowed=False,
                     reason='no_active_context',
-                    details={'active': gateway._active_context,
-                             'can_mutate': gateway._can_mutate}
+                    details={'depth': gateway._context_depth}
                 )
 
                 # ── Guard Policy check — may trigger SystemShutdown ────
@@ -269,6 +268,40 @@ class ExecutionGateway(_CanonGateway):
 
         return guarded
 
+    def _latch_open(self) -> bool:
+        '''Process-wide latch: any open mutation_context() authorises mutations.
+
+        Deliberately not thread-local: a context opened by a parent thread covers
+        its worker threads (see test_concurrent_writes_no_deadlock). is_safe()
+        stays thread-local: it reports what this thread may do right now.
+        '''
+        with self._ctx_lock:
+            return self._context_depth > 0
+
+    def _ctx_stack(self) -> list:
+        '''Per-thread nesting stack (thread-local; never shared across threads).'''
+        stack = getattr(self._ctx_local, 'stack', None)
+        if stack is None:
+            stack = []
+            self._ctx_local.stack = stack
+        return stack
+
+    @property
+    def _active_context(self) -> bool:
+        return getattr(self._ctx_local, 'active', False)
+
+    @_active_context.setter
+    def _active_context(self, value: bool) -> None:
+        self._ctx_local.active = value
+
+    @property
+    def _can_mutate(self) -> bool:
+        return getattr(self._ctx_local, 'can_mutate', False)
+
+    @_can_mutate.setter
+    def _can_mutate(self, value: bool) -> None:
+        self._ctx_local.can_mutate = value
+
     @contextmanager
     def mutation_context(self, can_mutate: bool = True) -> None:
         '''
@@ -285,9 +318,12 @@ class ExecutionGateway(_CanonGateway):
         mode = ContextMode.MUTATION_ALLOWED if can_mutate else ContextMode.READ_ONLY
 
         with self._ctx_lock:
-            previous = (self._active_context, self._can_mutate)
-            self._can_mutate = can_mutate
+            # Per-thread stack + shared depth: a snapshot restored on exit lets one
+            # thread switch the context off while another thread is still inside.
+            self._ctx_stack().append((self._active_context, self._can_mutate))
             self._active_context = True
+            self._can_mutate = can_mutate
+            self._context_depth += 1
 
         GatewayContext.activate('mutation_context')
         self._policy.push_gateway_context('orchestration.execution_gateway')
@@ -307,7 +343,11 @@ class ExecutionGateway(_CanonGateway):
             GatewayContext.deactivate()
 
             with self._ctx_lock:
-                self._active_context, self._can_mutate = previous
+                stack = self._ctx_stack()
+                active, can_mutate_prev = stack.pop() if stack else (False, False)
+                self._active_context = active
+                self._can_mutate = can_mutate_prev
+                self._context_depth = max(0, self._context_depth - 1)
 
             self._audit.log(
                 'context_exit',
