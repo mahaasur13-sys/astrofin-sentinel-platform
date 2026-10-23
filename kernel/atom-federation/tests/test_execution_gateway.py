@@ -145,36 +145,41 @@ class TestSQLiteWALIsolation:
 
     def test_concurrent_writes_no_deadlock(self, tmp_path):
         from meta_control.persistence.state_window_store import StateWindowStore
-        from orchestration.mutation_executor import MutationExecutor, MutationPayload
 
         db_path = tmp_path / 'test_concurrent.db'
         gateway = ExecutionGateway()
         store = StateWindowStore(db_path=str(db_path), gateway=gateway)
-        executor = MutationExecutor(gateway)
 
         errors = []
         successes = []
 
         def writer(thread_id: int):
             try:
-                with gateway.mutation_context():
-                    for i in range(5):
-                        payload = MutationPayload(
-                            tick=thread_id * 100 + i,
-                            agent_id=f'agent_{thread_id}',
-                            operation='test',
-                            state_delta={'v': thread_id * 10 + i}
-                        )
-                        executor.execute(payload)
-                        successes.append(thread_id)
+                for i in range(5):
+                    payload = MutationPayload(
+                        tick=thread_id * 100 + i,
+                        agent_id=f'agent_{thread_id}',
+                        operation='test',
+                        state_delta={'v': thread_id * 10 + i}
+                    )
+                    executor.execute(payload)
+                    successes.append(thread_id)
             except Exception as e:
                 errors.append((thread_id, str(e)))
 
-        threads = [threading.Thread(target=writer, args=(i,)) for i in range(3)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        # Protected module: both import and instantiation are legal only inside
+        # the Gateway context (GUARD enforces it at import time and in __call__).
+        # The context flag is process-wide, so one context covers all writers —
+        # the concurrency under test is the SQLite writes, not the context.
+        with gateway.mutation_context():
+            from orchestration.mutation_executor import MutationExecutor, MutationPayload
+            executor = MutationExecutor(gateway)
+
+            threads = [threading.Thread(target=writer, args=(i,)) for i in range(3)]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
 
         assert len(errors) == 0, f'Concurrent errors: {errors}'
         assert len(successes) == 15
