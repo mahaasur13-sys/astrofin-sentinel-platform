@@ -3,20 +3,12 @@ name: Quality Gate
 on:
   pull_request:
     branches: [ master, develop ]
-    paths:
-      - 'agents/**'
-      - 'agents/_impl/**'
-      - 'core/**'
-      - 'orchestration/**'
-      - 'web/**'
-      - 'data_room/**'
-      - 'api/**'
-      - 'monitoring/**'
-      - 'trading/**'
-      - 'meta_rl/**'
-      - 'scripts/**'
-      - 'docs/**'
-      - '.github/workflows/**'
+
+# No `paths:` filter on purpose. A required status check that never gets
+# created leaves every PR outside agents/core/web/scripts/docs green by
+# default. Without the filter the job always reports; it stays cheap on
+# unrelated PRs because ruff and per-agent validation exit early when no
+# lint-scope files changed.
 
 # Quality gate is a **blocking** job for changes in the agents/ tree.
 # It enforces: linter, per-agent validator, coverage on changed files,
