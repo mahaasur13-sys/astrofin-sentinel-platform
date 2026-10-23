@@ -56,7 +56,7 @@ class SessionRAGCache:
 
     def _key(self, query: str, top_k: int = 3) -> str:
         """Хэш запроса для быстрого exact match."""
-        return hashlib.md5(f"{query}:{top_k}".encode()).hexdigest()
+        return hashlib.md5(f"{query}:{top_k}".encode(), usedforsecurity=False).hexdigest()
 
     def get(self, query: str, top_k: int = 3) -> Optional[str]:
         """Получить кэшированный результат RAG, если он свежий."""
