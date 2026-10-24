@@ -74,6 +74,7 @@ class TestFearGreedResolver:
 
 
 class TestYahooResolver:
+    @pytest.mark.network
     @pytest.mark.asyncio
     async def test_resolve_vix(self):
         r = YahooResolver()
@@ -82,18 +83,21 @@ class TestYahooResolver:
         assert tick.price > 0
         assert tick.symbol == "VIX"
 
+    @pytest.mark.network
     @pytest.mark.asyncio
     async def test_resolve_dxy(self):
         r = YahooResolver()
         tick = await r.resolve("DXY")
         assert tick.price > 0
 
+    @pytest.mark.network
     @pytest.mark.asyncio
     async def test_resolve_spx(self):
         r = YahooResolver()
         tick = await r.resolve("SPX")
         assert tick.price > 0
 
+    @pytest.mark.network
     @pytest.mark.asyncio
     async def test_resolve_gold(self):
         r = YahooResolver()
