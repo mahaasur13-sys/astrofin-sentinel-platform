@@ -79,7 +79,6 @@ jobs:
 
       - name: Validate Prometheus config syntax
         run: |
-          pip install prometheus-api-client 2>/dev/null || true
           python3 -c "
           import yaml, sys
           with open('deploy/monitoring/prometheus.yml') as f:

@@ -121,7 +121,8 @@ jobs:
         env:
           SENTINEL_METRICS_ENABLED: "0"
         run: |
-          pytest -q --tb=short --no-header \
+          pytest --tb=short --no-header \
+            --junitxml=junit-unit.xml \
             --ignore=tests/e2e \
             --ignore=tests/ralph_benchmark \
             --ignore=tests/observability \
@@ -130,12 +131,20 @@ jobs:
             -p no:cacheprovider \
             -m "not integration and not slow" \
             --maxfail=20
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: junit-unit-${{ matrix.python-version }}
+          path: junit-unit.xml
+          retention-days: 14
+          if-no-files-found: warn
       - name: pytest (collect-only check, integration tests too)
         env:
           SENTINEL_METRICS_ENABLED: "0"
         run: |
           set -o pipefail
-          pytest --collect-only -q --co -p no:cacheprovider \
+          pytest --collect-only --co -p no:cacheprovider \
             -W "ignore::pytest.PytestUnknownMarkWarning" \
             2>&1 | tail -20
 

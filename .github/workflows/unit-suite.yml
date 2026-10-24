@@ -46,7 +46,7 @@ jobs:
           pip install -e ".[dev]" pytest pytest-asyncio
       - name: pytest council suite
         run: |
-          python -m pytest -q --tb=short --no-header -p no:cacheprovider \
+          python -m pytest --tb=short --no-header -p no:cacheprovider \
             tests/test_astro_council_agent.py \
             tests/test_synthesis_voter.py \
             tests/test_okx_candle_url.py \
