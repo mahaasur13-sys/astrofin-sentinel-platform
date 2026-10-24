@@ -90,4 +90,4 @@ jobs:
         run: pip install safety==3.7.0
       - name: safety scan
         continue-on-error: true
-        run: safety scan --file requirements.txt --output json --save-json /tmp/safety.json || true
+        run: safety scan --file requirements.txt --output json --save-json /tmp/safety.json

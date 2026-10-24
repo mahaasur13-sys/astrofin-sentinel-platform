@@ -56,15 +56,13 @@ jobs:
         # Files outside the PR diff are not enforced here — they are
         # addressed as separate cleanup tasks (see ROADMAP).
         run: |
-          set +e
           base="origin/${{ github.base_ref }}"
-          git fetch --depth=1 origin "${{ github.base_ref }}" >/dev/null 2>&1 || true
+          git fetch --depth=1 origin "${{ github.base_ref }}"
           mapfile -t files < <(
             git diff --name-only "$base"...HEAD \
               | grep -E '\.py$' \
               | grep -E '^(agents/|core/|scripts/|orchestration/|web/|data_room/|api/|monitoring/|trading/|meta_rl/)' || true
           )
-          set -e
           existing=()
           for f in "${files[@]}"; do
             [ -f "$f" ] && existing+=("$f")
@@ -107,7 +105,7 @@ jobs:
           uv sync --frozen --extra dev
           echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
           echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
-          uv run python -m pytest tests/ -q --tb=short \
+          uv run python -m pytest tests/ --tb=short \
             --no-header \
             --cov-report=term \
             --cov-fail-under=${{ env.COVERAGE_FAIL_UNDER }}
