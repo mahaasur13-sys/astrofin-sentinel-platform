@@ -84,7 +84,7 @@ jobs:
             | head -n 30 || true
       - name: Upload reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: lint-reports
           path: |
@@ -133,7 +133,7 @@ jobs:
             --maxfail=20
       - name: Upload JUnit report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: junit-unit-${{ matrix.python-version }}
           path: junit-unit.xml
