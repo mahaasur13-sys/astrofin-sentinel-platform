@@ -308,9 +308,23 @@ groups:
         annotations:
           summary: "Requests flowing but no billing events — _increment_usage may be broken"
 
+  - name: roma-drill
+    rules:
+      - alert: ROMADRDrillStale
+        expr: time() - roma_dr_drill_last_success_timestamp > 8 * 86400
+        for: 1h
+        labels: {severity: critical, category: backup}
+        annotations:
+          summary: "pg_restore drill не проходил 8 дней"
+          description: |
+            scripts/pg_restore_drill.sh не завершался успехом более 8 суток, либо
+            метрика равна 0 (drill_state.json отсутствует/нечитаем). Дрилл — единственное
+            доказательство того, что бэкапы действительно восстанавливаются.
+            Проверить: cat /root/.sealed/pgdump/drill_state.json, /dev/shm/astrofin-pg-restore-drill.log.
+
   # AstroFin-only: watches ROMA metrics that exist in /metrics but have no rule
-  # anywhere. Deliberately NOT part of the ROMA canon (roma-critical/warning/billing
-  # stay byte-identical to roma-execution-bridge), so the canon drift guard ignores it.
+  # anywhere. Deliberately NOT part of the ROMA canon (the roma-* groups stay
+  # byte-identical to roma-execution-bridge), so the canon drift guard ignores it.
   - name: roma-ops
     rules:
       - alert: ROMALedgerDiff
@@ -336,3 +350,14 @@ groups:
         annotations:
           summary: "ROMA backup older than 28h"
           description: "roma_backup_last_success_timestamp has not advanced for more than 28h; a value of 0 means no backup was ever recorded. Check the ROMA backup job and its target directory."
+      # AstroFin-only guard, same reasoning as WALGBackupMetricAbsent: ROMADRDrillStale
+      # can only fire while the series exists, so a metric that vanished from
+      # /metrics would make the drill silently untested. Value 0 is the exporter's
+      # own "state file missing/unreadable" signal (main.py::_dr_drill_state).
+      - alert: ROMADRDrillMetricAbsent
+        expr: absent(roma_dr_drill_last_success_timestamp) or roma_dr_drill_last_success_timestamp == 0
+        for: 30m
+        labels: {severity: warning, category: backup}
+        annotations:
+          summary: "ROMA DR drill metric missing or zero — drill state is unobservable"
+          description: "roma_dr_drill_last_success_timestamp is absent from /metrics or equals 0, so ROMADRDrillStale proves nothing either way. roma-execution-bridge exports 0 when /root/.sealed/pgdump/drill_state.json is missing or unreadable; absent means the metric left the registry. Check the exporter wiring and the state file."

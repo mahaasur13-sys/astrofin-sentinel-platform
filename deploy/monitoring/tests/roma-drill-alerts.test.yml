@@ -1,0 +1,87 @@
+# Unit tests for the roma-drill group (byte-identical to
+# roma-execution-bridge@0811e7cd deploy/monitoring/alert-rules-roma.yml) and the
+# AstroFin-only absent/zero guard in roma-ops.
+#
+# Note on time(): promtool's clock starts at Unix epoch 0, so inside a test
+# time() is a few thousand seconds, never ~1.8e9. A literal 0 in
+# roma_dr_drill_last_success_timestamp is therefore NOT older than 8 days here,
+# which is exactly why the zero case is a rule of its own instead of leaning on
+# ROMADRDrillStale's arithmetic. The stale case uses a negative timestamp so the
+# age is unambiguous at any epoch.
+rule_files:
+- ../alert_rules.yml
+evaluation_interval: 1m
+tests:
+- name: a_fresh_drill_no_fire
+  interval: 1m
+  input_series:
+  - series: roma_dr_drill_last_success_timestamp
+    values: -1000+0x200
+  alert_rule_test:
+  - eval_time: 61m
+    alertname: ROMADRDrillStale
+    exp_alerts: []
+  - eval_time: 31m
+    alertname: ROMADRDrillMetricAbsent
+    exp_alerts: []
+- name: b_stale_over_8d_fires_after_1h_for
+  interval: 1m
+  input_series:
+  - series: roma_dr_drill_last_success_timestamp
+    values: -700000+0x200
+  alert_rule_test:
+  - eval_time: 59m
+    alertname: ROMADRDrillStale
+    exp_alerts: []
+  - eval_time: 61m
+    alertname: ROMADRDrillStale
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        category: backup
+      exp_annotations:
+        summary: pg_restore drill не проходил 8 дней
+        description: 'scripts/pg_restore_drill.sh не завершался успехом более 8 суток, либо
+
+          метрика равна 0 (drill_state.json отсутствует/нечитаем). Дрилл — единственное
+
+          доказательство того, что бэкапы действительно восстанавливаются.
+
+          Проверить: cat /root/.sealed/pgdump/drill_state.json, /dev/shm/astrofin-pg-restore-drill.log.
+
+          '
+  - eval_time: 61m
+    alertname: ROMADRDrillMetricAbsent
+    exp_alerts: []
+- name: c_metric_absent_guard_fires_stale_silent
+  interval: 1m
+  input_series:
+  - series: roma_requests_total{status="200"}
+    values: 10+0x200
+  alert_rule_test:
+  - eval_time: 31m
+    alertname: ROMADRDrillMetricAbsent
+    exp_alerts:
+    - exp_labels: &id001
+        severity: warning
+        category: backup
+      exp_annotations: &id002
+        summary: ROMA DR drill metric missing or zero — drill state is unobservable
+        description: roma_dr_drill_last_success_timestamp is absent from /metrics or equals 0, so ROMADRDrillStale proves nothing either way. roma-execution-bridge exports 0 when /root/.sealed/pgdump/drill_state.json is missing or unreadable; absent means the metric left the registry. Check the exporter wiring and the state file.
+  - eval_time: 61m
+    alertname: ROMADRDrillStale
+    exp_alerts: []
+- name: d_metric_zero_guard_fires
+  interval: 1m
+  input_series:
+  - series: roma_dr_drill_last_success_timestamp
+    values: 0+0x200
+  alert_rule_test:
+  - eval_time: 31m
+    alertname: ROMADRDrillMetricAbsent
+    exp_alerts:
+    - exp_labels: *id001
+      exp_annotations: *id002
+  - eval_time: 61m
+    alertname: ROMADRDrillStale
+    exp_alerts: []

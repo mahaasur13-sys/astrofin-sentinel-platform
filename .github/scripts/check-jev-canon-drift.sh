@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Guard: the ROMA groups mirrored into this repo must stay identical to the ROMA
 # canon (roma-execution-bridge/deploy/monitoring/alert-rules-roma.yml):
-# roma-jev-shadow, roma-critical, roma-warning, roma-billing.
+# roma-jev-shadow, roma-critical, roma-warning, roma-billing, roma-drill.
 #
 # Both sides are canonicalised to JSON with sorted keys, so YAML comments and
 # key order can never show up as drift. The single tolerated difference is the
@@ -13,7 +13,7 @@ set -euo pipefail
 
 CANON_URL="${JEV_CANON_URL:-https://raw.githubusercontent.com/mahaasur13-sys/roma-execution-bridge/master/deploy/monitoring/alert-rules-roma.yml}"
 LOCAL_FILE="${1:-deploy/monitoring/alert_rules.yml}"
-GROUP_LIST="${CANON_GROUPS:-roma-jev-shadow roma-critical roma-warning roma-billing}"
+GROUP_LIST="${CANON_GROUPS:-roma-jev-shadow roma-critical roma-warning roma-billing roma-drill}"
 YQ="${YQ:-yq}"
 
 tmp="$(mktemp -d)"
