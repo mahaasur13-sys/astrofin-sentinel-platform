@@ -1,0 +1,77 @@
+groups:
+  # ---------------------------------------------------------------------------
+  # SLO-1 availability, target 99.5%.
+  # Источник — `up` (скрейп-статус Prometheus), а не astrofin_up: `up` существует
+  # и когда экспортёр отвечает 0, и когда он вообще молчит, поэтому разрыв
+  # скрейпа честно считается отказом, а не пропадает вместе с серией.
+  # avg by (job) — по одному ratio на job, без двойного счёта.
+  # ---------------------------------------------------------------------------
+  - name: astrofin_slo_recording
+    interval: 30s
+    rules:
+      - record: astrofin:availability:ratio_rate5m
+        expr: avg by (job) (avg_over_time(up{job=~"astrofin-metrics-exporter|evolution-worker"}[5m]))
+
+      - record: astrofin:availability:ratio_rate30m
+        expr: avg by (job) (avg_over_time(up{job=~"astrofin-metrics-exporter|evolution-worker"}[30m]))
+
+      - record: astrofin:availability:ratio_rate1h
+        expr: avg by (job) (avg_over_time(up{job=~"astrofin-metrics-exporter|evolution-worker"}[1h]))
+
+      - record: astrofin:availability:ratio_rate6h
+        expr: avg by (job) (avg_over_time(up{job=~"astrofin-metrics-exporter|evolution-worker"}[6h]))
+
+  - name: astrofin_slo
+    interval: 30s
+    rules:
+      # Быстрый burn: 1h > 14.4x бюджета (99.5% → 0.5%), подтверждение на 5m.
+      - alert: AstroFinAvailabilityBurnFast
+        expr: |
+          (1 - astrofin:availability:ratio_rate1h) > 14.4 * 0.005
+          and
+          (1 - astrofin:availability:ratio_rate5m) > 14.4 * 0.005
+        for: 2m
+        labels:
+          severity: critical
+          slo: availability
+          burn_window: 1h
+        annotations:
+          summary: "SLO-1 availability fast burn (1h > 14.4x budget) on {{ $labels.job }}"
+          description: "Job {{ $labels.job }} unavailable more than 7.2% of the last hour (99.5% budget = 0.5%)."
+
+      # Медленный burn: 6h > 6x бюджета, подтверждение на 30m.
+      - alert: AstroFinAvailabilityBurnSlow
+        expr: |
+          (1 - astrofin:availability:ratio_rate6h) > 6 * 0.005
+          and
+          (1 - astrofin:availability:ratio_rate30m) > 6 * 0.005
+        for: 15m
+        labels:
+          severity: warning
+          slo: availability
+          burn_window: 6h
+        annotations:
+          summary: "SLO-1 availability slow burn (6h > 6x budget) on {{ $labels.job }}"
+          description: "Job {{ $labels.job }} unavailable more than 3% of the last 6 hours (99.5% budget = 0.5%)."
+
+      # absent-guard по каждому таргету отдельно: пропажа серии up означает, что
+      # Prometheus вообще не скрейпит job, и никакой ratio по нему не считается.
+      - alert: AstroFinUpAbsentMetricsExporter
+        expr: absent(up{job="astrofin-metrics-exporter"})
+        for: 5m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "up{job=\"astrofin-metrics-exporter\"} отсутствует"
+          description: "Prometheus не скрейпит astrofin-metrics-exporter (localhost:9191) более 5 минут."
+
+      - alert: AstroFinUpAbsentEvolutionWorker
+        expr: absent(up{job="evolution-worker"})
+        for: 5m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "up{job=\"evolution-worker\"} отсутствует"
+          description: "Prometheus не скрейпит evolution-worker (localhost:9192) более 5 минут."
