@@ -1,0 +1,95 @@
+rule_files:
+  - ../astrofin-slo.yml
+evaluation_interval: 30s
+tests:
+  # (a) Оба job скрейпятся -> ни один SLO-алерт не горит.
+  - name: a_healthy_no_fire
+    interval: 1m
+    input_series:
+      - series: 'up{job="astrofin-metrics-exporter",instance="localhost:9191"}'
+        values: '1x40'
+      - series: 'up{job="evolution-worker",instance="localhost:9192"}'
+        values: '1x40'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: AstroFinAvailabilityBurnFast
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: AstroFinAvailabilityBurnSlow
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: AstroFinUpAbsentMetricsExporter
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: AstroFinUpAbsentEvolutionWorker
+        exp_alerts: []
+
+  # (b) Упал только astrofin-metrics-exporter -> BurnFast ровно по этому job.
+  - name: b_fast_burn_one_job
+    interval: 1m
+    input_series:
+      - series: 'up{job="astrofin-metrics-exporter",instance="localhost:9191"}'
+        values: '0x40'
+      - series: 'up{job="evolution-worker",instance="localhost:9192"}'
+        values: '1x40'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: AstroFinAvailabilityBurnFast
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: AstroFinAvailabilityBurnFast
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              slo: availability
+              burn_window: 1h
+              job: astrofin-metrics-exporter
+            exp_annotations:
+              summary: 'SLO-1 availability fast burn (1h > 14.4x budget) on astrofin-metrics-exporter'
+              description: 'Job astrofin-metrics-exporter unavailable more than 7.2% of the last hour (99.5% budget = 0.5%).'
+
+  # (c) Половина 6h-окна в 0 -> BurnSlow после for: 15m.
+  - name: c_slow_burn_half_window
+    interval: 5m
+    input_series:
+      - series: 'up{job="astrofin-metrics-exporter",instance="localhost:9191"}'
+        values: '1x36 0x36'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: AstroFinAvailabilityBurnSlow
+        exp_alerts: []
+      - eval_time: 6h
+        alertname: AstroFinAvailabilityBurnSlow
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              slo: availability
+              burn_window: 6h
+              job: astrofin-metrics-exporter
+            exp_annotations:
+              summary: 'SLO-1 availability slow burn (6h > 6x budget) on astrofin-metrics-exporter'
+              description: 'Job astrofin-metrics-exporter unavailable more than 3% of the last 6 hours (99.5% budget = 0.5%).'
+
+  # (d) Серии up для evolution-worker нет вообще -> absent только по нему.
+  - name: d_absent_one_job
+    interval: 1m
+    input_series:
+      - series: 'up{job="astrofin-metrics-exporter",instance="localhost:9191"}'
+        values: '1x40'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: AstroFinUpAbsentEvolutionWorker
+        exp_alerts: []
+      - eval_time: 7m
+        alertname: AstroFinUpAbsentEvolutionWorker
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              category: availability
+              job: evolution-worker
+            exp_annotations:
+              summary: 'up{job="evolution-worker"} отсутствует'
+              description: 'Prometheus не скрейпит evolution-worker (localhost:9192) более 5 минут.'
+      - eval_time: 7m
+        alertname: AstroFinUpAbsentMetricsExporter
+        exp_alerts: []

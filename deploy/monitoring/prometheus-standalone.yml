@@ -58,6 +58,7 @@ scrape_configs:
 rule_files:
   - /home/workspace/deploy/monitoring/recording-rules.yml
   - /home/workspace/deploy/monitoring/alert_rules.yml
+  - /home/workspace/deploy/monitoring/astrofin-slo.yml
 
 alerting:
   alertmanagers:
