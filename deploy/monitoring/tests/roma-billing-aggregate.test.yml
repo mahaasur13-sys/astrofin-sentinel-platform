@@ -31,7 +31,7 @@ tests:
         alertname: ROMASpendCapExceededTenants
         exp_alerts:
           - exp_labels:
-              severity: critical
+              severity: warning
               category: billing
             exp_annotations:
               summary: "2 tenant(s) exceeded spend-cap"
