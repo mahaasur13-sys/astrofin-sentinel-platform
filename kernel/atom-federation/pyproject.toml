@@ -83,7 +83,8 @@ testpaths = [
     "orchestration/phase2",
     "federation/tests",
     "tests/test_enforcement_layer.py",
-    "tests/test_deterministic_kernel.py"
+    "tests/test_deterministic_kernel.py",
+    "tests/test_execution_context_isolation.py"
 ]
 asyncio_mode = "auto"
 filterwarnings = [
