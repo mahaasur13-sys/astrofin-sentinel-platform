@@ -277,36 +277,21 @@ groups:
 
   - name: roma-billing
     rules:
-      - alert: ROMASpendCap90Pct
-        expr: roma_spend_cap_pct > 90
-        for: 1m
-        labels: {severity: warning, category: billing}
-        annotations:
-          summary: "Tenant {{ $labels.tenant_id }} spend-cap at {{ $value }}% (plan {{ $labels.plan }})"
-          description: "Balance ${{ query \"roma_spend_cap_balance_usd{tenant_id='$labels.tenant_id'}\" | first | value }} / ${{ query \"label_replace(roma_spend_cap_pct{tenant_id='$labels.tenant_id',plan='$labels.plan'},'cap','$value','','')\" | first | value }}. Consider upgrading plan."
-
-      - alert: ROMASpendCapExceeded
-        expr: rate(roma_spend_cap_blocked_total[5m]) > 0
-        for: 1m
+      - alert: ROMASpendCapExceededTenants
+        expr: roma_spend_cap_exceeded_tenants > 0
+        for: 15m
         labels: {severity: critical, category: billing}
         annotations:
-          summary: "Tenant {{ $labels.tenant_id }} jobs BLOCKED by spend-cap"
-          description: "Plan {{ $labels.plan }} has reached its limit. Tenant needs to upgrade or wait for reset."
+          summary: "{{ $value }} tenant(s) exceeded spend-cap"
+          description: "Count of tenants whose debited amount reached the plan cap (spend_caps.MONEY_POLICY). Per-tenant detail: logs + GET /api/v1/tenants/{tenant_id}/billing."
 
-      - alert: ROMAHighGPUCost
-        expr: rate(roma_gpu_seconds_total[15m]) * 0.00001 * 3600 > 1.0
-        for: 5m
+      - alert: ROMASpendCapMetricsAbsent
+        expr: absent(roma_spend_cap_exceeded_tenants)
+        for: 15m
         labels: {severity: warning, category: billing}
         annotations:
-          summary: "Tenant {{ $labels.tenant_id }} GPU burn rate > $1/hr"
-          description: "GPU seconds accumulating fast. Current rate: ${{ $value }}/hr."
-
-      - alert: ROMANoBillingEvents
-        expr: rate(roma_billing_cost_total[30m]) == 0 and rate(roma_requests_total[30m]) > 0
-        for: 10m
-        labels: {severity: warning, category: billing}
-        annotations:
-          summary: "Requests flowing but no billing events — _increment_usage may be broken"
+          summary: "roma_spend_cap_exceeded_tenants missing from /metrics (spend-cap guard)"
+          description: "Billing block stopped being exported (exporter down or registry not initialised). Check ROMA /metrics and the reconciliation loop."
 
   - name: roma-drill
     rules:

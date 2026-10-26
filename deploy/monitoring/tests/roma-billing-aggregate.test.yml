@@ -1,0 +1,58 @@
+rule_files:
+  - ../alert_rules.yml
+
+evaluation_interval: 1m
+
+# roma-billing: 2 агрегатных правила (счётчик превысивших cap + absent-guard).
+# Per-tenant деталей в метриках больше нет — только count.
+tests:
+  # (a) 0 тенантов превысили cap → тишина
+  - name: zero exceeded tenants is silent
+    interval: 1m
+    input_series:
+      - series: 'roma_spend_cap_exceeded_tenants'
+        values: '0+0x25'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: ROMASpendCapExceededTenants
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: ROMASpendCapMetricsAbsent
+        exp_alerts: []
+
+  # (b) 2 тенанта превысили cap → критический алерт после 15m
+  - name: two tenants exceeded fire critical
+    interval: 1m
+    input_series:
+      - series: 'roma_spend_cap_exceeded_tenants'
+        values: '2+0x25'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: ROMASpendCapExceededTenants
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              category: billing
+            exp_annotations:
+              summary: "2 tenant(s) exceeded spend-cap"
+              description: "Count of tenants whose debited amount reached the plan cap (spend_caps.MONEY_POLICY). Per-tenant detail: logs + GET /api/v1/tenants/{tenant_id}/billing."
+      - eval_time: 20m
+        alertname: ROMASpendCapMetricsAbsent
+        exp_alerts: []
+
+  # (c) метрика не публикуется → absent-guard, ровно 1 алерт
+  - name: missing metric fires absent guard only
+    interval: 1m
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: ROMASpendCapMetricsAbsent
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              category: billing
+            exp_annotations:
+              summary: "roma_spend_cap_exceeded_tenants missing from /metrics (spend-cap guard)"
+              description: "Billing block stopped being exported (exporter down or registry not initialised). Check ROMA /metrics and the reconciliation loop."
+      - eval_time: 20m
+        alertname: ROMASpendCapExceededTenants
+        exp_alerts: []
