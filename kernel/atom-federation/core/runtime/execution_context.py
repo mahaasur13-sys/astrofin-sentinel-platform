@@ -11,6 +11,7 @@ import asyncio
 import threading
 import traceback
 from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -27,6 +28,16 @@ class ContextMode(Enum):
     READ_ONLY = 'read_only'      # No mutations allowed
     MUTATION_ALLOWED = 'mutation_allowed'  # Mutations permitted
     INTERNAL = 'internal'        # Internal gateway operations
+
+
+@dataclass(frozen=True)
+class _ContextState:
+    '''Per-call context state. Stored in a ContextVar — one copy per thread / asyncio task.'''
+    can_mutate: bool = False
+    active: bool = False
+    mode: ContextMode = ContextMode.READ_ONLY
+    depth: int = 0
+    context_id: str = ''
 
 
 @dataclass
@@ -63,10 +74,9 @@ class EnhancedExecutionContext:
     Thread-safe + Async-aware execution context for mutations.
 
     Features:
-        - Reentrant lock (RLock) — same thread can re-enter
-        - Async-safe (no event-loop dependencies)
+        - Caller-isolated state (ContextVar): per thread and per asyncio task
         - Full audit trail of all mutation attempts
-        - Nested context support (inner context inherits outer)
+        - Nested context support (inner context restores outer on exit)
         - Deterministic tick propagation
 
     Usage:
@@ -101,17 +111,10 @@ class EnhancedExecutionContext:
         self._ctx_lock = threading.RLock()  # Reentrant — same thread can re-enter
         self._async_lock = None  # Lazy init for async support
 
-        # Context state
-        self._can_mutate: bool = False
-        self._active_context: bool = False
-        self._context_mode: ContextMode = ContextMode.READ_ONLY
-        self._context_depth: int = 0  # For nested contexts
-        self._context_id: str = ''
-
-        # Previous state for restore on exit
-        self._prev_can_mutate: bool = False
-        self._prev_active: bool = False
-        self._prev_mode: ContextMode = ContextMode.READ_ONLY
+        # Context state — per thread / asyncio task, never shared between callers
+        self._ctx_state: ContextVar[_ContextState] = ContextVar(
+            f'execution_context_state_{id(self)}', default=_ContextState()
+        )
 
         # Audit trail
         self._audit_log: list[MutationAuditEntry] = []
@@ -119,9 +122,6 @@ class EnhancedExecutionContext:
 
         # Tick tracking
         self._tick: int = 0
-
-        # Active context stack (for nested)
-        self._context_stack: list[tuple[bool, ContextMode]] = []
 
     @classmethod
     def instance(cls) -> EnhancedExecutionContext:
@@ -134,29 +134,45 @@ class EnhancedExecutionContext:
         '''Reset singleton (for testing only).'''
         with cls._lock:
             if cls._instance is not None:
-                cls._instance._can_mutate = False
-                cls._instance._active_context = False
-                cls._instance._context_depth = 0
-                cls._instance._context_stack = []
+                cls._instance._ctx_state.set(_ContextState())
             cls._instance = None
 
     @property
     def is_safe(self) -> bool:
-        '''Check if mutation is currently allowed.'''
-        with self._ctx_lock:
-            return self._active_context and self._can_mutate
+        '''Check if mutation is currently allowed — in the CALLER's own context.'''
+        state = self._ctx_state.get()
+        return state.active and state.can_mutate
 
     @property
     def current_mode(self) -> ContextMode:
         '''Get current context mode.'''
-        with self._ctx_lock:
-            return self._context_mode
+        return self._ctx_state.get().mode
 
     @property
     def context_depth(self) -> int:
         '''Get current context nesting depth.'''
-        with self._ctx_lock:
-            return self._context_depth
+        return self._ctx_state.get().depth
+
+    # ── Read-only views over the per-call state (kept for internal readers) ──
+    @property
+    def _can_mutate(self) -> bool:
+        return self._ctx_state.get().can_mutate
+
+    @property
+    def _active_context(self) -> bool:
+        return self._ctx_state.get().active
+
+    @property
+    def _context_mode(self) -> ContextMode:
+        return self._ctx_state.get().mode
+
+    @property
+    def _context_depth(self) -> int:
+        return self._ctx_state.get().depth
+
+    @property
+    def _context_id(self) -> str:
+        return self._ctx_state.get().context_id
 
     @property
     def current_tick(self) -> int:
@@ -174,7 +190,7 @@ class EnhancedExecutionContext:
     def mutation_context(self, can_mutate: bool = True,
                          mode: ContextMode = ContextMode.MUTATION_ALLOWED):
         '''
-        Thread-safe context manager for mutations.
+        Context manager for mutations, scoped to the calling thread / asyncio task.
 
         Args:
             can_mutate: If True, mutations are allowed inside this context.
@@ -190,45 +206,41 @@ class EnhancedExecutionContext:
             with ctx.mutation_context(can_mutate=False):
                 state = read_state()
 
-        Thread-safety:
-            - Uses RLock — same thread can re-enter multiple times
-            - Async-safe — no event loop assumptions
-            - Preserves outer context on nested entry
+        Isolation:
+            - State lives in a ContextVar: one copy per thread and per asyncio task.
+            - Concurrent callers never observe each other's context.
+            - Nested entry restores the outer state via ContextVar token reset.
         '''
         # Capture current stack for audit
         stack = self._capture_stack()
 
-        with self._ctx_lock:
-            # Save current state for restore
-            self._prev_can_mutate = self._can_mutate
-            self._prev_active = self._active_context
-            self._prev_mode = self._context_mode
-
-            # Push new state
-            self._context_stack.append((self._can_mutate, self._context_mode))
-
-            self._can_mutate = can_mutate
-            self._active_context = True
-            self._context_mode = mode if can_mutate else ContextMode.READ_ONLY
-            self._context_depth += 1
-            self._context_id = DeterministicUUIDFactory.make_context_id(
+        prev = self._ctx_state.get()
+        depth = prev.depth + 1
+        state = _ContextState(
+            can_mutate=can_mutate,
+            active=True,
+            mode=mode if can_mutate else ContextMode.READ_ONLY,
+            depth=depth,
+            context_id=DeterministicUUIDFactory.make_context_id(
                 agent_id=self.__class__.__name__,
                 tick=self._tick,
-                depth=self._context_depth
-            )
+                depth=depth
+            ),
+        )
+        token = self._ctx_state.set(state)
 
-            # Log context entry
-            if can_mutate:
-                self._log_audit_entry(
-                    mode=mode,
-                    caller_module=self._get_caller_module(stack),
-                    caller_function=self._get_caller_function(stack),
-                    caller_file=self._get_caller_file(stack),
-                    caller_line=self._get_caller_line(stack),
-                    operation='context_enter',
-                    payload_summary=f'can_mutate={can_mutate}, depth={self._context_depth}',
-                    allowed=True,
-                )
+        # Log context entry
+        if can_mutate:
+            self._log_audit_entry(
+                mode=state.mode,
+                caller_module=self._get_caller_module(stack),
+                caller_function=self._get_caller_function(stack),
+                caller_file=self._get_caller_file(stack),
+                caller_line=self._get_caller_line(stack),
+                operation='context_enter',
+                payload_summary=f'can_mutate={can_mutate}, depth={depth}',
+                allowed=True,
+            )
 
         try:
             yield self
@@ -236,7 +248,7 @@ class EnhancedExecutionContext:
             # Log error
             stack = self._capture_stack()
             self._log_audit_entry(
-                mode=self._context_mode,
+                mode=state.mode,
                 caller_module=self._get_caller_module(stack),
                 caller_function=self._get_caller_function(stack),
                 caller_file=self._get_caller_file(stack),
@@ -248,29 +260,21 @@ class EnhancedExecutionContext:
             )
             raise
         finally:
-            with self._ctx_lock:
-                # Restore previous state
-                if self._context_stack:
-                    prev_state = self._context_stack.pop()
-                    self._prev_can_mutate, self._prev_mode = prev_state
+            # Restore the caller's outer state (nested contexts included)
+            self._ctx_state.reset(token)
 
-                self._can_mutate = self._prev_can_mutate
-                self._active_context = bool(self._context_stack)
-                self._context_mode = self._prev_mode
-                self._context_depth = max(0, self._context_depth - 1)
-
-                # Log context exit
-                if self._prev_can_mutate:
-                    self._log_audit_entry(
-                        mode=self._prev_mode,
-                        caller_module=self._get_caller_module(stack),
-                        caller_function=self._get_caller_function(stack),
-                        caller_file=self._get_caller_file(stack),
-                        caller_line=self._get_caller_line(stack),
-                        operation='context_exit',
-                        payload_summary=f'depth={self._context_depth + 1}->nested',
-                        allowed=True,
-                    )
+            # Log context exit
+            if prev.can_mutate:
+                self._log_audit_entry(
+                    mode=prev.mode,
+                    caller_module=self._get_caller_module(stack),
+                    caller_function=self._get_caller_function(stack),
+                    caller_file=self._get_caller_file(stack),
+                    caller_line=self._get_caller_line(stack),
+                    operation='context_exit',
+                    payload_summary=f'depth={depth}->nested',
+                    allowed=True,
+                )
 
     @contextmanager
     def internal_context(self):
@@ -278,35 +282,27 @@ class EnhancedExecutionContext:
         Internal gateway context (highest priority).
 
         Used for gateway-internal operations that bypass normal checks.
+        Scoped to the calling thread / asyncio task, like mutation_context.
         '''
-        with self._ctx_lock:
-            self._context_stack.append((self._can_mutate, self._context_mode))
-            self._prev_can_mutate = self._can_mutate
-            self._prev_active = self._active_context
-            self._prev_mode = self._context_mode
-
-            self._can_mutate = True
-            self._active_context = True
-            self._context_mode = ContextMode.INTERNAL
-            self._context_depth += 1
-            self._context_id = DeterministicUUIDFactory.make_context_id(
+        prev = self._ctx_state.get()
+        depth = prev.depth + 1
+        state = _ContextState(
+            can_mutate=True,
+            active=True,
+            mode=ContextMode.INTERNAL,
+            depth=depth,
+            context_id=DeterministicUUIDFactory.make_context_id(
                 agent_id=self.__class__.__name__,
                 tick=self._tick,
-                depth=self._context_depth
-            )
+                depth=depth
+            ),
+        )
+        token = self._ctx_state.set(state)
 
         try:
             yield self
         finally:
-            with self._ctx_lock:
-                if self._context_stack:
-                    prev_state = self._context_stack.pop()
-                    self._prev_can_mutate, self._prev_mode = prev_state
-
-                self._can_mutate = self._prev_can_mutate
-                self._active_context = bool(self._context_stack)
-                self._context_mode = self._prev_mode
-                self._context_depth = max(0, self._context_depth - 1)
+            self._ctx_state.reset(token)
 
     def assert_mutation_allowed(self, operation: str = 'unknown',
                                  payload_summary: str = '') -> None:
