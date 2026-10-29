@@ -42,12 +42,33 @@ def risk_engine():
 
 
 @pytest.fixture
-def safety_gate(risk_engine):
+def safety_gate(clean_portfolio):
     from trading.safety_gate import SafetyGate
 
     gate = SafetyGate()
-    gate.portfolio = risk_engine
+    gate.portfolio = clean_portfolio  # numeric total_value — what SafetyGate reads
     return gate
+
+
+@pytest.fixture
+def clean_portfolio():
+    """Portfolio with numeric equity and no positions (what SafetyGate actually reads)."""
+    from types import SimpleNamespace
+
+    return SimpleNamespace(total_value=100_000.0, positions={})
+
+
+@pytest.fixture
+def full_market():
+    """Complete real-shaped market snapshot required by ExecutionSanityChecker."""
+    return {
+        "last_price": 50_000.0,
+        "bid_price": 49_995.0,
+        "ask_price": 50_005.0,
+        "spread_bps": 2.0,
+        "adv_24h_quote": 1_000_000_000.0,
+        "current_vol_regime": "NORMAL",
+    }
 
 
 @pytest.fixture
@@ -59,6 +80,14 @@ def minimal_state():
         "total_equity": 100_000.0,
         "signal": "LONG",
         "confidence": 80,
+        "market": {
+            "last_price": 50_000.0,
+            "bid_price": 49_995.0,
+            "ask_price": 50_005.0,
+            "spread_bps": 2.0,
+            "adv_24h_quote": 1_000_000_000.0,
+            "current_vol_regime": "NORMAL",
+        },
     }
 
 
@@ -97,9 +126,12 @@ class TestRiskEngineIntegration:
             not allowed
         ), f"Expected rejected: 8%+5%={pct:.1f}% > 10%, got allowed={allowed}: {reason}"
 
-    def test_approved_clean_slate(self, safety_gate, risk_engine, minimal_state):
-        """Empty portfolio → APPROVED."""
-        risk_engine._positions = {}
+    def test_approved_clean_slate(self, clean_portfolio, full_market, minimal_state):
+        """Empty portfolio + full market data → APPROVED (no fail-open involved)."""
+        from trading.safety_gate import SafetyGate
+
+        safety_gate = SafetyGate(portfolio=clean_portfolio)
+        minimal_state["market"] = full_market
         result = safety_gate.check(
             signal={"agent_name": "Test", "signal": "LONG", "confidence": 80},
             state=minimal_state,
@@ -152,9 +184,13 @@ class TestRiskEngineV2Direct:
 
 
 class TestSafetyGateModes:
-    def test_backtest_mode_approves(self, safety_gate, minimal_state):
-        """BACKTEST mode → APPROVED."""
+    def test_backtest_mode_approves(self, clean_portfolio, full_market, minimal_state):
+        """BACKTEST mode + valid portfolio + full market data → APPROVED."""
+        from trading.safety_gate import SafetyGate
+
+        safety_gate = SafetyGate(portfolio=clean_portfolio)
         minimal_state["trading_mode"] = "BACKTEST"
+        minimal_state["market"] = full_market
         result = safety_gate.check(
             signal={"agent_name": "Test", "signal": "LONG", "confidence": 80},
             state=minimal_state,
@@ -215,9 +251,14 @@ class TestNormalizeSignal:
 
 
 class TestSafetyDisabled:
-    def test_disabled_returns_approved(self, safety_gate, minimal_state):
-        """SAFETY_STACK_ENABLED=false → APPROVED regardless."""
-        os.environ["SAFETY_STACK_ENABLED"] = "false"
+    def test_disabled_returns_approved(self, safety_gate, minimal_state, monkeypatch):
+        """SAFETY_STACK_ENABLED=False → APPROVED regardless.
+
+        The flag is read at import time (trading/safety_gate.py), so patch the module attribute.
+        """
+        import trading.safety_gate as sg
+
+        monkeypatch.setattr(sg, "SAFETY_STACK_ENABLED", False)
         result = safety_gate.check(
             signal={"agent_name": "Test", "signal": "LONG", "confidence": 80},
             state=minimal_state,
