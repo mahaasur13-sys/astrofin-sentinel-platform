@@ -156,9 +156,17 @@ def _utcnow() -> datetime:
 
 
 class OrderLedger:
-    def __init__(self, session_factory: Callable[[], Session], clock: Callable[[], datetime] = _utcnow):
+    def __init__(
+        self,
+        session_factory: Callable[[], Session],
+        clock: Callable[[], datetime] = _utcnow,
+        order_id_factory: Callable[[OrderRequest], str] | None = None,
+    ):
+        """order_id_factory: optional deterministic id source (e.g. uuid5 of the idempotency key);
+        defaults to random uuid4."""
         self._sf = session_factory
         self._clock = clock
+        self._order_id_factory = order_id_factory or (lambda _req: str(uuid.uuid4()))
 
     # ── helpers ──────────────────────────────────────────────────────────────
 
@@ -257,7 +265,7 @@ class OrderLedger:
             with self._sf() as s, s.begin():
                 now = self._now()
                 order = LedgerOrder(
-                    order_id=str(uuid.uuid4()),
+                    order_id=self._order_id_factory(req),
                     idempotency_key=req.idempotency_key,
                     payload_hash=phash,
                     signal_id=req.signal_id,
