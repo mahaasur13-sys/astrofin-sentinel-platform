@@ -15,6 +15,10 @@ from .models import (
     LedgerOrderEvent,
     OrderSide,
     OrderStatus,
+    GLOBAL_KEY,
+    KillScope,
+    LedgerKillSwitch,
+    LedgerKillSwitchAudit,
     create_ledger_schema,
 )
 from .repository import (
@@ -32,7 +36,20 @@ from .repository import (
     compute_event_hash,
 )
 
+from .killswitch import KillSwitch, KillSwitchAuditBroken, KillSwitchState  # noqa: E402
+from .recovery import RecoveryAction, RecoveryReport, recover  # noqa: E402
+
 __all__ = [
+    "GLOBAL_KEY",
+    "KillScope",
+    "KillSwitch",
+    "KillSwitchAuditBroken",
+    "KillSwitchState",
+    "LedgerKillSwitch",
+    "LedgerKillSwitchAudit",
+    "RecoveryAction",
+    "RecoveryReport",
+    "recover",
     "ALLOWED_TRANSITIONS",
     "TERMINAL_STATUSES",
     "GENESIS_HASH",

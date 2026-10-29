@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import enum
 
-from sqlalchemy import CheckConstraint, Column, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, Column, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 
 from .types import ExactDecimal, UTCDateTime
@@ -154,6 +154,55 @@ class LedgerFill(LedgerBase):
     recorded_at = Column(UTCDateTime(), nullable=False)
 
     __table_args__ = (Index("ix_ledger_fills_order", "order_id"),)
+
+
+class KillScope(str, enum.Enum):
+    GLOBAL = "GLOBAL"
+    SYMBOL = "SYMBOL"
+    STRATEGY = "STRATEGY"
+
+
+GLOBAL_KEY = "*"
+
+
+class LedgerKillSwitch(LedgerBase):
+    """Current kill-switch state, one row per (scope, scope_key). Changes only via KillSwitch."""
+
+    __tablename__ = "ledger_kill_switch"
+
+    switch_id = Column(Integer, primary_key=True, autoincrement=True)
+    scope = Column(String(16), nullable=False)
+    scope_key = Column(String(128), nullable=False)
+    engaged = Column(Boolean, nullable=False)
+    reason = Column(Text, nullable=False)
+    actor = Column(String(128), nullable=False)
+    engaged_at = Column(UTCDateTime(), nullable=True)
+    updated_at = Column(UTCDateTime(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("scope", "scope_key", name="uq_ledger_kill_switch_scope"),
+        CheckConstraint("scope IN ('GLOBAL','SYMBOL','STRATEGY')", name="ck_ledger_kill_switch_scope"),
+    )
+
+
+class LedgerKillSwitchAudit(LedgerBase):
+    """Append-only, hash-chained audit of every kill-switch change."""
+
+    __tablename__ = "ledger_kill_switch_audit"
+
+    audit_id = Column(Integer, primary_key=True, autoincrement=True)
+    seq = Column(Integer, nullable=False, unique=True)
+    scope = Column(String(16), nullable=False)
+    scope_key = Column(String(128), nullable=False)
+    action = Column(String(8), nullable=False)
+    engaged_after = Column(Boolean, nullable=False)
+    reason = Column(Text, nullable=False)
+    actor = Column(String(128), nullable=False)
+    at = Column(UTCDateTime(), nullable=False)
+    prev_hash = Column(String(64), nullable=False, unique=True)
+    entry_hash = Column(String(64), nullable=False, unique=True)
+
+    __table_args__ = (CheckConstraint("action IN ('ENGAGE','RELEASE')", name="ck_ledger_kill_audit_action"),)
 
 
 def create_ledger_schema(engine) -> None:
