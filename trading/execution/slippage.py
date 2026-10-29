@@ -8,6 +8,12 @@ from dataclasses import dataclass
 import logging
 log = logging.getLogger(__name__)
 
+# Single source of truth for the default slippage (bps, excluding spread).
+# SlippageModel (float, SafetyGate/TWAP/VWAP) adds the FULL spread on top.
+# The Decimal paper-fill model reuses this default but adds only HALF the spread,
+# so for equal inputs this (gate) estimate is never looser than the paper fill.
+DEFAULT_SLIPPAGE_BPS: float = 5.0
+
 
 
 @dataclass
@@ -26,7 +32,7 @@ class SlippageModel:
     slippage_bps is constant regardless of order size or market conditions.
     """
 
-    def __init__(self, slippage_bps: float = 5.0, spread_bps: float = 2.5):
+    def __init__(self, slippage_bps: float = DEFAULT_SLIPPAGE_BPS, spread_bps: float = 2.5):
         self.slippage_bps = slippage_bps
         self.spread_bps = spread_bps
 

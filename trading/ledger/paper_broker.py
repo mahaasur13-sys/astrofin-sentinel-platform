@@ -23,6 +23,8 @@ from datetime import datetime
 from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal, localcontext
 from typing import Callable
 
+from trading.execution.slippage import DEFAULT_SLIPPAGE_BPS
+
 from .killswitch import KillSwitch
 from .models import Decision, EventType, LedgerFill, LedgerOrder, OrderSide, OrderStatus
 from .repository import OrderLedger, OrderRequest
@@ -73,9 +75,13 @@ class MarketSnapshot:
 
 @dataclass(frozen=True)
 class FixedBpsSlippage:
-    """Decimal fixed-bps slippage applied on top of the half-spread (adverse direction)."""
+    """Decimal fixed-bps slippage applied on top of the HALF-spread (adverse direction).
 
-    slippage_bps: Decimal = Decimal("5")
+    Default comes from trading.execution.slippage.DEFAULT_SLIPPAGE_BPS (shared with SlippageModel,
+    which adds the FULL spread, so the SafetyGate estimate is never looser than this fill).
+    """
+
+    slippage_bps: Decimal = Decimal(str(DEFAULT_SLIPPAGE_BPS))
 
     def __post_init__(self) -> None:
         if not _is_dec(self.slippage_bps) or self.slippage_bps < 0:
