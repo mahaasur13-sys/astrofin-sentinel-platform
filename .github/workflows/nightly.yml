@@ -33,10 +33,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: ${{ env.PYTHON_DEFAULT }}
       - run: |
@@ -53,7 +53,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
       - name: Upload DORA report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: dora-report
           path: docs/operations/dora_latest.json
@@ -70,8 +70,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.report_only != 'true' || github.event_name == 'schedule'
     continue-on-error: true
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: ${{ env.PYTHON_DEFAULT }}
           cache: pip
@@ -99,7 +99,7 @@ jobs:
           pytest --tb=no -p no:cacheprovider \
             --cov=. --cov-report=xml --cov-config=/dev/null \
             -m "not slow and not network" 2>&1 | tail -10
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         if: always()
         with:
           name: coverage-xml
