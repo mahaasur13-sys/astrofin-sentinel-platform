@@ -9,9 +9,9 @@ import logging
 log = logging.getLogger(__name__)
 
 # Single source of truth for the default slippage (bps, excluding spread).
-# SlippageModel (float, SafetyGate/TWAP/VWAP) adds the FULL spread on top;
-# trading.ledger.paper_broker.FixedBpsSlippage (Decimal) adds HALF the spread.
-# So for equal inputs the gate estimate is >= the paper-broker fill: the gate is never looser.
+# SlippageModel (float, SafetyGate/TWAP/VWAP) adds the FULL spread on top.
+# The Decimal paper-fill model reuses this default but adds only HALF the spread,
+# so for equal inputs this (gate) estimate is never looser than the paper fill.
 DEFAULT_SLIPPAGE_BPS: float = 5.0
 
 
