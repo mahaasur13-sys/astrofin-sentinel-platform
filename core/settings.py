@@ -205,6 +205,15 @@ class Settings(BaseSettings):
     oos_overfit_threshold: float = Field(default=0.20, ge=0.0, le=1.0)
     oos_sharpe_degradation_limit: float = Field(default=0.50, ge=0.0, le=10.0)
     hyperopt_enabled: bool = Field(default=False)
+    # Offline OOS protocol (trading/validation). Used only when explicitly invoked by a backtest;
+    # nothing here enables live trading or runs automatically.
+    oos_dev_fraction: float = Field(default=0.6, gt=0.0, lt=1.0)
+    oos_validation_fraction: float = Field(default=0.2, gt=0.0, lt=1.0)
+    oos_embargo_bars: int = Field(default=5, ge=0)
+    oos_wf_train_bars: int = Field(default=60, ge=1)
+    oos_wf_test_bars: int = Field(default=20, ge=1)
+    oos_wf_anchored: bool = Field(default=False)
+    oos_protocol_dir: str = Field(default="data/oos_protocols")
 
     # ── Meta-RL composite ranking weights ─────────────────────────────
     cw_sharpe: float = Field(default=0.35, ge=0.0, le=1.0)
