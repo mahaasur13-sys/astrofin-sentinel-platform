@@ -9,6 +9,10 @@ Supported inputs (existing shapes in the repo):
 
 Nothing is guessed: strategy id/version, symbol, ``as_of`` and the confidence scale must be
 present in the dict or passed explicitly, otherwise ``SignalRefused`` lists them.
+
+``hypothesis_status`` (and ``hypothesis_check``) must be passed explicitly by the caller as
+keyword arguments; they are never read from the legacy dict and never inferred from
+``confidence`` or the direction. Missing → ``SignalRefused(missing=["hypothesis_status"])``.
 """
 
 from __future__ import annotations
@@ -49,6 +53,8 @@ def from_signal_dict(
     strategy_version: str | None = None,
     as_of: Any = None,
     created_at: Any = None,
+    hypothesis_status: Any = None,
+    hypothesis_check: str | None = None,
 ) -> Signal:
     """Convert a legacy dict. ``confidence_scale`` is mandatory (0..100 vs 0..1)."""
     if not isinstance(d, Mapping):
@@ -88,6 +94,13 @@ def from_signal_dict(
     fields["strategy_version"] = _pick(d, meta, "strategy_version", strategy_version)
     fields["as_of"] = _pick(d, meta, "as_of", as_of)
     fields["created_at"] = created_at if created_at is not None else d.get("timestamp")
+
+    # Hypothesis status: explicit caller input only (no inference from confidence/direction).
+    if hypothesis_status is None:
+        missing.append("hypothesis_status")
+    else:
+        fields["hypothesis_status"] = hypothesis_status
+    fields["hypothesis_check"] = hypothesis_check
 
     evidence: list[Evidence] = []
     agent = d.get("agent_name")

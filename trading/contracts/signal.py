@@ -1,4 +1,4 @@
-"""trading/contracts/signal.py — unified Signal contract (schema v1.0).
+"""trading/contracts/signal.py — unified Signal contract (schema v1.1).
 
 One immutable object describes a trading decision produced by research/strategy code
 before it reaches risk/execution. Rules:
@@ -9,6 +9,19 @@ before it reaches risk/execution. Rules:
 * Money, price and quantity are ``Decimal`` at the boundary. ``float`` input is converted
   via ``str()`` (shortest repr), NaN/Inf/bool are refused.
 * Timestamps are timezone-aware and normalised to UTC; naive datetimes are refused.
+
+Three independent layers — never collapse one into another:
+
+1. **Data validity** (this module): malformed / missing / inconsistent fields → ``SignalRefused``.
+   A refused signal does not exist.
+2. **Hypothesis status** (``hypothesis_status``, schema 1.1): the outcome of an explicit,
+   named check (``hypothesis_check``) of the strategy hypothesis — CONFIRMED / REFUTED /
+   INSUFFICIENT_DATA. It is supplied by the caller and is NEVER inferred from ``confidence``
+   or from the verdict. ``verdict`` (ENTER/HOLD/AVOID) is the research decision and is a
+   separate field. Rules: ENTER requires CONFIRMED; INSUFFICIENT_DATA allows only HOLD/AVOID;
+   ``hypothesis_check`` is required unless INSUFFICIENT_DATA.
+3. **Execution permission** (``trading.safety_gate.SafetyGate``, not here): a valid,
+   CONFIRMED, ENTER signal is still only a request; risk/safety decides whether it may trade.
 
 This module is NOT wired into any live/backtest path (PR 2 scope: contract only).
 """
@@ -24,7 +37,7 @@ from decimal import Decimal, InvalidOperation
 from enum import Enum
 from typing import Any
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 
 
 class Side(str, Enum):
@@ -37,6 +50,12 @@ class Verdict(str, Enum):
     ENTER = "ENTER"  # actionable: open a position on ``side``
     HOLD = "HOLD"  # no action
     AVOID = "AVOID"  # explicit "do not trade"
+
+
+class HypothesisStatus(str, Enum):
+    CONFIRMED = "CONFIRMED"  # explicit check passed
+    REFUTED = "REFUTED"  # explicit check failed
+    INSUFFICIENT_DATA = "INSUFFICIENT_DATA"  # check could not be run / not enough data
 
 
 class SignalRefused(ValueError):
@@ -122,6 +141,8 @@ class Signal:
     as_of: datetime  # market data timestamp the decision is based on (UTC)
     confidence: Decimal  # 0..1
     evidence: tuple[Evidence, ...]
+    hypothesis_status: HypothesisStatus
+    hypothesis_check: str | None = None  # id/name of the explicit check; None only for INSUFFICIENT_DATA
     entry_price: Decimal | None = None
     stop_price: Decimal | None = None
     target_price: Decimal | None = None
@@ -143,6 +164,8 @@ class Signal:
             "strategy_id": self.strategy_id,
             "strategy_version": self.strategy_version,
             "as_of": self.as_of.isoformat(),
+            "hypothesis_status": self.hypothesis_status.value,
+            "hypothesis_check": self.hypothesis_check,
         }
         raw = json.dumps(ident, sort_keys=True, separators=(",", ":")).encode()
         return hashlib.sha256(raw).hexdigest()
@@ -163,6 +186,8 @@ class Signal:
             "as_of": self.as_of.isoformat(),
             "confidence": str(self.confidence),
             "evidence": [e.to_dict() for e in self.evidence],
+            "hypothesis_status": self.hypothesis_status.value,
+            "hypothesis_check": self.hypothesis_check,
             "entry_price": _d(self.entry_price),
             "stop_price": _d(self.stop_price),
             "target_price": _d(self.target_price),
@@ -170,7 +195,9 @@ class Signal:
         }
 
 
-_REQUIRED = ("symbol", "side", "verdict", "strategy_id", "strategy_version", "created_at", "as_of", "confidence", "evidence")
+_REQUIRED = ("symbol", "side", "verdict", "strategy_id", "strategy_version", "created_at", "as_of", "confidence", "evidence",
+             "hypothesis_status")
+_OPTIONAL = ("hypothesis_check",)
 _PRICES = ("entry_price", "stop_price", "target_price", "quantity")
 
 
@@ -180,7 +207,7 @@ def _nonempty_str(v: Any) -> bool:
 
 def build_signal(**fields: Any) -> Signal:
     """Validate raw fields and build a ``Signal`` or raise ``SignalRefused``."""
-    unknown = set(fields) - set(_REQUIRED) - set(_PRICES)
+    unknown = set(fields) - set(_REQUIRED) - set(_OPTIONAL) - set(_PRICES)
     missing = [k for k in _REQUIRED if fields.get(k) is None]
     invalid: dict[str, str] = {f: "unknown field" for f in sorted(unknown)}
     out: dict[str, Any] = {}
@@ -193,7 +220,7 @@ def build_signal(**fields: Any) -> Signal:
             else:
                 invalid[k] = "empty or not a string"
 
-    for k, enum in (("side", Side), ("verdict", Verdict)):
+    for k, enum in (("side", Side), ("verdict", Verdict), ("hypothesis_status", HypothesisStatus)):
         v = fields.get(k)
         if v is not None:
             try:
@@ -258,6 +285,21 @@ def build_signal(**fields: Any) -> Signal:
             invalid["stop_price"] = f"must be {'below' if sign > 0 else 'above'} entry_price for {side.value}"
         if target is not None and sign * (target - entry) <= 0:
             invalid["target_price"] = f"must be {'above' if sign > 0 else 'below'} entry_price for {side.value}"
+
+    hc = fields.get("hypothesis_check")
+    if hc is not None:
+        if _nonempty_str(hc):
+            out["hypothesis_check"] = hc.strip()
+        else:
+            invalid["hypothesis_check"] = "empty or not a string"
+    status = out.get("hypothesis_status")
+    if status in (HypothesisStatus.CONFIRMED, HypothesisStatus.REFUTED) and hc is None:
+        missing.append("hypothesis_check")
+    if status is not None and verdict is not None:
+        if verdict is Verdict.ENTER and status is not HypothesisStatus.CONFIRMED:
+            invalid["hypothesis_status"] = f"ENTER requires CONFIRMED (got {status.value})"
+        elif status is HypothesisStatus.INSUFFICIENT_DATA and verdict not in (Verdict.HOLD, Verdict.AVOID):
+            invalid["hypothesis_status"] = "INSUFFICIENT_DATA allows only HOLD or AVOID"
 
     if missing or invalid:
         raise SignalRefused(missing, invalid)
