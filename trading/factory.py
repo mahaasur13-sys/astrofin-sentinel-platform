@@ -16,6 +16,19 @@ import logging
 log = logging.getLogger(__name__)
 
 
+LIVE_TRADING_FLAG_ENV = "ASTROFIN_ALLOW_LIVE_TRADING"
+LIVE_TRADING_FLAG_VALUE = "I_UNDERSTAND"
+
+
+class LiveTradingNotAllowedError(RuntimeError):
+    """Raised when a LIVE mode is requested without the explicit opt-in flag."""
+
+
+def live_trading_allowed() -> bool:
+    """True only if ASTROFIN_ALLOW_LIVE_TRADING is exactly 'I_UNDERSTAND'."""
+    return os.environ.get(LIVE_TRADING_FLAG_ENV) == LIVE_TRADING_FLAG_VALUE
+
+
 def _resolve_mode() -> TradingMode:
     """Resolve trading mode from env, defaulting to PAPER for safety."""
     mode_str = os.getenv("TRADING_MODE", "PAPER").upper()
@@ -51,6 +64,14 @@ def get_broker(mode: TradingMode | None = None) -> BaseBroker:
         return get_paper_broker()
 
     if mode in (TradingMode.LIVE_LIMITED, TradingMode.LIVE_FULL):
+        # Live gate: real exchange execution requires a separate explicit opt-in.
+        # Checked BEFORE importing/instantiating BinanceBroker (no keys loaded, no network).
+        if not live_trading_allowed():
+            raise LiveTradingNotAllowedError(
+                f"Live trading mode {mode.value} is disabled: set "
+                f"{LIVE_TRADING_FLAG_ENV}={LIVE_TRADING_FLAG_VALUE} to allow real order execution. "
+                "Default mode is PAPER."
+            )
         from .broker.binance import BinanceBroker
         broker = BinanceBroker(paper=False)
         broker.connect()

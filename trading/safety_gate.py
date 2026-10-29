@@ -43,7 +43,8 @@ SANITY_CHECKER_ENABLED = os.getenv("SANITY_CHECKER_ENABLED", "true").lower() == 
 class SafetyStatus(Enum):
     APPROVED = "APPROVED"
     REDUCED = "REDUCED"
-    REJECTED = "REJECTED"
+    REJECTED = "REJECTED"  # policy violation on valid data (mode/kill switch/exposure/sanity)
+    BLOCKED = "BLOCKED"  # check could not be performed (error / missing data) — fail-closed
 
 
 @dataclass
@@ -55,7 +56,10 @@ class SafetyDecision:
     checks_passed: list[str] = field(default_factory=list)
     checks_failed: list[str] = field(default_factory=list)
     blocked_reason: str | None = None
-    gate_version: str = "1.0.0"
+    adjusted_qty: float | None = None  # set when sanity SCALED the order (asset units)
+    slippage_bps: float | None = None  # slippage estimate used by sanity
+    slippage_source: str | None = None  # 'market' (provided) | 'model' (SlippageModel)
+    gate_version: str = "1.1.0"
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -73,6 +77,19 @@ class SafetyDecision:
     @property
     def is_reduced(self) -> bool:
         return self.status == SafetyStatus.REDUCED
+
+    @property
+    def is_blocked(self) -> bool:
+        return self.status == SafetyStatus.BLOCKED
+
+    @property
+    def is_denied(self) -> bool:
+        """REJECTED or BLOCKED — execution must stop, no order."""
+        return self.status in (SafetyStatus.REJECTED, SafetyStatus.BLOCKED)
+
+
+def _blocked(reason: str, code: str) -> SafetyDecision:
+    return SafetyDecision(status=SafetyStatus.BLOCKED, reason=reason, blocked_reason=code)
 
 
 # ─── SafetyGate ───────────────────────────────────────────────────────────────
@@ -92,8 +109,13 @@ class SafetyGate:
         self,
         portfolio: Optional[Any] = None,  # forward ref
         market_mode: Optional["MarketMode"] = None,
+        slippage_model: Optional[Any] = None,
     ):
         self.portfolio = portfolio
+        # Used when market data has no slippage_bp_estimate. None → SlippageModel
+        # (trading/execution/slippage.py) with its configured slippage_bps and the
+        # REAL spread_bps from market data.
+        self.slippage_model = slippage_model
         self.market_mode = market_mode
         self._log = SAFETY_STACK_ENABLED
         self._call_count = 0
@@ -109,13 +131,34 @@ class SafetyGate:
         current_price: float = 0.0,
         symbol: str = "BTCUSDT",
         suggested_position_pct: float = 1.0,
+        order_qty: float | None = None,
     ) -> SafetyDecision:
         """
         Synchronous check. Returns SafetyDecision immediately.
 
         Если SAFETY_STACK_ENABLED=False — возвращает APPROVED без overhead.
+
+        Fail-closed: любое исключение внутри проверки → BLOCKED (safety_gate_error).
+        REJECTED — нарушение политики; BLOCKED — проверку выполнить не удалось.
+        Оба статуса останавливают исполнение.
         """
         self._call_count += 1
+        try:
+            return self._check_impl(signal, state, current_price, symbol, suggested_position_pct, order_qty)
+        except Exception as e:
+            log.exception("[SAFETY-STACK] check() failed — fail-closed BLOCK")
+            self._total_rejected += 1
+            return _blocked(f"SafetyGate error={type(e).__name__} — fail-closed", "safety_gate_error")
+
+    def _check_impl(
+        self,
+        signal: Any,
+        state: dict,
+        current_price: float,
+        symbol: str,
+        suggested_position_pct: float,
+        order_qty: float | None = None,
+    ) -> SafetyDecision:
 
         if not SAFETY_STACK_ENABLED:
             return SafetyDecision(
@@ -131,13 +174,16 @@ class SafetyGate:
 
         checks_passed: list[str] = []
         checks_failed: list[str] = []
+        scaled_qty: float | None = None
+        scaled_reason = ""
+        sanity_slippage: tuple[float | None, str | None] = (None, None)
 
         # ── 1. ModeEnforcer ───────────────────────────────────────────────────
         if MODE_ENFORCER_ENABLED:
             mode_decision = self._check_mode(state, suggested_position_pct)
             if not mode_decision.is_approved:
                 self._total_rejected += 1
-                self._log_event("MODE", "REJECTED", mode_decision.reason)
+                self._log_event("MODE", mode_decision.status.value, mode_decision.reason)
                 return mode_decision
             checks_passed.append("ModeEnforcer")
         else:
@@ -152,9 +198,9 @@ class SafetyGate:
                 suggested_position_pct,
                 current_price,
             )
-            if risk_decision.is_rejected:
+            if risk_decision.is_denied:
                 self._total_rejected += 1
-                self._log_event("RISK", "REJECTED", risk_decision.reason)
+                self._log_event("RISK", risk_decision.status.value, risk_decision.reason)
                 return risk_decision
             if risk_decision.is_reduced:
                 self._total_reduced += 1
@@ -172,16 +218,37 @@ class SafetyGate:
                 sig_direction,
                 current_price,
                 state,
+                order_qty=order_qty,
+                suggested_position_pct=suggested_position_pct,
             )
-            if sanity_decision.is_rejected:
+            if sanity_decision.is_denied:
                 self._total_rejected += 1
-                self._log_event("SANITY", "REJECTED", sanity_decision.reason)
+                self._log_event("SANITY", sanity_decision.status.value, sanity_decision.reason)
                 return sanity_decision
+            sanity_slippage = (sanity_decision.slippage_bps, sanity_decision.slippage_source)
+            if sanity_decision.is_reduced:
+                self._total_reduced += 1
+                self._log_event("SANITY", "REDUCED", sanity_decision.reason)
+                checks_failed.append("ExecutionSanityChecker(scaled)")
+                scaled_qty = sanity_decision.adjusted_qty
+                scaled_reason = sanity_decision.reason
             checks_passed.append("ExecutionSanityChecker")
         else:
             checks_passed.append("ExecutionSanityChecker(disabled)")
 
         # ── All passed ───────────────────────────────────────────────────────
+        if scaled_qty is not None:
+            return SafetyDecision(
+                status=SafetyStatus.REDUCED,
+                reason=f"{len(checks_passed)} checks passed; {scaled_reason}",
+                reduced_position_pct=suggested_position_pct,
+                checks_passed=checks_passed,
+                checks_failed=checks_failed,
+                blocked_reason="sanity_scaled",
+                adjusted_qty=scaled_qty,
+                slippage_bps=sanity_slippage[0],
+                slippage_source=sanity_slippage[1],
+            )
         reason = f"All {len(checks_passed)} checks passed. Signal: {sig_direction} conf={sig_confidence}"
         self._log_event("GATE", "APPROVED", reason)
 
@@ -191,6 +258,8 @@ class SafetyGate:
             reduced_position_pct=suggested_position_pct,
             checks_passed=checks_passed,
             checks_failed=checks_failed,
+            slippage_bps=sanity_slippage[0],
+            slippage_source=sanity_slippage[1],
         )
 
     async def check_async(
@@ -202,7 +271,7 @@ class SafetyGate:
         suggested_position_pct: float = 1.0,
     ) -> SafetyDecision:
         """Async wrapper — delegates to sync check (all components are fast)."""
-        return self.check(signal, state, current_price, symbol, suggested_position_pct)
+        return self.check(signal, state, current_price, symbol, suggested_position_pct)  # order_qty: sync API
 
     # ── Internal Checks ─────────────────────────────────────────────────────────
 
@@ -230,7 +299,11 @@ class SafetyGate:
             is_market = state.get("order_type") != "limit"
             is_limit = state.get("order_type") == "limit"
             is_option = "option" in sig_direction.lower()
-            equity = self.portfolio.total_value if self.portfolio else 100_000.0
+            # Same equity resolution as _check_risk: portfolio may be any object
+            # (e.g. RiskEngineV2) without a numeric total_value.
+            equity = getattr(self.portfolio, "total_value", None) if self.portfolio else None
+            if not isinstance(equity, (int, float)):  # noqa: UP038
+                equity = 100_000.0
 
             ok, msg = enforcer.check_order(
                 proposed_size_pct=proposed_size_pct,
@@ -253,10 +326,11 @@ class SafetyGate:
                 reason=f"ModeEnforcer: {mode.value} — {msg}",
             )
         except Exception as e:
-            # Fail-open: allow on error
-            return SafetyDecision(
-                status=SafetyStatus.APPROVED,
-                reason=f"ModeEnforcer error={e} — fail-open",
+            # Fail-closed: deny on error
+            log.exception("[SAFETY-STACK] ModeEnforcer check failed — fail-closed BLOCK")
+            return _blocked(
+                f"ModeEnforcer error={type(e).__name__} — fail-closed",
+                "mode_check_error",
             )
 
     def _check_risk(
@@ -316,8 +390,12 @@ class SafetyGate:
                         reason=f"RiskEngineV2: {kill_msg}",
                         blocked_reason=f"kill_switch:{kill_msg[:40]}",
                     )
-            except Exception:
-                pass  # skip kill switch on error
+            except Exception as e:
+                log.exception("[SAFETY-STACK] kill switch check failed — fail-closed BLOCK")
+                return _blocked(
+                    f"RiskEngineV2: kill switch check error={type(e).__name__} — fail-closed",
+                    "kill_switch_error",
+                )
 
             # 2. Exposure check
             try:
@@ -328,8 +406,12 @@ class SafetyGate:
                         reason=f"RiskEngineV2: {msg}",
                         blocked_reason=f"exposure:{msg[:40]}",
                     )
-            except Exception:
-                pass  # skip exposure check on error
+            except Exception as e:
+                log.exception("[SAFETY-STACK] exposure check failed — fail-closed BLOCK")
+                return _blocked(
+                    f"RiskEngineV2: exposure check error={type(e).__name__} — fail-closed",
+                    "exposure_error",
+                )
 
             # 3. Correlation check (only if we have enough history)
             try:
@@ -341,8 +423,12 @@ class SafetyGate:
                             reason=f"RiskEngineV2: {msg}",
                             blocked_reason=f"correlation:{msg[:40]}",
                         )
-            except Exception:
-                pass  # skip correlation on error
+            except Exception as e:
+                log.exception("[SAFETY-STACK] correlation check failed — fail-closed BLOCK")
+                return _blocked(
+                    f"RiskEngineV2: correlation check error={type(e).__name__} — fail-closed",
+                    "correlation_error",
+                )
 
             # 4. Volume check (confidence-based)
             min_confidence = 40 + (1.0 - suggested_position_pct) * 20
@@ -359,10 +445,106 @@ class SafetyGate:
                 reason="RiskEngineV2: all checks passed",
             )
         except Exception as e:
-            return SafetyDecision(
-                status=SafetyStatus.APPROVED,
-                reason=f"RiskEngineV2 error={e} — fail-open",
+            log.exception("[SAFETY-STACK] RiskEngineV2 check failed — fail-closed BLOCK")
+            return _blocked(
+                f"RiskEngineV2 error={type(e).__name__} — fail-closed",
+                "risk_check_error",
             )
+
+    # Required real market inputs for ExecutionSanityChecker.validate().
+    # Values are NEVER invented: a missing field → BLOCKED sanity_missing_data:<fields>.
+    SANITY_REQUIRED_FIELDS = ("last_price", "spread_bps", "adv_24h", "current_vol_regime", "order_qty")
+
+    @staticmethod
+    def _finite_pos(v: Any) -> bool:
+        import math
+
+        return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v > 0
+
+    def _build_market_state(self, symbol: str, current_price: float, market: dict) -> tuple[Any, list[str]]:
+        """Build MarketState from provided data only. Returns (MarketState|None, missing_fields).
+
+        market keys (all real, caller-provided):
+          last_price            — else current_price argument if > 0
+          spread_bps            — else computed from bid_price/ask_price if both given
+          adv_24h_quote         — 24h volume in QUOTE currency (e.g. USDT)
+          volume_24h_base       — 24h volume in BASE currency → × last_price
+          current_vol_regime    — LOW | NORMAL | HIGH | EXTREME
+          bid_price, ask_price, realized_vol_20d — optional (NaN if unknown; validate() does not read them)
+        """
+        import math
+
+        from trading.execution.sanity import MarketState
+
+        missing: list[str] = []
+        last_price = market.get("last_price")
+        if not self._finite_pos(last_price) and self._finite_pos(current_price):
+            last_price = current_price
+        if not self._finite_pos(last_price):
+            missing.append("last_price")
+
+        bid, ask = market.get("bid_price"), market.get("ask_price")
+        spread_bps = market.get("spread_bps")
+        if spread_bps is None and self._finite_pos(bid) and self._finite_pos(ask) and ask >= bid:
+            spread_bps = (ask - bid) / ((ask + bid) / 2) * 10_000
+        if not (isinstance(spread_bps, (int, float)) and math.isfinite(spread_bps) and spread_bps >= 0):
+            missing.append("spread_bps")
+
+        adv = market.get("adv_24h_quote")
+        if adv is None and market.get("volume_24h_base") is not None and self._finite_pos(last_price):
+            base = market.get("volume_24h_base")
+            adv = base * last_price if self._finite_pos(base) else None
+        if not self._finite_pos(adv):
+            missing.append("adv_24h")
+
+        regime = market.get("current_vol_regime")
+        if regime not in ("LOW", "NORMAL", "HIGH", "EXTREME"):
+            missing.append("current_vol_regime")
+
+        if missing:
+            return None, missing
+        nan = float("nan")
+        return (
+            MarketState(
+                symbol=symbol,
+                last_price=float(last_price),
+                bid_price=float(bid) if self._finite_pos(bid) else nan,
+                ask_price=float(ask) if self._finite_pos(ask) else nan,
+                spread_bps=float(spread_bps),
+                adv_24h=float(adv),
+                realized_vol_20d=float(market.get("realized_vol_20d", nan)),
+                current_vol_regime=regime,
+            ),
+            [],
+        )
+
+    def _resolve_order_qty(self, order_qty: float | None, suggested_position_pct: float, price: float) -> float | None:
+        if self._finite_pos(order_qty):
+            return float(order_qty)
+        equity = getattr(self.portfolio, "total_value", None) if self.portfolio is not None else None
+        if self._finite_pos(equity) and self._finite_pos(suggested_position_pct) and self._finite_pos(price):
+            return equity * suggested_position_pct / price
+        return None
+
+    def _estimate_slippage(self, market: dict, market_state: Any, side: str, qty: float) -> tuple[float | None, str]:
+        """Return (slippage_bps, source). source: 'market' | 'model'. None → cannot estimate."""
+        import math
+
+        provided = market.get("slippage_bp_estimate")
+        if provided is not None:
+            ok = isinstance(provided, (int, float)) and not isinstance(provided, bool) and math.isfinite(provided)
+            return (float(provided) if ok and provided >= 0 else None), "market"
+        try:
+            from trading.execution.slippage import SlippageModel
+
+            model = self.slippage_model or SlippageModel(spread_bps=market_state.spread_bps)
+            res = model.calculate(side.lower(), qty, market_state.last_price)
+            bps = getattr(res, "slippage_bps", None)
+            if isinstance(bps, (int, float)) and math.isfinite(bps) and bps >= 0:
+                return float(bps), "model"
+        except Exception:
+            log.exception("[SAFETY-STACK] SlippageModel failed")
+        return None, "model"
 
     def _check_sanity(
         self,
@@ -370,37 +552,67 @@ class SafetyGate:
         sig_direction: str,
         current_price: float,
         state: dict,
+        order_qty: float | None = None,
+        suggested_position_pct: float = 1.0,
     ) -> SafetyDecision:
-        """ExecutionSanityChecker check."""
+        """ExecutionSanityChecker.validate(OrderRequest, MarketState) on real provided data."""
         try:
-            from trading.execution.sanity import ExecutionSanityChecker
+            from trading.execution.sanity import ExecutionSanityChecker, OrderRequest, ValidationStatus
 
-            checker = ExecutionSanityChecker()
-            checker.quote(symbol, current_price)
+            market = state.get("market") or {}
+            if not isinstance(market, dict):
+                market = {}
+            market_state, missing = self._build_market_state(symbol, current_price, market)
+            if market_state is not None:
+                price = market_state.last_price
+            elif self._finite_pos(market.get("last_price")):
+                price = market["last_price"]
+            else:
+                price = current_price if self._finite_pos(current_price) else None
+            qty = self._resolve_order_qty(order_qty, suggested_position_pct, price) if price else None
+            if qty is None and "last_price" not in missing:
+                missing.append("order_qty")
+            if missing:
+                fields = ",".join(missing)
+                return _blocked(f"ExecutionSanity: missing market data: {fields}", f"sanity_missing_data:{fields}")
 
-            sanity = checker.check(
+            side = "SELL" if str(sig_direction).upper() in ("SHORT", "SELL", "STRONG_SELL") else "BUY"
+            slip_bps, slip_src = self._estimate_slippage(market, market_state, side, qty)
+            if slip_bps is None:
+                d = _blocked(f"ExecutionSanity: no slippage estimate (source={slip_src})", "sanity_missing_data:slippage")
+                d.slippage_source = slip_src
+                return d
+            extra = {"slippage_bps": slip_bps, "slippage_source": slip_src}
+            order = OrderRequest(
                 symbol=symbol,
-                direction=sig_direction,
-                price=current_price,
-                volume_24h=state.get("volume_24h", 1_000_000_000),
+                side=side,
+                qty=qty,
+                price=market_state.last_price,
+                order_type=str(state.get("order_type", "market")).upper(),
+                slippage_bp_estimate=slip_bps,
             )
+            result = ExecutionSanityChecker().validate(order, market_state)
 
-            if not sanity.is_sane:
+            if result.status == ValidationStatus.REJECTED:
+                code = result.reason.split(":", 1)[0]
                 return SafetyDecision(
                     status=SafetyStatus.REJECTED,
-                    reason=sanity.reason,
-                    blocked_reason=f"sanity_failed:{sanity.issue}",
+                    reason=f"ExecutionSanity: {result.reason}",
+                    blocked_reason=f"sanity_failed:{code}",
+                    **extra,
                 )
-
-            return SafetyDecision(
-                status=SafetyStatus.APPROVED,
-                reason=f"ExecutionSanity: {sanity.reason}",
-            )
+            if result.status == ValidationStatus.SCALED:
+                return SafetyDecision(
+                    status=SafetyStatus.REDUCED,
+                    reason=f"ExecutionSanity: {result.reason} qty {qty:.8f}->{result.adjusted_qty:.8f}",
+                    blocked_reason="sanity_scaled",
+                    adjusted_qty=result.adjusted_qty,
+                    **extra,
+                )
+            return SafetyDecision(status=SafetyStatus.APPROVED, reason=f"ExecutionSanity: {result.reason}", **extra)
         except Exception as e:
-            return SafetyDecision(
-                status=SafetyStatus.APPROVED,
-                reason=f"ExecutionSanityChecker error={e} — fail-open",
-            )
+            log.exception("[SAFETY-STACK] ExecutionSanityChecker failed — fail-closed BLOCK")
+            return _blocked(f"ExecutionSanityChecker error={type(e).__name__} — fail-closed", "sanity_check_error")
 
     # ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -416,7 +628,7 @@ class SafetyGate:
     def _log_event(self, stage: str, status: str, reason: str):
         if self._log:
             ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
-            icon = {"APPROVED": "✅", "REDUCED": "⚠️", "REJECTED": "🚫"}.get(
+            icon = {"APPROVED": "✅", "REDUCED": "⚠️", "REJECTED": "🚫", "BLOCKED": "⛔"}.get(
                 status, "?"
             )
             log.info(f"[SAFETY-STACK] {ts} {stage:8s} {icon} {status:8s} — {reason}")
