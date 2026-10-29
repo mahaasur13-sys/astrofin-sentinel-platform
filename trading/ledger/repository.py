@@ -29,6 +29,7 @@ from .models import (
     LedgerOrderEvent,
     OrderSide,
     OrderStatus,
+    TERMINAL_STATUSES,
 )
 
 GENESIS_HASH = "0" * 64
@@ -519,6 +520,21 @@ class OrderLedger:
             for f in fs:
                 s.expunge(f)
             return fs
+
+    def open_orders(self) -> list[LedgerOrder]:
+        """All orders in a non-terminal status, deterministic order (created_at, order_id)."""
+        terminal = [s.value for s in TERMINAL_STATUSES]
+        with self._sf() as s:
+            os_ = list(
+                s.execute(
+                    select(LedgerOrder)
+                    .where(LedgerOrder.status.not_in(terminal))
+                    .order_by(LedgerOrder.created_at, LedgerOrder.order_id)
+                ).scalars()
+            )
+            for o in os_:
+                s.expunge(o)
+            return os_
 
     def verify_chain(self, order_id: str) -> int:
         """Recompute the hash chain. Returns number of events; raises ChainBroken on tampering."""
