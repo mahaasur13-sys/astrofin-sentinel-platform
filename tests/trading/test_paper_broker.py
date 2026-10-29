@@ -63,6 +63,9 @@ def _env(**kw):
 
     led = OrderLedger(sessionmaker(bind=eng, autoflush=False, expire_on_commit=False), clock=clock,
                       order_id_factory=oid_f)
+    if "kill_switch" not in kw:
+        from trading.ledger.killswitch import KillSwitch
+        kw["kill_switch"] = KillSwitch(sessionmaker(bind=eng, autoflush=False, expire_on_commit=False), clock)
     return DeterministicPaperBroker(led, clock, **kw), led, eng
 
 
@@ -332,3 +335,15 @@ def test_not_wired_into_factory_or_live():
     import trading.factory as f
 
     assert "Deterministic" not in pathlib.Path(f.__file__).read_text()
+
+
+def test_broker_requires_kill_switch():
+    _, led, _ = _env()
+    with pytest.raises(TypeError):
+        DeterministicPaperBroker(led, _Clock())
+
+
+def test_broker_rejects_none_kill_switch():
+    _, led, _ = _env()
+    with pytest.raises(TypeError):
+        DeterministicPaperBroker(led, _Clock(), kill_switch=None)

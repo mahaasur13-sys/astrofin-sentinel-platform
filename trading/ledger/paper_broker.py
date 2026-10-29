@@ -9,7 +9,8 @@ Properties:
   * idempotent: resubmitting the same idempotency_key returns the existing order and never fills twice;
   * missing/invalid market data → REFUSAL BLOCKED; a price is never invented.
 
-Optional ``kill_switch``: checked before every new submission (engaged or unreadable → BLOCKED).
+Required ``kill_switch``: checked before every new submission (engaged or unreadable → BLOCKED);
+there is no way to construct the broker without one (fail-closed by construction).
 Not wired into trading.factory / orchestrator / live paths; the legacy trading.paper_broker.PaperBroker
 is untouched.
 """
@@ -142,7 +143,7 @@ class DeterministicPaperBroker:
         price_quantum: Decimal = Decimal("1e-8"),
         fee_quantum: Decimal = Decimal("1e-8"),
         max_snapshot_age_s: Decimal | None = None,
-        kill_switch: KillSwitch | None = None,
+        kill_switch: KillSwitch,
     ):
         for name, q in (("price_quantum", price_quantum), ("fee_quantum", fee_quantum)):
             if not _is_dec(q) or q <= 0 or q.as_tuple().exponent < -18:
@@ -154,6 +155,8 @@ class DeterministicPaperBroker:
         self.price_quantum = price_quantum
         self.fee_quantum = fee_quantum
         self.max_snapshot_age_s = max_snapshot_age_s
+        if not isinstance(kill_switch, KillSwitch) and not callable(getattr(kill_switch, "check", None)):
+            raise TypeError("kill_switch is required (fail-closed): pass a KillSwitch")
         self.kill_switch = kill_switch
 
     # ── validation ───────────────────────────────────────────────────────────
@@ -216,18 +219,17 @@ class DeterministicPaperBroker:
         if not created:
             return PaperResult(led.get_order(oid), led.fills(oid), created=False)
 
-        if self.kill_switch is not None:
-            scopes: list[list[str]] = []
-            try:
-                ks = self.kill_switch.check(symbol=order.symbol, strategy=order.strategy_version)
-                engaged, why = ks.engaged, ks.reason
-                scopes = [list(x) for x in ks.scopes]
-            except Exception as e:  # noqa: BLE001 — fail closed
-                engaged, why = True, f"kill_switch_unreadable: {type(e).__name__}"
-            if engaged:
-                led.record_decision(oid, Decision.BLOCKED, f"kill_switch_engaged: {why}",
-                                    payload={"kill_switch": {"scopes": scopes, "reason": why}})
-                return PaperResult(led.get_order(oid), [], created=True)
+        scopes: list[list[str]] = []
+        try:
+            ks = self.kill_switch.check(symbol=order.symbol, strategy=order.strategy_version)
+            engaged, why = ks.engaged, ks.reason
+            scopes = [list(x) for x in ks.scopes]
+        except Exception as e:  # noqa: BLE001 — fail closed
+            engaged, why = True, f"kill_switch_unreadable: {type(e).__name__}"
+        if engaged:
+            led.record_decision(oid, Decision.BLOCKED, f"kill_switch_engaged: {why}",
+                                payload={"kill_switch": {"scopes": scopes, "reason": why}})
+            return PaperResult(led.get_order(oid), [], created=True)
 
         problem = self._market_data_problem(order, snapshot)
         if problem is not None:
