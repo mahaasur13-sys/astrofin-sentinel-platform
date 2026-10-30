@@ -11,7 +11,24 @@ from unittest import mock
 import pytest
 
 import trading.broker.binance as bn
-import trading.paper_broker as pb
+
+# trading.paper_broker -> agents.data_provider imports yfinance at module level.
+# yfinance is not in requirements and these tests never fetch prices, so when it is
+# missing a stub is put in sys.modules only for this import and removed right after
+# (other tests use pytest.importorskip("yfinance") and must still skip).
+try:
+    import yfinance  # noqa: F401
+
+    import trading.paper_broker as pb
+except ModuleNotFoundError:
+    import sys
+
+    sys.modules["yfinance"] = types.ModuleType("yfinance")
+    try:
+        import trading.paper_broker as pb
+    finally:
+        del sys.modules["yfinance"]
+
 from trading.broker.base import OrderSide, OrderStatus, OrderType
 
 CID_RE = re.compile(r"^[\.A-Z\:/a-z0-9_-]{1,36}$")
