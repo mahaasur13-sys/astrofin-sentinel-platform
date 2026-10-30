@@ -92,13 +92,25 @@ def candles_are_fresh(rows: list, bar: str, *, now: float | None = None, max_bar
     return (now - newest) <= limit
 
 
+def _row_ts(row: Any) -> float:
+    try:
+        return float(row[0])
+    except (TypeError, ValueError, IndexError):
+        return float("-inf")
+
+
 def fresh_okx_rows(rows: Any, bar: str, *, now: float | None = None, source: str = "") -> list:
-    """Return ``rows`` if fresh, otherwise ``[]`` (=> caller's no_data path)."""
+    """Return ``rows`` sorted oldest -> newest if fresh, otherwise ``[]``.
+
+    OKX returns candles newest first; every caller indexes ``closes[-1]`` /
+    ``[-N:]`` as "latest", so rows are sorted by ts ascending here.
+    Stale/undated -> ``[]`` (=> caller's no_data path).
+    """
     rows = list(rows or [])
     if not rows:
         return []
     if candles_are_fresh(rows, bar, now=now):
-        return rows
+        return sorted(rows, key=_row_ts)
     newest = newest_candle_ts(rows)
     age = None if newest is None else round(((_now() if now is None else now) - newest) / 3600, 1)
     logger.warning("[freshness] stale/undated candles dropped: source=%s bar=%s age_h=%s", source or "?", bar, age)
