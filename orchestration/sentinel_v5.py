@@ -9,17 +9,17 @@ import os
 import uuid
 from datetime import datetime, timezone
 
-from agents._impl.bear_researcher import run_bear_researcher
-from agents._impl.bull_researcher import run_bull_researcher
-from agents._impl.electoral_agent import run_electoral_agent
-from agents._impl.fundamental_agent import run_fundamental_agent
-from agents._impl.macro_agent import run_macro_agent
-from agents._impl.market_analyst import run_market_analyst
-from agents._impl.options_flow_agent import run_options_flow_agent
-from agents._impl.quant_agent import run_quant_agent
-from agents._impl.sentiment_agent import run_sentiment_agent
+from agents._impl.bear_researcher import run_bear_researcher  # noqa: F401 (re-exported; patched in tests)
+from agents._impl.bull_researcher import run_bull_researcher  # noqa: F401 (re-exported; patched in tests)
+from agents._impl.electoral_agent import run_electoral_agent  # noqa: F401 (re-exported; patched in tests)
+from agents._impl.fundamental_agent import run_fundamental_agent  # noqa: F401 (re-exported; patched in tests)
+from agents._impl.macro_agent import run_macro_agent  # noqa: F401 (re-exported; patched in tests)
+from agents._impl.market_analyst import run_market_analyst  # noqa: F401 (re-exported; patched in tests)
+from agents._impl.options_flow_agent import run_options_flow_agent  # noqa: F401 (re-exported; patched in tests)
+from agents._impl.quant_agent import run_quant_agent  # noqa: F401 (re-exported; patched in tests)
+from agents._impl.sentiment_agent import run_sentiment_agent  # noqa: F401 (re-exported; patched in tests)
 from agents._impl.synthesis_agent import SynthesisAgent
-from agents.astro_council_agent import run_astro_council
+from agents.astro_council_agent import run_astro_council  # noqa: F401 (re-exported; patched in tests)
 from agents.base_agent import AgentResponse, SignalDirection
 from agents.karl_synthesis import KARLSynthesisAgent
 from core.belief import update_beliefs_from_session
@@ -30,8 +30,8 @@ from core.thompson import (
     ELECTORAL_POOL,
     MACRO_POOL,
     TECHNICAL_POOL,
-    AgentPool,
-    get_thompson_sampler,
+    AgentPool,  # noqa: F401 (re-exported)
+    get_thompson_sampler,  # noqa: F401 (re-exported)
 )
 from orchestration.router import route_query
 
@@ -94,7 +94,7 @@ async def run_sentinel_v5(
 
     if current_price == 0 and symbols:
         current_price = await _fetch_price(symbols[0])
-    current_price = current_price or 50000
+    current_price = current_price or None  # None => price no_data, never 50000
 
     state = {
         "symbol": symbols[0],
@@ -223,7 +223,7 @@ async def run_karl_sentinel_v5(
 
     if current_price == 0 and symbols:
         current_price = await _fetch_price(symbols[0])
-    current_price = current_price or 50000
+    current_price = current_price or None  # None => price no_data, never 50000
 
     if persist:
         # Persist the session row BEFORE the KARL agent runs, so its

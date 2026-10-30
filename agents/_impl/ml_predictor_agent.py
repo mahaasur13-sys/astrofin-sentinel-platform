@@ -20,6 +20,7 @@ from core.base_agent import (
     BaseAgent,
     SignalDirection,
 )
+from core.market_freshness import get_current_price, price_no_data_response
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,9 @@ class MLPredictorAgent(BaseAgent[AgentResponse]):
     async def analyze(self, state: dict) -> AgentResponse:
         symbol = state.get("symbol", "BTCUSDT")
         timeframe = state.get("timeframe_requested", "SWING")
-        current_price = state.get("current_price", 50000)
+        current_price = get_current_price(state)
+        if current_price is None:
+            return price_no_data_response("MLPredictorAgent")
 
         # Fetch data
         price_data = await self._fetch_price_data(symbol, timeframe)

@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 
 from core.http_client import normalize_okx_inst_id, okx_get_json
+from core.market_freshness import fresh_okx_rows
 
 from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
@@ -117,7 +118,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
             url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={interval}&limit={limit}"
             async with httpx.AsyncClient() as client:
                 data = await okx_get_json(client, url)
-                return [[float(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), float(x[5])] for x in data.get("data", [])]
+                return [[float(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), float(x[5])] for x in fresh_okx_rows(data.get("data", []), interval, source="bradley_agent")]
         except Exception:
             logger.warning(
                 f"Failed to fetch OHLCV data for {symbol} with interval {interval} and limit {limit}"

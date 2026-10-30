@@ -3,6 +3,13 @@ from __future__ import annotations
 import pytest
 from unittest.mock import AsyncMock, Mock, patch
 
+
+@pytest.fixture(autouse=True)
+def _freeze_freshness_clock():
+    """Fixture candles are dated 2023-01-01/02; freeze the freshness clock just after them."""
+    with patch("core.market_freshness._now", return_value=1672617600 + 3600):
+        yield
+
 # Список агентов: (модуль, класс)
 AGENTS = [
     ("agents._impl.quant_agent", "QuantAgent"),

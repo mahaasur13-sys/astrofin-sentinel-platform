@@ -16,6 +16,7 @@ from agents._impl.ephemeris_decorator import (
 )
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent
+from core.market_freshness import fresh_okx_rows, get_current_price, price_no_data_response
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,9 @@ class TechnicalAgent(BaseAgent[AgentResponse]):
     @require_ephemeris
     async def analyze(self, state: dict[str, Any]) -> AgentResponse:
         symbol = state.get("symbol", "BTCUSDT")
-        current_price = state.get("current_price") or state.get("price") or 50000
+        current_price = get_current_price(state)
+        if current_price is None:
+            return price_no_data_response("Technical")
         dt = state.get("datetime") or datetime.utcnow()
 
         # 1. Астрологические данные
@@ -156,7 +159,7 @@ class TechnicalAgent(BaseAgent[AgentResponse]):
                 resp = await client.get(url, timeout=10)
                 resp.raise_for_status()
                 data = resp.json()
-                return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
+                return [[float(x[4]), float(x[5])] for x in fresh_okx_rows(data.get("data", []), interval, source="technical_agent")]
         except Exception:
             logger.warning(
                 f"Failed to fetch OHLCV data for {symbol} with interval {interval} and limit {limit}"

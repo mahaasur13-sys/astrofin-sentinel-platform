@@ -1,6 +1,7 @@
 """orchestration/sentinel_v5_mas.py - ATOM-R-025: MASFactory Integration"""
 
 from __future__ import annotations
+
 import asyncio
 import logging
 import uuid
@@ -46,7 +47,7 @@ async def run_sentinel_v5_mas(
 
     if current_price == 0 and symbols:
         current_price = await _fetch_price(symbols[0])
-    current_price = current_price or 50000
+    current_price = current_price or None  # None => price no_data, never 50000
 
     state = {
         "symbol": symbols[0],
