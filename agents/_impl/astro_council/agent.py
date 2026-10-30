@@ -30,6 +30,28 @@ AGENT_WEIGHTS = {
 }
 
 
+# Agents whose vote is derived from OKX market data. ElectoralAgent is
+# astrology-only and must never produce a directional council signal alone.
+MARKET_DATA_AGENTS = frozenset({"BradleyAgent", "GannAgent", "CycleAgent", "TimeWindowAgent"})
+
+
+def _has_market_data(resp: AgentResponse) -> bool:
+    meta = getattr(resp, "metadata", None) or {}
+    return not (meta.get("no_data") or meta.get("error") or meta.get("degraded"))
+
+
+def _to_direction(raw) -> SignalDirection | None:
+    """LONG/SHORT/NEUTRAL/AVOID or None for anything unknown (treated as NEUTRAL)."""
+    if isinstance(raw, SignalDirection):
+        return raw
+    key = str(getattr(raw, "value", raw)).upper()
+    key = {"BUY": "LONG", "STRONG_BUY": "LONG", "SELL": "SHORT", "STRONG_SELL": "SHORT"}.get(key, key)
+    try:
+        return SignalDirection(key)
+    except ValueError:
+        return None
+
+
 class AstroCouncilAgent(BaseAgent[AgentResponse]):
     """Совет астро-агентов с взвешенным голосованием."""
 
@@ -80,6 +102,7 @@ class AstroCouncilAgent(BaseAgent[AgentResponse]):
                     signal=SignalDirection.NEUTRAL,
                     confidence=10,
                     reasoning=f"Agent {name} failed: {str(e)}",
+                    metadata={"error": True},
                 )
         return self._weighted_vote(responses)
 
@@ -92,14 +115,26 @@ class AstroCouncilAgent(BaseAgent[AgentResponse]):
         total_weight = 0.0
         reasons = []
 
+        vetoes = []
+        market_backed = False
         for name, resp in responses.items():
             weight = AGENT_WEIGHTS.get(name, 0.0)
             if weight == 0:
                 continue
+            sig = _to_direction(resp.signal)
+            if sig == SignalDirection.AVOID:
+                # AVOID = "trading NOT recommended": veto any directional outcome
+                vetoes.append(name)
+                sig = SignalDirection.NEUTRAL
+            elif sig is None:
+                logger.warning("AstroCouncil: unknown signal %r from %s -> NEUTRAL", resp.signal, name)
+                sig = SignalDirection.NEUTRAL
+            if name in MARKET_DATA_AGENTS and _has_market_data(resp):
+                market_backed = True
             contribution = weight * (resp.confidence / 100.0)
-            votes[resp.signal] += contribution
+            votes[sig] += contribution
             total_weight += contribution
-            reasons.append(f"{name}: {resp.signal.value} ({resp.confidence:.0f}%)")
+            reasons.append(f"{name}: {sig.value} ({resp.confidence:.0f}%)")
 
         if total_weight == 0:
             return AgentResponse(
@@ -125,6 +160,13 @@ class AstroCouncilAgent(BaseAgent[AgentResponse]):
         ):
             final_signal = sorted_votes[0][0]
         else:
+            final_signal = SignalDirection.NEUTRAL
+
+        if final_signal != SignalDirection.NEUTRAL and vetoes:
+            reasons.insert(0, f"AVOID veto by {', '.join(vetoes)}")
+            final_signal = SignalDirection.NEUTRAL
+        elif final_signal != SignalDirection.NEUTRAL and not market_backed:
+            reasons.insert(0, "no market-data agent available")
             final_signal = SignalDirection.NEUTRAL
 
         reasoning = " | ".join(reasons[:3])

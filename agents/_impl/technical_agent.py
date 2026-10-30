@@ -58,6 +58,16 @@ class TechnicalAgent(BaseAgent[AgentResponse]):
 
         # 2. Загрузка OHLCV
         price_data = await self._fetch_ohlcv(symbol, "1d", 50)
+        if not price_data:
+            # fail-closed: no candles -> no directional signal from default indicators
+            return AgentResponse(
+                agent_name="Technical",
+                signal="NEUTRAL",
+                confidence=20,
+                reasoning="No market data available",
+                sources=[],
+                metadata={"no_data": True},
+            )
 
         # 3. Расчёт индикаторов
         indicators = self._calculate_indicators(price_data, current_price)
