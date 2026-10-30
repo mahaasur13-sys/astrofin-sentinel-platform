@@ -53,6 +53,39 @@ CATEGORY_WEIGHTS: dict[str, float] = {
 }
 
 
+def _resolve_agent_key(name: str) -> str | None:
+    """Map a short or full agent name to its AGENT_WEIGHTS key.
+
+    'Fundamental' / 'FundamentalAgent' -> 'FundamentalAgent'; 'Technical' -> 'TechnicalAgent';
+    'BullResearcher' stays as is. None if the agent is not listed.
+    """
+    n = str(name or "")
+    for cand in (n, f"{n}Agent", n[: -len("Agent")] if n.endswith("Agent") else None):
+        if cand and cand in AGENT_WEIGHTS:
+            return cand
+    return None
+
+
+def get_agent_weight(name: str) -> float:
+    """Single source of per-agent weights.
+
+    1. AGENT_WEIGHTS by short/full name;
+    2. otherwise CATEGORY_WEIGHTS of the agent's category (synthesis.classifier.CATEGORY_MAP);
+    3. otherwise 0.0 and logger.error (unknown agent is excluded, never silently weighted).
+    """
+    key = _resolve_agent_key(name)
+    if key is not None:
+        return AGENT_WEIGHTS[key]
+    from agents._impl.synthesis.classifier import CATEGORY_MAP  # lazy: classifier imports this module
+
+    n = str(name or "")
+    cat = CATEGORY_MAP.get(n) or CATEGORY_MAP.get(f"{n}Agent")
+    if cat in CATEGORY_WEIGHTS:
+        return CATEGORY_WEIGHTS[cat]
+    logger.error("unknown_agent_weight", extra={"agent_name": n})
+    return 0.0
+
+
 def _load_weights() -> dict:
     """Load agent weights from YAML config, falling back to defaults."""
     paths = [

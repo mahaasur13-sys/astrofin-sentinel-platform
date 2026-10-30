@@ -1,7 +1,7 @@
 """
 AstroFin Sentinel v5 — AstroCouncil Agent
 Главный координатор всех аналитических агентов.
-Гибридное взвешивание через TradingSignal.from_agents.
+Астро-совет (ASTRO_POOL): взвешенное голосование _weighted_vote, веса из synthesis/weights.
 
 Все суб-агенты запускаются параллельно.
 Финальный сигнал = взвешенная комбинация всех голосов.
@@ -18,8 +18,7 @@ from agents._impl.ephemeris_decorator import (
     EphemerisUnavailableError,
     require_ephemeris,
 )
-from agents._impl.synthesis.weights import AGENT_WEIGHTS, CATEGORY_WEIGHTS
-from agents._impl.types import TradingSignal
+from agents._impl.synthesis.weights import get_agent_weight
 from agents.base_agent import AgentResponse, BaseAgent
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, SignalDirection
@@ -27,41 +26,37 @@ from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, SignalDirection
 logger = logging.getLogger(__name__)
 
 
-# Map agent short name → category → weight
-# Agents in ASTRO_POOL / TECHNICAL_POOL use short names as agent_name.
-# TradingSignal.from_agents looks up weights by agent_name.
-# CATEGORY_WEIGHTS keys are categories; AGENT_WEIGHTS keys are full class names.
-_AGENT_CATEGORY_MAP = {
-    "Fundamental": "fundamental",
-    "Macro": "macro",
-    "Quant": "quant",
-    "OptionsFlow": "options",
-    "Sentiment": "sentiment",
-    "Technical": "technical",
-    "BullResearcher": "sentiment",
-    "BearResearcher": "sentiment",
+# Weights: single source is agents/_impl/synthesis/weights.get_agent_weight().
+# This module must not define its own weight numbers.
+
+# Council members = core.thompson.ASTRO_POOL (variant A, as release/v1 94f3544a).
+ASTRO_MEMBERS: tuple[str, ...] = ("GannAgent", "BradleyAgent", "ElliotAgent", "CycleAgent", "TimeWindowAgent")
+# At least this many members must have real data, otherwise the council is NEUTRAL.
+MIN_MEMBERS_WITH_DATA = 3
+
+
+def _has_no_data(resp: Any) -> bool:
+    meta = getattr(resp, "metadata", None) or {}
+    return bool(meta.get("no_data") or meta.get("degraded") or meta.get("error"))
+
+_SIGNAL_ALIASES = {
+    "BUY": SignalDirection.LONG,
+    "STRONG_BUY": SignalDirection.LONG,
+    "SELL": SignalDirection.SHORT,
+    "STRONG_SELL": SignalDirection.SHORT,
 }
 
 
-def _build_agent_weights() -> dict[str, float]:
-    """Derive agent-name → weight mapping from CATEGORY_WEIGHTS + AGENT_WEIGHTS.
-
-    Priority: agent name in AGENT_WEIGHTS > category weight from CATEGORY_WEIGHTS.
-    Result is normalized to sum to 1.0.
-    """
-    weights = {}
-    for agent_short, category in _AGENT_CATEGORY_MAP.items():
-        if agent_short in AGENT_WEIGHTS:
-            weights[agent_short] = AGENT_WEIGHTS[agent_short]
-        else:
-            weights[agent_short] = CATEGORY_WEIGHTS.get(category, 0.10)
-    total = sum(weights.values())
-    if total > 0:
-        weights = {k: v / total for k, v in weights.items()}
-    return weights
-
-
-HYBRID_WEIGHTS = _build_agent_weights()
+def _to_direction(raw: Any) -> SignalDirection:
+    if isinstance(raw, SignalDirection):
+        return raw
+    key = str(getattr(raw, "value", raw)).upper()
+    if key in _SIGNAL_ALIASES:
+        return _SIGNAL_ALIASES[key]
+    try:
+        return SignalDirection(key)
+    except (ValueError, TypeError):
+        return SignalDirection.NEUTRAL
 
 
 class AstroCouncilAgent(BaseAgent):
@@ -69,7 +64,7 @@ class AstroCouncilAgent(BaseAgent):
     AstroCouncil — координатор всех агентов.
 
     Получает данные от всех аналитических агентов и объединяет
-    через гибридное взвешивание TradingSignal.from_agents.
+    через _weighted_vote; веса — synthesis/weights.get_agent_weight.
 
     Критично: всегда вызывает Swiss Ephemeris.
     """
@@ -81,7 +76,8 @@ class AstroCouncilAgent(BaseAgent):
             domain=None,
             weight=1.0,
         )
-        self._weights = HYBRID_WEIGHTS
+        # Optional explicit override (tests / experiments). None -> synthesis weights.
+        self._weights: dict[str, float] | None = None
         self._sub_agents = {}
 
     def register_sub_agent(self, name: str, agent) -> None:
@@ -96,12 +92,10 @@ class AstroCouncilAgent(BaseAgent):
 
         1. Swiss Ephemeris (критично)
         2. Параллельно все суб-агенты
-        3. TradingSignal.from_agents для финального взвешивания
+        3. _weighted_vote (веса — synthesis/weights.get_agent_weight, нормированы по ASTRO_MEMBERS)
         """
         try:
             dt = context.get("datetime") or datetime.now(timezone.utc)
-            symbol = context.get("symbol", "BTC")
-            price = context.get("price") or context.get("current_price") or 100.0
 
             # 1. Критичный вызов Swiss Ephemeris
             eph = self._call_ephemeris(dt)
@@ -109,27 +103,23 @@ class AstroCouncilAgent(BaseAgent):
             # 2. Параллельный запуск всех суб-агентов
             responses = await self._run_sub_agents(context)
 
-            # 3. Гибридное взвешивание
-            final_signal = TradingSignal.from_agents(
-                symbol=symbol,
-                responses=responses,
-                entry_price=price,
-                weights=self._weights,
-            )
+            # 3. Взвешенное голосование большинством (release/v1 _weighted_vote)
+            resolved_weights = {r.agent_name: self._weight_for(r.agent_name) for r in responses}
+            final_signal = self._weighted_vote(responses)
 
             signal_value = getattr(final_signal.signal, "value", final_signal.signal)
             return AgentResponse(
                 agent_name="AstroCouncil",
                 signal=signal_value,
                 confidence=final_signal.confidence,
-                reasoning=final_signal.summary,
+                reasoning=final_signal.reasoning,
                 sources=[],
                 metadata={
                     "astro_yoga": eph.get("yoga", "unknown"),
                     "astro_score": eph.get("score", 50),
                     "ephemeris": {k: v for k, v in eph.items() if k != "error"},
                     "total_agents": len(responses),
-                    "weights": self._weights,
+                    "weights": resolved_weights,
                     "final_signal": final_signal.to_dict(),
                 },
             )
@@ -138,6 +128,18 @@ class AstroCouncilAgent(BaseAgent):
         except Exception as e:  # noqa: BLE001 — last-resort guard
             logger.exception("agent_run_unhandled", extra={"agent": self.name})
             return self._degraded(UNKNOWN, repr(e))
+
+    def _weight_for(self, name: str) -> float:
+        """Weight from the single source (synthesis/weights.py); unknown -> 0.0 + logger.error."""
+        if self._weights is not None:
+            if name not in self._weights:
+                logger.error("astro_council_unknown_agent_weight", extra={"agent_name": name})
+            return self._weights.get(name, 0.0)
+        if name not in ASTRO_MEMBERS:
+            logger.error("astro_council_unknown_agent_weight", extra={"agent_name": name})
+            return 0.0
+        total = sum(get_agent_weight(n) for n in ASTRO_MEMBERS)
+        return get_agent_weight(name) / total if total > 0 else 0.0
 
     def _weighted_vote(self, responses: list[AgentResponse]) -> AgentResponse:
         """Взвешенное голосование: побеждает сторона с наибольшим весом,
@@ -151,17 +153,17 @@ class AstroCouncilAgent(BaseAgent):
         total_weight = 0.0
         reasons = []
 
+        with_data = 0
         for resp in responses:
             name = resp.agent_name
-            weight = self._weights.get(name, 0.0)
+            weight = self._weight_for(name)
             if weight == 0:
                 continue
-            sig = resp.signal if isinstance(resp.signal, SignalDirection) else None
-            if sig is None:
-                try:
-                    sig = SignalDirection(str(resp.signal))
-                except (ValueError, TypeError, AttributeError):
-                    sig = SignalDirection.NEUTRAL
+            if _has_no_data(resp):
+                reasons.append(f"{name}: no_data (abstain)")
+                continue  # no market data -> abstain, weight 0
+            with_data += 1
+            sig = _to_direction(resp.signal)
             if sig not in votes:
                 sig = SignalDirection.NEUTRAL
             contribution = weight * (resp.confidence / 100.0)
@@ -169,12 +171,16 @@ class AstroCouncilAgent(BaseAgent):
             total_weight += contribution
             reasons.append(f"{name}: {sig.value} ({resp.confidence:.0f}%)")
 
-        if total_weight == 0:
+        if total_weight == 0 or with_data < MIN_MEMBERS_WITH_DATA:
             return AgentResponse(
                 agent_name="AstroCouncil",
                 signal=SignalDirection.NEUTRAL,
                 confidence=20,
-                reasoning="All astro agents failed",
+                reasoning=(
+                    "All astro agents failed" if total_weight == 0
+                    else f"Quorum not met: {with_data}/{MIN_MEMBERS_WITH_DATA} members with data"
+                ),
+                metadata={"no_data": with_data == 0, "members_with_data": with_data},
             )
 
         # Нормализуем голоса
@@ -252,29 +258,23 @@ class AstroCouncilAgent(BaseAgent):
         return responses
 
     def _register_sub_agents(self) -> None:
-        """Регистрация всех суб-агентов."""
+        """Регистрация астро-суб-агентов (AstroCouncil = координатор астро-блока, ASTRO_POOL)."""
         try:
-            from agents._impl.bear_researcher import BearResearcherAgent
-            from agents._impl.bull_researcher import BullResearcherAgent
-            from agents._impl.fundamental_agent import FundamentalAgent
-            from agents._impl.macro_agent import MacroAgent
-            from agents._impl.options_flow_agent import OptionsFlowAgent
-            from agents._impl.quant_agent import QuantAgent
-            from agents._impl.sentiment_agent import SentimentAgent
-            from agents._impl.technical_agent import TechnicalAgent
+            from agents._impl.bradley_agent import BradleyAgent
+            from agents._impl.cycle_agent import CycleAgent
+            from agents._impl.elliot_agent import ElliotAgent
+            from agents._impl.gann_agent import GannAgent
+            from agents._impl.time_window_agent import TimeWindowAgent
 
             self._sub_agents = {
-                "Fundamental": FundamentalAgent(),
-                "Macro": MacroAgent(),
-                "Quant": QuantAgent(),
-                "OptionsFlow": OptionsFlowAgent(),
-                "Sentiment": SentimentAgent(),
-                "Technical": TechnicalAgent(),
-                "BullResearcher": BullResearcherAgent(),
-                "BearResearcher": BearResearcherAgent(),
+                "GannAgent": GannAgent(),
+                "BradleyAgent": BradleyAgent(),
+                "ElliotAgent": ElliotAgent(),
+                "CycleAgent": CycleAgent(),
+                "TimeWindowAgent": TimeWindowAgent(),
             }
         except ImportError:
-            # Если агенты не найдены, используем пустой dict
+            logger.exception("astro_council_register_failed")
             self._sub_agents = {}
 
     def _call_ephemeris(self, dt: datetime) -> dict[str, Any]:
