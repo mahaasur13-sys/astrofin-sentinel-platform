@@ -252,7 +252,7 @@ class QuantAgent(BaseAgent[AgentResponse]):
 async def run_quant_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = QuantAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"quant_signal": result.to_dict()}
 
 

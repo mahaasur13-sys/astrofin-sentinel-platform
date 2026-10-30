@@ -36,6 +36,7 @@ from core.base_agent import (
     BaseAgent,
     SignalDirection,
 )
+from core.market_freshness import get_current_price, price_no_data_response
 from core.volatility import VolatilityEngine, VolatilityRegime
 
 logger = logging.getLogger(__name__)
@@ -86,7 +87,9 @@ class CompromiseAgent(BaseAgent[AgentResponse]):
     async def analyze(self, state: dict[str, Any]) -> AgentResponse:
         signals = state.get("all_signals", []) or []
         symbol = state.get("symbol", "BTCUSDT")
-        current_price = float(state.get("current_price", 50000) or 50000)
+        current_price = get_current_price(state)
+        if current_price is None:  # fail-closed: never a made-up 50000
+            return price_no_data_response(self.name)
 
         # ── Pull the top-2 conflicting signals (highest |confidence|) ──────
         # Drop degraded/empty entries first.

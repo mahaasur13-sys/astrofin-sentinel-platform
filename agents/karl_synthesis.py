@@ -26,6 +26,7 @@ from agents._impl.amre.risk_control import apply_position_lag_risk
 from agents._impl.amre.trajectory import MarketState, market_state_hash
 from agents._impl.synthesis_agent import SynthesisAgent
 from agents.base_agent import AgentResponse, BaseAgent
+from core.market_freshness import get_current_price, price_no_data_response
 
 # ── P2-04: extracted conflict resolution + weight calibration ───────────────
 from agents._impl.amre.conflict_resolver import (
@@ -119,7 +120,18 @@ class KARLSynthesisAgent(BaseAgent[AgentResponse]):
             state = {**state, "symbol": delist_fb.fallback_symbol}
 
         # ── Step 1: Market state ──────────────────────────────────────────
-        price = state.get("current_price", 50000)
+        price = get_current_price(state)
+        if price is None:
+            # Fail-closed: no price -> NEUTRAL no_data, no AMRE learning/audit
+            # from a made-up 50000.
+            synth_dict = price_no_data_response("SynthesisAgent").to_dict()
+            synth_dict["metadata"] = {**synth_dict.get("metadata", {}), "karl_enabled": True}
+            return {
+                "synthesis_result": synth_dict,
+                "amre_output": None,
+                "decision_record": None,
+                "karl_diagnostics": None,
+            }
         ms = MarketState(
             symbol=symbol,
             price=price,

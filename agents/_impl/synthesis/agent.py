@@ -25,6 +25,7 @@ from agents._impl.synthesis.voter import vote as weighted_vote
 from agents._impl.synthesis.weights import AGENT_WEIGHTS, MIN_AGENTS_FALLBACK, ASTRO_REDUCTION, FUNDAMENTAL_BOOST, QUANT_BOOST, CATEGORY_WEIGHTS
 from agents.metrics import track_agent_metrics
 from core.base_agent import EPHEMERIS_UNAVAILABLE, UNKNOWN, AgentResponse, BaseAgent, SignalDirection
+from core.market_freshness import get_current_price, price_no_data_response
 from core.volatility import VolatilityEngine, VolatilityRegime
 
 logger = logging.getLogger(__name__)
@@ -76,8 +77,10 @@ class SynthesisAgent(BaseAgent[AgentResponse]):
         )
 
         symbol = state.get("symbol", "BTCUSDT")
-        current_price = state.get("current_price", 50000)
+        current_price = get_current_price(state)
         timeframe = state.get("timeframe_requested", "SWING")
+        if current_price is None:  # fail-closed: no entry/stop levels from a made-up 50000
+            return price_no_data_response("SynthesisAgent")
 
         # ── FALLBACK: insufficient agents produced signals ─────────────
         if len(all_signals) < MIN_AGENTS_FALLBACK:

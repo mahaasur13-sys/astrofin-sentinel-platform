@@ -300,7 +300,7 @@ class MacroAgent(BaseAgent[AgentResponse]):
 async def run_macro_agent(state: dict) -> dict:
     """Convenience function for orchestration."""
     agent = MacroAgent()
-    resp = await agent.analyze(state)
+    resp = await agent.run(state)
     return {"macro_agent_signal": resp.to_dict()}
 
 

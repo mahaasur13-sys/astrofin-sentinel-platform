@@ -317,7 +317,7 @@ class TestRunWithLagWindow:
         agent.base_agent = Mock()
         agent.base_agent.run = AsyncMock(return_value=mock_response)
 
-        state = {"symbol": "BTCUSDT", "all_signals": [], "regime": "NORMAL"}
+        state = {"symbol": "BTCUSDT", "all_signals": [], "regime": "NORMAL", "current_price": 50000.0}  # explicit: no implicit 50000 fallback anymore
         result = asyncio.run(agent.run(state))
 
         synth = result["synthesis_result"]
@@ -350,7 +350,7 @@ class TestRunWithLagWindow:
         agent.base_agent = Mock()
         agent.base_agent.run = AsyncMock(return_value=mock_response)
 
-        state = {"symbol": "BTCUSDT", "all_signals": [], "regime": "NORMAL"}
+        state = {"symbol": "BTCUSDT", "all_signals": [], "regime": "NORMAL", "current_price": 50000.0}  # explicit: no implicit 50000 fallback anymore
         result = asyncio.run(agent.run(state))
 
         # Confidence остаётся 90 (не сглажена)

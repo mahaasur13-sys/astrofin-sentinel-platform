@@ -52,7 +52,6 @@ class GannAgent(BaseAgent[AgentResponse]):
         Analyze using Gann's mathematical techniques.
         """
         symbol = state.get("symbol", "BTCUSDT")
-        state.get("current_price", 50000)
 
         price_data = state.get("_price_data", []) or await self._fetch_ohlcv(symbol, "1D", 90)
         if not price_data:
@@ -264,7 +263,7 @@ class GannAgent(BaseAgent[AgentResponse]):
 async def run_gann_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = GannAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"gann_signal": result.to_dict()}
 
 

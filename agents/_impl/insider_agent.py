@@ -46,7 +46,6 @@ class InsiderAgent(BaseAgent[AgentResponse]):
     @require_ephemeris
     async def analyze(self, state: dict) -> AgentResponse:
         symbol = state.get("symbol", "BTCUSDT")
-        state.get("current_price", 50000)
 
         # Fetch insider data (requires paid API for real data)
         insider_data = await self._fetch_insider_data(symbol)
@@ -188,7 +187,7 @@ class InsiderAgent(BaseAgent[AgentResponse]):
 async def run_insider_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = InsiderAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"insider_signal": result.to_dict()}
 
 

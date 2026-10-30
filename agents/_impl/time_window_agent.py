@@ -191,7 +191,7 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
 
     async def _scan_daily_window(self, symbol: str) -> dict:
         """Scan daily windows."""
-        data = await self._fetch_ohlcv(symbol, "1d", 20)
+        data = await self._fetch_ohlcv(symbol, "1D", 20)
         if len(data) < 10:
             return {"direction": "neutral", "summary": "insufficient 1D data"}
 
@@ -236,7 +236,7 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
 
     async def _scan_weekly_window(self, symbol: str) -> dict:
         """Scan weekly windows."""
-        data = await self._fetch_ohlcv(symbol, "1d", 60)  # Use daily for weekly
+        data = await self._fetch_ohlcv(symbol, "1D", 60)  # Use daily for weekly
         if len(data) < 20:
             return {"direction": "neutral", "summary": "insufficient 1W data"}
 
@@ -295,7 +295,7 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
 async def run_time_window_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = TimeWindowAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"time_window_signal": result.to_dict()}
 
 

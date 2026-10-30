@@ -43,7 +43,6 @@ class SentimentAgent(BaseAgent[AgentResponse]):
         Analyze market sentiment.
         """
         symbol = state.get("symbol", "BTCUSDT")
-        state.get("current_price", 50000)
 
         # Fetch multiple sentiment sources
         fear_greed = await self._fetch_fear_greed()
@@ -180,7 +179,6 @@ class SentimentAgent(BaseAgent[AgentResponse]):
 
     def _analyze_price_momentum(self, state: dict) -> dict:
         """Analyze price momentum as sentiment proxy."""
-        state.get("current_price", 50000)
         price_data = state.get("_price_data", [])
 
         if len(price_data) < 20:
@@ -216,7 +214,7 @@ class SentimentAgent(BaseAgent[AgentResponse]):
 async def run_sentiment_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = SentimentAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"sentiment_signal": result.to_dict()}
 
 

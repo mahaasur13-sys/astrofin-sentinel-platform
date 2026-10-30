@@ -54,7 +54,7 @@ class RiskAgent(BaseAgent[AgentResponse]):
         if current_price is None:
             return price_no_data_response("RiskAgent")
 
-        price_data = await self._fetch_ohlcv(symbol, "1d", 30)
+        price_data = await self._fetch_ohlcv(symbol, "1D", 30)
         if not price_data:
             return AgentResponse(
                 agent_name="RiskAgent",
@@ -240,7 +240,7 @@ class RiskAgent(BaseAgent[AgentResponse]):
 async def run_risk_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = RiskAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"risk_signal": result.to_dict()}
 
 
