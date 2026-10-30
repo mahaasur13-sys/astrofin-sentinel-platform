@@ -21,6 +21,8 @@ from .broker.base import (
     OrderStatus,
     OrderType,
     Position,
+    new_client_order_id,
+    validate_client_order_id,
 )
 
 import logging
@@ -53,6 +55,7 @@ class PaperBroker(BaseBroker):
         self.fee_rate = fee_rate
         self.slippage_rate = slippage_rate
         self._order_history: list[Order] = []
+        self._by_client_id: dict[str, Order] = {}
         self.connected = True
 
     # ── BaseBroker abstract interface ──────────────────────────────────
@@ -107,8 +110,22 @@ class PaperBroker(BaseBroker):
         order_type: OrderType,
         quantity: float,
         price: float | None = None,
+        client_order_id: str | None = None,
     ) -> Order:
-        """Place a simulated order with slippage + commission."""
+        """Place a simulated order with slippage + commission.
+
+        Idempotent per client_order_id: a repeat with the same id returns the
+        first result and does not touch balance/positions again.
+        """
+        cid = validate_client_order_id(client_order_id) if client_order_id else new_client_order_id()
+        prev = self._by_client_id.get(cid)
+        if prev is not None:
+            return prev
+        order = self._place_order_new(symbol, side, order_type, quantity, price, cid)
+        self._by_client_id[cid] = order
+        return order
+
+    def _place_order_new(self, symbol, side, order_type, quantity, price, cid) -> Order:
         oid = f"paper_{uuid.uuid4().hex[:12]}"
         now = time.time()
 
@@ -178,6 +195,7 @@ class PaperBroker(BaseBroker):
             avg_fill_price=exec_price,
             commission=fee, created_at=now, updated_at=now,
             notes=f"Paper: slippage={slippage:.4f}, fee={fee:.4f}",
+            client_order_id=cid,
         )
         self._order_history.append(order)
 

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 from trading.factory import get_broker
-from trading.broker.base import OrderSide, OrderType
+from trading.broker.base import OrderSide, OrderStatus, OrderType, new_client_order_id
 from trading.safety_gate import SafetyGate
 
 
@@ -243,13 +243,25 @@ class CouncilOrchestrator:
                 scaled_from, qty = qty, round(decision.adjusted_qty, 8)
                 logger.info("[EXECUTE] qty scaled by sanity: %s -> %s (%s)", scaled_from, qty, decision.reason)
 
+        # Idempotency key: any reconciliation/retry of THIS decision must reuse it.
+        client_order_id = new_client_order_id()
         try:
-            order = broker.place_order(symbol, side, OrderType.MARKET, qty)
+            order = broker.place_order(
+                symbol, side, OrderType.MARKET, qty, client_order_id=client_order_id
+            )
         except Exception as e:  # noqa: BLE001 — never retry here: order state is UNKNOWN
-            logger.exception("[EXECUTE] place_order failed — order state unknown, NOT retried")
+            logger.exception("[EXECUTE] place_order failed — order state unknown, NOT retried (cid=%s)", client_order_id)
             out = _deny("order_error", f"{type(e).__name__}: order state unknown, not retried", "BLOCKED")
             out["action"] = "ORDER_ERROR"
             out["qty"] = qty
+            out["client_order_id"] = client_order_id
+            return out
+        if getattr(order, "status", None) is OrderStatus.UNKNOWN:
+            logger.error("[EXECUTE] order %s state UNKNOWN — NOT retried, reconcile by client_order_id", client_order_id)
+            out = _deny("order_unknown", f"order state unknown, not retried: {order.notes}", "BLOCKED")
+            out["action"] = "ORDER_UNKNOWN"
+            out["qty"] = qty
+            out["client_order_id"] = client_order_id
             return out
 
         logger.info(
@@ -271,6 +283,7 @@ class CouncilOrchestrator:
             "blocked": False,
             "safety_reason": decision.reason,
             "order_id": order.order_id,
+            "client_order_id": client_order_id,
             "order_status": order.status.name,
             "executed_price": order.avg_fill_price,
             "commission": order.commission,
