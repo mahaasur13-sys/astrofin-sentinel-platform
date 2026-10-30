@@ -6,10 +6,12 @@
 """CouncilOrchestrator — Agent → KARL → RiskEngine → Execution pipeline."""
 
 import asyncio
+import copy
 import logging
 import math
 import os
 from datetime import datetime, timezone
+from types import SimpleNamespace
 from typing import List
 
 from core.base_agent import AgentResponse, SignalDirection
@@ -58,6 +60,27 @@ def _direction_name(signal) -> str:
     if raw in _SHORT_ALIASES:
         return "SHORT"
     return "NEUTRAL"
+
+
+def _positions_snapshot(raw) -> dict:
+    """Broker positions -> {symbol: obj(notional_value, current_price, entry_price)}.
+    Fail-closed: a position without a finite positive qty*price raises (never priced at 0)."""
+    out: dict = {}
+    for p in list(raw or []):
+        qty, price = getattr(p, "quantity", None), getattr(p, "current_price", None)
+        ok = all(isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+                 for v in (qty, price))
+        if not ok or price <= 0:
+            raise ValueError(f"position {getattr(p, 'symbol', '?')!r} has invalid qty/price")
+        if qty == 0:
+            continue
+        entry = getattr(p, "avg_entry_price", None)
+        out[p.symbol] = SimpleNamespace(
+            notional_value=abs(qty) * price,
+            current_price=price,
+            entry_price=entry if isinstance(entry, (int, float)) and entry and entry > 0 else price,
+        )
+    return out
 
 
 class CouncilOrchestrator:
@@ -233,7 +256,20 @@ class CouncilOrchestrator:
         except ValueError as e:
             return _deny("invalid_quantity", str(e), "BLOCKED")
 
-        decision = self.safety_gate.check(
+        # RiskEngineV2 checks inside the gate run only with a portfolio. A gate built
+        # without one (default SafetyGate()) gets a per-cycle snapshot of the REAL
+        # account: equity (already validated above) + broker positions.
+        gate = self.safety_gate
+        if getattr(gate, "portfolio", None) is None:
+            try:
+                positions = _positions_snapshot(broker.get_positions())
+            except Exception as e:  # BalanceUnavailableError / MarketPriceUnavailableError / ...
+                logger.warning("[EXECUTE] positions unavailable — deny: %s", type(e).__name__)
+                return _deny("positions_unavailable", f"positions unavailable: {type(e).__name__}", "BLOCKED")
+            gate = copy.copy(gate)
+            gate.portfolio = SimpleNamespace(total_value=float(equity), positions=positions)
+
+        decision = gate.check(
             gate_signal,
             gate_state,
             current_price=price,
