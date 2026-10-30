@@ -65,8 +65,13 @@ def test_short_reaches_gate_as_short_and_paper_denies_it():
 
 
 def test_approved_default_and_reduced_pct():
-    out, _ = _run(_sig(SignalDirection.LONG), gate=_gate(status=SafetyStatus.APPROVED, reason="ok"))
-    assert out["qty"] == pytest.approx(0.02)  # default 1.0 -> min(0.1, 1.0)
+    out, _ = _run(_sig(SignalDirection.LONG), gate=_gate(status=SafetyStatus.APPROVED, reason="ok",
+                                                          reduced_position_pct=0.1))
+    assert out["qty"] == pytest.approx(0.02)
+    # A decision that does not set its size defaults to 0.0 (fail-closed) -> denied, no order.
+    out, b = _run(_sig(SignalDirection.LONG), gate=_gate(status=SafetyStatus.APPROVED, reason="ok"))
+    assert out["action"] == "DENIED" and out["blocked_reason"] == "invalid_quantity", out
+    b.place_order.assert_not_called()
     out, _ = _run(_sig(SignalDirection.LONG), gate=_gate(status=SafetyStatus.REDUCED, reason="r", reduced_position_pct=0.05))
     assert out["qty"] == pytest.approx(0.01)
 

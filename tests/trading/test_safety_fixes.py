@@ -300,8 +300,9 @@ def test_sanity_missing_data_blocked_with_fields(drop, expected):
 
 
 def test_sanity_missing_qty_blocked():
-    d = _gate_check(_market(), portfolio=SimpleNamespace(positions={}), pct=0.05)
-    # RiskEngineV2 path still runs; sanity cannot size the order → BLOCKED
+    # No portfolio: RiskEngineV2 is skipped (a portfolio without equity is now
+    # BLOCKED no_equity before sanity); sanity cannot size the order → BLOCKED
+    d = _gate_check(_market(), portfolio=None, pct=0.05)
     assert d.is_blocked
     assert d.blocked_reason.startswith("sanity_missing_data:") and "order_qty" in d.blocked_reason
 
