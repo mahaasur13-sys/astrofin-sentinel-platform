@@ -29,6 +29,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
+from types import SimpleNamespace
 from typing import Any, Optional
 
 # ─── Feature Flags ──────────────────────────────────────────────────────────────
@@ -145,6 +146,10 @@ class SafetyGate:
         self._call_count = 0
         self._total_rejected = 0
         self._total_reduced = 0
+        # Equity peak for the drawdown kill switch. A mutable dict on purpose: a
+        # shallow copy (copy.copy, as the orchestrator does per cycle) shares it, so
+        # the peak survives per-cycle gate copies. Only valid equity updates it.
+        self._equity_track: dict = {"peak": None}
 
     # ── Public API ──────────────────────────────────────────────────────────────
 
@@ -401,22 +406,36 @@ class SafetyGate:
                         "RiskEngineV2: portfolio has no valid equity (total_value/total_equity) — fail-closed",
                         "no_equity",
                     )
-                engine._equity_history = [equity]
+                track = getattr(self, "_equity_track", None)
+                if track is None:
+                    track = self._equity_track = {"peak": None}
+                peak = track.get("peak")
+                peak = equity if not self._finite_pos(peak) else max(float(peak), equity)
+                track["peak"] = peak
+                # [peak, current] -> RiskEngineV2 sees the real drawdown from the peak.
+                engine._equity_history = [peak, equity] if peak > equity else [equity]
                 if hasattr(self.portfolio, "positions"):
                     for sym, pos in self.portfolio.positions.items():
                         if hasattr(pos, "notional_value"):
-
-                            class _FakeAsset:
-                                pass
-
-                            fa = _FakeAsset()
-                            fa.symbol = sym
-                            fa.notional_value = pos.notional_value
-                            fa.current_price = (
-                                getattr(pos, "current_price", 0) or current_price
+                            # Each position must carry ITS OWN valid price; the signal
+                            # price belongs to another symbol -> fail-closed.
+                            px = getattr(pos, "current_price", None)
+                            notional = getattr(pos, "notional_value", None)
+                            if not self._finite_pos(px) or not (
+                                isinstance(notional, (int, float)) and not isinstance(notional, bool)
+                                and math.isfinite(notional)
+                            ):
+                                return _blocked(
+                                    f"RiskEngineV2: position {sym!r} has no valid own price/notional — fail-closed",
+                                    "position_price_invalid",
+                                )
+                            entry = getattr(pos, "entry_price", None)
+                            engine._positions[sym] = SimpleNamespace(
+                                symbol=sym,
+                                notional_value=float(notional),
+                                current_price=float(px),
+                                entry_price=float(entry) if self._finite_pos(entry) else float(px),
                             )
-                            fa.entry_price = getattr(pos, "entry_price", current_price)
-                            engine._positions[sym] = fa
 
             # Build notional for proposed position
             if not engine._equity_history:
