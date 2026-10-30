@@ -66,6 +66,16 @@ class RiskAgent(BaseAgent[AgentResponse]):
 
         # Calculate ATR for stop-loss
         atr = self._calculate_atr(price_data, period=14)
+        if atr is None:
+            # fail-closed: no invented volatility
+            return AgentResponse(
+                agent_name="RiskAgent",
+                signal=SignalDirection.NEUTRAL,
+                confidence=20,
+                reasoning="Not enough OHLC data for ATR(14)",
+                sources=[],
+                metadata={"no_data": True, "reason": "atr_insufficient_data"},
+            )
         volatility = atr / current_price
 
         # Position sizing (Kelly Criterion simplified)
@@ -149,23 +159,28 @@ class RiskAgent(BaseAgent[AgentResponse]):
                 resp = await client.get(url, timeout=10)
                 resp.raise_for_status()
                 data = resp.json()
-                return [[float(x[4]), float(x[5])] for x in fresh_okx_rows(data.get("data", []), interval, source="risk_agent")]
+                # row: [close, volume, high, low]
+                return [[float(x[4]), float(x[5]), float(x[2]), float(x[3])] for x in fresh_okx_rows(data.get("data", []), interval, source="risk_agent")]
         except Exception:
             logger.warning(
                 f"Failed to fetch OHLCV data for {symbol} with interval {interval} and limit {limit}"
             )
             return []
 
-    def _calculate_atr(self, data: list, period: int = 14) -> float:
-        """Calculate Average True Range."""
+    def _calculate_atr(self, data: list, period: int = 14) -> float | None:
+        """Average True Range over rows ``[close, volume, high, low]`` (oldest first).
+
+        TR = max(h - l, |h - c_prev|, |l - c_prev|). Returns ``None`` when there
+        are fewer than ``period + 1`` rows (fail-closed, no guessed volatility).
+        """
         if len(data) < period + 1:
-            return data[-1][2] * 0.02 if data else 100
+            return None
 
         true_ranges = []
         for i in range(1, len(data)):
-            high = data[i][0]
-            low = data[i][1]
-            prev_close = data[i - 1][2]
+            high = data[i][2]
+            low = data[i][3]
+            prev_close = data[i - 1][0]
 
             tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
             true_ranges.append(tr)

@@ -164,8 +164,8 @@ class BullResearcherAgent(BaseAgent[AgentResponse]):
             return {"score": 0.4, "summary": "insufficient data"}
 
         closes = [d[3] for d in data]
-        highs = [d[2] for d in data]
-        lows = [d[1] for d in data]
+        highs = [d[1] for d in data]
+        lows = [d[2] for d in data]
 
         # Higher lows pattern
         hl_count = 0
@@ -216,8 +216,8 @@ class BullResearcherAgent(BaseAgent[AgentResponse]):
         if len(data) < 20:
             return {"score": 0.4, "summary": "insufficient data"}
 
-        lows = [d[1] for d in data[-30:]]
-        current_price = lows[-1]
+        lows = [d[2] for d in data[-30:]]  # [o, h, l, c, v]
+        current_price = data[-1][3]  # close of the latest bar
 
         # Find recent swing lows
         swing_lows = []
