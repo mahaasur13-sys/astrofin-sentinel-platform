@@ -72,7 +72,10 @@ class SafetyStatus(Enum):
 class SafetyDecision:
     status: SafetyStatus
     reason: str
-    reduced_position_pct: float = 1.0  # 0.0–1.0
+    # Fail-closed default: a decision that does not set its size explicitly
+    # must never authorise a full position (orchestrator denies pct <= 0).
+    # Every APPROVED/REDUCED path returned by check() sets it explicitly.
+    reduced_position_pct: float = 0.0  # 0.0–1.0
     adjusted_signal: str | None = None
     checks_passed: list[str] = field(default_factory=list)
     checks_failed: list[str] = field(default_factory=list)
@@ -185,6 +188,7 @@ class SafetyGate:
             return SafetyDecision(
                 status=SafetyStatus.APPROVED,
                 reason="Safety stack disabled (SAFETY_STACK_ENABLED=false)",
+                reduced_position_pct=suggested_position_pct,
             )
 
         # ── Extract signal info ───────────────────────────────────────────────
@@ -334,9 +338,9 @@ class SafetyGate:
             is_option = "option" in sig_direction.lower()
             # Same equity resolution as _check_risk: portfolio may be any object
             # (e.g. RiskEngineV2) without a numeric total_value.
-            equity = getattr(self.portfolio, "total_value", None) if self.portfolio else None
-            if not isinstance(equity, (int, float)):  # noqa: UP038
-                equity = 100_000.0
+            # ModeEnforcer does not use equity; pass the real value or None,
+            # never an invented one.
+            equity = self._portfolio_equity()
 
             ok, msg = enforcer.check_order(
                 proposed_size_pct=proposed_size_pct,
@@ -390,9 +394,13 @@ class SafetyGate:
 
             # Sync portfolio from self.portfolio (if it's a mock)
             if self.portfolio is not None:
-                equity = getattr(self.portfolio, "total_value", None)
-                if not isinstance(equity, (int, float)):  # noqa: UP038
-                    equity = 100_000.0
+                equity = self._portfolio_equity()
+                if equity is None:
+                    # Fail-closed: exposure cannot be checked without real equity.
+                    return _blocked(
+                        "RiskEngineV2: portfolio has no valid equity (total_value/total_equity) — fail-closed",
+                        "no_equity",
+                    )
                 engine._equity_history = [equity]
                 if hasattr(self.portfolio, "positions"):
                     for sym, pos in self.portfolio.positions.items():
@@ -411,7 +419,9 @@ class SafetyGate:
                             engine._positions[sym] = fa
 
             # Build notional for proposed position
-            equity = engine._equity_history[-1] if engine._equity_history else 100_000
+            if not engine._equity_history:
+                return _blocked("RiskEngineV2: no equity — fail-closed", "no_equity")
+            equity = engine._equity_history[-1]
             proposed_notional = suggested_position_pct * equity
 
             # 1. Kill switch
@@ -551,11 +561,22 @@ class SafetyGate:
             [],
         )
 
+    def _portfolio_equity(self) -> float | None:
+        """Real equity from the portfolio: total_value, else total_equity
+        (AccountBalance-style). None if absent / non-numeric / nan / inf / <= 0."""
+        if self.portfolio is None:
+            return None
+        for attr in ("total_value", "total_equity"):
+            v = getattr(self.portfolio, attr, None)
+            if self._finite_pos(v):
+                return float(v)
+        return None
+
     def _resolve_order_qty(self, order_qty: float | None, suggested_position_pct: float, price: float) -> float | None:
         if self._finite_pos(order_qty):
             return float(order_qty)
-        equity = getattr(self.portfolio, "total_value", None) if self.portfolio is not None else None
-        if self._finite_pos(equity) and self._finite_pos(suggested_position_pct) and self._finite_pos(price):
+        equity = self._portfolio_equity()
+        if equity is not None and self._finite_pos(suggested_position_pct) and self._finite_pos(price):
             return equity * suggested_position_pct / price
         return None
 

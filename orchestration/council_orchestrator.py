@@ -266,14 +266,15 @@ class CouncilOrchestrator:
 
         logger.info(
             "✅ [EXECUTE] signal=%s size=%s qty=%s price=%s risk=%s broker=%s status=%s",
-            signal_name, adjusted_size, qty, price, risk_reason,
+            signal_name, position_fraction, qty, price, risk_reason,
             broker.name, order.status.name,
         )
 
         return {
             "action": "EXECUTED",
             "status": decision.status.value,
-            "size": adjusted_size,
+            "size": position_fraction,  # actual fraction sent (after REDUCED)
+            "suggested_size": adjusted_size,
             "qty": qty,
             "qty_scaled_from": scaled_from,
             "slippage_bps": decision.slippage_bps,
