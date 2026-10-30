@@ -46,6 +46,26 @@ def _is_definite_reject(exc: Exception) -> bool:
     return isinstance(exc, ccxt.ExchangeError)
 
 
+def _map_ccxt_status(status, filled: float, amount=None) -> OrderStatus:
+    """Map a ccxt unified order status to OrderStatus. Unknown → UNKNOWN (never silent PENDING)."""
+    st = str(status or "").lower()
+    try:
+        amt = float(amount) if amount is not None else None
+    except (TypeError, ValueError):
+        amt = None
+    if st == "closed":
+        if amt is not None and 0 < filled < amt:
+            return OrderStatus.PARTIAL
+        return OrderStatus.FILLED
+    if st in ("canceled", "cancelled", "expired"):
+        return OrderStatus.PARTIAL if filled > 0 else OrderStatus.CANCELLED
+    if st == "rejected":
+        return OrderStatus.REJECTED
+    if st == "open":
+        return OrderStatus.PARTIAL if filled > 0 else OrderStatus.PENDING
+    return OrderStatus.UNKNOWN
+
+
 class BinanceBroker(BaseBroker):
     """Binance spot/futures broker via CCXT."""
 
@@ -193,8 +213,8 @@ class BinanceBroker(BaseBroker):
                 client_order_id=cid,
             )
         if self.paper:
-            exec_price = price or self.get_market_price(symbol)
-            commission = quantity * exec_price * 0.001
+            # Fail-closed: paper simulation lives in trading/paper_broker.py
+            # (TRADING_MODE=PAPER). No duplicate fill simulation on live tickers here.
             return Order(
                 order_id=order_id,
                 symbol=symbol,
@@ -202,11 +222,8 @@ class BinanceBroker(BaseBroker):
                 order_type=order_type,
                 quantity=quantity,
                 price=price,
-                status=OrderStatus.FILLED,
-                filled_qty=quantity,
-                avg_fill_price=exec_price,
-                commission=commission,
-                notes="Paper simulation",
+                status=OrderStatus.REJECTED,
+                notes="BinanceBroker(paper=True) does not simulate fills — use PaperBroker (TRADING_MODE=PAPER)",
                 client_order_id=cid,
             )
         try:
@@ -276,18 +293,8 @@ class BinanceBroker(BaseBroker):
                 notes=f"state unknown after {type(exc).__name__}: {exc}; lookup failed: {qe}",
                 client_order_id=cid,
             )
-        st = str(o.get("status") or "")
         filled = float(o.get("filled") or 0)
-        if st == "closed":
-            status = OrderStatus.FILLED
-        elif st in ("canceled", "cancelled", "expired"):
-            status = OrderStatus.PARTIAL if filled > 0 else OrderStatus.CANCELLED
-        elif st == "rejected":
-            status = OrderStatus.REJECTED
-        elif filled > 0:
-            status = OrderStatus.PARTIAL
-        else:
-            status = OrderStatus.PENDING
+        status = _map_ccxt_status(o.get("status"), filled, o.get("amount"))
         return Order(
             order_id=str(o.get("id") or cid), symbol=symbol, side=side,
             order_type=order_type, quantity=quantity, price=price, status=status,
@@ -322,12 +329,10 @@ class BinanceBroker(BaseBroker):
                 order_type=OrderType.MARKET,
                 quantity=float(order["amount"]),
                 price=float(order.get("price", 0)),
-                status=(
-                    OrderStatus.FILLED
-                    if order["status"] == "closed"
-                    else OrderStatus.PENDING
+                status=_map_ccxt_status(
+                    order.get("status"), float(order.get("filled") or 0), order.get("amount")
                 ),
-                filled_qty=float(order.get("filled", 0)),
+                filled_qty=float(order.get("filled") or 0),
             )
         except Exception:
             BROKER_ERRORS.inc()

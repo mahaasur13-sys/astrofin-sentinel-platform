@@ -24,6 +24,10 @@ class LiveTradingNotAllowedError(RuntimeError):
     """Raised when a LIVE mode is requested without the explicit opt-in flag."""
 
 
+class BrokerConnectionError(RuntimeError):
+    """Raised when a live broker could not connect (fail-closed: no broker returned)."""
+
+
 def live_trading_allowed() -> bool:
     """True only if ASTROFIN_ALLOW_LIVE_TRADING is exactly 'I_UNDERSTAND'."""
     return os.environ.get(LIVE_TRADING_FLAG_ENV) == LIVE_TRADING_FLAG_VALUE
@@ -74,7 +78,16 @@ def get_broker(mode: TradingMode | None = None) -> BaseBroker:
             )
         from .broker.binance import BinanceBroker
         broker = BinanceBroker(paper=False)
-        broker.connect()
+        try:
+            ok = broker.connect()
+        except Exception as e:  # noqa: BLE001 — any connect failure is fail-closed
+            raise BrokerConnectionError(
+                f"{mode.value}: BinanceBroker.connect() raised {type(e).__name__}"
+            ) from e
+        if not ok:
+            raise BrokerConnectionError(
+                f"{mode.value}: BinanceBroker.connect() failed — broker not connected"
+            )
         return broker
 
     # Fallback: always safe

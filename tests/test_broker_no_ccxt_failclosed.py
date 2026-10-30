@@ -71,8 +71,8 @@ def test_factory_live_without_ccxt_not_connected(no_ccxt, monkeypatch):
     from trading import factory
     from trading.mode import TradingMode
     monkeypatch.setenv(factory.LIVE_TRADING_FLAG_ENV, factory.LIVE_TRADING_FLAG_VALUE)
-    b = factory.get_broker(TradingMode.LIVE_LIMITED)
-    assert b.connected is False
+    with pytest.raises(factory.BrokerConnectionError):
+        factory.get_broker(TradingMode.LIVE_LIMITED)
 
 
 # ── orchestrator ─────────────────────────────────────────────────────────
