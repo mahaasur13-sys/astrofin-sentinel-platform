@@ -97,7 +97,7 @@ class HistoryDB:
         symbol = result.get("symbol", "BTCUSDT")
         timeframe = result.get("timeframe", "SWING")
         query_type = result.get("query_type", "unknown")
-        price = result.get("current_price", 0.0)
+        price = result.get("current_price") or 0.0  # None (no price) -> 0.0 column default
         flows_run = json.dumps(result.get("flows_run", {}))
         agent_count = result.get("agent_count", 0)
         started_at = result.get("started_at", "")

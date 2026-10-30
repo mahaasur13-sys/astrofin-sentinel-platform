@@ -18,6 +18,7 @@ from core.base_agent import (
     BaseAgent,
     SignalDirection,
 )
+from core.market_freshness import fresh_okx_rows
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +142,7 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
                         float(x[4]),  # close
                         float(x[5]),  # volume
                     ]
-                    for x in data.get("data", [])
+                    for x in fresh_okx_rows(data.get("data", []), interval, source="bear_researcher")
                 ]
         except Exception:
             logger.warning(

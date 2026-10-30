@@ -109,7 +109,8 @@ async def run_macro_flow(state: dict, selected_agents: list | None = None) -> di
     return merged
 
 
-async def _fetch_price(symbol: str, fallback_price: float = 50000.0) -> float:
+async def _fetch_price(symbol: str, fallback_price: float | None = None) -> float | None:
+    """Current price via Data Room; ``None`` on failure (no made-up price)."""
     from data_room.resolvers.coingecko import CoinGeckoResolver
 
     resolver = CoinGeckoResolver()
@@ -124,7 +125,7 @@ async def _fetch_price(symbol: str, fallback_price: float = 50000.0) -> float:
         await resolver.close()
 
     logger.warning(
-        "[Price] Data Room lookup failed for %s, using fallback %s",
+        "[Price] Data Room lookup failed for %s, fallback=%s (None => no_data)",
         symbol,
         fallback_price,
     )

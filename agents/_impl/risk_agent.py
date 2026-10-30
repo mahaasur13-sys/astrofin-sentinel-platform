@@ -18,6 +18,7 @@ from core.base_agent import (
     BaseAgent,
     SignalDirection,
 )
+from core.market_freshness import fresh_okx_rows, get_current_price, price_no_data_response
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,9 @@ class RiskAgent(BaseAgent[AgentResponse]):
         Calculate risk parameters and position sizing.
         """
         symbol = state.get("symbol", "BTCUSDT")
-        current_price = state.get("current_price", 50000)
+        current_price = get_current_price(state)
+        if current_price is None:
+            return price_no_data_response("RiskAgent")
 
         price_data = await self._fetch_ohlcv(symbol, "1d", 30)
         if not price_data:
@@ -146,7 +149,7 @@ class RiskAgent(BaseAgent[AgentResponse]):
                 resp = await client.get(url, timeout=10)
                 resp.raise_for_status()
                 data = resp.json()
-                return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
+                return [[float(x[4]), float(x[5])] for x in fresh_okx_rows(data.get("data", []), interval, source="risk_agent")]
         except Exception:
             logger.warning(
                 f"Failed to fetch OHLCV data for {symbol} with interval {interval} and limit {limit}"

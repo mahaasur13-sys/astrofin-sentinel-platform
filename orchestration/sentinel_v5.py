@@ -94,7 +94,7 @@ async def run_sentinel_v5(
 
     if current_price == 0 and symbols:
         current_price = await _fetch_price(symbols[0])
-    current_price = current_price or 50000
+    current_price = current_price or None  # None => price no_data, never 50000
 
     state = {
         "symbol": symbols[0],
@@ -223,7 +223,7 @@ async def run_karl_sentinel_v5(
 
     if current_price == 0 and symbols:
         current_price = await _fetch_price(symbols[0])
-    current_price = current_price or 50000
+    current_price = current_price or None  # None => price no_data, never 50000
 
     if persist:
         # Persist the session row BEFORE the KARL agent runs, so its

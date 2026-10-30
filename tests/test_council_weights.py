@@ -167,7 +167,9 @@ def test_live_path_run_karl_sentinel_v5_astro_council_not_empty():
     patches = [mock.patch.object(httpx.AsyncClient, "get", fake), mock.patch.object(httpx.AsyncClient, "post", fake),
                mock.patch.object(sv.KARLSynthesisAgent, "run", karl_run),
                mock.patch.object(sv, "save_session", mock.MagicMock()),
-               mock.patch.object(sv, "update_beliefs_from_session", mock.MagicMock())]
+               mock.patch.object(sv, "update_beliefs_from_session", mock.MagicMock()),
+               # candles() are dated from 1700000000000 (daily, 400 bars): freeze the freshness clock after the newest
+               mock.patch("core.market_freshness._now", return_value=1700000000 + 399 * 86400 + 3600)]
     if hasattr(sv, "init_db_if_needed"):
         patches.append(mock.patch.object(sv, "init_db_if_needed", mock.MagicMock()))
     for p in patches:

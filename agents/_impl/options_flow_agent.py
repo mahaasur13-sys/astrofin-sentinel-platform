@@ -18,6 +18,7 @@ from core.base_agent import (
     BaseAgent,
     SignalDirection,
 )
+from core.market_freshness import get_current_price, price_no_data_response
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,9 @@ class OptionsFlowAgent(BaseAgent[AgentResponse]):
     @require_ephemeris
     async def analyze(self, state: dict) -> AgentResponse:
         symbol = state.get("symbol", "BTCUSDT")
-        current_price = state.get("current_price", 50000)
+        current_price = get_current_price(state)
+        if current_price is None:
+            return price_no_data_response("OptionsFlowAgent")
 
         # Fetch options data (requires paid API in production)
         options_data = await self._fetch_options_data(symbol)

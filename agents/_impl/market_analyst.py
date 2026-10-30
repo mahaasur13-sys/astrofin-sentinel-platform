@@ -16,6 +16,7 @@ from core.base_agent import (
     BaseAgent,
     SignalDirection,
 )
+from core.market_freshness import fresh_okx_rows
 from core.metrics import track_agent_duration
 
 logger = logging.getLogger(__name__)
@@ -148,7 +149,7 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
                 resp.raise_for_status()
                 data = resp.json()
                 # OKX возвращает [timestamp, open, high, low, close, volume]
-                return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
+                return [[float(x[4]), float(x[5])] for x in fresh_okx_rows(data.get("data", []), interval, source="market_analyst")]
         except Exception:
             logger.warning(f"Failed to fetch OHLCV data for {symbol}")
             return []

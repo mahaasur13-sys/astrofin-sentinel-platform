@@ -19,6 +19,7 @@ from core.base_agent import (
     BaseAgent,
     SignalDirection,
 )
+from core.market_freshness import fresh_okx_rows
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +147,7 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
                 resp = await client.get(url, timeout=10)
                 resp.raise_for_status()
                 data = resp.json()
-                return [[float(x[4]), float(x[5])] for x in data.get("data", [])]
+                return [[float(x[4]), float(x[5])] for x in fresh_okx_rows(data.get("data", []), interval, source="time_window_agent")]
         except Exception:
             logger.warning(
                 f"Failed to fetch OHLCV data for {symbol} with interval {interval} and limit {limit}"

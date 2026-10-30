@@ -5,6 +5,13 @@ from unittest.mock import AsyncMock, Mock, patch
 from agents._impl.bull_researcher import BullResearcherAgent
 
 
+@pytest.fixture(autouse=True)
+def _freeze_freshness_clock():
+    """Fixture candles are dated 2023-01-01/02; freeze the freshness clock just after them."""
+    with patch("core.market_freshness._now", return_value=1672617600 + 3600):
+        yield
+
+
 @pytest.mark.asyncio
 async def test_bull_researcher_uses_async_http():
     agent = BullResearcherAgent()
