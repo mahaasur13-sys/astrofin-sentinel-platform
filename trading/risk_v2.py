@@ -193,10 +193,13 @@ class RiskEngineV2:
             nakshatra_multiplier, nakshatra_name
         """
         state = self.get_state()
-        eq = max(state.total_equity, 1_000.0)
+        no_equity = not self.has_valid_equity() or not state.total_equity > 0
+        # No valid equity -> size 0 (never an invented 1_000 floor).
+        eq = 0.0 if no_equity else state.total_equity
         base = {
             "max_leverage": 3.0,
-            "position_size_pct": min(0.20, 50_000.0 / eq),
+            "position_size_pct": 0.0 if no_equity else min(0.20, 50_000.0 / eq),
+            "no_equity": no_equity,
             "stop_loss_multiplier": 1.0,
             "nakshatra_multiplier": 1.0,
             "nakshatra_name": nakshatra or "",
