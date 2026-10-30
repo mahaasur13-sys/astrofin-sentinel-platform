@@ -25,6 +25,7 @@ PCT = 0.1
 @pytest.fixture(autouse=True)
 def _clean_env(monkeypatch):
     monkeypatch.delenv("RISK_REDUCED_POSITION_FACTOR", raising=False)
+    monkeypatch.delenv("RISK_MAX_DRAWDOWN", raising=False)
 
 
 def _sig():
@@ -42,16 +43,16 @@ def _is_kill(d):
 
 
 def test_gate_drawdown_kill_switch_fires():
-    # Gate config max_drawdown=0.15: 100k -> 84k (16%) must be denied.
+    # Threshold 10% (RiskConfigV2 default): 100k -> 88k (12%) must be denied.
     g = SafetyGate()
     assert _check(g, 100_000.0).is_approved
-    assert _is_kill(_check(g, 84_000.0))
+    assert _is_kill(_check(g, 88_000.0))
 
 
-def test_gate_88k_below_gate_threshold_not_killed():
+def test_gate_91k_below_threshold_not_killed():
     g = SafetyGate()
     _check(g, 100_000.0)
-    assert not _is_kill(_check(g, 88_000.0))  # 12% < 15%
+    assert not _is_kill(_check(g, 91_000.0))  # 9% < 10%
 
 
 def test_peak_rises_and_survives_copy():
@@ -76,7 +77,7 @@ def test_orchestrator_kill_switch_across_cycles():
     o = co.CouncilOrchestrator(mock.MagicMock(), safety_gate=gate)
     o.adjust_through_risk = lambda b, r: (PCT, "ok")
     outs = []
-    for eq in (100_000.0, 84_000.0):
+    for eq in (100_000.0, 89_000.0):
         broker = mock.MagicMock()
         broker.name = "stub"
         broker.connected = True
@@ -114,3 +115,55 @@ def test_get_current_params_small_equity_not_floored():
     e.update_equity(500.0)
     p = e.get_current_params(observations={})
     assert p["equity"] == 500.0 and p["no_equity"] is False and p["position_size_pct"] > 0
+
+
+# ── Single 10% threshold (owner decision) ──────────────────────────────────────
+
+
+@pytest.fixture
+def _no_dd_env(monkeypatch):
+    monkeypatch.delenv("RISK_MAX_DRAWDOWN", raising=False)
+
+
+def test_gate_89k_kill_switch(_no_dd_env):
+    g = SafetyGate()
+    _check(g, 100_000.0)
+    assert _is_kill(_check(g, 89_000.0))
+
+
+def test_boundary_exactly_10pct_kills(_no_dd_env):
+    # Semantics: drawdown >= threshold -> kill. 100k -> 90k is exactly 10%.
+    g = SafetyGate()
+    _check(g, 100_000.0)
+    assert _is_kill(_check(g, 90_000.0))
+
+
+def test_gate_and_riskconfig_share_threshold(_no_dd_env):
+    from trading.risk_v2 import DEFAULT_MAX_DRAWDOWN
+    from trading.safety_gate import max_drawdown_threshold
+
+    assert RiskConfigV2().max_drawdown == DEFAULT_MAX_DRAWDOWN == max_drawdown_threshold() == 0.10
+
+
+def test_override_param_and_env(monkeypatch):
+    g = SafetyGate(max_drawdown=0.20)
+    _check(g, 100_000.0)
+    assert not _is_kill(_check(g, 88_000.0))  # 12% < 20%
+    monkeypatch.setenv("RISK_MAX_DRAWDOWN", "0.05")
+    g2 = SafetyGate()
+    _check(g2, 100_000.0)
+    assert _is_kill(_check(g2, 94_000.0))  # 6% >= 5%
+
+
+@pytest.mark.parametrize("raw", ["abc", "nan", "inf", "0", "-0.1", "1", "1.5", "15"])
+def test_garbage_env_does_not_weaken(monkeypatch, raw):
+    monkeypatch.setenv("RISK_MAX_DRAWDOWN", raw)
+    g = SafetyGate()
+    _check(g, 100_000.0)
+    assert _is_kill(_check(g, 89_000.0))
+
+
+@pytest.mark.parametrize("bad", [0, 1.0, -0.1, float("nan"), "0.2", True])
+def test_bad_explicit_param_raises(bad):
+    with pytest.raises(ValueError):
+        SafetyGate(max_drawdown=bad)

@@ -59,6 +59,32 @@ def reduced_position_factor() -> float:
         return DEFAULT_REDUCED_POSITION_FACTOR
     return value
 
+def _valid_drawdown(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and 0.0 < v < 1.0
+
+
+def max_drawdown_threshold(override: Any = None) -> float:
+    """Drawdown kill-switch threshold: gate parameter > env RISK_MAX_DRAWDOWN >
+    trading.risk_v2.DEFAULT_MAX_DRAWDOWN (0.10). Valid range (0, 1).
+    Garbage env value -> default (never a softer threshold)."""
+    from trading.risk_v2 import DEFAULT_MAX_DRAWDOWN
+
+    if override is not None:
+        if not _valid_drawdown(override):
+            raise ValueError(f"max_drawdown={override!r} must be a number in (0, 1)")
+        return float(override)
+    raw = os.getenv("RISK_MAX_DRAWDOWN")
+    if raw is None or raw.strip() == "":
+        return DEFAULT_MAX_DRAWDOWN
+    try:
+        value = float(raw)
+    except ValueError:
+        value = float("nan")
+    if not _valid_drawdown(value):
+        log.warning("[SAFETY-STACK] invalid RISK_MAX_DRAWDOWN — using %s", DEFAULT_MAX_DRAWDOWN)
+        return DEFAULT_MAX_DRAWDOWN
+    return value
+
 # ─── Result Types ──────────────────────────────────────────────────────────────
 
 
@@ -135,8 +161,14 @@ class SafetyGate:
         portfolio: Optional[Any] = None,  # forward ref
         market_mode: Optional["MarketMode"] = None,
         slippage_model: Optional[Any] = None,
+        max_drawdown: Optional[float] = None,
     ):
         self.portfolio = portfolio
+        # Explicit kill-switch threshold; None -> env RISK_MAX_DRAWDOWN / default 0.10.
+        # Validated now: a bad explicit value is a config error, not a silent default.
+        if max_drawdown is not None:
+            max_drawdown_threshold(max_drawdown)
+        self.max_drawdown = max_drawdown
         # Used when market data has no slippage_bp_estimate. None → SlippageModel
         # (trading/execution/slippage.py) with its configured slippage_bps and the
         # REAL spread_bps from market data.
@@ -389,7 +421,7 @@ class SafetyGate:
 
             config = RiskConfigV2(
                 max_exposure_per_asset=0.25,
-                max_drawdown=0.15,
+                max_drawdown=max_drawdown_threshold(getattr(self, "max_drawdown", None)),
                 correlation_limit=0.70,
                 target_volatility=0.15,
                 vol_lookback=20,
