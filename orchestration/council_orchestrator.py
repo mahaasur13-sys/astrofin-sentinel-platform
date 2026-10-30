@@ -187,11 +187,16 @@ class CouncilOrchestrator:
 
         try:
             price = cfg.get("current_price")
-            if price is None:
+            price_from_broker = price is None
+            if price_from_broker:
                 price = broker.get_market_price(symbol)
         except Exception as e:
             logger.exception("[EXECUTE] price lookup failed — deny")
             return _deny("market_data_error", f"{type(e).__name__}", "BLOCKED")
+        # Broker price must be a real price (cfg price: invalid → invalid_quantity below).
+        if price_from_broker and (not isinstance(price, (int, float)) or isinstance(price, bool)
+                or not math.isfinite(price) or price <= 0):
+            return _deny("market_data_error", f"invalid price={price!r}", "BLOCKED")
 
         equity = cfg.get("equity")
         if equity is None:
@@ -283,6 +288,40 @@ class CouncilOrchestrator:
             out["client_order_id"] = client_order_id
             return out
 
+        filled_raw = getattr(order, "filled_qty", None)
+        filled_qty = (float(filled_raw) if isinstance(filled_raw, (int, float))
+                      and not isinstance(filled_raw, bool) and math.isfinite(filled_raw) else None)
+        order_status = getattr(order, "status", None)
+        if order_status is OrderStatus.CANCELLED:
+            out = _deny("order_cancelled", f"order cancelled without fill: {getattr(order, 'notes', '')}", "BLOCKED")
+            out["qty"] = qty
+            out["filled_qty"] = filled_qty
+            out["client_order_id"] = client_order_id
+            return out
+        if order_status in (OrderStatus.PARTIAL, OrderStatus.PENDING):
+            # Never report the full qty as executed: only what the exchange says was filled.
+            logger.warning("[EXECUTE] order %s %s: filled %s of %s", client_order_id,
+                           order_status.name, filled_qty, qty)
+            return {
+                "action": "PARTIALLY_EXECUTED" if order_status is OrderStatus.PARTIAL else "ORDER_PENDING",
+                "status": decision.status.value,
+                "size": position_fraction,
+                "suggested_size": adjusted_size,
+                "qty": qty,
+                "filled_qty": filled_qty,
+                "qty_scaled_from": scaled_from,
+                "signal": signal_name,
+                "risk_reason": risk_reason,
+                "blocked": False,
+                "safety_reason": decision.reason,
+                "order_id": order.order_id,
+                "client_order_id": client_order_id,
+                "order_status": order_status.name,
+                "executed_price": getattr(order, "avg_fill_price", None),
+                "commission": getattr(order, "commission", None),
+                "broker": broker.name,
+            }
+
         logger.info(
             "✅ [EXECUTE] signal=%s size=%s qty=%s price=%s risk=%s broker=%s status=%s",
             signal_name, position_fraction, qty, price, risk_reason,
@@ -295,6 +334,7 @@ class CouncilOrchestrator:
             "size": position_fraction,  # actual fraction sent (after REDUCED)
             "suggested_size": adjusted_size,
             "qty": qty,
+            "filled_qty": filled_qty,
             "qty_scaled_from": scaled_from,
             "slippage_bps": decision.slippage_bps,
             "slippage_source": decision.slippage_source,
