@@ -21,6 +21,7 @@ from core.base_agent import (
     SignalDirection,
 )
 from core.http_client import get_http_client
+from core.market_freshness import fresh_okx_rows, get_current_price, price_no_data_response
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,9 @@ class QuantAgent(BaseAgent[AgentResponse]):
     async def analyze(self, state: dict) -> AgentResponse:
         symbol = state.get("symbol", "BTCUSDT")
         timeframe = state.get("timeframe_requested", "SWING")
-        current_price = state.get("current_price", 50000)
+        current_price = get_current_price(state)
+        if current_price is None:
+            return price_no_data_response("QuantAgent")
 
         # Fetch price history
         price_data = await self._fetch_price_history(symbol, timeframe)
@@ -62,6 +65,7 @@ class QuantAgent(BaseAgent[AgentResponse]):
                 confidence=30,
                 reasoning="Insufficient data for quant analysis",
                 sources=[],
+                metadata={"no_data": True, "reason": "insufficient_candles", "n_candles": len(price_data)},
             )
 
         # Run quant models
@@ -136,14 +140,22 @@ class QuantAgent(BaseAgent[AgentResponse]):
             return self._degraded(UNKNOWN, repr(e))
 
     async def _fetch_price_history(self, symbol: str, timeframe: str) -> list:
-        """Fetch OHLCV data from Binance."""
+        """Fetch daily OKX candles as ``[close, volume, high, low]``, oldest first.
+
+        OKX wraps rows in ``{"code", "msg", "data": [...]}`` and returns them
+        newest first.  Stale/undated series -> ``[]`` (no_data path, #482).
+        """
+        bar = "1D"
         try:
             inst_id = symbol if "-" in symbol else symbol[:-4] + "-USDT"
-            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar=1D&limit=100"
+            url = f"https://www.okx.com/api/v5/market/candles?instId={inst_id}&bar={bar}&limit=100"
             resp = await get_http_client().get(url)
             data = resp.json()
-            return [[float(x[4]), float(x[5]), float(x[2]), float(x[3])] for x in data]
+            rows = fresh_okx_rows(data.get("data", []), bar, source="quant_agent")
+            rows = sorted(rows, key=lambda x: float(x[0]))
+            return [[float(x[4]), float(x[5]), float(x[2]), float(x[3])] for x in rows]
         except Exception:
+            logger.warning("quant_agent: candle fetch failed for %s", symbol, exc_info=True)
             return []
 
     def _momentum_analysis(self, data: list) -> dict:
