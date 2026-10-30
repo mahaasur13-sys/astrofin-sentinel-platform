@@ -163,36 +163,53 @@ class BinanceBroker(BaseBroker):
             raise BalanceUnavailableError(f"fetch_balance failed: {type(e).__name__}") from e
 
     def get_positions(self) -> list[Position]:
+        """Spot holdings from fetch_balance, priced by fetch_ticker.
+
+        Fail-closed:
+          * fetch_balance error -> BalanceUnavailableError (not [] = "no positions");
+          * invalid ticker (error/None/<=0/nan/inf) -> MarketPriceUnavailableError
+            (no position priced at 0, no silent skip that hides exposure);
+          * spot balance carries no entry price -> avg_entry_price/unrealized_* = None.
+        """
         if not self.connected:
             return []
         if not HAS_CCXT or not self.exchange:
             return []
         try:
             balance = self.exchange.fetch_balance()
-            positions = []
-            for symbol, data in balance.get("total", {}).items():
-                if symbol == "USDT" or float(data) <= 0:
-                    continue
-                try:
-                    ticker = self.exchange.fetch_ticker(symbol + "/USDT")
-                    price = ticker.get("last", 0)
-                    qty = float(data)
-                    positions.append(
-                        Position(
-                            symbol=symbol,
-                            quantity=qty,
-                            avg_entry_price=0,
-                            current_price=price,
-                            unrealized_pnl=0,
-                            unrealized_pnl_pct=0,
-                        )
-                    )
-                except Exception:
-                    continue
-            return positions
-        except Exception:
+        except Exception as e:
             BROKER_ERRORS.inc()
-            return []
+            raise BalanceUnavailableError(f"fetch_balance failed: {type(e).__name__}") from e
+        totals = balance.get("total") if isinstance(balance, dict) else None
+        positions = []
+        for symbol, data in (totals or {}).items():
+            qty = _finite_pos_or_none(data)
+            if symbol == "USDT" or qty is None:
+                continue
+            pair = symbol + "/USDT"
+            try:
+                ticker = self.exchange.fetch_ticker(pair)
+            except Exception as e:
+                BROKER_ERRORS.inc()
+                raise MarketPriceUnavailableError(
+                    f"fetch_ticker {pair} failed: {type(e).__name__}"
+                ) from e
+            last = ticker.get("last") if isinstance(ticker, dict) else None
+            price = _finite_pos_or_none(last)
+            if price is None:
+                BROKER_ERRORS.inc()
+                raise MarketPriceUnavailableError(f"invalid ticker {pair} last={last!r}")
+            positions.append(
+                Position(
+                    symbol=symbol,
+                    quantity=qty,
+                    avg_entry_price=None,
+                    current_price=price,
+                    unrealized_pnl=None,
+                    unrealized_pnl_pct=None,
+                )
+            )
+        return positions
 
     def place_order(
         self,
@@ -382,21 +399,38 @@ class BinanceBroker(BaseBroker):
             return None
         try:
             order = self.exchange.fetch_order(order_id)
-            return Order(
-                order_id=str(order["id"]),
-                symbol=order["symbol"],
-                side=OrderSide.BUY if order["side"] == "buy" else OrderSide.SELL,
-                order_type=OrderType.MARKET,
-                quantity=float(order["amount"]),
-                price=float(order.get("price", 0)),
-                status=_map_ccxt_status(
-                    order.get("status"), float(order.get("filled") or 0), order.get("amount")
-                ),
-                filled_qty=float(order.get("filled") or 0),
-            )
         except Exception:
             BROKER_ERRORS.inc()
             return None
+        if not isinstance(order, dict):
+            BROKER_ERRORS.inc()
+            return None
+        amount = _finite_pos_or_none(order.get("amount"))
+        filled = _finite_pos_or_none(order.get("filled"), allow_zero=True)
+        notes = ""
+        if filled is None:
+            # Unknown executed volume: keep terminal no-fill states, else UNKNOWN.
+            status = _map_ccxt_status(order.get("status"), 0.0, amount)
+            if status not in (OrderStatus.PENDING, OrderStatus.CANCELLED, OrderStatus.REJECTED):
+                status = OrderStatus.UNKNOWN
+            notes = f"filled unknown ({order.get('filled')!r})"
+            filled = 0.0
+        else:
+            status = _map_ccxt_status(order.get("status"), filled, amount)
+        if amount is None:
+            notes = (notes + "; " if notes else "") + f"amount unknown ({order.get('amount')!r})"
+        return Order(
+            order_id=str(order.get("id") or order_id),
+            symbol=str(order.get("symbol") or ""),
+            side=OrderSide.BUY if order.get("side") == "buy" else OrderSide.SELL,
+            order_type=OrderType.MARKET,
+            quantity=amount if amount is not None else 0.0,
+            price=_finite_pos_or_none(order.get("price")),  # None = unknown, never invented
+            status=status,
+            filled_qty=filled,
+            avg_fill_price=_finite_pos_or_none(order.get("average")) or 0.0,  # 0.0 = unknown (#492)
+            notes=notes,
+        )
 
     def get_market_price(self, symbol: str) -> float:
         """Last price; fail-closed: raises MarketPriceUnavailableError, never returns 0.0."""

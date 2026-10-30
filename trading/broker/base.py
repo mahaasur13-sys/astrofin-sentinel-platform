@@ -70,10 +70,12 @@ class Order:
 class Position:
     symbol: str
     quantity: float
-    avg_entry_price: float
+    # None = unknown (e.g. Binance spot: fetch_balance carries no entry price).
+    # Never 0: a fake 0 entry turns PnL/exposure into nonsense.
+    avg_entry_price: float | None
     current_price: float = 0.0
-    unrealized_pnl: float = 0.0
-    unrealized_pnl_pct: float = 0.0
+    unrealized_pnl: float | None = 0.0
+    unrealized_pnl_pct: float | None = 0.0
 
 
 class BalanceUnavailableError(RuntimeError):
