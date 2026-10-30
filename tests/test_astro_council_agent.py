@@ -14,11 +14,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from agents._impl.synthesis.weights import AGENT_WEIGHTS
-from agents.astro_council_agent import (
-    HYBRID_WEIGHTS,
-    _AGENT_CATEGORY_MAP,
-    AstroCouncilAgent,
-)
+from agents._impl.synthesis.weights import get_agent_weight
+from agents.astro_council_agent import AstroCouncilAgent
 from core.base_agent import AgentResponse, SignalDirection
 
 # Equal weights so the "3 LONG + 2 NEUTRAL" example maps to a 60/40 split.
@@ -61,9 +58,10 @@ def test_majority_long(council):
     assert result.confidence == 60
 
 
+# "BUY" is now a known alias of LONG (see tests/test_council_weights.py)
 @pytest.mark.parametrize(
     "bad",
-    [SignalDirection.AVOID, "NEUTRAL", "BUY", "garbage", None, 12345],
+    [SignalDirection.AVOID, "NEUTRAL", "HOLD", "garbage", None, 12345],
 )
 def test_unknown_direction_does_not_crash(council, bad):
     responses = [
@@ -123,7 +121,6 @@ def test_elliot_in_agent_weights():
 
 
 def test_astro_weights_normalized_and_bounded():
-    assert set(HYBRID_WEIGHTS) == set(_AGENT_CATEGORY_MAP)
-    assert abs(sum(HYBRID_WEIGHTS.values()) - 1.0) < 1e-9
-    for v in HYBRID_WEIGHTS.values():
-        assert v < 0.40
+    # weights come from the single source synthesis/weights.py
+    for name in EQ_WEIGHTS:
+        assert 0 < get_agent_weight(name) < 0.40
