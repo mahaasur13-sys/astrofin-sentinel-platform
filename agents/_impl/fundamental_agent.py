@@ -267,7 +267,7 @@ class FundamentalAgent(BaseAgent[AgentResponse]):
 async def run_fundamental_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = FundamentalAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"fundamental_signal": result.to_dict()}
 
 

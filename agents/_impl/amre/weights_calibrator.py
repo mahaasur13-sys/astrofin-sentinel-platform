@@ -52,10 +52,14 @@ def estimate_karl_reward(
 
     70% market reward + 30% astro reward, EMA smoothing (α=0.3).
     """
+    price = state.get("current_price")
+    if price is None:  # no price -> no reward update (never a made-up 50000)
+        return reward_state.ema_reward
+
     # Build MarketState
     ms = market_state_cls(
         symbol=state.get("symbol", "BTC"),
-        price=state.get("current_price", 50000),
+        price=price,
         timeframe=state.get("timeframe_requested", "SWING"),
         n_signals=len(signals),
         session_id=state.get("session_id", ""),

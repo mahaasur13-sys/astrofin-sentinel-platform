@@ -60,7 +60,7 @@ class TechnicalAgent(BaseAgent[AgentResponse]):
         eph = self._call_ephemeris(dt)
 
         # 2. Загрузка OHLCV
-        price_data = await self._fetch_ohlcv(symbol, "1d", 50)
+        price_data = await self._fetch_ohlcv(symbol, "1D", 50)
         if not price_data:
             # fail-closed: no candles -> no directional signal from default indicators
             return AgentResponse(

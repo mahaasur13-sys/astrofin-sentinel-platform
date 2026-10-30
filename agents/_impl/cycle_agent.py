@@ -51,9 +51,8 @@ class CycleAgent(BaseAgent[AgentResponse]):
         Analyze cycle position and predict next turning point.
         """
         symbol = state.get("symbol", "BTCUSDT")
-        state.get("current_price", 50000)
 
-        price_data = await self._fetch_ohlcv(symbol, "1d", 120)
+        price_data = await self._fetch_ohlcv(symbol, "1D", 120)
         if not price_data:
             return AgentResponse(
                 agent_name="CycleAgent",
@@ -271,7 +270,7 @@ class CycleAgent(BaseAgent[AgentResponse]):
 async def run_cycle_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = CycleAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"cycle_signal": result.to_dict()}
 
 

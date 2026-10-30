@@ -230,7 +230,7 @@ class BradleyAgent(BaseAgent[AgentResponse]):
 async def run_bradley_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = BradleyAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"bradley_signal": result.to_dict()}
 
 

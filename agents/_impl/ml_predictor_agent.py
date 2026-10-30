@@ -219,7 +219,7 @@ class MLPredictorAgent(BaseAgent[AgentResponse]):
 async def run_ml_predictor_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = MLPredictorAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"ml_predictor_signal": result.to_dict()}
 
 

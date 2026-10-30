@@ -52,11 +52,10 @@ class BullResearcherAgent(BaseAgent[AgentResponse]):
         Returns: LONG / NEUTRAL signal with confidence and reasoning.
         """
         symbol = state.get("symbol", "BTCUSDT")
-        state.get("current_price", 50000)
         timeframe = state.get("timeframe_requested", "SWING")
 
         # Fetch market data for pattern recognition
-        price_data = await self._fetch_ohlcv(symbol, "1d", 60)
+        price_data = await self._fetch_ohlcv(symbol, "1D", 60)
         if not price_data:
             return AgentResponse(
                 agent_name="BullResearcher",
@@ -280,7 +279,7 @@ class BullResearcherAgent(BaseAgent[AgentResponse]):
 async def run_bull_researcher(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = BullResearcherAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"bull_signal": result.to_dict()}
 
 

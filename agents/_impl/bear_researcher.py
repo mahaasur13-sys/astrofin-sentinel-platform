@@ -52,10 +52,9 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
         Returns: SHORT / NEUTRAL signal with confidence and reasoning.
         """
         symbol = state.get("symbol", "BTCUSDT")
-        state.get("current_price", 50000)
         timeframe = state.get("timeframe_requested", "SWING")
 
-        price_data = await self._fetch_ohlcv(symbol, "1d", 60)
+        price_data = await self._fetch_ohlcv(symbol, "1D", 60)
         if not price_data:
             return AgentResponse(
                 agent_name="BearResearcher",
@@ -272,7 +271,7 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
 async def run_bear_researcher(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = BearResearcherAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"bear_signal": result.to_dict()}
 
 

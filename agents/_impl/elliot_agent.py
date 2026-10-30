@@ -52,7 +52,6 @@ class ElliotAgent(BaseAgent[AgentResponse]):
         Analyze Elliott Wave structure.
         """
         symbol = state.get("symbol", "BTCUSDT")
-        state.get("current_price", 50000)
 
         price_data = state.get("_price_data", []) or await self._fetch_ohlcv(symbol, "1D", 120)
         if not price_data:
@@ -263,7 +262,7 @@ class ElliotAgent(BaseAgent[AgentResponse]):
 async def run_elliot_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = ElliotAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"elliot_signal": result.to_dict()}
 
 

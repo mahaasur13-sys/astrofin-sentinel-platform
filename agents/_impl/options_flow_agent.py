@@ -186,7 +186,7 @@ class OptionsFlowAgent(BaseAgent[AgentResponse]):
 async def run_options_flow_agent(state: dict) -> dict:
     """Runner for orchestrator."""
     agent = OptionsFlowAgent()
-    result = await agent.analyze(state)
+    result = await agent.run(state)
     return {"options_flow_signal": result.to_dict()}
 
 

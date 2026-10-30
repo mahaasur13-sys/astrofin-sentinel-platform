@@ -16,7 +16,7 @@ from core.base_agent import (
     BaseAgent,
     SignalDirection,
 )
-from core.market_freshness import fresh_okx_rows
+from core.market_freshness import fresh_okx_rows, get_current_price, price_no_data_response
 from core.metrics import track_agent_duration
 
 logger = logging.getLogger(__name__)
@@ -51,10 +51,12 @@ class MarketAnalystAgent(BaseAgent[AgentResponse]):
 
     async def analyze(self, state: dict) -> AgentResponse:
         symbol = state.get("symbol", "BTCUSDT")
-        current_price = state.get("current_price", 50000)
+        current_price = get_current_price(state)
+        if current_price is None:  # fail-closed: never a made-up 50000
+            return price_no_data_response("MarketAnalyst")
 
         # Fetch market data
-        price_data = await self._fetch_ohlcv(symbol, "1d", 50)
+        price_data = await self._fetch_ohlcv(symbol, "1D", 50)
         if not price_data:
             return AgentResponse(
                 agent_name="MarketAnalyst",

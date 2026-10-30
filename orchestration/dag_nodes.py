@@ -9,12 +9,10 @@ AstroFin Sentinel v5 — DAG Node Wrappers
 
 from __future__ import annotations
 
-import asyncio
 import logging
-from typing import Any
 
 from core.dag import DAGNode
-from core.dag import DAGContext, NodeResult
+from core.dag import DAGContext
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +61,8 @@ class PriceNode(DAGNode):
 
         router = self._get_router_output(ctx)
         symbol = (router.get("symbols") or ["BTCUSDT"])[0]
-        fallback = ctx.state.get("fallback_price", 50000.0)
+        # None => price no_data downstream (fail-closed), never a made-up 50000
+        fallback = ctx.state.get("fallback_price")
 
         cb_registry = ctx.state.get("_cb_registry")
         if cb_registry is None:
@@ -179,9 +178,9 @@ class BaseFlowNode(DAGNode):
         price = ctx.get("PriceNode")
         if price and price.ok:
             p = price.output if isinstance(price.output, dict) else {}
-            state["current_price"] = p.get("price", 50000.0)
+            state["current_price"] = p.get("price")
         else:
-            state["current_price"] = ctx.state.get("fallback_price", 50000.0)
+            state["current_price"] = ctx.state.get("fallback_price")
 
         # RAG context
         rag = ctx.get("RAGNode")
@@ -344,11 +343,11 @@ class SynthesisNode(DAGNode):
                 "fallback": True,
             }
 
-    def _get_price(self, ctx: DAGContext) -> float:
+    def _get_price(self, ctx: DAGContext) -> float | None:
         price = ctx.get("PriceNode")
         if price and price.ok and isinstance(price.output, dict):
-            return price.output.get("price", 0.0)
-        return ctx.state.get("fallback_price", 50000.0)
+            return price.output.get("price")
+        return ctx.state.get("fallback_price")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -374,9 +373,9 @@ class KARLPostProcessNode(DAGNode):
         synth_out = synthesis.output if isinstance(synthesis.output, dict) else {}
 
         price_node = ctx.get("PriceNode")
-        current_price = (price_node.output.get("price", 0.0)
+        current_price = (price_node.output.get("price")
                          if (price_node and price_node.ok and isinstance(price_node.output, dict))
-                         else ctx.state.get("fallback_price", 50000.0))
+                         else ctx.state.get("fallback_price"))
 
         try:
             from agents.karl_synthesis import KARLSynthesisAgent
@@ -414,11 +413,11 @@ class PersistNode(DAGNode):
     timeout_ms: float = 10_000
     max_retries: int = 1
 
-    def _get_price_for_persist(self, ctx: DAGContext) -> float:
+    def _get_price_for_persist(self, ctx: DAGContext) -> float | None:
         price = ctx.get("PriceNode")
         if price and price.ok and isinstance(price.output, dict):
-            return price.output.get("price", 0.0)
-        return ctx.state.get("fallback_price", 50000.0)
+            return price.output.get("price")
+        return ctx.state.get("fallback_price")
 
     async def run(self, ctx: DAGContext) -> dict:
         karl = ctx.get("KARLPostProcessNode")
