@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import time
 
 import yaml
@@ -64,6 +65,23 @@ def _map_ccxt_status(status, filled: float, amount=None) -> OrderStatus:
     if st == "open":
         return OrderStatus.PARTIAL if filled > 0 else OrderStatus.PENDING
     return OrderStatus.UNKNOWN
+
+
+def _finite_pos_or_none(v, allow_zero: bool = False):
+    """float(v) if finite and > 0 (or >= 0 with allow_zero), else None."""
+    if v is None or isinstance(v, bool):
+        return None
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(f) or f < 0 or (f == 0 and not allow_zero):
+        return None
+    return f
+
+
+class MarketPriceUnavailableError(RuntimeError):
+    """No valid market price (not connected, ticker error, or invalid last). Never 0.0."""
 
 
 class BinanceBroker(BaseBroker):
@@ -244,19 +262,8 @@ class BinanceBroker(BaseBroker):
                 order = self.exchange.create_order(
                     symbol, "market", side_str, quantity, None, params
                 )
-            return Order(
-                order_id=str(order.get("id", order_id)),
-                symbol=symbol,
-                side=side,
-                order_type=order_type,
-                quantity=quantity,
-                price=price,
-                status=OrderStatus.FILLED,
-                filled_qty=float(order.get("filled", quantity)),
-                avg_fill_price=float(order.get("average", price or 0)),
-                commission=float(order.get("fee", {}).get("cost", 0)),
-                created_at=order.get("timestamp", time.time() * 1000) / 1000,
-                client_order_id=cid,
+            return self._order_from_create_response(
+                order, order_id, symbol, side, order_type, quantity, price, cid
             )
         except Exception as e:
             BROKER_ERRORS.inc()
@@ -276,6 +283,59 @@ class BinanceBroker(BaseBroker):
                 notes=str(e),
                 client_order_id=cid,
             )
+
+    @staticmethod
+    def _order_from_create_response(order, fallback_id, symbol, side, order_type, quantity, price, cid) -> Order:
+        """Build Order from a ccxt create_order response WITHOUT inventing fills.
+
+        * status via _map_ccxt_status (closed & filled<amount → PARTIAL, open → PENDING, ...);
+        * filled missing/invalid → filled_qty=0 and, unless the order is plainly not filled
+          (open/canceled/rejected with nothing reported), status UNKNOWN: the exchange may have
+          filled any amount, so the caller must reconcile by clientOrderId, never assume quantity;
+        * closed with filled == 0 is contradictory → UNKNOWN;
+        * avg price only from average/price of the response, else 0.0 (= not known).
+        """
+        order = order if isinstance(order, dict) else {}
+        filled = _finite_pos_or_none(order.get("filled"), allow_zero=True)
+        amount = order.get("amount")
+        if _finite_pos_or_none(amount) is None:
+            amount = quantity
+        raw_status = str(order.get("status") or "").lower()
+        notes = ""
+        if filled is None:
+            status = _map_ccxt_status(raw_status, 0.0, amount)
+            if status not in (OrderStatus.PENDING, OrderStatus.CANCELLED, OrderStatus.REJECTED):
+                status = OrderStatus.UNKNOWN
+                notes = f"exchange response has no valid 'filled' (status={raw_status or None}) — reconcile by clientOrderId"
+            filled = 0.0
+        else:
+            status = _map_ccxt_status(raw_status, filled, amount)
+            if raw_status == "closed" and filled == 0:
+                status = OrderStatus.UNKNOWN
+                notes = "exchange reports closed with filled=0 — reconcile by clientOrderId"
+            elif status is OrderStatus.UNKNOWN:
+                notes = f"unrecognised exchange status {raw_status or None!r} — reconcile by clientOrderId"
+        avg = _finite_pos_or_none(order.get("average"))
+        if avg is None and filled > 0:
+            avg = _finite_pos_or_none(order.get("price"))
+        fee = order.get("fee") if isinstance(order.get("fee"), dict) else {}
+        commission = _finite_pos_or_none(fee.get("cost"), allow_zero=True) or 0.0
+        ts = _finite_pos_or_none(order.get("timestamp"))
+        return Order(
+            order_id=str(order.get("id") or fallback_id),
+            symbol=symbol,
+            side=side,
+            order_type=order_type,
+            quantity=quantity,
+            price=price,
+            status=status,
+            filled_qty=filled,
+            avg_fill_price=avg or 0.0,
+            commission=commission,
+            created_at=(ts / 1000) if ts else time.time(),
+            notes=notes,
+            client_order_id=cid,
+        )
 
     def _reconcile_by_client_id(
         self, cid, symbol, side, order_type, quantity, price, exc
@@ -339,17 +399,23 @@ class BinanceBroker(BaseBroker):
             return None
 
     def get_market_price(self, symbol: str) -> float:
+        """Last price; fail-closed: raises MarketPriceUnavailableError, never returns 0.0."""
         if not self.connected:
-            return 0.0
+            raise MarketPriceUnavailableError("broker not connected — market price unknown")
         if not HAS_CCXT or not self.exchange:
             # Fail-closed: never invent a price.
-            raise RuntimeError("ccxt/exchange unavailable — market price unknown")
+            raise MarketPriceUnavailableError("ccxt/exchange unavailable — market price unknown")
         try:
             ticker = self.exchange.fetch_ticker(symbol)
-            return float(ticker.get("last", 0))
-        except Exception:
+        except Exception as e:
             BROKER_ERRORS.inc()
-            return 0.0
+            raise MarketPriceUnavailableError(f"fetch_ticker failed: {type(e).__name__}") from e
+        last = ticker.get("last") if isinstance(ticker, dict) else None
+        price = _finite_pos_or_none(last)
+        if price is None:
+            BROKER_ERRORS.inc()
+            raise MarketPriceUnavailableError(f"invalid ticker last={last!r}")
+        return price
 
     def __repr__(self) -> str:
         status = "connected" if self.connected else "disconnected"

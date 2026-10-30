@@ -21,9 +21,9 @@ def test_broker_error_increments_counter():
     before = BROKER_ERRORS._value.get() if hasattr(BROKER_ERRORS, "_value") else 0
 
     with patch("trading.broker.binance.HAS_CCXT", True):
-        price = broker.get_market_price("BTCUSDT")
+        with pytest.raises(RuntimeError):  # fail-closed: no 0.0 price
+            broker.get_market_price("BTCUSDT")
 
     after = BROKER_ERRORS._value.get() if hasattr(BROKER_ERRORS, "_value") else 0
 
-    assert price == 0.0, "Should return 0.0 on error"
     assert after > before, f"Counter should increment: {before} -> {after}"
