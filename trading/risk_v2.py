@@ -72,13 +72,27 @@ class RiskEngineV2:
         self._positions[pos.symbol] = pos
 
     def update_equity(self, equity: float) -> None:
-        equity = float(equity)
-        if math.isnan(equity) or math.isinf(equity):
-            equity = self._equity_history[-1] if self._equity_history else 100_000.0
+        """Record a real equity snapshot. Invalid (None/non-numeric/nan/inf/<=0)
+        is NOT replaced by a made-up value: the engine becomes fail-closed
+        (``no_equity``) until a valid snapshot arrives."""
+        try:
+            equity = float(equity)
+        except (TypeError, ValueError):
+            equity = math.nan
+        if math.isnan(equity) or math.isinf(equity) or equity <= 0:
+            log.warning("RiskEngineV2: invalid equity snapshot — fail-closed (no_equity)")
+            self._equity_valid = False
+            return
+        self._equity_valid = True
         self._equity_history.append(equity)
 
+    def has_valid_equity(self) -> bool:
+        return bool(self._equity_history) and getattr(self, "_equity_valid", True)
+
     def get_state(self) -> RiskState:
-        equity = self._equity_history[-1] if self._equity_history else 100_000.0
+        # No valid equity -> 0.0 (never an invented 100_000): exposure checks deny,
+        # kill switch denies with "no_equity".
+        equity = self._equity_history[-1] if self.has_valid_equity() else 0.0
         peak = max(self._equity_history) if self._equity_history else equity
         dd = max(0.0, (peak - equity) / peak) if peak > 0 else 0.0
         kill = dd >= self.config.max_drawdown if self.config.kill_switch_enabled else False
@@ -91,6 +105,8 @@ class RiskEngineV2:
         )
 
     def check_kill_switch(self):
+        if not self.has_valid_equity():
+            return False, 0.0, "no_equity: no valid equity snapshot — fail-closed"
         state = self.get_state()
         if state.kill_switch_active:
             return (
@@ -103,7 +119,7 @@ class RiskEngineV2:
     def check_exposure(self, symbol, proposed_notional):
         state = self.get_state()
         if state.total_equity <= 0:
-            return False, 0.0, "Invalid equity"
+            return False, 0.0, "no_equity: invalid equity — fail-closed"
         current_notional = abs(self._positions.get(symbol, AssetPosition(symbol, 0, 0, 0, 0, 0)).notional_value)
         total_exposure = sum(abs(p.notional_value) for p in self._positions.values())
         new_total = total_exposure + proposed_notional
