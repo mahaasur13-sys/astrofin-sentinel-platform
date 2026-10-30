@@ -21,9 +21,14 @@ import logging
 log = logging.getLogger(__name__)
 
 
+# Single source of truth for the drawdown kill-switch threshold (owner decision: 10%).
+# Kill fires when drawdown >= threshold. SafetyGate uses this unless overridden.
+DEFAULT_MAX_DRAWDOWN = 0.10
+
+
 @dataclass
 class RiskConfigV2:
-    max_drawdown: float = 0.10
+    max_drawdown: float = DEFAULT_MAX_DRAWDOWN
     max_exposure_per_asset: float = 0.30
     correlation_limit: float = 0.80
     target_volatility: float = 0.15
