@@ -22,6 +22,7 @@ trading/safety_gate.py — ATOM-INTEGRATION-001: Safety Gate
 """
 
 import logging
+import math
 log = logging.getLogger(__name__)
 
 import os
@@ -36,6 +37,26 @@ SAFETY_STACK_ENABLED = os.getenv("SAFETY_STACK_ENABLED", "true").lower() == "tru
 RISK_ENGINE_V2_ENABLED = os.getenv("RISK_ENGINE_V2_ENABLED", "true").lower() == "true"
 MODE_ENFORCER_ENABLED = os.getenv("MODE_ENFORCER_ENABLED", "true").lower() == "true"
 SANITY_CHECKER_ENABLED = os.getenv("SANITY_CHECKER_ENABLED", "true").lower() == "true"
+
+# Fraction of the suggested position kept when RiskEngineV2 returns REDUCED
+# (low confidence). Conservative default: half size. Override with
+# RISK_REDUCED_POSITION_FACTOR in (0, 1]; anything else falls back to the
+# default so a bad value can never keep or increase the size.
+DEFAULT_REDUCED_POSITION_FACTOR = 0.5
+
+
+def reduced_position_factor() -> float:
+    raw = os.getenv("RISK_REDUCED_POSITION_FACTOR")
+    if raw is None or raw.strip() == "":
+        return DEFAULT_REDUCED_POSITION_FACTOR
+    try:
+        value = float(raw)
+    except ValueError:
+        value = float("nan")
+    if not math.isfinite(value) or not (0.0 < value < 1.0):
+        log.warning("[SAFETY-STACK] invalid RISK_REDUCED_POSITION_FACTOR — using %s", DEFAULT_REDUCED_POSITION_FACTOR)
+        return DEFAULT_REDUCED_POSITION_FACTOR
+    return value
 
 # ─── Result Types ──────────────────────────────────────────────────────────────
 
@@ -176,6 +197,7 @@ class SafetyGate:
         checks_failed: list[str] = []
         scaled_qty: float | None = None
         scaled_reason = ""
+        risk_reduced: SafetyDecision | None = None
         sanity_slippage: tuple[float | None, str | None] = (None, None)
 
         # ── 1. ModeEnforcer ───────────────────────────────────────────────────
@@ -206,6 +228,7 @@ class SafetyGate:
                 self._total_reduced += 1
                 self._log_event("RISK", "REDUCED", risk_decision.reason)
                 checks_failed.append("RiskEngineV2(volume)")
+                risk_reduced = risk_decision
                 # Continue to sanity check even on REDUCED
             checks_passed.append("RiskEngineV2")
         else:
@@ -237,14 +260,22 @@ class SafetyGate:
             checks_passed.append("ExecutionSanityChecker(disabled)")
 
         # ── All passed ───────────────────────────────────────────────────────
-        if scaled_qty is not None:
+        final_pct = suggested_position_pct
+        if risk_reduced is not None:
+            # Never larger than suggested, even if the risk decision is odd.
+            final_pct = min(suggested_position_pct, risk_reduced.reduced_position_pct)
+        if scaled_qty is not None or risk_reduced is not None:
+            reasons = [r for r in (risk_reduced.reason if risk_reduced else "", scaled_reason) if r]
+            codes = [c for c in (risk_reduced.blocked_reason if risk_reduced else None,
+                                 "sanity_scaled" if scaled_qty is not None else None) if c]
+            self._log_event("GATE", "REDUCED", "; ".join(reasons))
             return SafetyDecision(
                 status=SafetyStatus.REDUCED,
-                reason=f"{len(checks_passed)} checks passed; {scaled_reason}",
-                reduced_position_pct=suggested_position_pct,
+                reason=f"{len(checks_passed)} checks passed; {'; '.join(reasons)}",
+                reduced_position_pct=final_pct,
                 checks_passed=checks_passed,
                 checks_failed=checks_failed,
-                blocked_reason="sanity_scaled",
+                blocked_reason=",".join(codes),
                 adjusted_qty=scaled_qty,
                 slippage_bps=sanity_slippage[0],
                 slippage_source=sanity_slippage[1],
@@ -438,7 +469,7 @@ class SafetyGate:
                 return SafetyDecision(
                     status=SafetyStatus.REDUCED,
                     reason=f"RiskEngineV2: confidence {sig_confidence} < minimum {min_confidence:.0f}",
-                    reduced_position_pct=suggested_position_pct,
+                    reduced_position_pct=suggested_position_pct * reduced_position_factor(),
                     blocked_reason="low_confidence",
                 )
 
