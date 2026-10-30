@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import re
 import time
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
@@ -26,6 +28,24 @@ class OrderStatus(Enum):
     PARTIAL = "PARTIAL"
     CANCELLED = "CANCELLED"
     REJECTED = "REJECTED"
+    # Request may have reached the exchange but the outcome could not be confirmed.
+    # Fail-closed: callers must NOT resubmit; reconcile by client_order_id instead.
+    UNKNOWN = "UNKNOWN"
+
+
+# Binance: newClientOrderId must match ^[\.A-Z\:/a-z0-9_-]{1,36}$
+CLIENT_ORDER_ID_RE = re.compile(r"^[\.A-Z\:/a-z0-9_-]{1,36}$")
+
+
+def new_client_order_id(prefix: str = "af") -> str:
+    """Unique idempotency id, <=36 chars, Binance-safe charset."""
+    return f"{prefix}-{uuid.uuid4().hex}"[:36]
+
+
+def validate_client_order_id(cid: str) -> str:
+    if not isinstance(cid, str) or not CLIENT_ORDER_ID_RE.match(cid):
+        raise ValueError(f"invalid client_order_id: {cid!r}")
+    return cid
 
 
 @dataclass
@@ -43,6 +63,7 @@ class Order:
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
     notes: str = ""
+    client_order_id: str | None = None
 
 
 @dataclass
@@ -99,8 +120,15 @@ class BaseBroker(ABC):
         order_type: OrderType,
         quantity: float,
         price: float | None = None,
+        client_order_id: str | None = None,
     ) -> Order:
-        """Place an order."""
+        """Place an order.
+
+        ``client_order_id`` is the idempotency key: resubmitting with the same id must
+        never create a second order. If omitted, the broker generates one and returns it
+        in ``Order.client_order_id``. If the outcome cannot be confirmed the broker returns
+        ``OrderStatus.UNKNOWN`` (caller must reconcile, not retry with a new id).
+        """
         ...
 
     @abstractmethod

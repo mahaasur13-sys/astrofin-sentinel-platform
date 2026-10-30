@@ -27,7 +27,22 @@ from .base import (
     OrderStatus,
     OrderType,
     Position,
+    new_client_order_id,
+    validate_client_order_id,
 )
+
+
+def _is_definite_reject(exc: Exception) -> bool:
+    """True only for errors where the exchange definitely did NOT accept the order.
+
+    Network errors / timeouts (and anything unclassifiable) are NOT definite: the
+    request may have been executed, so the caller must reconcile by clientOrderId.
+    """
+    if not HAS_CCXT:
+        return False
+    if isinstance(exc, ccxt.NetworkError):
+        return False
+    return isinstance(exc, ccxt.ExchangeError)
 
 
 class BinanceBroker(BaseBroker):
@@ -151,7 +166,9 @@ class BinanceBroker(BaseBroker):
         order_type: OrderType,
         quantity: float,
         price: float | None = None,
+        client_order_id: str | None = None,
     ) -> Order:
+        cid = validate_client_order_id(client_order_id) if client_order_id else new_client_order_id()
         order_id = f"sim_{int(time.time() * 1000)}"
         if not self.connected:
             return Order(
@@ -163,6 +180,7 @@ class BinanceBroker(BaseBroker):
                 price=price,
                 status=OrderStatus.REJECTED,
                 notes="Not connected",
+                client_order_id=cid,
             )
         if not HAS_CCXT or not self.exchange or self.paper:
             exec_price = price or self.get_market_price(symbol)
@@ -179,20 +197,26 @@ class BinanceBroker(BaseBroker):
                 avg_fill_price=exec_price,
                 commission=commission,
                 notes="Paper simulation" if self.paper else "Live (testnet)",
+                client_order_id=cid,
             )
         try:
             side_str = "buy" if side == OrderSide.BUY else "sell"
             type_str = order_type.value
+            # Binance spot (/api/v3/order) and USD-M futures (/fapi/v1/order) both take
+            # newClientOrderId; a duplicate id is rejected by the exchange.
+            params = {"newClientOrderId": cid}
             if order_type == OrderType.LIMIT or order_type == OrderType.STOP_LIMIT:
                 order = self.exchange.create_order(
-                    symbol, type_str, side_str, quantity, price
+                    symbol, type_str, side_str, quantity, price, params
                 )
             elif order_type == OrderType.STOP:
                 order = self.exchange.create_order(
-                    symbol, "stop", side_str, quantity, price
+                    symbol, "stop", side_str, quantity, price, params
                 )
             else:
-                order = self.exchange.create_order(symbol, "market", side_str, quantity)
+                order = self.exchange.create_order(
+                    symbol, "market", side_str, quantity, None, params
+                )
             return Order(
                 order_id=str(order.get("id", order_id)),
                 symbol=symbol,
@@ -205,9 +229,15 @@ class BinanceBroker(BaseBroker):
                 avg_fill_price=float(order.get("average", price or 0)),
                 commission=float(order.get("fee", {}).get("cost", 0)),
                 created_at=order.get("timestamp", time.time() * 1000) / 1000,
+                client_order_id=cid,
             )
         except Exception as e:
             BROKER_ERRORS.inc()
+            if not _is_definite_reject(e):
+                # Outcome unknown: never resubmit blindly — look the order up by clientOrderId.
+                return self._reconcile_by_client_id(
+                    cid, symbol, side, order_type, quantity, price, e
+                )
             return Order(
                 order_id=order_id,
                 symbol=symbol,
@@ -217,7 +247,44 @@ class BinanceBroker(BaseBroker):
                 price=price,
                 status=OrderStatus.REJECTED,
                 notes=str(e),
+                client_order_id=cid,
             )
+
+    def _reconcile_by_client_id(
+        self, cid, symbol, side, order_type, quantity, price, exc
+    ) -> Order:
+        """Query the order by origClientOrderId; UNKNOWN (fail-closed) if not confirmable."""
+        try:
+            o = self.exchange.fetch_order(None, symbol, {"origClientOrderId": cid})
+        except Exception as qe:  # noqa: BLE001 — includes OrderNotFound: still not proof of absence
+            BROKER_ERRORS.inc()
+            log.warning("[BinanceBroker] order %s state UNKNOWN after %s; lookup failed: %s",
+                        cid, type(exc).__name__, type(qe).__name__)
+            return Order(
+                order_id=cid, symbol=symbol, side=side, order_type=order_type,
+                quantity=quantity, price=price, status=OrderStatus.UNKNOWN,
+                notes=f"state unknown after {type(exc).__name__}: {exc}; lookup failed: {qe}",
+                client_order_id=cid,
+            )
+        st = str(o.get("status") or "")
+        filled = float(o.get("filled") or 0)
+        if st == "closed":
+            status = OrderStatus.FILLED
+        elif st in ("canceled", "cancelled", "expired"):
+            status = OrderStatus.PARTIAL if filled > 0 else OrderStatus.CANCELLED
+        elif st == "rejected":
+            status = OrderStatus.REJECTED
+        elif filled > 0:
+            status = OrderStatus.PARTIAL
+        else:
+            status = OrderStatus.PENDING
+        return Order(
+            order_id=str(o.get("id") or cid), symbol=symbol, side=side,
+            order_type=order_type, quantity=quantity, price=price, status=status,
+            filled_qty=filled, avg_fill_price=float(o.get("average") or 0),
+            notes=f"reconciled by clientOrderId after {type(exc).__name__}",
+            client_order_id=cid,
+        )
 
     def cancel_order(self, order_id: str) -> bool:
         if not self.connected or not HAS_CCXT or not self.exchange or self.paper:
