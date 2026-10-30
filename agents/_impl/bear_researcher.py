@@ -156,8 +156,8 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
             return {"score": 0.4, "summary": "insufficient data"}
 
         closes = [d[3] for d in data]
-        highs = [d[2] for d in data]
-        lows = [d[1] for d in data]
+        highs = [d[1] for d in data]
+        lows = [d[2] for d in data]
 
         # Lower highs pattern
         lh_count = 0
@@ -208,8 +208,8 @@ class BearResearcherAgent(BaseAgent[AgentResponse]):
         if len(data) < 20:
             return {"score": 0.4, "summary": "insufficient data"}
 
-        highs = [d[2] for d in data[-30:]]
-        current_price = highs[-1]
+        highs = [d[1] for d in data[-30:]]  # [o, h, l, c, v]
+        current_price = data[-1][3]  # close of the latest bar
 
         swing_highs = []
         for i in range(2, len(highs) - 2):
