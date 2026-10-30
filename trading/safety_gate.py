@@ -295,7 +295,9 @@ class SafetyGate:
                 "signal", "NEUTRAL"
             )
 
-            is_short = sig_direction == "SHORT"
+            is_short = str(getattr(sig_direction, "value", sig_direction)).upper() in (
+                "SHORT", "SELL", "STRONG_SELL"
+            )
             is_market = state.get("order_type") != "limit"
             is_limit = state.get("order_type") == "limit"
             is_option = "option" in sig_direction.lower()
