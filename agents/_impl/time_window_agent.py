@@ -61,6 +61,18 @@ class TimeWindowAgent(BaseAgent[AgentResponse]):
         window_1w = await self._scan_weekly_window(symbol)
         astro_window = await self._check_astro_timing(state)
 
+        market_windows = [window_4h, window_1d, window_1w]
+        if all("insufficient" in str(w.get("summary", "")) for w in market_windows):
+            # fail-closed: astro timing alone must not produce LONG/SHORT
+            return AgentResponse(
+                agent_name="TimeWindowAgent",
+                signal=SignalDirection.NEUTRAL,
+                confidence=20,
+                reasoning="No market data available for time-window analysis",
+                sources=[],
+                metadata={"no_data": True},
+            )
+
         # Find confluence
         windows = [window_4h, window_1d, window_1w, astro_window]
         bullish_windows = sum(1 for w in windows if w["direction"] == "bullish")
