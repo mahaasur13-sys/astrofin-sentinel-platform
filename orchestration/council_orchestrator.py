@@ -183,12 +183,20 @@ class CouncilOrchestrator:
             price = cfg.get("current_price")
             if price is None:
                 price = broker.get_market_price(symbol)
-            equity = cfg.get("equity")
-            if equity is None:
-                equity = broker.get_account_balance().total_equity
         except Exception as e:
-            logger.exception("[EXECUTE] price/equity lookup failed — deny")
+            logger.exception("[EXECUTE] price lookup failed — deny")
             return _deny("market_data_error", f"{type(e).__name__}", "BLOCKED")
+
+        equity = cfg.get("equity")
+        if equity is None:
+            try:
+                equity = broker.get_account_balance().total_equity
+            except Exception as e:
+                logger.warning("[EXECUTE] balance unavailable — deny: %s", type(e).__name__)
+                return _deny("no_equity", f"balance unavailable: {type(e).__name__}", "BLOCKED")
+        if (not isinstance(equity, (int, float)) or isinstance(equity, bool)
+                or not math.isfinite(equity) or equity <= 0):
+            return _deny("no_equity", f"invalid equity={equity!r}", "BLOCKED")
 
         # The gate must see the canonical direction (e.g. "SELL" -> SHORT) so that
         # ModeEnforcer's short check applies.

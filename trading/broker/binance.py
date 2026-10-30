@@ -21,6 +21,7 @@ from tools.metrics_server import BROKER_ERRORS
 
 from .base import (
     AccountBalance,
+    BalanceUnavailableError,
     BaseBroker,
     Order,
     OrderSide,
@@ -103,13 +104,8 @@ class BinanceBroker(BaseBroker):
                 total_equity=0, available_cash=0, positions_value=0, total_pnl=0
             )
         if not HAS_CCXT or not self.exchange:
-            return AccountBalance(
-                total_equity=10000.0,
-                available_cash=10000.0,
-                positions_value=0.0,
-                total_pnl=0.0,
-                currency="USDT",
-            )
+            # Fail-closed: no exchange client -> no real balance. Never invent equity.
+            raise BalanceUnavailableError("ccxt/exchange unavailable — balance unknown")
         try:
             balance = self.exchange.fetch_balance()
             total_usd = float(balance.get("total", {}).get("USDT", 0))
@@ -121,11 +117,10 @@ class BinanceBroker(BaseBroker):
                 total_pnl=0.0,
                 currency="USDT",
             )
-        except Exception:
+        except Exception as e:
             BROKER_ERRORS.inc()
-            return AccountBalance(
-                total_equity=10000, available_cash=10000, positions_value=0, total_pnl=0
-            )
+            # Fail-closed: a failed fetch_balance must not become a fake 10000 equity.
+            raise BalanceUnavailableError(f"fetch_balance failed: {type(e).__name__}") from e
 
     def get_positions(self) -> list[Position]:
         if not self.connected:

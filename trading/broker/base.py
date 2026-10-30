@@ -76,6 +76,10 @@ class Position:
     unrealized_pnl_pct: float = 0.0
 
 
+class BalanceUnavailableError(RuntimeError):
+    """Real account balance could not be obtained. Callers must NOT invent equity."""
+
+
 @dataclass
 class AccountBalance:
     total_equity: float
