@@ -72,9 +72,11 @@ class BinanceBroker(BaseBroker):
 
     def connect(self) -> bool:
         if not HAS_CCXT:
-            log.info("Warning: ccxt not installed. Running in simulation mode.")
-            self.connected = True
-            return True
+            # Fail-closed: no exchange client -> NOT connected. Simulation lives in
+            # trading/paper_broker.py (TRADING_MODE=PAPER), never here.
+            log.error("BinanceBroker: ccxt not installed — cannot connect (no simulation).")
+            self.connected = False
+            return False
         try:
             config = {"enableRateLimit": True, "options": {"defaultType": "spot"}}
             if not self.paper and self.api_key and self.secret:
@@ -177,7 +179,20 @@ class BinanceBroker(BaseBroker):
                 notes="Not connected",
                 client_order_id=cid,
             )
-        if not HAS_CCXT or not self.exchange or self.paper:
+        if not HAS_CCXT or not self.exchange:
+            # Fail-closed: without an exchange client nothing can be executed.
+            return Order(
+                order_id=order_id,
+                symbol=symbol,
+                side=side,
+                order_type=order_type,
+                quantity=quantity,
+                price=price,
+                status=OrderStatus.REJECTED,
+                notes="Exchange unavailable (ccxt/exchange missing)",
+                client_order_id=cid,
+            )
+        if self.paper:
             exec_price = price or self.get_market_price(symbol)
             commission = quantity * exec_price * 0.001
             return Order(
@@ -191,7 +206,7 @@ class BinanceBroker(BaseBroker):
                 filled_qty=quantity,
                 avg_fill_price=exec_price,
                 commission=commission,
-                notes="Paper simulation" if self.paper else "Live (testnet)",
+                notes="Paper simulation",
                 client_order_id=cid,
             )
         try:
@@ -322,7 +337,8 @@ class BinanceBroker(BaseBroker):
         if not self.connected:
             return 0.0
         if not HAS_CCXT or not self.exchange:
-            return 100.0
+            # Fail-closed: never invent a price.
+            raise RuntimeError("ccxt/exchange unavailable — market price unknown")
         try:
             ticker = self.exchange.fetch_ticker(symbol)
             return float(ticker.get("last", 0))

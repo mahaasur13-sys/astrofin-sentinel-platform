@@ -178,6 +178,8 @@ class CouncilOrchestrator:
             }
 
         broker = get_broker()
+        if getattr(broker, "connected", True) is False:
+            return _deny("broker_not_connected", f"{getattr(broker, 'name', type(broker).__name__)} not connected", "BLOCKED")
 
         try:
             price = cfg.get("current_price")
@@ -261,6 +263,11 @@ class CouncilOrchestrator:
             logger.exception("[EXECUTE] place_order failed — order state unknown, NOT retried (cid=%s)", client_order_id)
             out = _deny("order_error", f"{type(e).__name__}: order state unknown, not retried", "BLOCKED")
             out["action"] = "ORDER_ERROR"
+            out["qty"] = qty
+            out["client_order_id"] = client_order_id
+            return out
+        if getattr(order, "status", None) is OrderStatus.REJECTED:
+            out = _deny("order_rejected", f"broker rejected order: {getattr(order, 'notes', '')}", "BLOCKED")
             out["qty"] = qty
             out["client_order_id"] = client_order_id
             return out
