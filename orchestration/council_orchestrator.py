@@ -177,7 +177,11 @@ class CouncilOrchestrator:
                 "safety_reason": reason,
             }
 
-        broker = get_broker()
+        try:
+            broker = get_broker()
+        except Exception as e:  # BrokerConnectionError / LiveTradingNotAllowedError / ...
+            logger.warning("[EXECUTE] broker unavailable — deny: %s", type(e).__name__)
+            return _deny("broker_not_connected", f"get_broker failed: {type(e).__name__}: {e}", "BLOCKED")
         if getattr(broker, "connected", True) is False:
             return _deny("broker_not_connected", f"{getattr(broker, 'name', type(broker).__name__)} not connected", "BLOCKED")
 
