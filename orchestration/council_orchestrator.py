@@ -7,6 +7,7 @@
 
 import asyncio
 import logging
+import math
 import os
 from datetime import datetime, timezone
 from typing import List
@@ -44,6 +45,20 @@ def compute_order_quantity(equity: float, position_fraction: float, price: float
         if not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(v) or v <= 0:
             raise ValueError(f"invalid {name}={v!r}")
     return round((equity * position_fraction) / price, 8)
+
+_LONG_ALIASES = {"LONG", "BUY", "STRONG_BUY"}
+_SHORT_ALIASES = {"SHORT", "SELL", "STRONG_SELL"}
+
+
+def _direction_name(signal) -> str:
+    """'LONG' | 'SHORT' | 'NEUTRAL'. Anything else (AVOID, HOLD, unknown, str or enum) -> NEUTRAL."""
+    raw = str(getattr(signal, "value", signal)).upper()
+    if raw in _LONG_ALIASES:
+        return "LONG"
+    if raw in _SHORT_ALIASES:
+        return "SHORT"
+    return "NEUTRAL"
+
 
 class CouncilOrchestrator:
     """Замыкает контур: сбор сигналов → KARL-арбитраж → RiskEngine → исполнение.
@@ -98,6 +113,7 @@ class CouncilOrchestrator:
             dict с ключами: action, size, risk_reason, blocked
         """
         cfg = {**self.config, **(config or {})}
+        direction = _direction_name(final_signal.signal)
 
         # 1. KARL arbitration
         processed = self._apply_karl_arbitration(agent_responses)
@@ -125,25 +141,26 @@ class CouncilOrchestrator:
                 "size": 0.0,
                 "risk_reason": risk_reason,
                 "blocked": True,
-                "signal": final_signal.signal.name,
+                "signal": direction,
             }
 
         # 4. NEUTRAL check
-        if final_signal.signal == SignalDirection.NEUTRAL:
-            logger.info("Council consensus is NEUTRAL. No action.")
+        if direction == "NEUTRAL":
+            # NEUTRAL, AVOID, HOLD and unknown signals never open a position
+            logger.info("Council consensus is %s -> NEUTRAL. No action.", getattr(final_signal.signal, "value", final_signal.signal))
             return {
                 "action": "NEUTRAL",
                 "size": 0.0,
                 "risk_reason": "consensus NEUTRAL",
                 "blocked": False,
-                "signal": final_signal.signal.name,
+                "signal": direction,
             }
 
         # 5. Execution — broker dispatch (Sprint 8.1 Paper Trading)
         #    Order reaches the broker ONLY after SafetyGate.check() approves it.
         symbol = cfg.get("symbol", "BTCUSDT")
-        signal_name = final_signal.signal.name
-        side = OrderSide.BUY if signal_name in ("LONG", "STRONG_BUY") else OrderSide.SELL
+        signal_name = direction
+        side = OrderSide.BUY if direction == "LONG" else OrderSide.SELL
 
         def _deny(code: str, reason: str, status: str) -> dict:
             # status: REJECTED (policy violation) | BLOCKED (check impossible / error)
@@ -173,10 +190,18 @@ class CouncilOrchestrator:
             logger.exception("[EXECUTE] price/equity lookup failed — deny")
             return _deny("market_data_error", f"{type(e).__name__}", "BLOCKED")
 
+        # The gate must see the canonical direction (e.g. "SELL" -> SHORT) so that
+        # ModeEnforcer's short check applies.
+        gate_signal = AgentResponse(
+            agent_name=getattr(final_signal, "agent_name", "AstroCouncil"),
+            signal=SignalDirection(direction),
+            confidence=getattr(final_signal, "confidence", 0),
+            reasoning=getattr(final_signal, "reasoning", "") or "",
+        )
         default_mode = "BACKTEST" if is_backtest else os.getenv("TRADING_MODE", "PAPER").upper()
         gate_state = {
             "trading_mode": cfg.get("trading_mode", default_mode),
-            "signal": final_signal,
+            "signal": gate_signal,
             "order_type": "market",
         }
         if isinstance(cfg.get("market"), dict):
@@ -190,7 +215,7 @@ class CouncilOrchestrator:
             return _deny("invalid_quantity", str(e), "BLOCKED")
 
         decision = self.safety_gate.check(
-            final_signal,
+            gate_signal,
             gate_state,
             current_price=price,
             symbol=symbol,
@@ -201,7 +226,11 @@ class CouncilOrchestrator:
             status = decision.status.value if decision.status.value in ("REJECTED", "BLOCKED") else "BLOCKED"
             return _deny(decision.blocked_reason or "safety_denied", decision.reason, status)
 
-        position_fraction = min(adjusted_size, decision.reduced_position_pct)
+        pct = decision.reduced_position_pct
+        if (not isinstance(pct, (int, float)) or isinstance(pct, bool)
+                or not math.isfinite(pct) or not (0.0 < pct <= 1.0)):
+            return _deny("invalid_quantity", f"reduced_position_pct={pct!r}", "BLOCKED")
+        position_fraction = min(adjusted_size, pct)
         try:
             qty = compute_order_quantity(equity, position_fraction, price)
         except ValueError as e:
@@ -214,7 +243,14 @@ class CouncilOrchestrator:
                 scaled_from, qty = qty, round(decision.adjusted_qty, 8)
                 logger.info("[EXECUTE] qty scaled by sanity: %s -> %s (%s)", scaled_from, qty, decision.reason)
 
-        order = broker.place_order(symbol, side, OrderType.MARKET, qty)
+        try:
+            order = broker.place_order(symbol, side, OrderType.MARKET, qty)
+        except Exception as e:  # noqa: BLE001 — never retry here: order state is UNKNOWN
+            logger.exception("[EXECUTE] place_order failed — order state unknown, NOT retried")
+            out = _deny("order_error", f"{type(e).__name__}: order state unknown, not retried", "BLOCKED")
+            out["action"] = "ORDER_ERROR"
+            out["qty"] = qty
+            return out
 
         logger.info(
             "✅ [EXECUTE] signal=%s size=%s qty=%s price=%s risk=%s broker=%s status=%s",
