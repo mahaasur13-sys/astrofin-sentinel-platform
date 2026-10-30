@@ -37,10 +37,19 @@ class RiskConfigV2:
     close_on_kill: bool = True
 
     def __post_init__(self):
-        assert 0 < self.max_drawdown <= 1.0, f"max_drawdown={self.max_drawdown} out of range"
-        assert 0 < self.max_exposure_per_asset <= 1.0
-        assert 0 < self.correlation_limit <= 1.0
-        assert self.target_volatility > 0
+        # Real checks (not assert: stripped under python -O). max_drawdown range (0, 1)
+        # matches SafetyGate.max_drawdown_threshold.
+        def _num(v):
+            return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+
+        if not (_num(self.max_drawdown) and 0 < self.max_drawdown < 1.0):
+            raise ValueError(f"max_drawdown={self.max_drawdown!r} must be in (0, 1)")
+        if not (_num(self.max_exposure_per_asset) and 0 < self.max_exposure_per_asset <= 1.0):
+            raise ValueError(f"max_exposure_per_asset={self.max_exposure_per_asset!r} must be in (0, 1]")
+        if not (_num(self.correlation_limit) and 0 < self.correlation_limit <= 1.0):
+            raise ValueError(f"correlation_limit={self.correlation_limit!r} must be in (0, 1]")
+        if not (_num(self.target_volatility) and self.target_volatility > 0):
+            raise ValueError(f"target_volatility={self.target_volatility!r} must be > 0")
 
 
 @dataclass
