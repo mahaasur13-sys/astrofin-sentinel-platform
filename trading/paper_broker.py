@@ -13,6 +13,7 @@ import uuid
 
 from tools.data_provider import fetch_current_price
 
+from .broker.binance import MarketPriceUnavailableError, _finite_pos_or_none
 from .broker.base import (
     AccountBalance,
     BaseBroker,
@@ -87,18 +88,25 @@ class PaperBroker(BaseBroker):
         )
 
     def get_positions(self) -> list[Position]:
+        """Fail-closed like BinanceBroker (#493): invalid current price ->
+        MarketPriceUnavailableError (never 0); unknown entry -> None (never = current)."""
         positions = []
         for sym, qty in self._positions.items():
             if qty <= 0:
                 continue
-            price = self.get_market_price(sym)
+            raw = self.get_market_price(sym)
+            price = _finite_pos_or_none(raw)
+            if price is None:
+                raise MarketPriceUnavailableError(f"paper: invalid price for {sym}: {raw!r}")
+            entry = _finite_pos_or_none(self._avg_entry.get(sym))
             positions.append(
                 Position(
                     symbol=sym,
                     quantity=qty,
-                    avg_entry_price=self._avg_entry.get(sym, price),
+                    avg_entry_price=entry,
                     current_price=price,
-                    unrealized_pnl=qty * (price - self._avg_entry.get(sym, price)),
+                    unrealized_pnl=qty * (price - entry) if entry is not None else None,
+                    **({} if entry is not None else {"unrealized_pnl_pct": None}),
                 )
             )
         return positions

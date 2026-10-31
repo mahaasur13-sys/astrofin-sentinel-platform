@@ -101,6 +101,11 @@ _CCXT_SIDES = {"buy": OrderSide.BUY, "sell": OrderSide.SELL}
 STABLECOINS = ("USDT", "USDC", "FDUSD", "BUSD")
 
 
+# Valuation-only price cache TTL (seconds, time.monotonic). Used ONLY by
+# _value_holdings (equity/positions); get_market_price / place_order always fetch fresh.
+VALUATION_PRICE_TTL_S = 3.0
+
+
 class MarketPriceUnavailableError(RuntimeError):
     """No valid market price (not connected, ticker error, or invalid last). Never 0.0."""
 
@@ -197,7 +202,7 @@ class BinanceBroker(BaseBroker):
         valid price raises MarketPriceUnavailableError (exposure never hidden)."""
         totals = balance.get("total") if isinstance(balance, dict) else None
         stables_usd = 0.0
-        positions: list[Position] = []
+        assets: list = []
         for symbol, data in (totals or {}).items():
             qty = _finite_pos_or_none(data)
             if qty is None:
@@ -207,17 +212,55 @@ class BinanceBroker(BaseBroker):
                     log.warning("[BinanceBroker] %s counted 1:1 to USDT in equity", symbol)
                 stables_usd += qty
                 continue
-            positions.append(
-                Position(
-                    symbol=symbol,
-                    quantity=qty,
-                    avg_entry_price=None,
-                    current_price=self._price_in_usd_quote(symbol),
-                    unrealized_pnl=None,
-                    unrealized_pnl_pct=None,
-                )
+            assets.append((symbol, qty))
+        prices = self._valuation_prices([a for a, _ in assets])
+        positions = [
+            Position(
+                symbol=symbol,
+                quantity=qty,
+                avg_entry_price=None,
+                current_price=prices[symbol],
+                unrealized_pnl=None,
+                unrealized_pnl_pct=None,
             )
+            for symbol, qty in assets
+        ]
         return stables_usd, positions
+
+    def _valuation_prices(self, assets: list) -> dict:
+        """Prices for valuation: cache (< VALUATION_PRICE_TTL_S) -> one fetch_tickers
+        batch for X/USDT -> per-asset _price_in_usd_quote fallback (fresh).
+        Expired entries are never served; a failed batch falls back to fresh
+        per-symbol requests, never to stale cache. No valid price -> raises."""
+        cache = getattr(self, "_valuation_cache", None)
+        if cache is None:
+            cache = self._valuation_cache = {}
+        now = time.monotonic()
+        out, missing = {}, []
+        for a in assets:
+            hit = cache.get(a)
+            if hit is not None and now - hit[1] < VALUATION_PRICE_TTL_S:
+                out[a] = hit[0]
+            else:
+                missing.append(a)
+        if missing:
+            batch = {}
+            fetch_tickers = getattr(self.exchange, "fetch_tickers", None)
+            if callable(fetch_tickers):
+                try:
+                    res = fetch_tickers([f"{a}/USDT" for a in missing])
+                    batch = res if isinstance(res, dict) else {}
+                except Exception as e:  # noqa: BLE001 — fall back to fresh per-symbol
+                    BROKER_ERRORS.inc()
+                    log.warning("[BinanceBroker] fetch_tickers failed (%s) — per-symbol fallback", type(e).__name__)
+            for a in missing:
+                t = batch.get(f"{a}/USDT")
+                price = _finite_pos_or_none(t.get("last")) if isinstance(t, dict) else None
+                if price is None:
+                    price = self._price_in_usd_quote(a)  # fresh; raises if no valid price
+                out[a] = price
+                cache[a] = (price, time.monotonic())
+        return out
 
     def get_positions(self) -> list[Position]:
         """Spot holdings from fetch_balance, priced by fetch_ticker.
