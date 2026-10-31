@@ -116,7 +116,8 @@ jobs:
           pip install -e ".[dev]" || pip install -e .
           pip install pytest pytest-asyncio pytest-cov pytest-xdist \
                       httpx pyyaml pydantic>=2.0 fastapi uvicorn \
-                      click rich requests aiohttp
+                      click rich requests aiohttp \
+                      yfinance
       - name: pytest (unit + smoke)
         env:
           SENTINEL_METRICS_ENABLED: "0"
