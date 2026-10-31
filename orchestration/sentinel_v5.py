@@ -334,15 +334,20 @@ async def run_karl_sentinel_v5(
         amre_output = karl_result.get("amre_output")
         decision_record = karl_result.get("decision_record")
         karl_diagnostics_result = karl_result.get("karl_diagnostics")
+        karl_failed = False
     except Exception as e:
-        logger.error(f"[KARLSynthesisAgent] Fell back to base synthesis: {e}")
-        synthesis_agent = SynthesisAgent()
-        synthesis_result = await synthesis_agent.run(state)
-        synthesis_result = (
-            synthesis_result.to_dict()
-            if hasattr(synthesis_result, "to_dict")
-            else synthesis_result
-        )
+        # Fail-closed: a KARL failure must never produce a tradable signal.
+        # Previously this fell back to the base SynthesisAgent (fail-open), whose
+        # LONG/SHORT output bypassed KARL's checks. Now: NEUTRAL, confidence 0, blocked.
+        logger.error(f"[KARLSynthesisAgent] failed — fail-closed, no trade signal: {type(e).__name__}: {e}")
+        karl_failed = True
+        synthesis_result = {
+            "signal": SignalDirection.NEUTRAL.value,
+            "confidence": 0,
+            "reasoning": f"KARL synthesis failed ({type(e).__name__}) — fail-closed, no trade",
+            "blocked": True,
+            "blocked_reason": "karl_error",
+        }
         amre_output = None
         decision_record = None
         karl_diagnostics_result = None
@@ -369,11 +374,13 @@ async def run_karl_sentinel_v5(
         "decision_record": decision_record,
         "amre_output": amre_output,
         "karl_diagnostics": karl_diagnostics_result,
+        "karl_failed": karl_failed,
     }
 
     if persist:
         save_session(final_output)
-        update_beliefs_from_session(final_output)
+        if not karl_failed:  # do not learn beliefs from a synthetic fail-closed decision
+            update_beliefs_from_session(final_output)
 
     logger.info(
         f"[KARL] Session {session_id} completed: {len(state['all_signals'])} signals"
