@@ -80,6 +80,27 @@ def _finite_pos_or_none(v, allow_zero: bool = False):
     return f
 
 
+# ccxt unified order type -> internal OrderType. Unknown/missing -> None (never MARKET by default).
+_CCXT_ORDER_TYPES = {
+    "market": OrderType.MARKET,
+    "limit": OrderType.LIMIT,
+    "limit_maker": OrderType.LIMIT,
+    "stop": OrderType.STOP,
+    "stop_market": OrderType.STOP,
+    "stop_loss": OrderType.STOP,
+    "take_profit": OrderType.STOP,
+    "take_profit_market": OrderType.STOP,
+    "stop_limit": OrderType.STOP_LIMIT,
+    "stop_loss_limit": OrderType.STOP_LIMIT,
+    "take_profit_limit": OrderType.STOP_LIMIT,
+}
+_CCXT_SIDES = {"buy": OrderSide.BUY, "sell": OrderSide.SELL}
+
+# Quote stablecoins: not positions (cash-like). Also the fallback quotes used to price
+# an asset that has no X/USDT market (priced ~1:1 to USDT — see get_positions).
+STABLECOINS = ("USDT", "USDC", "FDUSD", "BUSD")
+
+
 class MarketPriceUnavailableError(RuntimeError):
     """No valid market price (not connected, ticker error, or invalid last). Never 0.0."""
 
@@ -140,9 +161,8 @@ class BinanceBroker(BaseBroker):
 
     def get_account_balance(self) -> AccountBalance:
         if not self.connected:
-            return AccountBalance(
-                total_equity=0, available_cash=0, positions_value=0, total_pnl=0
-            )
+            # Fail-closed: a disconnected broker has an UNKNOWN balance, not a zero one.
+            raise BalanceUnavailableError("broker not connected — balance unknown")
         if not HAS_CCXT or not self.exchange:
             # Fail-closed: no exchange client -> no real balance. Never invent equity.
             raise BalanceUnavailableError("ccxt/exchange unavailable — balance unknown")
@@ -184,21 +204,9 @@ class BinanceBroker(BaseBroker):
         positions = []
         for symbol, data in (totals or {}).items():
             qty = _finite_pos_or_none(data)
-            if symbol == "USDT" or qty is None:
-                continue
-            pair = symbol + "/USDT"
-            try:
-                ticker = self.exchange.fetch_ticker(pair)
-            except Exception as e:
-                BROKER_ERRORS.inc()
-                raise MarketPriceUnavailableError(
-                    f"fetch_ticker {pair} failed: {type(e).__name__}"
-                ) from e
-            last = ticker.get("last") if isinstance(ticker, dict) else None
-            price = _finite_pos_or_none(last)
-            if price is None:
-                BROKER_ERRORS.inc()
-                raise MarketPriceUnavailableError(f"invalid ticker {pair} last={last!r}")
+            if qty is None or str(symbol).upper() in STABLECOINS:
+                continue  # zero/invalid qty, or a stablecoin (cash, not a position)
+            price = self._price_in_usd_quote(symbol)
             positions.append(
                 Position(
                     symbol=symbol,
@@ -210,6 +218,29 @@ class BinanceBroker(BaseBroker):
                 )
             )
         return positions
+
+    def _price_in_usd_quote(self, asset: str) -> float:
+        """Last price of `asset` against USDT, else the first other stablecoin quote
+        that has a market (X/USDC, X/FDUSD, X/BUSD; approximated 1:1 to USDT).
+        No valid price on any of them -> MarketPriceUnavailableError (exposure is
+        never hidden: an asset with a balance but no price fails the whole call)."""
+        errors = []
+        for quote in STABLECOINS:
+            pair = f"{asset}/{quote}"
+            try:
+                ticker = self.exchange.fetch_ticker(pair)
+            except Exception as e:
+                errors.append(f"{pair}: {type(e).__name__}")
+                continue
+            last = ticker.get("last") if isinstance(ticker, dict) else None
+            price = _finite_pos_or_none(last)
+            if price is not None:
+                if quote != "USDT":
+                    log.warning("[BinanceBroker] %s priced via %s (no valid %s/USDT)", asset, pair, asset)
+                return price
+            errors.append(f"{pair}: invalid last={last!r}")
+        BROKER_ERRORS.inc()
+        raise MarketPriceUnavailableError(f"no valid price for {asset}: " + "; ".join(errors))
 
     def place_order(
         self,
@@ -419,11 +450,21 @@ class BinanceBroker(BaseBroker):
             status = _map_ccxt_status(order.get("status"), filled, amount)
         if amount is None:
             notes = (notes + "; " if notes else "") + f"amount unknown ({order.get('amount')!r})"
+        side = _CCXT_SIDES.get(str(order.get("side") or "").lower())
+        if side is None:
+            # Fail-closed: an order of unknown direction must not be reported as SELL.
+            BROKER_ERRORS.inc()
+            log.warning("[BinanceBroker] order %s has unknown side %r — status not reported", order_id, order.get("side"))
+            return None
+        raw_type = str(order.get("type") or "").lower()
+        order_type = _CCXT_ORDER_TYPES.get(raw_type)
+        if order_type is None:
+            notes = (notes + "; " if notes else "") + f"order type unknown ({order.get('type')!r})"
         return Order(
             order_id=str(order.get("id") or order_id),
             symbol=str(order.get("symbol") or ""),
-            side=OrderSide.BUY if order.get("side") == "buy" else OrderSide.SELL,
-            order_type=OrderType.MARKET,
+            side=side,
+            order_type=order_type,  # None = unknown, never assumed MARKET
             quantity=amount if amount is not None else 0.0,
             price=_finite_pos_or_none(order.get("price")),  # None = unknown, never invented
             status=status,
