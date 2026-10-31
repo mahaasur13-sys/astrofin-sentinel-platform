@@ -9,6 +9,11 @@ Deflated Sharpe Ratio (Bailey & López de Prado, 2014), as fixed in the research
 with per-period (non-annualised) SR, N = number of trials, V[SR] = sample variance (ddof=1) of
 the trials' per-period SRs, γ3 = skewness, γ4 = (non-excess) kurtosis of the tested returns.
 N may never be smaller than the protocol's ``variants_tried``: under-counting trials is refused.
+
+ddof convention: the tested series' per-period SR uses the sample standard deviation (ddof=1,
+Bessel's correction). The SMA200 reference (/workspace/research/sma200/backtest.py) uses ddof=0;
+on that reference the resulting DSR differs by 4.9e-05, within the ±0.1 p.p. comparison tolerance.
+Do not change ddof to match the reference without a separate methodological decision.
 """
 
 from __future__ import annotations
