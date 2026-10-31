@@ -64,7 +64,12 @@ class ValidationConfig:
         )
 
     def config_hash(self) -> str:
-        return _sha(canonical(asdict(self)))
+        d = asdict(self)
+        # Backward compatibility: slippage_pct was added later; at its 0.0 default it is
+        # omitted so protocols frozen before the field existed keep the same config_hash.
+        if d["backtest"].get("slippage_pct", 0.0) == 0.0:
+            d["backtest"].pop("slippage_pct", None)
+        return _sha(canonical(d))
 
 
 @dataclass(frozen=True)
@@ -91,6 +96,9 @@ class ValidationReport:
     variants_tried: int
     evaluations: int
     protocol_hash: str | None
+    # Buy-and-hold benchmark (no costs) per symbol on the evaluated segment
+    # (validation in run_development, final OOS in run_final_oos).
+    benchmark_metrics: dict | None = None
     disclaimers: tuple[str, ...] = DISCLAIMERS
     edge_claimed: bool = False
 
@@ -129,6 +137,23 @@ def evaluate_window(
         counter.variants.add(params_hash(params))
         counter.evaluations += 1
     return {k: summary[k] for k in METRIC_KEYS}
+
+
+def buy_and_hold_metrics(bars: Sequence[Bar], seg: Segment) -> dict:
+    """Buy-and-hold benchmark on ``seg``: per symbol, first close -> last close, no costs."""
+    if seg.end > len(bars):
+        raise ValidationError(f"window {seg.name} beyond data")
+    closes: dict[str, list[float]] = {}
+    for b in bars[seg.start:seg.end]:
+        closes.setdefault(b.symbol, []).append(float(b.close))
+    out = {}
+    for sym, c in closes.items():
+        peak, mdd = c[0], 0.0
+        for x in c:
+            peak = max(peak, x)
+            mdd = min(mdd, x / peak - 1)
+        out[sym] = {"total_return_pct": (c[-1] / c[0] - 1) * 100, "max_drawdown_pct": mdd * 100}
+    return out
 
 
 def _select(strategy, bars, seg, cfg, counter) -> tuple[dict, dict]:
@@ -180,7 +205,7 @@ def run_development(strategy: Strategy, bars: Sequence[Bar], cfg: ValidationConf
         strategy_version=strategy.version, status=STATUS_UNVERIFIED, split=split.boundaries(bars),
         walk_forward=windows, selected_params=params, development_metrics=dev_m, validation_metrics=val_m,
         final_oos_metrics=None, variants_tried=len(counter.variants), evaluations=counter.evaluations,
-        protocol_hash=None,
+        protocol_hash=None, benchmark_metrics=buy_and_hold_metrics(bars, split.validation),
     )
     return report, protocol
 
@@ -224,4 +249,5 @@ def run_final_oos(
         validation_metrics=base.validation_metrics if base else {},
         final_oos_metrics=oos_m, variants_tried=protocol.variants_tried,
         evaluations=(base.evaluations if base else 0) + 1, protocol_hash=protocol_hash,
+        benchmark_metrics=buy_and_hold_metrics(bars, split.final_oos),
     )

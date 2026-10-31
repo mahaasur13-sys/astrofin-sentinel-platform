@@ -18,6 +18,15 @@ class BacktestConfig:
     stop_loss_pct: float = 5.0
     take_profit_pct: float = 10.0
     commission_pct: float = 0.05
+    # Adverse price slippage per side, in percent (entry and exit both worse).
+    # Default 0.0 keeps pre-existing backtest results unchanged; set e.g. 0.05 to
+    # mirror PaperBroker(slippage_rate=0.0005).
+    slippage_pct: float = 0.0
+
+    def __post_init__(self) -> None:
+        s = self.slippage_pct
+        if isinstance(s, bool) or not isinstance(s, (int, float)) or not (0.0 <= s < 100.0):
+            raise ValueError(f"slippage_pct must be a finite number in [0, 100): {s!r}")
 
 
 @dataclass
@@ -100,7 +109,7 @@ class Backtester:
                 sl = current_price * (1 - self.config.stop_loss_pct / 100)
                 tp = current_price * (1 + self.config.take_profit_pct / 100)
                 self.portfolio.open_position(
-                    symbol, PositionSide.LONG, current_price, size, sl, tp
+                    symbol, PositionSide.LONG, self._fill(current_price, +1), size, sl, tp
                 )
             elif (
                 signal == "SHORT"
@@ -111,7 +120,7 @@ class Backtester:
                 sl = current_price * (1 + self.config.stop_loss_pct / 100)
                 tp = current_price * (1 - self.config.take_profit_pct / 100)
                 self.portfolio.open_position(
-                    symbol, PositionSide.SHORT, current_price, size, sl, tp
+                    symbol, PositionSide.SHORT, self._fill(current_price, -1), size, sl, tp
                 )
             elif signal == "NEUTRAL" and in_position:
                 self._close_trade(symbol, current_price, ts)
@@ -161,10 +170,16 @@ class Backtester:
                     self._close_trade(sym, current_price, ts)
                     break
 
+    def _fill(self, price, direction):
+        """Adverse fill: buys (direction=+1) pay more, sells (-1) receive less."""
+        return price * (1 + direction * self.config.slippage_pct / 100)
+
     def _close_trade(self, symbol, exit_price, exit_time):
         pos = self.portfolio.positions.get(symbol)
         if not pos or pos.side == PositionSide.FLAT:
             return
+        # Closing a LONG sells, closing a SHORT buys back.
+        exit_price = self._fill(exit_price, -pos.side.value)
         entry_price = pos.entry_price
         size = pos.size
         pnl_pct = (exit_price - entry_price) * pos.side.value / entry_price * 100
