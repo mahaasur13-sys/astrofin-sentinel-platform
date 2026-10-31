@@ -168,19 +168,56 @@ class BinanceBroker(BaseBroker):
             raise BalanceUnavailableError("ccxt/exchange unavailable — balance unknown")
         try:
             balance = self.exchange.fetch_balance()
-            total_usd = float(balance.get("total", {}).get("USDT", 0))
-            free_usd = float(balance.get("free", {}).get("USDT", 0))
-            return AccountBalance(
-                total_equity=total_usd,
-                available_cash=free_usd,
-                positions_value=total_usd - free_usd,
-                total_pnl=0.0,
-                currency="USDT",
-            )
         except Exception as e:
             BROKER_ERRORS.inc()
             # Fail-closed: a failed fetch_balance must not become a fake 10000 equity.
             raise BalanceUnavailableError(f"fetch_balance failed: {type(e).__name__}") from e
+        try:
+            stables_usd, positions = self._value_holdings(balance)
+        except MarketPriceUnavailableError as e:
+            # An asset we hold but cannot price makes equity unknown (never undercounted).
+            raise BalanceUnavailableError(f"equity unknown: {e}") from e
+        free = balance.get("free") if isinstance(balance, dict) else None
+        free_usd = _finite_pos_or_none((free or {}).get("USDT"), allow_zero=True) or 0.0
+        total_equity = stables_usd + sum(p.quantity * p.current_price for p in positions)
+        return AccountBalance(
+            total_equity=total_equity,
+            available_cash=free_usd,  # spendable USDT only (free, not locked)
+            positions_value=total_equity - free_usd,
+            total_pnl=0.0,
+            currency="USDT",
+        )
+
+    def _value_holdings(self, balance) -> tuple[float, list[Position]]:
+        """Single valuation path for get_account_balance and get_positions.
+
+        Uses balance['total'] (= free + locked in ccxt). Returns (stablecoins in USD,
+        non-stable positions priced via _price_in_usd_quote). USDT counts 1:1; other
+        STABLECOINS are approximated 1:1 (warning). An asset with a balance but no
+        valid price raises MarketPriceUnavailableError (exposure never hidden)."""
+        totals = balance.get("total") if isinstance(balance, dict) else None
+        stables_usd = 0.0
+        positions: list[Position] = []
+        for symbol, data in (totals or {}).items():
+            qty = _finite_pos_or_none(data)
+            if qty is None:
+                continue
+            if str(symbol).upper() in STABLECOINS:
+                if str(symbol).upper() != "USDT":
+                    log.warning("[BinanceBroker] %s counted 1:1 to USDT in equity", symbol)
+                stables_usd += qty
+                continue
+            positions.append(
+                Position(
+                    symbol=symbol,
+                    quantity=qty,
+                    avg_entry_price=None,
+                    current_price=self._price_in_usd_quote(symbol),
+                    unrealized_pnl=None,
+                    unrealized_pnl_pct=None,
+                )
+            )
+        return stables_usd, positions
 
     def get_positions(self) -> list[Position]:
         """Spot holdings from fetch_balance, priced by fetch_ticker.
@@ -192,32 +229,16 @@ class BinanceBroker(BaseBroker):
           * spot balance carries no entry price -> avg_entry_price/unrealized_* = None.
         """
         if not self.connected:
-            return []
+            # Fail-closed: unknown holdings are not "no positions".
+            raise BalanceUnavailableError("broker not connected — positions unknown")
         if not HAS_CCXT or not self.exchange:
-            return []
+            raise BalanceUnavailableError("ccxt/exchange unavailable — positions unknown")
         try:
             balance = self.exchange.fetch_balance()
         except Exception as e:
             BROKER_ERRORS.inc()
             raise BalanceUnavailableError(f"fetch_balance failed: {type(e).__name__}") from e
-        totals = balance.get("total") if isinstance(balance, dict) else None
-        positions = []
-        for symbol, data in (totals or {}).items():
-            qty = _finite_pos_or_none(data)
-            if qty is None or str(symbol).upper() in STABLECOINS:
-                continue  # zero/invalid qty, or a stablecoin (cash, not a position)
-            price = self._price_in_usd_quote(symbol)
-            positions.append(
-                Position(
-                    symbol=symbol,
-                    quantity=qty,
-                    avg_entry_price=None,
-                    current_price=price,
-                    unrealized_pnl=None,
-                    unrealized_pnl_pct=None,
-                )
-            )
-        return positions
+        return self._value_holdings(balance)[1]
 
     def _price_in_usd_quote(self, asset: str) -> float:
         """Last price of `asset` against USDT, else the first other stablecoin quote
@@ -401,15 +422,30 @@ class BinanceBroker(BaseBroker):
                 notes=f"state unknown after {type(exc).__name__}: {exc}; lookup failed: {qe}",
                 client_order_id=cid,
             )
-        filled = float(o.get("filled") or 0)
-        status = _map_ccxt_status(o.get("status"), filled, o.get("amount"))
-        return Order(
-            order_id=str(o.get("id") or cid), symbol=symbol, side=side,
-            order_type=order_type, quantity=quantity, price=price, status=status,
-            filled_qty=filled, avg_fill_price=float(o.get("average") or 0),
-            notes=f"reconciled by clientOrderId after {type(exc).__name__}",
-            client_order_id=cid,
+        # Same parsing as a create_order response: no invented fills/prices; missing or
+        # invalid filled -> UNKNOWN with filled_qty=0 (never resubmitted here).
+        order = self._order_from_create_response(
+            o, cid, symbol, side, order_type, quantity, price, cid
         )
+        o = o if isinstance(o, dict) else {}
+        notes = [f"reconciled by clientOrderId after {type(exc).__name__}"]
+        if order.notes:
+            notes.append(order.notes)
+        raw_side = o.get("side")
+        resp_side = _CCXT_SIDES.get(str(raw_side or "").lower())
+        if (raw_side and resp_side is None) or (resp_side is not None and resp_side != side):
+            # The order found under OUR clientOrderId has another/unknown direction.
+            order.status = OrderStatus.UNKNOWN
+            notes.append(f"side mismatch: requested {side.name}, exchange {raw_side!r}")
+        elif resp_side is None:
+            notes.append("side not in response — requested side kept")
+        resp_type = _CCXT_ORDER_TYPES.get(str(o.get("type") or "").lower())
+        if resp_type is not None:
+            order.order_type = resp_type
+        elif o.get("type"):
+            notes.append(f"order type unknown ({o.get('type')!r}) — requested type kept")
+        order.notes = "; ".join(notes)
+        return order
 
     def cancel_order(self, order_id: str) -> bool:
         if not self.connected or not HAS_CCXT or not self.exchange or self.paper:

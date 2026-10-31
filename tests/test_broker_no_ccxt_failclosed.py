@@ -6,7 +6,7 @@ from unittest import mock
 import pytest
 
 import trading.broker.binance as bmod
-from trading.broker.base import OrderSide, OrderStatus, OrderType
+from trading.broker.base import BalanceUnavailableError, OrderSide, OrderStatus, OrderType
 from trading.broker.binance import BinanceBroker
 
 
@@ -62,7 +62,8 @@ def test_other_methods_fail_closed(no_ccxt):
     b = _forced(False)
     assert b.cancel_order("1") is False
     assert b.get_order_status("1") is None
-    assert b.get_positions() == []
+    with pytest.raises(BalanceUnavailableError):
+        b.get_positions()  # unknown holdings are not "no positions"
     with pytest.raises(Exception):
         b.get_account_balance()
 
@@ -103,6 +104,15 @@ def test_orch_no_ccxt_live_broker_denied(no_ccxt, cfg_extra):
 
 def test_orch_rejected_order_not_reported_executed(no_ccxt):
     b = _forced(False)
+    # Without ccxt get_positions now raises (-> positions_unavailable, earlier deny).
+    # Stub it to keep exercising the place_order REJECTED path.
+    b.get_positions = lambda: []
     out = _run(b, {"current_price": 50000.0})
     assert out["action"] != "EXECUTED", out
     assert out["blocked_reason"] == "order_rejected"
+
+
+def test_orch_no_ccxt_forced_connected_denied_before_order(no_ccxt):
+    b = _forced(False)
+    out = _run(b, {"current_price": 50000.0})
+    assert out["action"] == "DENIED" and out["blocked_reason"] == "positions_unavailable", out
