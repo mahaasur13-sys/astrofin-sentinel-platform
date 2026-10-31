@@ -124,9 +124,6 @@ class TestCouncilOrchestrator:
         approves it. ModeEnforcer (trading/mode.py PAPER max_position_pct=0.50) must
         reject a 75% position and the broker must not be called.
         """
-        pytest.importorskip(
-            "yfinance"
-        )  # execute_trading_cycle -> get_broker -> paper_broker -> data_provider needs yfinance
         from orchestration.council_orchestrator import CouncilOrchestrator
 
         risk = FakeRiskEngine(adjust_result=0.75, reason="normal regime")
@@ -229,9 +226,6 @@ class TestCouncilOrchestrator:
         resulting 200% position must be rejected by ModeEnforcer (PAPER limit 50%;
         no mode allows >100%). The broker must not be called.
         """
-        pytest.importorskip(
-            "yfinance"
-        )  # execute_trading_cycle -> get_broker -> paper_broker -> data_provider needs yfinance
         from orchestration.council_orchestrator import CouncilOrchestrator
 
         risk = FakeRiskEngine(adjust_result=2.0, reason="aggressive")
@@ -474,9 +468,6 @@ class TestPhase7E2E:
         Position 20% (≤ RiskEngineV2 max_exposure_per_asset 25%, ≤ PAPER 50%) with real
         market inputs, equity and price; only the broker is an offline stub.
         """
-        pytest.importorskip(
-            "yfinance"
-        )  # execute_trading_cycle -> get_broker -> paper_broker -> data_provider needs yfinance
         from orchestration.council_orchestrator import CouncilOrchestrator
 
         risk = FakeRiskEngine(adjust_result=0.2, reason="normal")
