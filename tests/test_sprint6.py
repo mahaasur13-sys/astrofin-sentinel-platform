@@ -63,6 +63,51 @@ class FakeRiskEngine:
         return self.adjust_result, self.reason
 
 
+# SafetyGate contract fixtures (since 299649c1 every order goes through SafetyGate).
+# Real market inputs required by ExecutionSanityChecker; no network, broker is a stub.
+PRICE = 50_000.0
+EQUITY = 10_000.0
+MARKET = {
+    "last_price": PRICE,
+    "bid_price": 49_999.0,
+    "ask_price": 50_001.0,
+    "spread_bps": 0.4,
+    "adv_24h_quote": 5e9,
+    "current_vol_regime": "NORMAL",
+}
+GATE_CFG = {"trading_mode": "PAPER", "current_price": PRICE, "equity": EQUITY, "market": MARKET}
+
+
+def make_stub_broker():
+    """Offline broker stub: no positions, fills any market order at PRICE.
+
+    Only the broker is stubbed; the real SafetyGate (ModeEnforcer, RiskEngineV2,
+    ExecutionSanity) still decides whether place_order is reached.
+    """
+    from trading.broker.base import Order, OrderStatus
+
+    broker = MagicMock()
+    broker.name = "stub"
+    broker.connected = True
+    broker.get_positions.return_value = []
+
+    def _place(symbol, side, order_type, qty, client_order_id=None):
+        return Order(
+            order_id="stub-1",
+            symbol=symbol,
+            side=side,
+            order_type=order_type,
+            quantity=qty,
+            status=OrderStatus.FILLED,
+            filled_qty=qty,
+            avg_fill_price=PRICE,
+            client_order_id=client_order_id,
+        )
+
+    broker.place_order.side_effect = _place
+    return broker
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # 1. CouncilOrchestrator
 # ═══════════════════════════════════════════════════════════════════════
@@ -73,14 +118,16 @@ class TestCouncilOrchestrator:
 
     @pytest.mark.asyncio
     async def test_execute_trading_cycle_normal(self):
-        """Full cycle: KARL → RiskEngine → EXECUTED result."""
-        pytest.importorskip(
-            "yfinance"
-        )  # execute_trading_cycle -> get_broker -> paper_broker -> data_provider needs yfinance
+        """Full cycle KARL → RiskEngine → SafetyGate: 75% > PAPER limit 50% → DENIED.
+
+        Contract since 299649c1: the order reaches the broker only after SafetyGate
+        approves it. ModeEnforcer (trading/mode.py PAPER max_position_pct=0.50) must
+        reject a 75% position and the broker must not be called.
+        """
         from orchestration.council_orchestrator import CouncilOrchestrator
 
         risk = FakeRiskEngine(adjust_result=0.75, reason="normal regime")
-        orchestrator = CouncilOrchestrator(risk, config={"symbol": "BTCUSDT"})
+        orchestrator = CouncilOrchestrator(risk, config={"symbol": "BTCUSDT", **GATE_CFG})
 
         responses = [
             make_response("FundamentalAgent", SignalDirection.LONG, confidence=70),
@@ -88,13 +135,18 @@ class TestCouncilOrchestrator:
         ]
         final_signal = make_response("AstroCouncil", SignalDirection.LONG, confidence=60)
 
-        result = await orchestrator.execute_trading_cycle(responses, final_signal)
+        broker = make_stub_broker()
+        with patch("orchestration.council_orchestrator.get_broker", return_value=broker):
+            result = await orchestrator.execute_trading_cycle(responses, final_signal)
 
-        assert result["action"] == "EXECUTED"
-        assert result["size"] == 0.75
-        assert result["blocked"] is False
+        assert result["action"] == "DENIED"
+        assert result["status"] == "REJECTED"
+        assert result["blocked"] is True
+        assert result["blocked_reason"].startswith("mode_check:POSITION_SIZE")
+        assert result["size"] == 0.0
         assert result["signal"] in ("LONG", "BUY")
         assert result["risk_reason"] == "normal regime"
+        broker.place_order.assert_not_called()
         assert len(risk.calls) == 1
         assert risk.calls[0]["base_size"] == 1.0
 
@@ -168,22 +220,30 @@ class TestCouncilOrchestrator:
 
     @pytest.mark.asyncio
     async def test_execute_cycle_config_override(self):
-        """Config overrides work (base_position_size from call site)."""
-        pytest.importorskip(
-            "yfinance"
-        )  # execute_trading_cycle -> get_broker -> paper_broker -> data_provider needs yfinance
+        """Call-site config override reaches RiskEngine; 200% size is DENIED by SafetyGate.
+
+        base_position_size=2.0 from the call site must be passed to RiskEngine, and the
+        resulting 200% position must be rejected by ModeEnforcer (PAPER limit 50%;
+        no mode allows >100%). The broker must not be called.
+        """
         from orchestration.council_orchestrator import CouncilOrchestrator
 
         risk = FakeRiskEngine(adjust_result=2.0, reason="aggressive")
-        orchestrator = CouncilOrchestrator(risk, config={"base_position_size": 1.0})
+        orchestrator = CouncilOrchestrator(risk, config={"base_position_size": 1.0, **GATE_CFG})
 
         responses = [make_response("QuantAgent", SignalDirection.LONG, confidence=90)]
         final = make_response("AstroCouncil", SignalDirection.LONG, confidence=80)
 
-        result = await orchestrator.execute_trading_cycle(responses, final, config={"base_position_size": 2.0})
+        broker = make_stub_broker()
+        with patch("orchestration.council_orchestrator.get_broker", return_value=broker):
+            result = await orchestrator.execute_trading_cycle(responses, final, config={"base_position_size": 2.0})
 
-        assert result["size"] == 2.0
         assert risk.calls[0]["base_size"] == 2.0
+        assert result["action"] == "DENIED"
+        assert result["blocked"] is True
+        assert result["blocked_reason"].startswith("mode_check:POSITION_SIZE")
+        assert result["size"] == 0.0
+        broker.place_order.assert_not_called()
 
     def test_adjust_through_risk_delegation(self):
         """RiskEngine.adjust_position_size is called with correct args."""
@@ -403,18 +463,20 @@ class TestPhase7E2E:
 
     @pytest.mark.asyncio
     async def test_full_pipeline_buy_signal(self):
-        """BUY signal passes through KARL → RiskEngine → EXECUTED."""
-        pytest.importorskip(
-            "yfinance"
-        )  # execute_trading_cycle -> get_broker -> paper_broker -> data_provider needs yfinance
+        """BUY signal passes KARL → RiskEngine → real SafetyGate → EXECUTED.
+
+        Position 20% (≤ RiskEngineV2 max_exposure_per_asset 25%, ≤ PAPER 50%) with real
+        market inputs, equity and price; only the broker is an offline stub.
+        """
         from orchestration.council_orchestrator import CouncilOrchestrator
 
-        risk = FakeRiskEngine(adjust_result=0.5, reason="normal")
+        risk = FakeRiskEngine(adjust_result=0.2, reason="normal")
         orchestrator = CouncilOrchestrator(
             risk,
             config={
                 "symbol": "BTCUSDT",
                 "base_position_size": 1.0,
+                **GATE_CFG,
             },
         )
 
@@ -430,11 +492,15 @@ class TestPhase7E2E:
         ]
         final = make_response("AstroCouncil", SignalDirection.LONG, confidence=61)
 
-        result = await orchestrator.execute_trading_cycle(responses, final)
+        broker = make_stub_broker()
+        with patch("orchestration.council_orchestrator.get_broker", return_value=broker):
+            result = await orchestrator.execute_trading_cycle(responses, final)
 
-        assert result["action"] == "EXECUTED"
-        assert result["size"] > 0
+        assert result["action"] == "EXECUTED", result
         assert result["blocked"] is False
+        assert result["size"] == pytest.approx(0.2)
+        assert result["qty"] == pytest.approx(EQUITY * 0.2 / PRICE)
+        assert broker.place_order.call_count == 1
 
     @pytest.mark.asyncio
     async def test_full_pipeline_conflict_stop(self):
