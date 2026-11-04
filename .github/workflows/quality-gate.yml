@@ -1,5 +1,8 @@
 name: Quality Gate
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches: [ master, develop ]
@@ -11,7 +14,7 @@ on:
 # lint-scope files changed.
 
 # Quality gate is a **blocking** job for changes in the agents/ tree.
-# It enforces: linter, per-agent validator, coverage on changed files,
+# It enforces: linter, per-agent validator, aggregate package coverage,
 # and a "did you touch docs?" warning.
 #
 # KI-125 fix: ruff now runs only on files changed in the PR (not the whole
@@ -21,7 +24,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.12'
-  COVERAGE_FAIL_UNDER: '10'
+  COVERAGE_FAIL_UNDER: '45'
 
 jobs:
   quality-gate:
@@ -90,25 +93,51 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Coverage on changed files (KI-127)
-        if: steps.changed.outputs.changed_files != ''
-        run: |
-          # KI-127: `pytest-cov` lives in [project.optional-dependencies.dev] and the
-          # coverage addopts are configured in pyproject.toml. Previously this job
-          # invoked `python -m pytest` without first running `uv sync --extra dev`,
-          # which left the runtime env without pytest-cov and produced
-          # `unrecognized arguments: --cov=...` even though the flags were also
-          # passed explicitly. Install dev extras and let addopts own the flags.
       - name: Setup uv and run coverage
         run: |
+          set -eo pipefail
           pip install uv
           uv sync --frozen --extra dev
           echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
           echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
           uv run python -m pytest tests/ --tb=short \
             --no-header \
+            --cov=agents \
+            --cov=core \
+            --cov=meta_rl \
+            --cov=orchestration \
+            --cov=trading \
+            --cov=web \
             --cov-report=term \
-            --cov-fail-under=${{ env.COVERAGE_FAIL_UNDER }}
+            --cov-report=json:coverage.json \
+            --cov-precision=4 \
+            --cov-fail-under="$COVERAGE_FAIL_UNDER"
+
+          # Compare raw counts as integers: pytest-cov rounds to its configured
+          # precision before comparing with --cov-fail-under.
+          uv run python - <<'PY_GATE'
+          import json
+          import os
+          from fractions import Fraction
+          from pathlib import Path
+
+          try:
+              minimum = Fraction(os.environ["COVERAGE_FAIL_UNDER"])
+          except (KeyError, ValueError, ZeroDivisionError) as exc:
+              raise SystemExit(f"Invalid coverage threshold: {exc}")
+          if not 0 < minimum <= 100:
+              raise SystemExit("COVERAGE_FAIL_UNDER must be > 0 and <= 100")
+
+          totals = json.loads(Path("coverage.json").read_text(encoding="utf-8"))["totals"]
+          covered, statements = totals["covered_lines"], totals["num_statements"]
+          if not isinstance(covered, int) or not isinstance(statements, int):
+              raise SystemExit("Coverage counts must be integers")
+          if statements <= 0 or not 0 <= covered <= statements:
+              raise SystemExit("Coverage counts are invalid or empty")
+          if 100 * covered * minimum.denominator < minimum.numerator * statements:
+              raise SystemExit(f"Coverage gate failed: {covered}/{statements} < {minimum}%")
+          print(f"Coverage gate passed: {covered}/{statements} >= {minimum}% (unrounded)")
+          PY_GATE
 
       - name: Doc-touch warning (informational)
         if: steps.changed.outputs.changed_files != ''
