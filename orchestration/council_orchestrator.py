@@ -10,6 +10,7 @@ import copy
 import logging
 import math
 import os
+import uuid
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from typing import List
@@ -60,6 +61,68 @@ def _direction_name(signal) -> str:
     if raw in _SHORT_ALIASES:
         return "SHORT"
     return "NEUTRAL"
+
+
+# AVOID veto (DEC-1/DEC-7). Flag ASTROFIN_AVOID_VETO: off | candidate | enforce.
+# Default off = today's behaviour. enforce is NOT switched on by this module, CI or
+# workflow: it needs an explicit env var (DEC-6). "Any single AVOID blocks" is NOT the
+# rule (retracted by DEC-1).
+_AVOID_VETO_MODES = ("off", "candidate", "enforce")
+AVOID_VETO_MIN_AGENTS = 2
+
+
+def _avoid_veto_mode() -> str:
+    """ASTROFIN_AVOID_VETO, read per cycle. Missing/empty -> off; unknown -> off + warning."""
+    raw = (os.getenv("ASTROFIN_AVOID_VETO") or "").strip().lower()
+    if not raw:
+        return "off"
+    if raw in _AVOID_VETO_MODES:
+        return raw
+    logger.warning("ASTROFIN_AVOID_VETO=%r is not one of %s — treated as off", raw, _AVOID_VETO_MODES)
+    return "off"
+
+
+def _is_avoid(signal) -> bool:
+    """Canonical AVOID check (SignalDirection.AVOID), tolerant to str/enum. _direction_name is not used."""
+    return str(getattr(signal, "value", signal)).strip().upper() == SignalDirection.AVOID.value
+
+
+def _avoid_veto_evidence(agent_responses, final_signal, decision_id: str) -> dict:
+    """DEC-7: which agents said AVOID and whether the veto is confirmed.
+
+    Confirmed when the synthesis result is AVOID, or when >= AVOID_VETO_MIN_AGENTS
+    independent agents (distinct agent_name) said AVOID. A single AVOID — including one
+    ElectoralAgent with LONG elsewhere — is only a candidate and blocks nothing.
+    final_signal's own agent_name does not count as a second agent.
+    """
+    ts = datetime.now(timezone.utc).isoformat()
+    final_name = getattr(final_signal, "agent_name", None)
+    avoid_by_agent: dict = {}
+    for r in agent_responses or []:
+        name = getattr(r, "agent_name", None)
+        if not name or name == final_name or not _is_avoid(getattr(r, "signal", None)):
+            continue
+        avoid_by_agent.setdefault(name, r)
+
+    candidates = [
+        {
+            "source_agent": name,
+            "reason": str(getattr(r, "reasoning", "") or "signal=AVOID"),
+            "ts": ts,
+            "decision_id": decision_id,
+        }
+        for name, r in avoid_by_agent.items()
+    ]
+    sources, vetoes = [], []
+    if _is_avoid(getattr(final_signal, "signal", None)):
+        sources.append(f"final_signal=AVOID ({final_name or 'consensus'})")
+        vetoes.append({"source_agent": final_name or "consensus", "reason": "final_signal=AVOID",
+                       "ts": ts, "decision_id": decision_id})
+    if len(avoid_by_agent) >= AVOID_VETO_MIN_AGENTS:
+        sources.append(f"{len(avoid_by_agent)} independent agents=AVOID")
+        vetoes.extend(candidates)
+    return {"candidates": candidates, "sources": sources, "vetoes": vetoes,
+            "confirmed": bool(sources)}
 
 
 def _positions_snapshot(raw) -> dict:
@@ -141,6 +204,37 @@ class CouncilOrchestrator:
         # 1. KARL arbitration
         processed = self._apply_karl_arbitration(agent_responses)
 
+        # 1b. AVOID veto (DEC-1/DEC-7) — before the risk step and before the broker.
+        #     off: veto stays None, so the cycle keeps today's behaviour and result shape.
+        veto_mode = _avoid_veto_mode()
+        veto = None
+
+        def _finish(result: dict) -> dict:
+            if veto is not None:
+                result["avoid_veto"] = veto
+            return result
+
+        if veto_mode != "off":
+            decision_id = str(cfg.get("decision_id") or uuid.uuid4())
+            veto = {"mode": veto_mode, "decision_id": decision_id, "enforced": False,
+                    **_avoid_veto_evidence(processed, final_signal, decision_id)}
+            if veto["confirmed"] and veto_mode == "enforce":
+                sources = "; ".join(veto["sources"])
+                agents = ", ".join(c["source_agent"] for c in veto["candidates"]) or "none"
+                logger.warning("🛑 [AVOID VETO] trade blocked. sources=%s", sources)
+                veto["enforced"] = True
+                return {
+                    "action": "VETO",
+                    "size": 0.0,
+                    "risk_reason": f"avoid veto: {sources}",
+                    "blocked": True,
+                    "blocked_reason": f"avoid_veto: {sources}; agents={agents}",
+                    "signal": "AVOID",
+                    "decision_id": decision_id,
+                    "avoid_veto": veto,
+                    "vetoes": veto["vetoes"],
+                }
+
         # 2. RiskEngine wire-up
         base_size = cfg.get("base_position_size", 1.0)
         adjusted_size, risk_reason = self.adjust_through_risk(base_size, processed)
@@ -159,25 +253,25 @@ class CouncilOrchestrator:
             if not is_backtest and send_telegram_message is not None:
                 asyncio.create_task(send_telegram_message(alert_msg))
 
-            return {
+            return _finish({
                 "action": "STOP",
                 "size": 0.0,
                 "risk_reason": risk_reason,
                 "blocked": True,
                 "signal": direction,
-            }
+            })
 
         # 4. NEUTRAL check
         if direction == "NEUTRAL":
             # NEUTRAL, AVOID, HOLD and unknown signals never open a position
             logger.info("Council consensus is %s -> NEUTRAL. No action.", getattr(final_signal.signal, "value", final_signal.signal))
-            return {
+            return _finish({
                 "action": "NEUTRAL",
                 "size": 0.0,
                 "risk_reason": "consensus NEUTRAL",
                 "blocked": False,
                 "signal": direction,
-            }
+            })
 
         # 5. Execution — broker dispatch (Sprint 8.1 Paper Trading)
         #    Order reaches the broker ONLY after SafetyGate.check() approves it.
@@ -188,7 +282,7 @@ class CouncilOrchestrator:
         def _deny(code: str, reason: str, status: str) -> dict:
             # status: REJECTED (policy violation) | BLOCKED (check impossible / error)
             logger.warning("🚫 [SAFETY %s] signal=%s code=%s reason=%s", status, signal_name, code, reason)
-            return {
+            return _finish({
                 "action": "DENIED",
                 "status": status,
                 "size": 0.0,
@@ -198,7 +292,7 @@ class CouncilOrchestrator:
                 "blocked": True,
                 "blocked_reason": code,
                 "safety_reason": reason,
-            }
+            })
 
         try:
             broker = get_broker()
@@ -338,7 +432,7 @@ class CouncilOrchestrator:
             # Never report the full qty as executed: only what the exchange says was filled.
             logger.warning("[EXECUTE] order %s %s: filled %s of %s", client_order_id,
                            order_status.name, filled_qty, qty)
-            return {
+            return _finish({
                 "action": "PARTIALLY_EXECUTED" if order_status is OrderStatus.PARTIAL else "ORDER_PENDING",
                 "status": decision.status.value,
                 "size": position_fraction,
@@ -356,7 +450,7 @@ class CouncilOrchestrator:
                 "executed_price": getattr(order, "avg_fill_price", None),
                 "commission": getattr(order, "commission", None),
                 "broker": broker.name,
-            }
+            })
 
         logger.info(
             "✅ [EXECUTE] signal=%s size=%s qty=%s price=%s risk=%s broker=%s status=%s",
@@ -364,7 +458,7 @@ class CouncilOrchestrator:
             broker.name, order.status.name,
         )
 
-        return {
+        return _finish({
             "action": "EXECUTED",
             "status": decision.status.value,
             "size": position_fraction,  # actual fraction sent (after REDUCED)
@@ -384,4 +478,4 @@ class CouncilOrchestrator:
             "executed_price": order.avg_fill_price,
             "commission": order.commission,
             "broker": broker.name,
-        }
+        })
