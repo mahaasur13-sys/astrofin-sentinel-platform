@@ -142,6 +142,11 @@ class BacktestRunner:
             self.stats.stops_triggered += 1
             return
 
+        if action["action"] == "VETO":
+            # Council AVOID veto keeps the position exactly as it is: the live cycle returns
+            # before the broker, so the backtest must not close or open anything either.
+            return
+
         if action["action"] == "NEUTRAL":
             self.stats.neutrals_skipped += 1
             return

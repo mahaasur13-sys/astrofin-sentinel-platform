@@ -83,3 +83,25 @@ class TestBacktestRunner:
         r = BacktestRunner(mock_orch)
         report = await r.run(sample_data)
         assert isinstance(report["sharpe_ratio"], float)
+
+    def test_veto_keeps_open_position(self, mock_orch):
+        """VETO (size=0) must not close the open position or open a new one; STOP/NEUTRAL unchanged."""
+        r = BacktestRunner(mock_orch, initial_capital=10000.0)
+        r.position = 0.02
+        r.entry_price = 100.0
+        capital_before = r.capital
+
+        r._simulate_trade({"action": "VETO", "size": 0.0, "signal": "AVOID"}, 120.0)
+
+        assert r.position == 0.02
+        assert r.entry_price == 100.0
+        assert r.capital == capital_before
+        assert r.stats.trades == 0
+
+        r._simulate_trade({"action": "NEUTRAL", "size": 0.0, "signal": "NEUTRAL"}, 120.0)
+        assert r.position == 0.02
+        assert r.stats.neutrals_skipped == 1
+
+        r._simulate_trade({"action": "STOP", "size": 0.0, "signal": "STOP"}, 120.0)
+        assert r.position == 0.02
+        assert r.stats.stops_triggered == 1

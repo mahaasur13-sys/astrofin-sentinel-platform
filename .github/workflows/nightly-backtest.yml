@@ -21,3 +21,4 @@ jobs:
         run: pytest tests/test_backtest_runner.py tests/test_backtest_mode_comparison.py tests/test_backtest_real_agents.py tests/test_vedic_backtest.py -v --tb=short
         env:
           AGENT_RUN_REAL: 1
+          ASTROFIN_AVOID_VETO: enforce
