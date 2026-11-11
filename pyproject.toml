@@ -52,7 +52,7 @@ dependencies = [
   "tenacity>=8.0.0,<10.0",
 
   # Optional LLM (used by git_agent_exporter)
-  "openai>=1.0.0,<3.0",
+  "openai>=1.0.0,<4.0",
 
   # Bounded LRU cache for EmbeddingClient (P2-02 review, CR-104)
   "cachetools>=5.3.0,<8.0",
