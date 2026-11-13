@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,web]"
       - name: Run nightly backtests
         run: pytest tests/test_backtest_runner.py tests/test_backtest_mode_comparison.py tests/test_backtest_real_agents.py tests/test_vedic_backtest.py -v --tb=short
         env:

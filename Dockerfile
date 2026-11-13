@@ -30,7 +30,7 @@ COPY pyproject.toml uv.lock ./
 
 # Export the lock-resolved wheel set so the runtime stage can install offline.
 RUN uv export --frozen --no-hashes --format requirements-txt \
-        --extra dev \
+        --extra web \
         -o /tmp/requirements.txt \
  && uv pip wheel --no-cache-dir --wheel-dir /wheels -r /tmp/requirements.txt
 

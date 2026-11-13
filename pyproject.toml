@@ -67,16 +67,11 @@ dev = [
   "hypothesis>=6.100.0",
   "ruff>=0.4.0,<1.0",
   "mypy>=2.2.0,<3.0",
-  # JWT (used by tests + web layer)
+  # JWT + crypto (used by tests and non-web auth modules; NOT imported by web.app)
   "pyjwt[crypto]>=2.13.0",
   "cryptography>=49.0.0",
-  # Web UI + data layer
+  # RAG index tooling (NOT imported by the web.app runtime path)
   "faiss-cpu>=1.14.3",
-  "dash>=4.4.0",
-  "dash-bootstrap-components>=2.0.4",
-  "structlog>=26.1.0",
-  "flask>=3.1.3",
-  "fastapi>=0.109.0",
 ]
 
 db = [
@@ -96,6 +91,7 @@ web = [
   "flask>=3.1.3",
   "flask-cors>=6.0.5",
   "gunicorn>=26.0.0",
+  "structlog>=26.1.0",
 ]
 
 rag = [

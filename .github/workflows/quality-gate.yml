@@ -39,7 +39,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install
-        run: pip install --break-system-packages -e ".[dev]"
+        run: pip install --break-system-packages -e ".[dev,web]"
 
       - name: Detect changes in agents/_impl/, core/, orchestration/, and web/
         id: changed
@@ -97,7 +97,7 @@ jobs:
         run: |
           set -eo pipefail
           pip install uv
-          uv sync --frozen --extra dev
+          uv sync --frozen --extra dev --extra web
           echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/.venv" >> "$GITHUB_ENV"
           echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
           uv run python -m pytest tests/ --tb=short \
